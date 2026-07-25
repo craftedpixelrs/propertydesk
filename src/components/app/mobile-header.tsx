@@ -1,0 +1,23 @@
+"use client";
+
+import { APP_NAME } from "@/lib/constants/app";
+import { OrganizationSwitcher } from "@/components/app/organization-switcher";
+import { NotificationBell } from "@/features/notifications/notification-bell";
+
+/**
+ * Slim top bar shown on mobile only. Desktop uses the sidebar header for
+ * branding, so this is hidden from `md` breakpoint upward.
+ */
+export function MobileHeader() {
+  return (
+    <header className="sticky top-0 z-30 flex h-14 items-center justify-between gap-2 border-b border-[var(--color-border)] bg-[var(--color-surface)] px-4 safe-top md:hidden">
+      <div className="text-sm font-semibold text-[var(--color-foreground)]">{APP_NAME}</div>
+      <div className="flex min-w-0 items-center gap-1">
+        <div className="min-w-0 max-w-[55vw]">
+          <OrganizationSwitcher />
+        </div>
+        <NotificationBell />
+      </div>
+    </header>
+  );
+}

@@ -1,0 +1,270 @@
+import Link from "next/link";
+import { notFound, redirect } from "next/navigation";
+
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { loadUserContext } from "@/server/auth/context";
+import { getUnitById } from "@/server/services/units.service";
+import { isDomainError } from "@/lib/errors";
+import { formatMoney, formatDateTime } from "@/lib/formatters";
+import { UnitStatusChanger } from "@/features/units/unit-status-changer";
+
+const UNIT_STATUS_LABELS: Record<string, string> = {
+  AVAILABLE: "Slobodno",
+  ON_HOLD: "Na čekanju",
+  RESERVED: "Rezervisano",
+  DEPOSIT_PAID: "Kapara plaćena",
+  CONTRACTED: "Ugovoreno",
+  SOLD: "Prodato",
+  BLOCKED: "Blokirano",
+  NOT_FOR_SALE: "Nije u prodaji",
+};
+
+const UNIT_TYPE_LABELS: Record<string, string> = {
+  APARTMENT: "Stan",
+  GARAGE: "Garaža",
+  PARKING_SPACE: "Parking",
+  STORAGE: "Ostava",
+  COMMERCIAL: "Lokal",
+  HOUSE: "Kuća",
+  OTHER: "Ostalo",
+};
+
+interface Props {
+  params: Promise<{ id: string }>;
+}
+
+export default async function UnitDetail({ params }: Props) {
+  const { id } = await params;
+  const ctx = await loadUserContext();
+  if (!ctx) redirect("/sign-in");
+  if (!ctx.activeOrganization) redirect("/podesavanja");
+
+  let unit: Awaited<ReturnType<typeof getUnitById>>;
+  try {
+    unit = await getUnitById(ctx.activeOrganization.id, id);
+  } catch (err) {
+    if (isDomainError(err) && err.code === "NOT_FOUND") return notFound();
+    throw err;
+  }
+
+  const canManageStatus = ctx.permissions.includes("inventory.status");
+  const canEdit = ctx.permissions.includes("inventory.manage");
+
+  return (
+    <div className="space-y-6">
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <div className="text-xs font-mono uppercase text-[var(--color-foreground-muted)]">
+            <Link
+              href={`/projekti/${unit.project.id}`}
+              className="hover:underline"
+            >
+              {unit.project.name}
+            </Link>{" "}
+            · {unit.code}
+          </div>
+          <h1 className="text-2xl font-semibold">
+            {UNIT_TYPE_LABELS[unit.type] ?? unit.type} {unit.code}
+          </h1>
+          <div className="text-sm text-[var(--color-foreground-muted)]">
+            {unit.totalArea.toString()} m² · {unit.bedrooms ?? "—"} spavaćih ·{" "}
+            {unit.bathrooms ?? "—"} kupatila
+          </div>
+        </div>
+        <div className="flex flex-col items-end gap-2">
+          <div className="text-right">
+            <div className="text-xs uppercase tracking-wide text-[var(--color-foreground-muted)]">
+              Cena
+            </div>
+            <div className="text-2xl font-semibold tabular-nums">
+              {formatMoney(
+                unit.finalPrice ?? unit.basePrice,
+                unit.currency as "EUR" | "RSD",
+              )}
+            </div>
+            {unit.pricePerSquareMeter ? (
+              <div className="text-xs text-[var(--color-foreground-muted)]">
+                {formatMoney(
+                  unit.pricePerSquareMeter,
+                  unit.currency as "EUR" | "RSD",
+                )}
+                /m²
+              </div>
+            ) : null}
+          </div>
+          {canEdit ? (
+            <Button asChild variant="outline" size="sm">
+              <Link href={`/jedinice/${unit.id}/izmena`}>Izmeni jedinicu</Link>
+            </Button>
+          ) : null}
+        </div>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <CardTitle>Status</CardTitle>
+            <div className="text-sm">
+              Trenutni:{" "}
+              <span className="font-medium">
+                {UNIT_STATUS_LABELS[unit.status] ?? unit.status}
+              </span>
+            </div>
+          </div>
+        </CardHeader>
+        {canManageStatus ? (
+          <CardContent>
+            <UnitStatusChanger
+              unitId={unit.id}
+              currentStatus={unit.status}
+            />
+          </CardContent>
+        ) : null}
+      </Card>
+
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <CardTitle>Karakteristike</CardTitle>
+          </CardHeader>
+          <CardContent className="grid grid-cols-2 gap-3 text-sm">
+            <InfoRow label="Tip" value={UNIT_TYPE_LABELS[unit.type] ?? unit.type} />
+            <InfoRow label="Struktura" value={unit.structure ?? "—"} />
+            <InfoRow label="Ukupna površina" value={`${unit.totalArea.toString()} m²`} />
+            <InfoRow
+              label="Bruto"
+              value={unit.internalArea ? `${unit.internalArea.toString()} m²` : "—"}
+            />
+            <InfoRow
+              label="Terasa"
+              value={unit.terraceArea ? `${unit.terraceArea.toString()} m²` : "—"}
+            />
+            <InfoRow
+              label="Bašta"
+              value={unit.gardenArea ? `${unit.gardenArea.toString()} m²` : "—"}
+            />
+            <InfoRow label="Orijentacija" value={unit.orientation ?? "—"} />
+            <InfoRow
+              label="PDV"
+              value={
+                unit.vatRate
+                  ? `${unit.vatRate.toString()}% ${unit.vatIncluded ? "(uključen)" : "(dodaje se)"}`
+                  : "—"
+              }
+            />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Lokacija u projektu</CardTitle>
+          </CardHeader>
+          <CardContent className="grid grid-cols-2 gap-3 text-sm">
+            <InfoRow label="Projekat" value={unit.project.name} />
+            <InfoRow label="Objekat" value={unit.building?.name ?? "—"} />
+            <InfoRow label="Ulaz" value={unit.entrance?.name ?? "—"} />
+            <InfoRow label="Sprat" value={unit.floor?.label ?? "—"} />
+            <InfoRow
+              label="Vidljivost agencijama"
+              value={unit.isVisibleToAgencies ? "Da" : "Ne"}
+            />
+          </CardContent>
+        </Card>
+      </div>
+
+      {unit.publicDescription ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>Javni opis</CardTitle>
+          </CardHeader>
+          <CardContent className="whitespace-pre-wrap text-sm">
+            {unit.publicDescription}
+          </CardContent>
+        </Card>
+      ) : null}
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Istorija cena</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {unit.priceHistory.length === 0 ? (
+            <div className="text-sm text-[var(--color-foreground-muted)]">
+              Nema izmena cena.
+            </div>
+          ) : (
+            <ul className="divide-y divide-[var(--color-border)] text-sm">
+              {unit.priceHistory.map((h) => (
+                <li key={h.id} className="flex flex-wrap items-center justify-between gap-2 py-2">
+                  <div>
+                    <div className="font-medium">
+                      {formatMoney(h.previousBasePrice, h.currency as "EUR" | "RSD")} →{" "}
+                      {formatMoney(h.newBasePrice, h.currency as "EUR" | "RSD")}
+                    </div>
+                    {h.reason ? (
+                      <div className="text-xs text-[var(--color-foreground-muted)]">
+                        {h.reason}
+                      </div>
+                    ) : null}
+                  </div>
+                  <div className="text-xs text-[var(--color-foreground-muted)]">
+                    {formatDateTime(h.changedAt)} · {h.changedByUser.name}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Istorija statusa</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {unit.statusHistory.length === 0 ? (
+            <div className="text-sm text-[var(--color-foreground-muted)]">
+              Nema izmena statusa.
+            </div>
+          ) : (
+            <ul className="divide-y divide-[var(--color-border)] text-sm">
+              {unit.statusHistory.map((h) => (
+                <li
+                  key={h.id}
+                  className="flex flex-wrap items-center justify-between gap-2 py-2"
+                >
+                  <div>
+                    <div className="font-medium">
+                      {UNIT_STATUS_LABELS[h.previousStatus] ?? h.previousStatus} →{" "}
+                      {UNIT_STATUS_LABELS[h.newStatus] ?? h.newStatus}
+                    </div>
+                    {h.reason ? (
+                      <div className="text-xs text-[var(--color-foreground-muted)]">
+                        {h.reason}
+                      </div>
+                    ) : null}
+                  </div>
+                  <div className="text-xs text-[var(--color-foreground-muted)]">
+                    {formatDateTime(h.changedAt)} · {h.changedByUser.name}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+function InfoRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <div className="text-xs uppercase tracking-wide text-[var(--color-foreground-muted)]">
+        {label}
+      </div>
+      <div className="mt-0.5">{value}</div>
+    </div>
+  );
+}

@@ -1,0 +1,87 @@
+# PropertyDesk production stack (single-host, non-swarm).
+#
+# Services:
+#   - app   : Next.js 16 standalone, listening on :3000 inside the network.
+#   - caddy : reverse proxy + automatic HTTPS (Let's Encrypt) for both
+#             propertydesk.app (marketing landing) and my.propertydesk.app
+#             (authenticated app).
+#
+# Data:
+#   - caddy_data / caddy_config → certificates + ACME account (must persist).
+#   - app_storage → local file storage when STORAGE_PROVIDER=local.
+#
+# All env comes from the sibling `.env` file (never committed).
+
+services:
+  app:
+    # `image:` is required for the fast-deploy flow (build off-host on
+    # a beefy machine, push to GHCR, VPS just `docker compose pull`).
+    # When the tag is not present in the registry, `docker compose
+    # --build` falls back to the local `build:` block below.
+    #
+    # `IMAGE` defaults to the legacy local tag so `docker compose up
+    # --build` on the VPS keeps working exactly as before if the fast
+    # flow is not configured.
+    image: ${IMAGE:-propertydesk-app:latest}
+    build:
+      context: .
+      dockerfile: Dockerfile
+      # NEXT_PUBLIC_* are baked into the client bundle at build time.
+      # Compose passes them from the .env file below.
+      args:
+        NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL}
+        NEXT_PUBLIC_APP_NAME: ${NEXT_PUBLIC_APP_NAME}
+        NEXT_PUBLIC_APP_DOMAIN: ${NEXT_PUBLIC_APP_DOMAIN}
+        NEXT_PUBLIC_APP_LOCALE: ${NEXT_PUBLIC_APP_LOCALE}
+        NEXT_PUBLIC_APP_TIMEZONE: ${NEXT_PUBLIC_APP_TIMEZONE}
+        NEXT_PUBLIC_MY_APP_URL: ${NEXT_PUBLIC_MY_APP_URL}
+        NEXT_PUBLIC_LOOPS_FORM_ID: ${NEXT_PUBLIC_LOOPS_FORM_ID:-}
+        NEXT_PUBLIC_SENTRY_DSN: ${NEXT_PUBLIC_SENTRY_DSN:-}
+        NEXT_PUBLIC_GOOGLE_APPOINTMENT_URL: ${NEXT_PUBLIC_GOOGLE_APPOINTMENT_URL:-}
+        NEXT_PUBLIC_PRODUCT_VIDEO_URL: ${NEXT_PUBLIC_PRODUCT_VIDEO_URL:-}
+    container_name: propertydesk-app
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      NODE_ENV: production
+      HOSTNAME: 0.0.0.0
+      PORT: "3000"
+    expose:
+      - "3000"
+    volumes:
+      - app_storage:/app/storage
+    networks:
+      - web
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:3000/api/health || exit 1"]
+      interval: 30s
+      timeout: 5s
+      start_period: 40s
+      retries: 3
+
+  caddy:
+    image: caddy:2-alpine
+    container_name: propertydesk-caddy
+    restart: unless-stopped
+    depends_on:
+      - app
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    networks:
+      - web
+
+networks:
+  web:
+    driver: bridge
+
+volumes:
+  caddy_data:
+  caddy_config:
+  app_storage:

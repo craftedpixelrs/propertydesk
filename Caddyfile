@@ -1,0 +1,60 @@
+# PropertyDesk reverse proxy — Caddy v2.
+#
+# Two vhosts:
+#   propertydesk.app     → marketing landing (same Next app, apex)
+#   my.propertydesk.app  → authenticated dashboard (same Next app, subdomain)
+#
+# Same app serves both — the Next codebase chooses landing vs dashboard
+# based on the route, not the host. Caddy just forwards.
+#
+# TLS: automatic via Let's Encrypt HTTP-01. For Cloudflare-proxied hosts
+# (propertydesk.app) the DNS record must be in "DNS only" (grey cloud) at
+# least during first issuance, or you must switch to DNS-01 challenge with
+# a Cloudflare API token (not configured here).
+#
+# CADDY_EMAIL is read from the container env; if unset Caddy uses an
+# anonymous ACME account (which still works but has no expiry notices).
+
+{
+	email {$CADDY_EMAIL:podrska@propertydesk.app}
+	admin off
+	servers {
+		trusted_proxies static private_ranges
+	}
+}
+
+propertydesk.app, www.propertydesk.app {
+	encode zstd gzip
+
+	# Strip `www.` — canonical is the apex.
+	@www host www.propertydesk.app
+	redir @www https://propertydesk.app{uri} permanent
+
+	reverse_proxy app:3000 {
+		header_up X-Real-IP {remote_host}
+		header_up X-Forwarded-For {remote_host}
+		header_up X-Forwarded-Proto {scheme}
+		header_up X-Forwarded-Host {host}
+	}
+
+	log {
+		output stdout
+		format console
+	}
+}
+
+my.propertydesk.app {
+	encode zstd gzip
+
+	reverse_proxy app:3000 {
+		header_up X-Real-IP {remote_host}
+		header_up X-Forwarded-For {remote_host}
+		header_up X-Forwarded-Proto {scheme}
+		header_up X-Forwarded-Host {host}
+	}
+
+	log {
+		output stdout
+		format console
+	}
+}

@@ -1,0 +1,1967 @@
+// PropertyDesk — Prisma schema (consolidated, single migration history)
+// -----------------------------------------------------------------------------
+// Portable to any standard PostgreSQL (Neon in dev, self-hosted on VPS later).
+// The application uses `DATABASE_URL` (pooled), Prisma CLI uses `DIRECT_URL`
+// (via prisma.config.ts).
+//
+// Conventions:
+//   - `cuid()` for primary keys
+//   - `Decimal(14,2)` for money, `Decimal(10,2)` for area
+//   - every tenant-owned model carries an `organizationId` FK
+//   - unique indexes enforce business rules (e.g. one active reservation per unit)
+//   - audit rows are append-only (application layer never updates/deletes them)
+// -----------------------------------------------------------------------------
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// =============================================================================
+// Better Auth — core tables (users, sessions, accounts, verification)
+// =============================================================================
+
+model User {
+  id            String   @id
+  name          String
+  email         String   @unique
+  emailVerified Boolean  @default(false)
+  image         String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Better Auth `admin` plugin
+  role       String? // platform-level role (e.g. "SUPER_ADMIN")
+  banned     Boolean?  @default(false)
+  banReason  String?
+  banExpires DateTime?
+
+  // App-side deactivation flag (tenant admins soft-disable members here
+  // without touching the Better Auth ban mechanism).
+  deactivatedAt DateTime?
+
+  accounts         Account[]
+  sessions         Session[]
+  memberships      Member[]
+  invitationsSent  Invitation[] @relation("InvitationInviter")
+  auditLogsAsActor AuditLog[]   @relation("AuditActor")
+  auditLogsAsImp   AuditLog[]   @relation("AuditImpersonator")
+
+  projectsCreated   Project[]           @relation("ProjectCreator")
+  unitPriceChanges  UnitPriceHistory[]  @relation("UnitPriceChangedBy")
+  unitStatusChanges UnitStatusHistory[] @relation("UnitStatusChangedBy")
+
+  buyersAssigned Buyer[]    @relation("BuyerAssignee")
+  activities     Activity[] @relation("ActivityActor")
+  tasksAssigned  Task[]     @relation("TaskAssignee")
+  tasksCreated   Task[]     @relation("TaskCreator")
+
+  reservationsCreated      Reservation[]              @relation("ReservationCreator")
+  reservationsAssigned     Reservation[]              @relation("ReservationAssignee")
+  reservationsAsAgent      Reservation[]              @relation("ReservationAgencyAgent")
+  reservationStatusChanges ReservationStatusHistory[] @relation("ReservationStatusChangedBy")
+
+  agencyConnectionsInvited    AgencyConnection[]        @relation("AgencyConnectionInviter")
+  agencyConnectionsSuspended  AgencyConnection[]        @relation("AgencyConnectionSuspender")
+  agencyRegistrationsAsAgent  AgencyBuyerRegistration[] @relation("AgencyRegistrationAgent")
+  agencyRegistrationsReviewed AgencyBuyerRegistration[] @relation("AgencyRegistrationReviewer")
+
+  salesResponsible   Sale[]              @relation("SaleResponsible")
+  salesCreated       Sale[]              @relation("SaleCreator")
+  salesAsAgencyAgent Sale[]              @relation("SaleAgencyAgent")
+  saleStatusChanges  SaleStatusHistory[] @relation("SaleStatusChangedBy")
+
+  paymentsCreated  Payment[] @relation("PaymentCreator")
+  paymentsReversed Payment[] @relation("PaymentReverser")
+
+  documentsUploaded Document[] @relation("DocumentUploader")
+
+  notifications Notification[]
+
+  invoicesCreated              Invoice[]                  @relation("InvoiceCreator")
+  invoicesIssued               Invoice[]                  @relation("InvoiceIssuer")
+  subscriptionPaymentsRecorded SubscriptionPayment[]      @relation("SubscriptionPaymentRecorder")
+  subscriptionPaymentsReversed SubscriptionPayment[]      @relation("SubscriptionPaymentReverser")
+  bankStatementImports         BankStatementImport[]      @relation("BankStatementImportUploader")
+  bankStatementReviews         BankStatementTransaction[] @relation("BankStatementReviewer")
+  billingJobRuns               BillingJobRun[]
+
+  @@index([email])
+  @@map("user")
+}
+
+model Session {
+  id        String   @id
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Better Auth `admin` plugin — set while an admin is impersonating another user
+  impersonatedBy String?
+
+  // Better Auth `organization` plugin — the org the user is currently acting in
+  activeOrganizationId String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("session")
+}
+
+model Account {
+  id                    String    @id
+  userId                String
+  accountId             String
+  providerId            String
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([providerId, accountId])
+  @@index([userId])
+  @@map("account")
+}
+
+model Verification {
+  id         String   @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([identifier])
+  @@map("verification")
+}
+
+// =============================================================================
+// Better Auth — organization plugin tables
+// =============================================================================
+
+model Organization {
+  id        String   @id
+  name      String
+  slug      String?  @unique
+  logo      String?
+  metadata  String?
+  createdAt DateTime @default(now())
+
+  members     Member[]
+  invitations Invitation[]
+
+  profile      OrganizationProfile?
+  subscription OrganizationSubscription?
+  auditLogs    AuditLog[]
+
+  projects                  Project[]
+  units                     Unit[]
+  unitPriceHistory          UnitPriceHistory[]
+  unitStatusHistory         UnitStatusHistory[]
+  buyers                    Buyer[]
+  activities                Activity[]
+  tasks                     Task[]
+  reservations              Reservation[]
+  reservationStatusHistory  ReservationStatusHistory[]
+  agencyConnectionsAsInv    AgencyConnection[]         @relation("InvestorConnections")
+  agencyConnectionsAsAgency AgencyConnection[]         @relation("AgencyConnections")
+  agencyRegistrationsAsInv  AgencyBuyerRegistration[]  @relation("InvestorAgencyRegistrations")
+  agencyRegistrationsAsAgy  AgencyBuyerRegistration[]  @relation("AgencyAgencyRegistrations")
+  agencyCommissionRules     AgencyCommissionRule[]
+  sales                     Sale[]
+  saleStatusHistory         SaleStatusHistory[]
+  paymentPlans              PaymentPlan[]
+  payments                  Payment[]
+  documents                 Document[]
+  commissionsAsInvestor     Commission[]               @relation("CommissionInvestor")
+  commissionsAsAgency       Commission[]               @relation("CommissionAgency")
+  notifications             Notification[]
+
+  billingSettings           OrganizationBillingSettings?
+  invoices                  Invoice[]
+  subscriptionPayments      SubscriptionPayment[]
+  subscriptionExtensions    SubscriptionExtension[]
+  bankStatementImports      BankStatementImport[]
+  bankStatementTransactions BankStatementTransaction[]
+  electronicInvoiceRecords  ElectronicInvoiceRecord[]
+  billingSequences          BillingSequence[]
+
+  @@map("organization")
+}
+
+model Member {
+  id             String   @id
+  organizationId String
+  userId         String
+  role           String
+  createdAt      DateTime @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, userId])
+  @@index([userId])
+  @@map("member")
+}
+
+model Invitation {
+  id             String   @id
+  organizationId String
+  email          String
+  role           String?
+  status         String
+  expiresAt      DateTime
+  inviterId      String
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  inviter      User         @relation("InvitationInviter", fields: [inviterId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@index([email])
+  @@map("invitation")
+}
+
+// =============================================================================
+// Application enums
+// =============================================================================
+
+enum OrganizationType {
+  INVESTOR
+  AGENCY
+}
+
+enum OrganizationStatus {
+  TRIAL
+  ACTIVE
+  RESTRICTED
+  SUSPENDED
+  CLOSED
+}
+
+enum SubscriptionStatus {
+  TRIAL
+  ACTIVE
+  PAYMENT_DUE
+  PAST_DUE
+  RESTRICTED
+  SUSPENDED
+  CANCELED
+  EXPIRED
+}
+
+enum BillingCycle {
+  MONTHLY
+  QUARTERLY
+  SEMI_ANNUAL
+  ANNUAL
+  CUSTOM
+}
+
+enum BillingPaymentMethod {
+  BANK_TRANSFER
+  CARD
+  OTHER
+}
+
+enum BillingSettingsMode {
+  USE_GLOBAL_SETTINGS
+  CUSTOM_SETTINGS
+  BILLING_DISABLED
+}
+
+enum SefEnvironment {
+  PRODUCTION
+  SANDBOX
+  DISABLED
+}
+
+enum InvoiceStatus {
+  DRAFT
+  ISSUED
+  SENT
+  PARTIALLY_PAID
+  PAID
+  OVERDUE
+  CANCELED
+  VOID
+}
+
+enum InvoiceSource {
+  AUTOMATIC
+  MANUAL
+  IMPORT
+}
+
+enum InvoiceItemType {
+  SUBSCRIPTION
+  ONBOARDING_FEE
+  ADJUSTMENT
+  CREDIT
+  ADD_ON
+  OTHER
+}
+
+enum SubscriptionPaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REVERSED
+}
+
+enum SubscriptionPaymentProvider {
+  MANUAL
+  BANK_TRANSFER
+  CARD
+  BANK_STATEMENT
+  OTHER
+}
+
+enum BankStatementImportStatus {
+  PENDING
+  PROCESSED
+  PROCESSED_WITH_ERRORS
+  FAILED
+}
+
+enum BankStatementFormat {
+  CSV
+  XLSX
+  MT940
+  CAMT053
+}
+
+enum BankTransactionMatchStatus {
+  UNMATCHED
+  AUTO_MATCHED
+  MANUAL_MATCHED
+  REVIEW_REQUIRED
+  IGNORED
+}
+
+enum ElectronicInvoiceProviderType {
+  MANUAL
+  SERBIAN_SEF
+}
+
+enum ElectronicInvoiceStatus {
+  PENDING
+  SENT
+  DELIVERED
+  ACKNOWLEDGED
+  REJECTED
+  FAILED
+  NOT_APPLICABLE
+}
+
+enum BillingJobType {
+  GENERATE_INVOICES
+  SEND_INVOICES
+  SEND_REMINDERS
+  PROCESS_OVERDUE
+  EXTEND_SUBSCRIPTIONS
+  SYNC_SEF
+  MATCH_PAYMENTS
+}
+
+enum BillingJobStatus {
+  RUNNING
+  COMPLETED
+  COMPLETED_WITH_ERRORS
+  FAILED
+  CANCELED
+}
+
+enum BillingSequenceScope {
+  GLOBAL_YEARLY
+  GLOBAL_MONTHLY
+  ORG_YEARLY
+  ORG_MONTHLY
+}
+
+enum BillingReminderType {
+  PRE_DUE
+  DUE_DAY
+  POST_DUE
+  FINAL_NOTICE
+}
+
+enum ExchangeRateSource {
+  MANUAL
+  NBS
+}
+
+enum ProjectStatus {
+  DRAFT
+  PRE_SALES
+  ACTIVE_SALES
+  CONSTRUCTION
+  COMPLETED
+  ARCHIVED
+}
+
+enum UnitType {
+  APARTMENT
+  GARAGE
+  PARKING_SPACE
+  STORAGE
+  COMMERCIAL
+  HOUSE
+  OTHER
+}
+
+enum UnitStatus {
+  AVAILABLE
+  ON_HOLD
+  RESERVED
+  DEPOSIT_PAID
+  CONTRACTED
+  SOLD
+  BLOCKED
+  NOT_FOR_SALE
+}
+
+enum ContactMethod {
+  PHONE
+  EMAIL
+  ANY
+}
+
+enum BuyerStatus {
+  NEW
+  CONTACTED
+  QUALIFIED
+  VIEWING_SCHEDULED
+  OFFER_SENT
+  NEGOTIATION
+  RESERVATION
+  WON
+  LOST
+  ARCHIVED
+}
+
+enum ActivityType {
+  NOTE
+  CALL
+  EMAIL
+  MEETING
+  VIEWING
+  OFFER
+  STATUS_CHANGE
+  SYSTEM
+}
+
+enum TaskStatus {
+  OPEN
+  IN_PROGRESS
+  COMPLETED
+  CANCELED
+}
+
+enum TaskPriority {
+  LOW
+  NORMAL
+  HIGH
+  URGENT
+}
+
+enum ReservationSource {
+  INTERNAL
+  AGENCY
+}
+
+enum ReservationStatus {
+  REQUESTED
+  APPROVED
+  REJECTED
+  EXPIRED
+  CANCELED
+  CONVERTED
+}
+
+enum AgencyConnectionStatus {
+  INVITED
+  ACTIVE
+  SUSPENDED
+  REJECTED
+  TERMINATED
+}
+
+enum AgencyProjectAccessStatus {
+  ACTIVE
+  SUSPENDED
+  ENDED
+}
+
+enum AgencyBuyerRegistrationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  EXPIRED
+  CONVERTED
+  CANCELED
+  CONFLICT_REVIEW
+}
+
+enum CommissionCalculationType {
+  PERCENTAGE
+  FIXED
+}
+
+enum SaleStatus {
+  DRAFT
+  PRE_CONTRACT
+  CONTRACTED
+  PAYMENT_IN_PROGRESS
+  PAID
+  HANDED_OVER
+  CANCELED
+}
+
+enum SaleDiscountType {
+  PERCENTAGE
+  FIXED
+}
+
+enum PaymentPlanStatus {
+  DRAFT
+  ACTIVE
+  COMPLETED
+  CANCELED
+}
+
+enum InstallmentStatus {
+  UPCOMING
+  DUE
+  PARTIALLY_PAID
+  PAID
+  OVERDUE
+  CANCELED
+}
+
+enum PaymentMethod {
+  BANK_TRANSFER
+  CASH
+  CARD
+  LOAN
+  COMPENSATION
+  OTHER
+}
+
+enum DocumentCategory {
+  PROJECT
+  UNIT
+  BUYER
+  RESERVATION
+  SALE
+  PAYMENT
+  AGENCY
+  COMMISSION
+  INVOICE
+  OTHER
+}
+
+enum DocumentVisibility {
+  INTERNAL
+  INVESTOR_TEAM
+  AGENCY_SHARED
+  BUYER_SHARED
+}
+
+enum CommissionStatus {
+  CALCULATED
+  APPROVED
+  INVOICED
+  DUE
+  PAID
+  DISPUTED
+  CANCELED
+}
+
+enum NotificationCategory {
+  SYSTEM
+  TASK
+  BUYER
+  RESERVATION
+  SALE
+  PAYMENT
+  AGENCY
+  COMMISSION
+  DOCUMENT
+  BILLING
+}
+
+// =============================================================================
+// Tenant profile & subscriptions
+// =============================================================================
+
+model OrganizationProfile {
+  id                 String             @id @default(cuid())
+  organizationId     String             @unique
+  type               OrganizationType
+  legalName          String
+  displayName        String
+  registrationNumber String?
+  taxNumber          String?
+  address            String?
+  city               String?
+  postalCode         String?
+  country            String?            @default("RS")
+  phone              String?
+  email              String?
+  website            String?
+  logoUrl            String?
+  status             OrganizationStatus @default(TRIAL)
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([type])
+  @@index([status])
+  @@map("organization_profile")
+}
+
+model SaaSPlan {
+  id                   String   @id @default(cuid())
+  code                 String   @unique
+  name                 String
+  description          String?
+  monthlyPrice         Decimal  @db.Decimal(14, 2)
+  quarterlyPrice       Decimal? @db.Decimal(14, 2)
+  semiAnnualPrice      Decimal? @db.Decimal(14, 2)
+  annualPrice          Decimal? @db.Decimal(14, 2)
+  onboardingFee        Decimal? @db.Decimal(14, 2)
+  currency             String   @default("EUR")
+  maxActiveProjects    Int?
+  maxUnits             Int?
+  maxMembers           Int?
+  maxAgencyConnections Int?
+  features             Json     @default("{}")
+  active               Boolean  @default(true)
+  publiclyAvailable    Boolean  @default(true)
+  recommended          Boolean  @default(false)
+  defaultTrialDays     Int?
+  sortOrder            Int      @default(0)
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  subscriptions OrganizationSubscription[]
+  invoices      Invoice[]
+
+  @@map("saas_plan")
+}
+
+model OrganizationSubscription {
+  id                 String               @id @default(cuid())
+  organizationId     String               @unique
+  planId             String
+  status             SubscriptionStatus   @default(TRIAL)
+  billingCycle       BillingCycle         @default(MONTHLY)
+  paymentMethod      BillingPaymentMethod @default(BANK_TRANSFER)
+  price              Decimal              @default(0) @db.Decimal(14, 2)
+  currency           String               @default("EUR")
+  customPrice        Boolean              @default(false)
+  customInvoiceNote  String?
+  trialStartsAt      DateTime?
+  trialEndsAt        DateTime?
+  startsAt           DateTime             @default(now())
+  endsAt             DateTime?
+  currentPeriodStart DateTime?
+  currentPeriodEnd   DateTime?
+  nextBillingDate    DateTime?
+  gracePeriodEndsAt  DateTime?
+  restrictedAt       DateTime?
+  suspendedAt        DateTime?
+  canceledAt         DateTime?
+  cancelAtPeriodEnd  Boolean              @default(false)
+  autoRenew          Boolean              @default(true)
+  manuallyManaged    Boolean              @default(true)
+  notes              String?
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @updatedAt
+
+  organization Organization            @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  plan         SaaSPlan                @relation(fields: [planId], references: [id])
+  invoices     Invoice[]
+  payments     SubscriptionPayment[]
+  extensions   SubscriptionExtension[]
+
+  @@index([status])
+  @@index([nextBillingDate])
+  @@map("organization_subscription")
+}
+
+/// Immutable audit trail. Never updated or deleted through the app service layer.
+model AuditLog {
+  id                   String   @id @default(cuid())
+  organizationId       String?
+  actorUserId          String?
+  impersonatedByUserId String?
+  action               String
+  entityType           String
+  entityId             String?
+  previousValues       Json?
+  newValues            Json?
+  metadata             Json?
+  ipAddress            String?
+  userAgent            String?
+  createdAt            DateTime @default(now())
+
+  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  actor          User?         @relation("AuditActor", fields: [actorUserId], references: [id], onDelete: SetNull)
+  impersonatedBy User?         @relation("AuditImpersonator", fields: [impersonatedByUserId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId, createdAt])
+  @@index([actorUserId, createdAt])
+  @@index([entityType, entityId])
+  @@map("audit_log")
+}
+
+// =============================================================================
+// Inventory: projects → buildings → entrances → floors → units
+// =============================================================================
+
+model Project {
+  id                     String        @id @default(cuid())
+  organizationId         String
+  code                   String
+  name                   String
+  slug                   String
+  description            String?
+  address                String?
+  city                   String?
+  municipality           String?
+  postalCode             String?
+  latitude               Decimal?      @db.Decimal(10, 7)
+  longitude              Decimal?      @db.Decimal(10, 7)
+  projectStatus          ProjectStatus @default(DRAFT)
+  salesStartDate         DateTime?
+  constructionStartDate  DateTime?
+  expectedCompletionDate DateTime?
+  completedAt            DateTime?
+  defaultCurrency        String        @default("EUR")
+  defaultVatRate         Decimal?      @db.Decimal(5, 2)
+  coverImageUrl          String?
+  internalNotes          String?
+  isActive               Boolean       @default(true)
+  createdByUserId        String
+  createdAt              DateTime      @default(now())
+  updatedAt              DateTime      @updatedAt
+  archivedAt             DateTime?
+
+  organization  Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdByUser User         @relation("ProjectCreator", fields: [createdByUserId], references: [id], onDelete: Restrict)
+
+  buildings             Building[]
+  units                 Unit[]
+  buyerInterests        BuyerInterest[]
+  activities            Activity[]
+  tasks                 Task[]
+  reservations          Reservation[]
+  sales                 Sale[]
+  agencyProjectAccess   AgencyProjectAccess[]
+  agencyRegistrations   AgencyBuyerRegistration[]
+  agencyCommissionRules AgencyCommissionRule[]
+
+  @@unique([organizationId, code])
+  @@unique([organizationId, slug])
+  @@index([organizationId, projectStatus])
+  @@index([organizationId, isActive])
+  @@map("project")
+}
+
+model Building {
+  id          String   @id @default(cuid())
+  projectId   String
+  code        String
+  name        String
+  description String?
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  project   Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  entrances Entrance[]
+  units     Unit[]
+
+  @@unique([projectId, code])
+  @@index([projectId, sortOrder])
+  @@map("building")
+}
+
+model Entrance {
+  id         String   @id @default(cuid())
+  buildingId String
+  code       String
+  name       String
+  sortOrder  Int      @default(0)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  building Building @relation(fields: [buildingId], references: [id], onDelete: Cascade)
+  floors   Floor[]
+  units    Unit[]
+
+  @@unique([buildingId, code])
+  @@index([buildingId, sortOrder])
+  @@map("entrance")
+}
+
+model Floor {
+  id           String   @id @default(cuid())
+  entranceId   String
+  number       Int?
+  label        String
+  sortOrder    Int      @default(0)
+  floorPlanUrl String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  entrance Entrance @relation(fields: [entranceId], references: [id], onDelete: Cascade)
+  units    Unit[]
+
+  @@unique([entranceId, label])
+  @@index([entranceId, sortOrder])
+  @@map("floor")
+}
+
+model Unit {
+  id                  String     @id @default(cuid())
+  organizationId      String
+  projectId           String
+  buildingId          String?
+  entranceId          String?
+  floorId             String?
+  code                String
+  externalReference   String?
+  type                UnitType
+  status              UnitStatus @default(AVAILABLE)
+  structure           String?
+  roomCount           Decimal?   @db.Decimal(4, 1)
+  totalArea           Decimal    @db.Decimal(10, 2)
+  internalArea        Decimal?   @db.Decimal(10, 2)
+  terraceArea         Decimal?   @db.Decimal(10, 2)
+  gardenArea          Decimal?   @db.Decimal(10, 2)
+  orientation         String?
+  basePrice           Decimal    @db.Decimal(14, 2)
+  finalPrice          Decimal?   @db.Decimal(14, 2)
+  pricePerSquareMeter Decimal?   @db.Decimal(14, 2)
+  currency            String     @default("EUR")
+  vatRate             Decimal?   @db.Decimal(5, 2)
+  vatIncluded         Boolean    @default(false)
+  bedrooms            Int?
+  bathrooms           Int?
+  hasTerrace          Boolean    @default(false)
+  hasGarden           Boolean    @default(false)
+  floorPlanUrl        String?
+  publicDescription   String?
+  internalNotes       String?
+  isVisibleToAgencies Boolean    @default(false)
+  sortOrder           Int        @default(0)
+  createdAt           DateTime   @default(now())
+  updatedAt           DateTime   @updatedAt
+  archivedAt          DateTime?
+  version             Int        @default(0)
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  project      Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  building     Building?    @relation(fields: [buildingId], references: [id], onDelete: SetNull)
+  entrance     Entrance?    @relation(fields: [entranceId], references: [id], onDelete: SetNull)
+  floor        Floor?       @relation(fields: [floorId], references: [id], onDelete: SetNull)
+
+  priceHistory   UnitPriceHistory[]
+  statusHistory  UnitStatusHistory[]
+  reservations   Reservation[]
+  sales          Sale[]
+  buyerInterests BuyerInterest[]
+
+  @@unique([projectId, code])
+  @@index([organizationId, status])
+  @@index([organizationId, projectId, status])
+  @@index([projectId, buildingId])
+  @@index([projectId, type])
+  @@index([organizationId, isVisibleToAgencies])
+  @@map("unit")
+}
+
+model UnitPriceHistory {
+  id                 String   @id @default(cuid())
+  organizationId     String
+  unitId             String
+  previousBasePrice  Decimal  @db.Decimal(14, 2)
+  newBasePrice       Decimal  @db.Decimal(14, 2)
+  previousFinalPrice Decimal? @db.Decimal(14, 2)
+  newFinalPrice      Decimal? @db.Decimal(14, 2)
+  currency           String
+  reason             String?
+  changedByUserId    String
+  changedAt          DateTime @default(now())
+
+  organization  Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  unit          Unit         @relation(fields: [unitId], references: [id], onDelete: Cascade)
+  changedByUser User         @relation("UnitPriceChangedBy", fields: [changedByUserId], references: [id], onDelete: Restrict)
+
+  @@index([unitId, changedAt])
+  @@index([organizationId, changedAt])
+  @@map("unit_price_history")
+}
+
+model UnitStatusHistory {
+  id              String     @id @default(cuid())
+  organizationId  String
+  unitId          String
+  previousStatus  UnitStatus
+  newStatus       UnitStatus
+  reason          String?
+  changedByUserId String
+  changedAt       DateTime   @default(now())
+
+  organization  Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  unit          Unit         @relation(fields: [unitId], references: [id], onDelete: Cascade)
+  changedByUser User         @relation("UnitStatusChangedBy", fields: [changedByUserId], references: [id], onDelete: Restrict)
+
+  @@index([unitId, changedAt])
+  @@index([organizationId, changedAt])
+  @@map("unit_status_history")
+}
+
+// =============================================================================
+// CRM: buyers, interests, activities, tasks
+// =============================================================================
+
+model Buyer {
+  id                     String        @id @default(cuid())
+  organizationId         String
+  firstName              String
+  lastName               String
+  email                  String?
+  normalizedEmail        String?
+  phone                  String
+  normalizedPhone        String
+  secondaryPhone         String?
+  preferredContactMethod ContactMethod @default(ANY)
+  budgetMin              Decimal?      @db.Decimal(14, 2)
+  budgetMax              Decimal?      @db.Decimal(14, 2)
+  preferredCurrency      String        @default("EUR")
+  desiredUnitTypes       UnitType[]    @default([])
+  desiredRoomCounts      String[]      @default([])
+  desiredAreaMin         Decimal?      @db.Decimal(10, 2)
+  desiredAreaMax         Decimal?      @db.Decimal(10, 2)
+  notes                  String?
+  source                 String?
+  status                 BuyerStatus   @default(NEW)
+  assignedUserId         String?
+  createdAt              DateTime      @default(now())
+  updatedAt              DateTime      @updatedAt
+  archivedAt             DateTime?
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  assignedUser User?        @relation("BuyerAssignee", fields: [assignedUserId], references: [id], onDelete: SetNull)
+
+  interests           BuyerInterest[]
+  activities          Activity[]
+  tasks               Task[]
+  reservations        Reservation[]
+  sales               Sale[]
+  agencyRegistrations AgencyBuyerRegistration[]
+
+  @@index([organizationId, status])
+  @@index([organizationId, normalizedPhone])
+  @@index([organizationId, normalizedEmail])
+  @@index([organizationId, assignedUserId])
+  @@map("buyer")
+}
+
+model BuyerInterest {
+  id        String   @id @default(cuid())
+  buyerId   String
+  projectId String?
+  unitId    String?
+  note      String?
+  createdAt DateTime @default(now())
+
+  buyer   Buyer    @relation(fields: [buyerId], references: [id], onDelete: Cascade)
+  project Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  unit    Unit?    @relation(fields: [unitId], references: [id], onDelete: SetNull)
+
+  @@index([buyerId])
+  @@map("buyer_interest")
+}
+
+model Activity {
+  id             String       @id @default(cuid())
+  organizationId String
+  buyerId        String?
+  projectId      String?
+  unitId         String?
+  actorUserId    String
+  type           ActivityType
+  description    String
+  occurredAt     DateTime     @default(now())
+  createdAt      DateTime     @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  buyer        Buyer?       @relation(fields: [buyerId], references: [id], onDelete: SetNull)
+  project      Project?     @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  actor        User         @relation("ActivityActor", fields: [actorUserId], references: [id], onDelete: Restrict)
+
+  @@index([organizationId, occurredAt])
+  @@index([buyerId, occurredAt])
+  @@map("activity")
+}
+
+model Task {
+  id              String       @id @default(cuid())
+  organizationId  String
+  title           String
+  description     String?
+  assignedUserId  String
+  buyerId         String?
+  projectId       String?
+  unitId          String?
+  dueAt           DateTime
+  priority        TaskPriority @default(NORMAL)
+  status          TaskStatus   @default(OPEN)
+  completedAt     DateTime?
+  createdByUserId String
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  organization  Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  assignedUser  User         @relation("TaskAssignee", fields: [assignedUserId], references: [id], onDelete: Restrict)
+  buyer         Buyer?       @relation(fields: [buyerId], references: [id], onDelete: SetNull)
+  project       Project?     @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  createdByUser User         @relation("TaskCreator", fields: [createdByUserId], references: [id], onDelete: Restrict)
+
+  @@index([organizationId, status, dueAt])
+  @@index([assignedUserId, status, dueAt])
+  @@map("task")
+}
+
+// =============================================================================
+// Reservations
+// =============================================================================
+
+model Reservation {
+  id                   String            @id @default(cuid())
+  organizationId       String
+  projectId            String
+  unitId               String
+  buyerId              String
+  createdByUserId      String
+  assignedUserId       String?
+  sourceType           ReservationSource @default(INTERNAL)
+  agencyOrganizationId String?
+  agencyAgentUserId    String?
+  status               ReservationStatus @default(REQUESTED)
+  requestedAt          DateTime          @default(now())
+  approvedAt           DateTime?
+  rejectedAt           DateTime?
+  expiresAt            DateTime?
+  canceledAt           DateTime?
+  convertedAt          DateTime?
+  reservationAmount    Decimal?          @db.Decimal(14, 2)
+  currency             String            @default("EUR")
+  notes                String?
+  rejectionReason      String?
+  cancellationReason   String?
+  version              Int               @default(0)
+  createdAt            DateTime          @default(now())
+  updatedAt            DateTime          @updatedAt
+
+  organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  project         Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  unit            Unit         @relation(fields: [unitId], references: [id], onDelete: Cascade)
+  buyer           Buyer        @relation(fields: [buyerId], references: [id], onDelete: Restrict)
+  createdByUser   User         @relation("ReservationCreator", fields: [createdByUserId], references: [id], onDelete: Restrict)
+  assignedUser    User?        @relation("ReservationAssignee", fields: [assignedUserId], references: [id], onDelete: SetNull)
+  agencyAgentUser User?        @relation("ReservationAgencyAgent", fields: [agencyAgentUserId], references: [id], onDelete: SetNull)
+
+  statusHistory ReservationStatusHistory[]
+  sale          Sale?
+
+  @@index([organizationId, status])
+  @@index([unitId, status])
+  @@index([expiresAt])
+  @@map("reservation")
+}
+
+model ReservationStatusHistory {
+  id              String            @id @default(cuid())
+  organizationId  String
+  reservationId   String
+  previousStatus  ReservationStatus
+  newStatus       ReservationStatus
+  reason          String?
+  changedByUserId String?
+  changedAt       DateTime          @default(now())
+
+  organization  Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  reservation   Reservation  @relation(fields: [reservationId], references: [id], onDelete: Cascade)
+  changedByUser User?        @relation("ReservationStatusChangedBy", fields: [changedByUserId], references: [id], onDelete: SetNull)
+
+  @@index([reservationId, changedAt])
+  @@map("reservation_status_history")
+}
+
+// =============================================================================
+// Agencies
+// =============================================================================
+
+model AgencyConnection {
+  id                     String                 @id @default(cuid())
+  investorOrganizationId String
+  agencyOrganizationId   String
+  status                 AgencyConnectionStatus @default(INVITED)
+  invitedByUserId        String
+  invitedAt              DateTime               @default(now())
+  acceptedAt             DateTime?
+  suspendedAt            DateTime?
+  suspendedByUserId      String?
+  notes                  String?
+  defaultProtectionDays  Int                    @default(30)
+  createdAt              DateTime               @default(now())
+  updatedAt              DateTime               @updatedAt
+
+  investor        Organization @relation("InvestorConnections", fields: [investorOrganizationId], references: [id], onDelete: Cascade)
+  agency          Organization @relation("AgencyConnections", fields: [agencyOrganizationId], references: [id], onDelete: Cascade)
+  invitedByUser   User         @relation("AgencyConnectionInviter", fields: [invitedByUserId], references: [id], onDelete: Restrict)
+  suspendedByUser User?        @relation("AgencyConnectionSuspender", fields: [suspendedByUserId], references: [id], onDelete: SetNull)
+
+  projectAccess   AgencyProjectAccess[]
+  commissionRules AgencyCommissionRule[]
+
+  @@unique([investorOrganizationId, agencyOrganizationId])
+  @@index([investorOrganizationId, status])
+  @@index([agencyOrganizationId, status])
+  @@map("agency_connection")
+}
+
+model AgencyProjectAccess {
+  id                         String                    @id @default(cuid())
+  agencyConnectionId         String
+  projectId                  String
+  status                     AgencyProjectAccessStatus @default(ACTIVE)
+  accessStartsAt             DateTime?
+  accessEndsAt               DateTime?
+  canViewPrices              Boolean                   @default(true)
+  canViewFloorPlans          Boolean                   @default(true)
+  canRequestReservations     Boolean                   @default(true)
+  showOnlyAgencyVisibleUnits Boolean                   @default(true)
+  createdAt                  DateTime                  @default(now())
+  updatedAt                  DateTime                  @updatedAt
+
+  agencyConnection AgencyConnection @relation(fields: [agencyConnectionId], references: [id], onDelete: Cascade)
+  project          Project          @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([agencyConnectionId, projectId])
+  @@index([projectId, status])
+  @@map("agency_project_access")
+}
+
+model AgencyUnitAccessOverride {
+  id                 String   @id @default(cuid())
+  agencyConnectionId String
+  unitId             String
+  visible            Boolean  @default(true)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  @@unique([agencyConnectionId, unitId])
+  @@map("agency_unit_access_override")
+}
+
+model AgencyBuyerRegistration {
+  id                     String                        @id @default(cuid())
+  investorOrganizationId String
+  agencyOrganizationId   String
+  agencyAgentUserId      String
+  projectId              String
+  buyerId                String
+  status                 AgencyBuyerRegistrationStatus @default(PENDING)
+  registeredAt           DateTime                      @default(now())
+  protectionStartsAt     DateTime?
+  protectionEndsAt       DateTime?
+  reviewedByUserId       String?
+  reviewedAt             DateTime?
+  rejectionReason        String?
+  conflictNotes          String?
+  createdAt              DateTime                      @default(now())
+  updatedAt              DateTime                      @updatedAt
+
+  investor       Organization @relation("InvestorAgencyRegistrations", fields: [investorOrganizationId], references: [id], onDelete: Cascade)
+  agency         Organization @relation("AgencyAgencyRegistrations", fields: [agencyOrganizationId], references: [id], onDelete: Cascade)
+  agencyAgent    User         @relation("AgencyRegistrationAgent", fields: [agencyAgentUserId], references: [id], onDelete: Restrict)
+  project        Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  buyer          Buyer        @relation(fields: [buyerId], references: [id], onDelete: Cascade)
+  reviewedByUser User?        @relation("AgencyRegistrationReviewer", fields: [reviewedByUserId], references: [id], onDelete: SetNull)
+
+  @@index([investorOrganizationId, status])
+  @@index([agencyOrganizationId, status])
+  @@index([projectId, buyerId, status])
+  @@index([protectionEndsAt])
+  @@map("agency_buyer_registration")
+}
+
+model AgencyCommissionRule {
+  id                     String                    @id @default(cuid())
+  investorOrganizationId String
+  agencyConnectionId     String?
+  projectId              String?
+  unitId                 String?
+  calculationType        CommissionCalculationType
+  rate                   Decimal?                  @db.Decimal(6, 3)
+  fixedAmount            Decimal?                  @db.Decimal(14, 2)
+  currency               String                    @default("EUR")
+  validFrom              DateTime?
+  validTo                DateTime?
+  internalNote           String?
+  agencyVisibleNote      String?
+  createdAt              DateTime                  @default(now())
+  updatedAt              DateTime                  @updatedAt
+
+  investor         Organization      @relation(fields: [investorOrganizationId], references: [id], onDelete: Cascade)
+  agencyConnection AgencyConnection? @relation(fields: [agencyConnectionId], references: [id], onDelete: Cascade)
+  project          Project?          @relation(fields: [projectId], references: [id])
+
+  @@index([investorOrganizationId, projectId])
+  @@index([agencyConnectionId])
+  @@index([unitId])
+  @@map("agency_commission_rule")
+}
+
+// =============================================================================
+// Sales, payment plans, payments, commissions, documents
+// =============================================================================
+
+model Sale {
+  id                   String            @id @default(cuid())
+  organizationId       String
+  projectId            String
+  unitId               String
+  buyerId              String
+  reservationId        String?           @unique
+  sourceType           ReservationSource @default(INTERNAL)
+  agencyOrganizationId String?
+  agencyAgentUserId    String?
+  responsibleUserId    String
+  status               SaleStatus        @default(DRAFT)
+  listPrice            Decimal           @db.Decimal(14, 2)
+  discountType         SaleDiscountType?
+  discountValue        Decimal?          @db.Decimal(14, 2)
+  finalPrice           Decimal           @db.Decimal(14, 2)
+  currency             String            @default("EUR")
+  depositAmount        Decimal?          @db.Decimal(14, 2)
+  preContractDate      DateTime?
+  contractDate         DateTime?
+  plannedHandoverDate  DateTime?
+  actualHandoverDate   DateTime?
+  notes                String?
+  createdByUserId      String
+  createdAt            DateTime          @default(now())
+  updatedAt            DateTime          @updatedAt
+  version              Int               @default(0)
+
+  organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  project         Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  unit            Unit         @relation(fields: [unitId], references: [id], onDelete: Cascade)
+  buyer           Buyer        @relation(fields: [buyerId], references: [id], onDelete: Restrict)
+  reservation     Reservation? @relation(fields: [reservationId], references: [id], onDelete: SetNull)
+  responsibleUser User         @relation("SaleResponsible", fields: [responsibleUserId], references: [id], onDelete: Restrict)
+  createdByUser   User         @relation("SaleCreator", fields: [createdByUserId], references: [id], onDelete: Restrict)
+  agencyAgentUser User?        @relation("SaleAgencyAgent", fields: [agencyAgentUserId], references: [id], onDelete: SetNull)
+
+  paymentPlan   PaymentPlan?
+  payments      Payment[]
+  commission    Commission?
+  statusHistory SaleStatusHistory[]
+
+  @@index([organizationId, status])
+  @@index([unitId, status])
+  @@index([projectId, status])
+  @@map("sale")
+}
+
+model SaleStatusHistory {
+  id              String     @id @default(cuid())
+  organizationId  String
+  saleId          String
+  previousStatus  SaleStatus
+  newStatus       SaleStatus
+  reason          String?
+  changedByUserId String?
+  changedAt       DateTime   @default(now())
+
+  organization  Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  sale          Sale         @relation(fields: [saleId], references: [id], onDelete: Cascade)
+  changedByUser User?        @relation("SaleStatusChangedBy", fields: [changedByUserId], references: [id], onDelete: SetNull)
+
+  @@index([saleId, changedAt])
+  @@map("sale_status_history")
+}
+
+model PaymentPlan {
+  id             String            @id @default(cuid())
+  organizationId String
+  saleId         String            @unique
+  name           String
+  totalAmount    Decimal           @db.Decimal(14, 2)
+  currency       String            @default("EUR")
+  status         PaymentPlanStatus @default(DRAFT)
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+
+  organization Organization         @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  sale         Sale                 @relation(fields: [saleId], references: [id], onDelete: Cascade)
+  installments PaymentInstallment[]
+
+  @@map("payment_plan")
+}
+
+model PaymentInstallment {
+  id             String            @id @default(cuid())
+  paymentPlanId  String
+  sequenceNumber Int
+  name           String
+  amount         Decimal           @db.Decimal(14, 2)
+  percentage     Decimal?          @db.Decimal(6, 3)
+  dueDate        DateTime
+  status         InstallmentStatus @default(UPCOMING)
+  paidAmount     Decimal           @default(0) @db.Decimal(14, 2)
+  paidAt         DateTime?
+  notes          String?
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+
+  paymentPlan PaymentPlan @relation(fields: [paymentPlanId], references: [id], onDelete: Cascade)
+  payments    Payment[]
+
+  @@unique([paymentPlanId, sequenceNumber])
+  @@index([paymentPlanId, dueDate])
+  @@index([status, dueDate])
+  @@map("payment_installment")
+}
+
+model Payment {
+  id               String        @id @default(cuid())
+  organizationId   String
+  saleId           String
+  installmentId    String?
+  amount           Decimal       @db.Decimal(14, 2)
+  currency         String        @default("EUR")
+  paymentDate      DateTime
+  paymentMethod    PaymentMethod
+  referenceNumber  String?
+  note             String?
+  proofDocumentId  String?
+  createdByUserId  String
+  createdAt        DateTime      @default(now())
+  reversedAt       DateTime?
+  reversedByUserId String?
+  reversalReason   String?
+
+  organization   Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  sale           Sale                @relation(fields: [saleId], references: [id], onDelete: Cascade)
+  installment    PaymentInstallment? @relation(fields: [installmentId], references: [id], onDelete: SetNull)
+  createdByUser  User                @relation("PaymentCreator", fields: [createdByUserId], references: [id], onDelete: Restrict)
+  reversedByUser User?               @relation("PaymentReverser", fields: [reversedByUserId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId, paymentDate])
+  @@index([saleId, paymentDate])
+  @@map("payment")
+}
+
+model Document {
+  id               String             @id @default(cuid())
+  organizationId   String
+  category         DocumentCategory
+  entityType       String
+  entityId         String
+  fileName         String
+  originalFileName String
+  mimeType         String
+  size             Int
+  storageKey       String
+  uploadedByUserId String
+  visibility       DocumentVisibility @default(INTERNAL)
+  expiresAt        DateTime?
+  createdAt        DateTime           @default(now())
+  deletedAt        DateTime?
+
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  uploadedByUser User         @relation("DocumentUploader", fields: [uploadedByUserId], references: [id], onDelete: Restrict)
+
+  @@index([organizationId, category])
+  @@index([entityType, entityId])
+  @@map("document")
+}
+
+model Commission {
+  id                     String                    @id @default(cuid())
+  investorOrganizationId String
+  agencyOrganizationId   String
+  agencyAgentUserId      String?
+  saleId                 String                    @unique
+  commissionRuleId       String?
+  calculationType        CommissionCalculationType
+  rate                   Decimal?                  @db.Decimal(6, 3)
+  fixedAmount            Decimal?                  @db.Decimal(14, 2)
+  baseAmount             Decimal                   @db.Decimal(14, 2)
+  calculatedAmount       Decimal                   @db.Decimal(14, 2)
+  adjustedAmount         Decimal?                  @db.Decimal(14, 2)
+  currency               String                    @default("EUR")
+  status                 CommissionStatus          @default(CALCULATED)
+  approvedAt             DateTime?
+  invoicedAt             DateTime?
+  dueDate                DateTime?
+  paidAt                 DateTime?
+  invoiceNumber          String?
+  notes                  String?
+  createdAt              DateTime                  @default(now())
+  updatedAt              DateTime                  @updatedAt
+
+  investor Organization @relation("CommissionInvestor", fields: [investorOrganizationId], references: [id], onDelete: Cascade)
+  agency   Organization @relation("CommissionAgency", fields: [agencyOrganizationId], references: [id], onDelete: Cascade)
+  sale     Sale         @relation(fields: [saleId], references: [id], onDelete: Cascade)
+
+  @@index([investorOrganizationId, status])
+  @@index([agencyOrganizationId, status])
+  @@map("commission")
+}
+
+// =============================================================================
+// Notifications
+// =============================================================================
+
+model Notification {
+  id             String               @id @default(cuid())
+  organizationId String?
+  userId         String
+  category       NotificationCategory
+  title          String
+  message        String
+  entityType     String?
+  entityId       String?
+  actionUrl      String?
+  readAt         DateTime?
+  createdAt      DateTime             @default(now())
+
+  organization Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, readAt])
+  @@index([userId, createdAt])
+  @@index([organizationId, createdAt])
+  @@map("notification")
+}
+
+// =============================================================================
+// Billing — SaaS invoicing, subscriptions, payments, automation
+// =============================================================================
+
+/// Singleton global billing settings. Enforced by unique partial index on
+/// `active = true` — only one row can be active at a time. Old rows are kept
+/// as history when settings change.
+model GlobalBillingSettings {
+  id     String  @id @default(cuid())
+  active Boolean @default(true)
+
+  billingEnabled              Boolean @default(true)
+  autoGenerateInvoicesEnabled Boolean @default(true)
+  autoSendInvoicesEnabled     Boolean @default(true)
+  autoRemindersEnabled        Boolean @default(true)
+  autoOverdueEnabled          Boolean @default(true)
+  autoExtendSubscriptions     Boolean @default(true)
+  autoRestrictAccessEnabled   Boolean @default(true)
+  autoSuspendEnabled          Boolean @default(false)
+  requireManualConfirmation   Boolean @default(false)
+
+  defaultCurrency        String       @default("EUR")
+  defaultInvoiceInRsd    Boolean      @default(false)
+  defaultBillingCycle    BillingCycle @default(MONTHLY)
+  defaultTrialDays       Int          @default(14)
+  defaultGracePeriodDays Int          @default(7)
+  defaultDueInDays       Int          @default(15)
+
+  restrictedAfterDays Int @default(15)
+  suspendedAfterDays  Int @default(45)
+
+  invoiceNumberFormat String               @default("PD-{YYYY}-{SEQ:6}")
+  invoiceNumberScope  BillingSequenceScope @default(GLOBAL_YEARLY)
+  invoiceLocaleTag    String               @default("sr-Latn-RS")
+  invoiceFooterNote   String?
+
+  ipsQrEnabled              Boolean                       @default(true)
+  electronicInvoiceEnabled  Boolean                       @default(false)
+  electronicInvoiceProvider ElectronicInvoiceProviderType @default(MANUAL)
+
+  reminderSchedule                 Json @default("[]")
+  restrictedModeAllowedPermissions Json @default("[]")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([active], map: "global_billing_settings_active_unique")
+  @@map("global_billing_settings")
+}
+
+/// Per-organization billing overrides. In `USE_GLOBAL_SETTINGS` mode nothing
+/// else on this row is used. In `CUSTOM_SETTINGS` mode, non-null overrides
+/// apply. `BILLING_DISABLED` completely disables invoicing for this tenant.
+model OrganizationBillingSettings {
+  id             String              @id @default(cuid())
+  organizationId String              @unique
+  mode           BillingSettingsMode @default(USE_GLOBAL_SETTINGS)
+
+  billingEnabled              Boolean?
+  autoGenerateInvoicesEnabled Boolean?
+  autoSendInvoicesEnabled     Boolean?
+  autoRemindersEnabled        Boolean?
+  autoOverdueEnabled          Boolean?
+  autoExtendSubscriptions     Boolean?
+  autoRestrictAccessEnabled   Boolean?
+  autoSuspendEnabled          Boolean?
+
+  gracePeriodDays     Int?
+  dueInDays           Int?
+  restrictedAfterDays Int?
+  suspendedAfterDays  Int?
+  reminderSchedule    Json?
+  invoiceFooterNote   String?
+
+  ipsQrEnabled              Boolean?
+  electronicInvoiceEnabled  Boolean?
+  electronicInvoiceProvider ElectronicInvoiceProviderType?
+
+  invoiceInRsd Boolean?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@map("organization_billing_settings")
+}
+
+/// Issuer identity for all invoices. Kept as a first-class table so that
+/// history is preserved when values change: issued invoices retain their own
+/// snapshot in `Invoice.issuerSnapshot`.
+model CompanyBillingProfile {
+  id                 String         @id @default(cuid())
+  active             Boolean        @default(true)
+  legalName          String
+  tradeName          String?
+  taxNumber          String
+  registrationNumber String?
+  vatId              String?
+  vatRegistered      Boolean        @default(false)
+  addressLine1       String
+  addressLine2       String?
+  city               String
+  postalCode         String
+  country            String         @default("RS")
+  email              String?
+  phone              String?
+  website            String?
+  logoStorageKey     String?
+  sefEnvironment     SefEnvironment @default(DISABLED)
+  sefApiKeyEncrypted String?
+  sefEndpointUrl     String?
+  invoiceNote        String?
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
+
+  @@unique([active], map: "company_billing_profile_active_unique")
+  @@map("company_billing_profile")
+}
+
+model BillingBankAccount {
+  id            String   @id @default(cuid())
+  bankName      String
+  accountNumber String
+  iban          String?
+  swiftBic      String?
+  currency      String
+  holderName    String?
+  isDefault     Boolean  @default(false)
+  isActive      Boolean  @default(true)
+  sortOrder     Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  invoices Invoice[]
+
+  @@index([currency, isActive])
+  @@map("billing_bank_account")
+}
+
+model Invoice {
+  id             String  @id @default(cuid())
+  organizationId String
+  subscriptionId String?
+  planId         String?
+  bankAccountId  String?
+
+  invoiceNumber String        @unique
+  status        InvoiceStatus @default(DRAFT)
+  source        InvoiceSource @default(AUTOMATIC)
+
+  currency    String
+  subtotal    Decimal @db.Decimal(14, 2)
+  taxAmount   Decimal @default(0) @db.Decimal(14, 2)
+  totalAmount Decimal @db.Decimal(14, 2)
+  amountPaid  Decimal @default(0) @db.Decimal(14, 2)
+  amountDue   Decimal @db.Decimal(14, 2)
+
+  // FX snapshot: when an invoice is issued in RSD but priced in EUR, we
+  // keep the pre-conversion "base" amounts and the applied middle rate so
+  // the PDF can display both sides and auditors can reproduce the math.
+  // `null` means no conversion happened (native-currency invoice).
+  baseCurrency    String?
+  baseSubtotal    Decimal?  @db.Decimal(14, 2)
+  baseTaxAmount   Decimal?  @db.Decimal(14, 2)
+  baseTotalAmount Decimal?  @db.Decimal(14, 2)
+  fxRate          Decimal?  @db.Decimal(18, 6)
+  fxRateDate      DateTime? @db.Date
+
+  issueDate  DateTime?
+  dueDate    DateTime?
+  paidAt     DateTime?
+  sentAt     DateTime?
+  canceledAt DateTime?
+
+  servicePeriodStart DateTime?
+  servicePeriodEnd   DateTime?
+
+  billingCycle BillingCycle?
+  language     String        @default("sr-Latn-RS")
+  note         String?
+  internalNote String?
+  ipsQrPayload String?
+
+  issuerSnapshot      Json
+  customerSnapshot    Json
+  bankAccountSnapshot Json?
+
+  pdfStorageKey   String?
+  ipsQrStorageKey String?
+
+  createdByUserId String?
+  issuedByUserId  String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  organization Organization              @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  subscription OrganizationSubscription? @relation(fields: [subscriptionId], references: [id], onDelete: SetNull)
+  plan         SaaSPlan?                 @relation(fields: [planId], references: [id])
+  bankAccount  BillingBankAccount?       @relation(fields: [bankAccountId], references: [id])
+  createdBy    User?                     @relation("InvoiceCreator", fields: [createdByUserId], references: [id])
+  issuedBy     User?                     @relation("InvoiceIssuer", fields: [issuedByUserId], references: [id])
+
+  items             InvoiceItem[]
+  allocations       PaymentAllocation[]
+  extensions        SubscriptionExtension[]
+  electronicRecords ElectronicInvoiceRecord[]
+
+  @@index([organizationId, status])
+  @@index([status, dueDate])
+  @@index([subscriptionId])
+  @@map("invoice")
+}
+
+model InvoiceItem {
+  id          String          @id @default(cuid())
+  invoiceId   String
+  type        InvoiceItemType @default(SUBSCRIPTION)
+  description String
+  quantity    Decimal         @default(1) @db.Decimal(14, 4)
+  unitPrice   Decimal         @db.Decimal(14, 2)
+  taxRate     Decimal         @default(0) @db.Decimal(6, 3)
+  amount      Decimal         @db.Decimal(14, 2)
+  currency    String
+  sortOrder   Int             @default(0)
+  metadata    Json?
+
+  invoice Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  @@index([invoiceId])
+  @@map("invoice_item")
+}
+
+model SubscriptionPayment {
+  id                         String                      @id @default(cuid())
+  organizationId             String
+  subscriptionId             String?
+  provider                   SubscriptionPaymentProvider @default(MANUAL)
+  status                     SubscriptionPaymentStatus   @default(COMPLETED)
+  amount                     Decimal                     @db.Decimal(14, 2)
+  currency                   String
+  paidAt                     DateTime                    @default(now())
+  providerTransactionId      String?
+  bankStatementTransactionId String?
+  reference                  String?
+  note                       String?
+  reversedAt                 DateTime?
+  reversalReason             String?
+  reversedByUserId           String?
+  createdByUserId            String?
+  createdAt                  DateTime                    @default(now())
+  updatedAt                  DateTime                    @updatedAt
+
+  organization    Organization              @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  subscription    OrganizationSubscription? @relation(fields: [subscriptionId], references: [id], onDelete: SetNull)
+  bankTransaction BankStatementTransaction? @relation(fields: [bankStatementTransactionId], references: [id], onDelete: SetNull)
+  reversedByUser  User?                     @relation("SubscriptionPaymentReverser", fields: [reversedByUserId], references: [id])
+  createdByUser   User?                     @relation("SubscriptionPaymentRecorder", fields: [createdByUserId], references: [id])
+
+  allocations PaymentAllocation[]
+
+  @@index([organizationId, status])
+  @@index([bankStatementTransactionId])
+  @@map("subscription_payment")
+}
+
+model PaymentAllocation {
+  id                    String   @id @default(cuid())
+  subscriptionPaymentId String
+  invoiceId             String
+  amount                Decimal  @db.Decimal(14, 2)
+  currency              String
+  createdAt             DateTime @default(now())
+
+  subscriptionPayment SubscriptionPayment @relation(fields: [subscriptionPaymentId], references: [id], onDelete: Cascade)
+  invoice             Invoice             @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  @@unique([subscriptionPaymentId, invoiceId])
+  @@index([invoiceId])
+  @@map("payment_allocation")
+}
+
+/// Idempotency record for automatic subscription extensions triggered by
+/// invoice payment. The unique `(subscriptionId, invoiceId)` prevents double
+/// extension when the payment job retries.
+model SubscriptionExtension {
+  id             String       @id @default(cuid())
+  organizationId String
+  subscriptionId String
+  invoiceId      String
+  extendedFrom   DateTime
+  extendedTo     DateTime
+  cycle          BillingCycle
+  createdAt      DateTime     @default(now())
+
+  organization Organization             @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  subscription OrganizationSubscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+  invoice      Invoice                  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  @@unique([subscriptionId, invoiceId])
+  @@index([organizationId])
+  @@map("subscription_extension")
+}
+
+model BankStatementImport {
+  id                String                    @id @default(cuid())
+  organizationId    String?
+  format            BankStatementFormat
+  fileName          String
+  storageKey        String
+  status            BankStatementImportStatus @default(PENDING)
+  totalTransactions Int                       @default(0)
+  matchedCount      Int                       @default(0)
+  unmatchedCount    Int                       @default(0)
+  errorCount        Int                       @default(0)
+  errorMessage      String?
+  uploadedByUserId  String?
+  processedAt       DateTime?
+  createdAt         DateTime                  @default(now())
+
+  organization Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  uploadedBy   User?         @relation("BankStatementImportUploader", fields: [uploadedByUserId], references: [id])
+
+  transactions BankStatementTransaction[]
+
+  @@index([status])
+  @@map("bank_statement_import")
+}
+
+model BankStatementTransaction {
+  id               String                     @id @default(cuid())
+  importId         String
+  organizationId   String?
+  matchedInvoiceId String?
+  transactionDate  DateTime
+  valueDate        DateTime?
+  amount           Decimal                    @db.Decimal(14, 2)
+  currency         String
+  counterpartyName String?
+  counterpartyIban String?
+  counterpartyRef  String?
+  reference        String?
+  narrative        String?
+  externalId       String?
+  matchStatus      BankTransactionMatchStatus @default(UNMATCHED)
+  matchConfidence  Int                        @default(0)
+  matchNotes       String?
+  reviewedByUserId String?
+  reviewedAt       DateTime?
+  createdAt        DateTime                   @default(now())
+  updatedAt        DateTime                   @updatedAt
+
+  import       BankStatementImport @relation(fields: [importId], references: [id], onDelete: Cascade)
+  organization Organization?       @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  reviewedBy   User?               @relation("BankStatementReviewer", fields: [reviewedByUserId], references: [id])
+
+  payments SubscriptionPayment[]
+
+  @@index([importId])
+  @@index([matchStatus])
+  @@index([organizationId])
+  @@map("bank_statement_transaction")
+}
+
+model ElectronicInvoiceRecord {
+  id                    String                        @id @default(cuid())
+  organizationId        String
+  invoiceId             String
+  provider              ElectronicInvoiceProviderType
+  status                ElectronicInvoiceStatus       @default(PENDING)
+  providerReference     String?
+  providerStatusCode    String?
+  providerStatusMessage String?
+  sentAt                DateTime?
+  lastSyncAt            DateTime?
+  attempts              Int                           @default(0)
+  errorMessage          String?
+  payload               Json?
+  responsePayload       Json?
+  createdAt             DateTime                      @default(now())
+  updatedAt             DateTime                      @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  invoice      Invoice      @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, status])
+  @@index([invoiceId])
+  @@map("electronic_invoice_record")
+}
+
+model BillingJobRun {
+  id                String           @id @default(cuid())
+  jobType           BillingJobType
+  status            BillingJobStatus @default(RUNNING)
+  triggeredBy       String
+  triggeredByUserId String?
+  processedCount    Int              @default(0)
+  successCount      Int              @default(0)
+  errorCount        Int              @default(0)
+  skippedCount      Int              @default(0)
+  startedAt         DateTime         @default(now())
+  finishedAt        DateTime?
+  durationMs        Int?
+  summary           Json?
+  errorMessage      String?
+
+  triggeredByUser User? @relation(fields: [triggeredByUserId], references: [id])
+
+  @@index([jobType, startedAt])
+  @@index([status])
+  @@map("billing_job_run")
+}
+
+model BillingSequence {
+  id             String               @id @default(cuid())
+  organizationId String?
+  scope          BillingSequenceScope
+  year           Int
+  month          Int?
+  nextValue      Int                  @default(1)
+  createdAt      DateTime             @default(now())
+  updatedAt      DateTime             @updatedAt
+
+  organization Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([scope, organizationId, year, month], map: "billing_sequence_scope_org_year_month_unique")
+  @@map("billing_sequence")
+}
+
+model BillingEmailTemplate {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  name        String
+  description String?
+  subject     String
+  bodyHtml    String
+  bodyText    String
+  locale      String   @default("sr-Latn-RS")
+  variables   Json     @default("[]")
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("billing_email_template")
+}
+
+/// Per-role permission overrides.
+///
+/// Roles ship with a code-defined default grant matrix (see
+/// `src/server/permissions/roles.ts`). Rows in this table let a SUPER_ADMIN
+/// grant or revoke individual `resource.action` pairs for any role
+/// without a code change. A row is authoritative: `granted=true` allows
+/// the action, `granted=false` denies it. Missing row → default applies.
+///
+/// The `role` string is either an OrganizationRole (e.g. `SALES_MANAGER`)
+/// or the platform role `SUPER_ADMIN`. `permission` is the canonical
+/// `resource.action` form (e.g. `project.create`, `billing.invoice.manage`).
+model RolePermissionOverride {
+  id              String   @id @default(cuid())
+  role            String
+  permission      String
+  granted         Boolean
+  reason          String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  updatedByUserId String?
+
+  @@unique([role, permission])
+  @@index([role])
+  @@map("role_permission_override")
+}
+
+/// Manually-maintained (with a stub for NBS automation) exchange-rate list.
+/// A single row means "as of `effectiveDate`, 1 `baseCurrency` = `rate`
+/// `quoteCurrency`". `issueInvoice` picks the newest row with
+/// `effectiveDate <= issueDate` when converting an EUR invoice to RSD for
+/// domestic clients. Rates are `Decimal(18,6)` — the extra precision is
+/// necessary because we multiply large invoice amounts by the rate.
+model ExchangeRate {
+  id              String             @id @default(cuid())
+  baseCurrency    String             @default("EUR")
+  quoteCurrency   String             @default("RSD")
+  rate            Decimal            @db.Decimal(18, 6)
+  effectiveDate   DateTime           @db.Date
+  source          ExchangeRateSource @default(MANUAL)
+  note            String?
+  createdByUserId String?
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+
+  @@unique([baseCurrency, quoteCurrency, effectiveDate])
+  @@index([baseCurrency, quoteCurrency, effectiveDate])
+  @@map("exchange_rate")
+}

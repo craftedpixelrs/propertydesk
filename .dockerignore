@@ -1,0 +1,36 @@
+**/node_modules
+**/.next
+**/.turbo
+**/out
+**/coverage
+**/playwright-report
+**/test-results
+**/*.log
+**/.DS_Store
+
+# Local envs never enter the image. Runtime env comes from
+# docker-compose (host `.env` file) instead.
+.env
+.env.local
+.env.*.local
+
+# Local storage bind-mounted at runtime, not baked in.
+storage/*
+!storage/.gitkeep
+
+# Editor / IDE artefacts
+.vscode
+.idea
+.git
+.github
+
+# Build artefacts of adjacent tooling
+dist
+build
+tmp
+
+# Docs are unnecessary at runtime (image stays small).
+docs
+
+# Deployment tooling (only needed on the host, not in the image).
+deploy

@@ -1,0 +1,165 @@
+name: Build & Deploy
+
+# Automatski gradi Docker image na GitHub-ovim runnerima (16GB RAM, dovoljno za
+# Webpack build), gura ga u GitHub Container Registry (GHCR), a onda SSH-om na
+# VPS-u samo povuče gotov image i restartuje kontejner. Rezultat:
+#   - Nula minuta CPU-a na VPS-u tokom builda (VPS ostaje pun kapaciteta).
+#   - Downtime ~5-10 sekundi (dok se kontejner restartuje sa novim image-om).
+#   - Idempotent: manuelno pokretanje moguće kroz "Run workflow".
+#
+# Potrebni GitHub Secrets:
+#   - SSH_HOST              159.89.104.12
+#   - SSH_USER              root  (ili non-root deploy user)
+#   - SSH_PRIVATE_KEY       PEM-enkodovan privatni ključ za VPS
+#   - SSH_KNOWN_HOSTS       output-a `ssh-keyscan 159.89.104.12` (opciono, jače)
+#
+# Napomena: GHCR credentials nisu potrebni - koristimo `GITHUB_TOKEN` koji
+# automatski dobija write pristup registry-u koji je vezan za ovaj repo.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      image-tag: ${{ steps.meta.outputs.tags }}
+      image-digest: ${{ steps.build.outputs.digest }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract Docker metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          # Uvek gurni `latest` na main + sha za rollback.
+          tags: |
+            type=raw,value=latest,enable={{is_default_branch}}
+            type=sha,format=short
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and push image
+        id: build
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          # NEXT_PUBLIC_* se pekuju u client bundle - moraju se proslediti kao
+          # build-args. Vrednosti su javno dostupne (idu u client JS) pa su OK
+          # kao neweb-hardcoded defaults; tajne se ne prosleđuju ovde.
+          build-args: |
+            NEXT_PUBLIC_APP_URL=https://my.propertydesk.app
+            NEXT_PUBLIC_APP_NAME=PropertyDesk
+            NEXT_PUBLIC_APP_DOMAIN=propertydesk.app
+            NEXT_PUBLIC_APP_LOCALE=sr-Latn
+            NEXT_PUBLIC_APP_TIMEZONE=Europe/Belgrade
+            NEXT_PUBLIC_MY_APP_URL=https://my.propertydesk.app
+            NEXT_PUBLIC_GOOGLE_APPOINTMENT_URL=https://calendar.app.google/MvRGU5Kajmpawhnd6
+
+  deploy:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: https://propertydesk.app
+    steps:
+      - name: Configure SSH
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          SSH_KNOWN_HOSTS: ${{ secrets.SSH_KNOWN_HOSTS }}
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+        run: |
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_deploy
+          chmod 600 ~/.ssh/id_deploy
+          if [ -n "$SSH_KNOWN_HOSTS" ]; then
+            echo "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          else
+            ssh-keyscan -H "$SSH_HOST" >> ~/.ssh/known_hosts 2>/dev/null
+          fi
+          chmod 600 ~/.ssh/known_hosts
+
+      - name: Deploy on VPS
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+          # `latest` tag je uvek isti; koristimo digest da forsira pull svakog
+          # deploya čak i ako je tag naizgled nepromenjen (Docker po difoltu ne
+          # bi ponovo povukao "latest" ako lokalni image ima isti tag).
+          IMAGE_REF: ghcr.io/${{ env.IMAGE_NAME }}@${{ needs.build-and-push.outputs.image-digest }}
+        run: |
+          ssh -i ~/.ssh/id_deploy \
+              -o UserKnownHostsFile=~/.ssh/known_hosts \
+              -o StrictHostKeyChecking=yes \
+              -o ServerAliveInterval=20 \
+              -o ServerAliveCountMax=3 \
+              "$SSH_USER@$SSH_HOST" bash -s <<REMOTE
+          set -euo pipefail
+          cd /opt/propertydesk
+
+          echo "==> Login to GHCR"
+          echo "${{ secrets.GHCR_PULL_TOKEN != '' && secrets.GHCR_PULL_TOKEN || secrets.GITHUB_TOKEN }}" \
+            | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+
+          echo "==> Setting IMAGE=$IMAGE_REF"
+          # Perzistira izbor image-a u .env.deploy koji docker-compose čita.
+          grep -v '^IMAGE=' .env.deploy 2>/dev/null > .env.deploy.tmp || true
+          echo "IMAGE=$IMAGE_REF" >> .env.deploy.tmp
+          mv .env.deploy.tmp .env.deploy
+
+          echo "==> Pulling new image"
+          IMAGE="$IMAGE_REF" docker compose --env-file .env --env-file .env.deploy pull app
+
+          echo "==> Rolling out (no-build, uses pulled image)"
+          IMAGE="$IMAGE_REF" docker compose --env-file .env --env-file .env.deploy up -d --no-build --remove-orphans app
+
+          echo "==> Waiting for healthcheck"
+          for i in \$(seq 1 30); do
+            status=\$(docker inspect -f '{{.State.Health.Status}}' propertydesk-app 2>/dev/null || echo "starting")
+            if [ "\$status" = "healthy" ]; then
+              echo "==> App is healthy"
+              break
+            fi
+            echo "[\${i}/30] status=\$status, waiting..."
+            sleep 5
+          done
+
+          echo "==> Running migrations (idempotent)"
+          docker compose --env-file .env --env-file .env.deploy exec -T app npx prisma migrate deploy
+
+          echo "==> Pruning old images"
+          docker image prune -f --filter "until=168h" >/dev/null 2>&1 || true
+
+          echo "==> Deploy complete"
+          REMOTE

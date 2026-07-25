@@ -1,0 +1,46 @@
+# deps
+node_modules
+.pnpm-store
+
+# next
+.next
+next-env.d.ts
+out
+build
+dist
+.vercel
+.turbo
+
+# testing
+coverage
+playwright-report
+test-results
+.playwright
+
+# env
+.env
+.env*.local
+.env.development
+.env.production
+.env.deploy
+
+# deploy artifacts
+deploy/payload-*.tar.gz
+
+# ide
+.vscode
+.idea
+*.log
+
+# os
+.DS_Store
+Thumbs.db
+
+# misc
+*.tsbuildinfo
+.tsbuildinfo
+tsconfig.tsbuildinfo
+
+# tools
+.agent-tools
+agent-tools
