@@ -82,6 +82,8 @@ nohup bash -c "
   set -e
   cd '$REMOTE_DIR'
   $COMPOSE_CMD
+  echo '(applying database migrations)'
+  docker compose exec -T app node_modules/.bin/prisma migrate deploy < /dev/null
   echo '===BUILD-DONE==='
 " > /tmp/build.log 2>&1 &
 

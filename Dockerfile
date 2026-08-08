@@ -141,6 +141,11 @@ COPY --from=builder --chown=nextjs:nodejs /app/public ./public
 # Ship Prisma migrations + schema + seed so we can run `migrate deploy`
 # and `db:seed` from inside the container without a full source checkout.
 COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
+# Prisma 7 reads the datasource URL from prisma.config.ts, so the CLI is
+# unusable without it ("datasource.url property is required"). The config
+# also does `import "dotenv/config"`, hence the dotenv copy.
+COPY --from=builder --chown=nextjs:nodejs /app/prisma.config.ts ./prisma.config.ts
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules/dotenv ./node_modules/dotenv
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules/prisma ./node_modules/prisma
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules/@prisma ./node_modules/@prisma
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules/.prisma ./node_modules/.prisma

@@ -36,11 +36,16 @@ const securityHeaders: Array<{ key: string; value: string }> = [
       // `www.googletagmanager.com`, and it POSTs metrics to
       // `www.google-analytics.com` / regional shards.
       //
+      // `static.cloudflareinsights.com` is the Web Analytics beacon that
+      // Cloudflare injects into the HTML at the edge. We never reference
+      // it ourselves, so without this entry every proxied page logs a CSP
+      // violation. Remove it if Web Analytics is turned off in Cloudflare.
+      //
       // `unsafe-eval` is required by Next.js dev/turbopack; production
       // still needs `unsafe-inline` for hydration inline scripts.
       isProd
-        ? "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://www.google-analytics.com"
-        : "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com",
+        ? "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://www.google-analytics.com https://static.cloudflareinsights.com"
+        : "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com https://static.cloudflareinsights.com",
       "connect-src 'self' https: wss:",
       "worker-src 'self' blob:",
       "object-src 'none'",

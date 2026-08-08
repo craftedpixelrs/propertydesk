@@ -360,7 +360,7 @@ async function main() {
     planCode: starter.code,
     members: [
       {
-        email: "s",
+        email: "vlasnik@gradnjaplus.test",
         name: "Marko Vlasnik",
         role: "INVESTOR_OWNER",
         isOwner: true,

@@ -41,7 +41,8 @@ Pipeline:
 1. `git-deploy.sh` on the server: kill any leftover build, back up `.env`
    to `/root/env-backups/`, `git fetch --depth=1` + `git reset --hard
    origin/main`, seed `.env` from `deploy/env.production.template` on
-   first run, then kick off a detached `docker compose up -d --build`.
+   first run, then kick off a detached `docker compose up -d --build`
+   followed by `prisma migrate deploy`.
 2. Poll `/tmp/build.log` until the `===BUILD-DONE===` marker appears
    (~10 min on this droplet; the webpack stage alone is ~5 min of
    silence).
@@ -151,12 +152,29 @@ docker compose -f /opt/propertydesk/docker-compose.yml exec app \
 
 ## Database migrations
 
-Run inside the `app` container so it uses the same `DATABASE_URL`:
+`git-deploy.ps1` runs `prisma migrate deploy` automatically after every
+build. To run it by hand:
 
 ```bash
 cd /opt/propertydesk
 docker compose exec app node_modules/.bin/prisma migrate deploy
 ```
+
+The production database is the same Supabase project used in local dev,
+so migrations can equally be applied from a workstation with
+`pnpm exec prisma migrate deploy`.
+
+If a migration was applied by hand (e.g. the SQL was pasted into the
+Supabase console), `migrate deploy` fails with `P3018` / `already
+exists`. Verify the objects really are complete, then record it:
+
+```powershell
+pnpm exec prisma migrate resolve --applied <migration_name>
+```
+
+Skipping migrations breaks the app in a way that looks like an auth
+problem: Prisma throws `The column X does not exist`, the session-create
+hook that reads `member.findFirst` fails, and sign-in returns 401.
 
 ## Seeding (fresh Supabase project only)
 
