@@ -25,22 +25,45 @@ The 1 GiB RAM droplet needs a bigger swap for `next build` to fit:
   | ssh -i "$env:USERPROFILE\.ssh\demopropertydesk" root@159.89.104.12 "bash -s"
 ```
 
-## Regular deploy
+## Regular deploy (from GitHub)
+
+`/opt/propertydesk` is a git checkout of
+[craftedpixelrs/propertydesk](https://github.com/craftedpixelrs/propertydesk),
+so production always runs a commit that exists on the remote. Push
+first, then:
+
+```powershell
+powershell -File deploy\git-deploy.ps1
+```
+
+Pipeline:
+
+1. `git-deploy.sh` on the server: kill any leftover build, back up `.env`
+   to `/root/env-backups/`, `git fetch --depth=1` + `git reset --hard
+   origin/main`, seed `.env` from `deploy/env.production.template` on
+   first run, then kick off a detached `docker compose up -d --build`.
+2. Poll `/tmp/build.log` until the `===BUILD-DONE===` marker appears
+   (~10 min on this droplet; the webpack stage alone is ~5 min of
+   silence).
+3. Prune dangling images, print the deployed commit and compose status.
+4. Poll `https://my.propertydesk.app/api/health` until it returns 200.
+
+`.env` is gitignored, so the hard reset never touches it. Uploaded files
+live in the `propertydesk_app_storage` Docker volume, not in the
+checkout, so they survive too.
+
+## Legacy deploy (tarball upload)
+
+Kept for deploying uncommitted local work:
 
 ```powershell
 powershell -File deploy\deploy.ps1
 ```
 
-Pipeline:
-
-1. `tar` the source tree into `deploy/payload-<stamp>.tar.gz`
-   (excludes `node_modules`, `.next`, `.env*`, `.git`, `storage/uploads`,
-   old payloads). Result is ~0.7 MiB.
-2. `scp` upload to `/tmp/payload.tar.gz`.
-3. `remote-deploy.sh` on the server: seed `.env` from
-   `deploy/env.production.template` on first run, replace source under
-   `/opt/propertydesk`, `docker compose up -d --build`.
-4. Poll `/api/health` until it returns 200.
+Same pipeline, except the source is a `tar` of the local working tree
+`scp`-ed to `/tmp/payload.tar.gz` and unpacked by `remote-deploy.sh`.
+Note this overwrites the git checkout's files, leaving `git status`
+dirty until the next `git-deploy.ps1` run resets it.
 
 ## DNS + Cloudflare
 

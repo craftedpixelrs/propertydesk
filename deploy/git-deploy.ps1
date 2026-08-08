@@ -24,6 +24,7 @@ param(
   [string]$RemoteDir  = "/opt/propertydesk",
   [string]$RepoUrl    = "https://github.com/craftedpixelrs/propertydesk.git",
   [string]$Branch     = "main",
+  [string]$HealthUrl  = "https://my.propertydesk.app/api/health",
   [switch]$SkipBuild
 )
 
@@ -91,14 +92,15 @@ Info "Pruning dangling images + printing compose status"
 & ssh @ssh "${User}@${RemoteHost}" "cd $RemoteDir && docker image prune -f >/dev/null && git log -1 --oneline && docker compose ps"
 
 # ----- 4) health poll ------------------------------------------------------
-Info "Waiting for /api/health (up to 240s)"
+# Poll the public hostname, not the origin IP: Caddy 301s plain HTTP to
+# HTTPS, and hitting the origin over HTTPS trips a certificate mismatch
+# because the real certificate is served by Cloudflare in front of it.
+Info "Waiting for $HealthUrl (up to 240s)"
 $deadline = (Get-Date).AddSeconds(240)
 $healthy = $false
 while ((Get-Date) -lt $deadline) {
   try {
-    $r = Invoke-WebRequest -Uri "http://$RemoteHost/api/health" `
-           -Headers @{ "Host" = "my.propertydesk.app" } `
-           -UseBasicParsing -TimeoutSec 5 -MaximumRedirection 5 -ErrorAction Stop
+    $r = Invoke-WebRequest -Uri $HealthUrl -UseBasicParsing -TimeoutSec 10 -ErrorAction Stop
     if ($r.StatusCode -eq 200) { $healthy = $true; break }
   } catch { Start-Sleep -Seconds 5 }
 }
