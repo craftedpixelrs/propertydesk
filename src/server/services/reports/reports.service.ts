@@ -1,5 +1,6 @@
 import "server-only";
-import type { Prisma, SaleStatus, UnitStatus, ReservationStatus } from "@prisma/client";
+import type { SaleStatus, UnitStatus, ReservationStatus } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 import Decimal from "decimal.js";
 
 import { prisma } from "@/server/db/prisma";
@@ -607,5 +608,198 @@ export async function buildAgencyReport(filters: ReportFilters): Promise<AgencyR
       currency: "EUR",
     },
     rows,
+  };
+}
+
+// -----------------------------------------------------------------------------
+// Monthly sales trend
+// -----------------------------------------------------------------------------
+
+/**
+ * `date_trunc` runs in UTC by default. All PropertyDesk operators live in
+ * Serbia; a sale created at 01:30 Belgrade time on 1st of the month would
+ * otherwise fall into the previous month's bucket. We normalise into the
+ * Belgrade zone before truncating so month boundaries match the business
+ * day.
+ */
+const REPORT_TIME_ZONE = "Europe/Belgrade";
+
+export interface SalesTrendPoint {
+  /** ISO date of the first day of the bucket, at 00:00 Belgrade. */
+  bucketStart: string;
+  /** Human bucket label, e.g. "2026-08" — safe to sort lexicographically. */
+  bucketLabel: string;
+  currency: string;
+  salesCount: number;
+  salesTotal: string;
+}
+
+export interface SalesTrendReport {
+  filters: ReportFilters;
+  currencies: string[];
+  points: SalesTrendPoint[];
+}
+
+/**
+ * Monthly trend of gross sales (finalPrice sums) per currency. Cancelled
+ * sales are excluded so the line reflects committed pipeline.
+ */
+export async function buildSalesTrend(
+  filters: ReportFilters,
+): Promise<SalesTrendReport> {
+  const clauses: Prisma.Sql[] = [
+    Prisma.sql`"organizationId" = ${filters.organizationId}`,
+    Prisma.sql`status <> 'CANCELED'`,
+  ];
+  if (filters.projectId) {
+    clauses.push(Prisma.sql`"projectId" = ${filters.projectId}`);
+  }
+  if (filters.from) {
+    clauses.push(Prisma.sql`"createdAt" >= ${filters.from}`);
+  }
+  if (filters.to) {
+    clauses.push(Prisma.sql`"createdAt" <= ${filters.to}`);
+  }
+  const where = Prisma.join(clauses, " AND ");
+
+  const rows = await prisma.$queryRaw<
+    Array<{
+      bucket: Date;
+      currency: string;
+      count: bigint | number;
+      sum: string | null;
+    }>
+  >(Prisma.sql`
+    SELECT
+      date_trunc('month', "createdAt" AT TIME ZONE ${REPORT_TIME_ZONE}) AS bucket,
+      currency,
+      COUNT(*)::bigint AS count,
+      COALESCE(SUM("finalPrice"), 0)::text AS sum
+    FROM "sale"
+    WHERE ${where}
+    GROUP BY 1, 2
+    ORDER BY 1 ASC
+  `);
+
+  const currencySet = new Set<string>();
+  const points: SalesTrendPoint[] = rows.map((row) => {
+    const bucketDate =
+      row.bucket instanceof Date ? row.bucket : new Date(row.bucket as unknown as string);
+    const year = bucketDate.getUTCFullYear();
+    const month = bucketDate.getUTCMonth() + 1;
+    currencySet.add(row.currency);
+    return {
+      bucketStart: bucketDate.toISOString(),
+      bucketLabel: `${year}-${month.toString().padStart(2, "0")}`,
+      currency: row.currency,
+      salesCount:
+        typeof row.count === "bigint" ? Number(row.count) : Number(row.count ?? 0),
+      salesTotal: toDecimal(row.sum ?? 0).toString(),
+    };
+  });
+
+  return {
+    filters,
+    currencies: Array.from(currencySet).sort(),
+    points,
+  };
+}
+
+// -----------------------------------------------------------------------------
+// Conversion funnel (Reservations -> Sales)
+// -----------------------------------------------------------------------------
+
+export interface ConversionFunnelStep {
+  key: "reservations" | "approved" | "converted" | "contracted";
+  label: string;
+  count: number;
+  /** Ratio vs. top-of-funnel (0..1). */
+  ratioFromTop: number;
+}
+
+export interface ConversionFunnelReport {
+  filters: ReportFilters;
+  steps: ConversionFunnelStep[];
+  /**
+   * Overall conversion rate = contracted / reservations (0..1). Zero when
+   * the top of the funnel is empty (never NaN — protect the UI).
+   */
+  overallConversionRate: number;
+}
+
+export async function buildConversionFunnel(
+  filters: ReportFilters,
+): Promise<ConversionFunnelReport> {
+  const reservationWhere: Prisma.ReservationWhereInput = {
+    organizationId: filters.organizationId,
+    ...(filters.projectId ? { projectId: filters.projectId } : {}),
+    ...(filters.from || filters.to
+      ? {
+          createdAt: {
+            ...(filters.from ? { gte: filters.from } : {}),
+            ...(filters.to ? { lte: filters.to } : {}),
+          },
+        }
+      : {}),
+  };
+
+  // Reservations count sales originating from a reservation in the same
+  // window. For sales that skip reservation entirely, use `contractDate`
+  // as the anchor (fallback to `createdAt`).
+  const saleWhere: Prisma.SaleWhereInput = {
+    organizationId: filters.organizationId,
+    ...(filters.projectId ? { projectId: filters.projectId } : {}),
+    status: {
+      in: ["CONTRACTED", "PAYMENT_IN_PROGRESS", "PAID", "HANDED_OVER"],
+    },
+    ...(filters.from || filters.to
+      ? {
+          createdAt: {
+            ...(filters.from ? { gte: filters.from } : {}),
+            ...(filters.to ? { lte: filters.to } : {}),
+          },
+        }
+      : {}),
+  };
+
+  const [reservations, approved, converted, contracted] = await Promise.all([
+    prisma.reservation.count({ where: reservationWhere }),
+    prisma.reservation.count({
+      where: { ...reservationWhere, approvedAt: { not: null } },
+    }),
+    prisma.reservation.count({
+      where: { ...reservationWhere, convertedAt: { not: null } },
+    }),
+    prisma.sale.count({ where: saleWhere }),
+  ]);
+
+  const top = reservations;
+  const ratio = (n: number) => (top > 0 ? n / top : 0);
+  const steps: ConversionFunnelStep[] = [
+    { key: "reservations", label: "Rezervacije", count: reservations, ratioFromTop: 1 },
+    {
+      key: "approved",
+      label: "Odobrene",
+      count: approved,
+      ratioFromTop: ratio(approved),
+    },
+    {
+      key: "converted",
+      label: "Konvertovane",
+      count: converted,
+      ratioFromTop: ratio(converted),
+    },
+    {
+      key: "contracted",
+      label: "Ugovorene prodaje",
+      count: contracted,
+      ratioFromTop: ratio(contracted),
+    },
+  ];
+
+  return {
+    filters,
+    steps,
+    overallConversionRate: top > 0 ? contracted / top : 0,
   };
 }

@@ -9,6 +9,7 @@ import { getBuyerById } from "@/server/services/buyers.service";
 import { DomainError } from "@/lib/errors";
 import { formatDate, formatDateTime } from "@/lib/formatters";
 import { BuyerQuickActions } from "@/features/buyers/buyer-quick-actions";
+import { CommentThread } from "@/features/comments/comment-thread";
 import type { ActivityType, BuyerStatus } from "@prisma/client";
 
 export const dynamic = "force-dynamic";
@@ -109,6 +110,19 @@ export default async function KupacDetaljPage({ params }: PageProps) {
               ) : (
                 <ActivityTimeline items={timelineItems} />
               )}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-sm">Komentari</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <CommentThread
+                entityType="Buyer"
+                entityId={buyer.id}
+                currentUserId={ctx.user.id}
+              />
             </CardContent>
           </Card>
 

@@ -6,14 +6,31 @@ import { PageHeader } from "@/components/app/page-header";
 import { StatCard } from "@/components/app/stat-card";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { EmptyState } from "@/components/app/empty-state";
+import { ChartCard } from "@/components/charts/chart-card";
+import { StatusDonut } from "@/components/charts/status-donut";
+import { CategoryBars } from "@/components/charts/category-bars";
+import { unitStatusColor, saleStatusColor } from "@/components/charts/palette";
 import { loadUserContext } from "@/server/auth/context";
 import {
   loadInvestorDashboard,
   loadAgencyDashboard,
 } from "@/server/services/dashboard/dashboard.service";
+import { loadOnboardingState } from "@/server/services/onboarding.service";
+import { OnboardingChecklist } from "@/features/onboarding/onboarding-checklist";
 import { formatDate, formatMoney } from "@/lib/formatters";
 import type { SupportedCurrency } from "@/lib/constants/app";
 import { t } from "@/lib/i18n";
+
+const UNIT_STATUS_LABELS: Record<string, string> = {
+  AVAILABLE: "Dostupno",
+  ON_HOLD: "Zadržano",
+  RESERVED: "Rezervisano",
+  DEPOSIT_PAID: "Kapara",
+  CONTRACTED: "Ugovoreno",
+  SOLD: "Prodato",
+  BLOCKED: "Blokirano",
+  NOT_FOR_SALE: "Nije u prodaji",
+};
 
 export const dynamic = "force-dynamic";
 
@@ -74,7 +91,10 @@ async function InvestorDashboard({
   organizationId: string;
   name: string;
 }) {
-  const data = await loadInvestorDashboard(organizationId);
+  const [data, onboarding] = await Promise.all([
+    loadInvestorDashboard(organizationId),
+    loadOnboardingState(organizationId),
+  ]);
   const currency = data.financial.currency as SupportedCurrency;
 
   return (
@@ -83,6 +103,17 @@ async function InvestorDashboard({
         title={t("nav.dashboard")}
         description={`${t("organization.switcherLabel")}: ${name}`}
       />
+
+      {onboarding.visible ? (
+        <OnboardingChecklist
+          state={{
+            steps: onboarding.steps,
+            completedCount: onboarding.completedCount,
+            totalCount: onboarding.totalCount,
+            allDone: onboarding.allDone,
+          }}
+        />
+      ) : null}
 
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
         <StatCard
@@ -124,6 +155,41 @@ async function InvestorDashboard({
           value={formatMoney(data.financial.salesOutstandingTotal, currency)}
           icon={<Wallet className="size-5" />}
         />
+      </div>
+
+      <div className="grid gap-6 lg:grid-cols-2">
+        <ChartCard
+          title="Zalihe po statusu"
+          description={`Ukupno ${data.totals.unitsTotal} jedinica.`}
+          isEmpty={data.totals.unitsTotal === 0}
+          height={260}
+        >
+          <StatusDonut
+            centerLabel="Ukupno"
+            data={data.inventoryByStatus.map((row) => ({
+              key: row.status,
+              label: UNIT_STATUS_LABELS[row.status] ?? row.status,
+              value: row.count,
+              color: unitStatusColor[row.status],
+            }))}
+          />
+        </ChartCard>
+
+        <ChartCard
+          title="Prodaje po statusu"
+          description="Broj prodaja u trenutnom stanju."
+          isEmpty={data.salesByStatus.reduce((a, b) => a + b.count, 0) === 0}
+          height={260}
+        >
+          <CategoryBars
+            data={data.salesByStatus.map((row) => ({
+              key: row.status,
+              label: SALE_LABELS[row.status] ?? row.status,
+              value: row.count,
+              color: saleStatusColor[row.status],
+            }))}
+          />
+        </ChartCard>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">

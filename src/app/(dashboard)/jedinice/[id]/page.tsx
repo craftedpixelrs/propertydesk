@@ -5,9 +5,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { loadUserContext } from "@/server/auth/context";
 import { getUnitById } from "@/server/services/units.service";
+import { listDocuments } from "@/server/services/documents.service";
+import { listShareLinksForEntity } from "@/server/services/sharing/share-links.service";
 import { isDomainError } from "@/lib/errors";
 import { formatMoney, formatDateTime } from "@/lib/formatters";
 import { UnitStatusChanger } from "@/features/units/unit-status-changer";
+import { PhotoGallery, type PhotoItem } from "@/features/documents/photo-gallery";
+import { UnitSharePanel } from "@/features/sharing/unit-share-panel";
 
 const UNIT_STATUS_LABELS: Record<string, string> = {
   AVAILABLE: "Slobodno",
@@ -50,6 +54,44 @@ export default async function UnitDetail({ params }: Props) {
 
   const canManageStatus = ctx.permissions.includes("inventory.status");
   const canEdit = ctx.permissions.includes("inventory.manage");
+  const canManageDocs = ctx.permissions.includes("document.manage");
+
+  const [photosResult, shareLinks] = await Promise.all([
+    listDocuments({
+      organizationId: ctx.activeOrganization.id,
+      entityType: "Unit",
+      entityId: unit.id,
+      imagesOnly: true,
+      page: 1,
+      pageSize: 60,
+    }),
+    listShareLinksForEntity({
+      organizationId: ctx.activeOrganization.id,
+      entityType: "Unit",
+      entityId: unit.id,
+    }),
+  ]);
+  const photos: PhotoItem[] = photosResult.items.map((d) => ({
+    id: d.id,
+    fileName: d.fileName,
+    originalFileName: d.originalFileName,
+    mimeType: d.mimeType,
+    size: d.size,
+    isCover: d.isCover,
+    sortOrder: d.sortOrder,
+    createdAt: d.createdAt.toISOString(),
+  }));
+  const shareLinksSerialized = shareLinks.map((l) => ({
+    id: l.id,
+    token: l.token,
+    showPrice: l.showPrice,
+    expiresAt: l.expiresAt?.toISOString() ?? null,
+    revokedAt: l.revokedAt?.toISOString() ?? null,
+    viewCount: l.viewCount,
+    lastViewedAt: l.lastViewedAt?.toISOString() ?? null,
+    createdAt: l.createdAt.toISOString(),
+    publicUrl: `/p/${l.token}`,
+  }));
 
   return (
     <div className="space-y-6">
@@ -183,6 +225,20 @@ export default async function UnitDetail({ params }: Props) {
           </CardContent>
         </Card>
       ) : null}
+
+      <PhotoGallery
+        entityType="Unit"
+        entityId={unit.id}
+        photos={photos}
+        canManage={canManageDocs}
+        uploadCategory="UNIT"
+      />
+
+      <UnitSharePanel
+        unitId={unit.id}
+        initialLinks={shareLinksSerialized}
+        canManage={ctx.permissions.includes("inventory.read")}
+      />
 
       <Card>
         <CardHeader>

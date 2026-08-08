@@ -115,6 +115,9 @@ export type AuditAction =
   // Documents
   | "document.uploaded"
   | "document.deleted"
+  // Comments
+  | "comment.created"
+  | "comment.deleted"
   // Billing — SaaS invoicing / subscriptions / payments
   | "billing.global_settings_updated"
   | "billing.org_settings_updated"

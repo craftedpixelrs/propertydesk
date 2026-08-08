@@ -122,8 +122,21 @@ export default async function ProjektiPage({ searchParams }: PageProps) {
 
       {items.length === 0 ? (
         <Card>
-          <CardContent className="py-12 text-center text-sm text-[var(--color-foreground-muted)]">
-            Nema projekata koji odgovaraju izabranim filterima.
+          <CardContent className="space-y-3 py-12 text-center text-sm text-[var(--color-foreground-muted)]">
+            {search || status ? (
+              <>Nema projekata koji odgovaraju izabranim filterima.</>
+            ) : (
+              <>
+                <p>Još nema projekata u ovoj organizaciji.</p>
+                <PermissionGuard permission="project.create">
+                  <div className="flex justify-center pt-2">
+                    <Button asChild>
+                      <Link href="/projekti/novi">Kreiraj prvi projekat</Link>
+                    </Button>
+                  </div>
+                </PermissionGuard>
+              </>
+            )}
           </CardContent>
         </Card>
       ) : (

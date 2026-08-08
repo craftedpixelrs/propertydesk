@@ -3,6 +3,8 @@ import { redirect } from "next/navigation";
 import { PageHeader } from "@/components/app/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { StatCard } from "@/components/app/stat-card";
+import { ChartCard } from "@/components/charts/chart-card";
+import { StatusDonut } from "@/components/charts/status-donut";
 import {
   ReportFilters,
   parseReportSearchParams,
@@ -11,6 +13,17 @@ import {
 } from "@/features/reports/report-filters";
 import { requirePermission } from "@/server/permissions/require";
 import { buildBuyerPipelineReport } from "@/server/services/reports/reports.service";
+
+const SOURCE_LABELS: Record<string, string> = {
+  DIRECT: "Direktno",
+  WEBSITE: "Sajt",
+  REFERRAL: "Preporuka",
+  ADVERTISING: "Oglašavanje",
+  SOCIAL_MEDIA: "Društvene mreže",
+  AGENCY: "Agencija",
+  WALK_IN: "Kancelarija",
+  OTHER: "Ostalo",
+};
 
 export const dynamic = "force-dynamic";
 
@@ -62,9 +75,41 @@ export default async function BuyersReportPage({ searchParams }: PageProps) {
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">
+        <ChartCard
+          title="Po statusu"
+          isEmpty={report.byStatus.length === 0}
+          height={240}
+        >
+          <StatusDonut
+            centerLabel="Kupci"
+            data={report.byStatus.map((row) => ({
+              key: row.status,
+              label: STATUS_LABELS[row.status] ?? row.status,
+              value: row.count,
+            }))}
+          />
+        </ChartCard>
+
+        <ChartCard
+          title="Po izvoru"
+          isEmpty={report.bySource.length === 0}
+          height={240}
+        >
+          <StatusDonut
+            centerLabel="Kupci"
+            data={report.bySource.map((row) => ({
+              key: row.source,
+              label: SOURCE_LABELS[row.source] ?? row.source ?? "—",
+              value: row.count,
+            }))}
+          />
+        </ChartCard>
+      </div>
+
+      <div className="grid gap-6 md:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle className="text-sm">Po statusu</CardTitle>
+            <CardTitle className="text-sm">Po statusu — detaljno</CardTitle>
           </CardHeader>
           <CardContent>
             <table className="w-full text-sm">
@@ -90,7 +135,7 @@ export default async function BuyersReportPage({ searchParams }: PageProps) {
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-sm">Po izvoru</CardTitle>
+            <CardTitle className="text-sm">Po izvoru — detaljno</CardTitle>
           </CardHeader>
           <CardContent>
             <table className="w-full text-sm">
@@ -104,7 +149,7 @@ export default async function BuyersReportPage({ searchParams }: PageProps) {
                 ) : (
                   report.bySource.map((row) => (
                     <tr key={row.source}>
-                      <td className="py-1.5">{row.source || "—"}</td>
+                      <td className="py-1.5">{SOURCE_LABELS[row.source] ?? row.source ?? "—"}</td>
                       <td className="py-1.5 text-right font-medium">{row.count}</td>
                     </tr>
                   ))

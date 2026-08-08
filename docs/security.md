@@ -30,7 +30,29 @@ Global headers emitted by [`next.config.ts`](../next.config.ts):
   - `POST /api/v1/reservations` (10 / min / user)
   - `POST /api/v1/agency/reservations` (10 / min / user)
   - `POST /api/v1/agency/registrations` (20 / min / user)
+  - `GET /api/public/share/[token]/image/[documentId]` (120 / min / token+doc)
 - Toggle via `RATE_LIMIT_ENABLED=false` for local dev only.
+
+## Public share tokens
+
+- `ShareLink` rows expose one specific unit through an unauthenticated
+  `/p/[token]` page. Tokens are generated with
+  `crypto.randomBytes(24).toString("base64url")` (~192 bits of entropy)
+  so URL guessing is not feasible.
+- Every shared URL is served with `robots: { index: false }` metadata
+  plus `X-Robots-Tag: noindex` — anonymous unit offers must never appear
+  in a public search engine.
+- `showPrice=false` on a `ShareLink` server-side strips the price from
+  the whitelisted projection *before* rendering; the client never sees
+  a hidden price to leak via view-source.
+- `expiresAt` (optional) and `revokedAt` are checked on every request.
+  A revoked or expired link returns `404`, matching an unknown token —
+  the response body never distinguishes the two.
+- Images on the public page load through
+  `GET /api/public/share/[token]/image/[documentId]`, which re-verifies
+  the token owns the document, streams via `StorageProvider`, and hits
+  the rate limiter above. The route has no `requirePermission` call
+  because the token *is* the capability.
 
 ## Secrets
 

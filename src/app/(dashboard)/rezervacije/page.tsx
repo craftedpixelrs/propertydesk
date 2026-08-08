@@ -4,8 +4,12 @@ import { redirect } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { loadUserContext } from "@/server/auth/context";
-import { listReservations } from "@/server/services/reservations.service";
+import {
+  listReservations,
+  listReservationsBoard,
+} from "@/server/services/reservations.service";
 import { formatDate } from "@/lib/formatters";
+import { ReservationsBoard } from "@/features/board/reservations-board";
 import type { ReservationStatus } from "@prisma/client";
 
 export const dynamic = "force-dynamic";
@@ -42,12 +46,113 @@ export default async function RezervacijePage({ searchParams }: PageProps) {
   if (!ctx.activeOrganization) redirect("/podesavanja");
 
   const sp = await searchParams;
+  const view = readParam(sp.view) === "board" ? "board" : "list";
   const status = readParam(sp.status) as ReservationStatus | undefined;
   const page = Number(readParam(sp.page) ?? "1") || 1;
   const pageSize = 20;
 
+  return (
+    <div className="space-y-6">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-semibold">Rezervacije</h1>
+          <p className="text-sm text-[var(--color-foreground-muted)]">
+            Zahtevi za rezervaciju i njihov status.
+          </p>
+        </div>
+        <ViewSwitcher view={view} status={status} />
+      </div>
+
+      {view === "board" ? (
+        <BoardView organizationId={ctx.activeOrganization.id} ctxPermissions={ctx.permissions} />
+      ) : (
+        <ListView
+          organizationId={ctx.activeOrganization.id}
+          status={status}
+          page={page}
+          pageSize={pageSize}
+        />
+      )}
+    </div>
+  );
+}
+
+function ViewSwitcher({
+  view,
+  status,
+}: {
+  view: "list" | "board";
+  status: ReservationStatus | undefined;
+}) {
+  const query: Record<string, string> = {};
+  if (status) query.status = status;
+  return (
+    <div className="inline-flex overflow-hidden rounded-md border border-[var(--color-border)] text-sm">
+      <Link
+        href={{ pathname: "/rezervacije", query }}
+        className={`px-3 py-1.5 ${
+          view === "list"
+            ? "bg-[var(--color-brand-600)] text-white"
+            : "bg-white text-[var(--color-foreground)] hover:bg-[var(--color-surface-inset)]"
+        }`}
+      >
+        Lista
+      </Link>
+      <Link
+        href={{ pathname: "/rezervacije", query: { ...query, view: "board" } }}
+        className={`px-3 py-1.5 ${
+          view === "board"
+            ? "bg-[var(--color-brand-600)] text-white"
+            : "bg-white text-[var(--color-foreground)] hover:bg-[var(--color-surface-inset)]"
+        }`}
+      >
+        Tabla
+      </Link>
+    </div>
+  );
+}
+
+async function BoardView({
+  organizationId,
+  ctxPermissions,
+}: {
+  organizationId: string;
+  ctxPermissions: readonly string[];
+}) {
+  const board = await listReservationsBoard({ organizationId });
+  // Serialise dates for the client boundary — RSC won't let us pass
+  // `Date` instances through to a `"use client"` boundary directly.
+  const columns = board.map((col) => ({
+    status: col.status,
+    total: col.total,
+    cards: col.cards.map((c) => ({
+      ...c,
+      createdAt: c.createdAt.toISOString(),
+      expiresAt: c.expiresAt ? c.expiresAt.toISOString() : null,
+    })),
+  }));
+  return (
+    <ReservationsBoard
+      columns={columns}
+      canApprove={ctxPermissions.includes("reservation.approve")}
+      canManageSales={ctxPermissions.includes("sale.manage")}
+    />
+  );
+}
+
+async function ListView({
+  organizationId,
+  status,
+  page,
+  pageSize,
+}: {
+  organizationId: string;
+  status: ReservationStatus | undefined;
+  page: number;
+  pageSize: number;
+}) {
   const { items, total } = await listReservations({
-    organizationId: ctx.activeOrganization.id,
+    organizationId,
     page,
     pageSize,
     status: status ? [status] : undefined,
@@ -56,14 +161,7 @@ export default async function RezervacijePage({ searchParams }: PageProps) {
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold">Rezervacije</h1>
-        <p className="text-sm text-[var(--color-foreground-muted)]">
-          Zahtevi za rezervaciju i njihov status.
-        </p>
-      </div>
-
+    <>
       <Card>
         <CardHeader>
           <CardTitle className="text-sm">Filteri</CardTitle>
@@ -178,14 +276,30 @@ export default async function RezervacijePage({ searchParams }: PageProps) {
               <div className="flex gap-2">
                 {page > 1 ? (
                   <Button asChild variant="outline" size="sm">
-                    <Link href={{ pathname: "/rezervacije", query: { page: String(page - 1) } }}>
+                    <Link
+                      href={{
+                        pathname: "/rezervacije",
+                        query: {
+                          ...(status ? { status } : {}),
+                          page: String(page - 1),
+                        },
+                      }}
+                    >
                       Prethodna
                     </Link>
                   </Button>
                 ) : null}
                 {page < totalPages ? (
                   <Button asChild variant="outline" size="sm">
-                    <Link href={{ pathname: "/rezervacije", query: { page: String(page + 1) } }}>
+                    <Link
+                      href={{
+                        pathname: "/rezervacije",
+                        query: {
+                          ...(status ? { status } : {}),
+                          page: String(page + 1),
+                        },
+                      }}
+                    >
                       Sledeća
                     </Link>
                   </Button>
@@ -195,6 +309,6 @@ export default async function RezervacijePage({ searchParams }: PageProps) {
           ) : null}
         </>
       )}
-    </div>
+    </>
   );
 }

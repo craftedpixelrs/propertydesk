@@ -86,6 +86,86 @@ export async function listReservations(input: ListReservationsInput) {
   return { items: rows, total };
 }
 
+export interface ReservationBoardCard {
+  id: string;
+  status: ReservationStatus;
+  version: number;
+  unitCode: string;
+  projectName: string;
+  buyerName: string;
+  createdAt: Date;
+  expiresAt: Date | null;
+}
+
+export interface ReservationBoardColumn {
+  status: ReservationStatus;
+  total: number;
+  cards: ReservationBoardCard[];
+}
+
+/**
+ * Board-shaped listing: one bucket per status with a hard cap on the
+ * number of cards per column so a large tenant does not send thousands
+ * of rows to the client.
+ */
+export async function listReservationsBoard(input: {
+  organizationId: string;
+  projectId?: string;
+  perColumnLimit?: number;
+}): Promise<ReservationBoardColumn[]> {
+  const per = Math.min(Math.max(input.perColumnLimit ?? 50, 1), 200);
+  const baseWhere: Prisma.ReservationWhereInput = {
+    organizationId: input.organizationId,
+    ...(input.projectId ? { projectId: input.projectId } : {}),
+  };
+  const statuses: ReservationStatus[] = [
+    "REQUESTED",
+    "APPROVED",
+    "CONVERTED",
+    "REJECTED",
+    "EXPIRED",
+    "CANCELED",
+  ];
+
+  const [totalsByStatus, rows] = await Promise.all([
+    prisma.reservation.groupBy({
+      by: ["status"],
+      where: baseWhere,
+      _count: { _all: true },
+    }),
+    Promise.all(
+      statuses.map((status) =>
+        prisma.reservation.findMany({
+          where: { ...baseWhere, status },
+          orderBy: { createdAt: "desc" },
+          take: per,
+          include: {
+            unit: { select: { code: true } },
+            project: { select: { name: true } },
+            buyer: { select: { firstName: true, lastName: true } },
+          },
+        }),
+      ),
+    ),
+  ]);
+  const totals = new Map(totalsByStatus.map((r) => [r.status, r._count._all] as const));
+
+  return statuses.map((status, i) => ({
+    status,
+    total: totals.get(status) ?? 0,
+    cards: rows[i]!.map((r) => ({
+      id: r.id,
+      status: r.status,
+      version: r.version,
+      unitCode: r.unit?.code ?? "—",
+      projectName: r.project?.name ?? "—",
+      buyerName: r.buyer ? `${r.buyer.firstName} ${r.buyer.lastName}` : "—",
+      createdAt: r.createdAt,
+      expiresAt: r.expiresAt,
+    })),
+  }));
+}
+
 export async function getReservationById(organizationId: string, reservationId: string) {
   const reservation = await prisma.reservation.findFirst({
     where: { id: reservationId, organizationId },

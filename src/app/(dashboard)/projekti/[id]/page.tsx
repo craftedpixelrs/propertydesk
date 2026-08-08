@@ -6,9 +6,12 @@ import { Button } from "@/components/ui/button";
 import { PermissionGuard } from "@/components/app/permission-guard";
 import { loadUserContext } from "@/server/auth/context";
 import { getProjectById } from "@/server/services/projects.service";
+import { listDocuments } from "@/server/services/documents.service";
 import { isDomainError } from "@/lib/errors";
 import { formatDate } from "@/lib/formatters";
 import { StructureManager } from "@/features/projects/structure-manager";
+import { PhotoGallery, type PhotoItem } from "@/features/documents/photo-gallery";
+import { ProjectMap } from "@/features/projects/project-map-loader";
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -27,6 +30,26 @@ export default async function ProjectDetail({ params }: Props) {
     if (isDomainError(err) && err.code === "NOT_FOUND") return notFound();
     throw err;
   }
+
+  const canManageDocs = ctx.permissions.includes("document.manage");
+  const photosResult = await listDocuments({
+    organizationId: ctx.activeOrganization.id,
+    entityType: "Project",
+    entityId: project.id,
+    imagesOnly: true,
+    page: 1,
+    pageSize: 60,
+  });
+  const photos: PhotoItem[] = photosResult.items.map((d) => ({
+    id: d.id,
+    fileName: d.fileName,
+    originalFileName: d.originalFileName,
+    mimeType: d.mimeType,
+    size: d.size,
+    isCover: d.isCover,
+    sortOrder: d.sortOrder,
+    createdAt: d.createdAt.toISOString(),
+  }));
 
   return (
     <div className="space-y-6">
@@ -96,6 +119,33 @@ export default async function ProjectDetail({ params }: Props) {
               <div className="mt-1 whitespace-pre-wrap text-sm">{project.description}</div>
             </div>
           ) : null}
+        </CardContent>
+      </Card>
+
+      <PhotoGallery
+        entityType="Project"
+        entityId={project.id}
+        photos={photos}
+        canManage={canManageDocs}
+        uploadCategory="PROJECT"
+      />
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Lokacija</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {project.latitude != null && project.longitude != null ? (
+            <ProjectMap
+              latitude={Number(project.latitude)}
+              longitude={Number(project.longitude)}
+            />
+          ) : (
+            <div className="rounded-md border border-dashed border-[var(--color-border)] px-4 py-6 text-center text-sm text-[var(--color-foreground-muted)]">
+              Koordinate projekta još nisu unete. Otvorite izmenu projekta i
+              kliknite na mapu da postavite tačku.
+            </div>
+          )}
         </CardContent>
       </Card>
 

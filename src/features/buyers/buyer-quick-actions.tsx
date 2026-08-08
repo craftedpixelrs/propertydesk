@@ -9,11 +9,14 @@ import {
   ClipboardList,
   CalendarClock,
   BadgeCheck,
+  MessageCircle,
+  Send,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { apiClient, ApiClientError } from "@/lib/api-client";
+import { normalizePhone } from "@/lib/normalize";
 
 type Panel = "note" | "task" | "viewing" | "reservation" | null;
 
@@ -95,6 +98,31 @@ export function BuyerQuickActions({
             href={email ? `mailto:${email}` : undefined}
             disabled={!email}
           />
+          {(() => {
+            const normalized = normalizePhone(phone);
+            const digits = normalized ? normalized.replace(/^\+/, "") : null;
+            const waHref = digits ? `https://wa.me/${digits}` : undefined;
+            const viberHref = normalized
+              ? `viber://chat?number=${encodeURIComponent(normalized)}`
+              : undefined;
+            return (
+              <>
+                <ActionButton
+                  icon={<MessageCircle className="size-4" />}
+                  label="WhatsApp"
+                  href={waHref}
+                  disabled={!waHref}
+                  external
+                />
+                <ActionButton
+                  icon={<Send className="size-4" />}
+                  label="Viber"
+                  href={viberHref}
+                  disabled={!viberHref}
+                />
+              </>
+            );
+          })()}
           {canManage ? (
             <>
               <ActionButton
@@ -280,18 +308,27 @@ function ActionButton({
   href,
   onClick,
   disabled,
+  external,
 }: {
   icon: React.ReactNode;
   label: string;
   href?: string;
   onClick?: () => void;
   disabled?: boolean;
+  /** When true, open in a new tab (used for wa.me links). */
+  external?: boolean;
 }) {
   const className =
     "flex flex-col items-center justify-center gap-1 rounded-md border border-[var(--color-border)] px-2 py-3 text-xs font-medium text-[var(--color-foreground)] hover:bg-[var(--color-surface-inset)] disabled:opacity-40";
   if (href && !disabled) {
     return (
-      <a href={href} className={className}>
+      <a
+        href={href}
+        className={className}
+        {...(external
+          ? { target: "_blank", rel: "noopener noreferrer" }
+          : {})}
+      >
         {icon}
         {label}
       </a>

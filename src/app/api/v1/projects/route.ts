@@ -8,32 +8,40 @@ import {
   listProjects,
 } from "@/server/services/projects.service";
 
-const createSchema = z.object({
-  code: z.string().min(1).max(50),
-  name: z.string().min(1).max(160),
-  slug: z.string().min(1).max(80).optional(),
-  description: z.string().max(2000).optional(),
-  address: z.string().max(200).optional(),
-  city: z.string().max(120).optional(),
-  municipality: z.string().max(120).optional(),
-  postalCode: z.string().max(20).optional(),
-  projectStatus: z
-    .enum([
-      "DRAFT",
-      "PRE_SALES",
-      "ACTIVE_SALES",
-      "CONSTRUCTION",
-      "COMPLETED",
-      "ARCHIVED",
-    ])
-    .optional(),
-  salesStartDate: z.coerce.date().optional(),
-  constructionStartDate: z.coerce.date().optional(),
-  expectedCompletionDate: z.coerce.date().optional(),
-  defaultCurrency: z.string().length(3).optional(),
-  defaultVatRate: z.number().min(0).max(100).optional(),
-  internalNotes: z.string().max(2000).optional(),
-});
+const createSchema = z
+  .object({
+    code: z.string().min(1).max(50),
+    name: z.string().min(1).max(160),
+    slug: z.string().min(1).max(80).optional(),
+    description: z.string().max(2000).optional(),
+    address: z.string().max(200).optional(),
+    city: z.string().max(120).optional(),
+    municipality: z.string().max(120).optional(),
+    postalCode: z.string().max(20).optional(),
+    latitude: z.number().min(-90).max(90).optional(),
+    longitude: z.number().min(-180).max(180).optional(),
+    coverImageUrl: z.string().url().max(500).optional(),
+    projectStatus: z
+      .enum([
+        "DRAFT",
+        "PRE_SALES",
+        "ACTIVE_SALES",
+        "CONSTRUCTION",
+        "COMPLETED",
+        "ARCHIVED",
+      ])
+      .optional(),
+    salesStartDate: z.coerce.date().optional(),
+    constructionStartDate: z.coerce.date().optional(),
+    expectedCompletionDate: z.coerce.date().optional(),
+    defaultCurrency: z.string().length(3).optional(),
+    defaultVatRate: z.number().min(0).max(100).optional(),
+    internalNotes: z.string().max(2000).optional(),
+  })
+  .refine(
+    (v) => (v.latitude == null) === (v.longitude == null),
+    "Geografske koordinate se moraju uneti u paru.",
+  );
 
 const projectStatusFilter = z.enum([
   "DRAFT",

@@ -176,6 +176,92 @@ export async function listSales(input: ListSalesInput) {
   return { items: rows, total };
 }
 
+export interface SaleBoardCard {
+  id: string;
+  status: SaleStatus;
+  version: number;
+  unitCode: string;
+  projectName: string;
+  buyerName: string;
+  finalPrice: string;
+  currency: string;
+  contractDate: Date | null;
+  createdAt: Date;
+}
+
+export interface SaleBoardColumn {
+  status: SaleStatus;
+  total: number;
+  cards: SaleBoardCard[];
+}
+
+/**
+ * Board-shaped listing for the Kanban view. One bucket per SaleStatus,
+ * each capped so a big tenant doesn't stream thousands of rows at once.
+ * `PAYMENT_IN_PROGRESS` is derived from payments — the column is still
+ * populated for visibility but the UI marks it as read-only.
+ */
+export async function listSalesBoard(input: {
+  organizationId: string;
+  projectId?: string;
+  perColumnLimit?: number;
+}): Promise<SaleBoardColumn[]> {
+  const per = Math.min(Math.max(input.perColumnLimit ?? 50, 1), 200);
+  const baseWhere: Prisma.SaleWhereInput = {
+    organizationId: input.organizationId,
+    ...(input.projectId ? { projectId: input.projectId } : {}),
+  };
+  const statuses: SaleStatus[] = [
+    "DRAFT",
+    "PRE_CONTRACT",
+    "CONTRACTED",
+    "PAYMENT_IN_PROGRESS",
+    "PAID",
+    "HANDED_OVER",
+    "CANCELED",
+  ];
+
+  const [totalsByStatus, rows] = await Promise.all([
+    prisma.sale.groupBy({
+      by: ["status"],
+      where: baseWhere,
+      _count: { _all: true },
+    }),
+    Promise.all(
+      statuses.map((status) =>
+        prisma.sale.findMany({
+          where: { ...baseWhere, status },
+          orderBy: { createdAt: "desc" },
+          take: per,
+          include: {
+            unit: { select: { code: true } },
+            project: { select: { name: true } },
+            buyer: { select: { firstName: true, lastName: true } },
+          },
+        }),
+      ),
+    ),
+  ]);
+  const totals = new Map(totalsByStatus.map((r) => [r.status, r._count._all] as const));
+
+  return statuses.map((status, i) => ({
+    status,
+    total: totals.get(status) ?? 0,
+    cards: rows[i]!.map((r) => ({
+      id: r.id,
+      status: r.status,
+      version: r.version,
+      unitCode: r.unit?.code ?? "—",
+      projectName: r.project?.name ?? "—",
+      buyerName: r.buyer ? `${r.buyer.firstName} ${r.buyer.lastName}` : "—",
+      finalPrice: r.finalPrice.toString(),
+      currency: r.currency,
+      contractDate: r.contractDate,
+      createdAt: r.createdAt,
+    })),
+  }));
+}
+
 export async function getSaleById(organizationId: string, saleId: string) {
   const sale = await prisma.sale.findFirst({
     where: { id: saleId, organizationId },

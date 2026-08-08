@@ -5,9 +5,10 @@ import type { SaleStatus } from "@prisma/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { loadUserContext } from "@/server/auth/context";
-import { listSales } from "@/server/services/sales/sales.service";
+import { listSales, listSalesBoard } from "@/server/services/sales/sales.service";
 import { formatDate, formatMoney } from "@/lib/formatters";
 import type { SupportedCurrency } from "@/lib/constants/app";
+import { SalesBoard } from "@/features/board/sales-board";
 
 export const dynamic = "force-dynamic";
 
@@ -45,18 +46,10 @@ export default async function ProdajePage({ searchParams }: PageProps) {
   if (!ctx.activeOrganization) redirect("/podesavanja");
 
   const sp = await searchParams;
+  const view = readParam(sp.view) === "board" ? "board" : "list";
   const status = readParam(sp.status) as SaleStatus | undefined;
   const page = Number(readParam(sp.page) ?? "1") || 1;
   const pageSize = 20;
-
-  const { items, total } = await listSales({
-    organizationId: ctx.activeOrganization.id,
-    page,
-    pageSize,
-    status: status ? [status] : undefined,
-  });
-
-  const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
   return (
     <div className="space-y-6">
@@ -67,8 +60,103 @@ export default async function ProdajePage({ searchParams }: PageProps) {
             Ugovori, plaćanja i primopredaje.
           </p>
         </div>
+        <ViewSwitcher view={view} status={status} />
       </div>
 
+      {view === "board" ? (
+        <BoardView
+          organizationId={ctx.activeOrganization.id}
+          canManage={ctx.permissions.includes("sale.manage")}
+        />
+      ) : (
+        <ListView
+          organizationId={ctx.activeOrganization.id}
+          status={status}
+          page={page}
+          pageSize={pageSize}
+        />
+      )}
+    </div>
+  );
+}
+
+function ViewSwitcher({
+  view,
+  status,
+}: {
+  view: "list" | "board";
+  status: SaleStatus | undefined;
+}) {
+  const query: Record<string, string> = {};
+  if (status) query.status = status;
+  return (
+    <div className="inline-flex overflow-hidden rounded-md border border-[var(--color-border)] text-sm">
+      <Link
+        href={{ pathname: "/prodaje", query }}
+        className={`px-3 py-1.5 ${
+          view === "list"
+            ? "bg-[var(--color-brand-600)] text-white"
+            : "bg-white text-[var(--color-foreground)] hover:bg-[var(--color-surface-inset)]"
+        }`}
+      >
+        Lista
+      </Link>
+      <Link
+        href={{ pathname: "/prodaje", query: { ...query, view: "board" } }}
+        className={`px-3 py-1.5 ${
+          view === "board"
+            ? "bg-[var(--color-brand-600)] text-white"
+            : "bg-white text-[var(--color-foreground)] hover:bg-[var(--color-surface-inset)]"
+        }`}
+      >
+        Tabla
+      </Link>
+    </div>
+  );
+}
+
+async function BoardView({
+  organizationId,
+  canManage,
+}: {
+  organizationId: string;
+  canManage: boolean;
+}) {
+  const board = await listSalesBoard({ organizationId });
+  const columns = board.map((col) => ({
+    status: col.status,
+    total: col.total,
+    cards: col.cards.map((c) => ({
+      ...c,
+      createdAt: c.createdAt.toISOString(),
+      contractDate: c.contractDate ? c.contractDate.toISOString() : null,
+    })),
+  }));
+  return <SalesBoard columns={columns} canManage={canManage} />;
+}
+
+async function ListView({
+  organizationId,
+  status,
+  page,
+  pageSize,
+}: {
+  organizationId: string;
+  status: SaleStatus | undefined;
+  page: number;
+  pageSize: number;
+}) {
+  const { items, total } = await listSales({
+    organizationId,
+    page,
+    pageSize,
+    status: status ? [status] : undefined,
+  });
+
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
+
+  return (
+    <>
       <Card>
         <CardHeader>
           <CardTitle className="text-sm">Filteri</CardTitle>
@@ -189,14 +277,30 @@ export default async function ProdajePage({ searchParams }: PageProps) {
               <div className="flex gap-2">
                 {page > 1 ? (
                   <Button asChild variant="outline" size="sm">
-                    <Link href={{ pathname: "/prodaje", query: { page: String(page - 1) } }}>
+                    <Link
+                      href={{
+                        pathname: "/prodaje",
+                        query: {
+                          ...(status ? { status } : {}),
+                          page: String(page - 1),
+                        },
+                      }}
+                    >
                       Prethodna
                     </Link>
                   </Button>
                 ) : null}
                 {page < totalPages ? (
                   <Button asChild variant="outline" size="sm">
-                    <Link href={{ pathname: "/prodaje", query: { page: String(page + 1) } }}>
+                    <Link
+                      href={{
+                        pathname: "/prodaje",
+                        query: {
+                          ...(status ? { status } : {}),
+                          page: String(page + 1),
+                        },
+                      }}
+                    >
                       Sledeća
                     </Link>
                   </Button>
@@ -206,6 +310,6 @@ export default async function ProdajePage({ searchParams }: PageProps) {
           ) : null}
         </>
       )}
-    </div>
+    </>
   );
 }

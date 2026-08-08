@@ -7,6 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { apiClient } from "@/lib/api-client";
 import { ApiClientError } from "@/lib/api-client";
+import { ProjectMap } from "@/features/projects/project-map-loader";
 
 interface Field {
   name: string;
@@ -32,6 +33,23 @@ const FIELDS: Field[] = [
   { name: "address", label: "Adresa" },
   { name: "municipality", label: "Opština" },
   { name: "postalCode", label: "Poštanski broj" },
+  {
+    name: "latitude",
+    label: "Geo. širina",
+    type: "number",
+    hint: "Decimalne stepene (npr. 44.7866). Kliknite na mapu ispod da automatski popunite.",
+  },
+  {
+    name: "longitude",
+    label: "Geo. dužina",
+    type: "number",
+    hint: "Decimalne stepene (npr. 20.4489).",
+  },
+  {
+    name: "coverImageUrl",
+    label: "URL naslovne fotografije",
+    hint: "Puni URL slike koja se prikazuje u javnoj ponudi.",
+  },
   {
     name: "projectStatus",
     label: "Status",
@@ -104,7 +122,7 @@ export function NewProjectForm({
           }
           continue;
         }
-        if (k === "defaultVatRate") {
+        if (k === "defaultVatRate" || k === "latitude" || k === "longitude") {
           payload[k] = Number(v);
         } else {
           payload[k] = v;
@@ -190,6 +208,30 @@ export function NewProjectForm({
               </div>
             );
           })}
+          <div className="space-y-1">
+            <div className="text-sm font-medium">Mapa</div>
+            <p className="text-xs text-[var(--color-foreground-muted)]">
+              Kliknite bilo gde na mapi — postavićemo tačno tu poziciju u polja
+              „Geo. širina" i „Geo. dužina".
+            </p>
+            <ProjectMap
+              latitude={
+                values.latitude && !Number.isNaN(Number(values.latitude))
+                  ? Number(values.latitude)
+                  : null
+              }
+              longitude={
+                values.longitude && !Number.isNaN(Number(values.longitude))
+                  ? Number(values.longitude)
+                  : null
+              }
+              onPick={({ latitude, longitude }) => {
+                setValue("latitude", latitude.toFixed(6));
+                setValue("longitude", longitude.toFixed(6));
+              }}
+            />
+          </div>
+
           {error ? (
             <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
               {error}

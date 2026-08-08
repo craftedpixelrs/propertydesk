@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
@@ -147,12 +148,13 @@ export function StructureManager({
                       {e.floors.length > 0 ? (
                         <div className="mt-2 flex flex-wrap gap-1">
                           {e.floors.map((f) => (
-                            <span
+                            <Link
                               key={f.id}
-                              className="rounded-md border border-[var(--color-border)] bg-white px-2 py-0.5 text-xs"
+                              href={`/spratovi/${f.id}`}
+                              className="rounded-md border border-[var(--color-border)] bg-white px-2 py-0.5 text-xs hover:bg-[var(--color-surface-inset)]"
                             >
                               {f.label}
-                            </span>
+                            </Link>
                           ))}
                         </div>
                       ) : null}

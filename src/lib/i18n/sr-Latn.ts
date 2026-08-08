@@ -43,6 +43,7 @@ export const srLatn = {
     activities: "Aktivnosti",
     tasks: "Zadaci",
     reservations: "Rezervacije",
+    calendar: "Kalendar",
     sales: "Prodaje",
     paymentPlans: "Planovi plaćanja",
     payments: "Uplate",

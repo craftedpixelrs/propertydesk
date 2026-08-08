@@ -610,6 +610,16 @@ Filter dokumenata je po vezi (npr. "svi dokumenti za projekat X").
 - Pristup preko **signed URL-a** koji ističe za 15 minuta
 - RBAC gate: samo osobe sa `document.read` dozvolom nad tim entitetom vide fajl
 
+### 10.5. Foto-galerije
+
+- Na detalju jedinice i projekta panel *"Fotografije"* prikazuje sve
+  dokumente `mimeType` = `image/*` u mreži sa lightbox pregledačem.
+- Redosled se čuva u `Document.sortOrder`, a jedna fotografija po
+  entitetu može biti označena kao **naslovna** (`Document.isCover`) —
+  koristi se u javnoj ponudi i Open Graph pregledu link-a.
+- Manipulacije (upload, promena naslovne, brisanje) zahtevaju
+  `document.manage`.
+
 ---
 
 ## 11. Izveštaji
@@ -629,6 +639,81 @@ Filter dokumenata je po vezi (npr. "svi dokumenti za projekat X").
 - Filter: datumski opseg, projekat, valuta
 - **Eksport** u CSV / XLSX
 - **Deljenje** — link koji zadržava filter za tim (zahteva `report.read` dozvolu)
+
+Svaka stranica izveštaja sada dodatno prikazuje **grafikone iz
+postojećih agregata** (donut po statusu, stubovi po kanalu, mesečni
+trend prodaja) — bez novih upita, samo render podataka koje servisi
+već vraćaju. Grafikoni su ugrađeni preko `src/components/charts/`
+omotača (`chart-card`, `status-donut`, `trend-line`, `funnel-bars`).
+
+---
+
+## 11.1. Kanban za rezervacije i prodaje
+
+- `/rezervacije?view=board` i `/prodaje?view=board` prekidač na vrhu
+  stranice otvara Kanban tablu umesto liste.
+- Karta jedne rezervacije/prodaje se prevlači između kolona; server je
+  autoritet, tabla samo *vizuelno gasi* kolone koje FSM ne dozvoljava
+  (npr. iz `REJECTED` se ne može nigde, `PAYMENT_IN_PROGRESS` na prodaji
+  je samo za čitanje jer se izvodi iz uplata).
+- Ispuštanje na `CONVERTED` (rezervacije) ne šalje zahtev direktno —
+  otvara postojeći dijalog za konverziju u prodaju, jer je cena
+  obavezna.
+- Za sve promene se šalje `expectedVersion` iz karte (optimističko
+  zaključavanje). Ako je neko drugi izmenio, klijent dobija poruku i
+  refresh-uje stranicu.
+
+## 11.2. Kalendar
+
+- **Sidebar → Kalendar** (`/kalendar`) — mesečna mreža sa četiri
+  izvora: rokovi rezervacija (`Reservation.expiresAt`), dospele rate
+  (`PaymentInstallment.dueDate`), zadaci (`Task.dueAt`) i planirane
+  primopredaje (`Sale.plannedHandoverDate`).
+- Filter dugmad na vrhu isključuju pojedinačne tipove događaja. Klik
+  na traku vodi na povezan entitet.
+
+## 11.3. Cmd+K globalna pretraga
+
+- Prečica `Ctrl/⌘ + K` (ili dugme u sidebar-u / mobilnom header-u)
+  otvara paletu sa globalnom pretragom projekata, jedinica i kupaca.
+- Backend (`GET /api/v1/search?q=`) poziva postojeće `listProjects`,
+  `listUnits` i `listBuyers` samo za entitete za koje korisnik ima
+  odgovarajuće `read` dozvole — agencijski korisnik nikad neće videti
+  kupce investitora.
+- Debounce 200 ms i race-guard: ako brzo kucate, prikazuje se samo
+  najnoviji rezultat.
+
+## 11.4. Javna ponuda jedinice (`/p/[token]`)
+
+- Sa detalja jedinice, panel *"Podeli sa kupcem"* kreira token preko
+  `POST /api/v1/units/[id]/share`. Token je
+  `crypto.randomBytes(24).toString("base64url")` (~192 bita entropije).
+- Kupac otvara link bez logina; server whitelist-uje polja pre
+  renderovanja (nikad `internalNotes`, nikad podatke drugih kupaca).
+- Cene se sakrivaju server-side kada je `showPrice=false`, Open Graph
+  slika se generiše iz naslovne fotografije, a stranica je označena
+  `noindex`.
+- Opoziv linka je trenutan (`revokedAt`), a slike se serviraju preko
+  odvojene rate-limitovane `GET /api/public/share/[token]/image/[docId]`
+  rute koja re-verifikuje da dokument pripada baš toj jedinici.
+
+## 11.5. Komentari i @mentions
+
+- Na detalju kupca i detalju prodaje postoji panel *"Komentari"*.
+- Autocomplete predlaže članove organizacije kad ukucate `@`; server
+  parsira spomene i šalje im in-app notifikaciju (`BUYER` / `SALE`
+  kategorija) sa direktnim linkom.
+- Autor može obrisati svoj komentar; brisanje je soft-delete
+  (`deletedAt`).
+
+## 11.6. Interaktivni floor-plan
+
+- Na svakoj kartici sprata u strukturi projekta ime je link ka
+  `/spratovi/[id]`.
+- Ako je za sprat učitana osnova (`Floor.floorPlanUrl`), SVG preklop
+  oboji poligone jedinica po statusu (`FloorPlanArea`), klik na poligon
+  vodi na jedinicu. Editor za crtanje poligona je planiran posle
+  01.09.2026 — do tada se poligoni unose kao JSON.
 
 ---
 

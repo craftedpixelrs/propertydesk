@@ -12,6 +12,7 @@ import type { SupportedCurrency } from "@/lib/constants/app";
 import { SaleActions } from "@/features/sales/sale-actions";
 import { RecordPaymentForm } from "@/features/sales/record-payment-form";
 import { PaymentRowActions } from "@/features/sales/payment-row-actions";
+import { CommentThread } from "@/features/comments/comment-thread";
 
 export const dynamic = "force-dynamic";
 
@@ -200,6 +201,19 @@ export default async function ProdajaDetaljPage({ params }: PageProps) {
                   />
                 </div>
               ) : null}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-sm">Komentari</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <CommentThread
+                entityType="Sale"
+                entityId={sale.id}
+                currentUserId={ctx.user.id}
+              />
             </CardContent>
           </Card>
 

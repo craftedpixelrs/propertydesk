@@ -43,6 +43,12 @@ export interface ListDocumentsInput {
   entityType: string;
   entityId: string;
   category?: DocumentCategory;
+  /**
+   * When true, restricts results to documents whose `mimeType` starts
+   * with `image/`. Used by the photo-gallery on unit and project detail
+   * pages.
+   */
+  imagesOnly?: boolean;
   page: number;
   pageSize: number;
 }
@@ -113,12 +119,19 @@ export async function listDocuments(input: ListDocumentsInput) {
     entityId: input.entityId,
     deletedAt: null,
     ...(input.category ? { category: input.category } : {}),
+    ...(input.imagesOnly ? { mimeType: { startsWith: "image/" } } : {}),
   };
+  // The gallery uses (sortOrder ASC, createdAt DESC) so operator drag
+  // ordering wins, but new uploads that keep the default sortOrder are
+  // still surfaced newest-first.
+  const orderBy: Prisma.DocumentOrderByWithRelationInput[] = input.imagesOnly
+    ? [{ isCover: "desc" }, { sortOrder: "asc" }, { createdAt: "desc" }]
+    : [{ createdAt: "desc" }];
   const [total, rows] = await Promise.all([
     prisma.document.count({ where }),
     prisma.document.findMany({
       where,
-      orderBy: { createdAt: "desc" },
+      orderBy,
       skip: (input.page - 1) * input.pageSize,
       take: input.pageSize,
       include: {
@@ -127,6 +140,109 @@ export async function listDocuments(input: ListDocumentsInput) {
     }),
   ]);
   return { items: rows, total };
+}
+
+/**
+ * Flip the `isCover` flag on exactly one document within an entity. Any
+ * existing cover on the same (entityType, entityId) is demoted in the
+ * same transaction so there is never more than one cover per entity.
+ */
+export async function setCoverImage(input: {
+  organizationId: string;
+  actorUserId: string;
+  documentId: string;
+}) {
+  const doc = await prisma.document.findFirst({
+    where: {
+      id: input.documentId,
+      organizationId: input.organizationId,
+      deletedAt: null,
+    },
+  });
+  if (!doc) throw DomainErrors.notFound("Dokument");
+  if (!doc.mimeType.startsWith("image/")) {
+    throw DomainErrors.badRequest(
+      "Naslovna slika mora biti slika (image/*).",
+    );
+  }
+
+  await prisma.$transaction([
+    prisma.document.updateMany({
+      where: {
+        organizationId: input.organizationId,
+        entityType: doc.entityType,
+        entityId: doc.entityId,
+        deletedAt: null,
+        isCover: true,
+        NOT: { id: doc.id },
+      },
+      data: { isCover: false },
+    }),
+    prisma.document.update({
+      where: { id: doc.id },
+      data: { isCover: true },
+    }),
+  ]);
+
+  await recordAudit({
+    action: "document.set_cover",
+    entityType: "Document",
+    entityId: doc.id,
+    organizationId: input.organizationId,
+    actorUserId: input.actorUserId,
+    newValues: { target: `${doc.entityType}:${doc.entityId}` },
+  });
+}
+
+/**
+ * Persist a full ordering of documents for a single entity. `ids` must
+ * all belong to the same (entityType, entityId) tuple owned by the
+ * caller organization — a mismatch aborts the whole transaction so
+ * partial reorders never occur.
+ */
+export async function reorderDocuments(input: {
+  organizationId: string;
+  actorUserId: string;
+  entityType: string;
+  entityId: string;
+  orderedDocumentIds: string[];
+}) {
+  if (input.orderedDocumentIds.length === 0) return;
+  const docs = await prisma.document.findMany({
+    where: {
+      id: { in: input.orderedDocumentIds },
+      organizationId: input.organizationId,
+      entityType: input.entityType,
+      entityId: input.entityId,
+      deletedAt: null,
+    },
+    select: { id: true },
+  });
+  if (docs.length !== input.orderedDocumentIds.length) {
+    throw DomainErrors.badRequest(
+      "Neki dokumenti ne pripadaju ovom entitetu.",
+    );
+  }
+  await prisma.$transaction(
+    input.orderedDocumentIds.map((id, index) =>
+      prisma.document.update({
+        where: { id },
+        data: { sortOrder: index },
+      }),
+    ),
+  );
+
+  await recordAudit({
+    action: "document.reordered",
+    entityType: "Document",
+    entityId: input.orderedDocumentIds[0]!,
+    organizationId: input.organizationId,
+    actorUserId: input.actorUserId,
+    newValues: {
+      target: `${input.entityType}:${input.entityId}`,
+      count: input.orderedDocumentIds.length,
+    },
+  });
 }
 
 export async function softDeleteDocument(input: {

@@ -17,6 +17,7 @@ import {
   Grid3x3,
   Store,
   Inbox,
+  CalendarDays,
 } from "lucide-react";
 import type { PermissionString } from "@/server/permissions/access-control";
 
@@ -42,6 +43,7 @@ export interface NavItem {
         | "activities"
         | "tasks"
         | "reservations"
+        | "calendar"
         | "sales"
         | "paymentPlans"
         | "payments"
@@ -105,6 +107,13 @@ export const navigation: NavItem[] = [
     labelKey: "nav.reservations",
     href: "/rezervacije",
     icon: BadgeCheck,
+    permission: "reservation.read",
+  },
+  {
+    key: "calendar",
+    labelKey: "nav.calendar",
+    href: "/kalendar",
+    icon: CalendarDays,
     permission: "reservation.read",
   },
   {

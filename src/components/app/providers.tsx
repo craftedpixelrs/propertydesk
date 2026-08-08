@@ -3,6 +3,7 @@
 import { useState, type ReactNode } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ApiClientError } from "@/lib/api-client";
+import { CommandPaletteProvider } from "@/components/app/command-palette";
 
 /**
  * Client-side providers root. Kept intentionally small so the majority of
@@ -38,5 +39,9 @@ export function Providers({ children }: { children: ReactNode }) {
       }),
   );
 
-  return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
+  return (
+    <QueryClientProvider client={queryClient}>
+      <CommandPaletteProvider>{children}</CommandPaletteProvider>
+    </QueryClientProvider>
+  );
 }

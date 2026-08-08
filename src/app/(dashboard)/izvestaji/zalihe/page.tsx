@@ -14,6 +14,10 @@ import { prisma } from "@/server/db/prisma";
 import { buildInventoryReport } from "@/server/services/reports/reports.service";
 import { formatMoney } from "@/lib/formatters/money";
 import type { SupportedCurrency } from "@/lib/constants/app";
+import { ChartCard } from "@/components/charts/chart-card";
+import { StatusDonut } from "@/components/charts/status-donut";
+import { CategoryBars } from "@/components/charts/category-bars";
+import { unitStatusColor } from "@/components/charts/palette";
 
 export const dynamic = "force-dynamic";
 
@@ -75,6 +79,76 @@ export default async function InventoryReportPage({ searchParams }: PageProps) {
         />
         <StatCard label="Projekata" value={projects.length} />
       </div>
+
+      {(() => {
+        // Aggregate report.rows (project × status) into the two shapes the
+        // charts need: (a) donut of total jedinica per status; (b) stacked
+        // bar of jedinica per project × status.
+        const byStatusMap = new Map<string, number>();
+        const projectMap = new Map<string, { name: string; perStatus: Record<string, number> }>();
+        for (const row of report.rows) {
+          byStatusMap.set(row.status, (byStatusMap.get(row.status) ?? 0) + row.count);
+          const bucket = projectMap.get(row.projectId) ?? {
+            name: row.projectName,
+            perStatus: {},
+          };
+          bucket.perStatus[row.status] = (bucket.perStatus[row.status] ?? 0) + row.count;
+          projectMap.set(row.projectId, bucket);
+        }
+        const donutData = Array.from(byStatusMap.entries()).map(([status, count]) => ({
+          key: status,
+          label: STATUS_LABELS[status] ?? status,
+          value: count,
+          color: unitStatusColor[status],
+        }));
+        const stackedStatuses = Array.from(byStatusMap.keys());
+        const stackedData = Array.from(projectMap.entries()).map(([id, info]) => {
+          const datum: Record<string, string | number> = {
+            key: id,
+            label: info.name,
+          };
+          for (const s of stackedStatuses) {
+            datum[s] = info.perStatus[s] ?? 0;
+          }
+          return datum as {
+            key: string;
+            label: string;
+            [seriesKey: string]: string | number;
+          };
+        });
+        const stackedSeries = stackedStatuses.map((s) => ({
+          key: s,
+          label: STATUS_LABELS[s] ?? s,
+          color: unitStatusColor[s],
+        }));
+
+        return (
+          <div className="grid gap-6 lg:grid-cols-2">
+            <ChartCard
+              title="Raspodela statusa"
+              description={`Ukupno ${report.totals.units} jedinica.`}
+              isEmpty={donutData.length === 0}
+              height={280}
+            >
+              <StatusDonut centerLabel="Jedinica" data={donutData} />
+            </ChartCard>
+
+            <ChartCard
+              title="Zalihe po projektu"
+              description="Struktura svake grupe."
+              isEmpty={stackedData.length === 0}
+              height={280}
+            >
+              <CategoryBars
+                data={stackedData}
+                series={stackedSeries}
+                stacked
+                colorPerBar={false}
+              />
+            </ChartCard>
+          </div>
+        );
+      })()}
 
       <Card>
         <CardHeader>

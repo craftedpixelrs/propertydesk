@@ -23,6 +23,9 @@ Migrations live under `prisma/migrations/`. Domain models:
 | **Payments** | `PaymentPlan`, `PaymentInstallment`, `Payment` |
 | **Documents** | `Document` |
 | **Commissions** | `Commission` |
+| **Sharing** | `ShareLink` — opaque public-share tokens for `/p/[token]` pages |
+| **Collaboration** | `Comment` — threaded comments + `@mentions` on Buyer/Sale |
+| **Floor plans** | `FloorPlanArea` — SVG polygons overlaying `Floor.floorPlanUrl` |
 
 ## Money & Money-Like Columns
 
@@ -40,6 +43,21 @@ money in JavaScript floats — use the helpers in
   reservation per unit.
 - `version` columns on `Sale`, `Unit`, `Reservation` enforce optimistic
   locking at the service layer.
+
+## Recent phase-6 migrations
+
+The 2026-08 visual/sales layer expansion added:
+
+- `document.sortOrder`, `document.isCover` — photo gallery ordering and
+  cover selection (migration `20260808014500_document_gallery_fields`).
+- `organization_profile.onboardingCompletedAt` / `onboardingDismissedAt`
+  — persistence for the setup wizard (`..._onboarding`).
+- `share_link` table — public share tokens (`..._share_links`).
+- `comment` table with `mentionedUserIds TEXT[]` — comments and
+  @mentions (`..._comments`).
+- `floor_plan_area` table — polygon overlays for interactive floor
+  plans (`..._floor_plan_areas`). Polygons are stored as JSONB arrays of
+  `{ x, y }` in the [0,1] fractional coordinate space.
 
 ## Composite Indexes
 

@@ -14,6 +14,8 @@ import { requirePermission } from "@/server/permissions/require";
 import { buildPaymentsReport } from "@/server/services/reports/reports.service";
 import { formatDate, formatMoney } from "@/lib/formatters";
 import type { SupportedCurrency } from "@/lib/constants/app";
+import { ChartCard } from "@/components/charts/chart-card";
+import { CategoryBars } from "@/components/charts/category-bars";
 
 export const dynamic = "force-dynamic";
 
@@ -61,6 +63,41 @@ export default async function PaymentsReportPage({ searchParams }: PageProps) {
         <StatCard label="Broj uplata" value={report.totals.count} />
         <StatCard label="Aktivno" value={formatMoney(report.totals.activeTotal, currency)} />
         <StatCard label="Stornirano" value={formatMoney(report.totals.reversedTotal, currency)} />
+      </div>
+
+      <div className="grid gap-6 lg:grid-cols-2">
+        <ChartCard
+          title="Broj uplata po metodi"
+          isEmpty={report.byMethod.length === 0}
+          height={240}
+        >
+          <CategoryBars
+            data={report.byMethod.map((row) => ({
+              key: row.method,
+              label: METHOD_LABELS[row.method] ?? row.method,
+              value: row.count,
+            }))}
+          />
+        </ChartCard>
+        <ChartCard
+          title={`Iznosi po metodi (${currency})`}
+          isEmpty={report.byMethod.length === 0}
+          height={240}
+        >
+          <CategoryBars
+            yTickFormatter={(v) =>
+              new Intl.NumberFormat("sr-Latn", {
+                notation: "compact",
+                maximumFractionDigits: 1,
+              }).format(v)
+            }
+            data={report.byMethod.map((row) => ({
+              key: row.method,
+              label: METHOD_LABELS[row.method] ?? row.method,
+              value: Number(row.total),
+            }))}
+          />
+        </ChartCard>
       </div>
 
       <Card>

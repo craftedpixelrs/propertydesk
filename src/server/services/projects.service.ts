@@ -59,6 +59,15 @@ export interface CreateProjectInput {
   city?: string;
   municipality?: string;
   postalCode?: string;
+  /**
+   * WGS84 decimal degrees, kept as `number` at the API edge and stored
+   * as `Decimal(10,7)` (~1 cm precision). Both must be present or both
+   * absent — enforced by the API zod schema, not the service.
+   */
+  latitude?: number;
+  longitude?: number;
+  /** Public cover image URL — used by the shareable offer page. */
+  coverImageUrl?: string;
   projectStatus?: ProjectStatus;
   salesStartDate?: Date;
   constructionStartDate?: Date;
@@ -274,6 +283,9 @@ export async function createProject(input: CreateProjectInput) {
         city: input.city ?? null,
         municipality: input.municipality ?? null,
         postalCode: input.postalCode ?? null,
+        latitude: input.latitude ?? null,
+        longitude: input.longitude ?? null,
+        coverImageUrl: input.coverImageUrl ?? null,
         projectStatus: input.projectStatus ?? "DRAFT",
         salesStartDate: input.salesStartDate ?? null,
         constructionStartDate: input.constructionStartDate ?? null,
@@ -326,6 +338,9 @@ export async function updateProject(input: UpdateProjectInput) {
       city: input.patch.city ?? undefined,
       municipality: input.patch.municipality ?? undefined,
       postalCode: input.patch.postalCode ?? undefined,
+      latitude: input.patch.latitude ?? undefined,
+      longitude: input.patch.longitude ?? undefined,
+      coverImageUrl: input.patch.coverImageUrl ?? undefined,
       projectStatus: input.patch.projectStatus ?? undefined,
       salesStartDate: input.patch.salesStartDate ?? undefined,
       constructionStartDate: input.patch.constructionStartDate ?? undefined,

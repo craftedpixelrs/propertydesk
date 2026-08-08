@@ -18,13 +18,14 @@ import Decimal from "decimal.js";
 const prismaMock = vi.hoisted(() => ({
   unit: { groupBy: vi.fn(), findMany: vi.fn() },
   project: { findMany: vi.fn() },
-  sale: { findMany: vi.fn(), groupBy: vi.fn() },
+  sale: { findMany: vi.fn(), groupBy: vi.fn(), count: vi.fn() },
   buyer: { count: vi.fn(), groupBy: vi.fn() },
   reservation: { count: vi.fn(), groupBy: vi.fn(), findMany: vi.fn() },
   payment: { count: vi.fn(), aggregate: vi.fn(), groupBy: vi.fn(), findMany: vi.fn() },
   agencyConnection: { findMany: vi.fn() },
   commission: { groupBy: vi.fn() },
   organization: { findMany: vi.fn() },
+  $queryRaw: vi.fn(),
 }));
 
 vi.mock("@/server/db/prisma", () => ({ prisma: prismaMock }));
@@ -36,6 +37,8 @@ import {
   buildReservationsReport,
   buildPaymentsReport,
   buildAgencyReport,
+  buildSalesTrend,
+  buildConversionFunnel,
 } from "./reports.service";
 
 beforeEach(() => {
@@ -227,6 +230,108 @@ describe("buildPaymentsReport", () => {
     expect(report.totals.activeTotal).toBe("40000");
     expect(report.totals.reversedTotal).toBe("5000");
     expect(report.byMethod).toHaveLength(2);
+  });
+});
+
+describe("buildSalesTrend", () => {
+  it("normalises bigint counts, sums finalPrice, and preserves month order", async () => {
+    prismaMock.$queryRaw.mockResolvedValue([
+      {
+        bucket: new Date("2026-08-01T00:00:00Z"),
+        currency: "EUR",
+        count: 3n,
+        sum: "180000",
+      },
+      {
+        bucket: new Date("2026-09-01T00:00:00Z"),
+        currency: "EUR",
+        count: 1n,
+        sum: "60000",
+      },
+    ]);
+
+    const report = await buildSalesTrend({ organizationId: "org-1" });
+
+    expect(prismaMock.$queryRaw).toHaveBeenCalledOnce();
+    expect(report.currencies).toEqual(["EUR"]);
+    expect(report.points).toHaveLength(2);
+    expect(report.points[0]).toMatchObject({
+      bucketLabel: "2026-08",
+      currency: "EUR",
+      salesCount: 3,
+      salesTotal: "180000",
+    });
+    expect(report.points[1]?.bucketLabel).toBe("2026-09");
+  });
+
+  it("keeps EUR and RSD buckets in separate rows without adding them", async () => {
+    prismaMock.$queryRaw.mockResolvedValue([
+      {
+        bucket: new Date("2026-08-01T00:00:00Z"),
+        currency: "EUR",
+        count: 2n,
+        sum: "150000",
+      },
+      {
+        bucket: new Date("2026-08-01T00:00:00Z"),
+        currency: "RSD",
+        count: 1n,
+        sum: "12000000",
+      },
+    ]);
+
+    const report = await buildSalesTrend({ organizationId: "org-1" });
+
+    expect(report.points).toHaveLength(2);
+    // Same bucketLabel but different currency lines — never merged into
+    // a single number.
+    expect(new Set(report.points.map((p) => p.currency))).toEqual(new Set(["EUR", "RSD"]));
+    expect(report.currencies).toEqual(["EUR", "RSD"]);
+  });
+
+  it("returns an empty result set when there is no data", async () => {
+    prismaMock.$queryRaw.mockResolvedValue([]);
+    const report = await buildSalesTrend({ organizationId: "org-1" });
+    expect(report.points).toEqual([]);
+    expect(report.currencies).toEqual([]);
+  });
+});
+
+describe("buildConversionFunnel", () => {
+  it("computes ratios against the top of the funnel", async () => {
+    prismaMock.reservation.count
+      .mockResolvedValueOnce(20) // reservations
+      .mockResolvedValueOnce(15) // approved
+      .mockResolvedValueOnce(9); // converted
+    prismaMock.sale.count.mockResolvedValueOnce(7); // contracted
+
+    const report = await buildConversionFunnel({ organizationId: "org-1" });
+
+    expect(report.steps.map((s) => [s.key, s.count])).toEqual([
+      ["reservations", 20],
+      ["approved", 15],
+      ["converted", 9],
+      ["contracted", 7],
+    ]);
+    expect(report.steps[0]?.ratioFromTop).toBe(1);
+    expect(report.steps[1]?.ratioFromTop).toBe(0.75);
+    expect(report.steps[3]?.ratioFromTop).toBe(0.35);
+    expect(report.overallConversionRate).toBe(0.35);
+  });
+
+  it("never divides by zero when no reservations exist", async () => {
+    prismaMock.reservation.count
+      .mockResolvedValueOnce(0)
+      .mockResolvedValueOnce(0)
+      .mockResolvedValueOnce(0);
+    prismaMock.sale.count.mockResolvedValueOnce(0);
+
+    const report = await buildConversionFunnel({ organizationId: "org-1" });
+    expect(report.overallConversionRate).toBe(0);
+    for (const step of report.steps.slice(1)) {
+      expect(Number.isFinite(step.ratioFromTop)).toBe(true);
+      expect(step.ratioFromTop).toBe(0);
+    }
   });
 });
 

@@ -1,8 +1,20 @@
 # projects
 
-Real-estate construction projects.
+Investor-side real-estate construction projects.
 
-Placeholder route: `/projects`
+Route: `/projekti` — list, create, edit, and drill into a project's
+inventory and structure. Detail also embeds the shared photo gallery
+and the Leaflet-based project map (see `src/features/projects/project-map.tsx`).
 
-Planned data model: `Project` (name, address, city, phase, investor org, cover photo).
-Planned screens: list (responsive data view), detail with building/entrance/floor breakdown, unit inventory grid.
+Data model: `Project` in [`prisma/schema.prisma`](../../../prisma/schema.prisma)
+plus its structure (`Building`, `Entrance`, `Floor`) and coordinate
+fields (`latitude`, `longitude`, `coverImageUrl`). Photo gallery uses
+the shared `Document` model with `sortOrder` / `isCover`.
+
+Key components:
+
+- `new-project-form.tsx` — create/edit form with coordinate picker.
+- `project-map.tsx` — Leaflet + OSM map, dynamically imported with
+  `ssr: false` because Leaflet touches `window`.
+- `structure-manager.tsx` — Building/Entrance/Floor CRUD. Each floor
+  label links to `/spratovi/[id]`, the interactive floor-plan viewer.

@@ -13,6 +13,7 @@ import { filterNavigation, navigation } from "@/components/app/navigation";
 import type { PermissionString } from "@/server/permissions/access-control";
 import { OrganizationSwitcher } from "@/components/app/organization-switcher";
 import { NotificationBell } from "@/features/notifications/notification-bell";
+import { SearchButton } from "@/components/app/search-button";
 
 export interface SidebarNavProps {
   organizationType: "INVESTOR" | "AGENCY" | null;
@@ -59,6 +60,9 @@ export function SidebarNav({ organizationType, permissions, isSuperAdmin }: Side
       </div>
       <div className="border-b border-[var(--color-border)] p-3">
         <OrganizationSwitcher className="w-full" />
+      </div>
+      <div className="border-b border-[var(--color-border)] p-3">
+        <SearchButton />
       </div>
       <nav className="flex-1 overflow-y-auto p-2">
         <ul className="space-y-0.5">

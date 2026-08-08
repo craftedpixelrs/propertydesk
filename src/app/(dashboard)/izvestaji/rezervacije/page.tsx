@@ -11,8 +11,23 @@ import {
 } from "@/features/reports/report-filters";
 import { requirePermission } from "@/server/permissions/require";
 import { prisma } from "@/server/db/prisma";
-import { buildReservationsReport } from "@/server/services/reports/reports.service";
+import {
+  buildReservationsReport,
+  buildConversionFunnel,
+} from "@/server/services/reports/reports.service";
 import { formatDate } from "@/lib/formatters/date";
+import { ChartCard } from "@/components/charts/chart-card";
+import { StatusDonut } from "@/components/charts/status-donut";
+import { CategoryBars } from "@/components/charts/category-bars";
+import { FunnelBars } from "@/components/charts/funnel-bars";
+import { reservationStatusColor } from "@/components/charts/palette";
+
+const SOURCE_LABELS: Record<string, string> = {
+  DIRECT: "Direktno",
+  AGENCY: "Agencija",
+  IMPORT: "Uvoz",
+  OTHER: "Ostalo",
+};
 
 export const dynamic = "force-dynamic";
 
@@ -39,8 +54,9 @@ export default async function ReservationsReportPage({ searchParams }: PageProps
     ...parsed,
   });
 
-  const [report, projects] = await Promise.all([
+  const [report, funnel, projects] = await Promise.all([
     buildReservationsReport(filters),
+    buildConversionFunnel(filters),
     prisma.project.findMany({
       where: { organizationId: ctx.organization.organizationId, archivedAt: null },
       select: { id: true, name: true },
@@ -49,6 +65,7 @@ export default async function ReservationsReportPage({ searchParams }: PageProps
   ]);
 
   const hrefs = exportHrefs("reservations", parsed);
+  const conversionPct = Math.round(funnel.overallConversionRate * 100);
 
   return (
     <div className="space-y-6">
@@ -69,6 +86,53 @@ export default async function ReservationsReportPage({ searchParams }: PageProps
         {report.byStatus.slice(0, 3).map((row) => (
           <StatCard key={row.status} label={RES_LABELS[row.status] ?? row.status} value={row.count} />
         ))}
+      </div>
+
+      <ChartCard
+        title="Lievak konverzije"
+        description={`Ukupan udeo prodaje u odnosu na sve rezervacije: ${conversionPct}%.`}
+        isEmpty={funnel.steps.every((s) => s.count === 0)}
+        height={220}
+      >
+        <FunnelBars
+          data={funnel.steps.map((step) => ({
+            key: step.key,
+            label: step.label,
+            value: step.count,
+          }))}
+        />
+      </ChartCard>
+
+      <div className="grid gap-6 lg:grid-cols-2">
+        <ChartCard
+          title="Po statusu"
+          isEmpty={report.byStatus.length === 0}
+          height={240}
+        >
+          <StatusDonut
+            centerLabel="Ukupno"
+            data={report.byStatus.map((row) => ({
+              key: row.status,
+              label: RES_LABELS[row.status] ?? row.status,
+              value: row.count,
+              color: reservationStatusColor[row.status],
+            }))}
+          />
+        </ChartCard>
+
+        <ChartCard
+          title="Po izvoru"
+          isEmpty={report.bySource.length === 0}
+          height={240}
+        >
+          <CategoryBars
+            data={report.bySource.map((row) => ({
+              key: row.source,
+              label: SOURCE_LABELS[row.source] ?? row.source,
+              value: row.count,
+            }))}
+          />
+        </ChartCard>
       </div>
 
       <Card>
