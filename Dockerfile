@@ -99,64 +99,54 @@ RUN pnpm exec prisma generate
 # of their transitive deps. With pnpm's isolated layout these normally
 # live under `node_modules/.pnpm/…/node_modules/` and are only resolvable
 # via the NODE_PATH-augmented `.bin/prisma` shim. The runner stage runs
-# `npx prisma migrate deploy` directly (no pnpm shim), so we walk the
-# dep graph starting from `@prisma/config` and stage a self-contained
-# npm-style `node_modules/` tree at `/app/prisma-cli-runtime-deps/` that
-# the runner COPYs in one shot.
-COPY <<'JS' /tmp/stage-prisma-cli-deps.js
-const fs = require('fs');
-const path = require('path');
-const { execSync, spawnSync } = require('child_process');
+# `node_modules/.bin/prisma migrate deploy` directly (no pnpm shim), so
+# we install a self-contained npm-style flat `node_modules/` tree at
+# `/prisma-cli/node_modules/` using plain `npm install`, then the runner
+# COPYs it on top of its own node_modules. This is much more robust than
+# trying to walk pnpm's symlink graph — npm resolves the transitive
+# closure for us and lays it out flat.
+COPY <<'SH' /tmp/install-prisma-cli.sh
+#!/bin/sh
+set -eu
 
-const STAGE = '/app/prisma-cli-runtime-deps/node_modules';
-fs.mkdirSync(STAGE, { recursive: true });
+mkdir -p /prisma-cli
+cd /prisma-cli
 
-const roots = [
-  '@prisma/config',
-  'effect',
-  'c12',
-  'deepmerge-ts',
-  'empathic',
-  'dotenv',
-];
+PRISMA_VERSION=$(node -e '
+  const pj = require("/app/package.json");
+  const v = (pj.dependencies && pj.dependencies.prisma)
+    || (pj.devDependencies && pj.devDependencies.prisma);
+  if (!v) { console.error("no prisma dep in /app/package.json"); process.exit(1); }
+  console.log(v);
+')
+CONFIG_VERSION=$(node -e '
+  const pj = require("/app/package.json");
+  const v = (pj.dependencies && pj.dependencies["@prisma/config"])
+    || (pj.devDependencies && pj.devDependencies["@prisma/config"])
+    || "*";
+  console.log(v);
+')
 
-const visited = new Set();
-function walk(name) {
-  if (visited.has(name)) return;
-  visited.add(name);
-  let pjPath;
-  try {
-    pjPath = require.resolve(`${name}/package.json`);
-  } catch (err) {
-    console.log(`  miss  ${name} (${err.code || err.message})`);
-    return;
-  }
-  const srcDir = path.dirname(pjPath);
-  const dstDir = path.join(STAGE, name);
-  if (!fs.existsSync(dstDir)) {
-    fs.mkdirSync(path.dirname(dstDir), { recursive: true });
-    execSync(`cp -a "${srcDir}" "${dstDir}"`);
-    console.log(`  stage ${name}`);
-  }
-  const pj = JSON.parse(fs.readFileSync(pjPath, 'utf8'));
-  for (const dep of Object.keys(pj.dependencies || {})) walk(dep);
-  for (const dep of Object.keys(pj.peerDependencies || {})) {
-    const meta = (pj.peerDependenciesMeta || {})[dep];
-    if (meta && meta.optional) continue;
-    walk(dep);
-  }
-}
-for (const r of roots) walk(r);
+echo "  prisma: $PRISMA_VERSION"
+echo "  @prisma/config: $CONFIG_VERSION"
 
-const check = spawnSync(
-  process.execPath,
-  ['-e', "require('@prisma/config'); console.log('@prisma/config resolves in staged tree');"],
-  { env: { ...process.env, NODE_PATH: STAGE }, stdio: 'inherit' },
-);
-if (check.status !== 0) process.exit(check.status || 1);
-JS
+echo '{"name":"prisma-cli-runtime","private":true,"version":"1.0.0"}' > package.json
+npm install --no-audit --no-fund --no-package-lock \
+  "prisma@${PRISMA_VERSION}" \
+  "@prisma/config@${CONFIG_VERSION}" \
+  dotenv \
+  tsx
 
-RUN pnpm exec node /tmp/stage-prisma-cli-deps.js && rm -f /tmp/stage-prisma-cli-deps.js
+node -e "
+  process.chdir('/tmp');
+  process.env.NODE_PATH = '/prisma-cli/node_modules';
+  require('module').Module._initPaths();
+  require('@prisma/config');
+  console.log('  ✓ @prisma/config resolves flat from /prisma-cli/node_modules');
+"
+SH
+
+RUN sh /tmp/install-prisma-cli.sh && rm -f /tmp/install-prisma-cli.sh
 
 # The project uses TypeScript 7 (native compiler) for `pnpm typecheck`,
 # but Next 16 still expects the JavaScript TS 5.x API when it runs its
@@ -209,21 +199,22 @@ COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
 # unusable without it ("datasource.url property is required"). The config
 # also does `import "dotenv/config"`, hence the dotenv copy.
 COPY --from=builder --chown=nextjs:nodejs /app/prisma.config.ts ./prisma.config.ts
-COPY --from=builder --chown=nextjs:nodejs /app/node_modules/dotenv ./node_modules/dotenv
-COPY --from=builder --chown=nextjs:nodejs /app/node_modules/prisma ./node_modules/prisma
+# Runtime `@prisma/client` for the app (the actual `PrismaClient` import)
+# and its generated output at `.prisma/client`. These come from the pnpm
+# tree because that's where `prisma generate` wrote them.
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules/@prisma ./node_modules/@prisma
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules/.prisma ./node_modules/.prisma
-# The builder stage above materialised every Prisma-CLI runtime dep
-# (`@prisma/config` → `effect` / `c12` / `deepmerge-ts` / `empathic` / …)
-# into `/app/prisma-cli-runtime-deps/` as a self-contained node_modules
-# tree; ship the whole thing in one COPY so we don't have to enumerate
-# packages here (and don't fail the build when transitive versions shift).
-COPY --from=builder --chown=nextjs:nodejs /app/prisma-cli-runtime-deps/node_modules/ ./node_modules/
-# NOTE: copying the whole `.bin/` folder (~few MiB) is required because
-# Prisma 7's CLI ships adjacent WASM helpers (`prisma_schema_build_bg.wasm`
-# etc.) that live next to the `prisma` entrypoint. Same for `tsx`.
-COPY --from=builder --chown=nextjs:nodejs /app/node_modules/.bin ./node_modules/.bin
-COPY --from=builder --chown=nextjs:nodejs /app/node_modules/tsx ./node_modules/tsx
+# /prisma-cli/node_modules is a self-contained flat tree materialised by
+# `npm install prisma @prisma/config dotenv tsx` in the builder stage
+# (independent of pnpm's isolated symlink graph). Contains `prisma`,
+# `@prisma/config`, `effect`, `c12`, `deepmerge-ts`, `empathic`,
+# `dotenv`, `tsx` and every transitive dep — laid out flat so
+# `node_modules/.bin/prisma migrate deploy` and
+# `node_modules/.bin/tsx prisma/seed.ts` work out of the box. This COPY
+# comes AFTER the pnpm @prisma COPY so npm's flat `@prisma/config` +
+# `effect` overlay wins where they intersect, while `@prisma/client`
+# (which npm doesn't ship) stays intact.
+COPY --from=builder --chown=nextjs:nodejs /prisma-cli/node_modules/ ./node_modules/
 
 # Local storage directory for uploaded PDFs / images when
 # STORAGE_PROVIDER=local. Docker volume is mounted here at runtime.
