@@ -86,7 +86,11 @@ function generateIpsReference(): { compact: string; model97: string } {
     .toString()
     .padStart(2, "0");
   const twelve = `${base}${salt}`; // exactly 12 digits
-  const check = 98 - (BigInt(twelve) % 97n);
+  // Model 97 check digits: `98 - (num mod 97)`. Do the whole thing in
+  // BigInt (JS refuses to mix BigInt and Number in a single expression)
+  // then coerce the small final integer to Number for string formatting.
+  const remainder = BigInt(twelve) % 97n;
+  const check = Number(98n - remainder);
   const checkStr = check.toString().padStart(2, "0");
   return {
     compact: twelve,
