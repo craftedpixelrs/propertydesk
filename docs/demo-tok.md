@@ -22,6 +22,17 @@ Sadržaj:
 - [16. Mobilna upotreba](#16-mobilna-upotreba)
 - [17. Uloge i dozvole — brzi vodič](#17-uloge-i-dozvole--brzi-vodič)
 - [18. Rešavanje čestih problema](#18-rešavanje-čestih-problema)
+- [19. Faza 8 — sales cycle closure](#19-faza-8--sales-cycle-closure)
+  - [19.1 Online rezervacija sa IPS QR kaparom](#191-online-rezervacija-sa-ips-qr-kaparom)
+  - [19.2 Generator ugovora u PDF-u](#192-generator-ugovora-u-pdf-u)
+  - [19.3 KYC modul za kupce](#193-kyc-modul-za-kupce)
+  - [19.4 VAT/RPI mod na prodaji](#194-vatrpi-mod-na-prodaji)
+  - [19.5 Cash-flow i time-to-sale](#195-cash-flow-i-time-to-sale)
+  - [19.6 Project P&L (marža po projektu)](#196-project-pl-marža-po-projektu)
+  - [19.7 Duplikat projekta](#197-duplikat-projekta)
+  - [19.8 Javni sajt projekta (microsite)](#198-javni-sajt-projekta-microsite)
+  - [19.9 Referral kod za agencije](#199-referral-kod-za-agencije)
+  - [19.10 Monitoring i backup verifier](#1910-monitoring-i-backup-verifier)
 
 ---
 
@@ -983,6 +994,343 @@ pnpm prisma migrate resolve --applied <migration-name>   # markiraj kao primenje
 
 - Proveri da super-admin ima grant `user.impersonate` u `src/server/permissions/access-control.ts`
 - Ako je stariji session cookie — odjavi se i uloguj ponovo
+
+---
+
+## 19. Faza 8 — sales cycle closure
+
+Sekcije 19.x pokrivaju sve funkcionalnosti dodate u finalnom talasu
+pred lansiranje (Faza 8, avgust 2026). Ako ideš kroz aplikaciju
+prvi put, ove sekcije čitaj tek kad savladaš sekcije 1–11 — Faza 8
+gradi nad postojećim tokom, ne zamenjuje ga.
+
+### 19.1 Online rezervacija sa IPS QR kaparom
+
+**Ukratko:** javna forma na `/p/[token]` na kojoj kupac popuni
+podatke, sistem generiše IPS QR za kaparu, kupac plati skeniranjem,
+investitor u `/rezervacije/zahtevi` klikne *Potvrdi*.
+
+**Investitor:**
+
+1. Iz `/jedinice/{id}` klikni **Podeli sa kupcem** → sistem kreira
+   token (`crypto.randomBytes(24).toString("base64url")`).
+2. Kopiraj link i pošalji ga kupcu (email, WhatsApp, Instagram).
+3. Kad kupac popuni formu, u sidebar → **Rezervacije → Zahtevi**
+   se pojavljuje red sa statusom `PENDING`. Ostaje 48h.
+4. Klik na red → drawer sa detaljima + IPS QR PNG + `poziv na broj`.
+   Kad vidiš da je uplata stigla, klik **Potvrdi**:
+   - Kreira se `Reservation` sa `sourceType = PUBLIC_REQUEST` i
+     upsert-uje `Buyer` iz podataka forme.
+   - Jedinica: `ON_HOLD → RESERVED`.
+   - Status zahteva: `PENDING → CONFIRMED`.
+5. Ako je zahtev fake ili neplativ → **Odbaci** (uz razlog). Jedinica
+   se vraća u `AVAILABLE`.
+
+**Kupac (public flow):**
+
+1. Otvara `/p/[token]` — vidi jedinicu, foto galeriju, floor plan.
+2. Klik **Rezerviši online** → forma (ime, prezime, email, telefon,
+   iznos kapare u EUR ili RSD, napomena).
+3. Nakon submit-a: prikazuje se **IPS QR PNG** + `poziv na broj` +
+   uputstvo "Skeniraj u mobilnoj banci".
+4. Isti sadržaj stiže i emailom (inline QR slika).
+
+**Rate limit i sigurnost:**
+
+- 10 zahteva / sat / IP na `POST /public/share/:token/reserve`.
+- Više od jednog `PENDING` zahteva za istu jedinicu blokira drugi
+  (409 CONFLICT sa Serbian porukom).
+- Token je 192-bit — praktično nemoguć za pogađanje. Opoziv trenutan.
+
+**Automatika:**
+
+- Cron `expire-reservation-requests` (15 min) — zahteve stare
+  > 48h prebacuje u `EXPIRED` i vraća jedinicu u `AVAILABLE`.
+
+Detalji u [`reservation-requests.md`](./reservation-requests.md).
+
+### 19.2 Generator ugovora u PDF-u
+
+**Ukratko:** za svaku prodaju možeš da generišeš predugovor ili pun
+kupoprodajni ugovor iz HTML šablona sa placeholder-ima, izlaz je PDF,
+audit trag prati status *Generisan → Poslat → Potpisan*.
+
+**Šabloni** (`/podesavanja/ugovori-sabloni`):
+
+- Kartice `SaleContractTemplate` — kind `PRE_CONTRACT` ili
+  `CONTRACT`, active/inactive toggle.
+- Editor sa rich-text panelom + legendom svih dostupnih placeholder-a
+  grupisanih po domenu: `buyer.*`, `seller.*`, `unit.*`, `sale.*`,
+  `tax.*`, `plan.*`, `meta.*`.
+- Live preview na desnoj strani — renderuje protiv demo prodaje.
+- Seed inserta 3 default šablona (predugovor novogradnja, ugovor
+  novogradnja, ugovor sekundarno tržište). Fork-uj ih po potrebi.
+
+**Generisanje** (`/prodaje/{id}` → kartica *Ugovor*):
+
+1. **Generiši ugovor** → dijalog, izaberi kind + template.
+2. Sistem u jednoj transakciji:
+   - Provera: KYC checklist mora biti kompletan kada je
+     `kind = CONTRACT` (predugovor prolazi bez KYC-a).
+   - Zamena placeholder-a preko `safeSubstitute` (whitelist-based).
+   - Render PDF preko `@react-pdf/renderer`.
+   - Upload kao `Document` (kategorija `SALE`, visibility `INTERNAL`).
+   - `sale.contractStatus = GENERATED`, `contractTemplateId` postavljen.
+3. **Označi kao poslato** → `SENT`, stamp `contractSentAt`.
+4. **Označi kao potpisano** → `SIGNED`, stamp `contractSignedAt`.
+
+Regeneracija je dozvoljena — stari PDF ostaje u Documents (audit
+trag), nov PDF postaje "trenutni". Kancelacija se radi ručno
+(promena statusa nazad na `GENERATED` ili brisanje `Document` reda
+iz Sale detalja).
+
+Detalji u [`sale-contracts.md`](./sale-contracts.md).
+
+### 19.3 KYC modul za kupce
+
+**Ukratko:** operator ručno unosi JMBG/PIB i toggle-uje 4 flag-a
+za dokumente. Sistem blokira generisanje pravog ugovora dok KYC
+nije kompletan.
+
+**`/kupci/{id}` → tab *KYC*:**
+
+- **Entity type toggle** — `Fizičko lice` (JMBG + LK) ili
+  `Pravno lice` (PIB + naziv firme).
+- Address inputs (feed contract placeholders).
+- Checklist:
+  1. LK prednja (`idFrontOk`)
+  2. LK zadnja (`idBackOk`)
+  3. Dokaz adrese (`addressProofOk`) — račun za struju, izvod banke
+  4. Poreska potvrda (`taxCertOk`) — obavezno za `LEGAL`
+- Notes textarea + reviewer + timestamp (auto).
+- Uploader za KYC dokumente — kategorija `KYC`, uvek `visibility =
+  INTERNAL` (nikad ne izlazi ka agencijama).
+
+**Definicija kompletnosti:**
+
+- `NATURAL`: `idFrontOk && idBackOk && addressProofOk`
+- `LEGAL`: `taxCertOk && addressProofOk`
+
+**Kada blokira:** `POST /sales/:id/contract/generate` sa `kind =
+CONTRACT` vraća 409 `KYC_INCOMPLETE`. UI toast: "KYC nije kompletan
+— dopuni pre generisanja ugovora."
+
+`kind = PRE_CONTRACT` intentionalno prolazi bez KYC-a — predugovor
+je često trigger za kupca da donese dokumente.
+
+**GDPR / retencija:** KYC dokumenti se čuvaju 5 godina posle
+poslednje prodaje kupca. Automatsko purganje nije implementirano;
+za sad se radi ručno preko super-admin panela.
+
+Detalji u [`kyc.md`](./kyc.md).
+
+### 19.4 VAT/RPI mod na prodaji
+
+**Ukratko:** svaka prodaja ima tri "poreske" kolone koje se koriste
+u obračunu i u PDF ugovoru.
+
+**`/prodaje/{id}` → kartica *Porez*:**
+
+- **VAT mod** dropdown:
+  - `NEW_BUILD_10` — 10% PDV, novogradnja (prva prodaja).
+  - `SECONDARY_MARKET_2_5` — 2.5% porez na prenos apsolutnih prava,
+    sekundarno tržište.
+  - `NONE` — bez poreza (specijalni slučaj, npr. porodični prenos).
+- **Ko plaća** — `BUYER` (default) ili `SELLER`.
+- **Iznos** — automatski računat `finalPrice × stopa` čim se
+  izabere mod. Može se ručno override-ovati (npr. dogovoreni fiksni
+  iznos).
+
+**Propagacija u ugovor:** kad se generiše PDF, placeholder-i
+`{{tax.mode}}`, `{{tax.amount}}`, `{{tax.payer}}`, `{{tax.rateLabel}}`
+se popunjavaju iz ove kartice. Šablon sam ima if-blok tipa
+"ako je NEW_BUILD_10, tekst A; ako je SECONDARY_MARKET_2_5, tekst B".
+
+### 19.5 Cash-flow i time-to-sale
+
+**Cash-flow projekcija** (`/dashboard` kartica + `/izvestaji/uplate`):
+
+- Grafikon: stubovi po mesecu za sledećih 12 meseci.
+- Formula po mesecu: `SUM(PaymentInstallment.amount WHERE
+  dueDate ∈ mesec) − SUM(Payment.amount WHERE paidAt ∈ mesec)`.
+- Hover na stub → tool tip sa razlaganjem po projektu.
+- Klik na stub → lista rata koje čine iznos.
+- Filter: valuta, projekat.
+
+**Time-to-sale** (`/izvestaji/zalihe`):
+
+- Kolona **Prosečan broj dana do prodaje** — po projektu i tipu
+  jedinice.
+- Formula: `AVG(Sale.contractDate − Unit.createdAt) WHERE
+  Unit.projectId = X AND Unit.type = Y AND Sale.status IN
+  ('UGOVORENA', 'ZAVRŠENA')`.
+- Sortira se automatski od najsporije do najbrže — pomaže da vidiš
+  koji tip jedinice "seče" iz zaliha.
+
+### 19.6 Project P&L (marža po projektu)
+
+**Ukratko:** unosiš troškove projekta u 4 kategorije, sistem računa
+maržu iz zbira prihoda minus troškovi.
+
+**`/projekti/{id}/izmena` — sekcija *Troškovi projekta*:**
+
+- **Zemljište** (`landCost`) — cena parcele, taksa za konverziju.
+- **Gradnja** (`constructionCost`) — kompletna izvođačka procena.
+- **Marketing** (`marketingCost`) — oglasi, sajam, brand agencije.
+- **Ostalo** (`otherCost`) — advokati, notari, projektna dokumentacija.
+- **Beleška o budžetu** (`budgetNote`) — slobodan tekst.
+
+Sva 4 polja su nullable — dok su prazna, računaju se kao 0 ali UI
+vidljivo označava P&L kao "nepotpun".
+
+**`/izvestaji/prodaje` — sekcija *Marža po projektu*:**
+
+- Tabela sa kolonama: Projekat, Prihod, Troškovi, Marža (€), Marža (%).
+- Prihod: `SUM(Sale.finalPrice WHERE status IN ('UGOVORENA',
+  'ZAVRŠENA'))`.
+- Marža: `Prihod − (landCost + constructionCost + marketingCost +
+  otherCost)`.
+- Boja: zelena marža > 15%, žuta 5–15%, crvena < 5%.
+
+Ovo je jedini live P&L u aplikaciji — namerno pojednostavljen jer
+je namenjen investitoru koji sam vodi projekat, ne CFO-u velikog
+developera.
+
+### 19.7 Duplikat projekta
+
+**Ukratko:** jednim klikom kopiraš celu strukturu projekta na drugi.
+
+**`/projekti/{id}` → dropdown → **Duplikat**:**
+
+- Dijalog sa poljima:
+  - **Nova šifra projekta** (obavezno, unique).
+  - **Novi naziv projekta** (obavezno).
+  - **Kopiraj cene** (checkbox — kopira `basePrice` i `finalPrice`).
+  - **Kopiraj floor plans** (checkbox — kopira `Floor.floorPlanUrl`
+    i sve `FloorPlanArea` poligone).
+
+**Šta se kopira:**
+
+- Sam projekat (bez `id`, sa novom šifrom i imenom).
+- Sve `Building`, `Entrance`, `Floor` (celi hijerarhijski skelet).
+- Sve `Unit` sa **statusom resetovanim na `PLANIRANA`** i praznom
+  istorijom (`UnitPriceHistory`, `UnitStatusHistory` nisu kopirani).
+
+**Šta se NE kopira:** rezervacije, prodaje, uplate, provizije,
+kupci, dokumenti, share linkovi, komentari.
+
+Sve u jednoj transakciji — ako bilo šta pukne, cela kopija se
+rollback-uje.
+
+### 19.8 Javni sajt projekta (microsite)
+
+**Ukratko:** opt-in javna stranica projekta na `/p/projekat/[slug]`
+sa listom dostupnih jedinica.
+
+**`/projekti/{id}/izmena` — sekcija *Javni sajt*:**
+
+- **Uključi javni sajt** (`publicMicrositeEnabled`).
+- **Slug** — opciono, default je unutrašnji `project.slug`.
+- Snimi → stranica je odmah dostupna.
+
+**Šta se renderuje na `/p/projekat/[slug]`:**
+
+1. Hero: naziv, grad, cover slika, sales-start datum, expected
+   completion, status badge.
+2. Grid dostupnih jedinica: filter `isVisibleToAgencies = true` +
+   `status IN ('AVAILABLE', 'RESERVED')` + `archivedAt IS NULL`.
+   Svaka kartica ima foto, tip, površinu, cenu (ako
+   `publishPrices` nije false), status i dugme *Rezerviši online*.
+3. Mapa (Leaflet) pinovana na `latitude/longitude` projekta ako
+   postoje.
+4. Kontakt sekcija: naziv firme + email iz `OrganizationProfile`.
+5. Footer: pravni disclaimer-i (ZOO, GDPR).
+
+**Referral kod:** `?ref=A1B2C3D4` postavlja cookie `PD_REFERRAL`
+(90 dana). Kupac koji rezerviše preko forme automatski se atribuira
+agenciji.
+
+Detalji u [`microsite.md`](./microsite.md).
+
+### 19.9 Referral kod za agencije
+
+**Ukratko:** svaka agencijska konekcija dobija svoj 8-znak kod;
+kupci koji dođu preko `?ref=<kod>` link-a se automatski atribuiraju
+agenciji u izveštajima.
+
+**Agencija (`/moji-investitori/{connectionId}` → *Referral kartica*):**
+
+- Prikaz koda + QR PNG + copy dugme.
+- Link forma: `demo.propertydesk.app/p/projekat/[slug]?ref=<kod>` ili
+  `demo.propertydesk.app/p/[token]?ref=<kod>`.
+- **Rotiraj** dugme — generiše nov kod (invalidira stari).
+  Ograničeno na 6 rotacija / sat / konekcija.
+
+**Investitor (`/izvestaji/agencije`):**
+
+- Nova kolona **Preko referral-a**: broj zahteva + broj konverzija u
+  ugovor + revenue.
+- Drawer detalja: revenue po kodu.
+
+**Kako se atribuira:**
+
+1. Kupac klikne link sa `?ref=A1B2C3D4` → cookie `PD_REFERRAL` se
+   postavi na 90 dana.
+2. Kupac submit-uje reservation-request formu → server upisuje
+   `referralCode` na `ReservationRequest`.
+3. Investitor potvrdi → `Reservation.referralCode` je populated.
+4. Ugovor se generiše → `Sale` nasleđuje kod preko reservation FK.
+
+**Sigurnost:** kod je unique globalno, ali server dodatno match-uje
+na `investorOrganizationId` — leak-ovan kod ne može biti atribuiran
+u pogrešnom tenant-u.
+
+Detalji u [`referral.md`](./referral.md).
+
+### 19.10 Monitoring i backup verifier
+
+**Ukratko:** dva nezavisna sistema — Sentry za greške i backup
+verifier za integritet dumpa.
+
+**Sentry** (produkcija):
+
+- Automatska instrumentacija svih runtime-ova (client, server, edge).
+- Auth headers, cookies i cron secret se scrub-uju pre slanja.
+- Source map upload na svaki produkcijski build.
+- Dev environment ostavlja `SENTRY_DSN` prazno — SDK je no-op.
+- Feature code koristi facade `src/server/monitoring/index.ts`, nikad
+  direktno `@sentry/nextjs`.
+
+**Backup verifier** (`/administracija/monitoring` — SUPER_ADMIN):
+
+- Timeline poslednjih 12 zdravstvenih provera.
+- Boja svake vrste: zelena OK, crvena FAIL, siva N/A.
+- Dugme **Pokreni proveru sada** — pokreće ceo verifier flow synchronously.
+- Automatski cron `backup-verify` (nedeljno pon 03:00):
+  1. Uzima najnoviji `pg_dump` iz `BACKUP_STORAGE_KIND` (`local` /
+     `s3`).
+  2. Izvršava `pg_restore --list` — non-zero exit ili prazna lista
+     = FAIL.
+  3. Provera veličine — < `BACKUP_MIN_SIZE_BYTES` (default 1 MB)
+     = FAIL.
+  4. Upisuje `SystemHealthCheck` red.
+  5. Ako su **dve** poslednje uzastopne provere FAIL — šalje email
+     na sve adrese iz `BACKUP_ALERT_EMAILS`.
+
+**Runbook alerta:**
+
+1. Otvori email — sadrži `message` i poslednje dve provere.
+2. `/administracija/monitoring` → timeline.
+3. Najčešći uzroci:
+   - Backup skripta stala — proveri cron na DB hostu.
+   - Dump truncated — `pg_restore --list` non-zero. Forsiraj nov
+     `pg_dump`.
+   - S3 kredencijali istekli — Sentry log pokazuje
+     `NoSuchBucket` / `InvalidAccessKeyId`.
+4. Nakon fiks-a klikni **Pokreni proveru sada** — sledeći OK red
+   zaustavlja dalje alerte.
+
+Detalji u [`monitoring.md`](./monitoring.md).
 
 ---
 
