@@ -28,7 +28,7 @@ RUN corepack enable && corepack prepare pnpm@10.11.0 --activate
 # libc6-compat helps some prebuilt binaries (e.g. @next/swc) on alpine
 RUN apk add --no-cache libc6-compat openssl
 
-COPY package.json pnpm-lock.yaml* ./
+COPY package.json pnpm-lock.yaml* .npmrc ./
 COPY prisma ./prisma
 
 # `node-linker=hoisted` = flat `node_modules` (npm-style), which Next's
