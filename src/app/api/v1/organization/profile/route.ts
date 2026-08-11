@@ -19,6 +19,8 @@ const updateSchema = z.object({
   email: z.string().email().max(120).nullable().optional(),
   website: z.string().url().nullable().optional(),
   logoUrl: z.string().url().nullable().optional(),
+  paymentAccountNumber: z.string().max(30).nullable().optional(),
+  paymentBankName: z.string().max(120).nullable().optional(),
 });
 
 export const GET = apiHandler({}, async () => {

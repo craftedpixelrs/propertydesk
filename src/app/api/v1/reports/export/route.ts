@@ -126,6 +126,8 @@ export const GET = apiHandler({}, async ({ searchParams }): Promise<Response> =>
         { key: "reservations", label: "Rezervacije" },
         { key: "salesCount", label: "Prodaje" },
         { key: "salesTotal", label: "Vrednost prodaja" },
+        { key: "referralSalesCount", label: "Referral prodaje" },
+        { key: "referralSalesTotal", label: "Referral prihod" },
         { key: "commissionCalculated", label: "Provizija (kalk.)" },
         { key: "commissionPaid", label: "Provizija (isplaćena)" },
         { key: "currency", label: "Valuta" },

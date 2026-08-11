@@ -60,7 +60,12 @@ export default async function RezervacijePage({ searchParams }: PageProps) {
             Zahtevi za rezervaciju i njihov status.
           </p>
         </div>
-        <ViewSwitcher view={view} status={status} />
+        <div className="flex flex-wrap items-center gap-2">
+          <Button asChild variant="outline" size="sm">
+            <Link href="/rezervacije/zahtevi">Zahtevi sa javne ponude</Link>
+          </Button>
+          <ViewSwitcher view={view} status={status} />
+        </div>
       </div>
 
       {view === "board" ? (

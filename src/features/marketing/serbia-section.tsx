@@ -1,4 +1,13 @@
-import { QrCode, FileCheck, Languages, Coins, FileSpreadsheet } from "lucide-react";
+import {
+  QrCode,
+  FileCheck,
+  Languages,
+  Coins,
+  FileSpreadsheet,
+  ShieldCheck,
+  Percent,
+  FileSignature,
+} from "lucide-react";
 
 const ITEMS = [
   {
@@ -13,8 +22,8 @@ const ITEMS = [
   },
   {
     icon: QrCode,
-    title: "IPS QR na fakturama",
-    body: "Sve SaaS fakture nose ispravan IPS QR kod usklađen sa specifikacijom NBS-a. Vaši klijenti plaćaju skeniranjem - bez prekucavanja.",
+    title: "IPS QR za kaparu i fakture",
+    body: "Ispravan IPS QR usklađen sa NBS specifikacijom - i na SaaS fakturama i na online rezervacijama sa kaparom. Kupac plaća skeniranjem, bez prekucavanja poziva na broj.",
   },
   {
     icon: FileCheck,
@@ -22,9 +31,24 @@ const ITEMS = [
     body: "Sistem elektronskih faktura, sa provajder-agnostičnom arhitekturom. Fakture se šalju i status prati kroz aplikaciju.",
   },
   {
+    icon: ShieldCheck,
+    title: "KYC za kupce (fizička i pravna lica)",
+    body: "JMBG, broj lične karte, PIB, adresa - sa checklist-om (LK, potvrda adrese, poreska potvrda za pravna lica). Blok na prelazak u ugovor dok KYC nije potpun.",
+  },
+  {
+    icon: Percent,
+    title: "PDV režim: novogradnja i sekundarno tržište",
+    body: "Automatski obračun PDV-a 10% za novogradnju ili poreza na prenos apsolutnih prava 2.5% za sekundarno tržište - upisan na svaku prodaju i propagiran u PDF ugovor.",
+  },
+  {
+    icon: FileSignature,
+    title: "Ugovori i predugovori u PDF-u",
+    body: "Šabloni sa placeholder-ima ({{buyer.jmbg}}, {{sale.finalPrice}}, {{plan.installments}}) - generišu se u par klikova, sa audit tragom za status (poslato, potpisano).",
+  },
+  {
     icon: FileSpreadsheet,
-    title: "Uvoz bankarskih izvoda",
-    body: "CSV/XLSX izvod iz Vaše banke, automatsko uparivanje po pozivu na broj, iznosu i datumu.",
+    title: "Uvoz bankarskih izvoda i cenovnika",
+    body: "CSV/XLSX izvod iz banke se uparuje po pozivu na broj i iznosu. Uvoz jedinica iz Excel-a: 3-korak wizard sa mapiranjem kolona i preview-om pre snimanja.",
   },
 ] as const;
 

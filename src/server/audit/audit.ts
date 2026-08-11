@@ -165,7 +165,26 @@ export type AuditAction =
   | "billing.email_template_updated"
   | "billing.email_template_test_sent"
   | "billing.exchange_rate_created"
-  | "billing.exchange_rate_deleted";
+  | "billing.exchange_rate_deleted"
+  // Faza 8 — v1 launch closer
+  | "sale_contract_template.created"
+  | "sale_contract_template.updated"
+  | "sale_contract_template.deleted"
+  | "sale.contract_generated"
+  | "sale.contract_sent"
+  | "sale.contract_signed"
+  | "sale.contract_canceled"
+  | "reservation_request.created"
+  | "reservation_request.confirmed"
+  | "reservation_request.declined"
+  | "reservation_request.expired"
+  | "project.costs_updated"
+  | "project.cloned"
+  | "project.microsite_toggled"
+  | "buyer.kyc_updated"
+  | "agency.referral_generated"
+  | "system.backup_verified"
+  | "system.backup_verify_failed";
 
 export interface RecordAuditInput {
   action: AuditAction;

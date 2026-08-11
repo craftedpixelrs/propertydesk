@@ -11,7 +11,10 @@ import {
 } from "@/features/reports/report-filters";
 import { requirePermission } from "@/server/permissions/require";
 import { prisma } from "@/server/db/prisma";
-import { buildInventoryReport } from "@/server/services/reports/reports.service";
+import {
+  buildInventoryReport,
+  buildInventoryVelocity,
+} from "@/server/services/reports/reports.service";
 import { formatMoney } from "@/lib/formatters/money";
 import type { SupportedCurrency } from "@/lib/constants/app";
 import { ChartCard } from "@/components/charts/chart-card";
@@ -46,13 +49,14 @@ export default async function InventoryReportPage({ searchParams }: PageProps) {
     ...parsed,
   });
 
-  const [report, projects] = await Promise.all([
+  const [report, projects, velocity] = await Promise.all([
     buildInventoryReport(filters),
     prisma.project.findMany({
       where: { organizationId: ctx.organization.organizationId, archivedAt: null },
       select: { id: true, name: true },
       orderBy: { name: "asc" },
     }),
+    buildInventoryVelocity(filters),
   ]);
 
   const currency = report.totals.currency as SupportedCurrency;
@@ -149,6 +153,57 @@ export default async function InventoryReportPage({ searchParams }: PageProps) {
           </div>
         );
       })()}
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-sm">Vreme do prodaje</CardTitle>
+          <p className="text-xs text-[var(--color-foreground-muted)]">
+            Broj dana od kreiranja jedinice do datuma ugovora (fallback: datum
+            kreiranja prodaje). Prikazano je kao prosek + medijana (p50) + 90-i
+            percentil.
+          </p>
+        </CardHeader>
+        <CardContent>
+          {velocity.overall.soldCount === 0 ? (
+            <p className="py-6 text-center text-sm text-[var(--color-foreground-muted)]">
+              Još nema zabeleženih prodaja u traženom periodu.
+            </p>
+          ) : (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+                <StatCard label="Prodato" value={velocity.overall.soldCount} />
+                <StatCard label="Prosek" value={`${velocity.overall.meanDays} d`} />
+                <StatCard label="Medijana" value={`${velocity.overall.p50Days} d`} />
+                <StatCard label="p90" value={`${velocity.overall.p90Days} d`} />
+              </div>
+              {velocity.byProject.length > 1 ? (
+                <table className="w-full text-sm">
+                  <thead className="text-left text-xs text-[var(--color-foreground-muted)]">
+                    <tr>
+                      <th className="py-1">Projekat</th>
+                      <th className="py-1 text-right">Prodato</th>
+                      <th className="py-1 text-right">Prosek (d)</th>
+                      <th className="py-1 text-right">Medijana</th>
+                      <th className="py-1 text-right">p90</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[var(--color-border)]">
+                    {velocity.byProject.map((row) => (
+                      <tr key={row.projectId}>
+                        <td className="py-1.5">{row.projectName}</td>
+                        <td className="py-1.5 text-right">{row.soldCount}</td>
+                        <td className="py-1.5 text-right">{row.meanDays}</td>
+                        <td className="py-1.5 text-right">{row.p50Days}</td>
+                        <td className="py-1.5 text-right">{row.p90Days}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              ) : null}
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>

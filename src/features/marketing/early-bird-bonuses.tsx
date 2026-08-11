@@ -59,7 +59,7 @@ const BONUSES: Bonus[] = [
 ];
 
 /**
- * Standalone "sve što dobijate ako se prijavite do 15.08." section.
+ * Standalone "sve što dobijate ako se prijavite do 01.09." section.
  *
  * The order matches the exact bullet list from the product brief and
  * the two headline items (30 days free + 50% off 3 months) carry a
@@ -79,7 +79,7 @@ export function EarlyBirdBonuses() {
             <Badge tone="success" className="uppercase tracking-wide">
               Rani pristup
             </Badge>
-            <span>Sve prijave do 15.08.2026.</span>
+            <span>Sve prijave do 01.09.2026.</span>
           </div>
           <h2
             id="bonuses-title"
@@ -136,7 +136,7 @@ export function EarlyBirdBonuses() {
 
         <p className="mt-6 text-xs text-[var(--color-foreground-subtle)]">
           Rana ponuda važi za sve koji zakažu demo ili se prijave putem forme
-          do 15.08.2026. Nakon lansiranja standardni cenovnik.
+          do 01.09.2026. Nakon lansiranja standardni cenovnik.
         </p>
       </div>
     </section>

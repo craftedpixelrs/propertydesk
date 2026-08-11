@@ -7,7 +7,29 @@ import { PermissionGuard } from "@/components/app/permission-guard";
 import { loadUserContext } from "@/server/auth/context";
 import { listBuyers } from "@/server/services/buyers.service";
 import { formatDate } from "@/lib/formatters";
-import type { BuyerStatus } from "@prisma/client";
+import type { BuyerEntityType, BuyerStatus } from "@prisma/client";
+
+interface KycShape {
+  idFrontOk: boolean;
+  idBackOk: boolean;
+  addressProofOk: boolean;
+  taxCertOk: boolean;
+}
+
+function computeKycStatus(
+  entityType: BuyerEntityType,
+  kyc: KycShape | null | undefined,
+): { label: string; tone: string } {
+  if (!kyc) return { label: "Nepotpuno", tone: "bg-amber-100 text-amber-700" };
+  const required =
+    entityType === "LEGAL"
+      ? [kyc.idFrontOk, kyc.idBackOk, kyc.addressProofOk, kyc.taxCertOk]
+      : [kyc.idFrontOk, kyc.idBackOk, kyc.addressProofOk];
+  const allOk = required.every(Boolean);
+  return allOk
+    ? { label: "Potpuno", tone: "bg-emerald-100 text-emerald-700" }
+    : { label: "Nepotpuno", tone: "bg-amber-100 text-amber-700" };
+}
 
 export const dynamic = "force-dynamic";
 
@@ -139,6 +161,7 @@ export default async function KupciPage({ searchParams }: PageProps) {
                   <th className="px-4 py-3">Telefon</th>
                   <th className="px-4 py-3">Status</th>
                   <th className="px-4 py-3">Zadužen</th>
+                  <th className="px-4 py-3">KYC</th>
                   <th className="px-4 py-3 text-right">Rezervacija</th>
                   <th className="px-4 py-3 text-right">Kreiran</th>
                 </tr>
@@ -164,6 +187,18 @@ export default async function KupciPage({ searchParams }: PageProps) {
                     </td>
                     <td className="px-4 py-3 text-[var(--color-foreground-muted)]">
                       {b.assignedUser?.name ?? "—"}
+                    </td>
+                    <td className="px-4 py-3">
+                      {(() => {
+                        const kyc = computeKycStatus(b.entityType, b.kycChecklist);
+                        return (
+                          <span
+                            className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${kyc.tone}`}
+                          >
+                            {kyc.label}
+                          </span>
+                        );
+                      })()}
                     </td>
                     <td className="px-4 py-3 text-right tabular-nums">
                       {b._count.reservations}

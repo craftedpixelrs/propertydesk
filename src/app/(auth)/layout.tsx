@@ -1,21 +1,99 @@
 import { type ReactNode } from "react";
+import { Building2, ShieldCheck, Sparkles, TrendingUp } from "lucide-react";
+
 import { APP_NAME } from "@/lib/constants/app";
 import { t } from "@/lib/i18n";
 
+/**
+ * Auth layout — split-screen shell used by every unauthenticated page
+ * (sign-in, forgot / reset password, accept invitation, verify email).
+ *
+ * On `lg+` viewports the left column is a branded hero with a gradient
+ * background, product tagline, and a short list of value props. The
+ * right column hosts the centered form card. Below `lg` the hero
+ * collapses to a compact top logo strip so the form remains reachable
+ * without scrolling.
+ */
 export default function AuthLayout({ children }: { children: ReactNode }) {
   return (
-    <main className="min-h-dvh bg-[var(--color-surface-muted)]">
-      <div className="mx-auto flex min-h-dvh w-full max-w-md flex-col justify-center px-4 py-10 sm:px-6 safe-top safe-bottom">
-        <div className="mb-6 text-center">
-          <div className="text-lg font-semibold text-[var(--color-foreground)]">{APP_NAME}</div>
-          <div className="text-sm text-[var(--color-foreground-muted)]">
-            {t("common.appTagline")}
+    <main className="grid min-h-dvh grid-cols-1 bg-[var(--color-surface-muted)] lg:grid-cols-2">
+      <BrandingPanel />
+
+      <section className="flex min-h-dvh flex-col justify-center px-4 py-10 sm:px-6 safe-top safe-bottom">
+        <div className="mx-auto w-full max-w-md">
+          <div className="mb-6 flex items-center justify-center gap-2 lg:hidden">
+            <span className="inline-flex size-9 items-center justify-center rounded-lg bg-[var(--color-brand-600)] text-white shadow-sm">
+              <Building2 className="size-5" aria-hidden />
+            </span>
+            <span className="text-lg font-semibold text-[var(--color-foreground)]">
+              {APP_NAME}
+            </span>
           </div>
+
+          <div className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-6 shadow-sm sm:p-8">
+            {children}
+          </div>
+
+          <p className="mt-6 text-center text-xs text-[var(--color-foreground-subtle)]">
+            © {new Date().getFullYear()} {APP_NAME}. {t("common.appTagline")}.
+          </p>
         </div>
-        <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5 sm:p-6">
-          {children}
-        </div>
-      </div>
+      </section>
     </main>
+  );
+}
+
+function BrandingPanel() {
+  const features: Array<{ icon: typeof ShieldCheck; label: string }> = [
+    { icon: TrendingUp, label: "Prodaje, rezervacije i uplate na jednom mestu" },
+    { icon: ShieldCheck, label: "Sigurna razmena dokumenata sa kupcima i agencijama" },
+    { icon: Sparkles, label: "Automatski izveštaji za investitore i menadžment" },
+  ];
+
+  return (
+    <aside
+      aria-hidden
+      className="relative hidden overflow-hidden lg:flex lg:flex-col lg:justify-between"
+      style={{
+        backgroundImage:
+          "radial-gradient(ellipse at top left, var(--color-brand-500) 0%, var(--color-brand-700) 45%, var(--color-brand-900) 100%)",
+      }}
+    >
+      <div
+        className="pointer-events-none absolute inset-0 opacity-30"
+        style={{
+          backgroundImage:
+            "radial-gradient(circle at 80% 20%, rgba(255,255,255,0.35), transparent 40%), radial-gradient(circle at 20% 80%, rgba(255,255,255,0.2), transparent 45%)",
+        }}
+      />
+
+      <div className="relative z-10 flex items-center gap-3 p-10 text-white">
+        <span className="inline-flex size-10 items-center justify-center rounded-xl bg-white/15 backdrop-blur">
+          <Building2 className="size-6" />
+        </span>
+        <span className="text-xl font-semibold tracking-tight">{APP_NAME}</span>
+      </div>
+
+      <div className="relative z-10 px-10 pb-10 text-white">
+        <h2 className="max-w-md text-3xl font-semibold leading-tight tracking-tight">
+          Operativni sistem za investitore u nekretnine
+        </h2>
+        <p className="mt-3 max-w-md text-sm text-white/80">
+          Vodite prodaju stanova od prve rezervacije do primopredaje — bez
+          Excel tabela i izgubljenih dokumenata.
+        </p>
+
+        <ul className="mt-8 space-y-3 text-sm text-white/90">
+          {features.map(({ icon: Icon, label }) => (
+            <li key={label} className="flex items-start gap-3">
+              <span className="mt-0.5 inline-flex size-6 shrink-0 items-center justify-center rounded-md bg-white/15">
+                <Icon className="size-3.5" />
+              </span>
+              <span>{label}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </aside>
   );
 }

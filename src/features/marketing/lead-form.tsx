@@ -202,7 +202,7 @@ export function LeadForm() {
               <strong className="font-semibold text-[var(--color-foreground)]">
                 50% popusta prva 3 meseca
               </strong>{" "}
-              nakon lansiranja 15.08.2026.
+              nakon lansiranja 01.09.2026.
             </p>
 
             <ul className="mt-6 space-y-2.5 text-sm text-[var(--color-foreground-muted)]">

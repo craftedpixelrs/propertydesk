@@ -1,9 +1,12 @@
 import Link from "next/link";
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { loadUserContext } from "@/server/auth/context";
 import { listOfferProjects } from "@/server/services/agencies/offer.service";
+import { listAgencyReferralCards } from "@/server/services/agencies/agencies.service";
+import { ReferralCards } from "@/features/agencies/referral-cards";
 
 export const dynamic = "force-dynamic";
 
@@ -13,9 +16,27 @@ export default async function PonudaPage() {
   if (!ctx.activeOrganization) redirect("/podesavanja");
   if (ctx.activeOrganization.type !== "AGENCY") redirect("/dashboard");
 
-  const projects = await listOfferProjects({
-    agencyOrganizationId: ctx.activeOrganization.id,
-  });
+  const [projects, referralConnections] = await Promise.all([
+    listOfferProjects({
+      agencyOrganizationId: ctx.activeOrganization.id,
+    }),
+    listAgencyReferralCards(ctx.activeOrganization.id),
+  ]);
+
+  const hdrs = await headers();
+  const host = hdrs.get("host") ?? "propertydesk.app";
+  const proto = hdrs.get("x-forwarded-proto") ?? "https";
+  const baseUrl = `${proto}://${host}`;
+
+  const referralCards = referralConnections
+    .filter((c) => c.referralCode)
+    .map((c) => ({
+      connectionId: c.id,
+      investorName:
+        c.investor.profile?.displayName ?? c.investor.name ?? "Investitor",
+      investorLogoUrl: c.investor.profile?.logoUrl ?? null,
+      referralCode: c.referralCode!,
+    }));
 
   return (
     <div className="space-y-6">
@@ -25,6 +46,19 @@ export default async function PonudaPage() {
           Projekti za koje Vaša agencija ima aktivan pristup.
         </p>
       </div>
+
+      {referralCards.length > 0 ? (
+        <section className="space-y-3">
+          <div>
+            <h2 className="text-lg font-semibold">Vaši referral kodovi</h2>
+            <p className="text-sm text-[var(--color-foreground-muted)]">
+              Delite link ili QR kod sa potencijalnim kupcima. Sve rezervacije
+              preko referral linka automatski se atribuiraju Vašoj agenciji.
+            </p>
+          </div>
+          <ReferralCards cards={referralCards} baseUrl={baseUrl} />
+        </section>
+      ) : null}
 
       {projects.length === 0 ? (
         <Card>

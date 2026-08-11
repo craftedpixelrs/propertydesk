@@ -1,5 +1,5 @@
 import "dotenv/config";
-import { defineConfig, env } from "prisma/config";
+import { defineConfig } from "prisma/config";
 
 /**
  * Prisma 7 configuration.
@@ -10,13 +10,23 @@ import { defineConfig, env } from "prisma/config";
  *
  * At runtime the Prisma Client is created with the standard pg driver
  * adapter and the pooled DATABASE_URL (see src/server/db/prisma.ts).
+ *
+ * NOTE: we intentionally read from `process.env` instead of Prisma's own
+ * `env()` helper. In production containers where the runtime env is
+ * injected by docker-compose (`env_file:`) rather than a `.env` file on
+ * disk, `env()` from `prisma/config` returns a lazy proxy that
+ * `migrate deploy` fails to resolve, surfacing as:
+ *   "The datasource.url property is required in your Prisma config file
+ *    when using prisma migrate deploy."
+ * Reading `process.env` directly sidesteps the proxy entirely.
  */
+const datasourceUrl =
+  process.env.DIRECT_URL || process.env.DATABASE_URL || "";
+
 export default defineConfig({
   schema: "prisma/schema.prisma",
   datasource: {
-    // Fall back to DATABASE_URL if DIRECT_URL is not configured (e.g. when
-    // running against a plain local Postgres without a pooler).
-    url: env("DIRECT_URL") ?? env("DATABASE_URL"),
+    url: datasourceUrl,
   },
   migrations: {
     path: "prisma/migrations",

@@ -70,6 +70,12 @@ export default async function PlatformAdminLayout({
         >
           Revizija
         </Link>
+        <Link
+          className="rounded-md border border-[var(--color-border)] px-3 py-1.5 text-sm hover:bg-[var(--color-surface-inset)]"
+          href="/administracija/monitoring"
+        >
+          Monitoring
+        </Link>
       </nav>
       {children}
     </div>

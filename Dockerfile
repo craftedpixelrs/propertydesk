@@ -94,6 +94,70 @@ ENV DIRECT_URL=postgresql://build:build@localhost:5432/build \
     BETTER_AUTH_URL=http://localhost:3000
 RUN pnpm exec prisma generate
 
+# Prisma 7's CLI does `require("@prisma/config")` at runtime, which in
+# turn pulls in `effect`, `c12`, `deepmerge-ts`, `empathic`, ... and all
+# of their transitive deps. With pnpm's isolated layout these normally
+# live under `node_modules/.pnpm/…/node_modules/` and are only resolvable
+# via the NODE_PATH-augmented `.bin/prisma` shim. The runner stage runs
+# `npx prisma migrate deploy` directly (no pnpm shim), so we walk the
+# dep graph starting from `@prisma/config` and stage a self-contained
+# npm-style `node_modules/` tree at `/app/prisma-cli-runtime-deps/` that
+# the runner COPYs in one shot.
+COPY <<'JS' /tmp/stage-prisma-cli-deps.js
+const fs = require('fs');
+const path = require('path');
+const { execSync, spawnSync } = require('child_process');
+
+const STAGE = '/app/prisma-cli-runtime-deps/node_modules';
+fs.mkdirSync(STAGE, { recursive: true });
+
+const roots = [
+  '@prisma/config',
+  'effect',
+  'c12',
+  'deepmerge-ts',
+  'empathic',
+  'dotenv',
+];
+
+const visited = new Set();
+function walk(name) {
+  if (visited.has(name)) return;
+  visited.add(name);
+  let pjPath;
+  try {
+    pjPath = require.resolve(`${name}/package.json`);
+  } catch (err) {
+    console.log(`  miss  ${name} (${err.code || err.message})`);
+    return;
+  }
+  const srcDir = path.dirname(pjPath);
+  const dstDir = path.join(STAGE, name);
+  if (!fs.existsSync(dstDir)) {
+    fs.mkdirSync(path.dirname(dstDir), { recursive: true });
+    execSync(`cp -a "${srcDir}" "${dstDir}"`);
+    console.log(`  stage ${name}`);
+  }
+  const pj = JSON.parse(fs.readFileSync(pjPath, 'utf8'));
+  for (const dep of Object.keys(pj.dependencies || {})) walk(dep);
+  for (const dep of Object.keys(pj.peerDependencies || {})) {
+    const meta = (pj.peerDependenciesMeta || {})[dep];
+    if (meta && meta.optional) continue;
+    walk(dep);
+  }
+}
+for (const r of roots) walk(r);
+
+const check = spawnSync(
+  process.execPath,
+  ['-e', "require('@prisma/config'); console.log('@prisma/config resolves in staged tree');"],
+  { env: { ...process.env, NODE_PATH: STAGE }, stdio: 'inherit' },
+);
+if (check.status !== 0) process.exit(check.status || 1);
+JS
+
+RUN pnpm exec node /tmp/stage-prisma-cli-deps.js && rm -f /tmp/stage-prisma-cli-deps.js
+
 # The project uses TypeScript 7 (native compiler) for `pnpm typecheck`,
 # but Next 16 still expects the JavaScript TS 5.x API when it runs its
 # internal type-collection pass (server actions typing, route params).
@@ -149,6 +213,12 @@ COPY --from=builder --chown=nextjs:nodejs /app/node_modules/dotenv ./node_module
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules/prisma ./node_modules/prisma
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules/@prisma ./node_modules/@prisma
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules/.prisma ./node_modules/.prisma
+# The builder stage above materialised every Prisma-CLI runtime dep
+# (`@prisma/config` → `effect` / `c12` / `deepmerge-ts` / `empathic` / …)
+# into `/app/prisma-cli-runtime-deps/` as a self-contained node_modules
+# tree; ship the whole thing in one COPY so we don't have to enumerate
+# packages here (and don't fail the build when transitive versions shift).
+COPY --from=builder --chown=nextjs:nodejs /app/prisma-cli-runtime-deps/node_modules/ ./node_modules/
 # NOTE: copying the whole `.bin/` folder (~few MiB) is required because
 # Prisma 7's CLI ships adjacent WASM helpers (`prisma_schema_build_bg.wasm`
 # etc.) that live next to the `prisma` entrypoint. Same for `tsx`.

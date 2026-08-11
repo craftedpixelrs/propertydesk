@@ -478,6 +478,8 @@ export async function buildPaymentsReport(filters: ReportFilters): Promise<Payme
 // -----------------------------------------------------------------------------
 
 export interface AgencyReportRow {
+  /** AgencyConnection.id — safe to link to `/agencije/[id]`. */
+  connectionId: string;
   agencyOrganizationId: string;
   agencyName: string;
   reservations: number;
@@ -485,6 +487,13 @@ export interface AgencyReportRow {
   salesTotal: string;
   commissionCalculated: string;
   commissionPaid: string;
+  /**
+   * C2 — Sum of `finalPrice` on sales whose originating reservation
+   * came in via this agency's referral link. Populated for reservations
+   * that carried `?ref=<code>` and were subsequently converted.
+   */
+  referralSalesTotal: string;
+  referralSalesCount: number;
   currency: string;
 }
 
@@ -496,6 +505,7 @@ export interface AgencyReport {
     salesTotal: string;
     commissionCalculated: string;
     commissionPaid: string;
+    referralSalesTotal: string;
     currency: string;
   };
   rows: AgencyReportRow[];
@@ -546,6 +556,50 @@ export async function buildAgencyReport(filters: ReportFilters): Promise<AgencyR
     }),
   ]);
 
+  // C2 — Aggregate sales that came in through each agency's referral
+  // link. `Reservation.referralCode` is populated only when the sale
+  // was converted from a public `ReservationRequest` that carried a
+  // `?ref=<code>` parameter, so this column cleanly distinguishes
+  // referral-driven pipeline from direct agency-driven pipeline.
+  const referralByAgency = new Map<
+    string,
+    { count: number; total: Decimal }
+  >();
+  const codeToAgency = new Map(
+    connections
+      .filter((c) => c.referralCode)
+      .map((c) => [c.referralCode!, c.agencyOrganizationId]),
+  );
+  if (codeToAgency.size > 0) {
+    const referralSales = await prisma.sale.findMany({
+      where: {
+        organizationId: filters.organizationId,
+        status: { not: "CANCELED" },
+        ...dateWindow,
+        reservation: {
+          referralCode: { in: Array.from(codeToAgency.keys()) },
+        },
+      },
+      select: {
+        finalPrice: true,
+        reservation: { select: { referralCode: true } },
+      },
+    });
+    for (const sale of referralSales) {
+      const code = sale.reservation?.referralCode;
+      if (!code) continue;
+      const agencyId = codeToAgency.get(code);
+      if (!agencyId) continue;
+      const bucket = referralByAgency.get(agencyId) ?? {
+        count: 0,
+        total: new Decimal(0),
+      };
+      bucket.count += 1;
+      bucket.total = bucket.total.plus(toDecimal(sale.finalPrice));
+      referralByAgency.set(agencyId, bucket);
+    }
+  }
+
   const salesByAgency = new Map<string, { count: number; total: Decimal }>();
   for (const row of salesGroup) {
     if (!row.agencyOrganizationId) continue;
@@ -585,7 +639,12 @@ export async function buildAgencyReport(filters: ReportFilters): Promise<AgencyR
       calculated: new Decimal(0),
       paid: new Decimal(0),
     };
+    const referral = referralByAgency.get(c.agencyOrganizationId) ?? {
+      count: 0,
+      total: new Decimal(0),
+    };
     return {
+      connectionId: c.id,
       agencyOrganizationId: c.agencyOrganizationId,
       agencyName: c.agency.name,
       reservations: reservationsByAgency.get(c.agencyOrganizationId) ?? 0,
@@ -593,6 +652,8 @@ export async function buildAgencyReport(filters: ReportFilters): Promise<AgencyR
       salesTotal: sales.total.toString(),
       commissionCalculated: commissions.calculated.toString(),
       commissionPaid: commissions.paid.toString(),
+      referralSalesCount: referral.count,
+      referralSalesTotal: referral.total.toString(),
       currency: "EUR",
     };
   });
@@ -605,6 +666,7 @@ export async function buildAgencyReport(filters: ReportFilters): Promise<AgencyR
       salesTotal: sumMoney(rows.map((r) => r.salesTotal)).toString(),
       commissionCalculated: sumMoney(rows.map((r) => r.commissionCalculated)).toString(),
       commissionPaid: sumMoney(rows.map((r) => r.commissionPaid)).toString(),
+      referralSalesTotal: sumMoney(rows.map((r) => r.referralSalesTotal)).toString(),
       currency: "EUR",
     },
     rows,
@@ -801,5 +863,129 @@ export async function buildConversionFunnel(
     filters,
     steps,
     overallConversionRate: top > 0 ? contracted / top : 0,
+  };
+}
+
+// -----------------------------------------------------------------------------
+// Inventory velocity — time-to-sale (Faza 8.1 A4)
+// -----------------------------------------------------------------------------
+
+export interface InventoryVelocityProjectRow {
+  projectId: string;
+  projectName: string;
+  soldCount: number;
+  meanDays: number;
+  p50Days: number;
+  p90Days: number;
+}
+
+export interface InventoryVelocityReport {
+  filters: ReportFilters;
+  overall: {
+    soldCount: number;
+    meanDays: number;
+    p50Days: number;
+    p90Days: number;
+  };
+  byProject: InventoryVelocityProjectRow[];
+}
+
+/**
+ * Time-to-sale (dana od `unit.createdAt` do `sale.contractDate`,
+ * fallback na `sale.createdAt`) — mean + p50 + p90 na nivou org-a i
+ * po projektu.
+ *
+ * Zašto ne `soldAt`? Nemamo eksplicitno polje; sam prelaz jedinice
+ * u `SOLD` prolazi kroz `unit_status_history`, ali join na tu tabelu
+ * je skuplji od `sale.contractDate` koji je već denormalisan.
+ * Otkazane prodaje su isključene.
+ */
+export async function buildInventoryVelocity(
+  filters: ReportFilters,
+): Promise<InventoryVelocityReport> {
+  const clauses: Prisma.Sql[] = [
+    Prisma.sql`s."organizationId" = ${filters.organizationId}`,
+    Prisma.sql`s."status" IN ('CONTRACTED','PAYMENT_IN_PROGRESS','PAID','HANDED_OVER')`,
+    Prisma.sql`u."archivedAt" IS NULL`,
+  ];
+  if (filters.projectId) {
+    clauses.push(Prisma.sql`s."projectId" = ${filters.projectId}`);
+  }
+  if (filters.from) {
+    clauses.push(Prisma.sql`COALESCE(s."contractDate", s."createdAt") >= ${filters.from}`);
+  }
+  if (filters.to) {
+    clauses.push(Prisma.sql`COALESCE(s."contractDate", s."createdAt") <= ${filters.to}`);
+  }
+  const where = Prisma.join(clauses, " AND ");
+
+  const overallRow = await prisma.$queryRaw<
+    Array<{
+      count: bigint | number;
+      mean_days: number | null;
+      p50_days: number | null;
+      p90_days: number | null;
+    }>
+  >(Prisma.sql`
+    SELECT
+      COUNT(*)::bigint AS count,
+      AVG(EXTRACT(EPOCH FROM (COALESCE(s."contractDate", s."createdAt") - u."createdAt")) / 86400)::float AS mean_days,
+      PERCENTILE_CONT(0.5) WITHIN GROUP (
+        ORDER BY EXTRACT(EPOCH FROM (COALESCE(s."contractDate", s."createdAt") - u."createdAt")) / 86400
+      )::float AS p50_days,
+      PERCENTILE_CONT(0.9) WITHIN GROUP (
+        ORDER BY EXTRACT(EPOCH FROM (COALESCE(s."contractDate", s."createdAt") - u."createdAt")) / 86400
+      )::float AS p90_days
+    FROM "sale" s
+    JOIN "unit" u ON u."id" = s."unitId"
+    WHERE ${where}
+  `);
+
+  const projectRows = await prisma.$queryRaw<
+    Array<{
+      project_id: string;
+      project_name: string;
+      count: bigint | number;
+      mean_days: number | null;
+      p50_days: number | null;
+      p90_days: number | null;
+    }>
+  >(Prisma.sql`
+    SELECT
+      p."id"   AS project_id,
+      p."name" AS project_name,
+      COUNT(*)::bigint AS count,
+      AVG(EXTRACT(EPOCH FROM (COALESCE(s."contractDate", s."createdAt") - u."createdAt")) / 86400)::float AS mean_days,
+      PERCENTILE_CONT(0.5) WITHIN GROUP (
+        ORDER BY EXTRACT(EPOCH FROM (COALESCE(s."contractDate", s."createdAt") - u."createdAt")) / 86400
+      )::float AS p50_days,
+      PERCENTILE_CONT(0.9) WITHIN GROUP (
+        ORDER BY EXTRACT(EPOCH FROM (COALESCE(s."contractDate", s."createdAt") - u."createdAt")) / 86400
+      )::float AS p90_days
+    FROM "sale" s
+    JOIN "unit"    u ON u."id" = s."unitId"
+    JOIN "project" p ON p."id" = s."projectId"
+    WHERE ${where}
+    GROUP BY p."id", p."name"
+    ORDER BY count DESC, p."name" ASC
+  `);
+
+  const overall = overallRow[0];
+  return {
+    filters,
+    overall: {
+      soldCount: overall ? Number(overall.count) : 0,
+      meanDays: overall?.mean_days ? Math.round(overall.mean_days) : 0,
+      p50Days: overall?.p50_days ? Math.round(overall.p50_days) : 0,
+      p90Days: overall?.p90_days ? Math.round(overall.p90_days) : 0,
+    },
+    byProject: projectRows.map((row) => ({
+      projectId: row.project_id,
+      projectName: row.project_name,
+      soldCount: Number(row.count),
+      meanDays: row.mean_days ? Math.round(row.mean_days) : 0,
+      p50Days: row.p50_days ? Math.round(row.p50_days) : 0,
+      p90Days: row.p90_days ? Math.round(row.p90_days) : 0,
+    })),
   };
 }

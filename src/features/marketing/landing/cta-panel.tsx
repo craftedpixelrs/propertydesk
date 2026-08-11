@@ -20,7 +20,7 @@ interface CtaPanelProps {
  */
 export function CtaPanel({
   title = "Videli ste šta radi. Vidimo se na demo pozivu?",
-  subtitle = "Prvih 30 dana besplatno. Nakon toga 50% popusta na naredna tri meseca. Zaključana cena paketa 12 meseci - za sve prijave do 15.08.2026.",
+  subtitle = "Prvih 30 dana besplatno. Nakon toga 50% popusta na naredna tri meseca. Zaključana cena paketa 12 meseci - za sve prijave do 01.09.2026.",
   primaryHref = "/demo#zakazivanje",
   primaryLabel = "Zakažite 25-minutni demo",
 }: CtaPanelProps) {

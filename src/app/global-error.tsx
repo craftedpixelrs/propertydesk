@@ -1,5 +1,8 @@
 "use client";
 
+import * as Sentry from "@sentry/nextjs";
+import { useEffect } from "react";
+
 /**
  * Root-level error boundary. Catches exceptions in the root layout —
  * because it replaces the entire document, it must render its own
@@ -12,6 +15,12 @@ export default function GlobalError({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  useEffect(() => {
+    // Forward the root-level crash to Sentry. `captureException` is a
+    // no-op when the DSN is not configured.
+    Sentry.captureException(error);
+  }, [error]);
+
   return (
     <html lang="sr-Latn">
       <body

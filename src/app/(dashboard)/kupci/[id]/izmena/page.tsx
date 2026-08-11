@@ -37,6 +37,15 @@ export default async function EditBuyerPage({ params }: Props) {
     budgetMax: buyer.budgetMax?.toString() ?? "",
     source: buyer.source ?? "",
     notes: buyer.notes ?? "",
+    entityType: buyer.entityType ?? "NATURAL",
+    legalName: buyer.legalName ?? "",
+    jmbg: buyer.jmbg ?? "",
+    identityNumber: buyer.identityNumber ?? "",
+    taxId: buyer.taxId ?? "",
+    addressLine1: buyer.addressLine1 ?? "",
+    city: buyer.city ?? "",
+    postalCode: buyer.postalCode ?? "",
+    country: buyer.country ?? "",
   };
 
   return (

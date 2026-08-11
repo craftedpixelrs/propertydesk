@@ -30,7 +30,7 @@ export const metadata: Metadata = {
     absolute: `${APP_NAME} - Softver za prodaju novogradnje | Investitori i agencije`,
   },
   description:
-    "Softver za investitore u nekretnine i partnerske agencije: projekti, kupci, rezervacije, prodaje, planovi otplate, uplate, provizije, dokumenti i izveštaji. IPS QR, SEF, EUR/RSD. Lansiranje 15.08.2026 - prijavite se za rani pristup: 30 dana besplatno + 50% na naredna 3 meseca.",
+    "Softver za investitore i agencije koje prodaju novogradnju: projekti, KYC kupaca, online rezervacija sa IPS QR kaparom, generator ugovora u PDF-u, planovi otplate, uplate, provizije, referral kod za agencije, javni sajt projekta, cash-flow projekcija i izveštaji. IPS QR, SEF, PDV 10%/2.5%, EUR/RSD. Lansiranje 01.09.2026 - prijave do lansiranja dobijaju 30 dana besplatno + 50% na naredna 3 meseca.",
   alternates: {
     canonical: "/",
   },

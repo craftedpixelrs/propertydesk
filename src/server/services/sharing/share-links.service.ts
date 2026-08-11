@@ -441,6 +441,241 @@ export async function resolveShareImage(input: {
   };
 }
 
+// -----------------------------------------------------------------------------
+// C1 — Public project microsite
+// -----------------------------------------------------------------------------
+
+export interface PublicProjectSite {
+  slug: string;
+  organization: {
+    name: string;
+    logoUrl: string | null;
+    phone: string | null;
+    email: string | null;
+    website: string | null;
+  };
+  project: {
+    id: string;
+    name: string;
+    address: string | null;
+    city: string | null;
+    coverImageUrl: string | null;
+    latitude: number | null;
+    longitude: number | null;
+    publicDescription: string | null;
+  };
+  units: Array<{
+    id: string;
+    code: string;
+    type: string;
+    structure: string | null;
+    totalArea: string;
+    internalArea: string | null;
+    bedrooms: number | null;
+    bathrooms: number | null;
+    orientation: string | null;
+    price: string | null;
+    currency: string;
+    status: string;
+    coverDocumentId: string | null;
+    shareToken: string | null;
+  }>;
+}
+
+/**
+ * Resolve a project's public microsite by slug.
+ *
+ * The slug can be either `project.publicMicrositeSlug` (custom, unique) or
+ * the standard `project.slug`. When `publicMicrositeEnabled` is `false`
+ * we return `null` regardless — the operator has explicitly opted out.
+ *
+ * For each available unit we return a fresh, on-the-fly share link so
+ * the "Detalji" CTA on the microsite deep-links into `/p/[token]` with
+ * a real `ShareLink` row. Creating/updating the link happens outside
+ * this function (the page calls `ensureUnitShareLinkForMicrosite` per
+ * unit) so this stays a pure read.
+ */
+export async function resolvePublicProjectSite(
+  slug: string,
+): Promise<PublicProjectSite | null> {
+  if (!slug || slug.length > 128) return null;
+  const project = await prisma.project.findFirst({
+    where: {
+      archivedAt: null,
+      publicMicrositeEnabled: true,
+      OR: [{ publicMicrositeSlug: slug }, { slug }],
+    },
+    select: {
+      id: true,
+      name: true,
+      slug: true,
+      publicMicrositeSlug: true,
+      address: true,
+      city: true,
+      coverImageUrl: true,
+      latitude: true,
+      longitude: true,
+      description: true,
+      organizationId: true,
+    },
+  });
+  if (!project) return null;
+
+  const [orgProfile, units] = await Promise.all([
+    prisma.organizationProfile.findUnique({
+      where: { organizationId: project.organizationId },
+      select: {
+        displayName: true,
+        legalName: true,
+        logoUrl: true,
+        phone: true,
+        email: true,
+        website: true,
+      },
+    }),
+    prisma.unit.findMany({
+      where: {
+        projectId: project.id,
+        organizationId: project.organizationId,
+        archivedAt: null,
+        status: { in: ["AVAILABLE", "ON_HOLD", "RESERVED", "DEPOSIT_PAID"] },
+      },
+      select: {
+        id: true,
+        code: true,
+        type: true,
+        structure: true,
+        totalArea: true,
+        internalArea: true,
+        bedrooms: true,
+        bathrooms: true,
+        orientation: true,
+        finalPrice: true,
+        basePrice: true,
+        currency: true,
+        status: true,
+      },
+      orderBy: [{ code: "asc" }],
+      take: 200,
+    }),
+  ]);
+
+  const unitIds = units.map((u) => u.id);
+
+  // Batch-fetch existing (non-revoked, non-expired) share links so the
+  // microsite always uses the same token for the same unit.
+  const existingLinks = unitIds.length
+    ? await prisma.shareLink.findMany({
+        where: {
+          organizationId: project.organizationId,
+          entityType: "Unit",
+          entityId: { in: unitIds },
+          revokedAt: null,
+          OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
+        },
+        select: { entityId: true, token: true, createdAt: true },
+        orderBy: { createdAt: "desc" },
+      })
+    : [];
+  const tokenByUnit = new Map<string, string>();
+  for (const l of existingLinks) {
+    if (!tokenByUnit.has(l.entityId)) tokenByUnit.set(l.entityId, l.token);
+  }
+
+  const covers = unitIds.length
+    ? await prisma.document.findMany({
+        where: {
+          organizationId: project.organizationId,
+          entityType: "Unit",
+          entityId: { in: unitIds },
+          deletedAt: null,
+          mimeType: { startsWith: "image/" },
+        },
+        orderBy: [{ isCover: "desc" }, { sortOrder: "asc" }, { createdAt: "desc" }],
+        select: { id: true, entityId: true, isCover: true, sortOrder: true },
+      })
+    : [];
+  const coverByUnit = new Map<string, string>();
+  for (const d of covers) {
+    if (!coverByUnit.has(d.entityId)) coverByUnit.set(d.entityId, d.id);
+  }
+
+  return {
+    slug: project.publicMicrositeSlug ?? project.slug,
+    organization: {
+      name: orgProfile?.displayName ?? orgProfile?.legalName ?? "",
+      logoUrl: orgProfile?.logoUrl ?? null,
+      phone: orgProfile?.phone ?? null,
+      email: orgProfile?.email ?? null,
+      website: orgProfile?.website ?? null,
+    },
+    project: {
+      id: project.id,
+      name: project.name,
+      address: project.address,
+      city: project.city,
+      coverImageUrl: project.coverImageUrl,
+      latitude:
+        project.latitude != null ? Number(project.latitude) : null,
+      longitude:
+        project.longitude != null ? Number(project.longitude) : null,
+      publicDescription: project.description ?? null,
+    },
+    units: units.map((u) => ({
+      id: u.id,
+      code: u.code,
+      type: u.type,
+      structure: u.structure ?? null,
+      totalArea: u.totalArea.toString(),
+      internalArea: u.internalArea ? u.internalArea.toString() : null,
+      bedrooms: u.bedrooms,
+      bathrooms: u.bathrooms,
+      orientation: u.orientation,
+      price: (u.finalPrice ?? u.basePrice).toString(),
+      currency: u.currency,
+      status: u.status,
+      coverDocumentId: coverByUnit.get(u.id) ?? null,
+      shareToken: tokenByUnit.get(u.id) ?? null,
+    })),
+  };
+}
+
+/**
+ * Idempotently create a `ShareLink` for a unit so the microsite's
+ * "Detalji" CTA can deep-link into `/p/[token]`. Returns the token.
+ * Called by the microsite server page when a unit has no existing
+ * link (avoids surfacing a 404 to potential buyers).
+ */
+export async function ensureUnitShareLinkForMicrosite(input: {
+  organizationId: string;
+  unitId: string;
+  showPrice: boolean;
+}): Promise<string> {
+  const existing = await prisma.shareLink.findFirst({
+    where: {
+      organizationId: input.organizationId,
+      entityType: "Unit",
+      entityId: input.unitId,
+      revokedAt: null,
+      OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
+    },
+    select: { token: true },
+    orderBy: { createdAt: "desc" },
+  });
+  if (existing) return existing.token;
+  const created = await prisma.shareLink.create({
+    data: {
+      organizationId: input.organizationId,
+      entityType: "Unit",
+      entityId: input.unitId,
+      token: generateToken(),
+      showPrice: input.showPrice,
+    },
+    select: { token: true },
+  });
+  return created.token;
+}
+
 // The Prisma model is exported so callers can attach `select` clauses
 // consistently.
 export type ShareLinkWhere = Prisma.ShareLinkWhereInput;

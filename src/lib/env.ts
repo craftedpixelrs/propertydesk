@@ -90,6 +90,44 @@ const serverSchema = z.object({
   RATE_LIMIT_ENABLED: booleanish.default(true),
 
   SENTRY_DSN: optionalString,
+  // Sentry org/project/auth-token are only consumed by
+  // `withSentryConfig(...)` at build-time for source-map upload. They are
+  // never read at runtime. They live in the same env schema so a
+  // misconfigured build fails fast rather than silently shipping a build
+  // without symbolication.
+  SENTRY_ORG: optionalString,
+  SENTRY_PROJECT: optionalString,
+  SENTRY_AUTH_TOKEN: optionalString,
+  SENTRY_ENVIRONMENT: optionalString,
+  // Server-side sampling rates (0..1). Defaults are conservative to keep
+  // event quota small. Override in production if needed.
+  SENTRY_TRACES_SAMPLE_RATE: optionalString,
+  SENTRY_PROFILES_SAMPLE_RATE: optionalString,
+
+  // Faza 8.3 (C4) — automatic backup verifier.
+  //
+  // Where the backup-verify job looks for the most recent `pg_dump` file.
+  // Two supported modes:
+  //   * `local`: a filesystem directory containing `*.pgcustom` (or
+  //     `*.dump`, `*.pgdump`, `*.tar`) files. `BACKUP_VERIFY_LOCAL_DIR`
+  //     must point at that directory.
+  //   * `s3`: an S3-compatible bucket. Reuses the STORAGE_* env vars for
+  //     credentials and endpoint. `BACKUP_VERIFY_S3_PREFIX` narrows the
+  //     search (e.g. `backups/`).
+  //
+  // When unset the job records an "OK: skipped (verifier disabled)"
+  // status so operators can see the check is running but there is
+  // nothing to verify. It never fails hard.
+  BACKUP_VERIFY_SOURCE: z
+    .enum(["disabled", "local", "s3"])
+    .default("disabled"),
+  BACKUP_VERIFY_LOCAL_DIR: optionalString,
+  BACKUP_VERIFY_S3_BUCKET: optionalString,
+  BACKUP_VERIFY_S3_PREFIX: optionalString,
+  // Comma-separated list of email addresses that receive an alert when
+  // two consecutive backup-verify runs fail. Falls back to the
+  // SEED_SUPER_ADMIN_EMAIL when empty.
+  BACKUP_VERIFY_ALERT_EMAILS: optionalString,
 });
 
 const publicSchema = z.object({

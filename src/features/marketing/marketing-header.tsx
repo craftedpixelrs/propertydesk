@@ -83,7 +83,7 @@ export function MarketingHeader() {
 
         <div className="hidden items-center gap-2 md:flex">
           {/* Sign-in is intentionally disabled until the public launch
-           * on 15.08.2026 - we surface a "Uskoro" affordance instead of
+           * on 01.09.2026 - we surface a "Uskoro" affordance instead of
            * silently linking to a route that would just show a login
            * page for accounts that don't exist yet. */}
           <Button
@@ -92,7 +92,7 @@ export function MarketingHeader() {
             size="sm"
             disabled
             aria-disabled="true"
-            title="Prijava biće dostupna nakon lansiranja 15.08.2026."
+            title="Prijava biće dostupna nakon lansiranja 01.09.2026."
             className="cursor-not-allowed gap-2"
           >
             <span>Prijava</span>
@@ -176,7 +176,7 @@ export function MarketingHeader() {
                   disabled
                   aria-disabled="true"
                   tabIndex={open ? 0 : -1}
-                  title="Prijava biće dostupna nakon lansiranja 15.08.2026."
+                  title="Prijava biće dostupna nakon lansiranja 01.09.2026."
                   className="w-full cursor-not-allowed gap-2"
                 >
                   <span>Prijava</span>

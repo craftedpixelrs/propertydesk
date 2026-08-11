@@ -39,6 +39,18 @@ const patchSchema = z
     defaultCurrency: z.string().length(3).optional(),
     defaultVatRate: z.number().min(0).max(100).optional(),
     internalNotes: z.string().max(2000).optional(),
+    landCost: z.number().min(0).max(1e12).nullable().optional(),
+    constructionCost: z.number().min(0).max(1e12).nullable().optional(),
+    marketingCost: z.number().min(0).max(1e12).nullable().optional(),
+    otherCost: z.number().min(0).max(1e12).nullable().optional(),
+    budgetNote: z.string().max(2000).nullable().optional(),
+    publicMicrositeEnabled: z.boolean().optional(),
+    publicMicrositeSlug: z
+      .string()
+      .max(80)
+      .regex(/^[a-z0-9-]*$/, "Slug može sadržati samo mala slova, brojeve i crtice.")
+      .nullable()
+      .optional(),
   })
   .refine(
     (v) => {

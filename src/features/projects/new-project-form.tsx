@@ -12,7 +12,7 @@ import { ProjectMap } from "@/features/projects/project-map-loader";
 interface Field {
   name: string;
   label: string;
-  type?: "text" | "textarea" | "date" | "number" | "select";
+  type?: "text" | "textarea" | "date" | "number" | "select" | "checkbox";
   required?: boolean;
   hint?: string;
   options?: { value: string; label: string }[];
@@ -69,6 +69,45 @@ const FIELDS: Field[] = [
   { name: "defaultVatRate", label: "PDV stopa (%)", type: "number" },
   { name: "description", label: "Opis", type: "textarea" },
   { name: "internalNotes", label: "Interne napomene", type: "textarea" },
+  {
+    name: "landCost",
+    label: "Trošak zemljišta",
+    type: "number",
+    hint: "Interni podatak, koristi se u panelu Marža po projektu.",
+  },
+  {
+    name: "constructionCost",
+    label: "Trošak izgradnje",
+    type: "number",
+    hint: "Materijali, radovi, angažman izvođača.",
+  },
+  {
+    name: "marketingCost",
+    label: "Trošak marketinga",
+    type: "number",
+  },
+  {
+    name: "otherCost",
+    label: "Ostali troškovi",
+    type: "number",
+  },
+  {
+    name: "budgetNote",
+    label: "Napomena uz budžet",
+    type: "textarea",
+    hint: "Interna napomena — nikad se ne prikazuje na javnoj ponudi.",
+  },
+  {
+    name: "publicMicrositeEnabled",
+    label: "Javna stranica projekta (microsite)",
+    type: "checkbox",
+    hint: "Kada je uključeno, projekat je dostupan na /p/projekat/<slug> sa listom slobodnih jedinica.",
+  },
+  {
+    name: "publicMicrositeSlug",
+    label: "Slug javne stranice",
+    hint: "Opcionalno — ako je prazno, koristi se standardni slug projekta.",
+  },
 ];
 
 interface ProjectFormProps {
@@ -114,6 +153,11 @@ export function NewProjectForm({
       const payload: Record<string, unknown> = {};
       for (const [k, v] of Object.entries(values)) {
         if (isEdit && FIELDS.find((f) => f.name === k)?.immutable) continue;
+        const fieldDef = FIELDS.find((f) => f.name === k);
+        if (fieldDef?.type === "checkbox") {
+          payload[k] = v === "true";
+          continue;
+        }
         if (v === "" || v === undefined) {
           // On edit, an empty string means "clear the value" for optional
           // text fields — send it through so the server can null it out.
@@ -122,7 +166,15 @@ export function NewProjectForm({
           }
           continue;
         }
-        if (k === "defaultVatRate" || k === "latitude" || k === "longitude") {
+        if (
+          k === "defaultVatRate" ||
+          k === "latitude" ||
+          k === "longitude" ||
+          k === "landCost" ||
+          k === "constructionCost" ||
+          k === "marketingCost" ||
+          k === "otherCost"
+        ) {
           payload[k] = Number(v);
         } else {
           payload[k] = v;
@@ -155,6 +207,32 @@ export function NewProjectForm({
         <form className="grid grid-cols-1 gap-4" onSubmit={onSubmit}>
           {FIELDS.map((f) => {
             const disabled = isEdit && f.immutable;
+            if (f.type === "checkbox") {
+              const checked = values[f.name] === "true";
+              return (
+                <div key={f.name} className="space-y-1">
+                  <label className="flex items-center gap-2 text-sm font-medium">
+                    <input
+                      id={f.name}
+                      name={f.name}
+                      type="checkbox"
+                      checked={checked}
+                      onChange={(e) => setValue(f.name, e.target.checked ? "true" : "false")}
+                      disabled={disabled}
+                    />
+                    <span>{f.label}</span>
+                  </label>
+                  {f.hint ? (
+                    <p className="text-xs text-[var(--color-foreground-muted)]">{f.hint}</p>
+                  ) : null}
+                  {fieldErrors[f.name]?.map((msg, idx) => (
+                    <p key={idx} className="text-xs text-red-600">
+                      {msg}
+                    </p>
+                  ))}
+                </div>
+              );
+            }
             return (
               <div key={f.name} className="space-y-1">
                 <label className="text-sm font-medium" htmlFor={f.name}>

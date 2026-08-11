@@ -8,6 +8,7 @@ import {
   notifyDueSoonInstallments,
 } from "@/server/services/sales/installments-jobs";
 import { notifyTrialsExpiring } from "@/server/services/subscriptions/jobs";
+import { runBackupVerify } from "@/server/services/monitoring/backup-verify.service";
 // Side-effect import: registers all billing cron jobs into the shared registry.
 import "@/server/services/billing/jobs/definitions";
 
@@ -93,6 +94,31 @@ ensure("trial-expiration-notifications", () =>
     run: async () => {
       const { processed, errors } = await notifyTrialsExpiring();
       return { processed, updated: processed, errors };
+    },
+  }),
+);
+
+ensure("backup-verify", () =>
+  registerJob({
+    name: "backup-verify",
+    description:
+      "Nedeljna provera integriteta najsvežijeg pg_dump fajla. Beleži rezultat u system_health_check i šalje email upozorenje na 2 uzastopna neuspeha.",
+    // Weekly, Sundays at 04:30 (server time). Runs after most nightly
+    // backups have finished but before any Monday morning traffic.
+    suggestedCron: "30 4 * * 0",
+    run: async () => {
+      const { outcome } = await runBackupVerify();
+      return {
+        processed: 1,
+        updated: outcome.status === "OK" ? 1 : 0,
+        errors: outcome.status === "FAIL" ? 1 : 0,
+        details: {
+          status: outcome.status,
+          message: outcome.message,
+          fileName: outcome.fileName,
+          fileSize: outcome.fileSize,
+        },
+      };
     },
   }),
 );

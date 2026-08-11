@@ -12,6 +12,8 @@ import {
 } from "@/features/reports/report-filters";
 import { requirePermission } from "@/server/permissions/require";
 import { buildPaymentsReport } from "@/server/services/reports/reports.service";
+import { buildCashFlowProjection } from "@/server/services/reports/cash-flow.service";
+import { CashFlowCard } from "@/features/reports/cash-flow-card";
 import { formatDate, formatMoney } from "@/lib/formatters";
 import type { SupportedCurrency } from "@/lib/constants/app";
 import { ChartCard } from "@/components/charts/chart-card";
@@ -41,7 +43,14 @@ export default async function PaymentsReportPage({ searchParams }: PageProps) {
     ...parsed,
   });
 
-  const report = await buildPaymentsReport(filters);
+  const [report, cashflow] = await Promise.all([
+    buildPaymentsReport(filters),
+    buildCashFlowProjection({
+      organizationId: ctx.organization.organizationId,
+      projectId: filters.projectId ?? null,
+      months: 12,
+    }),
+  ]);
   const currency = report.totals.currency as SupportedCurrency;
   const hrefs = exportHrefs("payments", parsed);
 
@@ -65,6 +74,13 @@ export default async function PaymentsReportPage({ searchParams }: PageProps) {
         <StatCard label="Stornirano" value={formatMoney(report.totals.reversedTotal, currency)} />
       </div>
 
+      <CashFlowCard
+        projection={cashflow}
+        title="Cash-flow projekcija (12 meseci)"
+        description="Očekivane naplate po planovima plaćanja i stvarni prilivi iz uplata — sve u jednoj slici."
+      />
+
+
       <div className="grid gap-6 lg:grid-cols-2">
         <ChartCard
           title="Broj uplata po metodi"
@@ -85,12 +101,7 @@ export default async function PaymentsReportPage({ searchParams }: PageProps) {
           height={240}
         >
           <CategoryBars
-            yTickFormatter={(v) =>
-              new Intl.NumberFormat("sr-Latn", {
-                notation: "compact",
-                maximumFractionDigits: 1,
-              }).format(v)
-            }
+            yTickFormat="compact"
             data={report.byMethod.map((row) => ({
               key: row.method,
               label: METHOD_LABELS[row.method] ?? row.method,

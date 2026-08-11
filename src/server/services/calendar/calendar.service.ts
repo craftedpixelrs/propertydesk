@@ -53,7 +53,7 @@ export async function loadCalendarEvents(
       ? prisma.reservation.findMany({
           where: {
             organizationId,
-            expiresAt: { gte: from, lte: to, not: null },
+            expiresAt: { gte: from, lte: to },
             status: { in: ["REQUESTED", "APPROVED"] },
           },
           select: {
@@ -97,7 +97,7 @@ export async function loadCalendarEvents(
           where: {
             organizationId,
             dueAt: { gte: from, lte: to },
-            status: { not: "DONE" },
+            status: { notIn: ["COMPLETED", "CANCELED"] },
           },
           select: {
             id: true,
@@ -112,7 +112,7 @@ export async function loadCalendarEvents(
       ? prisma.sale.findMany({
           where: {
             organizationId,
-            plannedHandoverDate: { gte: from, lte: to, not: null },
+            plannedHandoverDate: { gte: from, lte: to },
             status: { in: ["CONTRACTED", "PAYMENT_IN_PROGRESS", "PAID"] },
           },
           select: {

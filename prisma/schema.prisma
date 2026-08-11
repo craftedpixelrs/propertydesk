@@ -54,10 +54,12 @@ model User {
   unitPriceChanges  UnitPriceHistory[]  @relation("UnitPriceChangedBy")
   unitStatusChanges UnitStatusHistory[] @relation("UnitStatusChangedBy")
 
-  buyersAssigned Buyer[]    @relation("BuyerAssignee")
-  activities     Activity[] @relation("ActivityActor")
-  tasksAssigned  Task[]     @relation("TaskAssignee")
-  tasksCreated   Task[]     @relation("TaskCreator")
+  buyersAssigned      Buyer[]              @relation("BuyerAssignee")
+  buyerKycReviews     BuyerKycChecklist[]  @relation("BuyerKycReviewer")
+  reservationRequests ReservationRequest[] @relation("ReservationRequestDecider")
+  activities          Activity[]           @relation("ActivityActor")
+  tasksAssigned       Task[]               @relation("TaskAssignee")
+  tasksCreated        Task[]               @relation("TaskCreator")
 
   reservationsCreated      Reservation[]              @relation("ReservationCreator")
   reservationsAssigned     Reservation[]              @relation("ReservationAssignee")
@@ -190,6 +192,8 @@ model Organization {
   saleStatusHistory         SaleStatusHistory[]
   paymentPlans              PaymentPlan[]
   paymentPlanTemplates      PaymentPlanTemplate[]
+  saleContractTemplates     SaleContractTemplate[]
+  reservationRequests       ReservationRequest[]
   payments                  Payment[]
   documents                 Document[]
   shareLinks                ShareLink[]
@@ -544,6 +548,44 @@ enum SaleDiscountType {
   FIXED
 }
 
+/// Whether an operator has generated a contract for this sale and if the
+/// buyer has signed it. Used to gate CONTRACTED → PAID transitions in the
+/// investor UI and to power the "Ugovor" section on the sale detail page.
+enum SaleContractStatus {
+  NONE
+  GENERATED
+  SENT
+  SIGNED
+  CANCELED
+}
+
+/// Serbia-specific two-step sales process: a preliminary contract
+/// (predugovor) usually locks the deposit + terms; the full contract
+/// (ugovor o kupoprodaji) is signed at the notary once financing +
+/// KYC are complete.
+enum SaleContractKind {
+  PRE_CONTRACT
+  CONTRACT
+}
+
+/// Fiscal treatment of a sale. Faza 8.2 (`B2`): drives `computeSaleTax`
+/// and A1's `{{tax.mode}}`/`{{tax.amount}}` contract placeholders.
+///
+/// Values mirror Serbian tax practice:
+///   * NEW_BUILD_10          — 10% PDV on first-time new-build sale
+///   * SECONDARY_MARKET_2_5  — 2.5% PPAP on secondary market
+///   * NONE                  — no tax (rare, e.g. some agencies)
+enum SaleVatMode {
+  NEW_BUILD_10
+  SECONDARY_MARKET_2_5
+  NONE
+}
+
+enum SaleTaxPayer {
+  BUYER
+  SELLER
+}
+
 enum PaymentPlanStatus {
   DRAFT
   ACTIVE
@@ -592,7 +634,36 @@ enum DocumentCategory {
   AGENCY
   COMMISSION
   INVOICE
+  KYC
   OTHER
+}
+
+/// Natural person vs. legal entity — drives which KYC/contract fields
+/// are required. Added in Faza 8.2 (`B1`).
+enum BuyerEntityType {
+  NATURAL
+  LEGAL
+}
+
+/// Online-reservation flow (Faza 8.1 `A2`). A `PENDING` request holds
+/// the unit on ON_HOLD for `expiresAt`; once the investor confirms the
+/// deposit it becomes `CONFIRMED` and materialises a real Reservation.
+enum ReservationRequestStatus {
+  PENDING
+  CONFIRMED
+  DECLINED
+  EXPIRED
+}
+
+/// Result of an automated self-check. Faza 8.3 (`C4`).
+enum SystemHealthCheckKind {
+  BACKUP_VERIFY
+  DB_MIGRATE_STATUS
+}
+
+enum SystemHealthCheckStatus {
+  OK
+  FAIL
 }
 
 enum DocumentVisibility {
@@ -645,6 +716,12 @@ model OrganizationProfile {
   email                 String?
   website               String?
   logoUrl               String?
+  // Faza 8.1 (A2). Serbian domestic 18-digit bank account for the
+  // investor's IPS QR receiver. When present + currency=RSD, the
+  // public reservation flow renders a scannable QR; otherwise the
+  // buyer gets a plain reference number only.
+  paymentAccountNumber  String?
+  paymentBankName       String?
   status                OrganizationStatus @default(TRIAL)
   // Tracks the /prvi-koraci onboarding wizard. `completedAt` is stamped
   // when the operator finishes the last step; `dismissedAt` is a soft
@@ -791,6 +868,20 @@ model Project {
   createdAt              DateTime      @default(now())
   updatedAt              DateTime      @updatedAt
   archivedAt             DateTime?
+
+  // A5 — internal cost tracking. All nullable to preserve existing
+  // rows. `computeProjectPnl` reads these + `SUM(Sale.finalPrice)` to
+  // produce the marža panel on /izvestaji/prodaje.
+  landCost         Decimal? @db.Decimal(14, 2)
+  constructionCost Decimal? @db.Decimal(14, 2)
+  marketingCost    Decimal? @db.Decimal(14, 2)
+  otherCost        Decimal? @db.Decimal(14, 2)
+  budgetNote       String?
+
+  // C1 — opt-in public microsite. Slug is optional; the resolver
+  // falls back to the project's own `slug` when NULL.
+  publicMicrositeEnabled Boolean @default(false)
+  publicMicrositeSlug    String? @unique
 
   organization  Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   createdByUser User         @relation("ProjectCreator", fields: [createdByUserId], references: [id], onDelete: Restrict)
@@ -939,12 +1030,13 @@ model Unit {
   entrance     Entrance?    @relation(fields: [entranceId], references: [id], onDelete: SetNull)
   floor        Floor?       @relation(fields: [floorId], references: [id], onDelete: SetNull)
 
-  priceHistory   UnitPriceHistory[]
-  statusHistory  UnitStatusHistory[]
-  reservations   Reservation[]
-  sales          Sale[]
-  buyerInterests BuyerInterest[]
-  floorPlanAreas FloorPlanArea[]
+  priceHistory        UnitPriceHistory[]
+  statusHistory       UnitStatusHistory[]
+  reservations        Reservation[]
+  reservationRequests ReservationRequest[]
+  sales               Sale[]
+  buyerInterests      BuyerInterest[]
+  floorPlanAreas      FloorPlanArea[]
 
   @@unique([projectId, code])
   @@index([organizationId, status])
@@ -1026,9 +1118,23 @@ model Buyer {
   updatedAt              DateTime      @updatedAt
   archivedAt             DateTime?
 
+  // B1 — KYC / legal-entity support. `entityType=LEGAL` unlocks
+  // `legalName` + `taxId` (PIB); NATURAL uses `jmbg` /
+  // `identityNumber`. Address fields feed A1 contract placeholders.
+  jmbg           String?
+  identityNumber String?
+  taxId          String?
+  entityType     BuyerEntityType @default(NATURAL)
+  legalName      String?
+  addressLine1   String?
+  city           String?
+  postalCode     String?
+  country        String?
+
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   assignedUser User?        @relation("BuyerAssignee", fields: [assignedUserId], references: [id], onDelete: SetNull)
 
+  kycChecklist        BuyerKycChecklist?
   interests           BuyerInterest[]
   activities          Activity[]
   tasks               Task[]
@@ -1041,6 +1147,27 @@ model Buyer {
   @@index([organizationId, normalizedEmail])
   @@index([organizationId, assignedUserId])
   @@map("buyer")
+}
+
+/// Faza 8.2 (B1). One row per `Buyer`. Toggling flags is an operator
+/// action; `reviewedAt` timestamps every save.
+model BuyerKycChecklist {
+  id               String    @id @default(cuid())
+  buyerId          String    @unique
+  idFrontOk        Boolean   @default(false)
+  idBackOk         Boolean   @default(false)
+  addressProofOk   Boolean   @default(false)
+  taxCertOk        Boolean   @default(false)
+  reviewedByUserId String?
+  reviewedAt       DateTime?
+  notes            String?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  buyer          Buyer @relation(fields: [buyerId], references: [id], onDelete: Cascade)
+  reviewedByUser User? @relation("BuyerKycReviewer", fields: [reviewedByUserId], references: [id], onDelete: SetNull)
+
+  @@map("buyer_kyc_checklist")
 }
 
 model BuyerInterest {
@@ -1136,6 +1263,11 @@ model Reservation {
   notes                String?
   rejectionReason      String?
   cancellationReason   String?
+  // C2 — attribution. When a reservation was converted from a public
+  // `ReservationRequest` that carried a `?ref=<code>` parameter, this
+  // column stores the same code. Used by /izvestaji/agencije to attribute
+  // "Prihod preko referral-a" to the correct AgencyConnection.
+  referralCode         String?
   version              Int               @default(0)
   createdAt            DateTime          @default(now())
   updatedAt            DateTime          @updatedAt
@@ -1191,6 +1323,10 @@ model AgencyConnection {
   suspendedByUserId      String?
   notes                  String?
   defaultProtectionDays  Int                    @default(30)
+  // C2 — referral. Auto-generated 8-char short id; UI exposes copy
+  // link + QR PNG. `ReservationRequest.referralCode` mirrors this
+  // value so the investor can attribute the sale on confirmation.
+  referralCode           String?                @unique
   createdAt              DateTime               @default(now())
   updatedAt              DateTime               @updatedAt
 
@@ -1333,6 +1469,21 @@ model Sale {
   updatedAt            DateTime          @updatedAt
   version              Int               @default(0)
 
+  // A1 — contract generation. `contractTemplateId` is a soft FK: it
+  // remains stable even if the underlying template is later deleted so
+  // the "latest generated contract" audit trail stays queryable.
+  contractStatus     SaleContractStatus @default(NONE)
+  contractSentAt     DateTime?
+  contractSignedAt   DateTime?
+  contractTemplateId String?
+
+  // B2 — tax treatment. All nullable so existing rows stay valid until
+  // the operator explicitly sets them; `computeSaleTax` derives
+  // `taxAmount` from `finalPrice` + `vatMode` when both are populated.
+  vatMode   SaleVatMode?
+  taxAmount Decimal?     @db.Decimal(14, 2)
+  taxPayer  SaleTaxPayer @default(BUYER)
+
   organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   project         Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
   unit            Unit         @relation(fields: [unitId], references: [id], onDelete: Cascade)
@@ -1443,6 +1594,30 @@ model PaymentPlanTemplate {
   @@map("payment_plan_template")
 }
 
+/// Faza 8.1 (A1) — reusable HTML blueprints for sale contracts and
+/// pre-contracts. Content uses the same `{{var}}` placeholder syntax
+/// as billing email templates (see `safeSubstitute`), so the same
+/// safety rules apply: no arbitrary interpolation, HTML-escape by
+/// default. `variables` is a manifest of expected keys used by the
+/// admin UI to build a helper legend.
+model SaleContractTemplate {
+  id             String           @id @default(cuid())
+  organizationId String
+  kind           SaleContractKind
+  name           String
+  description    String?
+  contentHtml    String
+  variables      Json?
+  isActive       Boolean          @default(true)
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, kind, isActive])
+  @@map("sale_contract_template")
+}
+
 /// Single line of a `PaymentPlanTemplate`. Percentages must sum to
 /// exactly 100 (with a 0.001% tolerance) when the template is saved.
 model PaymentPlanTemplateItem {
@@ -1510,11 +1685,63 @@ model ShareLink {
   lastViewedAt    DateTime?
   createdAt       DateTime  @default(now())
 
-  organization  Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  createdByUser User         @relation("ShareLinkCreator", fields: [createdByUserId], references: [id], onDelete: Restrict)
+  organization        Organization         @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdByUser       User                 @relation("ShareLinkCreator", fields: [createdByUserId], references: [id], onDelete: Restrict)
+  reservationRequests ReservationRequest[]
 
   @@index([organizationId, entityType, entityId])
   @@map("share_link")
+}
+
+/// Faza 8.1 (A2). Public rezervacije-sa-kaparom flow: buyer submits a
+/// PENDING row via /p/[token]; investor confirms → materialises a real
+/// Reservation. `ipsReference` is the auto-generated `poziv na broj`
+/// (P0/P1/T positions), and `ipsQrPngPath` is the storage key for the
+/// pre-generated IPS QR image.
+model ReservationRequest {
+  id              String                   @id @default(cuid())
+  organizationId  String
+  shareLinkId     String?
+  unitId          String
+  firstName       String
+  lastName        String
+  email           String
+  phone           String
+  depositAmount   Decimal                  @db.Decimal(14, 2)
+  currency        String                   @default("EUR")
+  ipsReference    String
+  ipsQrPngPath    String?
+  status          ReservationRequestStatus @default(PENDING)
+  expiresAt       DateTime
+  referralCode    String?
+  notes           String?
+  decidedAt       DateTime?
+  decidedByUserId String?
+  createdAt       DateTime                 @default(now())
+  updatedAt       DateTime                 @updatedAt
+
+  organization  Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  shareLink     ShareLink?   @relation(fields: [shareLinkId], references: [id], onDelete: SetNull)
+  unit          Unit         @relation(fields: [unitId], references: [id], onDelete: Cascade)
+  decidedByUser User?        @relation("ReservationRequestDecider", fields: [decidedByUserId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId, status, expiresAt])
+  @@index([unitId, status])
+  @@map("reservation_request")
+}
+
+/// Faza 8.3 (C4). Weekly automated self-checks. `BACKUP_VERIFY`
+/// downloads the latest `pg_dump` and runs `pg_restore --list`;
+/// `DB_MIGRATE_STATUS` is a placeholder for future checks.
+model SystemHealthCheck {
+  id      String                  @id @default(cuid())
+  kind    SystemHealthCheckKind
+  status  SystemHealthCheckStatus
+  message String?
+  runAt   DateTime                @default(now())
+
+  @@index([kind, runAt])
+  @@map("system_health_check")
 }
 
 /// Free-form threaded comment on a domain entity ("Buyer" or "Sale" today).

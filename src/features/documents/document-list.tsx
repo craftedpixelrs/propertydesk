@@ -45,6 +45,7 @@ interface Props {
     | "PAYMENT"
     | "AGENCY"
     | "COMMISSION"
+    | "KYC"
     | "OTHER";
   canManage: boolean;
   /** If true, the "Deljivo sa kupcem" checkbox is offered next to upload. */

@@ -9,6 +9,8 @@ import { changeUnitStatus } from "@/server/services/units.service";
 import { toDecimal } from "@/lib/formatters/money";
 import { logger } from "@/server/logger";
 import { snapshotCommissionForSaleTx } from "@/server/services/commissions/snapshot";
+import { computeSaleTax } from "@/server/services/sales/tax.service";
+import type { SaleTaxPayer, SaleVatMode } from "@prisma/client";
 
 /**
  * SaleService — the transaction-critical core of Phase 5.
@@ -883,6 +885,107 @@ export async function propagateSaleStatusFromPayments(input: {
       tx,
     });
   }
+}
+
+// -----------------------------------------------------------------------------
+// B2 — Tax settings (VAT / PPAP)
+// -----------------------------------------------------------------------------
+
+/**
+ * Update the VAT / RPI configuration on a sale. If the caller omits
+ * `taxAmount`, we re-derive it from `finalPrice` + `vatMode` using the pure
+ * `computeSaleTax()` helper so operators cannot forget to keep it in sync.
+ *
+ * When `vatMode` is cleared (set to null), `taxAmount` is cleared as well —
+ * "not configured" is a first-class state.
+ */
+export interface UpdateSaleTaxInput {
+  organizationId: string;
+  actorUserId: string;
+  saleId: string;
+  vatMode: SaleVatMode | null;
+  taxPayer?: SaleTaxPayer | null;
+  taxAmount?: number | string | null;
+}
+
+export async function updateSaleTaxSettings(input: UpdateSaleTaxInput) {
+  const sale = await prisma.sale.findFirst({
+    where: { id: input.saleId, organizationId: input.organizationId },
+    select: {
+      id: true,
+      finalPrice: true,
+      vatMode: true,
+      taxAmount: true,
+      taxPayer: true,
+      status: true,
+    },
+  });
+  if (!sale) throw DomainErrors.notFound("Prodaja");
+  if (sale.status === "CANCELED") {
+    throw DomainErrors.invalidState("Otkazane prodaje se ne mogu menjati.");
+  }
+
+  let nextTaxAmount: Prisma.Decimal | null;
+  if (input.vatMode == null) {
+    nextTaxAmount = null;
+  } else if (input.taxAmount !== undefined && input.taxAmount !== null) {
+    try {
+      nextTaxAmount = new Prisma.Decimal(
+        input.taxAmount as Prisma.Decimal.Value,
+      ).toDecimalPlaces(2);
+    } catch {
+      throw DomainErrors.badRequest("Iznos poreza nije validan.");
+    }
+    if (nextTaxAmount.isNegative()) {
+      throw DomainErrors.badRequest("Iznos poreza ne sme biti negativan.");
+    }
+  } else {
+    const computed = computeSaleTax({
+      finalPrice: sale.finalPrice,
+      vatMode: input.vatMode,
+    });
+    nextTaxAmount = computed.taxAmount;
+  }
+
+  const nextTaxPayer: SaleTaxPayer =
+    input.taxPayer ?? sale.taxPayer ?? "BUYER";
+
+  const updated = await prisma.sale.update({
+    where: { id: sale.id },
+    data: {
+      vatMode: input.vatMode,
+      taxAmount: nextTaxAmount,
+      taxPayer: nextTaxPayer,
+      version: { increment: 1 },
+    },
+    select: {
+      id: true,
+      vatMode: true,
+      taxAmount: true,
+      taxPayer: true,
+      version: true,
+    },
+  });
+
+  await recordAudit({
+    action: "sale.tax_updated",
+    entityType: "Sale",
+    entityId: updated.id,
+    organizationId: input.organizationId,
+    actorUserId: input.actorUserId,
+    previousValues: {
+      vatMode: sale.vatMode,
+      taxAmount: sale.taxAmount?.toString() ?? null,
+      taxPayer: sale.taxPayer,
+    },
+    newValues: {
+      vatMode: updated.vatMode,
+      taxAmount: updated.taxAmount?.toString() ?? null,
+      taxPayer: updated.taxPayer,
+    },
+  });
+
+  return updated;
 }
 
 export { ACTIVE_SALE_STATUSES, ALLOWED_SALE_TRANSITIONS };

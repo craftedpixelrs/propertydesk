@@ -144,7 +144,7 @@ export function MarketingFooter() {
               </span>
             </li>
             <li className="text-xs text-[var(--color-foreground-subtle)]">
-              Zvanično lansiranje: 15.08.2026.
+              Zvanično lansiranje: 01.09.2026.
             </li>
           </ul>
         </div>

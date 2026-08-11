@@ -47,6 +47,15 @@ const patchSchema = z.object({
   source: z.string().max(120).nullable().optional(),
   status: z.enum(BUYER_STATUSES).optional(),
   assignedUserId: z.string().min(1).nullable().optional(),
+  entityType: z.enum(["NATURAL", "LEGAL"]).optional(),
+  legalName: z.string().max(200).nullable().optional(),
+  jmbg: z.string().max(13).nullable().optional(),
+  identityNumber: z.string().max(30).nullable().optional(),
+  taxId: z.string().max(20).nullable().optional(),
+  addressLine1: z.string().max(200).nullable().optional(),
+  city: z.string().max(120).nullable().optional(),
+  postalCode: z.string().max(20).nullable().optional(),
+  country: z.string().max(80).nullable().optional(),
 });
 
 export const GET = apiHandler({ paramsSchema }, async ({ params }) => {

@@ -51,29 +51,67 @@ function resolveHost(request: NextRequest): string {
   return request.nextUrl.host.toLowerCase();
 }
 
+/**
+ * C2 — Referral cookie handler.
+ *
+ * On any request that carries a `?ref=CODE` query, we persist the code
+ * to a 30-day `pd_ref` cookie. This makes referral attribution robust
+ * when a visitor:
+ *   - lands on a marketing page first, then browses to `/p/<token>`,
+ *   - opens a public share link in a mobile browser and only later
+ *     submits the reservation form,
+ *   - shares the link with a family member — as long as they don't
+ *     manually strip the query, the cookie keeps the attribution.
+ *
+ * The cookie is deliberately **not** HttpOnly so the reservation form
+ * (which is a Client Component) can read it via `document.cookie`.
+ * The only side effect of a leaked cookie is a mis-attributed
+ * commission, which is a business concern rather than a security one.
+ */
+function applyReferralCookie(
+  request: NextRequest,
+  response: NextResponse,
+): NextResponse {
+  const raw = request.nextUrl.searchParams.get("ref");
+  if (!raw) return response;
+  const clean = raw.trim().replace(/[^A-Z0-9a-z_-]/g, "").slice(0, 32);
+  if (!clean) return response;
+  response.cookies.set("pd_ref", clean, {
+    path: "/",
+    maxAge: 60 * 60 * 24 * 30, // 30 days
+    sameSite: "lax",
+    // NOT httpOnly — the reservation form (Client Component) needs it.
+    secure: request.nextUrl.protocol === "https:",
+  });
+  return response;
+}
+
 export function middleware(request: NextRequest) {
   const host = resolveHost(request);
   const { pathname, search } = request.nextUrl;
 
   const isAppSubdomain = host === "my.propertydesk.app";
-  if (!isAppSubdomain) return NextResponse.next();
+  if (!isAppSubdomain) return applyReferralCookie(request, NextResponse.next());
 
   if (pathname === "/" || pathname === "") {
     const signIn = request.nextUrl.clone();
     signIn.pathname = "/sign-in";
     signIn.search = search;
-    return NextResponse.redirect(signIn, 308);
+    return applyReferralCookie(request, NextResponse.redirect(signIn, 308));
   }
 
   const firstSegment = pathname.split("/", 2)[1] ?? "";
   if (MARKETING_ONLY_PATHS.has(firstSegment)) {
-    return NextResponse.redirect(
-      new URL(`https://propertydesk.app${pathname}${search}`),
-      308,
+    return applyReferralCookie(
+      request,
+      NextResponse.redirect(
+        new URL(`https://propertydesk.app${pathname}${search}`),
+        308,
+      ),
     );
   }
 
-  return NextResponse.next();
+  return applyReferralCookie(request, NextResponse.next());
 }
 
 export const config = {

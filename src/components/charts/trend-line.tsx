@@ -25,20 +25,47 @@ export interface TrendLineProps {
   buckets: Array<{ key: string; label: string } & Record<string, number | string>>;
   /** Series definitions; each key must exist on every bucket. */
   series: TrendSeries[];
+  /**
+   * Client-side callback for Y-axis tick formatting. Only usable from
+   * other Client Components — Server Components cannot serialize
+   * functions across the RSC boundary. Prefer `yTickFormat` in that case.
+   */
   yTickFormatter?: (value: number) => string;
+  /**
+   * Serializable formatter selector, safe to pass from Server Components.
+   * "compact" uses `Intl.NumberFormat(..., { notation: "compact" })`.
+   * When both `yTickFormatter` and `yTickFormat` are provided, the
+   * explicit function wins.
+   */
+  yTickFormat?: "compact" | "number";
   tooltipFormatter?: (value: number, seriesLabel: string) => string;
   ariaLabel?: string;
 }
 
 const numberFmt = new Intl.NumberFormat("sr-Latn");
+const compactFmt = new Intl.NumberFormat("sr-Latn", {
+  notation: "compact",
+  maximumFractionDigits: 1,
+});
+
+function resolveYTickFormatter(
+  explicit: ((v: number) => string) | undefined,
+  named: "compact" | "number" | undefined,
+): (v: number) => string {
+  if (explicit) return explicit;
+  if (named === "compact") return (v) => compactFmt.format(v);
+  return (v) => numberFmt.format(v);
+}
 
 export function TrendLine({
   buckets,
   series,
   yTickFormatter,
+  yTickFormat,
   tooltipFormatter,
   ariaLabel = "Trend",
 }: TrendLineProps) {
+  const tickFormatter = resolveYTickFormatter(yTickFormatter, yTickFormat);
   return (
     <ResponsiveContainer width="100%" height="100%">
       <LineChart
@@ -57,7 +84,7 @@ export function TrendLine({
           tick={{ fontSize: 11, fill: "var(--color-foreground-muted)" }}
           tickLine={false}
           axisLine={{ stroke: "var(--color-border)" }}
-          tickFormatter={yTickFormatter ?? ((v) => numberFmt.format(v))}
+          tickFormatter={tickFormatter}
           width={56}
         />
         <Tooltip

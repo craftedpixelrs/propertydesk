@@ -203,6 +203,8 @@ export interface CreateReservationInput {
   sourceType?: ReservationSource;
   agencyOrganizationId?: string | null;
   agencyAgentUserId?: string | null;
+  /** C2 — copied from the originating `ReservationRequest.referralCode`. */
+  referralCode?: string | null;
 }
 
 export async function createReservation(input: CreateReservationInput) {
@@ -256,6 +258,7 @@ export async function createReservation(input: CreateReservationInput) {
             input.reservationAmount != null ? input.reservationAmount : null,
           currency: input.currency ?? "EUR",
           notes: input.notes ?? null,
+          referralCode: input.referralCode ?? null,
         },
       });
 

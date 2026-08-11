@@ -37,7 +37,7 @@ export function PricingTeaser() {
           <div className="mt-5 inline-flex items-center gap-2 rounded-full border border-[var(--color-brand-200)] bg-[var(--color-brand-50)] px-3 py-1.5 text-sm font-medium text-[var(--color-brand-700)]">
             <Sparkles aria-hidden className="size-4" />
             Rani pristup: 30 dana besplatno + 50% na naredna 3 meseca (za
-            prijave do 15.08.2026.)
+            prijave do 01.09.2026.)
           </div>
         </div>
 

@@ -50,6 +50,16 @@ export interface BuyerContactInput {
   source?: string | null;
   status?: BuyerStatus;
   assignedUserId?: string | null;
+  // Faza 8.2 (B1) — KYC + legal-entity fields.
+  entityType?: "NATURAL" | "LEGAL";
+  legalName?: string | null;
+  jmbg?: string | null;
+  identityNumber?: string | null;
+  taxId?: string | null;
+  addressLine1?: string | null;
+  city?: string | null;
+  postalCode?: string | null;
+  country?: string | null;
 }
 
 const ALLOWED_BUYER_SORT_FIELDS = new Set([
@@ -100,6 +110,14 @@ export async function listBuyers(input: ListBuyersInput) {
       include: {
         assignedUser: { select: { id: true, name: true, email: true } },
         _count: { select: { reservations: true, tasks: true, activities: true } },
+        kycChecklist: {
+          select: {
+            idFrontOk: true,
+            idBackOk: true,
+            addressProofOk: true,
+            taxCertOk: true,
+          },
+        },
       },
     }),
   ]);
@@ -138,6 +156,7 @@ export async function getBuyerById(organizationId: string, buyerId: string) {
           unit: { select: { id: true, code: true } },
         },
       },
+      kycChecklist: true,
     },
   });
   if (!buyer) throw DomainErrors.notFound("Kupac");
@@ -295,6 +314,17 @@ export async function updateBuyer(input: UpdateBuyerInput) {
       source: patch.source !== undefined ? patch.source : undefined,
       status: patch.status ?? undefined,
       assignedUserId: patch.assignedUserId !== undefined ? patch.assignedUserId : undefined,
+      entityType: patch.entityType ?? undefined,
+      legalName: patch.legalName !== undefined ? patch.legalName : undefined,
+      jmbg: patch.jmbg !== undefined ? patch.jmbg : undefined,
+      identityNumber:
+        patch.identityNumber !== undefined ? patch.identityNumber : undefined,
+      taxId: patch.taxId !== undefined ? patch.taxId : undefined,
+      addressLine1:
+        patch.addressLine1 !== undefined ? patch.addressLine1 : undefined,
+      city: patch.city !== undefined ? patch.city : undefined,
+      postalCode: patch.postalCode !== undefined ? patch.postalCode : undefined,
+      country: patch.country !== undefined ? patch.country : undefined,
     },
   });
 

@@ -10,6 +10,11 @@ import {
   FileText,
   BarChart3,
   Bell,
+  FileSignature,
+  QrCode,
+  TrendingUp,
+  Globe,
+  Gift,
 } from "lucide-react";
 
 import { FEATURES, type FeatureItem } from "@/features/marketing/content";
@@ -32,6 +37,11 @@ const ICONS: Record<FeatureItem["icon"], LucideIcon> = {
   "file-text": FileText,
   "bar-chart": BarChart3,
   bell: Bell,
+  "file-signature": FileSignature,
+  "qr-code": QrCode,
+  "trending-up": TrendingUp,
+  globe: Globe,
+  gift: Gift,
 };
 
 export function FeatureGrid() {

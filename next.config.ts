@@ -1,5 +1,6 @@
 import type { NextConfig } from "next";
 import path from "node:path";
+import { withSentryConfig } from "@sentry/nextjs";
 
 // Type-checking is enforced as a dedicated CI gate (`pnpm typecheck` via
 // tsc). Next's bundled in-build TypeScript integration is skipped because
@@ -117,4 +118,41 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+/**
+ * Wrap the Next config with Sentry's build-time plugin. It:
+ *
+ *   - Uploads source maps to Sentry when `SENTRY_AUTH_TOKEN`,
+ *     `SENTRY_ORG`, and `SENTRY_PROJECT` are set at build time.
+ *   - Injects the release identifier into the client bundle for
+ *     symbolication.
+ *   - Auto-instruments Next.js server code paths.
+ *
+ * All options are safe no-ops when the corresponding env vars are
+ * missing (Sentry logs a warning during `next build` but never fails
+ * the build).
+ */
+const sentryBuildConfigured =
+  Boolean(process.env.SENTRY_AUTH_TOKEN) &&
+  Boolean(process.env.SENTRY_ORG) &&
+  Boolean(process.env.SENTRY_PROJECT);
+
+export default withSentryConfig(nextConfig, {
+  org: process.env.SENTRY_ORG,
+  project: process.env.SENTRY_PROJECT,
+  authToken: process.env.SENTRY_AUTH_TOKEN,
+  // Only upload source maps when the auth-token/org/project triple is
+  // fully configured. Otherwise the plugin is a no-op wrapper that
+  // still injects the runtime helpers.
+  sourcemaps: {
+    disable: !sentryBuildConfigured,
+    deleteSourcemapsAfterUpload: true,
+  },
+  silent: !process.env.CI,
+  widenClientFileUpload: true,
+  reactComponentAnnotation: { enabled: false },
+  disableLogger: true,
+  // We do not use Sentry's ad-block bypass tunnel; the CSP already
+  // allows `connect-src https:` for Sentry ingest hosts.
+  tunnelRoute: undefined,
+  automaticVercelMonitors: false,
+});

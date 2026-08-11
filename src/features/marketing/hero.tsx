@@ -1,6 +1,10 @@
 import { Rocket, ArrowRight, PlayCircle } from "lucide-react";
 
-import { LANDING_IMAGES, LAUNCH_DATE_ISO } from "@/lib/constants/app";
+import {
+  LANDING_IMAGES,
+  LAUNCH_DATE_ISO,
+  LAUNCH_DATE_LABEL,
+} from "@/lib/constants/app";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { MockupFrame } from "@/features/marketing/mockup-frame";
@@ -15,7 +19,7 @@ import { Countdown } from "@/features/marketing/countdown";
  *   - Secondary → `#video` (3-minute product overview)
  *
  * Login is intentionally NOT in the hero - it lives in the top-right
- * header only, and is disabled until 15.08.2026 anyway.
+ * header only, and is disabled until 01.09.2026 anyway.
  */
 export function Hero() {
   return (
@@ -37,7 +41,7 @@ export function Hero() {
           <div className="flex flex-wrap items-center gap-2">
             <Badge tone="brand" className="gap-1.5">
               <Rocket aria-hidden className="size-3.5" />
-              Lansiranje 15.08.2026.
+              Lansiranje {LAUNCH_DATE_LABEL}
             </Badge>
             <Badge tone="success">
               Rani pristup: 30 dana besplatno + 50% na naredna 3 meseca

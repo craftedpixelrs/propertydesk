@@ -16,7 +16,9 @@ import {
   loadAgencyDashboard,
 } from "@/server/services/dashboard/dashboard.service";
 import { loadOnboardingState } from "@/server/services/onboarding.service";
+import { buildCashFlowProjection } from "@/server/services/reports/cash-flow.service";
 import { OnboardingChecklist } from "@/features/onboarding/onboarding-checklist";
+import { CashFlowCard } from "@/features/reports/cash-flow-card";
 import { formatDate, formatMoney } from "@/lib/formatters";
 import type { SupportedCurrency } from "@/lib/constants/app";
 import { t } from "@/lib/i18n";
@@ -91,9 +93,10 @@ async function InvestorDashboard({
   organizationId: string;
   name: string;
 }) {
-  const [data, onboarding] = await Promise.all([
+  const [data, onboarding, cashflow] = await Promise.all([
     loadInvestorDashboard(organizationId),
     loadOnboardingState(organizationId),
+    buildCashFlowProjection({ organizationId, months: 12 }),
   ]);
   const currency = data.financial.currency as SupportedCurrency;
 
@@ -139,7 +142,13 @@ async function InvestorDashboard({
         />
       </div>
 
-      <div className="grid gap-3 md:grid-cols-3">
+      <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
+        <StatCard
+          label="Ukupna vrednost jedinica"
+          value={formatMoney(data.financial.inventoryValueTotal, currency)}
+          hint="Katalog (basePrice), sve jedinice"
+          icon={<Wallet className="size-5" />}
+        />
         <StatCard
           label="Ugovoreno"
           value={formatMoney(data.financial.salesContractedTotal, currency)}
@@ -156,6 +165,12 @@ async function InvestorDashboard({
           icon={<Wallet className="size-5" />}
         />
       </div>
+
+      <CashFlowCard
+        projection={cashflow}
+        title="Cash-flow projekcija (12 meseci)"
+        description="Očekivano vs stvarno mesečno — brz uvid u dolazeće rate i naplaćenu istoriju."
+      />
 
       <div className="grid gap-6 lg:grid-cols-2">
         <ChartCard

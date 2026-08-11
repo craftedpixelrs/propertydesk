@@ -49,6 +49,13 @@ export default async function EditProjectPage({ params }: Props) {
     defaultVatRate: project.defaultVatRate ? String(project.defaultVatRate) : "",
     description: project.description ?? "",
     internalNotes: project.internalNotes ?? "",
+    landCost: project.landCost ? String(project.landCost) : "",
+    constructionCost: project.constructionCost ? String(project.constructionCost) : "",
+    marketingCost: project.marketingCost ? String(project.marketingCost) : "",
+    otherCost: project.otherCost ? String(project.otherCost) : "",
+    budgetNote: project.budgetNote ?? "",
+    publicMicrositeEnabled: project.publicMicrositeEnabled ? "true" : "false",
+    publicMicrositeSlug: project.publicMicrositeSlug ?? "",
   };
 
   return (

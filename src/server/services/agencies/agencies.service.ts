@@ -1,10 +1,42 @@
 import "server-only";
+import { randomBytes } from "node:crypto";
 import type { AgencyConnectionStatus, AgencyProjectAccessStatus, Prisma } from "@prisma/client";
 
 import { prisma } from "@/server/db/prisma";
 import { DomainErrors } from "@/lib/errors";
 import { recordAudit } from "@/server/audit/audit";
 import { assertQuota } from "@/server/services/quotas.service";
+
+/**
+ * C2 — Generate a short, URL-safe referral code for an agency connection.
+ *
+ * 8 characters from a 32-character no-look-alike alphabet (Crockford
+ * base32 minus I/O/1/0 to avoid transcription ambiguity when the code
+ * is read aloud). ~2^40 entropy is enough for a URL parameter; the
+ * `@unique` constraint on the column protects us against the tiny
+ * collision probability at scale.
+ */
+const REFERRAL_ALPHABET = "23456789ABCDEFGHJKLMNPQRSTUVWXYZ";
+function generateReferralCode(): string {
+  const bytes = randomBytes(8);
+  let out = "";
+  for (let i = 0; i < 8; i += 1) {
+    out += REFERRAL_ALPHABET[bytes[i] % REFERRAL_ALPHABET.length];
+  }
+  return out;
+}
+
+async function ensureUniqueReferralCode(): Promise<string> {
+  for (let attempt = 0; attempt < 5; attempt += 1) {
+    const code = generateReferralCode();
+    const clash = await prisma.agencyConnection.findFirst({
+      where: { referralCode: code },
+      select: { id: true },
+    });
+    if (!clash) return code;
+  }
+  throw DomainErrors.conflict("Ne mogu da generišem jedinstven referral kod.");
+}
 
 /**
  * Investor-side agency management service.
@@ -129,6 +161,8 @@ export async function inviteAgency(input: InviteAgencyInput) {
 
   await assertQuota(input.investorOrganizationId, "agencies");
 
+  const referralCode = await ensureUniqueReferralCode();
+
   const created = await prisma.agencyConnection.upsert({
     where: {
       investorOrganizationId_agencyOrganizationId: {
@@ -143,6 +177,7 @@ export async function inviteAgency(input: InviteAgencyInput) {
       defaultProtectionDays: input.defaultProtectionDays ?? 30,
       notes: input.notes ?? null,
       status: "INVITED",
+      referralCode,
     },
     update: {
       status: "INVITED",
@@ -153,6 +188,8 @@ export async function inviteAgency(input: InviteAgencyInput) {
       suspendedByUserId: null,
       defaultProtectionDays: input.defaultProtectionDays ?? 30,
       notes: input.notes ?? null,
+      // Preserve existing referral code across re-invites so previously
+      // shared marketing links keep working.
     },
   });
 
@@ -335,6 +372,85 @@ export async function setProtectionDays(input: {
     newValues: { defaultProtectionDays: input.days },
   });
   return updated;
+}
+
+// -----------------------------------------------------------------------------
+// C2 — Referral code helpers (agency-facing)
+// -----------------------------------------------------------------------------
+
+/**
+ * Return all active connections for the given agency org together with
+ * their referral code. Used by the agency /ponuda page. If a connection
+ * exists but has no referral code (legacy row before C2), we lazily
+ * generate one.
+ */
+export async function listAgencyReferralCards(agencyOrganizationId: string) {
+  const rows = await prisma.agencyConnection.findMany({
+    where: {
+      agencyOrganizationId,
+      status: { in: ["ACTIVE", "INVITED"] },
+    },
+    include: {
+      investor: {
+        include: { profile: { select: { logoUrl: true, displayName: true } } },
+      },
+    },
+    orderBy: { createdAt: "desc" },
+  });
+  const backfilled: typeof rows = [];
+  for (const conn of rows) {
+    if (conn.referralCode) {
+      backfilled.push(conn);
+      continue;
+    }
+    const code = await ensureUniqueReferralCode();
+    const updated = await prisma.agencyConnection.update({
+      where: { id: conn.id },
+      data: { referralCode: code },
+      include: {
+        investor: {
+          include: { profile: { select: { logoUrl: true, displayName: true } } },
+        },
+      },
+    });
+    backfilled.push(updated);
+  }
+  return backfilled;
+}
+
+/**
+ * Rotate an agency's referral code for a given investor connection.
+ * The old code is invalidated immediately — any in-flight `?ref=` URLs
+ * pointing at the previous code will no longer resolve to this agency.
+ */
+export async function rotateReferralCode(input: {
+  agencyOrganizationId: string;
+  actorUserId: string;
+  connectionId: string;
+}): Promise<{ referralCode: string }> {
+  const conn = await prisma.agencyConnection.findFirst({
+    where: {
+      id: input.connectionId,
+      agencyOrganizationId: input.agencyOrganizationId,
+    },
+    select: { id: true, referralCode: true, investorOrganizationId: true },
+  });
+  if (!conn) throw DomainErrors.notFound("Konekcija");
+  const newCode = await ensureUniqueReferralCode();
+  await prisma.agencyConnection.update({
+    where: { id: conn.id },
+    data: { referralCode: newCode },
+  });
+  await recordAudit({
+    action: "agency.referral_rotated",
+    entityType: "AgencyConnection",
+    entityId: conn.id,
+    organizationId: input.agencyOrganizationId,
+    actorUserId: input.actorUserId,
+    previousValues: { referralCode: conn.referralCode },
+    newValues: { referralCode: newCode },
+  });
+  return { referralCode: newCode };
 }
 
 // -----------------------------------------------------------------------------

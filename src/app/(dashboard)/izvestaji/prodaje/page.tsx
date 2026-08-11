@@ -20,6 +20,7 @@ import {
   buildSalesReport,
   buildSalesTrend,
 } from "@/server/services/reports/reports.service";
+import { computeProjectPnl } from "@/server/services/projects/pnl.service";
 import { TrendLine } from "@/components/charts/trend-line";
 import { formatDate, formatMoney } from "@/lib/formatters";
 import type { SupportedCurrency } from "@/lib/constants/app";
@@ -50,13 +51,17 @@ export default async function SalesReportPage({ searchParams }: PageProps) {
     ...parsed,
   });
 
-  const [report, trend, projects] = await Promise.all([
+  const [report, trend, projects, pnl] = await Promise.all([
     buildSalesReport(filters),
     buildSalesTrend(filters),
     prisma.project.findMany({
       where: { organizationId: ctx.organization.organizationId, archivedAt: null },
       select: { id: true, name: true },
       orderBy: { name: "asc" },
+    }),
+    computeProjectPnl({
+      organizationId: ctx.organization.organizationId,
+      projectId: parsed.projectId,
     }),
   ]);
 
@@ -119,12 +124,7 @@ export default async function SalesReportPage({ searchParams }: PageProps) {
         <TrendLine
           buckets={trendData}
           series={trendSeries}
-          yTickFormatter={(v) =>
-            new Intl.NumberFormat("sr-Latn", {
-              notation: "compact",
-              maximumFractionDigits: 1,
-            }).format(v)
-          }
+          yTickFormat="compact"
         />
       </ChartCard>
 
@@ -153,12 +153,7 @@ export default async function SalesReportPage({ searchParams }: PageProps) {
           height={240}
         >
           <CategoryBars
-            yTickFormatter={(v) =>
-              new Intl.NumberFormat("sr-Latn", {
-                notation: "compact",
-                maximumFractionDigits: 1,
-              }).format(v)
-            }
+            yTickFormat="compact"
             data={report.byStatus.map((row) => ({
               key: row.status,
               label: SALE_LABELS[row.status] ?? row.status,
@@ -168,6 +163,113 @@ export default async function SalesReportPage({ searchParams }: PageProps) {
           />
         </ChartCard>
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-sm">Marža po projektu</CardTitle>
+          <p className="text-xs text-[var(--color-foreground-muted)]">
+            Prihod = zbir finalne cene svih ne-otkazanih prodaja. Trošak =
+            zbir zemljišta, izgradnje, marketinga, ostalih troškova (iz
+            projekta) i provizije agencijama. Neto = prihod − trošak.
+          </p>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {pnl.summaries.length > 0 ? (
+            <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+              {pnl.summaries.map((s) => (
+                <div
+                  key={s.currency}
+                  className="rounded-md border border-[var(--color-border)] p-3"
+                >
+                  <div className="text-xs text-[var(--color-foreground-muted)]">
+                    Neto ({s.currency})
+                  </div>
+                  <div
+                    className={`mt-1 text-lg font-semibold ${
+                      Number(s.netMargin) >= 0 ? "text-emerald-700" : "text-rose-700"
+                    }`}
+                  >
+                    {formatMoney(s.netMargin, s.currency as SupportedCurrency)}
+                  </div>
+                  <div className="mt-1 text-xs text-[var(--color-foreground-muted)]">
+                    Prihod {formatMoney(s.revenueTotal, s.currency as SupportedCurrency)}
+                    {" · "}
+                    Trošak {formatMoney(s.costTotal, s.currency as SupportedCurrency)}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : null}
+          {pnl.rows.length === 0 ? (
+            <p className="rounded-md border border-dashed border-[var(--color-border)] p-6 text-center text-sm text-[var(--color-foreground-muted)]">
+              Nema aktivnih projekata za prikaz.
+            </p>
+          ) : (
+            <table className="w-full text-sm">
+              <thead className="text-left text-xs text-[var(--color-foreground-muted)]">
+                <tr>
+                  <th className="py-1">Projekat</th>
+                  <th className="py-1 text-right">Prodaje</th>
+                  <th className="py-1 text-right">Prihod</th>
+                  <th className="py-1 text-right">Zemljište</th>
+                  <th className="py-1 text-right">Izgradnja</th>
+                  <th className="py-1 text-right">Marketing</th>
+                  <th className="py-1 text-right">Ostalo</th>
+                  <th className="py-1 text-right">Provizija</th>
+                  <th className="py-1 text-right">Neto</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[var(--color-border)]">
+                {pnl.rows.map((r) => (
+                  <tr key={r.projectId}>
+                    <td className="py-1.5">
+                      <Link
+                        href={`/projekti/${r.projectId}`}
+                        className="text-[var(--color-brand-700)] hover:underline"
+                      >
+                        {r.projectName}
+                      </Link>
+                      {!r.hasCosts ? (
+                        <span className="ml-1 text-[10px] text-amber-700">
+                          (bez troškova)
+                        </span>
+                      ) : null}
+                    </td>
+                    <td className="py-1.5 text-right">{r.salesCount}</td>
+                    <td className="py-1.5 text-right">
+                      {formatMoney(r.revenue, r.currency as SupportedCurrency)}
+                    </td>
+                    <td className="py-1.5 text-right">
+                      {formatMoney(r.landCost, r.currency as SupportedCurrency)}
+                    </td>
+                    <td className="py-1.5 text-right">
+                      {formatMoney(r.constructionCost, r.currency as SupportedCurrency)}
+                    </td>
+                    <td className="py-1.5 text-right">
+                      {formatMoney(r.marketingCost, r.currency as SupportedCurrency)}
+                    </td>
+                    <td className="py-1.5 text-right">
+                      {formatMoney(r.otherCost, r.currency as SupportedCurrency)}
+                    </td>
+                    <td className="py-1.5 text-right">
+                      {formatMoney(r.commissionCost, r.currency as SupportedCurrency)}
+                    </td>
+                    <td
+                      className={`py-1.5 text-right font-semibold ${
+                        Number(r.netMargin) >= 0
+                          ? "text-emerald-700"
+                          : "text-rose-700"
+                      }`}
+                    >
+                      {formatMoney(r.netMargin, r.currency as SupportedCurrency)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>

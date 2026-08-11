@@ -75,6 +75,14 @@ export interface CreateProjectInput {
   defaultCurrency?: string;
   defaultVatRate?: number;
   internalNotes?: string;
+  landCost?: number | null;
+  constructionCost?: number | null;
+  marketingCost?: number | null;
+  otherCost?: number | null;
+  budgetNote?: string | null;
+  /** C1 — Public project microsite toggle & slug (defaults to project.slug). */
+  publicMicrositeEnabled?: boolean;
+  publicMicrositeSlug?: string | null;
 }
 
 export interface UpdateProjectInput {
@@ -328,6 +336,35 @@ export async function updateProject(input: UpdateProjectInput) {
     nextSlug = await ensureUniqueSlug(input.organizationId, base);
   }
 
+  // C1: microsite slug is optional; when the operator provides a new
+  // value we must ensure global uniqueness (the field carries a
+  // top-level unique constraint). Empty string → null (fallback to
+  // project.slug in the resolver).
+  let nextMicrositeSlug: string | null | undefined;
+  if (input.patch.publicMicrositeSlug !== undefined) {
+    const raw = input.patch.publicMicrositeSlug;
+    if (!raw) {
+      nextMicrositeSlug = null;
+    } else {
+      const normalized = slugify(raw);
+      if (normalized !== existing.publicMicrositeSlug) {
+        const clash = await prisma.project.findFirst({
+          where: {
+            publicMicrositeSlug: normalized,
+            id: { not: existing.id },
+          },
+          select: { id: true },
+        });
+        if (clash) {
+          throw DomainErrors.conflict(
+            `Slug "${normalized}" je već zauzet drugim projektom.`,
+          );
+        }
+      }
+      nextMicrositeSlug = normalized;
+    }
+  }
+
   const updated = await prisma.project.update({
     where: { id: input.projectId },
     data: {
@@ -348,8 +385,57 @@ export async function updateProject(input: UpdateProjectInput) {
       defaultCurrency: input.patch.defaultCurrency ?? undefined,
       defaultVatRate: input.patch.defaultVatRate ?? undefined,
       internalNotes: input.patch.internalNotes ?? undefined,
+      landCost:
+        input.patch.landCost === undefined ? undefined : input.patch.landCost,
+      constructionCost:
+        input.patch.constructionCost === undefined
+          ? undefined
+          : input.patch.constructionCost,
+      marketingCost:
+        input.patch.marketingCost === undefined
+          ? undefined
+          : input.patch.marketingCost,
+      otherCost:
+        input.patch.otherCost === undefined ? undefined : input.patch.otherCost,
+      budgetNote:
+        input.patch.budgetNote === undefined ? undefined : input.patch.budgetNote,
+      publicMicrositeEnabled:
+        input.patch.publicMicrositeEnabled === undefined
+          ? undefined
+          : input.patch.publicMicrositeEnabled,
+      publicMicrositeSlug:
+        nextMicrositeSlug === undefined ? undefined : nextMicrositeSlug,
     },
   });
+
+  const costFieldsTouched =
+    input.patch.landCost !== undefined ||
+    input.patch.constructionCost !== undefined ||
+    input.patch.marketingCost !== undefined ||
+    input.patch.otherCost !== undefined ||
+    input.patch.budgetNote !== undefined;
+
+  if (costFieldsTouched) {
+    await recordAudit({
+      action: "project.costs_updated",
+      entityType: "Project",
+      entityId: updated.id,
+      organizationId: input.organizationId,
+      actorUserId: input.actorUserId,
+      previousValues: {
+        landCost: existing.landCost,
+        constructionCost: existing.constructionCost,
+        marketingCost: existing.marketingCost,
+        otherCost: existing.otherCost,
+      },
+      newValues: {
+        landCost: updated.landCost,
+        constructionCost: updated.constructionCost,
+        marketingCost: updated.marketingCost,
+        otherCost: updated.otherCost,
+      },
+    });
+  }
 
   await recordAudit({
     action: "project.updated",

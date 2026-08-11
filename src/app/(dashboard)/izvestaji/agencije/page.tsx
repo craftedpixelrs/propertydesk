@@ -49,12 +49,16 @@ export default async function AgencyReportPage({ searchParams }: PageProps) {
         exportXlsxHref={hrefs.xlsx}
       />
 
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
         <StatCard label="Agencija" value={report.totals.agencies} />
         <StatCard label="Prodaja" value={report.totals.salesCount} />
         <StatCard
           label="Vrednost prodaja"
           value={formatMoney(report.totals.salesTotal, currency)}
+        />
+        <StatCard
+          label="Referral prihod"
+          value={formatMoney(report.totals.referralSalesTotal, currency)}
         />
         <StatCard
           label="Provizije (isplaćeno)"
@@ -74,6 +78,7 @@ export default async function AgencyReportPage({ searchParams }: PageProps) {
                 <th className="py-1 text-right">Rezervacije</th>
                 <th className="py-1 text-right">Prodaje</th>
                 <th className="py-1 text-right">Vrednost</th>
+                <th className="py-1 text-right">Referral prihod</th>
                 <th className="py-1 text-right">Provizija</th>
                 <th className="py-1 text-right">Isplaćeno</th>
               </tr>
@@ -81,16 +86,16 @@ export default async function AgencyReportPage({ searchParams }: PageProps) {
             <tbody className="divide-y divide-[var(--color-border)]">
               {report.rows.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="py-4 text-center text-[var(--color-foreground-muted)]">
+                  <td colSpan={7} className="py-4 text-center text-[var(--color-foreground-muted)]">
                     Nema povezanih agencija.
                   </td>
                 </tr>
               ) : (
                 report.rows.map((row) => (
-                  <tr key={row.agencyOrganizationId}>
+                  <tr key={row.connectionId}>
                     <td className="py-1.5">
                       <Link
-                        href={`/agencije/${row.agencyOrganizationId}`}
+                        href={`/agencije/${row.connectionId}`}
                         className="text-[var(--color-brand-700)] hover:underline"
                       >
                         {row.agencyName}
@@ -100,6 +105,16 @@ export default async function AgencyReportPage({ searchParams }: PageProps) {
                     <td className="py-1.5 text-right">{row.salesCount}</td>
                     <td className="py-1.5 text-right">
                       {formatMoney(row.salesTotal, row.currency as SupportedCurrency)}
+                    </td>
+                    <td className="py-1.5 text-right">
+                      <span className="tabular-nums">
+                        {formatMoney(row.referralSalesTotal, row.currency as SupportedCurrency)}
+                      </span>
+                      {row.referralSalesCount > 0 ? (
+                        <span className="ml-1 text-xs text-[var(--color-foreground-muted)]">
+                          ({row.referralSalesCount})
+                        </span>
+                      ) : null}
                     </td>
                     <td className="py-1.5 text-right">
                       {formatMoney(row.commissionCalculated, row.currency as SupportedCurrency)}

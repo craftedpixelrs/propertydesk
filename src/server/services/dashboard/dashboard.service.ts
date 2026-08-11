@@ -37,6 +37,7 @@ export interface InvestorDashboard {
     tasksToday: number;
   };
   financial: {
+    inventoryValueTotal: string;
     salesContractedTotal: string;
     salesPaidTotal: string;
     salesOutstandingTotal: string;
@@ -82,6 +83,7 @@ export async function loadInvestorDashboard(
   const [
     projectsCount,
     inventoryGroup,
+    inventoryValueAgg,
     reservationsActive,
     salesByStatus,
     salesFinancialAgg,
@@ -100,6 +102,15 @@ export async function loadInvestorDashboard(
       by: ["status"],
       where: { organizationId, archivedAt: null },
       _count: { _all: true },
+    }),
+    // Total catalog value of the inventory. We sum `basePrice` since that
+    // is the persisted list price on every unit; `finalPrice` only appears
+    // after a specific negotiation. Restricted to EUR to match the rest of
+    // the financial panel below — mixed-currency dashboards would need a
+    // wider redesign and are out of scope here.
+    prisma.unit.aggregate({
+      where: { organizationId, archivedAt: null, currency: "EUR" },
+      _sum: { basePrice: true },
     }),
     prisma.reservation.count({
       where: {
@@ -205,6 +216,7 @@ export async function loadInvestorDashboard(
   }
   const unitsTotal = Object.values(invGrouped).reduce((a, b) => a + b, 0);
 
+  const inventoryValue = toDecimal(inventoryValueAgg._sum.basePrice ?? 0);
   const contracted = toDecimal(salesFinancialAgg._sum.finalPrice ?? 0);
   const paid = toDecimal(paymentsAgg._sum.amount ?? 0);
   const outstanding = contracted.minus(paid);
@@ -226,6 +238,7 @@ export async function loadInvestorDashboard(
       tasksToday,
     },
     financial: {
+      inventoryValueTotal: inventoryValue.toString(),
       salesContractedTotal: contracted.toString(),
       salesPaidTotal: paid.toString(),
       salesOutstandingTotal: outstanding.lt(0) ? "0" : outstanding.toString(),

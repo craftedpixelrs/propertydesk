@@ -29,7 +29,13 @@ const PAIRS = [
     problem:
       "Rezervacija zahteva mail investitoru pa čekanje potvrde satima ili danima.",
     solution:
-      "Rezervišete jedinicu jednim klikom - status se odmah zaključava, investitor dobija notifikaciju.",
+      "Rezervišete jedinicu jednim klikom - status se odmah zaključava, investitor dobija notifikaciju. Kupac može i sam da rezerviše preko javnog linka i plati kaparu skeniranjem IPS QR-a.",
+  },
+  {
+    problem:
+      "Kupac se izgubi između investitora i tri agencije - niko ne zna ko ga je 'doveo'.",
+    solution:
+      "Svaka agencija dobija svoj referral kod (link + QR za marketing). Svaki online zahtev sa Vašim kodom se automatski atribuira Vama, sa vidljivim referral prihodom u izveštaju.",
   },
   {
     problem:
@@ -47,7 +53,7 @@ const PAIRS = [
     problem:
       "Kupci Vas zovu da pitaju za dostupnost - a Vi morate da zovete investitora da proverite.",
     solution:
-      "Direktan pristup katalogu - odgovarate klijentu u realnom vremenu i zakazujete termin obilaska.",
+      "Direktan pristup katalogu - odgovarate klijentu u realnom vremenu i zakazujete termin obilaska. Javni sajt projekta možete deliti kupcu jednim linkom.",
   },
 ];
 

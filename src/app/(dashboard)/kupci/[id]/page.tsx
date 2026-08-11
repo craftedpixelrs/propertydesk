@@ -6,10 +6,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ActivityTimeline } from "@/components/app/activity-timeline";
 import { loadUserContext } from "@/server/auth/context";
 import { getBuyerById } from "@/server/services/buyers.service";
+import { listDocuments } from "@/server/services/documents.service";
 import { DomainError } from "@/lib/errors";
 import { formatDate, formatDateTime } from "@/lib/formatters";
 import { BuyerQuickActions } from "@/features/buyers/buyer-quick-actions";
 import { CommentThread } from "@/features/comments/comment-thread";
+import { KycPanel } from "@/features/buyers/kyc-panel";
+import type { DocumentItem } from "@/features/documents/document-list";
 import type { ActivityType, BuyerStatus } from "@prisma/client";
 
 export const dynamic = "force-dynamic";
@@ -58,6 +61,25 @@ export default async function KupacDetaljPage({ params }: PageProps) {
 
   const canManage = ctx.permissions.includes("lead.manage");
   const canReserve = ctx.permissions.includes("reservation.create");
+
+  const kycDocsResult = await listDocuments({
+    organizationId: ctx.activeOrganization.id,
+    entityType: "Buyer",
+    entityId: buyer.id,
+    category: "KYC",
+    page: 1,
+    pageSize: 50,
+  });
+  const kycDocuments: DocumentItem[] = kycDocsResult.items.map((d) => ({
+    id: d.id,
+    originalFileName: d.originalFileName,
+    mimeType: d.mimeType,
+    size: d.size,
+    category: d.category,
+    visibility: d.visibility,
+    createdAt: d.createdAt.toISOString(),
+    uploadedByName: d.uploadedByUser?.name ?? null,
+  }));
 
   const timelineItems = buyer.activities.map((a) => ({
     id: a.id,
@@ -128,6 +150,33 @@ export default async function KupacDetaljPage({ params }: PageProps) {
 
           <Card>
             <CardHeader>
+              <CardTitle className="text-sm">KYC</CardTitle>
+              <p className="text-xs text-[var(--color-foreground-muted)]">
+                Provera identiteta i pratećih dokumenata pre prelaska prodaje u
+                „Ugovorena".
+              </p>
+            </CardHeader>
+            <CardContent>
+              <KycPanel
+                buyerId={buyer.id}
+                entityType={buyer.entityType}
+                initial={{
+                  idFrontOk: buyer.kycChecklist?.idFrontOk ?? false,
+                  idBackOk: buyer.kycChecklist?.idBackOk ?? false,
+                  addressProofOk: buyer.kycChecklist?.addressProofOk ?? false,
+                  taxCertOk: buyer.kycChecklist?.taxCertOk ?? false,
+                  notes: buyer.kycChecklist?.notes ?? null,
+                  reviewedAt: buyer.kycChecklist?.reviewedAt?.toISOString() ?? null,
+                  reviewerName: null,
+                }}
+                kycDocuments={kycDocuments}
+                canManage={canManage}
+              />
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
               <CardTitle className="text-sm">Rezervacije</CardTitle>
             </CardHeader>
             <CardContent>
@@ -167,6 +216,33 @@ export default async function KupacDetaljPage({ params }: PageProps) {
               <Row label="Email" value={buyer.email ?? "—"} />
               <Row label="Izvor" value={buyer.source ?? "—"} />
               <Row label="Kreiran" value={formatDate(buyer.createdAt)} />
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-sm">
+                Identitet ({buyer.entityType === "LEGAL" ? "pravno lice" : "fizičko lice"})
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2 text-sm">
+              {buyer.entityType === "LEGAL" ? (
+                <>
+                  <Row label="Naziv pravnog lica" value={buyer.legalName ?? "—"} />
+                  <Row label="PIB" value={buyer.taxId ?? "—"} />
+                </>
+              ) : (
+                <>
+                  <Row label="JMBG" value={buyer.jmbg ?? "—"} />
+                  <Row label="Br. lične karte" value={buyer.identityNumber ?? "—"} />
+                </>
+              )}
+              <Row label="Adresa" value={buyer.addressLine1 ?? "—"} />
+              <Row
+                label="Grad"
+                value={[buyer.postalCode, buyer.city].filter(Boolean).join(" ") || "—"}
+              />
+              <Row label="Država" value={buyer.country ?? "—"} />
             </CardContent>
           </Card>
 

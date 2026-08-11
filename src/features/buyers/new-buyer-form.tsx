@@ -84,6 +84,15 @@ export function NewBuyerForm({
         payload.notes = values.notes || null;
         payload.budgetMin = values.budgetMin ? Number(values.budgetMin) : null;
         payload.budgetMax = values.budgetMax ? Number(values.budgetMax) : null;
+        payload.entityType = values.entityType === "LEGAL" ? "LEGAL" : "NATURAL";
+        payload.legalName = values.legalName || null;
+        payload.jmbg = values.jmbg || null;
+        payload.identityNumber = values.identityNumber || null;
+        payload.taxId = values.taxId || null;
+        payload.addressLine1 = values.addressLine1 || null;
+        payload.city = values.city || null;
+        payload.postalCode = values.postalCode || null;
+        payload.country = values.country || null;
         await apiClient.patch(`/buyers/${buyerId}`, payload);
         router.push(`/kupci/${buyerId}`);
         router.refresh();
@@ -196,6 +205,50 @@ export function NewBuyerForm({
               className="min-h-24 w-full rounded-md border border-[var(--color-border)] bg-white px-3 py-2 text-sm"
             />
           </div>
+
+          {isEdit ? (
+            <div className="space-y-3 rounded-md border border-[var(--color-border)] bg-[var(--color-surface-muted)]/30 p-4 sm:col-span-2">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-sm font-semibold">Identitet (KYC podaci)</h3>
+                  <p className="text-xs text-[var(--color-foreground-muted)]">
+                    Neophodni podaci pre potpisivanja ugovora.
+                  </p>
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs font-medium" htmlFor="entityType">
+                    Tip lica
+                  </label>
+                  <select
+                    id="entityType"
+                    value={values.entityType ?? "NATURAL"}
+                    onChange={(e) => setValue("entityType", e.target.value)}
+                    className="h-9 rounded-md border border-[var(--color-border)] bg-white px-2 text-sm"
+                  >
+                    <option value="NATURAL">Fizičko lice</option>
+                    <option value="LEGAL">Pravno lice</option>
+                  </select>
+                </div>
+              </div>
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                {values.entityType === "LEGAL" ? (
+                  <>
+                    <Field label="Naziv pravnog lica" name="legalName" value={values.legalName} onChange={setValue} errors={fieldErrors.legalName} />
+                    <Field label="PIB" name="taxId" value={values.taxId} onChange={setValue} errors={fieldErrors.taxId} />
+                  </>
+                ) : (
+                  <>
+                    <Field label="JMBG" name="jmbg" value={values.jmbg} onChange={setValue} errors={fieldErrors.jmbg} />
+                    <Field label="Broj lične karte" name="identityNumber" value={values.identityNumber} onChange={setValue} errors={fieldErrors.identityNumber} />
+                  </>
+                )}
+                <Field label="Adresa" name="addressLine1" value={values.addressLine1} onChange={setValue} errors={fieldErrors.addressLine1} />
+                <Field label="Grad" name="city" value={values.city} onChange={setValue} errors={fieldErrors.city} />
+                <Field label="Poštanski broj" name="postalCode" value={values.postalCode} onChange={setValue} errors={fieldErrors.postalCode} />
+                <Field label="Država" name="country" value={values.country} onChange={setValue} errors={fieldErrors.country} />
+              </div>
+            </div>
+          ) : null}
 
           {error ? (
             <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700 sm:col-span-2">

@@ -8,6 +8,7 @@ import {
   resolvePublicUnitOffer,
   type PublicUnitOffer,
 } from "@/server/services/sharing/share-links.service";
+import { PublicReservationForm } from "@/features/reservations/public-reservation-form";
 
 export const dynamic = "force-dynamic";
 
@@ -221,6 +222,16 @@ function OfferView({ offer, token }: { offer: PublicUnitOffer; token: string }) 
             </p>
           </section>
         ) : null}
+
+        {isReservable(offer.unit.status) ? (
+          <PublicReservationForm
+            token={token}
+            currency={offer.unit.currency}
+            suggestedDeposit={suggestedDeposit(offer)}
+            organizationName={offer.organization.name || "investitor"}
+            unitCode={offer.unit.code}
+          />
+        ) : null}
       </div>
 
       <footer className="border-t border-[var(--color-border)] bg-[var(--color-surface)] py-4 text-center text-xs text-[var(--color-foreground-muted)]">
@@ -239,4 +250,25 @@ function InfoRow({ label, value }: { label: string; value: string }) {
       <dd className="text-sm">{value}</dd>
     </>
   );
+}
+
+/**
+ * Only `AVAILABLE` and `ON_HOLD` accept new public reservation
+ * requests. `RESERVED` / `DEPOSIT_PAID` already have a buyer working
+ * on the unit — anonymous requests would create false hope.
+ */
+function isReservable(status: string): boolean {
+  return status === "AVAILABLE" || status === "ON_HOLD";
+}
+
+/**
+ * Suggest a 10% deposit rounded to nearest 100 as a starting point.
+ * Buyers can override — this is just a UX nudge.
+ */
+function suggestedDeposit(offer: PublicUnitOffer): string | null {
+  if (!offer.unit.price) return null;
+  const priceNum = Number(offer.unit.price);
+  if (!Number.isFinite(priceNum) || priceNum <= 0) return null;
+  const raw = Math.round((priceNum * 0.1) / 100) * 100;
+  return raw > 0 ? String(raw) : null;
 }

@@ -4,19 +4,21 @@ import { LANDING_IMAGES } from "@/lib/constants/app";
 import { MockupFrame } from "@/features/marketing/mockup-frame";
 
 const INVESTOR_ITEMS = [
-  "Zalihe stanova, garaža i lokala kroz više projekata",
-  "CRM sa detekcijom duplikata i praćenjem aktivnosti",
-  "Rezervacije sa automatskim istekom i podsetnicima",
-  "Ugovori, planovi otplate i FIFO evidencija uplata",
+  "Zalihe stanova, garaža i lokala kroz više projekata (uvoz iz Excel-a, klon projekta)",
+  "CRM sa KYC-em (JMBG, PIB, LK), detekcijom duplikata i @mentions komentarima",
+  "Online rezervacija sa IPS QR kaparom - kupac plaća skeniranjem",
+  "Generator ugovora i predugovora u PDF-u sa svim placeholder-ima",
+  "Cash-flow projekcija 12 meseci, marža po projektu i vreme do prodaje",
+  "Javni sajt projekta (microsite) sa mapom i dostupnim jedinicama",
   "Kontrola pristupa i provizija za partnerske agencije",
-  "Izveštaji i PDF ponude / cenovnici / ugovori",
 ];
 
 const AGENCY_ITEMS = [
   "Pregled dodeljenih projekata i slobodnih jedinica",
+  "Referral kod sa jedinstvenim linkom i QR-om za marketing",
   "Registracija i zaštita kupaca (buyer protection)",
-  "Rezervacije direktno iz ponude investitora",
-  "Praćenje provizija od odobrenja do isplate",
+  "Rezervacije direktno iz ponude investitora, uz KYC checklist",
+  "Praćenje provizija od odobrenja do isplate, sa referral bonusima",
   "Zaseban tim agenata i uloge sa dozvolama",
   "Nema više izgubljenih kontakata i konfuzije sa investitorima",
 ];

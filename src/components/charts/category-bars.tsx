@@ -37,12 +37,37 @@ export interface CategoryBarsProps {
    * the bar. Only meaningful for single-series charts.
    */
   colorPerBar?: boolean;
+  /**
+   * Client-side callback for numeric-axis tick formatting. Only usable
+   * from other Client Components — Server Components cannot serialize
+   * functions across the RSC boundary. Prefer `yTickFormat` in that case.
+   */
   yTickFormatter?: (value: number) => string;
+  /**
+   * Serializable formatter selector, safe to pass from Server Components.
+   * "compact" uses `Intl.NumberFormat(..., { notation: "compact" })`.
+   * When both `yTickFormatter` and `yTickFormat` are provided, the
+   * explicit function wins.
+   */
+  yTickFormat?: "compact" | "number";
   stacked?: boolean;
   layout?: "horizontal" | "vertical";
 }
 
 const numberFmt = new Intl.NumberFormat("sr-Latn");
+const compactFmt = new Intl.NumberFormat("sr-Latn", {
+  notation: "compact",
+  maximumFractionDigits: 1,
+});
+
+function resolveYTickFormatter(
+  explicit: ((v: number) => string) | undefined,
+  named: "compact" | "number" | undefined,
+): (v: number) => string {
+  if (explicit) return explicit;
+  if (named === "compact") return (v) => compactFmt.format(v);
+  return (v) => numberFmt.format(v);
+}
 
 export function CategoryBars({
   data,
@@ -50,9 +75,11 @@ export function CategoryBars({
   ariaLabel = "Distribucija",
   colorPerBar = true,
   yTickFormatter,
+  yTickFormat,
   stacked = false,
   layout = "horizontal",
 }: CategoryBarsProps) {
+  const tickFormatter = resolveYTickFormatter(yTickFormatter, yTickFormat);
   const resolvedSeries: CategoryBarSeries[] = series ?? [
     { key: "value", label: "Broj" },
   ];
@@ -79,7 +106,7 @@ export function CategoryBars({
               tick={{ fontSize: 11, fill: "var(--color-foreground-muted)" }}
               tickLine={false}
               axisLine={{ stroke: "var(--color-border)" }}
-              tickFormatter={yTickFormatter ?? ((v) => numberFmt.format(v))}
+              tickFormatter={tickFormatter}
             />
             <YAxis
               type="category"
@@ -104,7 +131,7 @@ export function CategoryBars({
               tick={{ fontSize: 11, fill: "var(--color-foreground-muted)" }}
               tickLine={false}
               axisLine={{ stroke: "var(--color-border)" }}
-              tickFormatter={yTickFormatter ?? ((v) => numberFmt.format(v))}
+              tickFormatter={tickFormatter}
               width={56}
             />
           </>

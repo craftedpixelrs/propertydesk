@@ -67,7 +67,7 @@ export default function Page() {
       />
       <CtaPanel
         title="Pošaljite nam Vašu Excel tabelu - postavimo Vam sistem besplatno"
-        subtitle="Prijave do 15.08.2026. dobijaju besplatan uvoz prve Excel tabele i besplatno podešavanje jednog projekta. Prvih 30 dana korišćenja bez plaćanja."
+        subtitle="Prijave do 01.09.2026. dobijaju besplatan uvoz prve Excel tabele i besplatno podešavanje jednog projekta. Prvih 30 dana korišćenja bez plaćanja."
       />
       <LandingJsonLd {...META} />
     </>

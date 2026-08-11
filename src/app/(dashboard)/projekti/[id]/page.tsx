@@ -12,6 +12,7 @@ import { formatDate } from "@/lib/formatters";
 import { StructureManager } from "@/features/projects/structure-manager";
 import { PhotoGallery, type PhotoItem } from "@/features/documents/photo-gallery";
 import { ProjectMap } from "@/features/projects/project-map-loader";
+import { CloneProjectDialog } from "@/features/projects/clone-project-dialog";
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -75,6 +76,13 @@ export default async function ProjectDetail({ params }: Props) {
               <Link href={`/projekti/${project.id}/uvoz`}>Uvoz jedinica</Link>
             </Button>
           </PermissionGuard>
+          <PermissionGuard permission="project.create">
+            <CloneProjectDialog
+              projectId={project.id}
+              sourceCode={project.code}
+              sourceName={project.name}
+            />
+          </PermissionGuard>
           <PermissionGuard permission="inventory.manage">
             <Button asChild>
               <Link href={`/projekti/${project.id}/jedinice/nova`}>Nova jedinica</Link>
@@ -117,6 +125,21 @@ export default async function ProjectDetail({ params }: Props) {
                 Opis
               </div>
               <div className="mt-1 whitespace-pre-wrap text-sm">{project.description}</div>
+            </div>
+          ) : null}
+          {project.publicMicrositeEnabled ? (
+            <div className="rounded-md border border-emerald-200 bg-emerald-50 p-3 text-sm sm:col-span-2">
+              <div className="font-medium text-emerald-800">Javna stranica aktivna</div>
+              <div className="mt-1 text-emerald-700">
+                <a
+                  href={`/p/projekat/${project.publicMicrositeSlug ?? project.slug}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline"
+                >
+                  /p/projekat/{project.publicMicrositeSlug ?? project.slug}
+                </a>
+              </div>
             </div>
           ) : null}
         </CardContent>

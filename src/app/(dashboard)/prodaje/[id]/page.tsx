@@ -7,12 +7,15 @@ import { Button } from "@/components/ui/button";
 import { loadUserContext } from "@/server/auth/context";
 import { getSaleById } from "@/server/services/sales/sales.service";
 import { listDocuments } from "@/server/services/documents.service";
+import { listContractTemplates } from "@/server/services/sales/contracts.service";
 import { DomainError } from "@/lib/errors";
 import { formatDate, formatDateTime, formatMoney } from "@/lib/formatters";
 import type { SupportedCurrency } from "@/lib/constants/app";
 import { SaleActions } from "@/features/sales/sale-actions";
 import { RecordPaymentForm } from "@/features/sales/record-payment-form";
 import { PaymentRowActions } from "@/features/sales/payment-row-actions";
+import { ContractSection } from "@/features/sales/contract-section";
+import { SaleTaxSection } from "@/features/sales/sale-tax-section";
 import { CommentThread } from "@/features/comments/comment-thread";
 import {
   DocumentList,
@@ -60,7 +63,7 @@ export default async function ProdajaDetaljPage({ params }: PageProps) {
   const finalPrice = Number(sale.finalPrice.toString());
   const remaining = Math.max(0, finalPrice - paidTotal);
 
-  const [saleDocsResult, unitDocsResult] = await Promise.all([
+  const [saleDocsResult, unitDocsResult, contractTemplates] = await Promise.all([
     listDocuments({
       organizationId: ctx.activeOrganization.id,
       entityType: "Sale",
@@ -75,6 +78,10 @@ export default async function ProdajaDetaljPage({ params }: PageProps) {
       excludeImages: true,
       page: 1,
       pageSize: 50,
+    }),
+    listContractTemplates({
+      organizationId: ctx.activeOrganization.id,
+      activeOnly: true,
     }),
   ]);
   const saleDocuments: DocumentItem[] = saleDocsResult.items.map((d) => ({
@@ -169,6 +176,21 @@ export default async function ProdajaDetaljPage({ params }: PageProps) {
                   </span>
                 }
               />
+              {sale.taxAmount ? (
+                <Row
+                  label="Porez"
+                  value={
+                    <span className="text-xs text-[var(--color-foreground-muted)]">
+                      {formatMoney(sale.taxAmount.toString(), currency)}
+                      {sale.vatMode === "NEW_BUILD_10"
+                        ? " · PDV 10%"
+                        : sale.vatMode === "SECONDARY_MARKET_2_5"
+                          ? " · PPAP 2,5%"
+                          : ""}
+                    </span>
+                  }
+                />
+              ) : null}
               <Row label="Uplaćeno" value={formatMoney(paidTotal, currency)} />
               <Row label="Ostatak" value={formatMoney(remaining, currency)} />
               {sale.contractDate ? (
@@ -233,8 +255,32 @@ export default async function ProdajaDetaljPage({ params }: PageProps) {
           </Card>
 
           <Card>
-            <CardHeader>
+            <CardHeader className="flex flex-row items-start justify-between gap-3 space-y-0">
               <CardTitle className="text-sm">Uplate</CardTitle>
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-[var(--color-foreground-muted)]">
+                <span>
+                  Ugovoreno:{" "}
+                  <strong className="text-[var(--color-foreground)]">
+                    {formatMoney(finalPrice, currency)}
+                  </strong>
+                </span>
+                <span>
+                  Uplaćeno:{" "}
+                  <strong className="text-[var(--color-foreground)]">
+                    {formatMoney(paidTotal, currency)}
+                  </strong>
+                </span>
+                <span>
+                  Preostalo:{" "}
+                  <strong
+                    className={
+                      remaining > 0 ? "text-amber-700" : "text-emerald-700"
+                    }
+                  >
+                    {formatMoney(remaining, currency)}
+                  </strong>
+                </span>
+              </div>
             </CardHeader>
             <CardContent className="space-y-3">
               {sale.payments.length === 0 ? (
@@ -349,6 +395,44 @@ export default async function ProdajaDetaljPage({ params }: PageProps) {
                 saleId={sale.id}
                 status={sale.status}
                 version={sale.version}
+                canManage={canManage}
+              />
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-sm">Porez (PDV / PPAP)</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <SaleTaxSection
+                saleId={sale.id}
+                finalPrice={sale.finalPrice.toString()}
+                currency={sale.currency}
+                vatMode={sale.vatMode}
+                taxAmount={sale.taxAmount?.toString() ?? null}
+                taxPayer={sale.taxPayer}
+                canManage={canManage}
+              />
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-sm">Ugovor</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ContractSection
+                saleId={sale.id}
+                contractStatus={sale.contractStatus}
+                contractSentAt={sale.contractSentAt?.toISOString() ?? null}
+                contractSignedAt={sale.contractSignedAt?.toISOString() ?? null}
+                contractTemplateId={sale.contractTemplateId ?? null}
+                templates={contractTemplates.map((t) => ({
+                  id: t.id,
+                  name: t.name,
+                  kind: t.kind,
+                }))}
                 canManage={canManage}
               />
             </CardContent>

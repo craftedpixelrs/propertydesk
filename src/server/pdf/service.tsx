@@ -15,7 +15,10 @@ import type { CommissionStatementPdfData } from "./documents/commission-statemen
 import { CommissionStatementPdf } from "./documents/commission-statement";
 import type { InvoicePdfData } from "./documents/invoice";
 import { InvoicePdf } from "./documents/invoice";
+import type { SaleContractPdfData } from "./documents/sale-contract";
+import { SaleContractPdf } from "./documents/sale-contract";
 import { renderPdf } from "./render";
+import { renderSaleContractHtml } from "@/server/services/sales/contracts.service";
 import { serbianIpsQrProvider } from "@/server/services/billing/ips-qr";
 import {
   buildBankAccountSnapshot,
@@ -366,6 +369,67 @@ export async function renderCommissionStatementPdf(input: {
   };
 
   return renderPdf(CommissionStatementPdf(data));
+}
+
+// -----------------------------------------------------------------------------
+// Sale contract (Faza 8.1 A1)
+// -----------------------------------------------------------------------------
+
+export interface RenderSaleContractPdfResult {
+  buffer: Buffer;
+  filename: string;
+  templateId: string;
+  templateName: string;
+  kind: "PRE_CONTRACT" | "CONTRACT";
+}
+
+export async function renderSaleContractPdf(input: {
+  organizationId: string;
+  saleId: string;
+  templateId: string;
+}): Promise<RenderSaleContractPdfResult> {
+  const [rendered, sale, org] = await Promise.all([
+    renderSaleContractHtml(input),
+    prisma.sale.findFirst({
+      where: { id: input.saleId, organizationId: input.organizationId },
+      include: {
+        unit: { select: { code: true } },
+        project: { select: { name: true } },
+        buyer: { select: { firstName: true, lastName: true, legalName: true, entityType: true } },
+      },
+    }),
+    prisma.organization.findUnique({
+      where: { id: input.organizationId },
+      select: { name: true, profile: { select: { legalName: true } } },
+    }),
+  ]);
+  if (!sale) throw DomainErrors.notFound("Prodaja nije pronađena.");
+  if (!org) throw DomainErrors.notFound("Organizacija nije pronađena.");
+
+  const buyerFullName =
+    sale.buyer.entityType === "LEGAL"
+      ? (sale.buyer.legalName || `${sale.buyer.firstName} ${sale.buyer.lastName}`)
+      : `${sale.buyer.firstName} ${sale.buyer.lastName}`;
+
+  const data: SaleContractPdfData = {
+    organizationName: org.profile?.legalName || org.name,
+    kind: rendered.kind,
+    templateName: rendered.templateName,
+    html: rendered.html,
+    saleUnitCode: sale.unit.code,
+    saleProjectName: sale.project.name,
+    buyerFullName,
+    issuedAt: new Date(),
+  };
+
+  const buffer = await renderPdf(SaleContractPdf(data));
+  return {
+    buffer,
+    filename: rendered.filename,
+    templateId: rendered.templateId,
+    templateName: rendered.templateName,
+    kind: rendered.kind,
+  };
 }
 
 // -----------------------------------------------------------------------------

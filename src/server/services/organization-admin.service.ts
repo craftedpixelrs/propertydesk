@@ -48,6 +48,8 @@ export interface UpdateOrganizationProfileInput {
   email?: string | null;
   website?: string | null;
   logoUrl?: string | null;
+  paymentAccountNumber?: string | null;
+  paymentBankName?: string | null;
 }
 
 export async function updateOrganizationProfile(
@@ -78,6 +80,14 @@ export async function updateOrganizationProfile(
       email: input.email === undefined ? undefined : input.email,
       website: input.website === undefined ? undefined : input.website,
       logoUrl: input.logoUrl === undefined ? undefined : input.logoUrl,
+      paymentAccountNumber:
+        input.paymentAccountNumber === undefined
+          ? undefined
+          : input.paymentAccountNumber,
+      paymentBankName:
+        input.paymentBankName === undefined
+          ? undefined
+          : input.paymentBankName,
     },
   });
 

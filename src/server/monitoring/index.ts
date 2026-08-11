@@ -1,19 +1,25 @@
+import * as Sentry from "@sentry/nextjs";
+
 import { serverEnv } from "@/lib/env";
 import { logger } from "@/server/logger";
 
 /**
- * Lightweight monitoring facade.
+ * Monitoring facade backed by `@sentry/nextjs`.
  *
- * The full Sentry SDK adds ~120kB to the server bundle and introduces
- * additional peer-dependency friction that we don't yet need. Instead we
- * expose a small `captureException` / `captureMessage` surface that:
+ * The public API (`captureException`, `captureMessage`, `setUserContext`,
+ * `clearUserContext`) is intentionally unchanged from the pre-SDK
+ * facade so existing call sites (e.g. `apiHandler`) don't need to be
+ * touched. All heavy lifting - transports, retries, breadcrumbs,
+ * source-map symbolication - is now delegated to Sentry.
  *
- *   1. Always logs structurally so operators can grep production logs.
- *   2. When `SENTRY_DSN` is configured, POSTs a minimal Sentry-compatible
- *      envelope to the DSN's `store` endpoint. This is fire-and-forget
- *      and never awaits (never blocks a request).
- *
- * When the app later graduates to the full SDK, only this module changes.
+ * Rules of the facade:
+ *   1. Always log to our structured logger first so operators can grep
+ *      production output even when Sentry is disabled or the network is
+ *      down.
+ *   2. Skip the SDK entirely when `SENTRY_DSN` is not configured so
+ *      preview / dev environments don't emit noise (Sentry defaults to a
+ *      no-op init in that case, but calling `captureException()` on it
+ *      still allocates a lot of context).
  */
 
 interface CaptureContext {
@@ -24,6 +30,8 @@ interface CaptureContext {
   extra?: Record<string, unknown>;
 }
 
+const sentryEnabled = Boolean(serverEnv.SENTRY_DSN);
+
 export function captureException(err: unknown, ctx: CaptureContext = {}): void {
   const error = normalizeError(err);
   logger.error("monitoring.exception", {
@@ -32,8 +40,15 @@ export function captureException(err: unknown, ctx: CaptureContext = {}): void {
     stack: error.stack,
     ...ctx,
   });
-  if (!serverEnv.SENTRY_DSN) return;
-  void forwardToSentry("error", error.message, error, ctx);
+  if (!sentryEnabled) return;
+  try {
+    Sentry.withScope((scope) => {
+      applyScope(scope, ctx);
+      Sentry.captureException(error);
+    });
+  } catch {
+    // Never let monitoring fail a request.
+  }
 }
 
 export function captureMessage(
@@ -42,8 +57,49 @@ export function captureMessage(
   ctx: CaptureContext = {},
 ): void {
   logger.info("monitoring.message", { message, level, ...ctx });
-  if (!serverEnv.SENTRY_DSN) return;
-  void forwardToSentry(level, message, null, ctx);
+  if (!sentryEnabled) return;
+  try {
+    Sentry.withScope((scope) => {
+      applyScope(scope, ctx);
+      Sentry.captureMessage(message, level);
+    });
+  } catch {
+    // Never let monitoring fail a request.
+  }
+}
+
+/**
+ * Attach a user context to the current Sentry scope. Useful from
+ * middleware / server actions where we already have the authenticated
+ * user. Silent no-op when Sentry is disabled.
+ */
+export function setUserContext(user: {
+  id: string;
+  email?: string | null;
+  organizationId?: string | null;
+}): void {
+  if (!sentryEnabled) return;
+  try {
+    Sentry.setUser({
+      id: user.id,
+      email: user.email ?? undefined,
+      // Sentry accepts arbitrary keys on the user object.
+      ...(user.organizationId
+        ? { organization_id: user.organizationId }
+        : {}),
+    });
+  } catch {
+    // Ignore.
+  }
+}
+
+export function clearUserContext(): void {
+  if (!sentryEnabled) return;
+  try {
+    Sentry.setUser(null);
+  } catch {
+    // Ignore.
+  }
 }
 
 function normalizeError(err: unknown): Error {
@@ -53,113 +109,22 @@ function normalizeError(err: unknown): Error {
   return e;
 }
 
-/**
- * Extremely small Sentry ingestion. Uses the classic DSN URL format:
- * `https://<publicKey>@<host>/<projectId>` → posts JSON to
- * `https://<host>/api/<projectId>/store/`.
- *
- * We deliberately do not batch, retry, or transform stack traces. A real
- * agent should replace this with `@sentry/nextjs` when the app grows.
- */
-async function forwardToSentry(
-  level: "info" | "warning" | "error",
-  message: string,
-  error: Error | null,
-  ctx: CaptureContext,
-): Promise<void> {
-  const dsn = serverEnv.SENTRY_DSN;
-  if (!dsn) return;
-  try {
-    const parsed = parseDsn(dsn);
-    if (!parsed) return;
-    const payload = {
-      event_id: crypto.randomUUID().replace(/-/g, ""),
-      timestamp: new Date().toISOString(),
-      platform: "javascript",
-      level,
-      logger: "propertydesk",
-      environment: process.env.NODE_ENV ?? "development",
-      message,
-      exception: error
-        ? {
-            values: [
-              {
-                type: error.name,
-                value: error.message,
-                stacktrace: error.stack ? { frames: parseStack(error.stack) } : undefined,
-              },
-            ],
-          }
-        : undefined,
-      tags: ctx.tags,
-      user:
-        ctx.userId || ctx.organizationId
-          ? { id: ctx.userId, organization_id: ctx.organizationId }
-          : undefined,
-      extra: ctx.extra,
-      request: ctx.requestId ? { headers: { "x-request-id": ctx.requestId } } : undefined,
-    };
-    const url = `${parsed.protocol}//${parsed.host}/api/${parsed.projectId}/store/`;
-    const authHeader = [
-      "Sentry sentry_version=7",
-      `sentry_client=propertydesk-facade/1.0`,
-      `sentry_timestamp=${Math.floor(Date.now() / 1000)}`,
-      `sentry_key=${parsed.publicKey}`,
-    ].join(", ");
-    await fetch(url, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-Sentry-Auth": authHeader,
-      },
-      body: JSON.stringify(payload),
-      cache: "no-store",
-    }).catch(() => undefined);
-  } catch {
-    // Never let monitoring fail a request.
-  }
-}
-
-interface ParsedDsn {
-  protocol: string;
-  publicKey: string;
-  host: string;
-  projectId: string;
-}
-
-function parseDsn(dsn: string): ParsedDsn | null {
-  try {
-    const u = new URL(dsn);
-    const projectId = u.pathname.replace(/^\//, "");
-    if (!u.username || !projectId) return null;
-    return {
-      protocol: u.protocol,
-      publicKey: u.username,
-      host: u.host,
-      projectId,
-    };
-  } catch {
-    return null;
-  }
-}
-
-interface StackFrame {
-  filename: string;
-  function: string;
-  lineno?: number;
-}
-
-function parseStack(stack: string): StackFrame[] {
-  const frames: StackFrame[] = [];
-  const lines = stack.split("\n").slice(1, 21);
-  for (const line of lines) {
-    const match = /at\s+(?:(.+?)\s+\()?(.+?):(\d+):\d+\)?$/.exec(line.trim());
-    if (!match) continue;
-    frames.push({
-      function: match[1] ?? "?",
-      filename: match[2] ?? "?",
-      lineno: match[3] ? Number(match[3]) : undefined,
+function applyScope(scope: Sentry.Scope, ctx: CaptureContext): void {
+  if (ctx.requestId) scope.setTag("request_id", ctx.requestId);
+  if (ctx.userId || ctx.organizationId) {
+    scope.setUser({
+      id: ctx.userId,
+      ...(ctx.organizationId ? { organization_id: ctx.organizationId } : {}),
     });
   }
-  return frames;
+  if (ctx.tags) {
+    for (const [key, value] of Object.entries(ctx.tags)) {
+      scope.setTag(key, value);
+    }
+  }
+  if (ctx.extra) {
+    for (const [key, value] of Object.entries(ctx.extra)) {
+      scope.setExtra(key, value);
+    }
+  }
 }

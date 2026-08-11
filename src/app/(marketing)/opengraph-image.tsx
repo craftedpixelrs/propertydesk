@@ -105,7 +105,7 @@ export default function OgImage() {
                 fontSize: 22,
               }}
             >
-              Lansiranje 15.08.2026 · −50% prva 3 meseca
+              Lansiranje 01.09.2026 · −50% prva 3 meseca
             </div>
           </div>
           <div style={{ fontWeight: 500 }}>propertydesk.app</div>

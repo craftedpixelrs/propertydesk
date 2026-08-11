@@ -65,7 +65,13 @@ export const PRODUCT_VIDEO_URL = publicEnv.NEXT_PUBLIC_PRODUCT_VIDEO_URL ?? "";
  * SaaS launch date. Used by the countdown, hero copy, and JSON-LD.
  * If you change it, also update the FAQ and offer banner copy.
  */
-export const LAUNCH_DATE_ISO = "2026-08-15";
+export const LAUNCH_DATE_ISO = "2026-09-01";
+
+/**
+ * Human-readable launch date used across marketing copy. Kept next to
+ * `LAUNCH_DATE_ISO` so a future date change is a two-line diff.
+ */
+export const LAUNCH_DATE_LABEL = "01.09.2026.";
 
 /**
  * Landing-page visual assets.

@@ -16,6 +16,8 @@ const CATEGORIES = [
   "PAYMENT",
   "AGENCY",
   "COMMISSION",
+  "INVOICE",
+  "KYC",
   "OTHER",
 ] as const;
 const VISIBILITIES = [
