@@ -19,19 +19,23 @@ Contract:
 | Endpoint | Frequency | Purpose |
 |----------|-----------|---------|
 | `POST /api/v1/jobs/expire-reservations` | Every 15 min | Marks `REQUESTED`/`APPROVED` reservations whose `expiresAt` has passed as `EXPIRED`, releases the unit, notifies the buyer + agency. |
+| `POST /api/v1/jobs/expire-reservation-requests` | Every 15 min | Faza 8.1 A2. Marks public `ReservationRequest` rows past `expiresAt` as `EXPIRED`, releases the unit (`HELD` → `AVAILABLE`), notifies the applicant + investor. |
 | `POST /api/v1/jobs/expire-buyer-protection` | Hourly | Notifies agencies when a buyer protection is due to expire and records a lifecycle audit entry. |
 | `POST /api/v1/jobs/mark-installments-overdue` | Daily 01:15 | Flips `PaymentInstallment.status` to `OVERDUE` for unpaid installments past `dueDate`. |
 | `POST /api/v1/jobs/due-soon-notifications` | Daily 07:00 | Emails + in-app notifications for installments due in the next 7 days. |
 | `POST /api/v1/jobs/trial-expiration-notifications` | Daily 06:30 | Notifies organization owners about upcoming trial expirations (14/7/3/1 days ahead). |
+| `POST /api/v1/jobs/backup-verify` | Weekly Mon 03:00 | Faza 8.3 C4. Downloads the latest `pg_dump` from configured storage, runs `pg_restore --list` to validate integrity, writes a `SystemHealthCheck` row, and emails `BACKUP_ALERT_EMAILS` when the two most recent runs are `FAIL`. See [`docs/monitoring.md`](./monitoring.md#backup-verifier). |
 
 ## Example crontab
 
 ```
 */15 * * * *  curl -fsS -X POST -H "x-cron-secret: $CRON_SECRET" https://app.propertydesk.app/api/v1/jobs/expire-reservations >/dev/null
+*/15 * * * *  curl -fsS -X POST -H "x-cron-secret: $CRON_SECRET" https://app.propertydesk.app/api/v1/jobs/expire-reservation-requests >/dev/null
 15   1 * * *  curl -fsS -X POST -H "x-cron-secret: $CRON_SECRET" https://app.propertydesk.app/api/v1/jobs/mark-installments-overdue >/dev/null
 0    7 * * *  curl -fsS -X POST -H "x-cron-secret: $CRON_SECRET" https://app.propertydesk.app/api/v1/jobs/due-soon-notifications >/dev/null
 30   6 * * *  curl -fsS -X POST -H "x-cron-secret: $CRON_SECRET" https://app.propertydesk.app/api/v1/jobs/trial-expiration-notifications >/dev/null
 0    * * * *  curl -fsS -X POST -H "x-cron-secret: $CRON_SECRET" https://app.propertydesk.app/api/v1/jobs/expire-buyer-protection >/dev/null
+0    3 * * 1  curl -fsS -X POST -H "x-cron-secret: $CRON_SECRET" https://app.propertydesk.app/api/v1/jobs/backup-verify >/dev/null
 ```
 
 Kubernetes `CronJob` example:

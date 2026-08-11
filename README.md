@@ -39,6 +39,7 @@ Sign in na `http://localhost:3000/sign-in` sa `SEED_SUPER_ADMIN_EMAIL`
 Ceo operator + developer runbook je u [`docs/`](./docs/):
 
 - **[`demo-tok.md`](./docs/demo-tok.md)** — sveobuhvatni operator demo (od projekta do provizije)
+- [`ciljne-grupe.md`](./docs/ciljne-grupe.md) — GTM / ciljne grupe
 - [`billing/`](./docs/billing/) — SaaS naplata (12 dokumenata)
 - [`architecture.md`](./docs/architecture.md)
 - [`database.md`](./docs/database.md)
@@ -56,6 +57,15 @@ Ceo operator + developer runbook je u [`docs/`](./docs/):
 - [`incident-response.md`](./docs/incident-response.md)
 - [`vps-migration.md`](./docs/vps-migration.md)
 - [`release-checklist.md`](./docs/release-checklist.md)
+
+### Faza 8 (v1 launch closer)
+
+- [`reservation-requests.md`](./docs/reservation-requests.md) — online rezervacija sa IPS QR kaparom
+- [`sale-contracts.md`](./docs/sale-contracts.md) — generator ugovora / predugovora u PDF-u
+- [`kyc.md`](./docs/kyc.md) — KYC modul za kupce (JMBG, PIB, checklist)
+- [`microsite.md`](./docs/microsite.md) — javni sajt projekta (`/p/projekat/[slug]`)
+- [`referral.md`](./docs/referral.md) — referral kod za agencije + atribucija
+- [`monitoring.md`](./docs/monitoring.md) — Sentry + backup verifier + `/administracija/monitoring`
 
 ## Skripte
 

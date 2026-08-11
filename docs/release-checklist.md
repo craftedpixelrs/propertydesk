@@ -45,6 +45,13 @@ Every one must exit 0.
       are set and ≥ 32 chars.
 - [ ] `NEXT_PUBLIC_APP_URL` and `BETTER_AUTH_URL` match the deploy
       hostname exactly.
+- [ ] `SENTRY_DSN` + `NEXT_PUBLIC_SENTRY_DSN` present, or Sentry is
+      explicitly disabled for this environment (dev usually has both
+      unset). See [`docs/monitoring.md`](./monitoring.md).
+- [ ] `BACKUP_STORAGE_KIND` (`local` / `s3`) and matching credentials
+      set so the weekly `backup-verify` job can read the latest dump.
+- [ ] `BACKUP_ALERT_EMAILS` populated with at least one address for
+      failure alerts.
 
 ## Post-deploy smoke
 
@@ -53,9 +60,21 @@ Every one must exit 0.
 - [ ] Sign in and open the dashboard.
 - [ ] Trigger `POST /api/v1/jobs/expire-reservations` with the cron
       secret → 200.
+- [ ] Trigger `POST /api/v1/jobs/expire-reservation-requests` with the
+      cron secret → 200.
+- [ ] Trigger `POST /api/v1/jobs/backup-verify` with the cron secret
+      → 200. `/administracija/monitoring` should show a fresh row.
 - [ ] Recent audit log rows appear in `/administracija/audit-log`.
 - [ ] Send a test email (invite a fake member to a demo org) — arrives
       via the configured provider.
+- [ ] Trigger a client error on any page (e.g. `throw` in devtools
+      inside a Server Action) → appears in Sentry within 1 minute.
+- [ ] Open a public share link and reservation form (`/p/[token]`):
+      submitting the form returns the deposit IPS QR image inline and
+      the row shows up in `/rezervacije/zahtevi`.
+- [ ] Open the public microsite of a demo project
+      (`/p/projekat/[slug]`): unit list renders, `?ref=<code>` sets a
+      `PD_REFERRAL` cookie and stamps the next reservation request.
 
 ## Communication
 

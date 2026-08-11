@@ -11,17 +11,22 @@ single source of truth. All money is stored as `Decimal(14,2)`.
 ```mermaid
 flowchart LR
   Browser -->|SSR / RSC| AppShell["Next.js App Router (sr-Latn UI)"]
+  Public["Public visitor (no login)"] -->|"/p/[token] · /p/projekat/[slug]"| PublicApp["Public shell (share link + microsite)"]
   MobileFuture["Future mobile client"] -->|REST /api/v1| ApiV1
   AppShell -->|internal fetches| ApiV1["/api/v1 REST"]
+  PublicApp -->|"/api/v1/public/*"| ApiV1
   ApiV1 --> Handler["apiHandler (auth + org + Zod + rate limit)"]
   Handler --> Perm["requirePermission()"]
   Perm --> Service["domain services (transactional, decimal-safe)"]
   Service --> Prisma["Prisma + pg adapter"]
-  Prisma --> Postgres["Neon / self-hosted Postgres"]
+  Prisma --> Postgres["Neon / Supabase / self-hosted Postgres"]
   Service --> Audit["recordAudit()"]
   Service --> Storage["StorageProvider (Local / S3)"]
   Service --> Email["EmailProvider (console / SMTP / Resend)"]
   Service --> Notify["Notification service"]
+  Service --> Monitor["Monitoring (Sentry + SystemHealthCheck)"]
+  Service --> Pdf["PDF pipeline (react-pdf: contracts / offers / invoices)"]
+  Service --> IpsQr["IPS QR provider (SaaS invoices + reservation deposits)"]
   Notify --> Bell["Header bell + /obavestenja"]
   Notify --> Email
 ```
@@ -68,4 +73,27 @@ flowchart LR
 | 18–19 Agencies, protection, portal | Phase 4 | Delivered |
 | 20–23 Sales, payments, docs, commissions | Phase 5 | Delivered |
 | 24–29 Dashboards, reports, PDFs, emails, jobs, notification centre | Phase 6 | Delivered |
-| 32–36, 41–44 Security, perf, a11y, deployment, docs | Phase 7 | Delivered |
+| 32–36, 41–44 Security, perf, a11y, deployment, docs | Phase 7a | Delivered |
+| Visual & sales layer (charts, galleries, Kanban, calendar, map, floor plan, comments, global search) | Phase 7b (Faza 7) | Delivered |
+| Investor v1 hardening — payment plan templates, sale document uploads, project floor plan editor | Phase 7c (Faza 7 nastavak) | Delivered |
+| Sales cycle closure (A1–A5) — contract generator, online reservation with IPS QR, cash-flow projection, time-to-sale, cost tracking & P&L | Phase 8.1 (Faza 8 A) | Delivered |
+| Serbia compliance (B1–B4) — buyer KYC, VAT/RPI tax mode on sales, CSV/XLSX unit importer, project clone | Phase 8.2 (Faza 8 B) | Delivered |
+| Growth + production hardening (C1–C4) — public project microsite, agency referral code, @sentry/nextjs integration, automatic backup verifier | Phase 8.3 (Faza 8 C) | Delivered |
+
+## 6. Faza 8 module map
+
+| Feature | Frontend surface | REST | Service | Storage / cross-cutting |
+|---------|------------------|------|---------|-------------------------|
+| Contract generator | `/prodaje/[id]` (contract card) + `/podesavanja/ugovori-sabloni` | `POST/PATCH /sales/:id/contract/generate,mark-sent,mark-signed` · `GET/POST/PATCH/DELETE /sale-contract-templates` | `contracts.service.ts`, `pdf/documents/sale-contract.tsx` | `Document` (PDF) + `SaleContract` row + audit |
+| Online reservation | Public `/p/[token]` form + investor `/rezervacije/zahtevi` | `POST /public/share/:token/reserve` · `GET /public/reservation-requests/:id/qr` · `POST /reservation-requests/:id/{confirm,decline}` | `reservation-requests.service.ts` | IPS QR PNG in `StorageProvider` under `reservation-request/*` |
+| Cash-flow projection | Dashboard card + `/izvestaji/uplate` | `GET /reports/cash-flow` | `reports/cash-flow.service.ts` | Prisma aggregation only |
+| Time-to-sale | `/izvestaji/zalihe` | Included in inventory report | `reports/inventory-velocity.service.ts` | Prisma aggregation |
+| Project cost & P&L | `/izvestaji/prodaje` panel + project edit form | `PATCH /projects/:id` (cost fields) | `projects/pnl.service.ts` | `Project.landCost/constructionCost/marketingCost/otherCost` |
+| Buyer KYC | `/kupci/[id]` KYC tab | `GET/PATCH /buyers/:id/kyc` | `buyers/kyc.service.ts` | `BuyerKycChecklist` + `DocumentCategory.KYC` |
+| VAT / RPI on sales | Sale detail card | `PATCH /sales/:id/tax` | `sales/tax.service.ts` | `Sale.vatMode/taxAmount/taxPayer` |
+| CSV/XLSX unit import | `/projekti/[id]/uvoz` (3-step wizard) | `POST /projects/:id/import` | `projects/import-units.service.ts` | temporary in-memory parse |
+| Project clone | `/projekti/[id]` dropdown → `CloneProjectDialog` | `POST /projects/:id/clone` | `projects/clone.service.ts` | Structure only, no sales/payments carried over |
+| Public microsite | Marketing-style route `/p/projekat/[slug]` | `GET /public/projects/:slug` (via `resolvePublicProjectSite`) | `projects/microsite.service.ts` | `Project.publicMicrositeEnabled/Slug` |
+| Agency referral | Agency profile card + `/ponuda` + `/izvestaji/agencije` referral column | `POST /agency/referral/rotate` | `agencies/referral.service.ts` | `AgencyConnection.referralCode` + cookie `PD_REFERRAL` |
+| Sentry monitoring | Sentry SaaS (client/server/edge) | Instrumented via `src/instrumentation.ts` + `next.config.ts` `withSentryConfig` | `server/monitoring/index.ts` facade | Uses `SENTRY_DSN`, `NEXT_PUBLIC_SENTRY_DSN` env vars |
+| Backup verifier | `/administracija/monitoring` | `POST /platform/monitoring/backup-verify` + weekly cron | `monitoring/backup-verify.service.ts` | `SystemHealthCheck` rows + email alerts |
