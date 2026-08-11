@@ -8,6 +8,7 @@ import type {
   FloorPlanAreaView,
   FloorPlanView,
 } from "@/server/services/floor-plan/floor-plan.service";
+import { FloorPlanUpload } from "@/features/floor-plan/floor-plan-upload";
 
 /**
  * SVG floor-plan viewer.
@@ -19,10 +20,16 @@ import type {
  * the browser handles the scale.
  *
  * When there is no floor-plan image (i.e. `floorPlanUrl` is null) the
- * viewer degrades gracefully to a stacked list of units.
+ * viewer degrades gracefully — for operators with `canManage`, an
+ * inline upload form appears; otherwise a plain message is shown.
  */
 interface Props {
   view: FloorPlanView;
+  /**
+   * When true, an "otpremi osnovu" action is rendered in the empty
+   * state. When false, the empty state is informational only.
+   */
+  canManage?: boolean;
 }
 
 const STATUS_FILL: Record<UnitStatus, string> = {
@@ -58,7 +65,7 @@ const STATUS_LABELS: Record<UnitStatus, string> = {
   NOT_FOR_SALE: "Nije za prodaju",
 };
 
-export function FloorPlanViewer({ view }: Props) {
+export function FloorPlanViewer({ view, canManage = false }: Props) {
   const [hovered, setHovered] = useState<FloorPlanAreaView | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -69,10 +76,12 @@ export function FloorPlanViewer({ view }: Props) {
   }, [view.areas]);
 
   if (!view.floorPlanUrl) {
+    if (canManage) {
+      return <FloorPlanUpload floorId={view.floorId} variant="empty-state" />;
+    }
     return (
       <div className="rounded-md border border-dashed border-[var(--color-border)] bg-[var(--color-surface-inset)] p-6 text-center text-sm text-[var(--color-foreground-muted)]">
-        Ovaj sprat još nema učitanu osnovu. Otvorite izmenu sprata i
-        priložite sliku plana.
+        Ovaj sprat još nema učitanu osnovu.
       </div>
     );
   }

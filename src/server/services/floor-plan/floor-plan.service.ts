@@ -66,6 +66,29 @@ export async function loadFloorPlan(input: {
   });
   if (!floor) throw DomainErrors.notFound("Sprat");
 
+  // Fallback: if `Floor.floorPlanUrl` is not set, look for the most
+  // recently uploaded image Document attached to this floor and use its
+  // authenticated download URL. Operators upload plans through the
+  // documents pipeline (multipart, storage provider) so they never have
+  // to touch the raw URL column.
+  let floorPlanUrl = floor.floorPlanUrl;
+  if (!floorPlanUrl) {
+    const doc = await prisma.document.findFirst({
+      where: {
+        organizationId: input.organizationId,
+        entityType: "Floor",
+        entityId: floor.id,
+        deletedAt: null,
+        mimeType: { startsWith: "image/" },
+      },
+      orderBy: { createdAt: "desc" },
+      select: { id: true },
+    });
+    if (doc) {
+      floorPlanUrl = `/api/v1/documents/${doc.id}/download`;
+    }
+  }
+
   const areas = await prisma.floorPlanArea.findMany({
     where: { organizationId: input.organizationId, floorId: input.floorId },
     select: {
@@ -78,7 +101,7 @@ export async function loadFloorPlan(input: {
   return {
     floorId: floor.id,
     floorLabel: floor.label,
-    floorPlanUrl: floor.floorPlanUrl,
+    floorPlanUrl,
     areas: areas.map((a) => ({
       id: a.id,
       unitId: a.unit.id,

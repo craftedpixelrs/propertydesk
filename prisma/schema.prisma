@@ -77,7 +77,7 @@ model User {
   paymentsCreated  Payment[] @relation("PaymentCreator")
   paymentsReversed Payment[] @relation("PaymentReverser")
 
-  documentsUploaded Document[] @relation("DocumentUploader")
+  documentsUploaded Document[]  @relation("DocumentUploader")
   shareLinksCreated ShareLink[] @relation("ShareLinkCreator")
 
   commentsAuthored Comment[] @relation("CommentAuthor")
@@ -189,6 +189,7 @@ model Organization {
   sales                     Sale[]
   saleStatusHistory         SaleStatusHistory[]
   paymentPlans              PaymentPlan[]
+  paymentPlanTemplates      PaymentPlanTemplate[]
   payments                  Payment[]
   documents                 Document[]
   shareLinks                ShareLink[]
@@ -559,6 +560,19 @@ enum InstallmentStatus {
   CANCELED
 }
 
+/// Anchor point used by `PaymentPlanTemplateItem.dueDateAnchor` to
+/// resolve a concrete calendar date for each installment when the
+/// template is applied to a specific sale. Combined with
+/// `offsetDays` — e.g. `CONTRACT + 30` means "30 days after
+/// `Sale.contractDate`". `CUSTOM_OFFSET` means the item has no
+/// anchor at all and the operator must set the date manually
+/// during "apply".
+enum DueDateAnchor {
+  CONTRACT
+  HANDOVER
+  CUSTOM_OFFSET
+}
+
 enum PaymentMethod {
   BANK_TRANSFER
   CASH
@@ -616,22 +630,22 @@ enum NotificationCategory {
 // =============================================================================
 
 model OrganizationProfile {
-  id                 String             @id @default(cuid())
-  organizationId     String             @unique
-  type               OrganizationType
-  legalName          String
-  displayName        String
-  registrationNumber String?
-  taxNumber          String?
-  address            String?
-  city               String?
-  postalCode         String?
-  country            String?            @default("RS")
-  phone              String?
-  email              String?
-  website            String?
-  logoUrl            String?
-  status             OrganizationStatus @default(TRIAL)
+  id                    String             @id @default(cuid())
+  organizationId        String             @unique
+  type                  OrganizationType
+  legalName             String
+  displayName           String
+  registrationNumber    String?
+  taxNumber             String?
+  address               String?
+  city                  String?
+  postalCode            String?
+  country               String?            @default("RS")
+  phone                 String?
+  email                 String?
+  website               String?
+  logoUrl               String?
+  status                OrganizationStatus @default(TRIAL)
   // Tracks the /prvi-koraci onboarding wizard. `completedAt` is stamped
   // when the operator finishes the last step; `dismissedAt` is a soft
   // hide flag used while the operator would rather not see the
@@ -640,8 +654,8 @@ model OrganizationProfile {
   // state.
   onboardingCompletedAt DateTime?
   onboardingDismissedAt DateTime?
-  createdAt          DateTime           @default(now())
-  updatedAt          DateTime           @updatedAt
+  createdAt             DateTime           @default(now())
+  updatedAt             DateTime           @updatedAt
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
@@ -791,6 +805,7 @@ model Project {
   agencyProjectAccess   AgencyProjectAccess[]
   agencyRegistrations   AgencyBuyerRegistration[]
   agencyCommissionRules AgencyCommissionRule[]
+  paymentPlanTemplates  PaymentPlanTemplate[]
 
   @@unique([organizationId, code])
   @@unique([organizationId, slug])
@@ -846,7 +861,7 @@ model Floor {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  entrance Entrance @relation(fields: [entranceId], references: [id], onDelete: Cascade)
+  entrance Entrance        @relation(fields: [entranceId], references: [id], onDelete: Cascade)
   units    Unit[]
   areas    FloorPlanArea[]
 
@@ -1398,6 +1413,55 @@ model PaymentInstallment {
   @@map("payment_installment")
 }
 
+/// Reusable installment blueprints owned by an investor Organization.
+/// Two scopes are supported: (1) org-level default (`projectId = NULL`) and
+/// (2) project-level override (`projectId = <project>`). At most one
+/// template of each scope may be marked `isDefault = true`; the UI
+/// enforces this via `PaymentPlanTemplatesService.setDefault`.
+///
+/// A template is a *blueprint* — applying it to a Sale materialises
+/// concrete `PaymentInstallment` rows via `applyTemplateToDraft`. The
+/// template itself is never mutated after apply, and PaymentPlan rows
+/// keep no hard FK back to the template so template edits do not
+/// silently alter historical plans.
+model PaymentPlanTemplate {
+  id             String   @id @default(cuid())
+  organizationId String
+  projectId      String?
+  name           String
+  description    String?
+  isDefault      Boolean  @default(false)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  project      Project?     @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  items PaymentPlanTemplateItem[]
+
+  @@index([organizationId, projectId])
+  @@map("payment_plan_template")
+}
+
+/// Single line of a `PaymentPlanTemplate`. Percentages must sum to
+/// exactly 100 (with a 0.001% tolerance) when the template is saved.
+model PaymentPlanTemplateItem {
+  id             String        @id @default(cuid())
+  templateId     String
+  sequenceNumber Int
+  label          String
+  percentage     Decimal       @db.Decimal(6, 3)
+  dueDateAnchor  DueDateAnchor @default(CONTRACT)
+  offsetDays     Int           @default(0)
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  template PaymentPlanTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+
+  @@unique([templateId, sequenceNumber])
+  @@map("payment_plan_template_item")
+}
+
 model Payment {
   id               String        @id @default(cuid())
   organizationId   String
@@ -1458,17 +1522,17 @@ model ShareLink {
 /// resulting user ids on `mentionedUserIds`; the parsed list is what
 /// drives notifications. `parentId` supports one level of replies.
 model Comment {
-  id                String   @id @default(cuid())
-  organizationId    String
-  entityType        String
-  entityId          String
-  authorUserId      String
-  body              String
-  mentionedUserIds  String[] @default([])
-  parentId          String?
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-  deletedAt         DateTime?
+  id               String    @id @default(cuid())
+  organizationId   String
+  entityType       String
+  entityId         String
+  authorUserId     String
+  body             String
+  mentionedUserIds String[]  @default([])
+  parentId         String?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  deletedAt        DateTime?
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   author       User         @relation("CommentAuthor", fields: [authorUserId], references: [id], onDelete: Restrict)

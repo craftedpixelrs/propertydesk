@@ -5,6 +5,7 @@ import { loadUserContext } from "@/server/auth/context";
 import { DomainError } from "@/lib/errors";
 import { loadFloorPlan } from "@/server/services/floor-plan/floor-plan.service";
 import { FloorPlanViewer } from "@/features/floor-plan/floor-plan-viewer";
+import { FloorPlanUpload } from "@/features/floor-plan/floor-plan-upload";
 
 export const dynamic = "force-dynamic";
 
@@ -29,21 +30,30 @@ export default async function SpratPage({ params }: PageProps) {
     throw err;
   }
 
+  const canManage = ctx.permissions.includes("inventory.manage");
+
   return (
     <div className="space-y-6">
-      <div>
-        <Link
-          href="/projekti"
-          className="text-sm text-[var(--color-foreground-muted)] hover:underline"
-        >
-          ← Projekti
-        </Link>
-        <h1 className="mt-1 text-2xl font-semibold">Osnova · {view.floorLabel}</h1>
-        <p className="text-sm text-[var(--color-foreground-muted)]">
-          Kliknite na jedinicu za detaljne informacije.
-        </p>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <Link
+            href="/projekti"
+            className="text-sm text-[var(--color-foreground-muted)] hover:underline"
+          >
+            ← Projekti
+          </Link>
+          <h1 className="mt-1 text-2xl font-semibold">
+            Osnova · {view.floorLabel}
+          </h1>
+          <p className="text-sm text-[var(--color-foreground-muted)]">
+            Kliknite na jedinicu za detaljne informacije.
+          </p>
+        </div>
+        {canManage && view.floorPlanUrl ? (
+          <FloorPlanUpload floorId={view.floorId} variant="compact" />
+        ) : null}
       </div>
-      <FloorPlanViewer view={view} />
+      <FloorPlanViewer view={view} canManage={canManage} />
     </div>
   );
 }

@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { loadUserContext } from "@/server/auth/context";
 import { getSaleById } from "@/server/services/sales/sales.service";
+import { listDocuments } from "@/server/services/documents.service";
 import { DomainError } from "@/lib/errors";
 import { formatDate, formatDateTime, formatMoney } from "@/lib/formatters";
 import type { SupportedCurrency } from "@/lib/constants/app";
@@ -13,6 +14,10 @@ import { SaleActions } from "@/features/sales/sale-actions";
 import { RecordPaymentForm } from "@/features/sales/record-payment-form";
 import { PaymentRowActions } from "@/features/sales/payment-row-actions";
 import { CommentThread } from "@/features/comments/comment-thread";
+import {
+  DocumentList,
+  type DocumentItem,
+} from "@/features/documents/document-list";
 
 export const dynamic = "force-dynamic";
 
@@ -47,12 +52,51 @@ export default async function ProdajaDetaljPage({ params }: PageProps) {
   const currency = sale.currency as SupportedCurrency;
   const canManage = ctx.permissions.includes("sale.manage");
   const canManagePayments = ctx.permissions.includes("payment.manage");
+  const canManageDocs = ctx.permissions.includes("document.manage");
 
   const paidTotal = sale.payments
     .filter((p) => !p.reversedAt)
     .reduce((acc, p) => acc + Number(p.amount.toString()), 0);
   const finalPrice = Number(sale.finalPrice.toString());
   const remaining = Math.max(0, finalPrice - paidTotal);
+
+  const [saleDocsResult, unitDocsResult] = await Promise.all([
+    listDocuments({
+      organizationId: ctx.activeOrganization.id,
+      entityType: "Sale",
+      entityId: sale.id,
+      page: 1,
+      pageSize: 50,
+    }),
+    listDocuments({
+      organizationId: ctx.activeOrganization.id,
+      entityType: "Unit",
+      entityId: sale.unit.id,
+      excludeImages: true,
+      page: 1,
+      pageSize: 50,
+    }),
+  ]);
+  const saleDocuments: DocumentItem[] = saleDocsResult.items.map((d) => ({
+    id: d.id,
+    originalFileName: d.originalFileName,
+    mimeType: d.mimeType,
+    size: d.size,
+    category: d.category,
+    visibility: d.visibility,
+    createdAt: d.createdAt.toISOString(),
+    uploadedByName: d.uploadedByUser?.name ?? null,
+  }));
+  const unitDocuments: DocumentItem[] = unitDocsResult.items.map((d) => ({
+    id: d.id,
+    originalFileName: d.originalFileName,
+    mimeType: d.mimeType,
+    size: d.size,
+    category: d.category,
+    visibility: d.visibility,
+    createdAt: d.createdAt.toISOString(),
+    uploadedByName: d.uploadedByUser?.name ?? null,
+  }));
 
   return (
     <div className="space-y-6">
@@ -134,6 +178,57 @@ export default async function ProdajaDetaljPage({ params }: PageProps) {
                 <Row label="Primopredaja" value={formatDate(sale.actualHandoverDate)} />
               ) : null}
               {sale.notes ? <Row label="Napomena" value={sale.notes} /> : null}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-sm">Dokumenti</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-5">
+              <section className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-xs font-semibold uppercase tracking-wide text-[var(--color-foreground-muted)]">
+                    Dokumenti prodaje
+                  </h3>
+                  <span className="text-xs text-[var(--color-foreground-muted)]">
+                    {saleDocuments.length} stavki
+                  </span>
+                </div>
+                <DocumentList
+                  entityType="Sale"
+                  entityId={sale.id}
+                  documents={saleDocuments}
+                  category="SALE"
+                  canManage={canManageDocs}
+                  offerBuyerVisibility
+                  emptyTitle="Nema dokumenata prodaje"
+                  emptyDescription="Otpremite ugovor, aneks i drugu dokumentaciju vezanu za ovu prodaju."
+                />
+              </section>
+              <section className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-xs font-semibold uppercase tracking-wide text-[var(--color-foreground-muted)]">
+                    Dokumentacija jedinice
+                  </h3>
+                  <Link
+                    href={`/jedinice/${sale.unit.id}`}
+                    className="text-xs text-[var(--color-brand-700)] hover:underline"
+                  >
+                    Uredi na jedinici →
+                  </Link>
+                </div>
+                <DocumentList
+                  entityType="Unit"
+                  entityId={sale.unit.id}
+                  documents={unitDocuments}
+                  category="UNIT"
+                  canManage={false}
+                  hideUploadWhenNoPermission
+                  emptyTitle="Nema dokumenata jedinice"
+                  emptyDescription="Ugovorna dokumentacija priložena na samu jedinicu (npr. energetski pasoš, planovi) prikazuje se ovde."
+                />
+              </section>
             </CardContent>
           </Card>
 

@@ -36,11 +36,17 @@ export const GET = apiHandler({}, async ({ query, searchParams }) => {
   const category = categoryRaw && (CATEGORIES as readonly string[]).includes(categoryRaw)
     ? (categoryRaw as DocumentCategory)
     : undefined;
+  // `excludeImages=1` mirrors PhotoGallery's imagesOnly flag from the
+  // other direction. Used by the sale detail page to render only
+  // Unit-attached non-image documents (photos live in the gallery).
+  const excludeImages = searchParams.get("excludeImages") === "1"
+    || searchParams.get("excludeImages") === "true";
   const { items, total } = await listDocuments({
     organizationId: ctx.organization.organizationId,
     entityType,
     entityId,
     category,
+    excludeImages,
     page: query.page,
     pageSize: query.pageSize,
   });

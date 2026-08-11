@@ -54,6 +54,12 @@ export default async function SettingsLayout({ children }: { children: ReactNode
         >
           Fakture
         </Link>
+        <Link
+          className="rounded-md border border-[var(--color-border)] px-3 py-1.5 text-sm hover:bg-[var(--color-surface-inset)]"
+          href="/podesavanja/planovi-placanja"
+        >
+          Planovi plaćanja
+        </Link>
       </nav>
       {children}
     </div>

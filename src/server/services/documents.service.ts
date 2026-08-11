@@ -49,6 +49,13 @@ export interface ListDocumentsInput {
    * pages.
    */
   imagesOnly?: boolean;
+  /**
+   * When true, filters OUT documents whose `mimeType` starts with
+   * `image/`. Complement of `imagesOnly` — used by the sale detail's
+   * "Dokumentacija jedinice" pane, which does not want to duplicate
+   * the photo gallery.
+   */
+  excludeImages?: boolean;
   page: number;
   pageSize: number;
 }
@@ -120,6 +127,9 @@ export async function listDocuments(input: ListDocumentsInput) {
     deletedAt: null,
     ...(input.category ? { category: input.category } : {}),
     ...(input.imagesOnly ? { mimeType: { startsWith: "image/" } } : {}),
+    ...(input.excludeImages
+      ? { NOT: { mimeType: { startsWith: "image/" } } }
+      : {}),
   };
   // The gallery uses (sortOrder ASC, createdAt DESC) so operator drag
   // ordering wins, but new uploads that keep the default sortOrder are

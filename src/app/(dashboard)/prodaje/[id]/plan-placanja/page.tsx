@@ -10,6 +10,7 @@ import { DomainError } from "@/lib/errors";
 import { formatDate, formatMoney } from "@/lib/formatters";
 import type { SupportedCurrency } from "@/lib/constants/app";
 import { PaymentPlanForm } from "@/features/sales/payment-plan-form";
+import { AddInstallmentButton } from "@/features/sales/add-installment-form";
 
 export const dynamic = "force-dynamic";
 
@@ -67,10 +68,36 @@ export default async function PlanPlacanjaPage({ params }: PageProps) {
 
       {plan ? (
         <Card>
-          <CardHeader>
+          <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0">
             <CardTitle className="text-sm">{plan.name}</CardTitle>
+            {canManage && plan.status !== "CANCELED" ? (
+              <AddInstallmentButton saleId={sale.id} currency={sale.currency} />
+            ) : null}
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-3">
+            {(() => {
+              const installmentSum = plan.installments.reduce(
+                (acc, i) => acc + Number(i.amount.toString()),
+                0,
+              );
+              const finalNum = Number(sale.finalPrice.toString());
+              const diff = installmentSum - finalNum;
+              if (Math.abs(diff) < 0.01) return null;
+              const dir = diff > 0 ? "+" : "";
+              return (
+                <div className="rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900">
+                  Zbir rata je{" "}
+                  <strong>{formatMoney(installmentSum, currency)}</strong>,
+                  ugovorena cena{" "}
+                  <strong>{formatMoney(finalNum, currency)}</strong> (razlika{" "}
+                  <strong>
+                    {dir}
+                    {formatMoney(diff, currency)}
+                  </strong>
+                  ).
+                </div>
+              );
+            })()}
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-[var(--color-border)] text-sm">
                 <thead className="text-left text-xs uppercase tracking-wide text-[var(--color-foreground-muted)]">
@@ -115,6 +142,7 @@ export default async function PlanPlacanjaPage({ params }: PageProps) {
               saleId={sale.id}
               currency={sale.currency}
               finalPrice={sale.finalPrice.toString()}
+              projectId={sale.projectId}
             />
           </CardContent>
         </Card>
