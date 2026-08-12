@@ -55,10 +55,10 @@ try {
 }
 
 # ----- 2) poll build log ---------------------------------------------------
-# With BuildKit cache mounts (pnpm store + .next/cache), most builds finish
-# in 5-10 min. 15 min is a safe upper bound for cold cache.
-Info "Waiting for detached build (up to 15 min)"
-$buildDeadline = (Get-Date).AddMinutes(15)
+# With BuildKit cache mount for .next/cache, most builds finish in 10-15 min.
+# 20 min is a safe upper bound for cold cache or large changes.
+Info "Waiting for detached build (up to 20 min)"
+$buildDeadline = (Get-Date).AddMinutes(20)
 $buildStatus = $null
 $lastLen = 0
 while ((Get-Date) -lt $buildDeadline) {
@@ -84,7 +84,7 @@ if ($buildStatus -eq "ok") {
   & ssh @ssh "${User}@${RemoteHost}" "tail -n 60 /tmp/build.log"
   throw "remote build failed"
 } else {
-  Warn "build did not finish in 15 min - dumping tail for inspection"
+  Warn "build did not finish in 20 min - dumping tail for inspection"
   & ssh @ssh "${User}@${RemoteHost}" "tail -n 60 /tmp/build.log"
   throw "remote build timed out"
 }
