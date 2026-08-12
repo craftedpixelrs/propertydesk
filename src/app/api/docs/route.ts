@@ -14,9 +14,14 @@ export const runtime = "nodejs";
  * NOTE: The spec is generated at BUILD TIME by `scripts/build-swagger-spec.ts`
  * and written to `public/api-docs.json`. This is necessary because
  * `next-swagger-doc` reads route source files at runtime to extract JSDoc
- * @swagger blocks, but in production builds those comments are stripped
- * from the bundled output. By generating the spec at build time and writing
- * it to `public/`, we guarantee it's always available.
+ * swagger annotation blocks, but in production builds those comments are
+ * stripped from the bundled output. By generating the spec at build time
+ * and writing it to `public/`, we guarantee it's always available.
+ *
+ * IMPORTANT: do not write the literal at-swagger token in prose above
+ * the real annotation — swagger-jsdoc treats every occurrence as a path
+ * definition and used to inject hundreds of junk numeric paths into the
+ * published spec.
  *
  * @swagger
  * /api/docs:

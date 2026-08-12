@@ -64,7 +64,10 @@ function toOpenApiPath(rel: string): { path: string; tag: string } {
 function isPublicRoute(path: string): boolean {
   return (
     path.startsWith("/api/public") ||
+    path.startsWith("/api/v1/public") ||
     path.startsWith("/api/health") ||
+    path.startsWith("/api/v1/health") ||
+    path.startsWith("/api/v1/marketing") ||
     path.startsWith("/api/auth") ||
     path === "/api/docs"
   );

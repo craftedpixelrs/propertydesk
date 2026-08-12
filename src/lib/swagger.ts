@@ -4,9 +4,12 @@ import { createSwaggerSpec } from "next-swagger-doc";
  * OpenAPI 3.1 spec for the PropertyDesk REST API.
  *
  * Route documentation lives inline next to every handler in
- * `src/app/api/**\/route.ts` as JSDoc `@swagger` blocks. This keeps
+ * `src/app/api/**\/route.ts` as JSDoc swagger annotation blocks. This keeps
  * documentation versioned together with the code and lets us diff spec
  * changes in the same PR review that ships the behaviour.
+ *
+ * Do not write the literal at-swagger token in prose comments — swagger-jsdoc
+ * treats every occurrence as a path definition and injects junk numeric keys.
  *
  * The resulting spec is served at `/api/docs` and rendered by Swagger UI
  * at `/api-docs`.
@@ -39,23 +42,29 @@ export const getApiDocs = () =>
         },
         license: { name: "Proprietary" },
       },
+      // Relative "/" first so Swagger UI Try-it-out always hits the same
+      // origin the docs are served from. Absolute URLs are opt-in for
+      // curling from elsewhere — putting localhost first used to make
+      // production Try-it-out "Failed to fetch" (CSP blocks http:, mixed
+      // content, no CORS).
       servers: [
         {
-          url: "http://localhost:3000",
-          description: "Local development",
+          url: "/",
+          description: "Trenutni host (same-origin — koristi za Try it out)",
         },
         {
           url: "https://my.propertydesk.app",
           description: "Production",
         },
         {
-          url: "https://staging.propertydesk.app",
-          description: "Staging",
+          url: "http://localhost:3000",
+          description: "Local development",
         },
       ],
       tags: [
         { name: "auth", description: "Autentifikacija (Better Auth)" },
         { name: "health", description: "Health / readiness" },
+        { name: "me", description: "Trenutni korisnik / sesija kontekst" },
         { name: "projects", description: "Projekti" },
         { name: "buildings", description: "Objekti" },
         { name: "entrances", description: "Ulazi" },
@@ -87,7 +96,8 @@ export const getApiDocs = () =>
         { name: "billing", description: "Naplata, fakture, SEF, izvodi" },
         { name: "platform", description: "Platform admin" },
         { name: "public", description: "Javne rute (bez auth)" },
-        { name: "cron", description: "Ručno okidanje scheduled jobova" },
+        { name: "marketing", description: "Marketing lead forme (javno)" },
+        { name: "jobs", description: "Ručno okidanje scheduled jobova" },
         { name: "sale-contract-templates", description: "Šabloni ugovora (Faza 8)" },
       ],
       components: {
@@ -95,9 +105,16 @@ export const getApiDocs = () =>
           cookieAuth: {
             type: "apiKey",
             in: "cookie",
-            name: "__Secure-better-auth.session_token",
-            description:
-              "Better Auth session cookie. Dobija se kroz `/api/auth/sign-in/*` ili login formu. Svi `/api/v1/*` endpointi (izuzev `public/*` i `health`) zahtevaju ovaj cookie.",
+            name: "__Secure-propertydesk.session_token",
+            description: [
+              "Better Auth session cookie (`cookiePrefix: propertydesk`).",
+              "U produkciji: `__Secure-propertydesk.session_token` (HttpOnly, Secure, SameSite=Lax).",
+              "U lokalnom dev-u (bez Secure): `propertydesk.session_token`.",
+              "",
+              "Swagger Authorize **ne može** da setuje HttpOnly cookie — za Try it out",
+              "prvo se uloguj na `/sign-in` u istom browseru (isti origin), pa tek onda",
+              "pozovi zaštićene endpointe. Cookie se šalje automatski.",
+            ].join("\n"),
           },
         },
         schemas: {
@@ -290,7 +307,8 @@ export const getApiDocs = () =>
                     code: "VALIDATION_ERROR",
                     message: "Podaci nisu ispravni.",
                     fieldErrors: {
-                      basePrice: ["Mora biti pozitivan broj."],
+                      email: ["Neispravan format e-mail adrese."],
+                      password: ["Mora imati najmanje 10 karaktera."],
                     },
                     requestId: "f1d2a5f2-0e4a-4b13-8a51-96ecffec5d51",
                   },

@@ -15,16 +15,16 @@
   },
   "servers": [
     {
-      "url": "http://localhost:3000",
-      "description": "Local development"
+      "url": "/",
+      "description": "Trenutni host (same-origin — koristi za Try it out)"
     },
     {
       "url": "https://my.propertydesk.app",
       "description": "Production"
     },
     {
-      "url": "https://staging.propertydesk.app",
-      "description": "Staging"
+      "url": "http://localhost:3000",
+      "description": "Local development"
     }
   ],
   "tags": [
@@ -35,6 +35,10 @@
     {
       "name": "health",
       "description": "Health / readiness"
+    },
+    {
+      "name": "me",
+      "description": "Trenutni korisnik / sesija kontekst"
     },
     {
       "name": "projects",
@@ -161,7 +165,11 @@
       "description": "Javne rute (bez auth)"
     },
     {
-      "name": "cron",
+      "name": "marketing",
+      "description": "Marketing lead forme (javno)"
+    },
+    {
+      "name": "jobs",
       "description": "Ručno okidanje scheduled jobova"
     },
     {
@@ -174,8 +182,8 @@
       "cookieAuth": {
         "type": "apiKey",
         "in": "cookie",
-        "name": "__Secure-better-auth.session_token",
-        "description": "Better Auth session cookie. Dobija se kroz `/api/auth/sign-in/*` ili login formu. Svi `/api/v1/*` endpointi (izuzev `public/*` i `health`) zahtevaju ovaj cookie."
+        "name": "__Secure-propertydesk.session_token",
+        "description": "Better Auth session cookie (`cookiePrefix: propertydesk`).\nU produkciji: `__Secure-propertydesk.session_token` (HttpOnly, Secure, SameSite=Lax).\nU lokalnom dev-u (bez Secure): `propertydesk.session_token`.\n\nSwagger Authorize **ne može** da setuje HttpOnly cookie — za Try it out\nprvo se uloguj na `/sign-in` u istom browseru (isti origin), pa tek onda\npozovi zaštićene endpointe. Cookie se šalje automatski."
       }
     },
     "schemas": {
@@ -419,8 +427,11 @@
                 "code": "VALIDATION_ERROR",
                 "message": "Podaci nisu ispravni.",
                 "fieldErrors": {
-                  "basePrice": [
-                    "Mora biti pozitivan broj."
+                  "email": [
+                    "Neispravan format e-mail adrese."
+                  ],
+                  "password": [
+                    "Mora imati najmanje 10 karaktera."
                   ]
                 },
                 "requestId": "f1d2a5f2-0e4a-4b13-8a51-96ecffec5d51"
@@ -455,567 +466,6 @@
     }
   ],
   "paths": {
-    "0": {
-      "0": "b"
-    },
-    "1": {
-      "0": "l"
-    },
-    "2": {
-      "0": "o"
-    },
-    "3": {
-      "0": "c"
-    },
-    "4": {
-      "0": "k"
-    },
-    "5": {
-      "0": "s"
-    },
-    "6": {
-      "0": ","
-    },
-    "7": {
-      "0": " "
-    },
-    "8": {
-      "0": "b"
-    },
-    "9": {
-      "0": "u"
-    },
-    "10": {
-      "0": "t"
-    },
-    "11": {
-      "0": " "
-    },
-    "12": {
-      "0": "i"
-    },
-    "13": {
-      "0": "n"
-    },
-    "14": {
-      "0": " "
-    },
-    "15": {
-      "0": "p"
-    },
-    "16": {
-      "0": "r"
-    },
-    "17": {
-      "0": "o"
-    },
-    "18": {
-      "0": "d"
-    },
-    "19": {
-      "0": "u"
-    },
-    "20": {
-      "0": "c"
-    },
-    "21": {
-      "0": "t"
-    },
-    "22": {
-      "0": "i"
-    },
-    "23": {
-      "0": "o"
-    },
-    "24": {
-      "0": "n"
-    },
-    "25": {
-      "0": " "
-    },
-    "26": {
-      "0": "b"
-    },
-    "27": {
-      "0": "u"
-    },
-    "28": {
-      "0": "i"
-    },
-    "29": {
-      "0": "l"
-    },
-    "30": {
-      "0": "d"
-    },
-    "31": {
-      "0": "s"
-    },
-    "32": {
-      "0": " "
-    },
-    "33": {
-      "0": "t"
-    },
-    "34": {
-      "0": "h"
-    },
-    "35": {
-      "0": "o"
-    },
-    "36": {
-      "0": "s"
-    },
-    "37": {
-      "0": "e"
-    },
-    "38": {
-      "0": " "
-    },
-    "39": {
-      "0": "c"
-    },
-    "40": {
-      "0": "o"
-    },
-    "41": {
-      "0": "m"
-    },
-    "42": {
-      "0": "m"
-    },
-    "43": {
-      "0": "e"
-    },
-    "44": {
-      "0": "n"
-    },
-    "45": {
-      "0": "t"
-    },
-    "46": {
-      "0": "s"
-    },
-    "47": {
-      "0": " "
-    },
-    "48": {
-      "0": "a"
-    },
-    "49": {
-      "0": "r"
-    },
-    "50": {
-      "0": "e"
-    },
-    "51": {
-      "0": " "
-    },
-    "52": {
-      "0": "s"
-    },
-    "53": {
-      "0": "t"
-    },
-    "54": {
-      "0": "r"
-    },
-    "55": {
-      "0": "i"
-    },
-    "56": {
-      "0": "p"
-    },
-    "57": {
-      "0": "p"
-    },
-    "58": {
-      "0": "e"
-    },
-    "59": {
-      "0": "d"
-    },
-    "60": {
-      "0": " "
-    },
-    "61": {
-      "0": "f"
-    },
-    "62": {
-      "0": "r"
-    },
-    "63": {
-      "0": "o"
-    },
-    "64": {
-      "0": "m"
-    },
-    "65": {
-      "0": " "
-    },
-    "66": {
-      "0": "t"
-    },
-    "67": {
-      "0": "h"
-    },
-    "68": {
-      "0": "e"
-    },
-    "69": {
-      "0": " "
-    },
-    "70": {
-      "0": "b"
-    },
-    "71": {
-      "0": "u"
-    },
-    "72": {
-      "0": "n"
-    },
-    "73": {
-      "0": "d"
-    },
-    "74": {
-      "0": "l"
-    },
-    "75": {
-      "0": "e"
-    },
-    "76": {
-      "0": "d"
-    },
-    "77": {
-      "0": " "
-    },
-    "78": {
-      "0": "o"
-    },
-    "79": {
-      "0": "u"
-    },
-    "80": {
-      "0": "t"
-    },
-    "81": {
-      "0": "p"
-    },
-    "82": {
-      "0": "u"
-    },
-    "83": {
-      "0": "t"
-    },
-    "84": {
-      "0": "."
-    },
-    "85": {
-      "0": " "
-    },
-    "86": {
-      "0": "B"
-    },
-    "87": {
-      "0": "y"
-    },
-    "88": {
-      "0": " "
-    },
-    "89": {
-      "0": "g"
-    },
-    "90": {
-      "0": "e"
-    },
-    "91": {
-      "0": "n"
-    },
-    "92": {
-      "0": "e"
-    },
-    "93": {
-      "0": "r"
-    },
-    "94": {
-      "0": "a"
-    },
-    "95": {
-      "0": "t"
-    },
-    "96": {
-      "0": "i"
-    },
-    "97": {
-      "0": "n"
-    },
-    "98": {
-      "0": "g"
-    },
-    "99": {
-      "0": " "
-    },
-    "100": {
-      "0": "t"
-    },
-    "101": {
-      "0": "h"
-    },
-    "102": {
-      "0": "e"
-    },
-    "103": {
-      "0": " "
-    },
-    "104": {
-      "0": "s"
-    },
-    "105": {
-      "0": "p"
-    },
-    "106": {
-      "0": "e"
-    },
-    "107": {
-      "0": "c"
-    },
-    "108": {
-      "0": " "
-    },
-    "109": {
-      "0": "a"
-    },
-    "110": {
-      "0": "t"
-    },
-    "111": {
-      "0": " "
-    },
-    "112": {
-      "0": "b"
-    },
-    "113": {
-      "0": "u"
-    },
-    "114": {
-      "0": "i"
-    },
-    "115": {
-      "0": "l"
-    },
-    "116": {
-      "0": "d"
-    },
-    "117": {
-      "0": " "
-    },
-    "118": {
-      "0": "t"
-    },
-    "119": {
-      "0": "i"
-    },
-    "120": {
-      "0": "m"
-    },
-    "121": {
-      "0": "e"
-    },
-    "122": {
-      "0": " "
-    },
-    "123": {
-      "0": "a"
-    },
-    "124": {
-      "0": "n"
-    },
-    "125": {
-      "0": "d"
-    },
-    "126": {
-      "0": " "
-    },
-    "127": {
-      "0": "w"
-    },
-    "128": {
-      "0": "r"
-    },
-    "129": {
-      "0": "i"
-    },
-    "130": {
-      "0": "t"
-    },
-    "131": {
-      "0": "i"
-    },
-    "132": {
-      "0": "n"
-    },
-    "133": {
-      "0": "g"
-    },
-    "134": {
-      "0": " "
-    },
-    "135": {
-      "0": "i"
-    },
-    "136": {
-      "0": "t"
-    },
-    "137": {
-      "0": " "
-    },
-    "138": {
-      "0": "t"
-    },
-    "139": {
-      "0": "o"
-    },
-    "140": {
-      "0": " "
-    },
-    "141": {
-      "0": "`"
-    },
-    "142": {
-      "0": "p"
-    },
-    "143": {
-      "0": "u"
-    },
-    "144": {
-      "0": "b"
-    },
-    "145": {
-      "0": "l"
-    },
-    "146": {
-      "0": "i"
-    },
-    "147": {
-      "0": "c"
-    },
-    "148": {
-      "0": "/"
-    },
-    "149": {
-      "0": "`"
-    },
-    "150": {
-      "0": ","
-    },
-    "151": {
-      "0": " "
-    },
-    "152": {
-      "0": "w"
-    },
-    "153": {
-      "0": "e"
-    },
-    "154": {
-      "0": " "
-    },
-    "155": {
-      "0": "g"
-    },
-    "156": {
-      "0": "u"
-    },
-    "157": {
-      "0": "a"
-    },
-    "158": {
-      "0": "r"
-    },
-    "159": {
-      "0": "a"
-    },
-    "160": {
-      "0": "n"
-    },
-    "161": {
-      "0": "t"
-    },
-    "162": {
-      "0": "e"
-    },
-    "163": {
-      "0": "e"
-    },
-    "164": {
-      "0": " "
-    },
-    "165": {
-      "0": "i"
-    },
-    "166": {
-      "0": "t"
-    },
-    "167": {
-      "0": "'"
-    },
-    "168": {
-      "0": "s"
-    },
-    "169": {
-      "0": " "
-    },
-    "170": {
-      "0": "a"
-    },
-    "171": {
-      "0": "l"
-    },
-    "172": {
-      "0": "w"
-    },
-    "173": {
-      "0": "a"
-    },
-    "174": {
-      "0": "y"
-    },
-    "175": {
-      "0": "s"
-    },
-    "176": {
-      "0": " "
-    },
-    "177": {
-      "0": "a"
-    },
-    "178": {
-      "0": "v"
-    },
-    "179": {
-      "0": "a"
-    },
-    "180": {
-      "0": "i"
-    },
-    "181": {
-      "0": "l"
-    },
-    "182": {
-      "0": "a"
-    },
-    "183": {
-      "0": "b"
-    },
-    "184": {
-      "0": "l"
-    },
-    "185": {
-      "0": "e"
-    },
-    "186": {
-      "0": "."
-    },
     "/api/auth/{path}": {
       "get": {
         "tags": [
@@ -1097,7 +547,7 @@
           "auth"
         ],
         "summary": "Prijava email + lozinka",
-        "description": "Vraća session cookie (`__Secure-better-auth.session_token`, HttpOnly,\nSecure, SameSite=Lax) i user objekat. `requireEmailVerification: true`\nznači da se ne može ući dok email nije potvrđen.\n",
+        "description": "Vraća session cookie (`__Secure-propertydesk.session_token` u\nprodukciji; `propertydesk.session_token` lokalno — HttpOnly,\nSameSite=Lax) i user objekat. `requireEmailVerification: true`\nznači da se ne može ući dok email nije potvrđen.\n\n**Swagger Try it out:** Authorize ne može da setuje HttpOnly cookie.\nPozovi ovaj endpoint iz Swaggera na istom originu — browser će sam\nsačuvati Set-Cookie i koristiti ga za sledeće pozive.\n",
         "security": [],
         "requestBody": {
           "required": true,
@@ -1122,8 +572,8 @@
                 }
               },
               "example": {
-                "email": "pera@investitor.rs",
-                "password": "super-tajna-lozinka-123"
+                "email": "admin@propertydesk.test",
+                "password": "PropertyDesk!2026"
               }
             }
           }
@@ -1173,8 +623,33 @@
           "400": {
             "description": "Pogrešan email ili lozinka (namerno generično)."
           },
+          "401": {
+            "description": "Nalog nije pronađen ili lozinka ne odgovara (Better Auth)."
+          },
           "422": {
-            "$ref": "#/components/responses/ValidationFailed"
+            "description": "Ulaz nije validan (npr. prekratka lozinka, loš email format).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": {
+                    "code": "VALIDATION_ERROR",
+                    "message": "Podaci nisu ispravni.",
+                    "fieldErrors": {
+                      "email": [
+                        "Neispravan format e-mail adrese."
+                      ],
+                      "password": [
+                        "Mora imati najmanje 10 karaktera."
+                      ]
+                    },
+                    "requestId": "f1d2a5f2-0e4a-4b13-8a51-96ecffec5d51"
+                  }
+                }
+              }
+            }
           }
         }
       }
@@ -1222,7 +697,29 @@
             "description": "Nalog kreiran, verification email poslat."
           },
           "422": {
-            "$ref": "#/components/responses/ValidationFailed"
+            "description": "Ulaz nije validan.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": {
+                    "code": "VALIDATION_ERROR",
+                    "message": "Podaci nisu ispravni.",
+                    "fieldErrors": {
+                      "email": [
+                        "Neispravan format e-mail adrese."
+                      ],
+                      "password": [
+                        "Mora imati najmanje 10 karaktera."
+                      ]
+                    },
+                    "requestId": "f1d2a5f2-0e4a-4b13-8a51-96ecffec5d51"
+                  }
+                }
+              }
+            }
           }
         }
       }
@@ -1234,6 +731,11 @@
         ],
         "summary": "Odjava",
         "description": "Briše session cookie i invalidira sesiju u bazi.",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
         "responses": {
           "200": {
             "description": "Uspešna odjava."
@@ -1251,6 +753,11 @@
         ],
         "summary": "Trenutna sesija",
         "description": "Vraća user + session objekat, uključujući `impersonatedBy` ako\nsuper-admin trenutno impersonira korisnika. Za kompletniji payload\n(aktivna organizacija, platform role) koristi `/api/v1/me`.\n",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
         "responses": {
           "200": {
             "description": "Sesija postoji.",
@@ -3784,16 +3291,15 @@
         "tags": [
           "health"
         ],
-        "summary": "List / read health",
+        "summary": "Readiness probe",
+        "description": "Javni endpoint — proverava da li app može da služi saobraćaj.",
+        "security": [],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "Spreman"
           },
-          "401": {
-            "$ref": "#/components/responses/Unauthenticated"
-          },
-          "403": {
-            "$ref": "#/components/responses/Forbidden"
+          "503": {
+            "description": "Zavisnost (npr. baza) nije dostupna"
           }
         }
       }
@@ -3803,16 +3309,12 @@
         "tags": [
           "health"
         ],
-        "summary": "List / read health",
+        "summary": "Liveness probe",
+        "description": "Javni endpoint — nema autentikacije. Vraća status + verziju.",
+        "security": [],
         "responses": {
           "200": {
             "description": "OK"
-          },
-          "401": {
-            "$ref": "#/components/responses/Unauthenticated"
-          },
-          "403": {
-            "$ref": "#/components/responses/Forbidden"
           }
         }
       }
@@ -3862,7 +3364,9 @@
         "tags": [
           "marketing"
         ],
-        "summary": "Create marketing",
+        "summary": "Prijava lead-a sa marketing landing stranice",
+        "description": "Javni endpoint — bez autentikacije. Rate-limitovan.",
+        "security": [],
         "requestBody": {
           "required": true,
           "content": {
@@ -3876,13 +3380,13 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "Lead primljen"
           },
-          "401": {
-            "$ref": "#/components/responses/Unauthenticated"
+          "422": {
+            "$ref": "#/components/responses/ValidationFailed"
           },
-          "403": {
-            "$ref": "#/components/responses/Forbidden"
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
           }
         }
       }
@@ -5226,7 +4730,9 @@
         "tags": [
           "public"
         ],
-        "summary": "List / read public",
+        "summary": "IPS QR za javnu rezervaciju",
+        "description": "Javni endpoint — vraća QR PNG/SVG za uplatu kapare.",
+        "security": [],
         "parameters": [
           {
             "in": "path",
@@ -5239,13 +4745,10 @@
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "QR image"
           },
-          "401": {
-            "$ref": "#/components/responses/Unauthenticated"
-          },
-          "403": {
-            "$ref": "#/components/responses/Forbidden"
+          "404": {
+            "$ref": "#/components/responses/NotFound"
           }
         }
       }

@@ -72,9 +72,14 @@ export const { GET, POST } = toNextJsHandler(auth);
  *     tags: [auth]
  *     summary: Prijava email + lozinka
  *     description: |
- *       Vraća session cookie (`__Secure-better-auth.session_token`, HttpOnly,
- *       Secure, SameSite=Lax) i user objekat. `requireEmailVerification: true`
+ *       Vraća session cookie (`__Secure-propertydesk.session_token` u
+ *       produkciji; `propertydesk.session_token` lokalno — HttpOnly,
+ *       SameSite=Lax) i user objekat. `requireEmailVerification: true`
  *       znači da se ne može ući dok email nije potvrđen.
+ *
+ *       **Swagger Try it out:** Authorize ne može da setuje HttpOnly cookie.
+ *       Pozovi ovaj endpoint iz Swaggera na istom originu — browser će sam
+ *       sačuvati Set-Cookie i koristiti ga za sledeće pozive.
  *     security: []
  *     requestBody:
  *       required: true
@@ -87,8 +92,8 @@ export const { GET, POST } = toNextJsHandler(auth);
  *               email: { type: string, format: email }
  *               password: { type: string, minLength: 10, maxLength: 128 }
  *           example:
- *             email: pera@investitor.rs
- *             password: "super-tajna-lozinka-123"
+ *             email: admin@propertydesk.test
+ *             password: "PropertyDesk!2026"
  *     responses:
  *       "200":
  *         description: Uspešna prijava. Session cookie je set-ovan.
@@ -111,8 +116,22 @@ export const { GET, POST } = toNextJsHandler(auth);
  *                     expiresAt: { type: string, format: date-time }
  *       "400":
  *         description: Pogrešan email ili lozinka (namerno generično).
+ *       "401":
+ *         description: Nalog nije pronađen ili lozinka ne odgovara (Better Auth).
  *       "422":
- *         $ref: "#/components/responses/ValidationFailed"
+ *         description: Ulaz nije validan (npr. prekratka lozinka, loš email format).
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
+ *             example:
+ *               error:
+ *                 code: VALIDATION_ERROR
+ *                 message: Podaci nisu ispravni.
+ *                 fieldErrors:
+ *                   email: ["Neispravan format e-mail adrese."]
+ *                   password: ["Mora imati najmanje 10 karaktera."]
+ *                 requestId: f1d2a5f2-0e4a-4b13-8a51-96ecffec5d51
  * /api/auth/sign-up/email:
  *   post:
  *     tags: [auth]
@@ -136,12 +155,26 @@ export const { GET, POST } = toNextJsHandler(auth);
  *       "200":
  *         description: Nalog kreiran, verification email poslat.
  *       "422":
- *         $ref: "#/components/responses/ValidationFailed"
+ *         description: Ulaz nije validan.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Error"
+ *             example:
+ *               error:
+ *                 code: VALIDATION_ERROR
+ *                 message: Podaci nisu ispravni.
+ *                 fieldErrors:
+ *                   email: ["Neispravan format e-mail adrese."]
+ *                   password: ["Mora imati najmanje 10 karaktera."]
+ *                 requestId: f1d2a5f2-0e4a-4b13-8a51-96ecffec5d51
  * /api/auth/sign-out:
  *   post:
  *     tags: [auth]
  *     summary: Odjava
  *     description: Briše session cookie i invalidira sesiju u bazi.
+ *     security:
+ *       - cookieAuth: []
  *     responses:
  *       "200":
  *         description: Uspešna odjava.
@@ -155,6 +188,8 @@ export const { GET, POST } = toNextJsHandler(auth);
  *       Vraća user + session objekat, uključujući `impersonatedBy` ako
  *       super-admin trenutno impersonira korisnika. Za kompletniji payload
  *       (aktivna organizacija, platform role) koristi `/api/v1/me`.
+ *     security:
+ *       - cookieAuth: []
  *     responses:
  *       "200":
  *         description: Sesija postoji.
