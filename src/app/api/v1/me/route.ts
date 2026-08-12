@@ -33,3 +33,19 @@ export const GET = apiHandler({}, async () => {
     },
   };
 });
+
+/**
+ * @swagger
+ * /api/v1/me:
+ *   get:
+ *     tags:
+ *       - me
+ *     summary: List / read me
+ *     responses:
+ *       "200":
+ *         description: OK
+ *       "401":
+ *         $ref: "#/components/responses/Unauthenticated"
+ *       "403":
+ *         $ref: "#/components/responses/Forbidden"
+ */

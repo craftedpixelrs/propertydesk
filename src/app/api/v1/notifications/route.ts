@@ -14,3 +14,19 @@ export const GET = apiHandler({}, async ({ query, searchParams }) => {
   const { items: pageItems, pagination } = paginate(items, query.page, query.pageSize, total);
   return { data: pageItems, meta: { pagination, unreadCount } };
 });
+
+/**
+ * @swagger
+ * /api/v1/notifications:
+ *   get:
+ *     tags:
+ *       - notifications
+ *     summary: List / read notifications
+ *     responses:
+ *       "200":
+ *         description: OK
+ *       "401":
+ *         $ref: "#/components/responses/Unauthenticated"
+ *       "403":
+ *         $ref: "#/components/responses/Forbidden"
+ */

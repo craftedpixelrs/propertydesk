@@ -64,3 +64,32 @@ export const POST = apiHandler({ paramsSchema, bodySchema }, async ({ params, bo
       };
   }
 });
+
+/**
+ * @swagger
+ * /api/v1/commissions/{id}/actions:
+ *   post:
+ *     tags:
+ *       - commissions
+ *     summary: Create commissions
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             additionalProperties: true
+ *     responses:
+ *       "200":
+ *         description: OK
+ *       "401":
+ *         $ref: "#/components/responses/Unauthenticated"
+ *       "403":
+ *         $ref: "#/components/responses/Forbidden"
+ */

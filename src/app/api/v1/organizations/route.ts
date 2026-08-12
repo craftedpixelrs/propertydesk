@@ -30,3 +30,19 @@ export const GET = apiHandler({}, async ({ query }) => {
     meta: { pagination },
   };
 });
+
+/**
+ * @swagger
+ * /api/v1/organizations:
+ *   get:
+ *     tags:
+ *       - organizations
+ *     summary: List / read organizations
+ *     responses:
+ *       "200":
+ *         description: OK
+ *       "401":
+ *         $ref: "#/components/responses/Unauthenticated"
+ *       "403":
+ *         $ref: "#/components/responses/Forbidden"
+ */

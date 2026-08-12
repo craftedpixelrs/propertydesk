@@ -46,3 +46,32 @@ export const POST = apiHandler(
     };
   },
 );
+
+/**
+ * @swagger
+ * /api/v1/billing/templates/{key}/preview:
+ *   post:
+ *     tags:
+ *       - billing
+ *     summary: Create billing
+ *     parameters:
+ *       - in: path
+ *         name: key
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             additionalProperties: true
+ *     responses:
+ *       "200":
+ *         description: OK
+ *       "401":
+ *         $ref: "#/components/responses/Unauthenticated"
+ *       "403":
+ *         $ref: "#/components/responses/Forbidden"
+ */

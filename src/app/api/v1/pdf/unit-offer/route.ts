@@ -34,3 +34,26 @@ export const POST = apiHandler({ bodySchema: schema }, async ({ body }): Promise
     headers: pdfResponseHeaders(`ponuda-${body.unitId.slice(0, 8)}`),
   });
 });
+
+/**
+ * @swagger
+ * /api/v1/pdf/unit-offer:
+ *   post:
+ *     tags:
+ *       - pdf
+ *     summary: Create pdf
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             additionalProperties: true
+ *     responses:
+ *       "200":
+ *         description: OK
+ *       "401":
+ *         $ref: "#/components/responses/Unauthenticated"
+ *       "403":
+ *         $ref: "#/components/responses/Forbidden"
+ */

@@ -38,3 +38,19 @@ export const GET = apiHandler({}, async ({ query, searchParams }) => {
   const { items: pageItems, pagination } = paginate(items, query.page, query.pageSize, total);
   return { data: pageItems, meta: { pagination } };
 });
+
+/**
+ * @swagger
+ * /api/v1/agency-registrations:
+ *   get:
+ *     tags:
+ *       - agency-registrations
+ *     summary: List / read agency-registrations
+ *     responses:
+ *       "200":
+ *         description: OK
+ *       "401":
+ *         $ref: "#/components/responses/Unauthenticated"
+ *       "403":
+ *         $ref: "#/components/responses/Forbidden"
+ */

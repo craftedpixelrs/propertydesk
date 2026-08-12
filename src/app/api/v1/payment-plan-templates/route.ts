@@ -53,3 +53,37 @@ export const POST = apiHandler(
     return { data: created, status: 201 };
   },
 );
+
+/**
+ * @swagger
+ * /api/v1/payment-plan-templates:
+ *   get:
+ *     tags:
+ *       - payment-plan-templates
+ *     summary: List / read payment-plan-templates
+ *     responses:
+ *       "200":
+ *         description: OK
+ *       "401":
+ *         $ref: "#/components/responses/Unauthenticated"
+ *       "403":
+ *         $ref: "#/components/responses/Forbidden"
+ *   post:
+ *     tags:
+ *       - payment-plan-templates
+ *     summary: Create payment-plan-templates
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             additionalProperties: true
+ *     responses:
+ *       "200":
+ *         description: OK
+ *       "401":
+ *         $ref: "#/components/responses/Unauthenticated"
+ *       "403":
+ *         $ref: "#/components/responses/Forbidden"
+ */

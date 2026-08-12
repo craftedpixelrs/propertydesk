@@ -71,3 +71,37 @@ export const POST = apiHandler({ bodySchema: createSchema }, async ({ body }) =>
   });
   return { data: sale, status: 201 };
 });
+
+/**
+ * @swagger
+ * /api/v1/sales:
+ *   get:
+ *     tags:
+ *       - sales
+ *     summary: List / read sales
+ *     responses:
+ *       "200":
+ *         description: OK
+ *       "401":
+ *         $ref: "#/components/responses/Unauthenticated"
+ *       "403":
+ *         $ref: "#/components/responses/Forbidden"
+ *   post:
+ *     tags:
+ *       - sales
+ *     summary: Create sales
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             additionalProperties: true
+ *     responses:
+ *       "200":
+ *         description: OK
+ *       "401":
+ *         $ref: "#/components/responses/Unauthenticated"
+ *       "403":
+ *         $ref: "#/components/responses/Forbidden"
+ */

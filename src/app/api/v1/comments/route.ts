@@ -53,3 +53,37 @@ export const POST = apiHandler(
     return { data: created, status: 201 };
   },
 );
+
+/**
+ * @swagger
+ * /api/v1/comments:
+ *   get:
+ *     tags:
+ *       - comments
+ *     summary: List / read comments
+ *     responses:
+ *       "200":
+ *         description: OK
+ *       "401":
+ *         $ref: "#/components/responses/Unauthenticated"
+ *       "403":
+ *         $ref: "#/components/responses/Forbidden"
+ *   post:
+ *     tags:
+ *       - comments
+ *     summary: Create comments
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             additionalProperties: true
+ *     responses:
+ *       "200":
+ *         description: OK
+ *       "401":
+ *         $ref: "#/components/responses/Unauthenticated"
+ *       "403":
+ *         $ref: "#/components/responses/Forbidden"
+ */

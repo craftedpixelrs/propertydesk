@@ -11,3 +11,32 @@ export const POST = apiHandler({ paramsSchema }, async ({ params }) => {
   await markNotificationRead(session.user.id, params.id);
   return { data: { ok: true } };
 });
+
+/**
+ * @swagger
+ * /api/v1/notifications/{id}/read:
+ *   post:
+ *     tags:
+ *       - notifications
+ *     summary: Create notifications
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             additionalProperties: true
+ *     responses:
+ *       "200":
+ *         description: OK
+ *       "401":
+ *         $ref: "#/components/responses/Unauthenticated"
+ *       "403":
+ *         $ref: "#/components/responses/Forbidden"
+ */

@@ -49,3 +49,27 @@ export const GET = apiHandler({ paramsSchema }, async ({ req, params }) => {
   }
   return NextResponse.redirect(url, 302);
 });
+
+/**
+ * @swagger
+ * /api/public/share/{token}/image/{documentId}:
+ *   get:
+ *     tags:
+ *       - public
+ *     summary: List / read public
+ *     security: []
+ *     parameters:
+ *       - in: path
+ *         name: token
+ *         required: true
+ *         schema:
+ *           type: string
+ *       - in: path
+ *         name: documentId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       "200":
+ *         description: OK
+ */

@@ -17,3 +17,32 @@ export const POST = apiHandler({ paramsSchema, bodySchema }, async ({ params, bo
   });
   return { data: payment };
 });
+
+/**
+ * @swagger
+ * /api/v1/payments/{id}/reverse:
+ *   post:
+ *     tags:
+ *       - payments
+ *     summary: Create payments
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             additionalProperties: true
+ *     responses:
+ *       "200":
+ *         description: OK
+ *       "401":
+ *         $ref: "#/components/responses/Unauthenticated"
+ *       "403":
+ *         $ref: "#/components/responses/Forbidden"
+ */

@@ -24,3 +24,19 @@ export const GET = apiHandler({}, async () => {
     }));
   return { data: { items } };
 });
+
+/**
+ * @swagger
+ * /api/v1/comments/mentionables:
+ *   get:
+ *     tags:
+ *       - comments
+ *     summary: List / read comments
+ *     responses:
+ *       "200":
+ *         description: OK
+ *       "401":
+ *         $ref: "#/components/responses/Unauthenticated"
+ *       "403":
+ *         $ref: "#/components/responses/Forbidden"
+ */

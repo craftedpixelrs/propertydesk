@@ -51,3 +51,49 @@ export const DELETE = apiHandler({ paramsSchema }, async ({ params }) => {
   const result = await deleteSaaSPlan(params.id, ctx.session.user.id);
   return { data: result };
 });
+
+/**
+ * @swagger
+ * /api/v1/platform/plans/{id}:
+ *   patch:
+ *     tags:
+ *       - platform
+ *     summary: Update platform
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             additionalProperties: true
+ *     responses:
+ *       "200":
+ *         description: OK
+ *       "401":
+ *         $ref: "#/components/responses/Unauthenticated"
+ *       "403":
+ *         $ref: "#/components/responses/Forbidden"
+ *   delete:
+ *     tags:
+ *       - platform
+ *     summary: Delete platform
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       "200":
+ *         description: OK
+ *       "401":
+ *         $ref: "#/components/responses/Unauthenticated"
+ *       "403":
+ *         $ref: "#/components/responses/Forbidden"
+ */

@@ -54,3 +54,49 @@ export const POST = apiHandler({ paramsSchema, bodySchema: createSchema }, async
   });
   return { data: activity, status: 201 };
 });
+
+/**
+ * @swagger
+ * /api/v1/buyers/{id}/activities:
+ *   get:
+ *     tags:
+ *       - buyers
+ *     summary: List / read buyers
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       "200":
+ *         description: OK
+ *       "401":
+ *         $ref: "#/components/responses/Unauthenticated"
+ *       "403":
+ *         $ref: "#/components/responses/Forbidden"
+ *   post:
+ *     tags:
+ *       - buyers
+ *     summary: Create buyers
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             additionalProperties: true
+ *     responses:
+ *       "200":
+ *         description: OK
+ *       "401":
+ *         $ref: "#/components/responses/Unauthenticated"
+ *       "403":
+ *         $ref: "#/components/responses/Forbidden"
+ */

@@ -61,3 +61,26 @@ export const POST = apiHandler({}, async ({ req }) => {
     },
   };
 });
+
+/**
+ * @swagger
+ * /api/v1/billing/bank-statements:
+ *   post:
+ *     tags:
+ *       - billing
+ *     summary: Create billing
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             additionalProperties: true
+ *     responses:
+ *       "200":
+ *         description: OK
+ *       "401":
+ *         $ref: "#/components/responses/Unauthenticated"
+ *       "403":
+ *         $ref: "#/components/responses/Forbidden"
+ */

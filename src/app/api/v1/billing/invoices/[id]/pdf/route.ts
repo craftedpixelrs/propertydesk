@@ -45,3 +45,25 @@ export const GET = apiHandler({ paramsSchema }, async ({ params }) => {
     },
   });
 });
+
+/**
+ * @swagger
+ * /api/v1/billing/invoices/{id}/pdf:
+ *   get:
+ *     tags:
+ *       - billing
+ *     summary: List / read billing
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       "200":
+ *         description: OK
+ *       "401":
+ *         $ref: "#/components/responses/Unauthenticated"
+ *       "403":
+ *         $ref: "#/components/responses/Forbidden"
+ */

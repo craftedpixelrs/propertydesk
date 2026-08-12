@@ -64,3 +64,32 @@ export const PATCH = apiHandler(
     return { data: { applied } };
   },
 );
+
+/**
+ * @swagger
+ * /api/v1/platform/roles/{role}:
+ *   patch:
+ *     tags:
+ *       - platform
+ *     summary: Update platform
+ *     parameters:
+ *       - in: path
+ *         name: role
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             additionalProperties: true
+ *     responses:
+ *       "200":
+ *         description: OK
+ *       "401":
+ *         $ref: "#/components/responses/Unauthenticated"
+ *       "403":
+ *         $ref: "#/components/responses/Forbidden"
+ */

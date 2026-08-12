@@ -22,3 +22,32 @@ export const POST = apiHandler({ paramsSchema, bodySchema }, async ({ params, bo
   });
   return { data: result };
 });
+
+/**
+ * @swagger
+ * /api/v1/reservations/{id}/reject:
+ *   post:
+ *     tags:
+ *       - reservations
+ *     summary: Create reservations
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             additionalProperties: true
+ *     responses:
+ *       "200":
+ *         description: OK
+ *       "401":
+ *         $ref: "#/components/responses/Unauthenticated"
+ *       "403":
+ *         $ref: "#/components/responses/Forbidden"
+ */

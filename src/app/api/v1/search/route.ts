@@ -113,3 +113,19 @@ export const GET = apiHandler({}, async ({ req }) => {
 
   return { data: { hits } };
 });
+
+/**
+ * @swagger
+ * /api/v1/search:
+ *   get:
+ *     tags:
+ *       - search
+ *     summary: List / read search
+ *     responses:
+ *       "200":
+ *         description: OK
+ *       "401":
+ *         $ref: "#/components/responses/Unauthenticated"
+ *       "403":
+ *         $ref: "#/components/responses/Forbidden"
+ */

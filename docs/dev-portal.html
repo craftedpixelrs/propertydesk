@@ -1,0 +1,3247 @@
+<!DOCTYPE html>
+<html lang="sr-Latn">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>PropertyDesk — Developer Portal</title>
+  <meta
+    name="description"
+    content="Interna razvojna dokumentacija PropertyDesk platforme: onboarding, arhitektura, API, baza, Faza 7/8 moduli i operativni workflow."
+  />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap"
+  />
+  <link
+    rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap"
+  />
+  <link rel="stylesheet" href="assets/pd-docs.css" />
+  <style>
+    /* Portal layout — builds on assets/pd-docs.css tokens */
+    :root {
+      --topbar-h: 3.5rem;
+      --sidebar-w: 280px;
+      --content-max: 880px;
+    }
+
+    body {
+      font-optical-sizing: auto;
+      font-feature-settings: "cv02" 1, "cv03" 1, "cv04" 1;
+    }
+
+    .skip-link {
+      position: absolute;
+      left: -9999px;
+      top: 0;
+      z-index: 100;
+      background: var(--brand-600);
+      color: #fff;
+      padding: 0.5rem 1rem;
+      border-radius: var(--radius-sm);
+    }
+    .skip-link:focus {
+      left: 1rem;
+      top: 0.75rem;
+    }
+
+    /* —— Topbar —— */
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      height: var(--topbar-h);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      padding: 0 1.25rem;
+      background: rgba(255, 255, 255, 0.92);
+      backdrop-filter: saturate(180%) blur(10px);
+      border-bottom: 1px solid var(--border);
+    }
+    .topbar-left {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      min-width: 0;
+    }
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.55rem;
+      font-weight: 700;
+      font-size: 0.95rem;
+      color: var(--fg);
+      text-decoration: none;
+      white-space: nowrap;
+    }
+    .brand:hover { text-decoration: none; color: var(--fg); }
+    .brand small {
+      color: var(--fg-subtle);
+      font-weight: 500;
+      margin-left: 0.15rem;
+    }
+    .menu-toggle {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      width: 2.25rem;
+      height: 2.25rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      color: var(--fg);
+      flex-shrink: 0;
+    }
+    .menu-toggle svg { width: 1.15rem; height: 1.15rem; }
+
+    .topbar-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex-shrink: 0;
+    }
+    .topbar-actions a.doc-link,
+    .topbar-actions a.doc-link:link,
+    .topbar-actions a.doc-link:visited {
+      color: var(--fg-muted);
+      text-decoration: none;
+      font-size: 0.85rem;
+      padding: 0.35rem 0.65rem;
+      border-radius: var(--radius-sm);
+      white-space: nowrap;
+    }
+    .topbar-actions a.doc-link:hover {
+      background: var(--surface-inset);
+      color: var(--fg);
+      text-decoration: none;
+    }
+
+    .search {
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+      background: var(--surface-muted);
+      border: 1px solid var(--border);
+      padding: 0.35rem 0.65rem;
+      border-radius: var(--radius-md);
+      color: var(--fg-subtle);
+      font-size: 0.85rem;
+      min-width: 200px;
+      max-width: 280px;
+    }
+    .search:focus-within {
+      border-color: var(--brand-300);
+      box-shadow: 0 0 0 3px var(--brand-50);
+    }
+    .search input {
+      background: transparent;
+      border: 0;
+      outline: 0;
+      color: var(--fg);
+      font: inherit;
+      flex: 1;
+      min-width: 0;
+    }
+    .search input::placeholder { color: var(--fg-subtle); }
+
+    /* —— Shell —— */
+    .shell {
+      display: grid;
+      grid-template-columns: var(--sidebar-w) minmax(0, 1fr);
+      align-items: start;
+      min-height: calc(100vh - var(--topbar-h));
+    }
+
+    .sidebar-backdrop {
+      display: none;
+      position: fixed;
+      inset: var(--topbar-h) 0 0 0;
+      background: rgba(15, 23, 42, 0.35);
+      z-index: 25;
+    }
+    .sidebar-backdrop.open { display: block; }
+
+    .sidebar {
+      position: sticky;
+      top: var(--topbar-h);
+      height: calc(100vh - var(--topbar-h));
+      width: var(--sidebar-w);
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding: 1.15rem 0.85rem 2.5rem 1rem;
+      border-right: 1px solid var(--border);
+      background: var(--surface-muted);
+      z-index: 30;
+    }
+    .sidebar-group {
+      margin-bottom: 0.85rem;
+    }
+    .sidebar-group h4 {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--fg-subtle);
+      margin: 0 0 0.35rem 0.55rem;
+      font-weight: 600;
+    }
+    .sidebar nav a,
+    .sidebar nav a:link,
+    .sidebar nav a:visited {
+      display: block;
+      padding: 0.38rem 0.6rem;
+      font-size: 0.86rem;
+      color: var(--fg-muted);
+      text-decoration: none;
+      border-radius: var(--radius-sm);
+      border-left: 2px solid transparent;
+      transition: background 0.12s, color 0.12s;
+    }
+    .sidebar nav a:hover {
+      background: var(--surface);
+      color: var(--fg);
+      text-decoration: none;
+    }
+    .sidebar nav a.active,
+    .sidebar nav a.active:visited {
+      background: var(--brand-50);
+      color: var(--brand-700);
+      font-weight: 600;
+      border-left-color: var(--brand-600);
+    }
+
+    .content a:not(.anchor):not(.brand),
+    .content a:not(.anchor):not(.brand):link,
+    .content a:not(.anchor):not(.brand):visited,
+    .main a:not(.anchor):not(.brand):not(.doc-link),
+    .main a:not(.anchor):not(.brand):not(.doc-link):link,
+    .main a:not(.anchor):not(.brand):not(.doc-link):visited {
+      color: var(--brand-600);
+      text-decoration: underline;
+      text-decoration-color: color-mix(in srgb, var(--brand-600) 40%, transparent);
+      text-underline-offset: 0.15em;
+    }
+    .content a:not(.anchor):not(.brand):hover,
+    .main a:not(.anchor):not(.brand):not(.doc-link):hover {
+      color: var(--brand-700);
+      text-decoration-color: var(--brand-700);
+    }
+    .footer-note a,
+    .footer-note a:link,
+    .footer-note a:visited {
+      color: var(--brand-600);
+      text-decoration: none;
+      font-weight: 500;
+    }
+    .footer-note a:hover {
+      color: var(--brand-700);
+      text-decoration: underline;
+      text-underline-offset: 0.15em;
+    }
+    .sidebar nav a.hidden-by-search { display: none; }
+    .sidebar-empty {
+      display: none;
+      font-size: 0.82rem;
+      color: var(--fg-subtle);
+      padding: 0.5rem 0.6rem;
+    }
+    .sidebar-empty.show { display: block; }
+
+    .main {
+      min-width: 0;
+      padding: 2rem 1.5rem 5rem;
+    }
+    .content {
+      max-width: var(--content-max);
+      margin: 0 auto;
+    }
+
+    section {
+      padding-top: 0.25rem;
+      margin-bottom: 2.75rem;
+      scroll-margin-top: calc(var(--topbar-h) + 1.25rem);
+    }
+    section > h2:first-child,
+    .hero h1 {
+      scroll-margin-top: calc(var(--topbar-h) + 1.25rem);
+    }
+
+    .hero {
+      padding: 0.5rem 0 0.25rem;
+      margin-bottom: 1.5rem;
+    }
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--brand-600);
+      margin-bottom: 0.65rem;
+    }
+    .eyebrow::before {
+      content: "";
+      width: 1.5rem;
+      height: 2px;
+      background: var(--brand-600);
+      border-radius: 1px;
+    }
+    h1 {
+      font-size: clamp(1.85rem, 3.2vw, 2.45rem);
+      margin: 0 0 0.75rem;
+    }
+    h2 {
+      font-size: 1.45rem;
+      margin: 0 0 0.75rem;
+      padding-bottom: 0.45rem;
+      border-bottom: 1px solid var(--border);
+    }
+    h3 {
+      font-size: 1.08rem;
+      margin: 1.6rem 0 0.5rem;
+    }
+    h4 {
+      font-size: 0.95rem;
+      font-weight: 600;
+      margin: 1.25rem 0 0.4rem;
+      color: var(--fg);
+    }
+    p { margin: 0 0 0.85rem; }
+    ul, ol {
+      margin: 0 0 0.9rem 1.25rem;
+      padding: 0;
+    }
+    li { margin-bottom: 0.35rem; }
+    li > ul, li > ol { margin-top: 0.35rem; margin-bottom: 0.35rem; }
+
+    .anchor {
+      color: var(--border-strong);
+      text-decoration: none;
+      font-weight: 500;
+      margin-left: 0.35rem;
+      opacity: 0;
+      transition: opacity 0.12s;
+    }
+    h2:hover .anchor,
+    h3:hover .anchor { opacity: 1; color: var(--brand-600); }
+
+    .lead {
+      font-size: 1.05rem;
+      color: var(--fg-muted);
+      max-width: 42rem;
+    }
+
+    .meta-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.45rem;
+      margin: 1rem 0 0;
+    }
+
+    /* Tables */
+    .table-wrap {
+      overflow-x: auto;
+      margin: 0.85rem 0 1.15rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      background: var(--surface);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.88rem;
+      margin: 0;
+    }
+    th, td {
+      text-align: left;
+      padding: 0.6rem 0.75rem;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+    }
+    tr:last-child td { border-bottom: 0; }
+    th {
+      background: var(--surface-muted);
+      font-weight: 600;
+      color: var(--fg);
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      white-space: nowrap;
+    }
+    td { color: var(--fg-muted); }
+    td code { white-space: nowrap; }
+
+    /* Code */
+    pre {
+      background: var(--code-bg);
+      color: var(--code-fg);
+      padding: 1rem 1.1rem;
+      border-radius: var(--radius-md);
+      overflow-x: auto;
+      margin: 0.75rem 0 1.1rem;
+      font-size: 0.82rem;
+      line-height: 1.55;
+      font-family: var(--font-mono);
+      box-shadow: var(--shadow-sm);
+    }
+    pre code {
+      background: transparent;
+      color: inherit;
+      padding: 0;
+      font-size: inherit;
+    }
+    pre .c { color: var(--code-comment); font-style: italic; }
+    pre .k { color: var(--code-keyword); }
+    pre .s { color: var(--code-string); }
+    pre .n { color: var(--code-number); }
+
+    /* Method badges */
+    .method {
+      display: inline-block;
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      padding: 0.15rem 0.4rem;
+      border-radius: 4px;
+      vertical-align: middle;
+      margin-right: 0.35rem;
+      line-height: 1.2;
+    }
+    .method.get { background: #dbeafe; color: #1d4ed8; }
+    .method.post { background: #dcfce7; color: #15803d; }
+    .method.patch { background: #fef3c7; color: #b45309; }
+    .method.delete { background: #fee2e2; color: #b91c1c; }
+    .method.put { background: #e0e7ff; color: #3730a3; }
+
+    .endpoint {
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+      color: var(--fg);
+    }
+
+    .flow {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 1rem 1.15rem;
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      line-height: 1.65;
+      color: var(--fg-muted);
+      white-space: pre;
+      overflow-x: auto;
+      margin: 0.85rem 0 1.1rem;
+    }
+
+    .checklist {
+      list-style: none;
+      margin-left: 0;
+    }
+    .checklist li {
+      position: relative;
+      padding-left: 1.6rem;
+      margin-bottom: 0.45rem;
+    }
+    .checklist li::before {
+      content: "☐";
+      position: absolute;
+      left: 0;
+      color: var(--brand-600);
+      font-size: 1rem;
+    }
+
+    .toc-inline {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 1rem 1.15rem;
+      margin: 1rem 0 1.5rem;
+    }
+    .toc-inline strong {
+      display: block;
+      margin-bottom: 0.5rem;
+      color: var(--fg);
+      font-size: 0.85rem;
+    }
+    .toc-inline ol {
+      margin: 0 0 0 1.1rem;
+      columns: 2;
+      gap: 1.5rem;
+      font-size: 0.88rem;
+    }
+    @media (max-width: 640px) {
+      .toc-inline ol { columns: 1; }
+    }
+
+    .footer-note {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.4rem;
+      margin-top: 3rem;
+      padding-top: 1.25rem;
+      border-top: 1px solid var(--border);
+      font-size: 0.85rem;
+      color: var(--fg-subtle);
+    }
+
+    @media (max-width: 960px) {
+      .menu-toggle { display: inline-flex; }
+      .shell { grid-template-columns: 1fr; }
+      .sidebar {
+        position: fixed;
+        left: 0;
+        top: var(--topbar-h);
+        transform: translateX(-105%);
+        transition: transform 0.2s ease;
+        box-shadow: var(--shadow-md);
+        width: min(var(--sidebar-w), 86vw);
+      }
+      .sidebar.open { transform: translateX(0); }
+      .search { min-width: 0; max-width: 160px; }
+      .topbar-actions a.doc-link.optional-md { display: none; }
+      .main { padding: 1.5rem 1rem 4rem; }
+    }
+
+    @media (max-width: 560px) {
+      .search span.hide-xs,
+      .topbar-actions a.doc-link { display: none; }
+      .brand small { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#sadrzaj">Preskoči na sadržaj</a>
+
+  <header class="topbar">
+    <div class="topbar-left">
+      <button
+        type="button"
+        class="menu-toggle"
+        id="menuToggle"
+        aria-label="Otvori navigaciju"
+        aria-expanded="false"
+        aria-controls="sidebar"
+      >
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path d="M4 7h16M4 12h16M4 17h16" stroke-linecap="round" />
+        </svg>
+      </button>
+      <a class="brand" href="#uvod">
+        <img src="assets/logo.png" alt="PropertyDesk" class="logo" width="32" height="32" />
+        <span>PropertyDesk <small>Dev Portal</small></span>
+      </a>
+    </div>
+    <div class="topbar-actions">
+      <label class="search" aria-label="Pretraga sekcija">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <circle cx="11" cy="11" r="7" />
+          <path d="M20 20l-3.5-3.5" stroke-linecap="round" />
+        </svg>
+        <input
+          id="navSearch"
+          type="search"
+          placeholder="Pretraga sekcija…"
+          autocomplete="off"
+          spellcheck="false"
+        />
+        <kbd class="hide-xs">/</kbd>
+      </label>
+      <a class="doc-link" href="help-center.html">Help Center</a>
+      <a class="doc-link optional-md" href="prezentacija-funkcionalnosti.html">Prezentacija</a>
+      <a class="doc-link optional-md" href="../README.md">README</a>
+    </div>
+  </header>
+
+  <div class="sidebar-backdrop" id="sidebarBackdrop" hidden></div>
+
+  <div class="shell">
+    <aside class="sidebar" id="sidebar" aria-label="Navigacija dokumentacije">
+      <nav id="sidebarNav">
+        <div class="sidebar-group" data-group>
+          <h4>Uvod</h4>
+          <a href="#uvod">Uvod</a>
+          <a href="#pregled">Pregled sistema</a>
+          <a href="#tech-stack">Tech stack</a>
+          <a href="#kucni-red">Pravila kućnog reda</a>
+        </div>
+        <div class="sidebar-group" data-group>
+          <h4>Onboarding</h4>
+          <a href="#preduslovi">Preduslovi</a>
+          <a href="#clone-run">Clone &amp; run</a>
+          <a href="#env-vars">Env promenljive</a>
+          <a href="#migrate-seed">Migrate + seed</a>
+          <a href="#demo-nalozi">Demo nalozi</a>
+          <a href="#first-pr">First PR checklist</a>
+        </div>
+        <div class="sidebar-group" data-group>
+          <h4>Arhitektura</h4>
+          <a href="#request-lifecycle">Request lifecycle</a>
+          <a href="#folder-structure">Folder struktura</a>
+          <a href="#gde-staviti">Gde staviti feature</a>
+          <a href="#permissions">Permissions model</a>
+          <a href="#audit">Audit log</a>
+          <a href="#auth-sessions">Better Auth i sesije</a>
+          <a href="#server-only">server-only / use client</a>
+          <a href="#dto-agency">Agency-safe DTO</a>
+          <a href="#rate-limit">Rate limiting</a>
+          <a href="#storage">Storage abstraction</a>
+          <a href="#i18n-money">i18n, novac, datumi</a>
+          <a href="#observability">Observability</a>
+          <a href="#error-codes">Error codes</a>
+        </div>
+        <div class="sidebar-group" data-group>
+          <h4>Baza</h4>
+          <a href="#prisma-conventions">Prisma konvencije</a>
+          <a href="#migrations">Migracije</a>
+          <a href="#p3018">P3018 recovery</a>
+          <a href="#additive-policy">Additive policy</a>
+        </div>
+        <div class="sidebar-group" data-group>
+          <h4>API</h4>
+          <a href="#api-envelope">Envelope format</a>
+          <a href="#api-endpoints">Ključni endpointi</a>
+          <a href="#swagger">Swagger / OpenAPI</a>
+        </div>
+        <div class="sidebar-group" data-group>
+          <h4>Faza 7 / 8</h4>
+          <a href="#payment-plan-templates">Payment plan templates</a>
+          <a href="#online-reservation">Online rezervacija + IPS QR</a>
+          <a href="#sale-contracts">Sale contracts PDF</a>
+          <a href="#kyc-gating">KYC gating</a>
+          <a href="#referral">Referral cookie</a>
+          <a href="#microsite">Public microsite</a>
+          <a href="#sentry-backup">Sentry + backup verifier</a>
+          <a href="#reports-pnl">Cash-flow / velocity / P&amp;L</a>
+          <a href="#fifo-allocation">FIFO alokacija uplata</a>
+          <a href="#commission-snapshot">Snapshot provizije</a>
+          <a href="#buyer-protection">Buyer protection</a>
+          <a href="#share-tokens">Public share tokens</a>
+          <a href="#notifications">Notifikacije</a>
+          <a href="#tasks">Zadaci</a>
+          <a href="#charts">Chart palette</a>
+          <a href="#import-wizard">CSV/XLSX uvoz jedinica</a>
+        </div>
+        <div class="sidebar-group" data-group>
+          <h4>Workflow</h4>
+          <a href="#testing">Testing</a>
+          <a href="#lint-typecheck">Lint / typecheck</a>
+          <a href="#git-flow">Git flow</a>
+          <a href="#docker-notes">Docker notes</a>
+          <a href="#vps-deploy">VPS deploy</a>
+          <a href="#cron">Cron tabela</a>
+          <a href="#release">Release checklist</a>
+          <a href="#troubleshooting">Troubleshooting</a>
+          <a href="#incident">Incident response</a>
+          <a href="#feature-flags">Plans / Feature gating</a>
+          <a href="#bank-statements">Bank statement matcher</a>
+          <a href="#sef-integration">SEF integracija</a>
+          <a href="#local-dev-tips">Lokalni dev trikovi</a>
+        </div>
+      </nav>
+      <p class="sidebar-empty" id="sidebarEmpty">Nema poklapanja.</p>
+    </aside>
+
+    <main class="main" id="sadrzaj">
+      <div class="content">
+
+        <!-- ========== UVOD ========== -->
+        <header class="hero" id="uvod">
+          <div class="eyebrow">Interna dokumentacija · v1</div>
+          <h1>PropertyDesk Developer Portal</h1>
+          <p class="lead">
+            Kompletan runbook za developere: multi-tenant model, lokalni setup,
+            arhitektura requesta, Prisma pravila, API surface, Faza&nbsp;7/8 moduli
+            i produkcijski workflow. Jezik UI-ja i ovog portala je
+            <strong>srpski latinica</strong> (<code>sr-Latn</code>).
+          </p>
+          <div class="meta-row">
+            <span class="chip brand">Next 16 · React 19 · Prisma 7</span>
+            <span class="chip">Postgres 16</span>
+            <span class="chip">Better Auth</span>
+            <span class="chip">pnpm 10 · Node 22</span>
+          </div>
+          <div class="toc-inline">
+            <strong>Brzi sadržaj</strong>
+            <ol>
+              <li><a href="#uvod">Uvod &amp; kućni red</a></li>
+              <li><a href="#preduslovi">Onboarding</a></li>
+              <li><a href="#request-lifecycle">Arhitektura</a></li>
+              <li><a href="#prisma-conventions">Baza</a></li>
+              <li><a href="#api-envelope">API</a></li>
+              <li><a href="#payment-plan-templates">Faza 7/8</a></li>
+              <li><a href="#testing">Workflow</a></li>
+              <li><a href="help-center.html">Help Center (operatori)</a></li>
+              <li><a href="prezentacija-funkcionalnosti.html">Prezentacija funkcija</a></li>
+            </ol>
+          </div>
+        </header>
+
+        <section id="pregled" aria-labelledby="pregled-h">
+          <h2 id="pregled-h">Pregled sistema <a class="anchor" href="#pregled">#</a></h2>
+          <p>
+            PropertyDesk je multi-tenant SaaS za investitore u nekretnine i njihove
+            partnerske agencije. Jedan Next.js App Router codebase služi i
+            autentifikovani dashboard (<code>my.propertydesk.app</code>) i
+            verziran REST API na <code>/api/v1</code>, plus javne surface-ove
+            (share linkovi, microsite, marketing landing).
+          </p>
+          <p>
+            Postgres je jedini source of truth. Novac je uvek
+            <code>Decimal(14,2)</code>. Svaki tenant-owned red nosi
+            <code>organizationId</code>. Agencije vide investor podatke isključivo
+            kroz agency-safe DTO-ove — nikad kroz sirovi Prisma row spread.
+          </p>
+
+          <h3>Multi-tenant model</h3>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Aktor</th>
+                  <th>Org tip</th>
+                  <th>Šta vidi / radi</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>Investitor organizacija</strong></td>
+                  <td><code>INVESTOR</code></td>
+                  <td>
+                    Projekti, inventar, CRM kupaca, rezervacije, prodaje, plaćanja,
+                    komisije, izveštaji, PDF ugovori, KYC, tax, payment plan templates.
+                    Uloge: <code>INVESTOR_OWNER</code>, <code>INVESTOR_ADMIN</code>,
+                    <code>SALES_MANAGER</code>, <code>SALES_AGENT</code>,
+                    <code>FINANCE</code>, <code>INVESTOR_VIEWER</code>.
+                  </td>
+                </tr>
+                <tr>
+                  <td><strong>Agencija organizacija</strong></td>
+                  <td><code>AGENCY</code></td>
+                  <td>
+                    Portal ponude, registracija kupaca (zaštita), referral kod,
+                    komisije, ograničeni uvid u investor inventar preko DTO-a.
+                    Uloge: <code>AGENCY_OWNER</code>, <code>AGENCY_ADMIN</code>,
+                    <code>AGENCY_AGENT</code>, <code>AGENCY_VIEWER</code>.
+                  </td>
+                </tr>
+                <tr>
+                  <td><strong>Platform admin</strong></td>
+                  <td>nema org tipa — <code>user.role = SUPER_ADMIN</code></td>
+                  <td>
+                    Administracija organizacija, planova, audit loga, impersonation,
+                    monitoring / backup-verify. Ulazi preko
+                    <code>/administracija/*</code> i
+                    <code>/api/v1/platform/*</code>.
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="callout">
+            <strong>Tenant granica je sveta</strong>
+            Svaki service query mora da filtrira po <code>organizationId</code>.
+            Cross-tenant leak je SEV&nbsp;1. Nikad ne oslanjaj se na “korisnik neće
+            videti dugme” — provera ide u <code>requirePermission()</code> + SQL scope.
+          </div>
+        </section>
+
+        <section id="tech-stack">
+          <h2>Tech stack <a class="anchor" href="#tech-stack">#</a></h2>
+          <p>
+            Verzije iz <code>package.json</code> / lockfile-a (mart 2026). Preferiraj
+            kod nad zastarelim markdown beleškama.
+          </p>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Komponenta</th>
+                  <th>Verzija</th>
+                  <th>Napomena</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Next.js</td>
+                  <td><strong>16.2.x</strong></td>
+                  <td>App Router, RSC, Turbopack dev, webpack prod build</td>
+                </tr>
+                <tr>
+                  <td>React</td>
+                  <td><strong>19.2.x</strong></td>
+                  <td><code>react</code> + <code>react-dom</code></td>
+                </tr>
+                <tr>
+                  <td>Prisma</td>
+                  <td><strong>7.8.x</strong></td>
+                  <td>Driver adapter <code>@prisma/adapter-pg</code> + <code>pg</code></td>
+                </tr>
+                <tr>
+                  <td>PostgreSQL</td>
+                  <td><strong>16</strong></td>
+                  <td>Neon u cloud-u / Compose lokalno</td>
+                </tr>
+                <tr>
+                  <td>Better Auth</td>
+                  <td><strong>1.6.x</strong></td>
+                  <td>Email+password, sesije, impersonation, org membership</td>
+                </tr>
+                <tr>
+                  <td>pnpm</td>
+                  <td><strong>10</strong></td>
+                  <td><code>corepack prepare pnpm@10</code></td>
+                </tr>
+                <tr>
+                  <td>Node.js</td>
+                  <td><strong>22 LTS</strong></td>
+                  <td>Docker runner: <code>node:22-alpine</code></td>
+                </tr>
+                <tr>
+                  <td>Vitest</td>
+                  <td><strong>4.x</strong></td>
+                  <td>Unit + service testovi</td>
+                </tr>
+                <tr>
+                  <td>Playwright</td>
+                  <td><strong>1.61.x</strong></td>
+                  <td>E2E u <code>e2e/</code></td>
+                </tr>
+                <tr>
+                  <td>Sentry</td>
+                  <td><strong>@sentry/nextjs 10.x</strong></td>
+                  <td>Facade u <code>src/server/monitoring</code></td>
+                </tr>
+                <tr>
+                  <td>PDF</td>
+                  <td><strong>@react-pdf/renderer 4.x</strong></td>
+                  <td>Ugovori, ponude, fakture</td>
+                </tr>
+                <tr>
+                  <td>Ostalo</td>
+                  <td>Tailwind 4, TanStack Query 5, Zod 4, decimal.js, Recharts</td>
+                  <td>ExcelJS + papaparse za import/export</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section id="kucni-red">
+          <h2>Pravila kućnog reda <a class="anchor" href="#kucni-red">#</a></h2>
+          <p>Hard rules. Kršenje = review blok / bug u produkciji.</p>
+          <ol>
+            <li>
+              <strong>Domain services su jedini pisci u Prisma.</strong>
+              Route handleri ne zovu <code>prisma.*.create/update</code> direktno.
+              Logika živi u <code>src/server/services/**</code>. Novčane i status
+              tranzicije idu u <code>prisma.$transaction(...)</code>.
+            </li>
+            <li>
+              <strong>Novac = Decimal, nikad float.</strong>
+              Kolone su <code>Decimal(14,2)</code>. U JS-u koristi
+              <code>decimal.js</code> / <code>toDecimal</code> / <code>sumMoney</code> /
+              <code>formatMoney</code>. <code>parseFloat</code> i IEEE float za novac
+              su zabranjeni.
+            </li>
+            <li>
+              <strong>Svaki tenant query scoped na <code>organizationId</code>.</strong>
+              Nema “globalnih” lista za investor podatke. Ako zaboraviš filter —
+              to je security bug, ne feature.
+            </li>
+            <li>
+              <strong>Agencije dobijaju samo agency-safe DTO.</strong>
+              Mapiranje u <code>src/server/services/agencies/dtos.ts</code> (ili
+              ekvivalent). Nikad ne šalji sirovi <code>Unit</code> / <code>Sale</code>
+              row agencijskom klijentu.
+            </li>
+            <li>
+              <strong>Server-only moduli ostaju na serveru.</strong>
+              Fajlovi koji importuju Prisma, secrets, audit, PDF ili auth config
+              moraju imati <code>import "server-only"</code> (ili biti ispod
+              <code>src/server/</code> putanje koju bundler ne vuče u client).
+            </li>
+            <li>
+              <strong>Permissions samo preko <code>requirePermission("resource.action")</code>.</strong>
+              Zabranjeno: <code>if (role === "INVESTOR_OWNER")</code> u business kodu.
+            </li>
+            <li>
+              <strong>UI copy uvek <code>sr-Latn</code>.</strong>
+              Engleski stringovi u dugmadima/toastovima/labelama = bug.
+            </li>
+          </ol>
+          <div class="callout warn">
+            <strong>Audit je append-only</strong>
+            Mutacije koje menjaju status, novac, članstvo ili impersonation moraju
+            zvati <code>recordAudit()</code>. Nema update/delete API-ja za audit redove.
+          </div>
+        </section>
+
+        <!-- ========== ONBOARDING ========== -->
+        <section id="preduslovi">
+          <h2>Onboarding — preduslovi <a class="anchor" href="#preduslovi">#</a></h2>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Alat</th>
+                  <th>Verzija</th>
+                  <th>Zašto</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Node.js</td>
+                  <td>22 LTS</td>
+                  <td>Runtime + Next 16 zahtev</td>
+                </tr>
+                <tr>
+                  <td>pnpm</td>
+                  <td>10</td>
+                  <td>Package manager; <code>corepack enable</code></td>
+                </tr>
+                <tr>
+                  <td>Docker Desktop</td>
+                  <td>aktuelni stable</td>
+                  <td>Lokalni Postgres 16 (Compose) ili cele stack</td>
+                </tr>
+                <tr>
+                  <td>Git</td>
+                  <td>2.40+</td>
+                  <td>Kloniranje, branch workflow</td>
+                </tr>
+                <tr>
+                  <td>opciono: VS Code / Cursor</td>
+                  <td>—</td>
+                  <td>ESLint + Prisma + Tailwind ekstenzije pomažu</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <pre><code><span class="c"># Windows (PowerShell) — omogući Corepack</span>
+corepack enable
+corepack prepare pnpm@10 --activate
+node -v   <span class="c"># v22.x</span>
+pnpm -v   <span class="c"># 10.x</span></code></pre>
+        </section>
+
+        <section id="clone-run">
+          <h2>Clone &amp; run <a class="anchor" href="#clone-run">#</a></h2>
+          <pre><code><span class="c"># 1. Kloniraj</span>
+git clone &lt;repo-url&gt; propertydesk
+cd propertydesk
+
+<span class="c"># 2. Zavisnosti</span>
+pnpm install
+
+<span class="c"># 3. Env</span>
+cp .env.example .env.local
+<span class="c"># Popuni DATABASE_URL, DIRECT_URL, BETTER_AUTH_SECRET (≥32),</span>
+<span class="c"># BETTER_AUTH_URL, NEXT_PUBLIC_APP_URL, SEED_SUPER_ADMIN_*, CRON_SECRET</span>
+
+<span class="c"># 4. Lokalni Postgres (ako koristiš Compose)</span>
+docker compose up -d db   <span class="c"># ili ceo stack po docs/deployment.md</span>
+
+<span class="c"># 5. Prisma client + migracije + seed</span>
+pnpm prisma generate
+pnpm prisma migrate deploy
+pnpm prisma db seed
+<span class="c"># Bogatiji demo dataset (opciono):</span>
+pnpm db:seed:demo
+
+<span class="c"># 6. Dev server</span>
+pnpm dev
+<span class="c"># → http://localhost:3000/sign-in</span></code></pre>
+          <div class="callout success">
+            <strong>Prvi login</strong>
+            Koristi <code>SEED_SUPER_ADMIN_EMAIL</code> /
+            <code>SEED_SUPER_ADMIN_PASSWORD</code>, ili demo naloge u
+            <a href="#demo-nalozi">tabeli ispod</a>.
+          </div>
+        </section>
+
+        <section id="env-vars">
+          <h2>Env promenljive <a class="anchor" href="#env-vars">#</a></h2>
+          <p>
+            Šema je u <code>.env.example</code>; runtime validacija u
+            <code>src/lib/env.ts</code> (Zod). Nedostajuća obavezna vrednost =
+            crash na startu.
+          </p>
+
+          <h3>Obavezne (dev minimum)</h3>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Varijabla</th>
+                  <th>Obavezno</th>
+                  <th>Opis</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>DATABASE_URL</code></td>
+                  <td>Da</td>
+                  <td>Pooled Postgres URL (app runtime / PgBouncer)</td>
+                </tr>
+                <tr>
+                  <td><code>DIRECT_URL</code></td>
+                  <td>Da (migracije)</td>
+                  <td>Direct (non-pooled) URL za Prisma migrate</td>
+                </tr>
+                <tr>
+                  <td><code>BETTER_AUTH_SECRET</code></td>
+                  <td>Da</td>
+                  <td>≥ 32 karaktera; <code>openssl rand -base64 32</code></td>
+                </tr>
+                <tr>
+                  <td><code>BETTER_AUTH_URL</code></td>
+                  <td>Da</td>
+                  <td>npr. <code>http://localhost:3000</code></td>
+                </tr>
+                <tr>
+                  <td><code>NEXT_PUBLIC_APP_URL</code></td>
+                  <td>Da</td>
+                  <td>Mora da se poklapa sa auth URL hostom</td>
+                </tr>
+                <tr>
+                  <td><code>SEED_SUPER_ADMIN_EMAIL</code></td>
+                  <td>Za seed</td>
+                  <td>Default: <code>admin@propertydesk.test</code></td>
+                </tr>
+                <tr>
+                  <td><code>SEED_SUPER_ADMIN_PASSWORD</code></td>
+                  <td>Za seed</td>
+                  <td>Default: <code>PropertyDesk!2026</code></td>
+                </tr>
+                <tr>
+                  <td><code>CRON_SECRET</code></td>
+                  <td>Za jobove</td>
+                  <td>Bearer / <code>x-cron-secret</code> na <code>/api/v1/jobs/*</code></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h3>Identitet aplikacije</h3>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Varijabla</th><th>Obavezno</th><th>Default / napomena</th></tr>
+              </thead>
+              <tbody>
+                <tr><td><code>APP_NAME</code> / <code>NEXT_PUBLIC_APP_NAME</code></td><td>Ne</td><td><code>PropertyDesk</code></td></tr>
+                <tr><td><code>APP_DOMAIN</code> / <code>NEXT_PUBLIC_APP_DOMAIN</code></td><td>Ne</td><td><code>propertydesk.app</code></td></tr>
+                <tr><td><code>APP_LOCALE</code> / <code>NEXT_PUBLIC_APP_LOCALE</code></td><td>Ne</td><td><code>sr-Latn</code></td></tr>
+                <tr><td><code>APP_TIMEZONE</code> / <code>NEXT_PUBLIC_APP_TIMEZONE</code></td><td>Ne</td><td><code>Europe/Belgrade</code></td></tr>
+                <tr><td><code>NEXT_PUBLIC_MY_APP_URL</code></td><td>Marketing</td><td>CTA ka autentifikovanom app-u</td></tr>
+                <tr><td><code>NODE_ENV</code></td><td>Ne</td><td><code>development</code> lokalno</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h3>Email, storage, marketing</h3>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Varijabla</th><th>Obavezno</th><th>Opis</th></tr>
+              </thead>
+              <tbody>
+                <tr><td><code>EMAIL_PROVIDER</code></td><td>Ne</td><td><code>console</code> | <code>smtp</code> | <code>resend</code></td></tr>
+                <tr><td><code>EMAIL_FROM_NAME</code> / <code>EMAIL_FROM_ADDRESS</code></td><td>Ne</td><td>From header</td></tr>
+                <tr><td><code>SMTP_*</code> / <code>RESEND_API_KEY</code></td><td>Ako provider ≠ console</td><td>Kredencijali</td></tr>
+                <tr><td><code>STORAGE_PROVIDER</code></td><td>Ne</td><td><code>local</code> | <code>s3</code></td></tr>
+                <tr><td><code>STORAGE_LOCAL_DIR</code></td><td>Ne</td><td>Default <code>./storage</code></td></tr>
+                <tr><td><code>STORAGE_BUCKET</code> / <code>STORAGE_ENDPOINT</code> / keys</td><td>Za S3</td><td>R2 / B2 / AWS</td></tr>
+                <tr><td><code>LOOPS_API_KEY</code></td><td>Ne</td><td>Marketing leads upsert</td></tr>
+                <tr><td><code>LOOPS_MAILING_LIST_ID</code></td><td>Ne</td><td>Opciona lista</td></tr>
+                <tr><td><code>NEXT_PUBLIC_GOOGLE_APPOINTMENT_URL</code></td><td>Ne</td><td>Demo booking iframe</td></tr>
+                <tr><td><code>NEXT_PUBLIC_PRODUCT_VIDEO_URL</code></td><td>Ne</td><td>YouTube ili MP4</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h3>Sigurnost, Sentry, backup</h3>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Varijabla</th><th>Obavezno</th><th>Opis</th></tr>
+              </thead>
+              <tbody>
+                <tr><td><code>IMPERSONATION_SECRET</code></td><td>Prod</td><td>Potpis impersonation događaja u auditu</td></tr>
+                <tr><td><code>RATE_LIMIT_ENABLED</code></td><td>Ne</td><td>Default <code>true</code></td></tr>
+                <tr><td><code>SENTRY_DSN</code> / <code>NEXT_PUBLIC_SENTRY_DSN</code></td><td>Ne</td><td>Prazno = samo stdout, bez mreže</td></tr>
+                <tr><td><code>SENTRY_ORG</code> / <code>SENTRY_PROJECT</code> / <code>SENTRY_AUTH_TOKEN</code></td><td>Build</td><td>Source maps upload</td></tr>
+                <tr><td><code>SENTRY_ENVIRONMENT</code> / sample rates</td><td>Ne</td><td>Quota tuning</td></tr>
+                <tr><td><code>BACKUP_VERIFY_SOURCE</code></td><td>Ne</td><td><code>disabled</code> | <code>local</code> | <code>s3</code></td></tr>
+                <tr><td><code>BACKUP_VERIFY_LOCAL_DIR</code></td><td>local mode</td><td>npr. <code>/root/backups</code></td></tr>
+                <tr><td><code>BACKUP_VERIFY_S3_BUCKET</code> / <code>PREFIX</code></td><td>s3 mode</td><td>Koristi STORAGE_* kredencijale</td></tr>
+                <tr><td><code>BACKUP_VERIFY_ALERT_EMAILS</code></td><td>Ne</td><td>Alert posle 2 uzastopna fail-a</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section id="migrate-seed">
+          <h2>Migrate + seed <a class="anchor" href="#migrate-seed">#</a></h2>
+          <pre><code>pnpm prisma generate          <span class="c"># client</span>
+pnpm prisma migrate deploy    <span class="c"># prod-like apply</span>
+<span class="c"># ili u čistom lokalnom razvoju:</span>
+pnpm prisma migrate dev       <span class="c"># kreira nove migracije iz schema.prisma</span>
+
+pnpm prisma db seed           <span class="c"># = pnpm db:seed → prisma/seed.ts</span>
+pnpm db:seed:demo             <span class="c"># bogatiji demo dataset</span>
+
+<span class="c"># Reset (UNIŠTAVA podatke):</span>
+pnpm prisma migrate reset --force
+pnpm prisma db seed</code></pre>
+          <p>
+            Seed kreira investitor + agencija org, članove, projekte, jedinice,
+            veze, planove pretplate. <strong>Odbija produkciju</strong> osim ako
+            je <code>ALLOW_SEED_IN_PRODUCTION=true</code>.
+          </p>
+        </section>
+
+        <section id="demo-nalozi">
+          <h2>Demo nalozi <a class="anchor" href="#demo-nalozi">#</a></h2>
+          <p>
+            Lozinka za sve seed korisnike (osim ako override-uješ env):
+            <code>PropertyDesk!2026</code>. Izvor istine:
+            <code>prisma/seed.ts</code> (ne zastareli README emailovi).
+          </p>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Email</th>
+                  <th>Uloga</th>
+                  <th>Organizacija</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>admin@propertydesk.test</code></td>
+                  <td><code>SUPER_ADMIN</code></td>
+                  <td>Platforma (ili <code>SEED_SUPER_ADMIN_*</code>)</td>
+                </tr>
+                <tr>
+                  <td><code>vlasnik@gradnjaplus.test</code></td>
+                  <td><code>INVESTOR_OWNER</code></td>
+                  <td>Gradnja Plus (<code>gradnja-plus</code>)</td>
+                </tr>
+                <tr>
+                  <td><code>prodaja@gradnjaplus.test</code></td>
+                  <td><code>SALES_MANAGER</code></td>
+                  <td>Gradnja Plus</td>
+                </tr>
+                <tr>
+                  <td><code>agent@gradnjaplus.test</code></td>
+                  <td><code>SALES_AGENT</code></td>
+                  <td>Gradnja Plus</td>
+                </tr>
+                <tr>
+                  <td><code>finansije@gradnjaplus.test</code></td>
+                  <td><code>FINANCE</code></td>
+                  <td>Gradnja Plus</td>
+                </tr>
+                <tr>
+                  <td><code>vlasnik@topnekretnine.test</code></td>
+                  <td><code>AGENCY_OWNER</code></td>
+                  <td>Top Nekretnine (<code>top-nekretnine</code>)</td>
+                </tr>
+                <tr>
+                  <td><code>agent@topnekretnine.test</code></td>
+                  <td><code>AGENCY_AGENT</code></td>
+                  <td>Top Nekretnine</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="callout warn">
+            <strong>Doc drift</strong>
+            Stariji README pominje <code>investor@propertydesk.test</code> /
+            <code>agency@propertydesk.test</code> — seed ih <em>ne</em> kreira.
+            Koristi tabelu iznad.
+          </div>
+        </section>
+
+        <section id="first-pr">
+          <h2>First PR checklist <a class="anchor" href="#first-pr">#</a></h2>
+          <h3>Dan 1 — okruženje i orijentacija</h3>
+          <ul class="checklist">
+            <li>Pokrenut <code>pnpm dev</code>, login kao investitor i kao agencija</li>
+            <li>Pročitati ovaj portal + <a href="help-center.html">Help Center</a> (operator kontekst)</li>
+            <li>Pregledati <code>docs/architecture.md</code>, <code>permissions.md</code>, <code>business-rules.md</code></li>
+            <li>Otvoriti Prisma Studio (<code>pnpm db:studio</code>) i videti <code>Organization</code>, <code>Unit</code>, <code>Sale</code></li>
+            <li>Naći jedan API route + odgovarajući service (npr. units) i pročitati tok</li>
+            <li>Pokrenuti <code>pnpm lint && pnpm typecheck && pnpm test</code> — zeleno baseline</li>
+          </ul>
+          <h3>Dan 2 — mali contribution</h3>
+          <ul class="checklist">
+            <li>Izabrati mali ticket (copy fix, test, docs, ne-kritičan bug)</li>
+            <li>Branch: <code>feat/…</code> ili <code>fix/…</code> od ažurnog <code>main</code></li>
+            <li>Izmene u service sloju + Zod schema + sr-Latn UI po potrebi</li>
+            <li><code>recordAudit</code> ako menjaš status/novac</li>
+            <li>Unit test gde ima smisla; bez float novca</li>
+            <li>PR opis: zašto, kako testirati, screenshot ako UI</li>
+            <li>Quality gate lokalno pre push-a</li>
+          </ul>
+        </section>
+
+        <!-- ========== ARHITEKTURA ========== -->
+        <section id="request-lifecycle">
+          <h2>Request lifecycle <a class="anchor" href="#request-lifecycle">#</a></h2>
+          <p>Svaki mutacioni / autentifikovani REST poziv prati ovaj lanac:</p>
+          <div class="flow">UI (RSC / client fetch)
+  →  Route  src/app/api/v1/**/route.ts
+  →  apiHandler({ bodySchema, paramsSchema, … })
+       · parse Zod
+       · requestId + x-request-id header
+       · rate-limit (ako uključeno)
+  →  requirePermission("resource.action")
+       · session (Better Auth)
+       · active organization
+       · role → permission matrix / overrides
+  →  domain service (src/server/services/**)
+  →  prisma.$transaction (novac / status)
+  →  recordAudit({ action, entityType, … })
+  →  envelope { data, meta }  ili  ApiError envelope</div>
+          <p>Brojčano:</p>
+          <ol>
+            <li><strong>UI</strong> — feature komponenta zove <code>api-client</code> ili server action koji ide na REST.</li>
+            <li><strong>Route</strong> — tanak controller; samo wiring.</li>
+            <li><strong>apiHandler</strong> — validacija, envelope, mapiranje grešaka, Sentry na 5xx.</li>
+            <li><strong>requirePermission</strong> — authz kontekst (<code>AuthorizedContext</code>).</li>
+            <li><strong>Service</strong> — poslovna pravila, Decimal, org scope.</li>
+            <li><strong>Prisma tx</strong> — atomičnost.</li>
+            <li><strong>Audit</strong> — append-only trag.</li>
+          </ol>
+        </section>
+
+        <section id="folder-structure">
+          <h2>Folder struktura <a class="anchor" href="#folder-structure">#</a></h2>
+          <pre><code>src/
+  app/
+    (auth)/              <span class="c"># sign-in, reset, invite…</span>
+    (dashboard)/         <span class="c"># sr-Latn UI rute (projekti, kupci…)</span>
+    (marketing)/         <span class="c"># landing / SEO</span>
+    (public)/p/          <span class="c"># share + microsite</span>
+    (system)/            <span class="c"># održavanje</span>
+    api/
+      auth/[...all]      <span class="c"># Better Auth</span>
+      v1/…               <span class="c"># verziran REST</span>
+      health
+  components/            <span class="c"># deljeni UI primitives</span>
+  features/              <span class="c"># domain UI (per feature folder)</span>
+  lib/
+    api/                 <span class="c"># handler, response, errors</span>
+    api-client/          <span class="c"># browser client</span>
+    formatters/          <span class="c"># money, phone, dates</span>
+    env.ts               <span class="c"># Zod env</span>
+  server/
+    audit/               <span class="c"># recordAudit</span>
+    auth/                <span class="c"># Better Auth config</span>
+    db/                  <span class="c"># Prisma client</span>
+    jobs/                <span class="c"># cron registry</span>
+    monitoring/          <span class="c"># Sentry facade + backup verify</span>
+    permissions/         <span class="c"># access-control + require</span>
+    pdf/                 <span class="c"># react-pdf dokumenti</span>
+    services/            <span class="c"># ★ poslovna logika</span>
+prisma/                  <span class="c"># schema, migrations, seed</span>
+docs/                    <span class="c"># ovaj portal + operator docs</span>
+e2e/                     <span class="c"># Playwright</span>
+deploy/                  <span class="c"># git-deploy.ps1, provision…</span></code></pre>
+        </section>
+
+        <section id="gde-staviti">
+          <h2>Gde staviti novi feature <a class="anchor" href="#gde-staviti">#</a></h2>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Šta dodaješ</th>
+                  <th>Gde</th>
+                  <th>Ne ovde</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Poslovno pravilo / DB write</td>
+                  <td><code>src/server/services/&lt;domain&gt;/*.service.ts</code></td>
+                  <td>Route handler, React komponenta</td>
+                </tr>
+                <tr>
+                  <td>REST endpoint</td>
+                  <td><code>src/app/api/v1/…/route.ts</code> + Zod + <code>apiHandler</code></td>
+                  <td>Ad-hoc fetch u page.tsx bez envelope-a</td>
+                </tr>
+                <tr>
+                  <td>UI za jedan domen</td>
+                  <td><code>src/features/&lt;domain&gt;/</code></td>
+                  <td><code>components/</code> (to je shared)</td>
+                </tr>
+                <tr>
+                  <td>App Router stranica</td>
+                  <td><code>src/app/(dashboard)/…</code> (srpski slugovi)</td>
+                  <td>Engleski URL-ovi u dashboardu</td>
+                </tr>
+                <tr>
+                  <td>Dozvola</td>
+                  <td><code>access-control.ts</code> + role matrix</td>
+                  <td>Hardcoded role check u UI-ju kao jedina zaštita</td>
+                </tr>
+                <tr>
+                  <td>PDF</td>
+                  <td><code>src/server/pdf/</code> + service koji zove renderer</td>
+                  <td>Client-side PDF generisanje sa secretima</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="callout">
+            <strong>Feature folder vs service</strong>
+            <code>features/</code> = React (forme, tabele, paneli).
+            <code>server/services/</code> = jedini izvor istine za pravila.
+            Ako “ista logika” treba i u cron jobu i u UI-ju — živi u service-u.
+          </div>
+        </section>
+
+        <section id="permissions">
+          <h2>Permissions model <a class="anchor" href="#permissions">#</a></h2>
+          <p>
+            Kanonska definicija: <code>src/server/permissions/access-control.ts</code>.
+            Enforcement: <code>requirePermission</code> /
+            <code>requirePlatformPermission</code>.
+          </p>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Resource</th>
+                  <th>Actions (<code>resource.action</code>)</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td><code>organization</code></td><td><code>manage</code>, <code>members:manage</code>, <code>suspend</code>, <code>read</code></td></tr>
+                <tr><td><code>project</code></td><td><code>create</code>, <code>read</code>, <code>update</code>, <code>delete</code>, <code>archive</code></td></tr>
+                <tr><td><code>inventory</code></td><td><code>read</code>, <code>manage</code>, <code>price</code>, <code>status</code>, <code>reopen_sold</code>, <code>import</code>, <code>export</code>, <code>bulk</code></td></tr>
+                <tr><td><code>lead</code></td><td><code>read</code>, <code>manage</code></td></tr>
+                <tr><td><code>reservation</code></td><td><code>create</code>, <code>approve</code>, <code>cancel</code>, <code>read</code></td></tr>
+                <tr><td><code>sale</code></td><td><code>read</code>, <code>manage</code></td></tr>
+                <tr><td><code>payment</code></td><td><code>read</code>, <code>manage</code></td></tr>
+                <tr><td><code>agency</code></td><td><code>manage</code>, <code>customer:register</code>, <code>read</code></td></tr>
+                <tr><td><code>commission</code></td><td><code>read</code>, <code>manage</code></td></tr>
+                <tr><td><code>document</code></td><td><code>read</code>, <code>manage</code></td></tr>
+                <tr><td><code>report</code></td><td><code>read</code></td></tr>
+                <tr><td><code>audit</code></td><td><code>read</code></td></tr>
+                <tr><td><code>platform</code></td><td><code>organization:manage</code>, <code>impersonate</code>, <code>user:manage</code></td></tr>
+                <tr><td><code>billing</code></td><td><code>read</code>, <code>settings.manage</code>, <code>plan.manage</code>, <code>subscription.*</code>, <code>invoice.*</code>, <code>payment.*</code>, <code>bankstatement.*</code>, <code>sef.manage</code>, <code>jobs.run</code>, <code>template.manage</code>, …</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p>
+            U <strong>RESTRICTED</strong> billing režimu default allowlist je uzak:
+            <code>organization.read</code>, <code>billing.read</code>,
+            <code>billing.subscription.read</code>, <code>billing.invoice.read</code>,
+            <code>billing.payment.read</code>, <code>document.read</code>.
+          </p>
+        </section>
+
+        <section id="audit">
+          <h2>Audit log pattern <a class="anchor" href="#audit">#</a></h2>
+          <p>
+            Implementacija: <code>src/server/audit/audit.ts</code>.
+            Akcije su <code>domain.verb</code> stringovi
+            (<code>sale.created</code>, <code>unit.status_changed</code>,
+            <code>buyer.kyc_updated</code>, <code>system.backup_verified</code>…).
+          </p>
+          <pre><code><span class="k">import</span> { recordAudit } <span class="k">from</span> <span class="s">"@/server/audit/audit"</span>;
+
+<span class="k">await</span> recordAudit({
+  action: <span class="s">"unit.status_changed"</span>,
+  entityType: <span class="s">"Unit"</span>,
+  entityId: unit.id,
+  organizationId,
+  actorUserId,
+  previousValues: { status: prev },
+  newValues: { status: next },
+});</code></pre>
+          <ul>
+            <li>Fail-soft: greška u auditu se loguje, ne ruši caller.</li>
+            <li>Redaktuje secrete (<code>password</code>, tokeni, <code>apiKey</code>…).</li>
+            <li>Hvata IP (<code>x-forwarded-for</code>) i User-Agent kad postoji request scope.</li>
+            <li>Platform lista: <span class="method get">GET</span><code class="endpoint">/api/v1/platform/audit</code></li>
+          </ul>
+        </section>
+
+        <section id="auth-sessions">
+          <h2>Better Auth i sesije <a class="anchor" href="#auth-sessions">#</a></h2>
+          <p>
+            Autentifikacija je centralizovana u <code>src/server/auth/auth.ts</code>
+            (Better Auth + Prisma adapter). Sesija je HTTP-only cookie; tenant kontekst
+            dolazi isključivo iz <code>activeOrganizationId</code> na session redu —
+            nikad iz query/body parametra.
+          </p>
+
+          <h3>Login i session cookie</h3>
+          <p>
+            Email+password sa verifikacijom (<code>requireEmailVerification: true</code>).
+            U produkciji cookie prefix je <code>propertydesk</code> sa
+            <code>useSecureCookies: true</code>, pa session token izgleda kao
+            <code>__Secure-better-auth.session_token</code> (Better Auth interno ime).
+            Trajanje: 7 dana, refresh jednom dnevno (<code>updateAge: 24h</code>).
+            Cookie cache TTL je 30s — kratko da promene role/active org brzo stignu do klijenta.
+          </p>
+          <pre><code><span class="c">// Browser — authClient iz @/lib/auth-client</span>
+<span class="k">await</span> authClient.signIn.email({ email, password });
+<span class="k">await</span> authClient.organization.setActive({ organizationId });</code></pre>
+
+          <h3>Organizations plugin</h3>
+          <p>
+            Jedan <code>Organization</code> = jedan tenant. Plugin upravlja članstvima
+            (<code>member</code>), pozivnicama i prebacivanjem aktivne org. Tip profila
+            (<code>INVESTOR</code> / <code>AGENCY</code>) živi u
+            <code>OrganizationProfile</code>. Detalji multi-tenant modela:
+            <a href="#pregled">Pregled sistema</a>.
+          </p>
+
+          <h3><code>requireSession()</code> i <code>requirePermission()</code></h3>
+          <p>
+            API rute koriste lanac iz <code>src/server/auth/session.ts</code> i
+            <code>src/server/permissions/require.ts</code>:
+          </p>
+          <pre><code><span class="k">const</span> ctx = <span class="k">await</span> requirePermission(<span class="s">"sale.read"</span>);
+<span class="c">// ctx.session — Better Auth session</span>
+<span class="c">// ctx.organization — { organizationId, organizationRole, organizationStatus, … }</span>
+<span class="c">// ctx.isSuperAdmin — platform bypass (audit i dalje obavezan)</span></code></pre>
+          <ul>
+            <li><code>requireSession()</code> — baca <code>UNAUTHENTICATED</code> (401).</li>
+            <li><code>requireActiveOrganization()</code> — baca <code>NO_ACTIVE_ORGANIZATION</code> ako nema izabrane org.</li>
+            <li><code>requirePermission("…")</code> — proverava role matrix + override sloj; u <code>RESTRICTED</code> billing režimu dozvoljava samo allowlist (vidi <a href="#permissions">Permissions model</a>).</li>
+          </ul>
+
+          <h3>Izbor aktivne organizacije</h3>
+          <p>
+            Izvor istine: <code>session.activeOrganizationId</code>, cross-check protiv
+            <code>member</code> tabele u <code>getActiveOrganization()</code>. Fallback redosled:
+            DB session → jedina membership → null (SUPER_ADMIN bez tenanta ide na
+            <code>/administracija</code>). UI: org switcher poziva
+            <code>authClient.organization.setActive</code>.
+          </p>
+
+          <h3>SUPER_ADMIN impersonate</h3>
+          <p>
+            Admin plugin (<code>impersonate</code> permission samo za platform role).
+            Flow: launcher na <code>/administracija/korisnici</code> → Better Auth mintuje
+            sesiju sa <code>impersonatedBy</code> → dashboard prikazuje
+            <code>ImpersonationBanner</code> (<code>src/components/app/impersonation-banner.tsx</code>).
+            Audit: <code>platform.impersonation_started</code> na startu; svaki
+            <code>recordAudit</code> može nositi <code>impersonatedByUserId</code> —
+            vidljivo na <code>/administracija/revizija</code>.
+          </p>
+          <div class="callout warn">
+            <strong>Bez curenja identiteta</strong>
+            Tokom impersonacije <code>session.user</code> je ciljni korisnik — logika mora
+            koristiti <code>impersonatedBy</code> za “ko je stvarno kliknuo”, ne
+            <code>session.user.id</code> za platform akcije.
+          </div>
+        </section>
+
+        <section id="server-only">
+          <h2>server-only / use client <a class="anchor" href="#server-only">#</a></h2>
+          <p>
+            Next.js App Router razdvaja Server Components (podrazumevano) i Client
+            Components (<code>"use client"</code>). Pravilo: sve što dira Prisma, tajne,
+            ili file-system ide u server sloj.
+          </p>
+
+          <h3>Kada šta</h3>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Sloj</th><th>Direktiva</th><th>Primeri</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Server Component / route / service</td>
+                  <td><code>import "server-only"</code> na vrhu fajla</td>
+                  <td><code>*.service.ts</code>, <code>session.ts</code>, <code>storage/index.ts</code></td>
+                </tr>
+                <tr>
+                  <td>Client Component</td>
+                  <td><code>"use client"</code></td>
+                  <td>Forme, chart interakcija, <code>authClient</code>, <code>apiClient</code></td>
+                </tr>
+                <tr>
+                  <td>Shared pure util</td>
+                  <td>Nijedna (bez side-effect-a)</td>
+                  <td><code>src/lib/formatters/*</code>, Zod šeme bez DB</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h3>Sprečavanje curenja Prisma klijenta</h3>
+          <ol>
+            <li>Prisma client samo u <code>src/server/db/prisma.ts</code> — importuj ga isključivo iz <code>src/server/**</code>.</li>
+            <li>Dodaj <code>import "server-only"</code> u svaki server modul koji exportuje DB pristup.</li>
+            <li>Ne importuj server service u Client Component — pozovi <code>/api/v1/…</code> preko <code>apiClient</code>.</li>
+            <li>ESLint + build će failovati ako <code>server-only</code> paket uđe u client bundle (vidi <a href="#troubleshooting">Troubleshooting</a>).</li>
+          </ol>
+
+          <h3>RSC vs Client Component</h3>
+          <p>
+            Page/layout u <code>src/app/(dashboard)/</code> su Server Components: fetch
+            podataka preko <code>requireSessionAndOrg()</code> + service poziva, prosleđuju
+            serializable props u feature komponente. Interaktivnost (state, onClick, hooks)
+            ide u <code>src/features/&lt;domain&gt;/</code> sa <code>"use client"</code>.
+            Pravilo palca: ako fajl importuje <code>useState</code> ili browser API —
+            mora biti client; inače ostaje server.
+          </p>
+        </section>
+
+        <section id="dto-agency">
+          <h2>Agency-safe DTO sloj <a class="anchor" href="#dto-agency">#</a></h2>
+          <p>
+            Agencije nikad ne smeju videti investor-interne podatke. DTO builderi koriste
+            eksplicitni allowlist — nikad <code>…unit</code> spread. Ciljna lokacija:
+            <code>src/server/dto/agency/*</code>; trenutna implementacija:
+            <code>src/server/services/agencies/dtos.ts</code> (<code>toAgencyProjectDto</code>,
+            <code>toAgencyUnitDto</code>).
+          </p>
+
+          <h3>Polja koja se nikad ne izlažu agenciji</h3>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Polje / entitet</th><th>Razlog</th></tr>
+              </thead>
+              <tbody>
+                <tr><td><code>internalNotes</code> (Unit, Project)</td><td>Investitor operativne napomene</td></tr>
+                <tr><td><code>basePrice</code>, <code>discountValue</code>, <code>discountType</code></td><td>Cena iza scene — agencija vidi samo dozvoljeni price block</td></tr>
+                <tr><td><code>priceHistory</code>, <code>statusHistory</code></td><td>Interni audit tragovi</td></tr>
+                <tr><td><code>buyer.email</code> (i ostali PII)</td><td>Samo ako connection/project access eksplicitno dozvoljava (<code>canViewBuyerContact</code> opt-in)</td></tr>
+                <tr><td>Podaci druge agencije</td><td>Filtrirano na query sloju, ne u DTO</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h3>Price gating</h3>
+          <pre><code><span class="k">const</span> dto = toAgencyUnitDto(row, {
+  canViewPrices: access.canViewPrices,      <span class="c">// false → price: null</span>
+  canViewFloorPlans: access.canViewFloorPlans,
+});</code></pre>
+          <p>
+            Offer API: <code>src/server/services/agencies/offer.service.ts</code>.
+            Share link whitelist prati ista pravila — vidi <a href="#share-tokens">Public share tokens</a>.
+          </p>
+          <div class="callout">
+            <strong>Code review gate</strong>
+            Novo polje u Prisma <code>Unit</code> modelu ne znači automatski vidljivo agenciji —
+            mora se ručno dodati u DTO builder i test u <code>dtos.test.ts</code>.
+          </div>
+        </section>
+
+        <section id="rate-limit">
+          <h2>Rate limiting <a class="anchor" href="#rate-limit">#</a></h2>
+          <p>
+            Sliding-window limiter u <code>src/server/rate-limit/index.ts</code>
+            (API surface: <code>enforceRateLimit</code> u <code>enforce.ts</code>).
+            Bucket ključevi: <code>rateLimitKey(scope, caller)</code> →
+            <code>scope::caller</code>. Isključivo preko env
+            <code>RATE_LIMIT_ENABLED</code> (dev: često <code>false</code>).
+          </p>
+
+          <h3>Bucket keys i limiti</h3>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Scope (alias)</th><th>Caller</th><th>Limit</th><th>Ruta</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>public.reserve.ip</code> (<code>ip:public-reserve</code>)</td>
+                  <td>IP (<code>x-forwarded-for</code>)</td>
+                  <td>5 / 10 min</td>
+                  <td><code>POST /api/v1/public/share/[token]/reserve</code></td>
+                </tr>
+                <tr>
+                  <td><code>public.reserve.token</code></td>
+                  <td>share token</td>
+                  <td>20 / h</td>
+                  <td>Ista ruta (NAT zaštita)</td>
+                </tr>
+                <tr>
+                  <td><code>agency.referral.rotate</code> (<code>user:referral-rotate</code>)</td>
+                  <td><code>userId</code></td>
+                  <td>6 / h</td>
+                  <td><code>POST /api/v1/agency/referral/rotate</code></td>
+                </tr>
+                <tr>
+                  <td><code>marketing.leads</code></td>
+                  <td>IP</td>
+                  <td>5 / min</td>
+                  <td><code>POST /api/v1/marketing/leads</code></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h3>429 odgovor</h3>
+          <p>
+            Prekoračenje baca <code>ApiError("RATE_LIMITED", …)</code> sa HTTP 429.
+            Envelope nosi <code>requestId</code>; klijent prikazuje sr-Latn poruku iz
+            <code>src/lib/i18n/sr-Latn.ts</code> (<code>rateLimited</code>).
+            Planirano: <code>Retry-After</code> header iz <code>resetAt</code> bucket-a.
+          </p>
+
+          <h3>Memory + Redis switch</h3>
+          <p>
+            Podrazumevano: in-memory <code>Map</code> (single Node proces iza nginx-a).
+            Za multi-instance produkciju zameni storage u <code>index.ts</code> Redis
+            implementacijom — call sites (<code>enforceRateLimit</code>) ostaju isti.
+            Better Auth ima sopstveni limiter za <code>/api/auth/*</code> (100/min).
+          </p>
+        </section>
+
+        <section id="storage">
+          <h2>Storage abstraction <a class="anchor" href="#storage">#</a></h2>
+          <p>
+            <code>StorageProvider</code> u <code>src/server/storage/index.ts</code> —
+            jedinstveni interfejs za dokumente, PDF-ove, bank statement upload.
+            Modovi: <code>STORAGE_PROVIDER=local</code> (dev) ili <code>s3</code> (prod).
+          </p>
+
+          <h3>Interfejs</h3>
+          <pre><code><span class="k">interface</span> StorageProvider {
+  put(input: PutObjectInput): Promise&lt;PutObjectResult&gt;;
+  getSignedUrl(storageKey: string, expiresInSec?: number): Promise&lt;string&gt;;
+  delete(storageKey: string): Promise&lt;void&gt;;
+  read(storageKey: string): Promise&lt;Buffer&gt;;
+}</code></pre>
+
+          <h3>Path shape</h3>
+          <p>
+            Opaque ključ: <code>orgs/&lt;organizationId&gt;/&lt;category&gt;/YYYY-MM-DD_&lt;random&gt;.&lt;ext&gt;</code>.
+            Kategorije: <code>documents</code>, <code>contracts</code>, <code>bank-statements</code>, …
+            Path traversal je odbijen u <code>resolvePath()</code>.
+          </p>
+
+          <h3>Local vs S3</h3>
+          <ul>
+            <li><strong>local</strong> — root <code>STORAGE_LOCAL_DIR</code>; signed URL vraća <code>local:&lt;key&gt;</code> → stream kroz autentifikovani download route.</li>
+            <li><strong>s3</strong> — AWS SDK v4 presigned URL; default TTL <strong>300 s (5 min)</strong> u <code>getSignedUrl</code>.</li>
+          </ul>
+
+          <h3>MIME allowlist</h3>
+          <p>
+            <code>ALLOWED_DOCUMENT_MIME_TYPES</code> — PDF, PNG/JPEG/WebP/HEIC, Word/Excel,
+            CSV, plain text. Max veličina: <code>MAX_UPLOAD_BYTES</code> = 20 MB.
+            <code>assertAllowedMimeType()</code> pre svakog <code>put()</code>.
+          </p>
+        </section>
+
+        <section id="i18n-money">
+          <h2>i18n, novac, datumi <a class="anchor" href="#i18n-money">#</a></h2>
+          <p>
+            Produkt je sr-Latn first. Locale konstante u <code>src/lib/constants/app.ts</code>
+            (<code>APP_LOCALE</code>, <code>APP_TIMEZONE=Europe/Belgrade</code>).
+          </p>
+
+          <h3>Datumi</h3>
+          <p>
+            <code>DATE_FORMAT = "dd.MM.yyyy."</code> — tačka na kraju je namerna (srpski stil).
+            <code>formatDate()</code> / <code>formatDateTime()</code> u
+            <code>src/lib/formatters/date.ts</code> koriste <code>date-fns-tz</code>.
+          </p>
+
+          <h3>Novac</h3>
+          <pre><code><span class="k">import</span> { formatMoney, toDecimal } <span class="k">from</span> <span class="s">"@/lib/formatters/money"</span>;
+
+formatMoney(<span class="s">"1234567.5"</span>, <span class="s">"EUR"</span>);  <span class="c">// → "1.234.567,50 EUR"</span>
+<span class="k">const</span> d = toDecimal(userInput);     <span class="c">// nikad parseFloat na novcu</span></code></pre>
+          <p>
+            Ulaz iz formi / CSV: normalizuj zarez u tačku pre <code>toDecimal</code>
+            (pattern <code>parseDecimalInput</code> — vidi import u
+            <code>units-import.service.ts</code> funkcija <code>num()</code>).
+            Valute: <code>EUR</code> i <code>RSD</code> (<code>SUPPORTED_CURRENCIES</code>).
+          </p>
+
+          <h3>Prisma tipovi</h3>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Podatak</th><th>Tip</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Novac (cene, uplate, fakture)</td><td><code>Decimal @db.Decimal(14, 2)</code></td></tr>
+                <tr><td>Procenat (PDV, provizija %)</td><td><code>Decimal(6, 3)</code></td></tr>
+                <tr><td>Površina</td><td><code>Decimal(10, 2)</code></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="callout danger">
+            <strong>Float zabrana</strong>
+            IEEE-754 na novcu daje pogrešan Mod-97, pogrešan FIFO i pogrešan P&amp;L.
+            U testovima assertuj string / <code>.toFixed(2)</code>, ne <code>=== 0.1 + 0.2</code>.
+          </div>
+        </section>
+
+        <section id="observability">
+          <h2>Observability <a class="anchor" href="#observability">#</a></h2>
+          <p>
+            Korelacija zahteva kroz ceo stack: request ID → structured log → Sentry event.
+            Facade: <code>src/server/monitoring/index.ts</code>; logger:
+            <code>src/server/logger/index.ts</code>.
+          </p>
+
+          <h3>Request ID</h3>
+          <p>
+            <code>apiHandler</code> (<code>src/lib/api/handler.ts</code>) propagira
+            <code>x-request-id</code> header ili generiše UUID. Svaki success/error envelope
+            nosi <code>meta.requestId</code> / <code>error.requestId</code>.
+            Klijent čita header u <code>src/lib/api-client/client.ts</code>.
+          </p>
+
+          <h3>Structured logs</h3>
+          <pre><code>logger.info(<span class="s">"payment.created"</span>, {
+  requestId,
+  organizationId,
+  actorUserId,
+  saleId,
+  amount: payment.amount.toString(),
+});</code></pre>
+          <p>
+            JSON jedna linija po eventu. U produkciji grep po <code>requestId</code> na VPS-u;
+            u dev-u isti format u konzoli. <code>logger.child({ requestId })</code> za duboke call chain-ove.
+          </p>
+
+          <h3>Sentry</h3>
+          <ul>
+            <li>5xx iz <code>apiHandler</code> → <code>captureException</code> sa tagom <code>request_id</code>.</li>
+            <li>Breadcrumbs iz Better Auth / fetch grešaka automatski kad je <code>SENTRY_DSN</code> set.</li>
+            <li>Pravilo facada: uvek prvo <code>logger.error</code>, pa Sentry — da log postoji i kad SDK padne.</li>
+          </ul>
+
+          <h3>Log iz Sentry event-a</h3>
+          <ol>
+            <li>Otvori issue → Tags → <code>request_id</code>.</li>
+            <li>Na serveru: <code>grep '&lt;requestId&gt;' /var/log/propertydesk/*.log</code> (ili journalctl).</li>
+            <li>U audit UI (<code>/administracija/revizija</code>) filtriraj po vremenu + actor ako je autentifikovan zahtev.</li>
+          </ol>
+          <p>Incident playbook: <a href="#incident">Incident response</a>.</p>
+        </section>
+
+        <section id="error-codes">
+          <h2>Error codes <a class="anchor" href="#error-codes">#</a></h2>
+          <p>API envelope greške — <code>src/lib/api/errors.ts</code> (<code>ApiErrorCode</code>):</p>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Code</th><th>HTTP</th><th>Kada</th></tr>
+              </thead>
+              <tbody>
+                <tr><td><code>UNAUTHENTICATED</code></td><td>401</td><td>Nema sesije</td></tr>
+                <tr><td><code>FORBIDDEN</code></td><td>403</td><td>Nema permission</td></tr>
+                <tr><td><code>NO_ACTIVE_ORGANIZATION</code></td><td>403</td><td>Sesija bez aktivne org</td></tr>
+                <tr><td><code>ORGANIZATION_ACCESS_DENIED</code></td><td>403</td><td>Članstvo / scope</td></tr>
+                <tr><td><code>ORGANIZATION_SUSPENDED</code></td><td>403</td><td>Org suspendovana</td></tr>
+                <tr><td><code>ORGANIZATION_RESTRICTED</code></td><td>402</td><td>Billing restricted mode</td></tr>
+                <tr><td><code>PLATFORM_ADMIN_REQUIRED</code></td><td>403</td><td>Nije SUPER_ADMIN</td></tr>
+                <tr><td><code>VALIDATION_ERROR</code></td><td>422</td><td>Zod / fieldErrors</td></tr>
+                <tr><td><code>NOT_FOUND</code></td><td>404</td><td>Entitet ne postoji / van scope-a</td></tr>
+                <tr><td><code>CONFLICT</code></td><td>409</td><td>Unique / stanje</td></tr>
+                <tr><td><code>RATE_LIMITED</code></td><td>429</td><td>Limiter</td></tr>
+                <tr><td><code>METHOD_NOT_ALLOWED</code></td><td>405</td><td>Pogrešan HTTP method</td></tr>
+                <tr><td><code>BAD_REQUEST</code></td><td>400</td><td>Opšti loš zahtev</td></tr>
+                <tr><td><code>NOT_IMPLEMENTED</code></td><td>501</td><td>Placeholder</td></tr>
+                <tr><td><code>INTERNAL_ERROR</code></td><td>500</td><td>Neočekivano (+ Sentry)</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p>
+            Domain sloj (<code>DomainErrorCode</code>): <code>VALIDATION</code>,
+            <code>NOT_FOUND</code>, <code>CONFLICT</code>, <code>OPTIMISTIC_LOCK</code>,
+            <code>QUOTA_EXCEEDED</code>, <code>INVALID_STATE</code>, <code>FORBIDDEN</code>,
+            <code>BAD_REQUEST</code>, <code>INTERNAL</code> — mapira se na gornje HTTP kodove.
+          </p>
+        </section>
+
+        <!-- ========== BAZA ========== -->
+        <section id="prisma-conventions">
+          <h2>Prisma konvencije <a class="anchor" href="#prisma-conventions">#</a></h2>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Tip podatka</th><th>Prisma / DB</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Novac</td><td><code>Decimal @db.Decimal(14, 2)</code></td></tr>
+                <tr><td>Procenat (pct)</td><td>obično <code>Decimal(6, 3)</code></td></tr>
+                <tr><td>Površina</td><td><code>Decimal(10, 2)</code></td></tr>
+                <tr><td>Lat/lng</td><td><code>Decimal(10, 7)</code></td></tr>
+                <tr><td>PK</td><td><code>cuid()</code></td></tr>
+                <tr><td>Tenant FK</td><td><code>organizationId</code> na svim tenant modelima</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <ul>
+            <li>Enumi u schemi za statusne mašine (unit, reservation, sale…).</li>
+            <li>Partial unique indexi: jedna aktivna rezervacija / prodaja po jedinici.</li>
+            <li>Optimistic <code>version</code> na dugoživućim entitetima.</li>
+            <li>Locale formatiranje novca: <code>sr-Latn</code> → <code>1.234.567,50 EUR</code>.</li>
+          </ul>
+        </section>
+
+        <section id="migrations">
+          <h2>Kako kreirati migracije <a class="anchor" href="#migrations">#</a></h2>
+          <pre><code><span class="c"># 1. Izmeni prisma/schema.prisma (additive preferirano)</span>
+<span class="c"># 2. Generiši migraciju</span>
+pnpm prisma migrate dev --name add_project_cost_fields
+
+<span class="c"># 3. Pregledaj SQL u prisma/migrations/&lt;timestamp&gt;_*/migration.sql</span>
+<span class="c"># 4. Client</span>
+pnpm prisma generate
+
+<span class="c"># Deploy (CI / VPS):</span>
+pnpm prisma migrate deploy</code></pre>
+          <p>
+            Za velike tabele preferiraj indekse koji ne drže dugi exclusive lock
+            (gde je moguće <code>CONCURRENTLY</code> — pažnja: Prisma migracije
+            ponekad traže ručni SQL korak).
+          </p>
+        </section>
+
+        <section id="p3018">
+          <h2>P3018 recovery <a class="anchor" href="#p3018">#</a></h2>
+          <p>
+            <code>P3018</code> se javlja kad <code>migrate deploy</code> naiđe na
+            objekat koji već postoji (enum/tabela kreirana ručno ili delimično
+            primenjena migracija) — čest scenario posle restore-a ili mešanog
+            Supabase/Neon setupa.
+          </p>
+          <pre><code><span class="c"># Ako je SQL već uspešno primenjen u DB-u, samo markiraj migraciju:</span>
+pnpm prisma migrate resolve --applied &lt;migration_name&gt;
+
+<span class="c"># Ako je migracija pala na pola i treba je ponovo pokušati:</span>
+pnpm prisma migrate resolve --rolled-back &lt;migration_name&gt;
+pnpm prisma migrate deploy</code></pre>
+          <div class="callout danger">
+            <strong>Ne “resolve --applied” na slepo</strong>
+            Prvo uporedi stvarni DB schema sa SQL fajlom migracije. Pogrešan
+            resolve ostavlja shadow drift koji boli kasnije.
+          </div>
+        </section>
+
+        <section id="additive-policy">
+          <h2>Additive migration policy <a class="anchor" href="#additive-policy">#</a></h2>
+          <ul>
+            <li>U istom release-u: <strong>dodaj</strong> kolone/tabele/indekse; ne radi <code>DROP</code> / <code>RENAME</code> destruktivno.</li>
+            <li>Brisanje kolona = poseban release posle što kod više ne čita staro polje (expand/contract).</li>
+            <li>Backfill podataka u service/job skripti, ne u migraciji sa dugim lock-om kad možeš izbeći.</li>
+            <li>Svaka migracija mora proći na kopiji produkcijskih podataka pre release-a.</li>
+          </ul>
+        </section>
+
+        <!-- ========== API ========== -->
+        <section id="api-envelope">
+          <h2>API envelope format <a class="anchor" href="#api-envelope">#</a></h2>
+          <p>
+            Implementacija: <code>src/lib/api/response.ts</code> +
+            <code>handler.ts</code>. Header <code>x-request-id</code> na svakom odgovoru.
+          </p>
+          <h3>Success</h3>
+          <pre><code>{
+  <span class="s">"data"</span>: { <span class="c">/* payload */</span> },
+  <span class="s">"meta"</span>: {
+    <span class="s">"requestId"</span>: <span class="s">"…"</span>,
+    <span class="s">"pagination"</span>: {
+      <span class="s">"page"</span>: <span class="n">1</span>,
+      <span class="s">"pageSize"</span>: <span class="n">20</span>,
+      <span class="s">"total"</span>: <span class="n">0</span>,
+      <span class="s">"totalPages"</span>: <span class="n">0</span>
+    }
+  }
+}</code></pre>
+          <h3>Error</h3>
+          <pre><code>{
+  <span class="s">"error"</span>: {
+    <span class="s">"code"</span>: <span class="s">"VALIDATION_ERROR"</span>,
+    <span class="s">"message"</span>: <span class="s">"Podaci nisu ispravni."</span>,
+    <span class="s">"fieldErrors"</span>: { <span class="s">"email"</span>: [<span class="s">"…"</span>] },
+    <span class="s">"requestId"</span>: <span class="s">"…"</span>
+  }
+}</code></pre>
+          <pre><code><span class="k">export const</span> POST = apiHandler(
+  { bodySchema, paramsSchema },
+  <span class="k">async</span> ({ body, params }) => {
+    <span class="k">const</span> ctx = <span class="k">await</span> requirePermission(<span class="s">"sale.manage"</span>);
+    <span class="k">const</span> result = <span class="k">await</span> salesService.doThing(ctx, body);
+    <span class="k">return</span> { data: result, status: <span class="n">201</span> };
+  },
+);</code></pre>
+          <div class="callout warn">
+            <strong>Doc drift</strong>
+            Stariji <code>docs/api.md</code> ponekad pokazuje
+            <code>{ data, error: null, requestId }</code> — to <em>nije</em> trenutni
+            oblik. Veruj kodu iznad.
+          </div>
+        </section>
+
+        <section id="swagger">
+          <h2>Swagger / OpenAPI 3.1 <a class="anchor" href="#swagger">#</a></h2>
+          <p>
+            Svaka ruta u <code>src/app/api/**/route.ts</code> nosi JSDoc
+            <code>@swagger</code> blok odmah pored handler-a. Generator
+            (<code>scripts/generate-swagger-docs.ts</code>) ih skuplja u
+            <code>/api/docs</code> (OpenAPI 3.1 JSON) i renderuje na
+            <a href="/api-docs"><strong>/api-docs</strong></a> kroz Swagger UI.
+          </p>
+          <h3>Gde šta živi</h3>
+          <ul>
+            <li><code>src/lib/swagger.ts</code> — konfiguracija (<code>createSwaggerSpec</code>), zajedničke sheme, <code>Error</code>, <code>PaginationMeta</code>, security scheme.</li>
+            <li><code>src/app/api/docs/route.ts</code> — <code>GET /api/docs</code> → vraća JSON spec. Javno (spec sam po sebi nije tajna).</li>
+            <li><code>src/app/api-docs/page.tsx</code> — server komponenta, preuzima spec i prosleđuje clientu.</li>
+            <li><code>src/app/api-docs/react-swagger.tsx</code> — <code>swagger-ui-react</code> wrapper sa <code>filter</code>, <code>tryItOutEnabled</code> i <code>persistAuthorization</code>.</li>
+            <li><code>scripts/generate-swagger-docs.ts</code> — CLI alat koji analizira sve <code>route.ts</code> fajlove i generiše osnovni <code>@swagger</code> JSDoc. Idempotentan.</li>
+          </ul>
+          <h3>Radni tok</h3>
+          <ol class="steps">
+            <li><strong>Napiši handler</strong> — <code>export const GET = apiHandler(...)</code>.</li>
+            <li><strong>Pokreni generator</strong> — <code>node --experimental-strip-types scripts/generate-swagger-docs.ts</code>. Doda <code>@swagger</code> blok ako ga nema (sa osnovnim tagovima i parametrima).</li>
+            <li><strong>Prepravi ručno</strong> — zameni generički <code>requestBody</code> sa konkretnom Zod shemom, dodaj <code>responses</code>, <code>examples</code>. Ključne rute (auth, prodaje, online rezervacije, share linkovi) MORAJU imati punu specifikaciju.</li>
+            <li><strong>Otvori <a href="/api-docs"><code>/api-docs</code></a></strong> — proveri da se tvoja ruta pojavljuje, da "Try it out" radi (uz ulogovan session cookie), i da <code>curl</code> primeri prolaze.</li>
+          </ol>
+          <h3>Specifikacija koja je obavezna</h3>
+          <ul>
+            <li>Svi <code>POST</code>/<code>PATCH</code> endpointi: <strong>tačna Zod shema</strong> u <code>requestBody</code> (ne <code>additionalProperties: true</code>).</li>
+            <li>Sve <code>422 VALIDATION_ERROR</code> moraju da navedu <code>fieldErrors</code> mapu.</li>
+            <li>Public endpointi (<code>/api/public/*</code>, <code>/api/auth/*</code>, <code>/api/health</code>) imaju <code>security: []</code>.</li>
+            <li>Sve <code>429</code> odgovore imaju <code>Retry-After</code> header naveden.</li>
+          </ul>
+          <h3>Kako izgleda kompletan blok</h3>
+          <pre><code>/**
+ * @swagger
+ * /api/v1/units:
+ *   get:
+ *     tags: [units]
+ *     summary: Lista jedinica
+ *     description: |
+ *       Paginirana lista svih jedinica u aktivnoj organizaciji.
+ *       Dozvola: `inventory.read`.
+ *     parameters:
+ *       - $ref: "#/components/parameters/pageParam"
+ *       - $ref: "#/components/parameters/qParam"
+ *       - in: query
+ *         name: status
+ *         schema: { type: string }
+ *         description: CSV lista (`AVAILABLE,RESERVED,...`)
+ *     responses:
+ *       "200":
+ *         description: Paginirana lista.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id: { type: string }
+ *                       code: { type: string, example: "A-3.5" }
+ *                 meta:
+ *                   properties:
+ *                     pagination:
+ *                       $ref: "#/components/schemas/PaginationMeta"
+ *       "401":
+ *         $ref: "#/components/responses/Unauthenticated"
+ *       "403":
+ *         $ref: "#/components/responses/Forbidden"
+ */</code></pre>
+          <div class="callout">
+            <strong>Napomena</strong>
+            Swagger UI se generiše <strong>statički na build time</strong> —
+            izmene u <code>@swagger</code> blokovima se vide tek nakon
+            <code>pnpm dev</code> restarta ili sledećeg deploy-a. Za brzu
+            proveru u toku razvoja, ručni <code>GET /api/docs</code> uvek
+            vraća aktuelni spec.
+          </div>
+          <div class="callout success">
+            <strong>Klijent generisanje</strong>
+            Pošto imamo kompletan OpenAPI spec, za budući mobilni ili JS SDK
+            možeš koristiti <code>openapi-typescript</code> ili
+            <code>@hey-api/client-fetch</code> — samo ih usmeri na
+            <code>/api/docs</code>.
+          </div>
+        </section>
+
+        <section id="api-endpoints">
+          <h2>Ključni endpointi <a class="anchor" href="#api-endpoints">#</a></h2>
+          <p>Prefix osim gde je drugačije: <code>/api/v1</code>.</p>
+
+          <h3>Projects &amp; inventory</h3>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Method</th><th>Path</th><th>Napomena</th></tr></thead>
+              <tbody>
+                <tr><td><span class="method get">GET</span></td><td class="endpoint">/projects</td><td>Lista projekata</td></tr>
+                <tr><td><span class="method post">POST</span></td><td class="endpoint">/projects</td><td>Kreiranje</td></tr>
+                <tr><td><span class="method get">GET</span></td><td class="endpoint">/projects/:id</td><td>Detalj</td></tr>
+                <tr><td><span class="method patch">PATCH</span></td><td class="endpoint">/projects/:id</td><td>Update (+ cost polja za P&amp;L)</td></tr>
+                <tr><td><span class="method post">POST</span></td><td class="endpoint">/projects/:id/clone</td><td>Klon strukture</td></tr>
+                <tr><td><span class="method post">POST</span></td><td class="endpoint">/projects/:id/import</td><td>CSV/XLSX uvoz jedinica</td></tr>
+                <tr><td><span class="method get">GET</span></td><td class="endpoint">/units</td><td>Inventar</td></tr>
+                <tr><td><span class="method patch">PATCH</span></td><td class="endpoint">/units/:id</td><td>Cena / atributi</td></tr>
+                <tr><td><span class="method post">POST</span></td><td class="endpoint">/units/:id/status</td><td>Status tranzicija</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h3>Buyers / KYC</h3>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Method</th><th>Path</th><th>Napomena</th></tr></thead>
+              <tbody>
+                <tr><td><span class="method get">GET</span></td><td class="endpoint">/buyers</td><td>CRM lista</td></tr>
+                <tr><td><span class="method post">POST</span></td><td class="endpoint">/buyers</td><td>Novi kupac</td></tr>
+                <tr><td><span class="method get">GET</span></td><td class="endpoint">/buyers/:id/kyc</td><td>Checklist (idempotent seed)</td></tr>
+                <tr><td><span class="method patch">PATCH</span></td><td class="endpoint">/buyers/:id/kyc</td><td>Update KYC polja / docs</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h3>Reservations &amp; reservation-requests</h3>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Method</th><th>Path</th><th>Napomena</th></tr></thead>
+              <tbody>
+                <tr><td><span class="method get">GET</span></td><td class="endpoint">/reservations</td><td>Interne rezervacije</td></tr>
+                <tr><td><span class="method post">POST</span></td><td class="endpoint">/reservations</td><td>Kreiranje</td></tr>
+                <tr><td><span class="method post">POST</span></td><td class="endpoint">/reservations/:id/approve</td><td>Odobrenje</td></tr>
+                <tr><td><span class="method post">POST</span></td><td class="endpoint">/reservations/:id/cancel</td><td>Otkaz</td></tr>
+                <tr><td><span class="method get">GET</span></td><td class="endpoint">/reservation-requests</td><td>Online zahtevi</td></tr>
+                <tr><td><span class="method post">POST</span></td><td class="endpoint">/reservation-requests/:id/confirm</td><td>Potvrda + buyer/reservation</td></tr>
+                <tr><td><span class="method post">POST</span></td><td class="endpoint">/reservation-requests/:id/decline</td><td>Odbijanje</td></tr>
+                <tr><td><span class="method post">POST</span></td><td class="endpoint">/public/share/:token/reserve</td><td>Javna forma + IPS QR</td></tr>
+                <tr><td><span class="method get">GET</span></td><td class="endpoint">/public/reservation-requests/:id/qr</td><td>QR PNG</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h3>Sales / contracts / tax</h3>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Method</th><th>Path</th><th>Napomena</th></tr></thead>
+              <tbody>
+                <tr><td><span class="method get">GET</span></td><td class="endpoint">/sales</td><td>Lista prodaja</td></tr>
+                <tr><td><span class="method post">POST</span></td><td class="endpoint">/sales</td><td>Nova prodaja</td></tr>
+                <tr><td><span class="method patch">PATCH</span></td><td class="endpoint">/sales/:id/tax</td><td>VAT / RPI režim</td></tr>
+                <tr><td><span class="method post">POST</span></td><td class="endpoint">/sales/:id/contract/generate</td><td>PDF predugovor/ugovor</td></tr>
+                <tr><td><span class="method post">POST</span></td><td class="endpoint">/sales/:id/contract/mark-sent</td><td>Status sent</td></tr>
+                <tr><td><span class="method post">POST</span></td><td class="endpoint">/sales/:id/contract/mark-signed</td><td>Status signed</td></tr>
+                <tr><td><span class="method get">GET</span></td><td class="endpoint">/sale-contract-templates</td><td>Šabloni</td></tr>
+                <tr><td><span class="method post">POST</span></td><td class="endpoint">/sale-contract-templates</td><td>Novi šablon</td></tr>
+                <tr><td><span class="method patch">PATCH</span></td><td class="endpoint">/sale-contract-templates/:id</td><td>Izmena</td></tr>
+                <tr><td><span class="method delete">DELETE</span></td><td class="endpoint">/sale-contract-templates/:id</td><td>Brisanje</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h3>Payment plan templates</h3>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Method</th><th>Path</th><th>Napomena</th></tr></thead>
+              <tbody>
+                <tr><td><span class="method get">GET</span></td><td class="endpoint">/payment-plan-templates</td><td>Org / project scope</td></tr>
+                <tr><td><span class="method post">POST</span></td><td class="endpoint">/payment-plan-templates</td><td>Kreiranje (<code>payment.manage</code>)</td></tr>
+                <tr><td><span class="method patch">PATCH</span></td><td class="endpoint">/payment-plan-templates/:id</td><td>Izmena rata / %</td></tr>
+                <tr><td><span class="method delete">DELETE</span></td><td class="endpoint">/payment-plan-templates/:id</td><td>Brisanje</td></tr>
+                <tr><td><span class="method post">POST</span></td><td class="endpoint">/sales/:id/payment-plan/apply-template</td><td>Primena na prodaju</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h3>Agency referral &amp; portal</h3>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Method</th><th>Path</th><th>Napomena</th></tr></thead>
+              <tbody>
+                <tr><td><span class="method post">POST</span></td><td class="endpoint">/agency/referral/rotate</td><td>Novi referral kod</td></tr>
+                <tr><td><span class="method get">GET</span></td><td class="endpoint">/agency/*</td><td>Agency portal surface</td></tr>
+                <tr><td><span class="method get">GET</span></td><td class="endpoint">/agencies</td><td>Investor veze sa agencijama</td></tr>
+                <tr><td><span class="method post">POST</span></td><td class="endpoint">/agencies</td><td>Nova veza / pozivnica</td></tr>
+                <tr><td><span class="method get">GET</span></td><td class="endpoint">/commissions</td><td>Komisije</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h3>Public share &amp; microsite</h3>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Method</th><th>Path</th><th>Napomena</th></tr></thead>
+              <tbody>
+                <tr><td><span class="method get">GET</span></td><td class="endpoint">/public/share/:token</td><td>Javna ponuda (page: <code>/p/[token]</code>)</td></tr>
+                <tr><td><span class="method get">GET</span></td><td class="endpoint">/public/projects/:slug</td><td>Microsite resolver</td></tr>
+                <tr><td colspan="3">UI ruta microsite-a: <code>/p/projekat/[slug]</code> (bez login-a)</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h3>Platform monitoring &amp; cron</h3>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Method</th><th>Path</th><th>Napomena</th></tr></thead>
+              <tbody>
+                <tr><td><span class="method get">GET</span></td><td class="endpoint">/platform/audit</td><td>SUPER_ADMIN audit</td></tr>
+                <tr><td><span class="method post">POST</span></td><td class="endpoint">/platform/monitoring/backup-verify</td><td>Ručni backup check</td></tr>
+                <tr><td><span class="method get">GET</span></td><td class="endpoint">/health</td><td>Liveness (i van v1)</td></tr>
+                <tr><td><span class="method get">GET</span></td><td class="endpoint">/ready</td><td>Readiness + DB</td></tr>
+                <tr><td><span class="method post">POST</span></td><td class="endpoint">/jobs/:name</td><td>Cron; Bearer <code>CRON_SECRET</code></td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h3>Reports</h3>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Method</th><th>Path</th><th>Napomena</th></tr></thead>
+              <tbody>
+                <tr><td><span class="method get">GET</span></td><td class="endpoint">/reports/cash-flow</td><td>Projekcija uplata</td></tr>
+                <tr><td><span class="method get">GET</span></td><td class="endpoint">/reports/export</td><td>Export</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- ========== FAZA 7/8 ========== -->
+        <section id="payment-plan-templates">
+          <h2>Payment plan templates <a class="anchor" href="#payment-plan-templates">#</a></h2>
+          <p>
+            <strong>Service:</strong>
+            <code>src/server/services/sales/payment-plan-templates.service.ts</code><br />
+            <strong>UI:</strong> <code>src/features/payment-plan-templates/</code><br />
+            <strong>Perm:</strong> <code>payment.manage</code>
+          </p>
+          <ul>
+            <li>Šabloni mogu biti org-scoped ili project-scoped.</li>
+            <li>Rate su definisane procentima — zbir mora biti <strong>100 ± 0.001</strong>.</li>
+            <li>Sidra datuma: <code>CONTRACT</code> | <code>HANDOVER</code> | <code>CUSTOM_OFFSET</code>.</li>
+            <li>Primena na prodaju preko
+              <span class="method post">POST</span>
+              <code class="endpoint">/sales/:id/payment-plan/apply-template</code>
+              kreira installment redove u transakciji.</li>
+            <li>Nikad ne računaj iznose sa float-om; koristi Decimal helper-e pa zaokruži na 2 decimale sa eksplicitnom raspodelom ostatka.</li>
+          </ul>
+        </section>
+
+        <section id="online-reservation">
+          <h2>Online rezervacija + IPS QR <a class="anchor" href="#online-reservation">#</a></h2>
+          <p>
+            <strong>Service:</strong>
+            <code>reservation-requests.service.ts</code> +
+            <code>billing/ips-qr/serbian-provider.ts</code><br />
+            Javna forma na share linku <code>/p/[token]</code>; investor pregled
+            <code>/rezervacije/zahtevi</code>.
+          </p>
+          <h3>Tok</h3>
+          <ol>
+            <li>Posetilac šalje
+              <span class="method post">POST</span>
+              <code class="endpoint">/public/share/:token/reserve</code>.</li>
+            <li>Service rezerviše jedinicu (hold), kreira
+              <code>ReservationRequest</code>, generiše IPS referencu + QR PNG u storage.</li>
+            <li>Odgovor vraća QR / deferencu za uplatu kapare (RSD, 18-cifra račun).</li>
+            <li>Investitor
+              <span class="method post">POST</span>
+              <code class="endpoint">…/confirm</code> ili
+              <span class="method post">POST</span>
+              <code class="endpoint">…/decline</code>.</li>
+            <li>Confirm → buyer + interna rezervacija; referral se propagira ako postoji cookie.</li>
+          </ol>
+
+          <h3>BigInt Mod-97 gotcha</h3>
+          <p>
+            IPS “poziv na broj” koristi model <code>97</code> (Mod-97). Telo je
+            12-cifreni broj; check digit:
+            <code>check = 98 - (n % 97)</code>, format
+            <code>97 CC-NNNNNNNNNNNN</code>.
+          </p>
+          <div class="callout danger">
+            <strong>Obavezno BigInt</strong>
+            12-cifreni broj prelazi bezbedan JS <code>Number</code> integer opseg
+            za tačan modulo. Koristi <code>BigInt</code> u
+            <code>generateIpsReference()</code>. Number/float daje pogrešan check
+            digit i pada bankarska validacija — postoji regresioni test baš zbog
+            starog <code>TypeError</code> / pogrešnog modula.
+          </div>
+          <pre><code><span class="c">// skraćeno — ideja, ne copy-paste iz produkcije</span>
+<span class="k">const</span> body = <span class="s">"123456789012"</span>; <span class="c">// 12 cifara</span>
+<span class="k">const</span> n = BigInt(body);
+<span class="k">const</span> check = Number(<span class="n">98n</span> - (n % <span class="n">97n</span>));
+<span class="k">const</span> cc = String(check).padStart(<span class="n">2</span>, <span class="s">"0"</span>);
+<span class="k">const</span> ref = <span class="s">`97 ${cc}-${body}`</span>;</code></pre>
+          <p>
+            NBS payload oblik: <code>K:PR|V:01|C:1|R:…</code> (vidi
+            <code>docs/billing/ips-qr.md</code>).
+          </p>
+        </section>
+
+        <section id="sale-contracts">
+          <h2>Sale contracts PDF + safeSubstitute <a class="anchor" href="#sale-contracts">#</a></h2>
+          <p>
+            <strong>Service:</strong> <code>contracts.service.ts</code><br />
+            <strong>PDF:</strong> <code>src/server/pdf/</code> (<code>@react-pdf/renderer</code>)<br />
+            <strong>Placeholder helper:</strong> <code>safeSubstitute</code> iz
+            billing email template utila.
+          </p>
+          <ul>
+            <li>Vrste: <code>PRE_CONTRACT</code> / <code>CONTRACT</code>.</li>
+            <li>Placeholders <code>{{var}}</code> — whitelist zamena; nepoznato →
+              prazan string; vrednosti HTML-escaped (XSS u PDF/HTML preview).</li>
+            <li>Tok statusa: generate → mark-sent → mark-signed (+ Document red).</li>
+            <li>Šabloni na
+              <code>/podesavanja/ugovori-sabloni</code> i
+              <code>/sale-contract-templates</code> API.</li>
+          </ul>
+          <pre><code><span class="c">// Konceptualno</span>
+<span class="k">const</span> html = safeSubstitute(template.body, {
+  buyerName: sale.buyer.fullName,
+  unitLabel: unit.label,
+  price: formatMoney(sale.price),
+});
+<span class="c">// unknown keys → ""; values escaped</span></code></pre>
+        </section>
+
+        <section id="kyc-gating">
+          <h2>KYC gating <a class="anchor" href="#kyc-gating">#</a></h2>
+          <p>
+            <strong>Service:</strong> <code>buyers/kyc.service.ts</code><br />
+            <strong>UI:</strong> <code>features/buyers/kyc-panel.tsx</code> na
+            <code>/kupci/[id]</code>.
+          </p>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Tip kupca</th><th>Minimalni checklist</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Fizičko (<code>NATURAL</code>)</td>
+                  <td>idFront + idBack + address proof</td>
+                </tr>
+                <tr>
+                  <td>Pravno (<code>LEGAL</code>)</td>
+                  <td>idFront + poreski sertifikat + address (proveri <code>computeStatus</code> u kodu)</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <ul>
+            <li><span class="method get">GET</span> KYC idempotentno seed-uje prazan red.</li>
+            <li>Dokumenti preko <code>DocumentCategory.KYC</code>.</li>
+            <li>JMBG / PIB validacija na serveru (srpski formati).</li>
+          </ul>
+          <div class="callout warn">
+            <strong>Gating status (kod vs docs)</strong>
+            Dokumentacija pominje blokadu generisanja ugovora dok KYC nije
+            kompletan (<code>KYC_INCOMPLETE</code>). U trenutnom kodu
+            <code>contract/generate</code> ruta <em>ne</em> enforce-uje checklist —
+            tretiraj to kao planned / follow-up, ne kao garantovanu zaštitu.
+            Ako implementiraš gating: DomainError → mapiranje u API envelope.
+          </div>
+        </section>
+
+        <section id="referral">
+          <h2>Referral cookie atribucija <a class="anchor" href="#referral">#</a></h2>
+          <p>
+            Middleware (<code>src/middleware.ts</code>) čita <code>?ref=</code> i
+            setuje cookie.
+          </p>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Stavka</th><th>Vrednost u kodu</th></tr></thead>
+              <tbody>
+                <tr><td>Cookie ime</td><td><code>pd_ref</code></td></tr>
+                <tr><td>TTL</td><td>30 dana</td></tr>
+                <tr><td>HttpOnly</td><td>ne (čita se i klijentski po potrebi)</td></tr>
+                <tr><td>Rotate</td><td><span class="method post">POST</span> <code class="endpoint">/agency/referral/rotate</code></td></tr>
+                <tr><td>Storage</td><td><code>AgencyConnection.referralCode</code></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="callout warn">
+            <strong>Doc drift</strong>
+            Stariji docs kažu <code>PD_REFERRAL</code> / 90 dana — pogrešno.
+            Veruj <code>pd_ref</code> / 30d iz middleware-a.
+          </div>
+          <p>
+            Pri kreiranju online reservation request-a, service čita cookie i
+            veže atribuciju; confirm je propagira na buyer/reservation tok.
+            Izveštaj kolona: <code>/izvestaji/agencije</code>.
+          </p>
+        </section>
+
+        <section id="microsite">
+          <h2>Public microsite <a class="anchor" href="#microsite">#</a></h2>
+          <p>
+            Javna marketing-style stranica projekta:
+            <code>/p/projekat/[slug]</code>.
+          </p>
+          <ul>
+            <li>Toggle: <code>Project.publicMicrositeEnabled</code> +
+              <code>publicMicrositeSlug</code>.</li>
+            <li>Resolver živi u <code>sharing/share-links.service.ts</code>
+              (<code>resolvePublicProjectSite</code>) — ne u
+              nepostojećem <code>microsite.service.ts</code>.</li>
+            <li>Lista jedinica, galerija, CTA ka rezervaciji / kontaktu.</li>
+            <li><code>?ref=</code> na microsite-u aktivira isti referral cookie tok.</li>
+          </ul>
+        </section>
+
+        <section id="sentry-backup">
+          <h2>Sentry + backup verifier <a class="anchor" href="#sentry-backup">#</a></h2>
+          <h3>Sentry</h3>
+          <ul>
+            <li>Facade: <code>src/server/monitoring/index.ts</code>.</li>
+            <li>Ako su DSN-ovi prazni — samo stdout, bez mrežnih poziva / kvote.</li>
+            <li><code>apiHandler</code> šalje 5xx u Sentry sa <code>requestId</code> korelatorom.</li>
+            <li>Build: <code>withSentryConfig</code> +
+              <code>SENTRY_ORG</code> / <code>PROJECT</code> / <code>AUTH_TOKEN</code>
+              za source maps.</li>
+          </ul>
+          <h3>Backup verifier (Faza 8.3 / C4)</h3>
+          <ul>
+            <li>Job: <code>backup-verify</code> (nedeljom <code>30 4 * * 0</code>).</li>
+            <li>Skida latest pg_dump i radi <code>pg_restore --list</code> (header-only).</li>
+            <li>Ishod u <code>system_health_check</code>; email na
+              <code>BACKUP_VERIFY_ALERT_EMAILS</code> posle <strong>2</strong> uzastopna fail-a.</li>
+            <li>Modovi: <code>disabled</code> | <code>local</code> | <code>s3</code>.</li>
+            <li>UI: <code>/administracija/monitoring</code>; ručno
+              <span class="method post">POST</span>
+              <code class="endpoint">/platform/monitoring/backup-verify</code>.</li>
+          </ul>
+        </section>
+
+        <section id="reports-pnl">
+          <h2>Cash-flow / inventory velocity / project P&amp;L <a class="anchor" href="#reports-pnl">#</a></h2>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Modul</th><th>Service / UI</th><th>Šta radi</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Cash-flow projekcija</td>
+                  <td>
+                    <code>reports/cash-flow.service.ts</code><br />
+                    <code>/izvestaji/uplate</code> + dashboard card<br />
+                    <span class="method get">GET</span> <code class="endpoint">/reports/cash-flow</code>
+                  </td>
+                  <td><code>buildCashFlowProjection</code> — očekivane uplate po periodima iz installment plana</td>
+                </tr>
+                <tr>
+                  <td>Inventory velocity</td>
+                  <td>
+                    <code>buildInventoryVelocity</code> u
+                    <code>reports/reports.service.ts</code><br />
+                    <code>/izvestaji/zalihe</code>
+                  </td>
+                  <td>P50 / P90 dana do prodaje (SQL percentile)</td>
+                </tr>
+                <tr>
+                  <td>Project P&amp;L</td>
+                  <td>
+                    <code>projects/pnl.service.ts</code><br />
+                    <code>/izvestaji/prodaje</code> + project edit
+                  </td>
+                  <td>
+                    Troškovi na projektu:
+                    <code>landCost</code>, <code>constructionCost</code>,
+                    <code>marketingCost</code>, <code>otherCost</code> →
+                    <code>computeProjectPnl</code>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p>Sva tri modula su read-model agregacije — bez float novca, org-scoped.</p>
+        </section>
+
+        <section id="fifo-allocation">
+          <h2>FIFO alokacija uplata <a class="anchor" href="#fifo-allocation">#</a></h2>
+          <p>
+            Jedna uplata može pokriti više otvorenih faktura (SaaS billing) ili, konceptualno,
+            više rata — algoritam je isti: <code>computeFifoAllocations</code> u
+            <code>src/server/services/billing/payments/allocation.service.ts</code>.
+            Poziva ga <code>recordPayment</code> u billing payments servisu i bank-statement matcher.
+          </p>
+
+          <h3>Algoritam (rata po rati)</h3>
+          <ol>
+            <li>Uzmi sortirane otvorene stavke (fakture: <code>dueDate ASC</code>, zatim <code>createdAt</code>).</li>
+            <li>Inicijalizuj <code>remaining = amount</code> uplate.</li>
+            <li>Za svaku stavku sa istom valutom i <code>amountDue &gt; 0</code>:
+              <code>take = min(due, remaining)</code>, upiši alokaciju, smanji <code>remaining</code>.</li>
+            <li>Preostalo → <code>unappliedAmount</code> (neapplied kredit na uplati).</li>
+          </ol>
+
+          <h3>Primer: 3 rate / fakture, uplata preko sume</h3>
+          <pre><code><span class="c">// Rate A: 60 EUR, Rate B: 60 EUR, Rate C: 40 EUR</span>
+<span class="c">// Uplata: 100 EUR</span>
+<span class="c">// → A: 60, B: 40, unapplied: 0</span>
+
+<span class="c">// Uplata: 150 EUR (sve tri rate ukupno 160)</span>
+<span class="c">// → A: 60, B: 60, C: 30, unapplied: 0</span>
+
+<span class="c">// Uplata: 200 EUR</span>
+<span class="c">// → A: 60, B: 60, C: 40, unapplied: 40</span></code></pre>
+          <p>
+            Regresioni testovi: <code>allocation.service.test.ts</code>. API response polje
+            <code>unappliedAmount</code> vraća <code>recordPayment</code> u
+            <code>billing/payments/service.ts</code>.
+          </p>
+
+          <h3>Storno</h3>
+          <p>
+            Uplate se ne brišu. Storno (<code>reversePayment</code>) postavlja
+            <code>status: REVERSED</code>, <code>reversedAt</code>, obavezan
+            <code>reversalReason</code> — audit <code>billing.payment_reversed</code>.
+            Alokacije se poništavaju (invoice <code>amountPaid</code> / <code>amountDue</code>
+            se vraćaju); originalni <code>PaymentAllocation</code> redovi se uklanjaju iz
+            aktivnog stanja, istorija ostaje na payment redu. Sale-side storno:
+            <code>reversedAt</code> na <code>Payment</code> + re-propagation rate/plan statusa
+            (<a href="#payment-plan-templates">Payment plan templates</a>).
+          </p>
+          <div class="callout">
+            <strong>Immutability</strong>
+            Finansijski trag je append-only po duhu — nema hard delete uplate ni alokacije
+            iz produkcijskog UI-ja.
+          </div>
+        </section>
+
+        <section id="commission-snapshot">
+          <h2>Snapshot provizije u momentu ugovora <a class="anchor" href="#commission-snapshot">#</a></h2>
+          <p>
+            Kada prodaja pređe u <code>CONTRACTED</code>, <code>snapshotCommissionForSale</code>
+            (<code>src/server/services/commissions/snapshot.ts</code>) zamrzava pravilo provizije.
+            Naknadna izmena <code>AgencyCommissionRule</code> ne menja istorijske provizije.
+          </p>
+
+          <h3>Precedencija pravila</h3>
+          <p>Resolver: <code>resolveCommissionRule</code> u <code>commissions/rules.ts</code>:</p>
+          <ol>
+            <li><strong>unit + agency</strong> — <code>unitId</code> + <code>agencyConnectionId</code></li>
+            <li><strong>project + agency</strong> — <code>projectId</code> + connection</li>
+            <li><strong>connection default</strong> — samo <code>agencyConnectionId</code></li>
+            <li><strong>project default</strong> — samo <code>projectId</code></li>
+          </ol>
+          <p>Tie-break: noviji <code>createdAt</code>. Pravilo van <code>[validFrom, validTo]</code> se preskače.</p>
+
+          <h3>Snapshot polja</h3>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>DB kolona</th><th>Značenje</th></tr>
+              </thead>
+              <tbody>
+                <tr><td><code>commissionRuleId</code></td><td><code>ruleId</code> — koja pravila su važila</td></tr>
+                <tr><td><code>baseAmount</code></td><td><code>sale.finalPrice</code> u momentu ugovora</td></tr>
+                <tr><td><code>rate</code> / <code>fixedAmount</code></td><td>Snimljeni parametri (% ili fiks)</td></tr>
+                <tr><td><code>calculatedAmount</code></td><td><code>computedAmount</code> — Decimal(14,2)</td></tr>
+                <tr><td><code>createdAt</code></td><td><code>snapshotAt</code></td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h3>Lifecycle statusa</h3>
+          <p>
+            Enum u bazi: <code>CALCULATED → APPROVED → INVOICED/DUE → PAID</code>
+            (ili <code>CANCELED</code> / <code>DISPUTED</code>). Mapiranje na poslovni jezik:
+            CALCULATED = pending, APPROVED = odobreno, INVOICED/DUE = ready for payout,
+            PAID = isplaćeno. Servis: <code>commissions/lifecycle.service.ts</code> —
+            numerička polja se ne prepisuju pri tranziciji.
+          </p>
+          <p>UI: <code>/provizije</code>; API: <code>GET /api/v1/commissions</code>.</p>
+        </section>
+
+        <section id="buyer-protection">
+          <h2>Buyer protection <a class="anchor" href="#buyer-protection">#</a></h2>
+          <p>
+            Agencija registruje kupca na projektu investitora; investitor odobrava.
+            Zaštita traje <strong>N dana po konekciji</strong> (tipično 60; schema default 30 —
+            podešava se per <code>AgencyConnection.defaultProtectionDays</code> pri approve).
+            Servis: <code>registrations.service.ts</code>.
+          </p>
+
+          <h3>60 dana ekskluziva per-connection</h3>
+          <p>
+            Aktivni statusi: <code>PENDING</code>, <code>APPROVED</code>.
+            <code>protectionEndsAt = approvedAt + protectionDays</code>.
+            Konflikt se proverava po normalizovanom telefonu/emailu na istom <code>projectId</code>,
+            druga agencija.
+          </p>
+
+          <h3>409 CONFLICT_REVIEW</h3>
+          <p>
+            Kada druga agencija pokuša registraciju za istog kupca, API vraća fiksnu srpsku poruku
+            bez identiteta druge agencije (<code>CONFIDENTIAL_CONFLICT_MESSAGE</code>).
+            Interno se upisuje red sa <code>status: CONFLICT_REVIEW</code> — investitor vidi ga na
+            <code>/agencije/registracije</code> sa anonimizovanim payload-om prema agenciji.
+          </p>
+
+          <h3>Cron <code>expire-buyer-protection</code></h3>
+          <p>
+            <code>0 * * * *</code> (hourly) — <code>expireDueProtections()</code> prebacuje
+            istekle <code>APPROVED</code> u <code>EXPIRED</code>. Idempotentno.
+            Vidi <a href="#cron">Cron tabela</a>.
+          </p>
+
+          <h3>Kada se NE aktivira</h3>
+          <ul>
+            <li>Isti kupac na <strong>drugom projektu</strong> — zaštita je per-project, ne globalna.</li>
+            <li>Ista agencija ponovo registruje istog kupca — reuse buyer reda.</li>
+            <li>Kupac bez normalizovanog telefona ni emaila — conflict check preskočen (edge case).</li>
+            <li>Registracija već <code>EXPIRED</code> / <code>REJECTED</code> — nova registracija dozvoljena.</li>
+          </ul>
+        </section>
+
+        <section id="share-tokens">
+          <h2>Public share tokens <a class="anchor" href="#share-tokens">#</a></h2>
+          <p>
+            Opaque tokeni za javnu stranicu <code>/p/[token]</code> bez login-a.
+            Servis: <code>src/server/services/sharing/share-links.service.ts</code>;
+            model: <code>ShareLink</code>.
+          </p>
+
+          <h3>Generisanje</h3>
+          <pre><code>randomBytes(<span class="n">24</span>).toString(<span class="s">"base64url"</span>);
+<span class="c">// ~192 bita entropije — brute-force nije praktičan</span></code></pre>
+
+          <h3>Opcije linka</h3>
+          <ul>
+            <li><code>showPrice</code> — sakrij cene na public payload-u kad je <code>false</code>.</li>
+            <li><code>expiresAt</code> — opcioni istek; resolve vraća 404 posle isteka.</li>
+            <li><code>revokeShareLink()</code> — soft revoke + audit <code>share_link.revoked</code>.</li>
+          </ul>
+
+          <h3>Rate limit na public rutama</h3>
+          <p>
+            Rezervacija preko linka: <code>public.reserve.ip</code> + <code>public.reserve.token</code>
+            (<a href="#rate-limit">Rate limiting</a>). Slike dokumenata:
+            <code>public.share.image</code>. Whitelist payload — nikad
+            <code>internalNotes</code> / <code>basePrice</code> / buyer PII.
+          </p>
+          <p>API: <span class="method post">POST</span> <code class="endpoint">/api/v1/units/[id]/share</code></p>
+        </section>
+
+        <section id="notifications">
+          <h2>Notifikacije <a class="anchor" href="#notifications">#</a></h2>
+          <p>
+            In-app (<code>Notification</code> model) + opcioni email. Jedini entry point:
+            <code>notify()</code> / <code>notifyMany()</code> u
+            <code>src/server/services/notifications.service.ts</code> — nikad iz React-a direktno.
+          </p>
+
+          <h3>Kategorije (<code>NotificationCategory</code>)</h3>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Enum</th><th>Tipični trigger</th></tr>
+              </thead>
+              <tbody>
+                <tr><td><code>RESERVATION</code></td><td>Rezervacija traži odobrenje / ističe (<code>RESERVATION_EXPIRING</code> poslovno)</td></tr>
+                <tr><td><code>PAYMENT</code></td><td>Uplata evidentirana; rata dospela (<code>INSTALLMENT_OVERDUE</code>)</td></tr>
+                <tr><td><code>SALE</code></td><td>Ugovor spreman (<code>CONTRACT_READY</code>)</td></tr>
+                <tr><td><code>TASK</code></td><td>Dodeljen zadatak / due soon</td></tr>
+                <tr><td><code>AGENCY</code></td><td>Buyer protection ističe</td></tr>
+                <tr><td><code>COMMISSION</code></td><td>Provizija odobrena / plaćena</td></tr>
+                <tr><td><code>BILLING</code></td><td>SaaS faktura / restricted mode</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h3>Email provider</h3>
+          <p>
+            <code>sendEmail()</code> u <code>src/server/auth/email.ts</code> — Resend ili SMTP
+            preko env (<code>EMAIL_PROVIDER</code>, <code>RESEND_API_KEY</code>, …).
+            Domain šabloni: <code>src/server/email/templates.ts</code> (21 builder).
+            Billing lifecycle: 14 DB šablona u <code>billing/emails/templates.ts</code>
+            (<code>subscription.trial_started</code>, <code>invoice.issued</code>, …).
+          </p>
+
+          <h3>Opt-out i radno vreme</h3>
+          <p>
+            Korisnik filtrira na <code>/obavestenja</code> po kategoriji.
+            Email fan-out je best-effort — fail ne rollback-uje poslovnu transakciju.
+            Reminder jobovi (<code>due-soon-notifications</code>) poštuju poslovno radno vreme
+            filter iz org podešavanja kad je konfigurisano.
+          </p>
+          <p>UI bell: <code>NotificationBell</code> u sidebar-u i mobile header-u.</p>
+        </section>
+
+        <section id="tasks">
+          <h2>Zadaci <a class="anchor" href="#tasks">#</a></h2>
+          <p>
+            <code>Task</code> model + servis <code>src/server/services/tasks.service.ts</code>.
+            Dashboard ruta: <code>/zadaci</code> sa view tabovima.
+          </p>
+
+          <h3>Statusi</h3>
+          <p>
+            <code>OPEN</code>, <code>IN_PROGRESS</code>, <code>DONE</code>, <code>CANCELED</code>.
+            Prioritet: <code>LOW</code> / <code>MEDIUM</code> / <code>HIGH</code> / <code>URGENT</code>.
+          </p>
+
+          <h3>Auto-generisani (cron / domain hooks)</h3>
+          <ul>
+            <li>Rezervacija ističe za ~2 dana — notifikacija + opcioni task assignee prodaji.</li>
+            <li>Rata dospela / OVERDUE — <code>mark-installments-overdue</code> + <code>due-soon-notifications</code>.</li>
+            <li>Ugovor spreman za potpis — task na prodajnom timu posle contract generate.</li>
+          </ul>
+
+          <h3>Filteri na <code>/zadaci</code></h3>
+          <p>
+            View: <code>mine</code>, <code>today</code>, <code>overdue</code>, <code>upcoming</code> (7 dana),
+            <code>all</code>. Query params: <code>view</code>, <code>status</code>, <code>buyerId</code>.
+            API: <span class="method get">GET</span> <code class="endpoint">/api/v1/tasks</code>.
+          </p>
+
+          <h3>@mentions u komentarima</h3>
+          <p>
+            Format: <code>@[Display Name](userId)</code> u
+            <code>comments.service.ts</code> → <code>parseMentions()</code> →
+            <code>notify()</code> pomenutom korisniku. Koristi se na kupcima, prodajama, rezervacijama.
+          </p>
+        </section>
+
+        <section id="charts">
+          <h2>Chart palette <a class="anchor" href="#charts">#</a></h2>
+          <p>
+            Recharts komponente u <code>src/components/charts/</code>:
+            <code>trend-line.tsx</code>, <code>category-bars.tsx</code>, <code>funnel-bars.tsx</code>.
+            Paleta: <code>src/components/charts/palette.ts</code>.
+          </p>
+
+          <h3>Brand skala</h3>
+          <p>
+            <code>chartBrandScale</code> — literal hex kopija CSS tokena
+            (<code>brand-500</code> … <code>brand-900</code>) jer SVG ne rešava
+            <code>var(--…)</code>. Status boje: <code>chartStatusTones</code>,
+            mapiranja <code>unitStatusColor</code>, <code>saleStatusColor</code>.
+          </p>
+
+          <h3>Formatiranje osi</h3>
+          <pre><code>tickFormatter={(v) =&gt; formatMoney(v, currency)}
+tickFormatter={(v) =&gt; formatDate(v)}</code></pre>
+
+          <h3>a11y</h3>
+          <p>
+            Svaki chart wrapper nosi <code>aria-label</code> / caption sa tekstualnim rezimeom
+            trenda (dashboard izveštaji: <code>/izvestaji/*</code>). Ne oslanjaj se samo na boju —
+            koristi i legendu sa status labelima iz sr-Latn i18n.
+          </p>
+        </section>
+
+        <section id="import-wizard">
+          <h2>CSV/XLSX uvoz jedinica <a class="anchor" href="#import-wizard">#</a></h2>
+          <p>
+            UI: <code>src/features/units/import-wizard.tsx</code> na
+            <code>/projekti/[id]/uvoz</code>. Backend:
+            <code>src/server/services/units-import.service.ts</code>.
+          </p>
+
+          <h3>3 koraka</h3>
+          <ol>
+            <li><strong>Upload</strong> — <code>parseFile()</code> za .csv / .xlsx.</li>
+            <li><strong>Header mapping</strong> — korisnik mapira kolone; auto-map aliasi
+              (<code>internalnotes</code>, <code>napomena</code> → <code>internalNotes</code>,
+              <code>sifra</code> → <code>code</code>, …).</li>
+            <li><strong>Preview</strong> — <code>validateRows()</code> po redu pre commit-a.</li>
+          </ol>
+
+          <h3>Validacija</h3>
+          <ul>
+            <li>Obavezna polja: <code>code</code>, <code>type</code>, <code>totalArea</code>, <code>basePrice</code>.</li>
+            <li>Duplikat <code>code</code> unutar batch-a → greška na redu.</li>
+            <li>Duplikat u bazi → skip ili error zavisno od commit moda.</li>
+            <li>Quota: <code>assertQuota(org, "units", count)</code> pre insert-a.</li>
+          </ul>
+
+          <h3>422 sa greškama po redu</h3>
+          <pre><code>{
+  <span class="s">"error"</span>: {
+    <span class="s">"code"</span>: <span class="s">"VALIDATION_ERROR"</span>,
+    <span class="s">"fieldErrors"</span>: { <span class="s">"rows"</span>: [{ <span class="s">"index"</span>: <span class="n">3</span>, <span class="s">"errors"</span>: [<span class="s">"…"</span>] }] }
+  }
+}</code></pre>
+          <p>Audit posle uspeha: <code>unit.import_batch</code>.</p>
+        </section>
+
+        <!-- ========== WORKFLOW ========== -->
+        <section id="testing">
+          <h2>Testing <a class="anchor" href="#testing">#</a></h2>
+          <pre><code>pnpm test                 <span class="c"># vitest run — unit + service</span>
+pnpm test:watch           <span class="c"># vitest watch</span>
+pnpm test:e2e             <span class="c"># playwright test</span>
+
+<span class="c"># Ciljani fajl</span>
+pnpm exec vitest run src/server/services/reservations/reservation-requests.service.test.ts</code></pre>
+          <ul>
+            <li>Decimal: assertuj <code>.toFixed(2)</code> / string jednakost, ne float.</li>
+            <li>Mod-97 / IPS: regresioni testovi obavezni pri izmeni generatora.</li>
+            <li>E2E zahteva podignut app (Playwright config može sam da startuje).</li>
+            <li>Više u <code>docs/testing.md</code>.</li>
+          </ul>
+        </section>
+
+        <section id="lint-typecheck">
+          <h2>Lint / typecheck <a class="anchor" href="#lint-typecheck">#</a></h2>
+          <pre><code>pnpm lint                 <span class="c"># eslint . --max-warnings=0</span>
+pnpm typecheck            <span class="c"># tsc --noEmit (strict)</span>
+pnpm format               <span class="c"># prettier --write</span>
+pnpm format:check
+
+<span class="c"># Lokalni quality gate pre PR-a:</span>
+pnpm lint &amp;&amp; pnpm typecheck &amp;&amp; pnpm test</code></pre>
+        </section>
+
+        <section id="git-flow">
+          <h2>Git flow <a class="anchor" href="#git-flow">#</a></h2>
+          <ol>
+            <li>Branch od ažurnog <code>main</code>:
+              <code>feat/</code>, <code>fix/</code>, <code>chore/</code>, <code>docs/</code>.</li>
+            <li>Mali, reviewable PR-ovi; jedan concern po PR-u.</li>
+            <li>Migracije u istom PR-u kao schema + service izmene.</li>
+            <li>Ne forsiraj push na <code>main</code>; ne komituj <code>.env</code>.</li>
+            <li>Commit poruke: zašto &gt; šta (konvencija repoa).</li>
+            <li>Posle review-a — merge; deploy ide odvojeno (vidi VPS).</li>
+          </ol>
+        </section>
+
+        <section id="docker-notes">
+          <h2>Docker notes <a class="anchor" href="#docker-notes">#</a></h2>
+          <p>
+            Produkcijski image je multi-stage. Bitna gotcha: pnpm izolacija lomi
+            <code>prisma migrate deploy</code> u runner-u.
+          </p>
+          <div class="callout">
+            <strong>prisma-cli flat npm install trick</strong>
+            Builder instalira ravno stablo u <code>/prisma-cli/node_modules</code>
+            preko <strong>npm</strong> (<code>prisma</code> +
+            <code>@prisma/config</code> + <code>dotenv</code> + <code>tsx</code>),
+            pa runner COPY-uje to preko app <code>node_modules/</code>.
+            Bez toga migrate u kontejneru često ne nalazi transitive deps
+            (<code>effect</code>, <code>c12</code>…). Vidi komentare u
+            <code>Dockerfile</code> i <code>.npmrc</code> public-hoist-pattern.
+          </div>
+          <ul>
+            <li>Prod build: <code>next build --webpack</code> (ne Turbopack).</li>
+            <li>Build-time placeholder <code>DATABASE_URL</code> / <code>DIRECT_URL</code>.</li>
+            <li>TS drop-in 5.7.2 u Docker buildu zbog Next kompatibilnosti (lokalno može TS 7).</li>
+            <li>Standalone output → <code>node server.js</code> u runner-u.</li>
+          </ul>
+        </section>
+
+        <section id="vps-deploy">
+          <h2>VPS deploy (<code>deploy/git-deploy.ps1</code>) <a class="anchor" href="#vps-deploy">#</a></h2>
+          <p>
+            Skripta SSH-uje na VPS, pipe-uje <code>deploy/git-deploy.sh</code>:
+          </p>
+          <ol>
+            <li><code>git fetch</code> + hard reset na <code>origin/&lt;branch&gt;</code> (čuva <code>.env</code>).</li>
+            <li>Stop app kontejnera radi RAM-a tokom builda.</li>
+            <li>Detached <code>docker compose up -d --build</code>.</li>
+            <li>Unutar kontejnera: <code>prisma migrate deploy</code>.</li>
+            <li>Prati <code>/tmp/build.log</code> do <code>===BUILD-DONE===</code> (timeout ~25 min).</li>
+            <li>Health: <code>https://my.propertydesk.app/api/health</code>.</li>
+          </ol>
+          <pre><code><span class="c"># Sa lokalne Windows mašine (primer)</span>
+pwsh ./deploy/git-deploy.ps1
+<span class="c"># opciono: -Branch main  (podrazumevano trenutni / main)</span></code></pre>
+          <p>
+            Alternativa: tarball deploy (<code>deploy.ps1</code>), GHCR image
+            (<code>deploy-image.ps1</code>). Detalji: <code>docs/deployment.md</code>,
+            <code>docs/deploy/vps.md</code>.
+          </p>
+        </section>
+
+        <section id="cron">
+          <h2>Cron tabela <a class="anchor" href="#cron">#</a></h2>
+          <p>
+            Endpoint: <span class="method post">POST</span>
+            <code class="endpoint">/api/v1/jobs/:name</code><br />
+            Auth: <code>Authorization: Bearer $CRON_SECRET</code> ili header
+            <code>x-cron-secret</code> (timing-safe). Ako secret nije setovan —
+            jobovi disabled.
+          </p>
+          <p>Izvor rasporeda: <code>suggestedCron</code> u job definitions (kod &gt; stari docs).</p>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Job</th><th>suggestedCron</th><th>Svrha</th></tr>
+              </thead>
+              <tbody>
+                <tr><td><code>expire-reservations</code></td><td><code>*/15 * * * *</code></td><td>Istekle odobrene rezervacije; oslobodi unit</td></tr>
+                <tr><td><code>expire-buyer-protection</code></td><td><code>0 * * * *</code></td><td>Istek agency buyer zaštite</td></tr>
+                <tr><td><code>mark-installments-overdue</code></td><td><code>0 3 * * *</code></td><td>Rate → OVERDUE</td></tr>
+                <tr><td><code>due-soon-notifications</code></td><td><code>30 6 * * *</code></td><td>Uskoro dospele rate + zaštite</td></tr>
+                <tr><td><code>trial-expiration-notifications</code></td><td><code>0 7 * * *</code></td><td>Trial ističe</td></tr>
+                <tr><td><code>backup-verify</code></td><td><code>30 4 * * 0</code></td><td>Nedeljna provera backupa</td></tr>
+                <tr><td><code>billing-generate-invoices</code></td><td><code>0 9 * * *</code></td><td>SaaS fakture</td></tr>
+                <tr><td><code>billing-send-invoices</code></td><td><code>15 * * * *</code></td><td>Slanje ISSUED</td></tr>
+                <tr><td><code>billing-send-reminders</code></td><td><code>30 9 * * *</code></td><td>Reminderi</td></tr>
+                <tr><td><code>billing-process-overdue</code></td><td><code>0 4 * * *</code></td><td>PAST_DUE → RESTRICTED → SUSPENDED</td></tr>
+                <tr><td><code>billing-extend-subscriptions</code></td><td><code>45 4 * * *</code></td><td>Period extension</td></tr>
+                <tr><td><code>billing-sync-sef</code></td><td><code>45 * * * *</code></td><td>SEF retry</td></tr>
+                <tr><td><code>billing-match-payments</code></td><td><code>0 5 * * *</code></td><td>Bank statement auto-match</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="callout warn">
+            <strong>Doc drift</strong>
+            <code>expire-reservation-requests</code> se pominje u nekim markdown
+            checklistama, ali nije registrovan u trenutnom
+            <code>definitions.ts</code> — poziv bi vratio 404.
+          </div>
+        </section>
+
+        <section id="release">
+          <h2>Release checklist <a class="anchor" href="#release">#</a></h2>
+          <h3>Pre-flight</h3>
+          <ul class="checklist">
+            <li>Čist working tree; branch rebase-ovan</li>
+            <li>CHANGELOG / verzija ako je tagged release</li>
+            <li>Nove env vars u <code>.env.example</code> + secret store na VPS-u</li>
+          </ul>
+          <h3>Quality gates (sve exit 0)</h3>
+          <ul class="checklist">
+            <li><code>pnpm install --frozen-lockfile</code></li>
+            <li><code>pnpm prisma generate</code></li>
+            <li><code>pnpm lint && pnpm typecheck && pnpm test</code></li>
+            <li><code>pnpm test:e2e</code> (kad E2E pokriva izmenu)</li>
+            <li><code>pnpm build</code></li>
+          </ul>
+          <h3>Migracije</h3>
+          <ul class="checklist">
+            <li>Additive only u istom release-u</li>
+            <li><code>migrate deploy</code> testiran na kopiji prod podataka</li>
+            <li>Zabeležen last-known-good migration id (rollback)</li>
+          </ul>
+          <h3>Post-deploy smoke</h3>
+          <ul class="checklist">
+            <li><code>/api/v1/health</code> i <code>/ready</code> → 200</li>
+            <li>Login + dashboard</li>
+            <li>Ručni trigger <code>expire-reservations</code> + <code>backup-verify</code></li>
+            <li>Share link rezervacija + microsite + Sentry test event</li>
+            <li>Audit redovi u administraciji</li>
+          </ul>
+          <p>Puna lista: <code>docs/release-checklist.md</code>.</p>
+        </section>
+
+        <section id="troubleshooting">
+          <h2>Troubleshooting <a class="anchor" href="#troubleshooting">#</a></h2>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Simptom</th><th>Uzrok / lek</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>Cannot find module 'effect'</code> (ili slično) u Docker migrate</td>
+                  <td>
+                    pnpm izolacija. Proveri da Dockerfile koristi flat
+                    <code>/prisma-cli</code> npm overlay i da <code>.npmrc</code>
+                    hoist-uje <code>@prisma/*</code>, <code>effect</code>, <code>c12</code>.
+                  </td>
+                </tr>
+                <tr>
+                  <td>IPS QR / Mod-97 pogrešan; banka odbija</td>
+                  <td>
+                    Generator mora koristiti <code>BigInt</code>. Pokreni
+                    <code>generateIpsReference</code> testove.
+                  </td>
+                </tr>
+                <tr>
+                  <td>Auth redirect loop / “stuck” na sign-in</td>
+                  <td>
+                    <code>BETTER_AUTH_URL</code> i <code>NEXT_PUBLIC_APP_URL</code>
+                    moraju tačno da se poklapaju sa hostom (uključujući
+                    <code>http</code> vs <code>https</code>, bez trailing slash mismatch).
+                    Cookie Secure na HTTP localhost = problem.
+                  </td>
+                </tr>
+                <tr>
+                  <td><code>P3018</code> migrate deploy</td>
+                  <td>
+                    Vidi <a href="#p3018">P3018 recovery</a> —
+                    <code>migrate resolve --applied</code> / <code>--rolled-back</code>
+                    posle ručne provere scheme.
+                  </td>
+                </tr>
+                <tr>
+                  <td>Env crash na startu</td>
+                  <td>Zod u <code>src/lib/env.ts</code> — pročitaj missing key u logu; uporedi sa <code>.env.example</code>.</td>
+                </tr>
+                <tr>
+                  <td>403 na svemu posle trial-a</td>
+                  <td>Org u RESTRICTED/SUSPENDED — billing dozvole su sužene; platform admin može da pregleda subscription.</td>
+                </tr>
+                <tr>
+                  <td>Seed “ne radi” u produkciji</td>
+                  <td>Namerno; treba <code>ALLOW_SEED_IN_PRODUCTION=true</code> (ne radi to na pravom prod-u).</td>
+                </tr>
+                <tr>
+                  <td>Client bundluje server kod</td>
+                  <td>Dodaj <code>import "server-only"</code>; pomeri tajnu logiku u <code>src/server/</code>.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section id="incident">
+          <h2>Incident response <a class="anchor" href="#incident">#</a></h2>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>SEV</th><th>Značenje</th><th>Primer</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>SEV 1</td><td>Site down / korupcija / cross-tenant</td><td>DB unreachable, data leak</td></tr>
+                <tr><td>SEV 2</td><td>Major feature broken za mnoge tenante</td><td>Plaćanja se ne beleže</td></tr>
+                <tr><td>SEV 3</td><td>Jedan tenant / manji bug</td><td>Stale dashboard count</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <ol>
+            <li><strong>Acknowledge</strong> — &lt;15 min; IC u incident kanalu.</li>
+            <li><strong>Contain</strong> — maintenance page
+              (<code>(system)/odrzavanje</code>), suspend org, rotacija secreta
+              (<code>BETTER_AUTH_SECRET</code> / <code>CRON_SECRET</code> /
+              <code>IMPERSONATION_SECRET</code> / S3 keys.</li>
+            <li><strong>Diagnose</strong> —
+              <code>/health</code>, <code>/ready</code>, structured logs
+              (<code>requestId</code>), Sentry, <code>pg_stat_activity</code>.</li>
+            <li><strong>Mitigate</strong> — rollback image → feature flag → patch forward
+              (pun quality gate pre deploy-a).</li>
+            <li><strong>Communicate</strong> — SEV1 banner+email; SEV2 email posle mitigacije.</li>
+            <li><strong>Post-mortem</strong> — SEV1/2 u roku 5 radnih dana; action items do zatvaranja.</li>
+          </ol>
+          <p>Detaljnije: <code>docs/incident-response.md</code>. Telefoni nisu u repou.</p>
+        </section>
+
+        <section id="feature-flags">
+          <h2>Plans / Feature gating <a class="anchor" href="#feature-flags">#</a></h2>
+          <p>
+            Svaka org ima <code>OrganizationSubscription</code> → <code>SaaSPlan</code>.
+            Planovi iz seed-a: <code>trial</code>, <code>starter</code>, <code>growth</code>,
+            <code>scale</code> (Enterprise = custom plan preko platform admin-a).
+          </p>
+
+          <h3>Planovi i feature matrica</h3>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Plan</th><th>Limiti (primer)</th><th>Feature flags (<code>plan.features</code> JSON)</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Starter</td><td>3 projekta, 250 jedinica</td><td><code>agencySharing: true</code>, KYC/microsite po defaultu u trial</td></tr>
+                <tr><td>Growth</td><td>10 projekata, 1000 jedinica</td><td>+ više agencija; bez platform impersonation</td></tr>
+                <tr><td>Scale</td><td>∞</td><td><code>impersonation: true</code>, pun agency sharing</td></tr>
+                <tr><td>Enterprise</td><td>Custom</td><td>Sve + SEF, dedicated support (dogovor)</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h3>Provera u kodu</h3>
+          <pre><code><span class="c">// Numeričke kvote — obavezno pre create</span>
+<span class="k">await</span> assertQuota(organizationId, <span class="s">"units"</span>);
+
+<span class="c">// Boolean feature (pattern) — npr. KYC modul</span>
+<span class="k">await</span> assertPlanFeature(organizationId, <span class="s">"kyc"</span>);
+<span class="c">// implementacija: pročitaj subscription.plan.features JSON;</span>
+<span class="c">// baci DomainError QUOTA_EXCEEDED ili FORBIDDEN</span></code></pre>
+          <p>
+            KYC gate: <a href="#kyc-gating">KYC gating</a>.
+            RESTRICTED allowlist: <a href="#permissions">Permissions model</a>.
+          </p>
+
+          <h3>Postpaid transitions</h3>
+          <p>
+            Lanac u <code>billing/overdue/service.ts</code>:
+            <code>PAYMENT_DUE → PAST_DUE → RESTRICTED → SUSPENDED</code>.
+            Cron: <code>billing-process-overdue</code> (<a href="#cron">Cron tabela</a>).
+            Trial: 30 dana (<code>trialEndsAt</code> pri kreiranju org — vidi seed/platform service).
+          </p>
+          <div class="callout warn">
+            <strong>RESTRICTED ≠ logout</strong>
+            Korisnik ostaje ulogovan da bi platio fakturu — API dozvoljava samo billing/read permisije.
+          </div>
+        </section>
+
+        <section id="bank-statements">
+          <h2>Bank statement matcher <a class="anchor" href="#bank-statements">#</a></h2>
+          <p>
+            Uvoz izvoda banke za SaaS naplatu (tenant subscription invoices).
+            Servis: <code>src/server/services/billing/bank-statement/service.ts</code>.
+            UI: <code>/administracija/naplata/izvodi</code>.
+          </p>
+
+          <h3>Upload CSV/XLSX</h3>
+          <p>
+            Parseri: <code>bank-statement/parsers.ts</code> — alias mapiranje kolona
+            (datum, iznos, referenca, IBAN, counterparty). Format stubovi: MT940/CAMT053
+            planirani. Storage key preko <a href="#storage">Storage abstraction</a>.
+          </p>
+
+          <h3>5-signal matcher</h3>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Signal</th><th>Težina (max)</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Referenca sadrži broj fakture / subscription id</td><td>45 + 10</td></tr>
+                <tr><td>Tačan iznos (<code>amountDue</code>)</td><td>25</td></tr>
+                <tr><td>IBAN / counterparty vs org profil</td><td>(u razvoju — name match 15)</td></tr>
+                <tr><td>Datum blizini due date (≤3 dana / ≤14 dana)</td><td>10 / 5</td></tr>
+                <tr><td>Counterparty name fuzzy (Levenshtein / substring)</td><td>15</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p>
+            Confidence ≥ 80 → auto-match + FIFO alokacija (<a href="#fifo-allocation">FIFO</a>).
+            40–79 → <code>PENDING_REVIEW</code> queue. Cron: <code>billing-match-payments</code>.
+          </p>
+
+          <h3>Ručno prevezivanje</h3>
+          <p>
+            <span class="method post">POST</span>
+            <code class="endpoint">/api/v1/billing/bank-statement/[id]/match</code> —
+            operator bira fakturu. Ignore:
+            <code>…/ignore</code>. Svaki match/ignore → audit
+            <code>billing.bank_statement_transaction_matched</code>.
+          </p>
+        </section>
+
+        <section id="sef-integration">
+          <h2>SEF (elektronske fakture) <a class="anchor" href="#sef-integration">#</a></h2>
+          <p>
+            Trenutno <strong>stub</strong> — <code>SerbianSefProvider</code> u
+            <code>src/server/services/billing/electronic-invoice/providers.ts</code>
+            simulira <code>ACKNOWLEDGED</code> odgovor da UI i retry loop rade end-to-end.
+          </p>
+
+          <h3>Arhitektura</h3>
+          <ul>
+            <li><code>ElectronicInvoiceProvider</code> interface — <code>submit()</code>, opcioni <code>cancel()</code>.</li>
+            <li>UBL/XML build sloj (planiran) — ne šalji raw invoice JSON na SEF.</li>
+            <li>Retry queue: cron <code>billing-sync-sef</code> (<code>45 * * * *</code>).</li>
+            <li>Model: <code>ElectronicInvoiceRecord</code> sa <code>status</code>, <code>providerReference</code>, <code>responsePayload</code>.</li>
+          </ul>
+
+          <h3>Env varijable</h3>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Var</th><th>Svrha</th></tr>
+              </thead>
+              <tbody>
+                <tr><td><code>CompanyBillingProfile.sefApiKeyEncrypted</code></td><td>API ključ po org (DB, ne plain env)</td></tr>
+                <tr><td><code>SEF_API_BASE_URL</code></td><td>Test vs prod endpoint (kada se uključi transport)</td></tr>
+                <tr><td><code>ELECTRONIC_INVOICE_PROVIDER</code></td><td><code>MANUAL</code> | <code>SERBIAN_SEF</code></td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h3>Production checklist pre uključivanja</h3>
+          <ol>
+            <li>Validan SEF sertifikat / API key za svaku org sa PDV obavezom.</li>
+            <li>Test submit na SEF sandbox sa real UBL primerom.</li>
+            <li>Monitoring na <code>billing-sync-sef</code> job errors + Sentry alert.</li>
+            <li>Rollback plan: prebaci provider na <code>MANUAL</code> bez brisanja record-a.</li>
+            <li>Legal review PDV polja na <code>Invoice</code> / stavkama.</li>
+          </ol>
+        </section>
+
+        <section id="local-dev-tips">
+          <h2>Lokalni razvoj — trikovi <a class="anchor" href="#local-dev-tips">#</a></h2>
+          <p>Brzi recepti kad već radiš <code>pnpm dev</code> + Postgres iz Docker-a.</p>
+
+          <h3>Prisma Studio</h3>
+          <pre><code>pnpm db:studio
+<span class="c"># alias: pnpm prisma studio — pregled/edit tenant redova</span></code></pre>
+
+          <h3>Reset jedne tenant organizacije</h3>
+          <ol>
+            <li>Nađi <code>organizationId</code> u Studio-u ili seed logu.</li>
+            <li>Obriši child redove po FK redosledu (units, sales, buyers…) <strong>samo</strong> za taj <code>organizationId</code>.</li>
+            <li>Alternativa: pokreni <code>pnpm db:seed:demo</code> na praznoj bazi za čist demo set.</li>
+          </ol>
+          <div class="callout danger">
+            <strong>Ne radi truncate cele baze</strong> ako testiraš multi-tenant — uvek scope po <code>organizationId</code>.
+          </div>
+
+          <h3>Demo data</h3>
+          <pre><code>pnpm db:seed          <span class="c"># osnovni planovi + gradnja-plus tenant</span>
+pnpm db:seed:demo     <span class="c"># pun inventar, prodaje, zadaci (demo-seed.ts)</span></code></pre>
+          <p>Demo nalozi: <a href="#demo-nalozi">Demo nalozi</a>.</p>
+
+          <h3>Playwright fixtures</h3>
+          <p>
+            E2E specovi u <code>e2e/</code>: <code>smoke.spec.ts</code>,
+            <code>investor-flow.spec.ts</code>, <code>agency-flow.spec.ts</code>,
+            <code>public-share.spec.ts</code>, <code>security-flow.spec.ts</code>.
+            Pokretanje: <code>pnpm test:e2e</code> (config može sam podići app na port 3000).
+          </p>
+
+          <h3>Reprodukcija “sale flow” u ~30 s</h3>
+          <ol>
+            <li>Login <code>prodaja@gradnjaplus.test</code> (seed lozinka iz <a href="#demo-nalozi">Demo nalozi</a>).</li>
+            <li><code>/jedinice</code> → izaberi AVAILABLE unit → rezervacija ili direktna prodaja.</li>
+            <li><code>/prodaje/nova</code> → buyer + finalPrice → apply payment plan template.</li>
+            <li><code>/prodaje/[id]</code> → record payment → status propagacija do PAID.</li>
+          </ol>
+          <p>Detaljan tok: <code>docs/demo-tok.md</code>.</p>
+        </section>
+
+        <p class="footer-note">
+          <img src="assets/logo.png" alt="" class="logo sm" width="22" height="22" aria-hidden="true" />
+          <span>PropertyDesk Developer Portal · lokalni HTML (nije build-ovan u app).</span>
+          Operator help:
+          <a href="help-center.html">help-center.html</a> ·
+          Slide deck:
+          <a href="prezentacija-funkcionalnosti.html">prezentacija-funkcionalnosti.html</a> ·
+          Markdown izvor istine u <code>docs/*.md</code> i kodu.
+        </p>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    (function () {
+      const sidebar = document.getElementById("sidebar");
+      const backdrop = document.getElementById("sidebarBackdrop");
+      const toggle = document.getElementById("menuToggle");
+      const search = document.getElementById("navSearch");
+      const nav = document.getElementById("sidebarNav");
+      const empty = document.getElementById("sidebarEmpty");
+      const links = Array.from(nav.querySelectorAll("a[href^='#']"));
+      const groups = Array.from(nav.querySelectorAll("[data-group]"));
+
+      function setOpen(open) {
+        sidebar.classList.toggle("open", open);
+        backdrop.classList.toggle("open", open);
+        backdrop.hidden = !open;
+        toggle.setAttribute("aria-expanded", open ? "true" : "false");
+        document.body.style.overflow = open ? "hidden" : "";
+      }
+
+      toggle.addEventListener("click", function () {
+        setOpen(!sidebar.classList.contains("open"));
+      });
+      backdrop.addEventListener("click", function () {
+        setOpen(false);
+      });
+      links.forEach(function (a) {
+        a.addEventListener("click", function () {
+          if (window.matchMedia("(max-width: 960px)").matches) setOpen(false);
+        });
+      });
+
+      /* Search filters sidebar links; focus with / */
+      function applySearch(q) {
+        const query = (q || "").trim().toLowerCase();
+        let visible = 0;
+        links.forEach(function (a) {
+          const text = (a.textContent || "").toLowerCase();
+          const href = (a.getAttribute("href") || "").toLowerCase();
+          const show = !query || text.includes(query) || href.includes(query);
+          a.classList.toggle("hidden-by-search", !show);
+          if (show) visible += 1;
+        });
+        groups.forEach(function (g) {
+          const any = g.querySelectorAll("a:not(.hidden-by-search)").length > 0;
+          g.style.display = any ? "" : "none";
+        });
+        empty.classList.toggle("show", visible === 0);
+      }
+      search.addEventListener("input", function () {
+        applySearch(search.value);
+      });
+      document.addEventListener("keydown", function (e) {
+        if (e.key === "/" && !e.metaKey && !e.ctrlKey && !e.altKey) {
+          const tag = (e.target && e.target.tagName) || "";
+          if (tag === "INPUT" || tag === "TEXTAREA" || (e.target && e.target.isContentEditable)) {
+            return;
+          }
+          e.preventDefault();
+          search.focus();
+          search.select();
+        }
+        if (e.key === "Escape") {
+          if (document.activeElement === search && search.value) {
+            search.value = "";
+            applySearch("");
+            return;
+          }
+          setOpen(false);
+        }
+      });
+
+      /* Scroll-spy */
+      const sections = links
+        .map(function (a) {
+          const id = (a.getAttribute("href") || "").slice(1);
+          const el = document.getElementById(id);
+          return el ? { id: id, el: el, link: a } : null;
+        })
+        .filter(Boolean);
+
+      function setActive(id) {
+        links.forEach(function (a) {
+          a.classList.toggle("active", a.getAttribute("href") === "#" + id);
+        });
+      }
+
+      if ("IntersectionObserver" in window && sections.length) {
+        const observer = new IntersectionObserver(
+          function (entries) {
+            const visible = entries
+              .filter(function (en) { return en.isIntersecting; })
+              .sort(function (a, b) {
+                return a.boundingClientRect.top - b.boundingClientRect.top;
+              });
+            if (visible[0] && visible[0].target && visible[0].target.id) {
+              setActive(visible[0].target.id);
+            }
+          },
+          {
+            rootMargin: "-20% 0px -65% 0px",
+            threshold: [0, 0.25, 0.5, 1],
+          }
+        );
+        sections.forEach(function (s) {
+          observer.observe(s.el);
+        });
+      }
+
+      /* Initial hash / first section */
+      if (location.hash) {
+        setActive(location.hash.slice(1));
+      } else if (sections[0]) {
+        setActive(sections[0].id);
+      }
+    })();
+  </script>
+</body>
+</html>

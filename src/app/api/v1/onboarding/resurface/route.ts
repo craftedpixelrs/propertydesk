@@ -15,3 +15,26 @@ export const POST = apiHandler({}, async () => {
   await resurfaceOnboarding(ctx.activeOrganization.id, ctx.user.id);
   return { data: { ok: true } };
 });
+
+/**
+ * @swagger
+ * /api/v1/onboarding/resurface:
+ *   post:
+ *     tags:
+ *       - onboarding
+ *     summary: Create onboarding
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             additionalProperties: true
+ *     responses:
+ *       "200":
+ *         description: OK
+ *       "401":
+ *         $ref: "#/components/responses/Unauthenticated"
+ *       "403":
+ *         $ref: "#/components/responses/Forbidden"
+ */

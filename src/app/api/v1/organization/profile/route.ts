@@ -41,3 +41,37 @@ export const PATCH = apiHandler(
     return { data: updated };
   },
 );
+
+/**
+ * @swagger
+ * /api/v1/organization/profile:
+ *   get:
+ *     tags:
+ *       - organization
+ *     summary: List / read organization
+ *     responses:
+ *       "200":
+ *         description: OK
+ *       "401":
+ *         $ref: "#/components/responses/Unauthenticated"
+ *       "403":
+ *         $ref: "#/components/responses/Forbidden"
+ *   patch:
+ *     tags:
+ *       - organization
+ *     summary: Update organization
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             additionalProperties: true
+ *     responses:
+ *       "200":
+ *         description: OK
+ *       "401":
+ *         $ref: "#/components/responses/Unauthenticated"
+ *       "403":
+ *         $ref: "#/components/responses/Forbidden"
+ */

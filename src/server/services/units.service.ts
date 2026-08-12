@@ -56,24 +56,24 @@ export interface CreateUnitInput {
   code: string;
   type: UnitType;
   status?: UnitStatus;
-  structure?: string;
-  roomCount?: number;
+  structure?: string | null;
+  roomCount?: number | null;
   totalArea: number;
-  internalArea?: number;
-  terraceArea?: number;
-  gardenArea?: number;
-  orientation?: string;
+  internalArea?: number | null;
+  terraceArea?: number | null;
+  gardenArea?: number | null;
+  orientation?: string | null;
   basePrice: number;
-  finalPrice?: number;
+  finalPrice?: number | null;
   currency?: string;
-  vatRate?: number;
+  vatRate?: number | null;
   vatIncluded?: boolean;
-  bedrooms?: number;
-  bathrooms?: number;
+  bedrooms?: number | null;
+  bathrooms?: number | null;
   hasTerrace?: boolean;
   hasGarden?: boolean;
-  publicDescription?: string;
-  internalNotes?: string;
+  publicDescription?: string | null;
+  internalNotes?: string | null;
   isVisibleToAgencies?: boolean;
 }
 
@@ -353,25 +353,39 @@ export async function updateUnit(input: UpdateUnitInput) {
     const updated = await tx.unit.update({
       where: { id: input.unitId },
       data: {
-        buildingId: input.patch.buildingId ?? undefined,
-        entranceId: input.patch.entranceId ?? undefined,
-        floorId: input.patch.floorId ?? undefined,
+        // Use `!== undefined` (not `??`) so explicit `null` clears nullable fields.
+        buildingId:
+          input.patch.buildingId !== undefined ? input.patch.buildingId : undefined,
+        entranceId:
+          input.patch.entranceId !== undefined ? input.patch.entranceId : undefined,
+        floorId: input.patch.floorId !== undefined ? input.patch.floorId : undefined,
         type: input.patch.type ?? undefined,
-        structure: input.patch.structure ?? undefined,
-        roomCount: input.patch.roomCount ?? undefined,
+        structure:
+          input.patch.structure !== undefined ? input.patch.structure : undefined,
+        roomCount:
+          input.patch.roomCount !== undefined ? input.patch.roomCount : undefined,
         totalArea:
           input.patch.totalArea != null ? new Decimal(input.patch.totalArea) : undefined,
         internalArea:
-          input.patch.internalArea != null
-            ? new Decimal(input.patch.internalArea)
+          input.patch.internalArea !== undefined
+            ? input.patch.internalArea != null
+              ? new Decimal(input.patch.internalArea)
+              : null
             : undefined,
         terraceArea:
-          input.patch.terraceArea != null
-            ? new Decimal(input.patch.terraceArea)
+          input.patch.terraceArea !== undefined
+            ? input.patch.terraceArea != null
+              ? new Decimal(input.patch.terraceArea)
+              : null
             : undefined,
         gardenArea:
-          input.patch.gardenArea != null ? new Decimal(input.patch.gardenArea) : undefined,
-        orientation: input.patch.orientation ?? undefined,
+          input.patch.gardenArea !== undefined
+            ? input.patch.gardenArea != null
+              ? new Decimal(input.patch.gardenArea)
+              : null
+            : undefined,
+        orientation:
+          input.patch.orientation !== undefined ? input.patch.orientation : undefined,
         basePrice:
           input.patch.basePrice != null ? new Decimal(input.patch.basePrice) : undefined,
         finalPrice:
@@ -383,12 +397,20 @@ export async function updateUnit(input: UpdateUnitInput) {
         vatRate:
           input.patch.vatRate !== undefined ? toDecimalOrNull(input.patch.vatRate) : undefined,
         vatIncluded: input.patch.vatIncluded ?? undefined,
-        bedrooms: input.patch.bedrooms ?? undefined,
-        bathrooms: input.patch.bathrooms ?? undefined,
+        bedrooms:
+          input.patch.bedrooms !== undefined ? input.patch.bedrooms : undefined,
+        bathrooms:
+          input.patch.bathrooms !== undefined ? input.patch.bathrooms : undefined,
         hasTerrace: input.patch.hasTerrace ?? undefined,
         hasGarden: input.patch.hasGarden ?? undefined,
-        publicDescription: input.patch.publicDescription ?? undefined,
-        internalNotes: input.patch.internalNotes ?? undefined,
+        publicDescription:
+          input.patch.publicDescription !== undefined
+            ? input.patch.publicDescription
+            : undefined,
+        internalNotes:
+          input.patch.internalNotes !== undefined
+            ? input.patch.internalNotes
+            : undefined,
         isVisibleToAgencies: input.patch.isVisibleToAgencies ?? undefined,
         version: { increment: 1 },
       },

@@ -55,3 +55,25 @@ export const GET = apiHandler({ paramsSchema }, async ({ req, params }) => {
     },
   });
 });
+
+/**
+ * @swagger
+ * /api/v1/public/reservation-requests/{id}/qr:
+ *   get:
+ *     tags:
+ *       - public
+ *     summary: List / read public
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       "200":
+ *         description: OK
+ *       "401":
+ *         $ref: "#/components/responses/Unauthenticated"
+ *       "403":
+ *         $ref: "#/components/responses/Forbidden"
+ */

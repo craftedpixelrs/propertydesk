@@ -27,3 +27,32 @@ export const POST = apiHandler(
     return { data: { ok: true } };
   },
 );
+
+/**
+ * @swagger
+ * /api/v1/units/{id}/archive:
+ *   post:
+ *     tags:
+ *       - units
+ *     summary: Create units
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             additionalProperties: true
+ *     responses:
+ *       "200":
+ *         description: OK
+ *       "401":
+ *         $ref: "#/components/responses/Unauthenticated"
+ *       "403":
+ *         $ref: "#/components/responses/Forbidden"
+ */

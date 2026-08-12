@@ -37,3 +37,25 @@ export const GET = apiHandler({ paramsSchema }, async ({ params }) => {
 
   return { data: { url } };
 });
+
+/**
+ * @swagger
+ * /api/v1/documents/{id}/download:
+ *   get:
+ *     tags:
+ *       - documents
+ *     summary: List / read documents
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       "200":
+ *         description: OK
+ *       "401":
+ *         $ref: "#/components/responses/Unauthenticated"
+ *       "403":
+ *         $ref: "#/components/responses/Forbidden"
+ */

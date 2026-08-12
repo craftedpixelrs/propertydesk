@@ -28,3 +28,19 @@ export const GET = apiHandler({}, async () => {
     };
   }
 });
+
+/**
+ * @swagger
+ * /api/v1/health/ready:
+ *   get:
+ *     tags:
+ *       - health
+ *     summary: List / read health
+ *     responses:
+ *       "200":
+ *         description: OK
+ *       "401":
+ *         $ref: "#/components/responses/Unauthenticated"
+ *       "403":
+ *         $ref: "#/components/responses/Forbidden"
+ */

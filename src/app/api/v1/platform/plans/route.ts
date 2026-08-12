@@ -46,3 +46,37 @@ export const POST = apiHandler(
     return { data: plan, status: 201 };
   },
 );
+
+/**
+ * @swagger
+ * /api/v1/platform/plans:
+ *   get:
+ *     tags:
+ *       - platform
+ *     summary: List / read platform
+ *     responses:
+ *       "200":
+ *         description: OK
+ *       "401":
+ *         $ref: "#/components/responses/Unauthenticated"
+ *       "403":
+ *         $ref: "#/components/responses/Forbidden"
+ *   post:
+ *     tags:
+ *       - platform
+ *     summary: Create platform
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             additionalProperties: true
+ *     responses:
+ *       "200":
+ *         description: OK
+ *       "401":
+ *         $ref: "#/components/responses/Unauthenticated"
+ *       "403":
+ *         $ref: "#/components/responses/Forbidden"
+ */

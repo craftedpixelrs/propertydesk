@@ -37,3 +37,19 @@ export const GET = apiHandler({}, async ({ searchParams, requestId }) => {
     },
   });
 });
+
+/**
+ * @swagger
+ * /api/v1/units/export:
+ *   get:
+ *     tags:
+ *       - units
+ *     summary: List / read units
+ *     responses:
+ *       "200":
+ *         description: OK
+ *       "401":
+ *         $ref: "#/components/responses/Unauthenticated"
+ *       "403":
+ *         $ref: "#/components/responses/Forbidden"
+ */

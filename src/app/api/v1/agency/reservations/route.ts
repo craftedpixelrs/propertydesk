@@ -36,3 +36,26 @@ export const POST = apiHandler({ bodySchema }, async ({ req, body }) => {
   });
   return { data: reservation, status: 201 };
 });
+
+/**
+ * @swagger
+ * /api/v1/agency/reservations:
+ *   post:
+ *     tags:
+ *       - agency
+ *     summary: Create agency
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             additionalProperties: true
+ *     responses:
+ *       "200":
+ *         description: OK
+ *       "401":
+ *         $ref: "#/components/responses/Unauthenticated"
+ *       "403":
+ *         $ref: "#/components/responses/Forbidden"
+ */

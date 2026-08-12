@@ -94,3 +94,37 @@ export const POST = apiHandler({ bodySchema: createSchema }, async ({ body }) =>
 
   return { data: { ...buyer, duplicateWarnings: duplicates }, status: 201 };
 });
+
+/**
+ * @swagger
+ * /api/v1/buyers:
+ *   get:
+ *     tags:
+ *       - buyers
+ *     summary: List / read buyers
+ *     responses:
+ *       "200":
+ *         description: OK
+ *       "401":
+ *         $ref: "#/components/responses/Unauthenticated"
+ *       "403":
+ *         $ref: "#/components/responses/Forbidden"
+ *   post:
+ *     tags:
+ *       - buyers
+ *     summary: Create buyers
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             additionalProperties: true
+ *     responses:
+ *       "200":
+ *         description: OK
+ *       "401":
+ *         $ref: "#/components/responses/Unauthenticated"
+ *       "403":
+ *         $ref: "#/components/responses/Forbidden"
+ */

@@ -7,3 +7,26 @@ export const POST = apiHandler({}, async () => {
   const count = await markAllNotificationsRead(session.user.id);
   return { data: { count } };
 });
+
+/**
+ * @swagger
+ * /api/v1/notifications/read-all:
+ *   post:
+ *     tags:
+ *       - notifications
+ *     summary: Create notifications
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             additionalProperties: true
+ *     responses:
+ *       "200":
+ *         description: OK
+ *       "401":
+ *         $ref: "#/components/responses/Unauthenticated"
+ *       "403":
+ *         $ref: "#/components/responses/Forbidden"
+ */

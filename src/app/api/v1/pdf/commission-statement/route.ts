@@ -40,3 +40,19 @@ function parseDate(v: string | null): Date | undefined {
   const d = new Date(v);
   return Number.isNaN(d.getTime()) ? undefined : d;
 }
+
+/**
+ * @swagger
+ * /api/v1/pdf/commission-statement:
+ *   get:
+ *     tags:
+ *       - pdf
+ *     summary: List / read pdf
+ *     responses:
+ *       "200":
+ *         description: OK
+ *       "401":
+ *         $ref: "#/components/responses/Unauthenticated"
+ *       "403":
+ *         $ref: "#/components/responses/Forbidden"
+ */

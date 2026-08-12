@@ -1,0 +1,1469 @@
+<!DOCTYPE html>
+<html lang="sr-Latn">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>PropertyDesk — Funkcionalnosti v1</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap"
+  />
+  <link rel="stylesheet" href="assets/pd-docs.css" />
+  <style>
+    :root {
+      --chrome-top: 4rem;
+      --chrome-bottom: 4.5rem;
+    }
+
+    html, body {
+      height: 100%;
+      overflow: hidden;
+      font-family: "Inter", var(--font-sans);
+      font-optical-sizing: auto;
+      font-feature-settings: "cv02" 1, "cv03" 1, "cv04" 1;
+    }
+
+    .deck {
+      height: 100%;
+      width: 100%;
+      position: relative;
+    }
+
+    .slide {
+      display: none;
+      height: 100%;
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: var(--chrome-top) clamp(1.5rem, 4vw, 4rem) var(--chrome-bottom);
+      flex-direction: column;
+      justify-content: flex-start;
+      align-items: stretch;
+      gap: 1.15rem;
+      overflow-x: hidden;
+      overflow-y: auto;
+    }
+    .slide.active { display: flex; }
+
+    .slide > .eyebrow { flex-shrink: 0; }
+    .slide > h1,
+    .slide > h2 { flex-shrink: 0; }
+
+    /* Staggered element reveals (same pattern as Gold Partner) */
+    .reveal {
+      opacity: 0;
+      transform: translateY(18px);
+      filter: blur(4px);
+      transition:
+        opacity 0.55s cubic-bezier(0.22, 1, 0.36, 1),
+        transform 0.55s cubic-bezier(0.22, 1, 0.36, 1),
+        filter 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+      transition-delay: var(--delay, 0ms);
+      will-change: opacity, transform, filter;
+    }
+    .reveal.is-in {
+      opacity: 1;
+      transform: translateY(0);
+      filter: blur(0);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .reveal {
+        opacity: 1;
+        transform: none;
+        filter: none;
+        transition: none;
+      }
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.72rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--brand-600);
+      font-weight: 600;
+    }
+    .eyebrow::before {
+      content: "";
+      width: 1.5rem;
+      height: 1px;
+      background: var(--brand-600);
+    }
+
+    h1 {
+      font-size: clamp(2.1rem, 4.2vw, 3.35rem);
+      font-weight: 800;
+      line-height: 1.08;
+      letter-spacing: -0.03em;
+      color: var(--fg);
+    }
+    h2 {
+      font-size: clamp(1.55rem, 2.8vw, 2.35rem);
+      font-weight: 700;
+      line-height: 1.18;
+      letter-spacing: -0.025em;
+      color: var(--fg);
+    }
+
+    .lead {
+      font-size: clamp(0.98rem, 1.35vw, 1.12rem);
+      color: var(--fg-muted);
+      max-width: 46rem;
+      line-height: 1.55;
+    }
+    .why {
+      font-size: 0.95rem;
+      color: var(--fg-muted);
+      line-height: 1.55;
+      max-width: 48rem;
+      padding: 0.85rem 1rem;
+      background: var(--brand-50);
+      border: 1px solid var(--brand-100);
+      border-radius: var(--radius-md);
+    }
+    .why strong {
+      color: var(--brand-800);
+      font-weight: 600;
+    }
+
+    .grid { display: grid; gap: 0.85rem; }
+    .grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    @media (max-width: 800px) {
+      .grid-2, .grid-3 { grid-template-columns: 1fr; }
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 1.05rem 1.15rem;
+      box-shadow: var(--shadow-sm);
+    }
+    .card strong {
+      display: block;
+      font-size: 0.92rem;
+      font-weight: 600;
+      color: var(--fg);
+      margin-bottom: 0.45rem;
+    }
+    .card p,
+    .card li {
+      color: var(--fg-muted);
+      font-size: 0.88rem;
+      line-height: 1.5;
+    }
+    .card ul {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+      margin: 0;
+      padding: 0;
+    }
+    .card li {
+      padding-left: 0.95rem;
+      position: relative;
+    }
+    .card li::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 0.6em;
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background: var(--brand-500);
+    }
+
+    .bullets {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.7rem;
+      margin: 0;
+      padding: 0;
+    }
+    .bullets li {
+      font-size: clamp(0.95rem, 1.25vw, 1.05rem);
+      line-height: 1.45;
+      padding-left: 1.6rem;
+      position: relative;
+      color: var(--fg);
+    }
+    .bullets li::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 0.45em;
+      width: 0.9rem;
+      height: 0.9rem;
+      border-radius: 50%;
+      background: var(--brand-50);
+      border: 2px solid var(--brand-600);
+    }
+    .bullets li span {
+      color: var(--fg-subtle);
+      font-size: 0.9em;
+      display: block;
+      margin-top: 0.12rem;
+    }
+
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.45rem;
+    }
+    .chip {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--fg-muted);
+      font-size: 0.8rem;
+      font-weight: 500;
+      padding: 0.35rem 0.7rem;
+      border-radius: var(--radius-sm);
+    }
+    .chip.brand {
+      background: var(--brand-50);
+      border-color: var(--brand-100);
+      color: var(--brand-700);
+    }
+    .chip.warn {
+      background: var(--warning-bg);
+      border-color: transparent;
+      color: var(--warning);
+    }
+    .chip.ok {
+      background: var(--success-bg);
+      border-color: transparent;
+      color: var(--success);
+    }
+
+    .flow {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.4rem;
+    }
+    .flow .step {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--fg);
+      font-weight: 500;
+      padding: 0.5rem 0.8rem;
+      border-radius: var(--radius-md);
+      font-size: 0.88rem;
+      box-shadow: var(--shadow-sm);
+    }
+    .flow .arrow {
+      color: var(--brand-600);
+      font-weight: 700;
+      font-size: 0.95rem;
+    }
+
+    .brand-bar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3rem;
+      display: flex;
+      align-items: center;
+      gap: 0.55rem;
+      padding: 0 1.25rem;
+      background: rgba(247, 248, 250, 0.92);
+      border-bottom: 1px solid var(--border);
+      backdrop-filter: blur(8px);
+      z-index: 40;
+      color: var(--fg-subtle);
+      font-size: 0.82rem;
+    }
+    .brand-name {
+      font-weight: 700;
+      color: var(--fg);
+    }
+
+    .footer {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 3.25rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 1.25rem;
+      padding-right: 6.5rem;
+      background: rgba(247, 248, 250, 0.94);
+      border-top: 1px solid var(--border);
+      backdrop-filter: blur(8px);
+      color: var(--fg-subtle);
+      font-size: 0.78rem;
+      z-index: 40;
+      gap: 1rem;
+    }
+    .footer-left {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.45rem;
+    }
+    .page-count {
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+    .kbd {
+      display: inline-block;
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      padding: 0.12rem 0.35rem;
+      border: 1px solid var(--border-strong);
+      border-bottom-width: 2px;
+      border-radius: 4px;
+      background: var(--surface);
+      color: var(--fg-muted);
+    }
+
+    .nav {
+      position: fixed;
+      right: 1rem;
+      bottom: 0.55rem;
+      display: flex;
+      gap: 0.35rem;
+      z-index: 50;
+    }
+    .nav button {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--fg);
+      width: 2.15rem;
+      height: 2.15rem;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      font-size: 1rem;
+      transition: border-color 0.15s, color 0.15s, background 0.15s;
+    }
+    .nav button:hover {
+      border-color: var(--brand-600);
+      color: var(--brand-600);
+      background: var(--brand-50);
+    }
+
+    .cta-note {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: var(--warning-bg);
+      color: var(--warning);
+      font-size: 0.92rem;
+      font-weight: 600;
+      padding: 0.55rem 0.95rem;
+      border-radius: var(--radius-md);
+    }
+
+    .two-col {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 1.25rem;
+      align-items: start;
+    }
+    @media (max-width: 900px) {
+      .two-col { grid-template-columns: 1fr; }
+    }
+
+    .visual {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      padding: 1.1rem 1.2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.15rem;
+      box-shadow: var(--shadow-sm);
+    }
+    .visual .kpi {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 0.75rem;
+      padding: 0.55rem 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.88rem;
+    }
+    .visual .kpi:last-child { border-bottom: none; }
+    .visual .kpi span:first-child { color: var(--fg-subtle); }
+    .visual .kpi span:last-child,
+    .visual .kpi strong {
+      font-weight: 600;
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      color: var(--fg);
+    }
+    .visual .kpi.hot span:last-child,
+    .visual .kpi.hot strong { color: var(--brand-600); }
+
+    .status-dot {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      margin-right: 0.35rem;
+      vertical-align: middle;
+    }
+    .status-dot.green { background: var(--success); }
+    .status-dot.amber { background: var(--warning); }
+    .status-dot.blue { background: var(--brand-500); }
+
+    code {
+      font-family: var(--font-mono);
+      font-size: 0.84em;
+      background: var(--surface-inset);
+      padding: 0.08rem 0.3rem;
+      border-radius: 4px;
+      color: var(--fg);
+    }
+
+    .cover {
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 2rem;
+      align-items: start;
+      width: 100%;
+      margin-top: 0.25rem;
+    }
+    @media (max-width: 900px) {
+      .cover { grid-template-columns: 1fr; }
+    }
+
+    .cover-visual {
+      background: linear-gradient(160deg, var(--brand-50) 0%, var(--surface) 55%);
+      border: 1px solid var(--brand-100);
+      border-radius: var(--radius-xl);
+      padding: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.55rem;
+      box-shadow: var(--shadow-sm);
+    }
+    .cover-visual .row {
+      display: flex;
+      justify-content: space-between;
+      gap: 0.75rem;
+      padding: 0.65rem 0.85rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      font-size: 0.86rem;
+      color: var(--fg-muted);
+    }
+    .cover-visual .row strong {
+      font-family: var(--font-mono);
+      color: var(--brand-700);
+      font-weight: 600;
+      font-size: 0.86rem;
+    }
+
+    .agenda-num {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 1.35rem;
+      height: 1.35rem;
+      border-radius: 4px;
+      background: var(--brand-50);
+      color: var(--brand-700);
+      font-size: 0.72rem;
+      font-weight: 700;
+      margin-right: 0.4rem;
+      flex-shrink: 0;
+    }
+    .agenda-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 0.55rem;
+    }
+    .agenda-list li {
+      display: flex;
+      align-items: flex-start;
+      font-size: 0.9rem;
+      color: var(--fg-muted);
+      line-height: 1.4;
+    }
+    .agenda-list li b {
+      color: var(--fg);
+      font-weight: 600;
+    }
+
+    .phase-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.55rem;
+    }
+    @media (max-width: 800px) {
+      .phase-grid { grid-template-columns: 1fr; }
+    }
+    .phase-item {
+      display: flex;
+      gap: 0.55rem;
+      align-items: flex-start;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 0.65rem 0.75rem;
+      font-size: 0.84rem;
+      line-height: 1.4;
+      color: var(--fg-muted);
+    }
+    .phase-item .n {
+      font-family: var(--font-mono);
+      font-weight: 700;
+      color: var(--brand-600);
+      font-size: 0.78rem;
+      min-width: 1.4rem;
+    }
+    .phase-item b {
+      color: var(--fg);
+      font-weight: 600;
+    }
+
+    .doc-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+    .doc-links a,
+    .doc-links a:link,
+    .doc-links a:visited {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.45rem 0.75rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      color: var(--brand-700);
+      text-decoration: none;
+      font-size: 0.85rem;
+      font-weight: 500;
+    }
+    .doc-links a:hover {
+      border-color: var(--brand-600);
+      background: var(--brand-50);
+      color: var(--brand-800);
+    }
+
+    .price-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      padding: 1.25rem 1.4rem;
+      box-shadow: var(--shadow-sm);
+    }
+    .price-box .was {
+      color: var(--fg-subtle);
+      text-decoration: line-through;
+      font-size: 1rem;
+    }
+    .price-box .now {
+      font-size: clamp(2rem, 4vw, 2.75rem);
+      font-weight: 800;
+      color: var(--brand-600);
+      letter-spacing: -0.03em;
+      line-height: 1.1;
+      margin: 0.25rem 0 0.5rem;
+    }
+    .price-box .meta {
+      color: var(--fg-muted);
+      font-size: 0.9rem;
+      line-height: 1.5;
+    }
+
+    @media (max-width: 640px) {
+      .footer { padding-right: 1.25rem; font-size: 0.7rem; }
+      .footer-left .hint { display: none; }
+      .nav { bottom: 3.5rem; }
+    }
+  </style>
+</head>
+<body>
+  <header class="brand-bar">
+    <img src="assets/logo.png" alt="PropertyDesk" class="logo" width="32" height="32" />
+    <span class="brand-name">PropertyDesk</span>
+    <span>· Funkcionalnosti v1</span>
+  </header>
+
+  <div class="deck" id="deck">
+
+    <!-- 1: Cover -->
+    <section class="slide active" data-title="Naslov">
+      <div class="cover">
+        <div>
+          <p class="eyebrow">v1 · Lansiranje 01.09.2026.</p>
+          <h1>Operativni sistem<br />za prodaju<br />novogradnje.</h1>
+          <p class="lead" style="margin-top:1rem">
+            Jedna platforma za investitore i partnerske agencije — zalihe,
+            CRM, rezervacije, ugovori, plan otplate, uplate, provizije i
+            izveštaji. Građeno za Srbiju: IPS QR, PDV/RPI, SEF-ready, sr-Latn.
+          </p>
+          <div class="chips" style="margin-top:1.15rem">
+            <span class="chip brand">IPS QR</span>
+            <span class="chip brand">PDV 10% / PPAP 2.5%</span>
+            <span class="chip brand">EUR / RSD</span>
+            <span class="chip brand">SEF-ready</span>
+            <span class="chip brand">Multi-tenant</span>
+          </div>
+        </div>
+        <div class="cover-visual" aria-label="Primer KPI kartica">
+          <div class="row"><span>Ukupna vrednost jedinica</span><strong>4.520.000 €</strong></div>
+          <div class="row"><span>Ugovoreno</span><strong>3.210.000 €</strong></div>
+          <div class="row"><span>Naplaćeno</span><strong>1.870.000 €</strong></div>
+          <div class="row"><span>Preostalo</span><strong style="color:var(--warning)">1.340.000 €</strong></div>
+          <div class="row"><span>Aktivne rezervacije</span><strong>12</strong></div>
+          <div class="row">
+            <span><span class="status-dot green"></span>App status</span>
+            <strong style="color:var(--success)">healthy</strong>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2: Agenda -->
+    <section class="slide" data-title="Agenda">
+      <p class="eyebrow">Agenda</p>
+      <h2>Šta prolazimo danas</h2>
+      <p class="why">
+        <strong>Zašto ova struktura:</strong> od problema i publike, preko
+        end-to-end toka prodaje, do Faza&nbsp;8 diferencijatora i komercijalnog
+        predloga — da odmah vidite šta rešava operativu, a šta donosi rast.
+      </p>
+      <div class="grid grid-2">
+        <div class="card">
+          <strong>Proizvod i tok</strong>
+          <ul class="agenda-list">
+            <li><span class="agenda-num">1</span><span><b>Problem</b> — Excel/Viber failure modes</span></li>
+            <li><span class="agenda-num">2</span><span><b>Publika</b> — investitori + agencije</span></li>
+            <li><span class="agenda-num">3</span><span><b>Core flow</b> — od projekta do isplate</span></li>
+            <li><span class="agenda-num">4</span><span><b>Zalihe → CRM → rezervacije → prodaje</b></span></li>
+            <li><span class="agenda-num">5</span><span><b>Plan otplate, FIFO, ugovori PDF</b></span></li>
+          </ul>
+        </div>
+        <div class="card">
+          <strong>Partneri, analitika, platforma</strong>
+          <ul class="agenda-list">
+            <li><span class="agenda-num">6</span><span><b>Agencijski portal</b>, buyer protection, referral</span></li>
+            <li><span class="agenda-num">7</span><span><b>Dashboard</b>, cash-flow, P&amp;L, time-to-sale</span></li>
+            <li><span class="agenda-num">8</span><span><b>Deljenje</b>, microsite, onboarding, Cmd+K</span></li>
+            <li><span class="agenda-num">9</span><span><b>Srbija-ready</b> + Faza 8 (13 novih)</span></li>
+            <li><span class="agenda-num">10</span><span><b>Sigurnost</b> i rana ponuda −50%</span></li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3: Problem -->
+    <section class="slide" data-title="Problem">
+      <p class="eyebrow">Problem</p>
+      <h2>Excel + Viber ne skaliraju</h2>
+      <p class="why">
+        <strong>Zašto je važno:</strong> greške se ne vide dok ne postanu skupi
+        pravni ili reputacioni incidenti — dvostruka rezervacija, pogrešan PDV,
+        izgubljena atribucija agencije.
+      </p>
+      <div class="two-col">
+        <ul class="bullets">
+          <li>
+            Dve aktivne rezervacije na istom stanu
+            <span>Poslednji u Viberu „pobedi“, kupac i agencija se svađaju.</span>
+          </li>
+          <li>
+            Cenovnik bez istorije
+            <span>Niko ne zna ko je spustio cenu, kada i zašto.</span>
+          </li>
+          <li>
+            Provizije u Excelu
+            <span>Ručni obračun, kasne isplate, nema snapshot-a na ugovoru.</span>
+          </li>
+          <li>
+            Ugovori u Word-u
+            <span>JMBG, PIB i PDV se prepisuju — greške uđu u PDF klijentu.</span>
+          </li>
+          <li>
+            Nema real-time naplate
+            <span>Cash-flow je „osećaj“, ne projekcija po ratama.</span>
+          </li>
+        </ul>
+        <div class="visual">
+          <div class="kpi"><span>Sunny Hills · A-3-04</span><span style="color:var(--warning)">Konflikt</span></div>
+          <div class="kpi"><span>Rezervisao Marko</span><span>14.08. 09:12</span></div>
+          <div class="kpi"><span>Rezervisala Ana</span><span>14.08. 09:14</span></div>
+          <div class="kpi hot"><span>PropertyDesk sprečava</span><strong>409 CONFLICT</strong></div>
+          <p style="font-size:0.8rem;color:var(--fg-subtle);margin-top:0.5rem;line-height:1.45">
+            Partial unique index + servisni sloj: jedna aktivna rezervacija po jedinici.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4: Who -->
+    <section class="slide" data-title="Za koga">
+      <p class="eyebrow">Publika</p>
+      <h2>Za koga je PropertyDesk</h2>
+      <p class="why">
+        <strong>Zašto je važno:</strong> isti inventar i pravila, dve različite
+        uloge — investitor vodi projekat i finansije, agencija prodaje bez
+        pristupa tuđim kupcima.
+      </p>
+      <div class="grid grid-2">
+        <div class="card">
+          <strong>Investitori / developeri</strong>
+          <p style="margin-bottom:0.55rem">
+            Timovi koji vode 1–N projekata novogradnje i moraju da kontrolišu
+            zalihe, ugovore, naplatu i partnerske agencije iz jednog mesta.
+          </p>
+          <ul>
+            <li>Vlasnik / admin / sales manager / finance / viewer</li>
+            <li>Puna kontrola cena, statusa, ugovora i P&amp;L</li>
+            <li>Pozivnice agencijama + access po projektu/jedinici</li>
+            <li>Cash-flow 12 meseci, time-to-sale, dashboard KPI</li>
+          </ul>
+        </div>
+        <div class="card">
+          <strong>Partnerske agencije</strong>
+          <p style="margin-bottom:0.55rem">
+            Brokeri koji rade na više investitora, ali u PropertyDesk-u vide
+            samo ono što im je dozvoljeno — i zarađuju preko provizija i referrala.
+          </p>
+          <ul>
+            <li>Sopstveni portal: Ponuda, Kupci, Rezervacije, Provizije</li>
+            <li>Buyer protection 60 dana (podesivo)</li>
+            <li>Referral kod + QR + atribucija u izveštaju</li>
+            <li>RBAC: agent nikad ne vidi kupce drugog investitora</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5: Core flow -->
+    <section class="slide" data-title="Osnovni tok">
+      <p class="eyebrow">Osnovni tok</p>
+      <h2>Od projekta do isplate</h2>
+      <p class="why">
+        <strong>Zašto je važno:</strong> ceo lanac je transakcionalan — status
+        jedinice, rezervacija, prodaja, rata i provizija se ne razilaze između
+        tabela i „nekog Excel-a“.
+      </p>
+      <div class="flow">
+        <span class="step">Projekat</span><span class="arrow">→</span>
+        <span class="step">Jedinice</span><span class="arrow">→</span>
+        <span class="step">Kupac + KYC</span><span class="arrow">→</span>
+        <span class="step">Rezervacija</span><span class="arrow">→</span>
+        <span class="step">Prodaja</span>
+      </div>
+      <div class="flow">
+        <span class="step">Plan otplate</span><span class="arrow">→</span>
+        <span class="step">Uplate (FIFO)</span><span class="arrow">→</span>
+        <span class="step">Ugovor PDF</span><span class="arrow">→</span>
+        <span class="step">Provizija</span><span class="arrow">→</span>
+        <span class="step">Isplata</span>
+      </div>
+      <div class="grid grid-3" style="margin-top:0.25rem">
+        <div class="card">
+          <strong>FSM + audit</strong>
+          <p>Svaki prelaz statusa ide kroz servis; ostaje istorija i ko je uradio akciju.</p>
+        </div>
+        <div class="card">
+          <strong>Optimističko zaključavanje</strong>
+          <p><code>version</code> na Unit/Sale/Reservation sprečava tiho gaženje istovremenih izmena.</p>
+        </div>
+        <div class="card">
+          <strong>Notifikacije</strong>
+          <p>In-app + email po događaju; auto-zadaci za isteke, dospele rate i ugovore.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 6: Inventory -->
+    <section class="slide" data-title="Zalihe">
+      <p class="eyebrow">01 · Projekti i zalihe</p>
+      <h2>Hijerarhija, floor plan, uvoz</h2>
+      <p class="why">
+        <strong>Zašto je važno:</strong> inventar je jedini izvor istine —
+        status, cena i javna ponuda moraju da budu sinhronizovani ili gubite
+        kontrolu nad prodajom.
+      </p>
+      <div class="two-col">
+        <ul class="bullets">
+          <li>
+            <code>Projekat → Objekat → Ulaz → Sprat → Jedinica</code>
+            <span>Sve razine osim projekta i jedinice su opcione.</span>
+          </li>
+          <li>
+            8 tipova, 6 statusa sa istorijom
+            <span>APARTMAN…ZEMLJIŠTE · PLANIRANA → … → ARHIVIRANA</span>
+          </li>
+          <li>
+            Cene sa <code>UnitPriceHistory</code>
+            <span>Osnovna, konačna, €/m², PDV, valuta — ko/kada/razlog.</span>
+          </li>
+          <li>
+            CSV/XLSX uvoz (3 koraka) + duplikat projekta
+            <span>Šablon → upload → preview; klon strukture bez prodaja.</span>
+          </li>
+          <li>
+            Interaktivni floor plan + foto galerije
+            <span>SVG poligoni po statusu; naslovna za OG i javnu ponudu.</span>
+          </li>
+        </ul>
+        <div class="visual">
+          <div class="kpi"><span>Ukupno jedinica</span><strong>87</strong></div>
+          <div class="kpi"><span><span class="status-dot green"></span>Dostupno</span><strong>34</strong></div>
+          <div class="kpi"><span><span class="status-dot amber"></span>Rezervisano</span><strong>12</strong></div>
+          <div class="kpi"><span><span class="status-dot blue"></span>Prodato</span><strong>41</strong></div>
+          <div class="kpi hot"><span>Microsite</span><strong>/p/projekat/…</strong></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 7: CRM + KYC -->
+    <section class="slide" data-title="CRM i KYC">
+      <p class="eyebrow">02 · CRM</p>
+      <h2>Kupci, KYC i zaštita podataka</h2>
+      <p class="why">
+        <strong>Zašto je važno:</strong> ugovor bez kompletnog KYC-a je rizik —
+        PropertyDesk blokira generisanje ugovora dok checklist nije gotov.
+      </p>
+      <div class="grid grid-2">
+        <div class="card">
+          <strong>Podaci o kupcu</strong>
+          <ul>
+            <li>Fizička / pravna lica; stranci (pasoš, bez JMBG-a)</li>
+            <li>JMBG, LK, PIB, entityType, legalName, adresa</li>
+            <li>Detekcija duplikata po telefonu i emailu (non-blocking)</li>
+            <li>Timeline (pozivi, mailovi, sastanci) + zadaci</li>
+            <li>@mentions u komentarima → in-app notifikacija</li>
+            <li>GDPR anonimizacija — briše PII, čuva statistiku</li>
+          </ul>
+        </div>
+        <div class="card">
+          <strong>KYC checklist (Faza 8)</strong>
+          <ul>
+            <li>LK front / LK back / dokaz adrese / poreska potvrda</li>
+            <li>Notes + reviewer + timestamp</li>
+            <li><b>Blokira PDF ugovor dok nije kompletan</b></li>
+            <li>KYC dokumenti nikad ne idu u agencijske DTO</li>
+            <li>Buyer protection: 60 dana ekskluzive za agenciju</li>
+            <li>Konflikt → anonimizovan <code>CONFLICT_REVIEW</code></li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- 8: Reservations -->
+    <section class="slide" data-title="Rezervacije">
+      <p class="eyebrow">03 · Rezervacije</p>
+      <h2>Interna + online sa IPS QR kaparom</h2>
+      <p class="why">
+        <strong>Zašto je važno:</strong> rezervacija je prvi „zaključani“ korak
+        prodaje — mora da istekne automatski, da ne dozvoli race condition i da
+        online kupac plati kaparu bez prekucavanja računa.
+      </p>
+      <div class="grid grid-2">
+        <div class="card">
+          <strong>Interna rezervacija</strong>
+          <ul>
+            <li>Iz detalja jedinice ili kupca</li>
+            <li>TTL 7 dana (podesivo)</li>
+            <li>Statusi: AKTIVNA → KONVERTOVANA / ISTEKLA / OTKAZANA</li>
+            <li>Cron expire svakih 15 min + podsetnik 2 dana pre</li>
+            <li>Kanban board sa drag&amp;drop + server FSM</li>
+          </ul>
+        </div>
+        <div class="card">
+          <strong>Online rezervacija (Faza 8)</strong>
+          <ul>
+            <li>Javna forma <code>/p/[token]</code></li>
+            <li>IPS QR PNG za kaparu — automatski generisan</li>
+            <li>TTL 48h; rate-limit 10 zahteva/sat/IP</li>
+            <li>Baza: jedna aktivna rezervacija po jedinici</li>
+            <li>Konverzija u prodaju jednim wizardom</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- 9: Sales -->
+    <section class="slide" data-title="Prodaje">
+      <p class="eyebrow">04 · Prodaje</p>
+      <h2>Prodaja, VAT/RPI i ugovor u PDF-u</h2>
+      <p class="why">
+        <strong>Zašto je važno:</strong> poreski režim i ugovor moraju da budu
+        isti izvor istine — ne ručni Word, već izračun + šablon koji ide u PDF.
+      </p>
+      <div class="grid grid-3">
+        <div class="card">
+          <strong>Wizard prodaje</strong>
+          <ul>
+            <li>Iz rezervacije ili direktno</li>
+            <li>Popust fiksni / % (decimal-safe)</li>
+            <li>Statusi: DRAFT → UGOVORENA → AKTIVNA → ZAVRŠENA</li>
+            <li>Kanban + optimistic lock</li>
+          </ul>
+        </div>
+        <div class="card">
+          <strong>VAT / RPI mod (Faza 8)</strong>
+          <ul>
+            <li><code>NEW_BUILD_10</code> — 10% PDV</li>
+            <li><code>SECONDARY_MARKET_2_5</code> — 2.5% PPAP</li>
+            <li><code>NONE</code> kad ne važi</li>
+            <li>Auto <code>taxAmount</code> → ugovor</li>
+          </ul>
+        </div>
+        <div class="card">
+          <strong>PDF ugovori (Faza 8)</strong>
+          <ul>
+            <li>HTML šabloni sa <code>{{var}}</code></li>
+            <li>PRE_CONTRACT / CONTRACT</li>
+            <li>NONE → GENERATED → SENT → SIGNED</li>
+            <li>KYC mora biti kompletan</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- 10: Payments -->
+    <section class="slide" data-title="Plan otplate">
+      <p class="eyebrow">05 · Plan otplate i uplate</p>
+      <h2>Šabloni rata + FIFO alokacija</h2>
+      <p class="why">
+        <strong>Zašto je važno:</strong> naplata je gde se gubi novac i poverenje —
+        FIFO i storno sa tragom znače da knjiga uplata odgovara stvarnosti.
+      </p>
+      <div class="two-col">
+        <ul class="bullets">
+          <li>
+            Šabloni na nivou org + override po projektu
+            <span>Procenti moraju dati 100% (tolerancija 0.001%).</span>
+          </li>
+          <li>
+            Ankeri dospeća
+            <span><code>CONTRACT</code> / <code>HANDOVER</code> / <code>CUSTOM_OFFSET</code></span>
+          </li>
+          <li>
+            FIFO alokacija uplata
+            <span>Prvo najstarija otvorena rata; višak = <code>unappliedAmount</code>.</span>
+          </li>
+          <li>
+            Ručna realokacija + storno
+            <span>Paired negativna alokacija, obavezan razlog, ništa se ne briše.</span>
+          </li>
+          <li>
+            Cron + email podsetnici
+            <span>Overdue dnevno; 3 nivoa (3 dana pre, na dan, 7 posle).</span>
+          </li>
+        </ul>
+        <div class="visual">
+          <div class="kpi"><span>Rata 1 · kapara</span><strong>plaćeno</strong></div>
+          <div class="kpi"><span>Rata 2 · ugovor</span><strong>delimično</strong></div>
+          <div class="kpi"><span>Rata 3 · handover</span><strong>otvoreno</strong></div>
+          <div class="kpi hot"><span>Nova uplata 12.000 €</span><strong>→ FIFO</strong></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 11: Agency -->
+    <section class="slide" data-title="Agencije">
+      <p class="eyebrow">06 · Agencijski portal</p>
+      <h2>Pristup, buyer protection, provizije</h2>
+      <p class="why">
+        <strong>Zašto je važno:</strong> partnerstva rastu samo ako je jasno ko
+        „drži“ kupca i kako se provizija računa — bez svađa posle ugovora.
+      </p>
+      <div class="grid grid-3">
+        <div class="card">
+          <strong>Onboarding agencije</strong>
+          <ul>
+            <li>Pozivnica emailom → registracija</li>
+            <li><code>AgencyConnection</code> ACTIVE</li>
+            <li>Access po projektu; per-unit override</li>
+            <li>Portal: Ponuda, Kupci, Rezervacije, Provizije</li>
+          </ul>
+        </div>
+        <div class="card">
+          <strong>Buyer protection</strong>
+          <ul>
+            <li>60 dana ekskluzive (podesivo)</li>
+            <li>Druga agencija → CONFLICT_REVIEW</li>
+            <li>Anonimizovani podaci u konfliktu</li>
+            <li>Cron <code>expire-buyer-protection</code></li>
+          </ul>
+        </div>
+        <div class="card">
+          <strong>Provizije</strong>
+          <ul>
+            <li>Precedencija: unit → project → connection → default</li>
+            <li>Snapshot na ugovoru (immutable)</li>
+            <li>PENDING → APPROVED → READY → PAID</li>
+            <li>Ili CANCELED sa tragom</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- 12: Referral -->
+    <section class="slide" data-title="Referral">
+      <p class="eyebrow">07 · Referral kodovi</p>
+      <h2>Atribucija koja se meri</h2>
+      <p class="why">
+        <strong>Zašto je važno:</strong> bez cookie atribucije „ko je doveo
+        kupca“ ostaje usmena — referral kod zatvara tu rupu u izveštaju.
+      </p>
+      <div class="two-col">
+        <ul class="bullets">
+          <li>
+            8-character unique kod po konekciji
+            <span>Jedan link za landing / javnu ponudu / microsite.</span>
+          </li>
+          <li>
+            QR PNG + copy link
+            <span>Agencija deli na Instagramu, sajtu ili u štampi.</span>
+          </li>
+          <li>
+            Cookie 90 dana
+            <span>Atribucija traje dovoljno dugo za odluku o kupovini.</span>
+          </li>
+          <li>
+            Izveštaj <code>/izvestaji/agencije</code>
+            <span>Prodaje, provizije i referral atribucija na jednom mestu.</span>
+          </li>
+        </ul>
+        <div class="visual">
+          <div class="kpi"><span>Kod</span><strong>AG-7K2M9Q</strong></div>
+          <div class="kpi"><span>Cookie TTL</span><strong>90 dana</strong></div>
+          <div class="kpi"><span>Atribuisane prodaje</span><strong>14</strong></div>
+          <div class="kpi hot"><span>Provizija (mesec)</span><strong>28.400 €</strong></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 13: Dashboard -->
+    <section class="slide" data-title="Dashboard">
+      <p class="eyebrow">08 · Dashboard i izveštaji</p>
+      <h2>KPI, cash-flow, P&amp;L, time-to-sale</h2>
+      <p class="why">
+        <strong>Zašto je važno:</strong> investitor ne pita „koliko smo prodali
+        juče“, nego „kad stiže novac i koja je marža projekta“ — to je ovde.
+      </p>
+      <div class="grid grid-2">
+        <div class="card">
+          <strong>Kontrolna tabla</strong>
+          <ul>
+            <li>Vrednost jedinica, ugovoreno, naplaćeno, preostalo</li>
+            <li>Aktivne rezervacije, zadaci danas, top prodavci</li>
+            <li>Donut po statusu · funnel rezervacija→ugovor→naplata</li>
+            <li>Trend: mesečne prodaje i uplate</li>
+          </ul>
+        </div>
+        <div class="card">
+          <strong>Izveštaji (CSV/XLSX + share link)</strong>
+          <ul>
+            <li><b>Cash-flow 12 meseci</b> — priliv/odliv po mesecu</li>
+            <li><b>Time-to-sale</b> — prosečni dani do prodaje</li>
+            <li><b>Project P&amp;L</b> — cena − land/build/marketing/other</li>
+            <li>Prodaje, zalihe, uplate, rezervacije, kupci, agencije</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- 14: Sharing / UX -->
+    <section class="slide" data-title="Deljenje i UX">
+      <p class="eyebrow">09 · Deljenje, onboarding, navigacija</p>
+      <h2>Microsite, share linkovi, Cmd+K, kalendar</h2>
+      <p class="why">
+        <strong>Zašto je važno:</strong> prodaja se dešava i van kancelarije —
+        javna ponuda, brzi onboarding i kalendar rokova skraćuju vreme do ugovora.
+      </p>
+      <div class="grid grid-2">
+        <div class="card">
+          <strong>Javno lice projekta</strong>
+          <ul>
+            <li>Share link <code>/p/[token]</code> — 192-bit, opciono sakrivanje cena, expiry, revoke</li>
+            <li>Javna ponuda jedinice: brand, foto, floor plan, opciono IPS kapara</li>
+            <li>Public microsite <code>/p/projekat/[slug]</code> — dostupne jedinice + mapa</li>
+            <li>Onboarding wizard (5 koraka) za novog investitora</li>
+          </ul>
+        </div>
+        <div class="card">
+          <strong>Svakodnevni rad</strong>
+          <ul>
+            <li><b>Cmd+K / Ctrl+K</b> — projekti, jedinice, kupci (RBAC)</li>
+            <li>Kalendar: isteci rezervacija, rate, zadaci, primopredaje</li>
+            <li>Filtri u URL-u — link se deli sa timom</li>
+            <li>PWA, bottom nav na mobilnom, swipe akcije, „+“ FAB</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- 15: Serbia -->
+    <section class="slide" data-title="Srbija">
+      <p class="eyebrow">10 · Lokalizacija</p>
+      <h2>Građeno za Srbiju</h2>
+      <p class="why">
+        <strong>Zašto je važno:</strong> globalni CRM-ovi traže lokalne
+        workarounds — IPS, PDV/PPAP, SEF i sr-Latn su ovde first-class.
+      </p>
+      <div class="grid grid-2">
+        <div class="card">
+          <strong>Plaćanja i poreski režim</strong>
+          <ul>
+            <li><b>IPS QR</b> — NBS specifikacija (SaaS fakture + online kapara)</li>
+            <li><b>PDV 10%</b> novogradnja / <b>PPAP 2.5%</b> sekundarno</li>
+            <li>EUR / RSD, formatiranje po <code>sr-Latn</code></li>
+            <li><b>SEF</b> stub — gateway pripremljen za produkciju</li>
+          </ul>
+        </div>
+        <div class="card">
+          <strong>Jezik, podaci, dokumenti</strong>
+          <ul>
+            <li>Ceo UI i poruke na srpskoj latinici</li>
+            <li>JMBG / PIB / LK kao KYC polja, ne „custom fields“</li>
+            <li>MIME allowlist, signed URL 5 min, max 20 MB</li>
+            <li>Bankarski izvodi CSV/XLSX + 5-signal matcher (SaaS)</li>
+          </ul>
+        </div>
+      </div>
+      <div class="chips">
+        <span class="chip brand">IPS QR</span>
+        <span class="chip brand">PDV / RPI</span>
+        <span class="chip brand">SEF-ready</span>
+        <span class="chip brand">sr-Latn</span>
+        <span class="chip brand">JMBG · PIB · LK</span>
+      </div>
+    </section>
+
+    <!-- 16: Faza 8 -->
+    <section class="slide" data-title="Faza 8">
+      <p class="eyebrow">11 · Faza 8 · v1 delta</p>
+      <h2>13 stvari koje razlikuju v1</h2>
+      <p class="why">
+        <strong>Zašto je važno:</strong> ovo nije „još jedan CRM“ — Faza&nbsp;8
+        zatvara lokalne rupe: kapara, ugovor, KYC, cash-flow, P&amp;L, referral.
+      </p>
+      <div class="phase-grid">
+        <div class="phase-item"><span class="n">01</span><span><b>Online rezervacija + IPS QR</b> — kupac plati skeniranjem</span></div>
+        <div class="phase-item"><span class="n">02</span><span><b>PDF ugovori</b> — šabloni, status Generisan→Potpisan</span></div>
+        <div class="phase-item"><span class="n">03</span><span><b>KYC modul</b> — checklist obavezan pre ugovora</span></div>
+        <div class="phase-item"><span class="n">04</span><span><b>Cash-flow 12 meseci</b> — priliv/odliv po mesecu</span></div>
+        <div class="phase-item"><span class="n">05</span><span><b>Time-to-sale</b> — dani do prodaje po projektu/tipu</span></div>
+        <div class="phase-item"><span class="n">06</span><span><b>Project P&amp;L</b> — marža (prihod − troškovi)</span></div>
+        <div class="phase-item"><span class="n">07</span><span><b>CSV/XLSX importer</b> — 3-korak wizard</span></div>
+        <div class="phase-item"><span class="n">08</span><span><b>Duplikat projekta</b> — klon strukture</span></div>
+        <div class="phase-item"><span class="n">09</span><span><b>VAT/RPI na Sale</b> — 10% / 2.5% u ugovor</span></div>
+        <div class="phase-item"><span class="n">10</span><span><b>Public microsite</b> — <code>/p/projekat/[slug]</code></span></div>
+        <div class="phase-item"><span class="n">11</span><span><b>Referral kod</b> — QR + cookie 90 dana</span></div>
+        <div class="phase-item"><span class="n">12</span><span><b>Sentry</b> — client/server/edge + PII scrub</span></div>
+        <div class="phase-item" style="grid-column:1/-1"><span class="n">13</span><span><b>Backup verifier</b> — nedeljno + alert posle 2 FAIL-a</span></div>
+      </div>
+    </section>
+
+    <!-- 17: Security -->
+    <section class="slide" data-title="Sigurnost">
+      <p class="eyebrow">12 · Platforma</p>
+      <h2>RBAC, audit, automatizacija, monitoring</h2>
+      <p class="why">
+        <strong>Zašto je važno:</strong> multi-tenant prodaja nekretnina traži
+        stroga prava, nepromenljiv trag i dokaz da backup i greške ne ćute.
+      </p>
+      <div class="grid grid-2">
+        <div class="card">
+          <strong>Sigurnost i RBAC</strong>
+          <ul>
+            <li>Better Auth + organizations (multi-tenant)</li>
+            <li>9 rola; Role editor — toggle dozvola bez deploy-a</li>
+            <li>Impersonate sa trakicom + <code>impersonatedBy</code> u auditu</li>
+            <li>Immutable audit log cross-tenant</li>
+            <li>Rate limit na public/login; CSRF + SameSite=Lax</li>
+            <li>Zod validacija <code>.env</code> na startu</li>
+          </ul>
+        </div>
+        <div class="card">
+          <strong>Automatizacija i monitoring</strong>
+          <ul>
+            <li>Cronovi: expire rezervacija, overdue rate, buyer protection, billing…</li>
+            <li>Sentry (Faza 8) — source maps, environment tags</li>
+            <li>Backup verifier + <code>/administracija/monitoring</code></li>
+            <li>Health: <code>/api/v1/health</code>, <code>/api/v1/ready</code></li>
+            <li>Auto-zadaci: istek, rata, ugovor, depozit</li>
+            <li>REST <code>/api/v1/*</code> enveloped + OpenAPI</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- 18: Early offer -->
+    <section class="slide" data-title="Rana ponuda">
+      <p class="eyebrow">13 · Komercijala</p>
+      <h2>Rana ponuda −50% do 01.09.2026.</h2>
+      <p class="why">
+        <strong>Zašto je važno:</strong> zaključavate cenu pre lansiranja, uz
+        pun v1 stack (Faza&nbsp;8) i onboarding podršku — ne „beta bez ugovora“.
+      </p>
+      <div class="grid grid-2">
+        <div class="price-box">
+          <div class="was">Regularna godišnja cena</div>
+          <div class="now"><span class="countup" data-count="−50%">−50%</span> early</div>
+          <p class="meta">
+            Važi za ugovore potpisane do <b>01.09.2026.</b> Planovi Starter /
+            Growth / Scale (+ Enterprise custom). Cikli: mesečno do godišnje,
+            trial 30 dana.
+          </p>
+          <div class="chips" style="margin-top:0.85rem">
+            <span class="chip warn">Rok: 01.09.2026.</span>
+            <span class="chip ok">Faza 8 uključena</span>
+            <span class="chip brand">IPS fakture</span>
+          </div>
+        </div>
+        <div class="card">
+          <strong>Šta dobijate u early paketu</strong>
+          <ul>
+            <li>Pun inventar + CRM/KYC + rezervacije/prodaje</li>
+            <li>Online kapara (IPS), PDF ugovori, VAT/RPI</li>
+            <li>Agencijski portal, provizije, referral</li>
+            <li>Cash-flow, P&amp;L, time-to-sale, microsite</li>
+            <li>Onboarding wizard + pomoć pri uvozu jedinica</li>
+            <li>Sentry + backup verifier od prvog dana</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- 19: CTA -->
+    <section class="slide" data-title="Sledeći korak">
+      <p class="eyebrow">Sledeći korak</p>
+      <h2>Hajde da pokrenemo vaš prvi projekat</h2>
+      <p class="why">
+        <strong>Predlog:</strong> 45-min demo na vašem (ili našem) uzorku
+        inventara — uvoz jedinica, jedna rezervacija sa IPS QR-om, generisanje
+        ugovora i pogled na cash-flow.
+      </p>
+      <div class="grid grid-2">
+        <div class="card">
+          <strong>Šta pripremiti za demo</strong>
+          <ul>
+            <li>Jedan projekat + cenovnik (CSV/XLSX ili lista)</li>
+            <li>Tipičan tok: rezervacija → ugovor → 3 rate</li>
+            <li>Da li radite sa agencijama (da/ne)</li>
+            <li>Novogradnja (10%) ili mešovito sa PPAP 2.5%</li>
+          </ul>
+          <p class="cta-note" style="margin-top:0.9rem">Rana ponuda −50% do 01.09.2026.</p>
+        </div>
+        <div class="card">
+          <strong>Dokumentacija</strong>
+          <div class="doc-links" style="margin-top:0.35rem">
+            <a href="./funkcionalnosti.md">Katalog funkcionalnosti</a>
+            <a href="./demo-tok.md">Demo tok</a>
+            <a href="./api.md">API</a>
+            <a href="./kyc.md">KYC</a>
+            <a href="./sale-contracts.md">Ugovori</a>
+            <a href="./reservation-requests.md">Online rezervacije</a>
+            <a href="./microsite.md">Microsite</a>
+            <a href="./referral.md">Referral</a>
+            <a href="./monitoring.md">Monitoring</a>
+          </div>
+          <p style="margin-top:0.9rem;font-size:0.88rem;color:var(--fg-subtle);line-height:1.5">
+            Navigacija: <span class="kbd">←</span> <span class="kbd">→</span>
+            <span class="kbd">Space</span> · Fullscreen <span class="kbd">F</span>
+            · Izlaz <span class="kbd">Esc</span>
+          </p>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <footer class="footer">
+    <div class="footer-left">
+      <img src="assets/logo.png" alt="" class="logo sm" width="22" height="22" aria-hidden="true" />
+      <span>PropertyDesk v1</span>
+      <span aria-hidden="true">·</span>
+      <span class="hint">
+        <span class="kbd">←</span>
+        <span class="kbd">→</span>
+        <span class="kbd">Space</span>
+        <span class="kbd">F</span>
+      </span>
+    </div>
+    <span class="page-count" id="pageCount">1 / 19</span>
+  </footer>
+
+  <div class="nav" aria-label="Navigacija slajdova">
+    <button type="button" id="prevBtn" title="Prethodni (←)" aria-label="Prethodni">‹</button>
+    <button type="button" id="nextBtn" title="Sledeći (→)" aria-label="Sledeći">›</button>
+  </div>
+
+  <script src="assets/pd-countup.js"></script>
+  <script>
+    (function () {
+      var slides = Array.prototype.slice.call(document.querySelectorAll(".slide"));
+      var total = slides.length;
+      var pageCount = document.getElementById("pageCount");
+      var prevBtn = document.getElementById("prevBtn");
+      var nextBtn = document.getElementById("nextBtn");
+      var index = 0;
+      var revealTimer = 0;
+      var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+      var REVEAL_SEL = [
+        ":scope > .eyebrow",
+        ":scope > h1",
+        ":scope > h2",
+        ":scope > .lead",
+        ":scope > .why",
+        ":scope > .chips",
+        ":scope > .flow",
+        ":scope > .big-number",
+        ":scope > .cta-note",
+        ":scope > .grid > .card",
+        ":scope > .grid > .price-box",
+        ":scope > .phase-grid > .phase-item",
+        ":scope > .cover > *",
+        ".two-col > .bullets > li",
+        ".two-col > .visual",
+        ".two-col > .card",
+        ".agenda-list > li",
+        ".cover-visual > .row",
+        ".visual > .kpi",
+        ".chips > .chip"
+      ].join(",");
+
+      function collectRevealEls(slide) {
+        var nodes = Array.prototype.slice.call(slide.querySelectorAll(REVEAL_SEL));
+        // Prefer finer items: drop a parent if any selected descendant exists
+        return nodes.filter(function (el) {
+          return !nodes.some(function (other) {
+            return other !== el && el.contains(other);
+          });
+        });
+      }
+
+      function resetReveals(slide) {
+        collectRevealEls(slide).forEach(function (el) {
+          el.classList.remove("is-in");
+          el.classList.add("reveal");
+          el.style.removeProperty("--delay");
+        });
+        if (window.CountUp) window.CountUp.reset(slide);
+      }
+
+      function playReveals(slide) {
+        var items = collectRevealEls(slide);
+        items.forEach(function (el) {
+          el.classList.add("reveal");
+        });
+        if (reduceMotion) {
+          items.forEach(function (el) { el.classList.add("is-in"); });
+          if (window.CountUp) window.CountUp.play(slide, { delay: 0, duration: 0 });
+          return;
+        }
+        items.forEach(function (el, idx) {
+          el.classList.remove("is-in");
+          el.style.setProperty("--delay", idx * 70 + "ms");
+          void el.offsetWidth;
+          requestAnimationFrame(function () {
+            el.classList.add("is-in");
+          });
+        });
+        // Start count-up slightly after first reveals land
+        if (window.CountUp) {
+          window.CountUp.play(slide, {
+            delay: 180,
+            duration: 1000,
+            stagger: 80,
+          });
+        }
+      }
+
+      function parseHash() {
+        var m = (location.hash || "").match(/^#(\d+)$/);
+        if (!m) return null;
+        var n = parseInt(m[1], 10);
+        if (n >= 1 && n <= total) return n - 1;
+        return null;
+      }
+
+      function show(i, pushHash) {
+        if (i < 0) i = 0;
+        if (i > total - 1) i = total - 1;
+        clearTimeout(revealTimer);
+        index = i;
+        slides.forEach(function (s, j) {
+          var on = j === index;
+          if (!on) resetReveals(s);
+          s.classList.toggle("active", on);
+        });
+        pageCount.textContent = (index + 1) + " / " + total;
+        var title = slides[index].getAttribute("data-title");
+        document.title = "PropertyDesk — " + (title || "Funkcionalnosti") + " (" + (index + 1) + "/" + total + ")";
+        if (pushHash !== false) {
+          var nextHash = "#" + (index + 1);
+          if (location.hash !== nextHash) {
+            history.replaceState(null, "", nextHash);
+          }
+        }
+        slides[index].scrollTop = 0;
+        revealTimer = setTimeout(function () {
+          playReveals(slides[index]);
+        }, 40);
+      }
+
+      function next() { show(index + 1); }
+      function prev() { show(index - 1); }
+
+      prevBtn.addEventListener("click", prev);
+      nextBtn.addEventListener("click", next);
+
+      document.addEventListener("keydown", function (e) {
+        if (e.target && /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)) return;
+        if (e.key === "ArrowRight" || e.key === " " || e.key === "PageDown") {
+          e.preventDefault();
+          next();
+        } else if (e.key === "ArrowLeft" || e.key === "PageUp") {
+          e.preventDefault();
+          prev();
+        } else if (e.key === "f" || e.key === "F") {
+          e.preventDefault();
+          if (!document.fullscreenElement) {
+            document.documentElement.requestFullscreen().catch(function () {});
+          } else {
+            document.exitFullscreen().catch(function () {});
+          }
+        } else if (e.key === "Escape" && document.fullscreenElement) {
+          document.exitFullscreen().catch(function () {});
+        } else if (e.key === "Home") {
+          e.preventDefault();
+          show(0);
+        } else if (e.key === "End") {
+          e.preventDefault();
+          show(total - 1);
+        }
+      });
+
+      window.addEventListener("hashchange", function () {
+        var h = parseHash();
+        if (h !== null && h !== index) show(h, false);
+      });
+
+      var initial = parseHash();
+      show(initial !== null ? initial : 0, true);
+    })();
+  </script>
+</body>
+</html>

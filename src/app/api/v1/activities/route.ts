@@ -37,3 +37,19 @@ export const GET = apiHandler({}, async ({ query, searchParams }) => {
   const { items: pageItems, pagination } = paginate(items, query.page, query.pageSize, total);
   return { data: pageItems, meta: { pagination } };
 });
+
+/**
+ * @swagger
+ * /api/v1/activities:
+ *   get:
+ *     tags:
+ *       - activities
+ *     summary: List / read activities
+ *     responses:
+ *       "200":
+ *         description: OK
+ *       "401":
+ *         $ref: "#/components/responses/Unauthenticated"
+ *       "403":
+ *         $ref: "#/components/responses/Forbidden"
+ */

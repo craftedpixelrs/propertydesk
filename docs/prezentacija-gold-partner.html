@@ -1,0 +1,1126 @@
+<!DOCTYPE html>
+<html lang="sr-Latn">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>PropertyDesk — Gold Partner</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap"
+  />
+  <link rel="stylesheet" href="assets/pd-docs.css" />
+  <style>
+    :root {
+      --ink: #0f172a;
+      --ink-soft: #334155;
+      --muted: #475569;
+      --faint: #64748b;
+      --line: #e5e7eb;
+      --line-strong: #cbd5e1;
+      --paper: #f7f8fa;
+      --white: #ffffff;
+      --gold: #9a7b3c;
+      --gold-bg: #f7f1e4;
+      --blue: #2563eb;
+      --blue-soft: #eff6ff;
+      --danger: #dc2626;
+      --top: 4.25rem;
+      --bot: 4.5rem;
+      --radius-sm: 6px;
+      --radius-md: 8px;
+      --radius-lg: 10px;
+      --font: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+        Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      height: 100%;
+      overflow: hidden;
+      background: var(--paper);
+      color: var(--ink);
+      font-family: var(--font);
+      font-optical-sizing: auto;
+      font-feature-settings: "cv02" 1, "cv03" 1, "cv04" 1;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      text-rendering: optimizeLegibility;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(900px 480px at 0% 0%, rgba(154, 123, 60, 0.08), transparent 60%),
+        radial-gradient(700px 420px at 100% 100%, rgba(37, 99, 235, 0.07), transparent 55%),
+        linear-gradient(180deg, #f7f8fa 0%, #eef0f4 100%);
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .progress {
+      position: fixed;
+      top: 0; left: 0;
+      height: 3px;
+      width: 0%;
+      z-index: 50;
+      background: linear-gradient(90deg, var(--gold), var(--blue));
+      transition: width 0.35s ease;
+    }
+
+    .topbar {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 40;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.85rem 1.75rem;
+      pointer-events: none;
+    }
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.7rem;
+      font-weight: 700;
+      font-size: 0.95rem;
+      letter-spacing: -0.02em;
+      color: var(--ink);
+    }
+    .brand .logo {
+      width: 2rem;
+      height: 2rem;
+      object-fit: contain;
+      display: block;
+      flex-shrink: 0;
+    }
+    .brand .brand-copy {
+      display: flex;
+      flex-direction: column;
+      gap: 0.1rem;
+      line-height: 1.15;
+    }
+    .brand .brand-copy strong {
+      font-size: 0.95rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+    .brand .brand-copy span {
+      color: var(--faint);
+      font-weight: 500;
+      font-size: 0.72rem;
+      letter-spacing: 0.02em;
+    }
+    .top-meta {
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: var(--faint);
+    }
+
+    .deck { position: relative; z-index: 2; height: 100%; }
+
+    .slide {
+      display: none;
+      height: 100%;
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: var(--top) clamp(1.5rem, 5vw, 3.75rem) var(--bot);
+      flex-direction: column;
+      justify-content: center;
+      gap: 1.65rem;
+      overflow-x: hidden;
+      overflow-y: auto;
+    }
+    .slide.active { display: flex; }
+    .slide > .eyebrow + h1,
+    .slide > .eyebrow + h2 { margin-top: -0.35rem; }
+    .block { display: flex; flex-direction: column; gap: 1rem; }
+
+    /* Staggered element reveals — not whole-slide fade */
+    .reveal {
+      opacity: 0;
+      transform: translateY(18px);
+      filter: blur(4px);
+      transition:
+        opacity 0.55s cubic-bezier(0.22, 1, 0.36, 1),
+        transform 0.55s cubic-bezier(0.22, 1, 0.36, 1),
+        filter 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+      transition-delay: var(--delay, 0ms);
+      will-change: opacity, transform, filter;
+    }
+    .reveal.is-in {
+      opacity: 1;
+      transform: translateY(0);
+      filter: blur(0);
+    }
+
+    .eyebrow {
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--gold);
+    }
+
+    h1 {
+      font-weight: 800;
+      font-size: clamp(2.5rem, 5.8vw, 4.35rem);
+      line-height: 1.02;
+      letter-spacing: -0.035em;
+      color: var(--ink);
+      max-width: 13ch;
+    }
+    h1 .gold { color: var(--gold); }
+
+    h2 {
+      font-weight: 750;
+      font-weight: 700;
+      font-size: clamp(1.9rem, 3.8vw, 2.85rem);
+      line-height: 1.1;
+      letter-spacing: -0.03em;
+      color: var(--ink);
+      max-width: 18ch;
+    }
+    h2 .gold { color: var(--gold); }
+
+    .lead {
+      font-size: clamp(1.02rem, 1.45vw, 1.18rem);
+      font-weight: 400;
+      line-height: 1.55;
+      color: var(--muted);
+      max-width: 36rem;
+    }
+    .lead b { color: var(--ink-soft); font-weight: 600; }
+
+    .note {
+      font-size: 0.95rem;
+      color: var(--ink-soft);
+      max-width: 38rem;
+      line-height: 1.5;
+      padding-left: 0.9rem;
+      border-left: 3px solid var(--gold);
+    }
+
+    .split {
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: clamp(2rem, 5vw, 3.5rem);
+      align-items: center;
+      width: 100%;
+    }
+    .split.top { align-items: start; }
+    .split .block { min-width: 0; }
+    @media (max-width: 860px) {
+      .split { grid-template-columns: 1fr; gap: 1.75rem; }
+      .slide { justify-content: flex-start; padding-top: calc(var(--top) + 0.5rem); }
+    }
+
+    .panel {
+      background: var(--white);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-lg);
+      padding: 1.65rem 1.75rem;
+    }
+    .panel.gold {
+      background: var(--gold-bg);
+      border-color: #e6d7b4;
+    }
+    .panel.ink {
+      background: var(--ink);
+      border-color: var(--ink);
+      color: #e2e8f0;
+    }
+    .panel.ink p { color: rgba(226, 232, 240, 0.72); }
+    .panel.ink strong { color: #fff; }
+    .panel .label {
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 0.75rem;
+    }
+    .panel.ink .label { color: #d4b56a; }
+    .panel .mega {
+      font-weight: 800;
+      font-size: clamp(3rem, 6.5vw, 4.6rem);
+      letter-spacing: -0.04em;
+      line-height: 0.95;
+      color: var(--ink);
+    }
+    .panel.ink .mega { color: #fff; }
+    .panel .mega-sub {
+      margin-top: 0.65rem;
+      font-size: 1rem;
+      line-height: 1.45;
+      color: var(--muted);
+      max-width: 22rem;
+    }
+    .panel.ink .mega-sub { color: rgba(226, 232, 240, 0.72); }
+
+    .stack { display: flex; flex-direction: column; gap: 0.85rem; }
+    .row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 1rem;
+      padding: 0.85rem 0;
+      border-bottom: 1px solid var(--line);
+      font-size: 0.95rem;
+    }
+    .row:last-child { border-bottom: 0; }
+    .row span { color: var(--muted); }
+    .row b {
+      font-weight: 700;
+      color: var(--ink);
+      letter-spacing: -0.02em;
+    }
+    .panel.ink .row { border-bottom-color: rgba(255,255,255,0.12); }
+    .panel.ink .row span { color: rgba(226, 232, 240, 0.55); }
+    .panel.ink .row b { color: #fff; }
+
+    .feats {
+      list-style: none;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.25rem 2.5rem;
+      width: 100%;
+      max-width: 48rem;
+    }
+    @media (max-width: 700px) { .feats { grid-template-columns: 1fr; } }
+    .feats li {
+      padding-top: 1.1rem;
+      border-top: 1px solid var(--line-strong);
+    }
+    .feats strong {
+      display: block;
+      font-size: 1.02rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 0.25rem;
+      color: var(--ink);
+    }
+    .feats p {
+      font-size: 0.9rem;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    .cols-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.75rem 2rem;
+      width: 100%;
+    }
+    @media (max-width: 800px) { .cols-3 { grid-template-columns: 1fr; gap: 1.35rem; } }
+    .cols-3 article {
+      padding-top: 1.1rem;
+      border-top: 2px solid var(--ink);
+    }
+    .cols-3 article.accent { border-top-color: var(--gold); }
+    .cols-3 h3 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 0.45rem;
+    }
+    .cols-3 p {
+      font-size: 0.9rem;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    .vs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.25rem;
+      width: 100%;
+    }
+    @media (max-width: 760px) { .vs { grid-template-columns: 1fr; } }
+    .vs > div {
+      padding: 1.5rem 1.55rem;
+      background: var(--white);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-lg);
+    }
+    .vs .bad { border-top: 3px solid var(--danger); }
+    .vs .good {
+      border-top: 3px solid var(--gold);
+      background: var(--gold-bg);
+      border-color: #e6d7b4;
+    }
+    .vs h3 {
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 0.85rem;
+    }
+    .vs .bad h3 { color: var(--danger); }
+    .vs .good h3 { color: var(--gold); }
+    .vs ul { list-style: none; display: flex; flex-direction: column; gap: 0.7rem; }
+    .vs li {
+      font-size: 0.95rem;
+      color: var(--ink-soft);
+      line-height: 1.4;
+      padding-left: 0.9rem;
+      position: relative;
+    }
+    .vs .bad li::before,
+    .vs .good li::before {
+      content: "";
+      position: absolute;
+      left: 0; top: 0.55em;
+      width: 0.45rem; height: 1.5px;
+    }
+    .vs .bad li::before { background: var(--danger); }
+    .vs .good li::before { background: var(--gold); }
+
+    .flow {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.55rem;
+      align-items: center;
+    }
+    .flow .step-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--white);
+      border: 1px solid var(--line-strong);
+      border-radius: var(--radius-md);
+      padding: 0.6rem 0.95rem;
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: var(--ink);
+      font-family: inherit;
+      line-height: 1.2;
+      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+    }
+    .flow .step-btn.primary {
+      background: var(--blue-soft);
+      border-color: #bfdbfe;
+      color: var(--blue);
+    }
+    .flow .arr {
+      color: var(--blue);
+      font-weight: 700;
+      padding: 0 0.1rem;
+      font-size: 0.95rem;
+    }
+
+    .steps {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 1.15rem;
+      width: 100%;
+      max-width: 40rem;
+    }
+    .steps li {
+      display: grid;
+      grid-template-columns: 2.75rem 1fr;
+      gap: 1rem;
+    }
+    .steps .n {
+      font-weight: 800;
+      font-size: 1.25rem;
+      color: var(--gold);
+      letter-spacing: -0.03em;
+      line-height: 1.15;
+    }
+    .steps strong {
+      display: block;
+      font-weight: 600;
+      color: var(--ink);
+      margin-bottom: 0.15rem;
+    }
+    .steps span {
+      font-size: 0.92rem;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.6rem;
+    }
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+      font-weight: 600;
+      padding: 0.55rem 0.95rem;
+      min-height: 2.25rem;
+      background: var(--white);
+      border: 1px solid var(--line-strong);
+      border-radius: var(--radius-md);
+      color: var(--ink-soft);
+      font-family: inherit;
+      line-height: 1.2;
+      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+    }
+    .chip.gold {
+      background: var(--gold-bg);
+      border-color: #e0cfa8;
+      color: var(--gold);
+    }
+    .chip.blue {
+      background: var(--blue-soft);
+      border-color: #bfdbfe;
+      color: var(--blue);
+    }
+
+    a,
+    a:link,
+    a:visited {
+      color: var(--blue);
+    }
+    a:hover { color: #1d4ed8; }
+
+    .btn,
+    a.btn,
+    a.btn:link,
+    a.btn:visited {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.65rem;
+      min-height: 2.75rem;
+      padding: 0.75rem 1.35rem;
+      background: var(--blue);
+      color: #fff;
+      font-weight: 600;
+      font-size: 0.95rem;
+      width: fit-content;
+      border: 1px solid var(--blue);
+      border-radius: var(--radius-md);
+      letter-spacing: -0.01em;
+      font-family: inherit;
+      cursor: pointer;
+      box-shadow: 0 1px 2px rgba(37, 99, 235, 0.2);
+      text-decoration: none;
+    }
+    .btn:hover,
+    a.btn:hover {
+      background: #1d4ed8;
+      border-color: #1d4ed8;
+      color: #fff;
+      text-decoration: none;
+    }
+    .btn .btn-meta {
+      font-weight: 600;
+      font-size: 0.7rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #bfdbfe;
+      padding-left: 0.65rem;
+      border-left: 1px solid rgba(191, 219, 254, 0.45);
+    }
+    .btn-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      align-items: center;
+      margin-top: 0.35rem;
+    }
+    .btn.secondary,
+    a.btn.secondary,
+    a.btn.secondary:link,
+    a.btn.secondary:visited {
+      background: var(--white);
+      color: var(--ink);
+      border-color: var(--line-strong);
+      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+    }
+    .btn.secondary:hover,
+    a.btn.secondary:hover {
+      border-color: var(--blue);
+      color: var(--blue);
+      background: var(--blue-soft);
+    }
+    .btn.ghost-gold,
+    a.btn.ghost-gold,
+    a.btn.ghost-gold:link,
+    a.btn.ghost-gold:visited {
+      background: var(--gold-bg);
+      border-color: #e0cfa8;
+      color: var(--gold);
+      box-shadow: none;
+    }
+    .btn.ghost-gold:hover,
+    a.btn.ghost-gold:hover {
+      color: var(--gold);
+      border-color: var(--gold);
+      background: #f3e8d0;
+    }
+
+    .fine {
+      font-size: 0.8rem;
+      color: var(--faint);
+      max-width: 34rem;
+      line-height: 1.45;
+    }
+
+    .kpi-strip {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+      width: 100%;
+    }
+    @media (max-width: 700px) { .kpi-strip { grid-template-columns: 1fr; } }
+    .kpi-strip > div {
+      background: var(--white);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-lg);
+      padding: 1.35rem 1.3rem;
+    }
+    .kpi-strip .n {
+      font-weight: 800;
+      font-size: clamp(1.9rem, 3.8vw, 2.6rem);
+      letter-spacing: -0.035em;
+      color: var(--ink);
+      line-height: 1;
+    }
+    .kpi-strip .n.g { color: var(--gold); }
+    .kpi-strip .l {
+      margin-top: 0.4rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .footer {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      z-index: 40;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.9rem 1.75rem;
+      font-size: 0.72rem;
+      font-weight: 500;
+      color: var(--faint);
+      pointer-events: none;
+    }
+    .kbd {
+      display: inline-block;
+      border: 1px solid var(--line-strong);
+      background: var(--white);
+      padding: 0.08rem 0.35rem;
+      border-radius: 4px;
+      font-size: 0.68rem;
+      color: var(--muted);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    }
+
+    .nav {
+      position: fixed;
+      right: 1.4rem;
+      bottom: 1rem;
+      z-index: 50;
+      display: flex;
+      gap: 0.5rem;
+      pointer-events: auto;
+    }
+    .nav button {
+      min-width: 2.6rem;
+      height: 2.6rem;
+      padding: 0 0.85rem;
+      border: 1px solid var(--line-strong);
+      border-radius: var(--radius-md);
+      background: var(--white);
+      color: var(--ink);
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: inherit;
+      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
+      transition: background 0.15s, border-color 0.15s, color 0.15s;
+    }
+    .nav button:hover {
+      border-color: var(--blue);
+      background: var(--blue);
+      color: #fff;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .reveal {
+        opacity: 1;
+        transform: none;
+        filter: none;
+        transition: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="progress" id="progress"></div>
+
+  <header class="topbar">
+    <div class="brand">
+      <img src="assets/logo.png" alt="PropertyDesk" class="logo" width="32" height="32" />
+      <span class="brand-copy">
+        <strong>PropertyDesk</strong>
+        <span>Gold Partner</span>
+      </span>
+    </div>
+    <div class="top-meta">Privatna ponuda · do 01.09.2026.</div>
+  </header>
+
+  <div class="deck">
+
+    <section class="slide active">
+      <div class="split">
+        <div class="block">
+          <p class="eyebrow reveal">Gold Partner · rani pristup</p>
+          <h1 class="reveal">Uđite <span class="gold">pre</span><br />tržišta.</h1>
+          <p class="lead reveal">
+            Zatvorena ponuda za investitore i agencije koje žele da
+            <b>prvi</b> testiraju PropertyDesk — sa uslovima koje
+            posle lansiranja neće biti na stolu.
+          </p>
+          <div class="chips reveal">
+            <span class="chip gold">30 dana besplatno</span>
+            <span class="chip gold">−50% × 3 meseca</span>
+            <span class="chip blue">Lansiranje 01.09.2026.</span>
+          </div>
+        </div>
+        <aside class="panel ink reveal">
+          <div class="label">Šta zaključavate danas</div>
+          <div class="stack">
+            <div class="row reveal"><span>Trial</span><b><span class="countup" data-count="30">30</span> dana</b></div>
+            <div class="row reveal"><span>Popust</span><b><span class="countup" data-count="50%">50%</span> · 3 meseca</b></div>
+            <div class="row reveal"><span>Cena paketa</span><b>lock <span class="countup" data-count="12">12</span> meseci</b></div>
+            <div class="row reveal"><span>Setup</span><b>Excel + projekat</b></div>
+            <div class="row reveal"><span>Podrška</span><b>prioritet</b></div>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <section class="slide">
+      <p class="eyebrow reveal">Zašto sada</p>
+      <h2 class="reveal">Ne prodajemo softver.<br />Otvaramo <span class="gold">partnerstvo.</span></h2>
+      <p class="lead reveal">
+        Gold Partner nije „rana ptica“ nalepnica. To je grupa koja
+        ulazi pre 01.09.2026., radi na pravim projektima, i zadržava
+        komercijalne uslove koje javni cenovnik neće ponuditi.
+      </p>
+      <div class="kpi-strip" style="margin-top:0.5rem">
+        <div class="reveal">
+          <div class="n g">01.09</div>
+          <div class="l">Kraj Gold prozora</div>
+        </div>
+        <div class="reveal">
+          <div class="n">30</div>
+          <div class="l">Dana bez plaćanja</div>
+        </div>
+        <div class="reveal">
+          <div class="n g">−50%</div>
+          <div class="l">Tri meseca posle</div>
+        </div>
+      </div>
+      <p class="note reveal">
+        Posle lansiranja važi standardni cenovnik. Ko uđe sada — ostaje na Gold uslovima.
+      </p>
+    </section>
+
+    <section class="slide">
+      <p class="eyebrow reveal">Problem</p>
+      <h2 class="reveal">Trenutni način<br />rada <span class="gold">gubi novac.</span></h2>
+      <div class="vs" style="margin-top:0.25rem">
+        <div class="bad reveal">
+          <h3>Kako većina radi</h3>
+          <ul>
+            <li class="reveal">Dve rezervacije na isti stan</li>
+            <li class="reveal">Provizije u tabelama bez provere</li>
+            <li class="reveal">Ugovori u Word-u, PDV ručno</li>
+            <li class="reveal">Agencije šalju PDF — vi lovite</li>
+            <li class="reveal">Cash-flow „osećate“, ne vidite</li>
+          </ul>
+        </div>
+        <div class="good reveal">
+          <h3>Sa PropertyDesk-om</h3>
+          <ul>
+            <li class="reveal">Baza ne dozvoljava konflikt</li>
+            <li class="reveal">Provizija snimljena u momentu ugovora</li>
+            <li class="reveal">PDF ugovor + KYC pre potpisa</li>
+            <li class="reveal">Portal, referral, atribucija</li>
+            <li class="reveal">Cash-flow 12 meseci unapred</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide">
+      <p class="eyebrow reveal">Proizvod</p>
+      <h2 class="reveal">Jedan tok.<br />Od projekta do isplate.</h2>
+      <p class="lead reveal">
+        Operativni sistem za prodaju novogradnje — investitor i
+        partnerske agencije u istom sistemu, sa istim pravilima.
+      </p>
+      <div class="flow reveal">
+        <span class="step-btn primary">Projekat</span><span class="arr">→</span>
+        <span class="step-btn">Jedinice</span><span class="arr">→</span>
+        <span class="step-btn">Kupac + KYC</span><span class="arr">→</span>
+        <span class="step-btn">Rezervacija</span><span class="arr">→</span>
+        <span class="step-btn">Prodaja</span>
+      </div>
+      <div class="flow reveal">
+        <span class="step-btn">Plan otplate</span><span class="arr">→</span>
+        <span class="step-btn">Uplate</span><span class="arr">→</span>
+        <span class="step-btn">Ugovor PDF</span><span class="arr">→</span>
+        <span class="step-btn">Provizija</span><span class="arr">→</span>
+        <span class="step-btn primary">Isplata</span>
+      </div>
+      <p class="note reveal">Svaki korak je auditovan. Nema tihog gaženja podataka.</p>
+    </section>
+
+    <section class="slide">
+      <p class="eyebrow reveal">Šta dobijate u proizvodu</p>
+      <h2 class="reveal">Kontrola koja<br />se <span class="gold">oseća.</span></h2>
+      <ul class="feats">
+        <li class="reveal">
+          <strong>Zalihe i floor plan</strong>
+          <p>Hijerarhija projekta, cene sa auditom, Excel uvoz, interaktivni spratovi, javni microsite.</p>
+        </li>
+        <li class="reveal">
+          <strong>CRM + KYC</strong>
+          <p>Kupci, checklist dokumenata, blokada ugovora dok KYC nije kompletan, buyer protection.</p>
+        </li>
+        <li class="reveal">
+          <strong>Rezervacije + IPS QR</strong>
+          <p>Interna i online rezervacija. Kupac skenira QR za kaparu. Vi potvrđujete zahtev.</p>
+        </li>
+        <li class="reveal">
+          <strong>Ugovori i porezi</strong>
+          <p>PDF iz šablona. PDV 10% / PPAP 2.5% / bez poreza — automatski u dokumentu.</p>
+        </li>
+        <li class="reveal">
+          <strong>Plan otplate i uplate</strong>
+          <p>Šabloni, ručne rate, FIFO alokacija. Ugovoreno · uplaćeno · preostalo — uvek jasno.</p>
+        </li>
+        <li class="reveal">
+          <strong>Agencije i referral</strong>
+          <p>Portal, provizije, referral kod sa QR-om i atribucijom prodaje.</p>
+        </li>
+      </ul>
+    </section>
+
+    <section class="slide">
+      <p class="eyebrow reveal">Lokalna prednost</p>
+      <h2 class="reveal">Za Srbiju.<br />Ne „prilagođeno“.</h2>
+      <div class="cols-3">
+        <article class="accent reveal">
+          <h3>IPS QR</h3>
+          <p>Kapara i fakture — skeniraj i plati. Bez prekucavanja računa.</p>
+        </article>
+        <article class="reveal">
+          <h3>PDV / PPAP</h3>
+          <p>10% novogradnja · 2.5% prenos · NONE. U ugovoru i izveštaju.</p>
+        </article>
+        <article class="reveal">
+          <h3>EUR / RSD · sr-Latn</h3>
+          <p>Valute i jezik kroz ceo sistem. SEF-ready arhitektura.</p>
+        </article>
+      </div>
+      <p class="lead reveal" style="margin-top:0.5rem">
+        Plus: cash-flow projekcija, time-to-sale, project P&amp;L —
+        odluke na brojevima, ne na osećaju.
+      </p>
+    </section>
+
+    <section class="slide">
+      <p class="eyebrow reveal">Gold Partner</p>
+      <h2 class="reveal">Šta znači biti<br /><span class="gold">prvi.</span></h2>
+      <ol class="steps">
+        <li class="reveal">
+          <span class="n">01</span>
+          <div>
+            <strong>Pristup pre javnog lansiranja</strong>
+            <span>Radite u pravom sistemu, na svojim projektima, pre 01.09.2026.</span>
+          </div>
+        </li>
+        <li class="reveal">
+          <span class="n">02</span>
+          <div>
+            <strong>Komercijalni uslovi koje kasnije nema</strong>
+            <span>30 dana besplatno, zatim −50% tri meseca, cena zaključana 12 meseci.</span>
+          </div>
+        </li>
+        <li class="reveal">
+          <span class="n">03</span>
+          <div>
+            <strong>Mi radimo prvi setup</strong>
+            <span>Uvoz Excel-a, modelovanje jednog projekta, onboarding tima 60 min.</span>
+          </div>
+        </li>
+        <li class="reveal">
+          <span class="n">04</span>
+          <div>
+            <strong>Prioritetna linija podrške</strong>
+            <span>Odgovor u istom radnom danu. Direktno sa timom — ne generički tiket.</span>
+          </div>
+        </li>
+      </ol>
+    </section>
+
+    <section class="slide">
+      <div class="split top">
+        <div class="block">
+          <p class="eyebrow reveal">Ponuda · do 01.09.2026.</p>
+          <h2 class="reveal">Brojevi koji<br />zatvaraju<br />razgovor.</h2>
+          <p class="lead reveal">
+            Sve prijave do lansiranja ulaze u Gold Partner paket.
+            Bez sitnog printa koji menja priču posle sastanka.
+          </p>
+          <div class="btn-row reveal">
+            <a class="btn" href="https://propertydesk.app" target="_blank" rel="noreferrer">
+              propertydesk.app
+              <span class="btn-meta">Prijava</span>
+            </a>
+            <span class="btn secondary">Demo 20–30 min</span>
+          </div>
+        </div>
+        <div class="stack">
+          <div class="panel gold reveal">
+            <div class="label">Trial</div>
+            <div class="mega">30</div>
+            <p class="mega-sub">dana kompletnog pristupa na vašim realnim podacima — bez obaveze.</p>
+          </div>
+          <div class="panel reveal">
+            <div class="label">Zatim</div>
+            <div class="mega" style="color:var(--gold)">−50%</div>
+            <p class="mega-sub">na naredna <b style="color:var(--ink)">tri meseca</b>. Posle toga zaključana cena paketa 12 meseci.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide">
+      <p class="eyebrow reveal">Kompletan paket</p>
+      <h2 class="reveal">Sve što ide<br />uz <span class="gold">Gold.</span></h2>
+      <div class="cols-3">
+        <article class="accent reveal">
+          <h3>30 dana besplatno</h3>
+          <p>Ceo plan. Pravi projekti. Bez pritiska da platite da biste videli vrednost.</p>
+        </article>
+        <article class="accent reveal">
+          <h3>50% × 3 meseca</h3>
+          <p>Polovina cene odabranog paketa u tri meseca posle trial-a.</p>
+        </article>
+        <article class="reveal">
+          <h3>Zaključana cena 12 meseci</h3>
+          <p>Bez poskupljenja u prvoj godini. Cena koju dogovorimo — ostaje.</p>
+        </article>
+        <article class="reveal">
+          <h3>Besplatan uvoz Excel-a</h3>
+          <p>Prvu tabelu jedinica / cenovnik ubacujemo mi.</p>
+        </article>
+        <article class="reveal">
+          <h3>Setup jednog projekta</h3>
+          <p>Zajedno modelujemo objekte, ulaze, spratove, jedinice.</p>
+        </article>
+        <article class="reveal">
+          <h3>Onboarding + prioritet</h3>
+          <p>60 min sa timom. Odgovor podrške u istom radnom danu.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="slide">
+      <p class="eyebrow reveal">Ulazak</p>
+      <h2 class="reveal">Od razgovora<br />do rada — <span class="gold">brzo.</span></h2>
+      <ol class="steps">
+        <li class="reveal">
+          <span class="n">01</span>
+          <div>
+            <strong>Demo 20–30 min</strong>
+            <span>Video poziv. Vaš tip projekta. Tok na pravom proizvodu — ne generički slajdovi.</span>
+          </div>
+        </li>
+        <li class="reveal">
+          <span class="n">02</span>
+          <div>
+            <strong>Prijava za Gold Partner</strong>
+            <span>Forma na propertydesk.app pre 01.09.2026. Zaključavate uslove.</span>
+          </div>
+        </li>
+        <li class="reveal">
+          <span class="n">03</span>
+          <div>
+            <strong>Aktivacija + uvoz</strong>
+            <span>Šaljete Excel. Postavljamo projekat. Tim prolazi onboarding.</span>
+          </div>
+        </li>
+        <li class="reveal">
+          <span class="n">04</span>
+          <div>
+            <strong>30 dana rada</strong>
+            <span>Koristite sistem. Zatim −50% tri meseca. Cena lock 12 meseci.</span>
+          </div>
+        </li>
+      </ol>
+      <p class="fine reveal">Otkazivanje jednim klikom. Podaci za izvoz još 30 dana. Nema ugovorne zamke.</p>
+    </section>
+
+    <section class="slide">
+      <p class="eyebrow reveal">Poverenje</p>
+      <h2 class="reveal">Ozbiljno od<br />prvog dana.</h2>
+      <div class="cols-3">
+        <article class="accent reveal">
+          <h3>Izolacija podataka</h3>
+          <p>Multi-tenant. Agencija vidi samo ono što ste eksplicitno otvorili.</p>
+        </article>
+        <article class="reveal">
+          <h3>Trajni audit</h3>
+          <p>Cene, statusi, ugovori, uplate — ko je šta menjao i kada.</p>
+        </article>
+        <article class="reveal">
+          <h3>EU + backup</h3>
+          <p>Podaci u EU. Enkripcija. Nedeljna provera backup-a sa alertom.</p>
+        </article>
+      </div>
+      <p class="note reveal">
+        Gold Partner dobija isti nivo ozbiljnosti kao kasniji klijenti — samo ranije i boljim uslovima.
+      </p>
+    </section>
+
+    <section class="slide">
+      <div class="split">
+        <div class="block">
+          <p class="eyebrow reveal">Sledeći korak</p>
+          <h1 class="reveal">Prvi koji<br />uđu,<br /><span class="gold">vode.</span></h1>
+          <p class="lead reveal">
+            Ostali će kupovati isti proizvod — skuplje, bez setup-a,
+            bez zaključane cene. Vi možete već biti unutra.
+          </p>
+          <div class="btn-row reveal">
+            <a class="btn" href="https://propertydesk.app" target="_blank" rel="noreferrer">
+              Zakazati demo
+              <span class="btn-meta">Gold Partner</span>
+            </a>
+            <span class="btn ghost-gold">Do 01.09.2026.</span>
+          </div>
+          <p class="fine reveal">
+            Poverljivo — namenjeno pozvanim partnerima.
+          </p>
+        </div>
+        <aside class="panel reveal">
+          <div class="label">Do 01.09.2026.</div>
+          <div class="stack">
+            <div class="row reveal"><span>Besplatno</span><b><span class="countup" data-count="30">30</span> dana</b></div>
+            <div class="row reveal"><span>Popust</span><b><span class="countup" data-count="−50%">−50%</span> · 3 mes.</b></div>
+            <div class="row reveal"><span>Cena</span><b>lock <span class="countup" data-count="12">12</span> mes.</b></div>
+            <div class="row reveal"><span>Excel uvoz</span><b>uključeno</b></div>
+            <div class="row reveal"><span>Setup projekta</span><b>uključeno</b></div>
+            <div class="row reveal"><span>Onboarding tima</span><b><span class="countup" data-count="60">60</span> min</b></div>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+  </div>
+
+  <footer class="footer">
+    <div style="display:inline-flex;align-items:center;gap:0.5rem">
+      <img src="assets/logo.png" alt="" width="18" height="18" style="object-fit:contain;display:block" aria-hidden="true" />
+      <span id="pageCount">01 / 12</span>
+    </div>
+    <div>
+      <span class="kbd">←</span> <span class="kbd">→</span>
+      &nbsp;·&nbsp;
+      <span class="kbd">F</span> fullscreen
+    </div>
+  </footer>
+
+  <div class="nav">
+    <button type="button" id="prev" aria-label="Prethodni">← Nazad</button>
+    <button type="button" id="next" aria-label="Sledeći">Dalje →</button>
+  </div>
+
+  <script src="assets/pd-countup.js"></script>
+  <script>
+    const slides = [...document.querySelectorAll(".slide")];
+    const pageCount = document.getElementById("pageCount");
+    const progress = document.getElementById("progress");
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    let i = 0;
+    let revealTimer = 0;
+
+    function resetReveals(slide) {
+      slide.querySelectorAll(".reveal").forEach((el) => {
+        el.classList.remove("is-in");
+        el.style.removeProperty("--delay");
+      });
+      if (window.CountUp) window.CountUp.reset(slide);
+    }
+
+    function playReveals(slide) {
+      const items = [...slide.querySelectorAll(".reveal")];
+      if (reduceMotion) {
+        items.forEach((el) => el.classList.add("is-in"));
+        if (window.CountUp) window.CountUp.play(slide, { delay: 0, duration: 0 });
+        return;
+      }
+      items.forEach((el, idx) => {
+        el.style.setProperty("--delay", idx * 70 + "ms");
+        // Force reflow so transition restarts cleanly when revisiting a slide
+        void el.offsetWidth;
+        requestAnimationFrame(() => el.classList.add("is-in"));
+      });
+      if (window.CountUp) {
+        window.CountUp.play(slide, { delay: 180, duration: 1000, stagger: 80 });
+      }
+    }
+
+    function show(n) {
+      const next = Math.max(0, Math.min(slides.length - 1, n));
+      clearTimeout(revealTimer);
+
+      slides.forEach((s, idx) => {
+        const on = idx === next;
+        if (!on) resetReveals(s);
+        s.classList.toggle("active", on);
+      });
+
+      i = next;
+      pageCount.textContent =
+        String(i + 1).padStart(2, "0") + " / " + String(slides.length).padStart(2, "0");
+      progress.style.width = ((i + 1) / slides.length) * 100 + "%";
+      history.replaceState(null, "", "#" + (i + 1));
+
+      // Small beat so the slide is painted before staggered items enter
+      revealTimer = setTimeout(() => playReveals(slides[i]), 40);
+    }
+
+    document.getElementById("next").addEventListener("click", () => show(i + 1));
+    document.getElementById("prev").addEventListener("click", () => show(i - 1));
+
+    window.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowRight" || e.key === " " || e.key === "PageDown") {
+        e.preventDefault(); show(i + 1);
+      } else if (e.key === "ArrowLeft" || e.key === "PageUp") {
+        e.preventDefault(); show(i - 1);
+      } else if (e.key === "Home") show(0);
+      else if (e.key === "End") show(slides.length - 1);
+      else if (e.key === "f" || e.key === "F") {
+        if (!document.fullscreenElement) document.documentElement.requestFullscreen?.();
+        else document.exitFullscreen?.();
+      }
+    });
+
+    const hash = parseInt(location.hash.slice(1), 10);
+    show(Number.isFinite(hash) && hash > 0 ? hash - 1 : 0);
+  </script>
+</body>
+</html>

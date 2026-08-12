@@ -19,3 +19,25 @@ export const DELETE = apiHandler({ paramsSchema }, async ({ params }) => {
   });
   return { data: { ok: true } };
 });
+
+/**
+ * @swagger
+ * /api/v1/share-links/{id}:
+ *   delete:
+ *     tags:
+ *       - share-links
+ *     summary: Delete share-links
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       "200":
+ *         description: OK
+ *       "401":
+ *         $ref: "#/components/responses/Unauthenticated"
+ *       "403":
+ *         $ref: "#/components/responses/Forbidden"
+ */

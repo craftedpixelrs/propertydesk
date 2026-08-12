@@ -156,3 +156,19 @@ function parseDate(v: string | null): Date | undefined {
 function today(): string {
   return new Date().toISOString().slice(0, 10);
 }
+
+/**
+ * @swagger
+ * /api/v1/reports/export:
+ *   get:
+ *     tags:
+ *       - reports
+ *     summary: List / read reports
+ *     responses:
+ *       "200":
+ *         description: OK
+ *       "401":
+ *         $ref: "#/components/responses/Unauthenticated"
+ *       "403":
+ *         $ref: "#/components/responses/Forbidden"
+ */

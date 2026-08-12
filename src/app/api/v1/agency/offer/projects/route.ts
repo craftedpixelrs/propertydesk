@@ -13,3 +13,19 @@ export const GET = apiHandler({}, async () => {
   });
   return { data: items };
 });
+
+/**
+ * @swagger
+ * /api/v1/agency/offer/projects:
+ *   get:
+ *     tags:
+ *       - agency
+ *     summary: List / read agency
+ *     responses:
+ *       "200":
+ *         description: OK
+ *       "401":
+ *         $ref: "#/components/responses/Unauthenticated"
+ *       "403":
+ *         $ref: "#/components/responses/Forbidden"
+ */

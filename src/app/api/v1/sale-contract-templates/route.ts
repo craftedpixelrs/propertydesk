@@ -46,3 +46,37 @@ export const POST = apiHandler(
     return { data: created, status: 201 };
   },
 );
+
+/**
+ * @swagger
+ * /api/v1/sale-contract-templates:
+ *   get:
+ *     tags:
+ *       - sale-contract-templates
+ *     summary: List / read sale-contract-templates
+ *     responses:
+ *       "200":
+ *         description: OK
+ *       "401":
+ *         $ref: "#/components/responses/Unauthenticated"
+ *       "403":
+ *         $ref: "#/components/responses/Forbidden"
+ *   post:
+ *     tags:
+ *       - sale-contract-templates
+ *     summary: Create sale-contract-templates
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             additionalProperties: true
+ *     responses:
+ *       "200":
+ *         description: OK
+ *       "401":
+ *         $ref: "#/components/responses/Unauthenticated"
+ *       "403":
+ *         $ref: "#/components/responses/Forbidden"
+ */

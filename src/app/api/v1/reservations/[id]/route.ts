@@ -11,3 +11,25 @@ export const GET = apiHandler({ paramsSchema }, async ({ params }) => {
   const reservation = await getReservationById(ctx.organization.organizationId, params.id);
   return { data: reservation };
 });
+
+/**
+ * @swagger
+ * /api/v1/reservations/{id}:
+ *   get:
+ *     tags:
+ *       - reservations
+ *     summary: List / read reservations
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       "200":
+ *         description: OK
+ *       "401":
+ *         $ref: "#/components/responses/Unauthenticated"
+ *       "403":
+ *         $ref: "#/components/responses/Forbidden"
+ */

@@ -35,3 +35,19 @@ export const GET = apiHandler({}, async ({ searchParams }) => {
   });
   return { data: result };
 });
+
+/**
+ * @swagger
+ * /api/v1/reservation-requests:
+ *   get:
+ *     tags:
+ *       - reservation-requests
+ *     summary: List / read reservation-requests
+ *     responses:
+ *       "200":
+ *         description: OK
+ *       "401":
+ *         $ref: "#/components/responses/Unauthenticated"
+ *       "403":
+ *         $ref: "#/components/responses/Forbidden"
+ */

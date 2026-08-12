@@ -15,3 +15,19 @@ export const GET = apiHandler({}, async () => {
   const matrix = await getRoleMatrix();
   return { data: matrix };
 });
+
+/**
+ * @swagger
+ * /api/v1/platform/roles/matrix:
+ *   get:
+ *     tags:
+ *       - platform
+ *     summary: List / read platform
+ *     responses:
+ *       "200":
+ *         description: OK
+ *       "401":
+ *         $ref: "#/components/responses/Unauthenticated"
+ *       "403":
+ *         $ref: "#/components/responses/Forbidden"
+ */

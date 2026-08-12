@@ -55,3 +55,37 @@ export const POST = apiHandler({ bodySchema: createSchema }, async ({ body }) =>
   });
   return { data: payment, status: 201 };
 });
+
+/**
+ * @swagger
+ * /api/v1/payments:
+ *   get:
+ *     tags:
+ *       - payments
+ *     summary: List / read payments
+ *     responses:
+ *       "200":
+ *         description: OK
+ *       "401":
+ *         $ref: "#/components/responses/Unauthenticated"
+ *       "403":
+ *         $ref: "#/components/responses/Forbidden"
+ *   post:
+ *     tags:
+ *       - payments
+ *     summary: Create payments
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             additionalProperties: true
+ *     responses:
+ *       "200":
+ *         description: OK
+ *       "401":
+ *         $ref: "#/components/responses/Unauthenticated"
+ *       "403":
+ *         $ref: "#/components/responses/Forbidden"
+ */

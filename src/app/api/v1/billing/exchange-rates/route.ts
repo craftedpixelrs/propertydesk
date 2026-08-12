@@ -46,3 +46,37 @@ export const POST = apiHandler({ bodySchema }, async ({ body }) => {
   );
   return { data: created, status: 201 };
 });
+
+/**
+ * @swagger
+ * /api/v1/billing/exchange-rates:
+ *   get:
+ *     tags:
+ *       - billing
+ *     summary: List / read billing
+ *     responses:
+ *       "200":
+ *         description: OK
+ *       "401":
+ *         $ref: "#/components/responses/Unauthenticated"
+ *       "403":
+ *         $ref: "#/components/responses/Forbidden"
+ *   post:
+ *     tags:
+ *       - billing
+ *     summary: Create billing
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             additionalProperties: true
+ *     responses:
+ *       "200":
+ *         description: OK
+ *       "401":
+ *         $ref: "#/components/responses/Unauthenticated"
+ *       "403":
+ *         $ref: "#/components/responses/Forbidden"
+ */

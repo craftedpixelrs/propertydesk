@@ -53,3 +53,37 @@ export const POST = apiHandler({ bodySchema: inviteSchema }, async ({ body }) =>
   });
   return { data: connection, status: 201 };
 });
+
+/**
+ * @swagger
+ * /api/v1/agencies:
+ *   get:
+ *     tags:
+ *       - agencies
+ *     summary: List / read agencies
+ *     responses:
+ *       "200":
+ *         description: OK
+ *       "401":
+ *         $ref: "#/components/responses/Unauthenticated"
+ *       "403":
+ *         $ref: "#/components/responses/Forbidden"
+ *   post:
+ *     tags:
+ *       - agencies
+ *     summary: Create agencies
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             additionalProperties: true
+ *     responses:
+ *       "200":
+ *         description: OK
+ *       "401":
+ *         $ref: "#/components/responses/Unauthenticated"
+ *       "403":
+ *         $ref: "#/components/responses/Forbidden"
+ */

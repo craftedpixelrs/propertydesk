@@ -1,0 +1,352 @@
+/* PropertyDesk docs — shared tokens matching src/app/globals.css */
+:root {
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+    Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, "SF Mono",
+    Menlo, Consolas, "Liberation Mono", monospace;
+
+  --surface: #ffffff;
+  --surface-muted: #f7f8fa;
+  --surface-inset: #eef0f4;
+  --fg: #0f172a;
+  --fg-muted: #475569;
+  --fg-subtle: #64748b;
+  --border: #e5e7eb;
+  --border-strong: #cbd5e1;
+
+  --brand-50: #eff6ff;
+  --brand-100: #dbeafe;
+  --brand-200: #bfdbfe;
+  --brand-300: #93c5fd;
+  --brand-500: #3b82f6;
+  --brand-600: #2563eb;
+  --brand-700: #1d4ed8;
+  --brand-800: #1e40af;
+
+  --success: #16a34a;
+  --success-bg: #dcfce7;
+  --warning: #d97706;
+  --warning-bg: #fef3c7;
+  --danger: #dc2626;
+  --danger-bg: #fee2e2;
+  --info: #0369a1;
+  --info-bg: #e0f2fe;
+
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 10px;
+  --radius-xl: 14px;
+
+  --code-bg: #0f172a;
+  --code-fg: #e2e8f0;
+  --code-comment: #64748b;
+  --code-keyword: #93c5fd;
+  --code-string: #86efac;
+  --code-number: #fbbf24;
+
+  --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.05);
+  --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.06);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--surface-muted);
+  color: var(--fg);
+  font-family: var(--font-sans);
+  font-optical-sizing: auto;
+  font-feature-settings: "cv02" 1, "cv03" 1, "cv04" 1;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  line-height: 1.55;
+  font-size: 15px;
+}
+
+h1,
+h2,
+h3,
+h4,
+strong,
+.brand,
+.brand-name {
+  font-family: var(--font-sans);
+  letter-spacing: -0.02em;
+}
+
+h1 {
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+  color: var(--fg);
+}
+
+h2 {
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  line-height: 1.2;
+  color: var(--fg);
+}
+
+h3 {
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  color: var(--fg);
+}
+
+p,
+li {
+  color: var(--fg-muted);
+}
+
+/* Brand links — kill browser default blue / purple visited */
+a,
+a:link {
+  color: var(--brand-600);
+  text-decoration-color: color-mix(in srgb, var(--brand-600) 45%, transparent);
+  text-underline-offset: 0.15em;
+}
+a:visited {
+  color: var(--brand-700);
+  text-decoration-color: color-mix(in srgb, var(--brand-700) 45%, transparent);
+}
+a:hover {
+  color: var(--brand-700);
+  text-decoration-color: var(--brand-700);
+}
+a:active {
+  color: var(--brand-800);
+}
+a:focus-visible {
+  outline: 2px solid var(--brand-600);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Nav / chrome links stay muted until hover — never purple */
+a.nav-link,
+a.doc-link,
+.top-links a,
+.topbar-actions a,
+.sidebar a,
+.side-nav a,
+.brand,
+.brand-lockup {
+  text-decoration: none;
+}
+a.nav-link:link,
+a.nav-link:visited,
+a.doc-link:link,
+a.doc-link:visited,
+.top-links a:link,
+.top-links a:visited,
+.topbar-actions a:link,
+.topbar-actions a:visited {
+  color: var(--fg-muted);
+}
+a.nav-link:hover,
+a.doc-link:hover,
+.top-links a:hover,
+.topbar-actions a:hover {
+  color: var(--fg);
+  background: var(--surface-inset);
+}
+.sidebar a:link,
+.sidebar a:visited,
+.side-nav a:link,
+.side-nav a:visited {
+  color: var(--fg-muted);
+}
+.sidebar a:hover,
+.sidebar a.active,
+.sidebar a:hover:visited,
+.sidebar a.active:visited,
+.side-nav a:hover,
+.side-nav a.active,
+.side-nav a:hover:visited,
+.side-nav a.active:visited {
+  color: var(--brand-700);
+  background: var(--brand-50);
+}
+
+/* In-content / footer links always brand */
+.content a:link,
+.content a:visited,
+.article a:link,
+.article a:visited,
+.main a:link,
+.main a:visited,
+.doc-footer a:link,
+.doc-footer a:visited,
+footer a:link,
+footer a:visited {
+  color: var(--brand-600);
+}
+.content a:hover,
+.article a:hover,
+.main a:hover,
+.doc-footer a:hover,
+footer a:hover {
+  color: var(--brand-700);
+}
+
+code,
+kbd,
+pre,
+.mono {
+  font-family: var(--font-mono);
+}
+
+code {
+  font-size: 0.86em;
+  background: var(--surface-inset);
+  color: var(--fg);
+  padding: 0.12rem 0.35rem;
+  border-radius: 4px;
+}
+
+kbd {
+  display: inline-block;
+  font-size: 0.72rem;
+  padding: 0.12rem 0.4rem;
+  border: 1px solid var(--border-strong);
+  border-bottom-width: 2px;
+  border-radius: 4px;
+  background: var(--surface);
+  color: var(--fg-muted);
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  background: var(--surface-inset);
+  color: var(--fg-muted);
+  white-space: nowrap;
+}
+
+.chip.brand {
+  background: var(--brand-50);
+  color: var(--brand-700);
+}
+.chip.warn {
+  background: var(--warning-bg);
+  color: var(--warning);
+}
+.chip.success {
+  background: var(--success-bg);
+  color: var(--success);
+}
+.chip.info {
+  background: var(--info-bg);
+  color: var(--info);
+}
+
+.callout {
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--brand-600);
+  background: var(--brand-50);
+  padding: 0.9rem 1.05rem;
+  border-radius: var(--radius-md);
+  margin: 1rem 0;
+  font-size: 0.92rem;
+  color: var(--fg);
+}
+.callout strong {
+  display: block;
+  margin-bottom: 0.2rem;
+  color: var(--brand-700);
+  letter-spacing: 0;
+}
+.callout.warn {
+  background: var(--warning-bg);
+  border-left-color: var(--warning);
+}
+.callout.warn strong {
+  color: var(--warning);
+}
+.callout.danger {
+  background: var(--danger-bg);
+  border-left-color: var(--danger);
+}
+.callout.danger strong {
+  color: var(--danger);
+}
+.callout.success {
+  background: var(--success-bg);
+  border-left-color: var(--success);
+}
+.callout.success strong {
+  color: var(--success);
+}
+
+.logo-mark {
+  width: 1.2rem;
+  height: 1.2rem;
+  border-radius: 5px;
+  background: linear-gradient(135deg, var(--brand-500), var(--brand-700));
+  flex-shrink: 0;
+}
+
+/* Real brand logo (copied from public/images/landing/logo.png) */
+.logo {
+  width: 2rem;
+  height: 2rem;
+  object-fit: contain;
+  flex-shrink: 0;
+  display: block;
+}
+.logo.sm { width: 1.65rem; height: 1.65rem; }
+.logo.lg { width: 2.5rem; height: 2.5rem; }
+
+.brand-lockup {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  color: var(--fg);
+  text-decoration: none;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+.brand-lockup:hover { text-decoration: none; color: var(--fg); }
+.brand-lockup .brand-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.15;
+}
+.brand-lockup .brand-text strong {
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+.brand-lockup .brand-text small {
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: var(--fg-subtle);
+  letter-spacing: 0.02em;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}

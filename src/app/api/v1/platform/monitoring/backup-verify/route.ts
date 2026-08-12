@@ -22,3 +22,26 @@ export const POST = apiHandler({}, async () => {
     },
   };
 });
+
+/**
+ * @swagger
+ * /api/v1/platform/monitoring/backup-verify:
+ *   post:
+ *     tags:
+ *       - platform
+ *     summary: Create platform
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             additionalProperties: true
+ *     responses:
+ *       "200":
+ *         description: OK
+ *       "401":
+ *         $ref: "#/components/responses/Unauthenticated"
+ *       "403":
+ *         $ref: "#/components/responses/Forbidden"
+ */

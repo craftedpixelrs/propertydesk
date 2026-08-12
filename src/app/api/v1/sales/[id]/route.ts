@@ -11,3 +11,25 @@ export const GET = apiHandler({ paramsSchema }, async ({ params }) => {
   const sale = await getSaleById(ctx.organization.organizationId, params.id);
   return { data: sale };
 });
+
+/**
+ * @swagger
+ * /api/v1/sales/{id}:
+ *   get:
+ *     tags:
+ *       - sales
+ *     summary: List / read sales
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       "200":
+ *         description: OK
+ *       "401":
+ *         $ref: "#/components/responses/Unauthenticated"
+ *       "403":
+ *         $ref: "#/components/responses/Forbidden"
+ */

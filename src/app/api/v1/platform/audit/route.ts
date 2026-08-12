@@ -28,3 +28,19 @@ export const GET = apiHandler({}, async ({ query, searchParams }) => {
 
   return { data: pageItems, meta: { pagination } };
 });
+
+/**
+ * @swagger
+ * /api/v1/platform/audit:
+ *   get:
+ *     tags:
+ *       - platform
+ *     summary: List / read platform
+ *     responses:
+ *       "200":
+ *         description: OK
+ *       "401":
+ *         $ref: "#/components/responses/Unauthenticated"
+ *       "403":
+ *         $ref: "#/components/responses/Forbidden"
+ */

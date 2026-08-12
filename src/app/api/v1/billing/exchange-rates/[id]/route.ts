@@ -11,3 +11,25 @@ export const DELETE = apiHandler({ paramsSchema }, async ({ params }) => {
   await deleteExchangeRate(params.id, ctx.session.user.id);
   return { data: { ok: true } };
 });
+
+/**
+ * @swagger
+ * /api/v1/billing/exchange-rates/{id}:
+ *   delete:
+ *     tags:
+ *       - billing
+ *     summary: Delete billing
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       "200":
+ *         description: OK
+ *       "401":
+ *         $ref: "#/components/responses/Unauthenticated"
+ *       "403":
+ *         $ref: "#/components/responses/Forbidden"
+ */

@@ -21,7 +21,9 @@
     "db:studio": "prisma studio",
     "db:seed": "tsx prisma/seed.ts",
     "db:seed:demo": "tsx prisma/demo-seed.ts",
-    "auth:generate": "better-auth generate --output prisma/schema.prisma --config src/server/auth/auth.ts"
+    "auth:generate": "better-auth generate --output prisma/schema.prisma --config src/server/auth/auth.ts",
+    "docs:swagger": "node --experimental-strip-types scripts/generate-swagger-docs.ts",
+    "docs:swagger:dry": "node --experimental-strip-types scripts/generate-swagger-docs.ts --dry-run"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
@@ -58,6 +60,7 @@
     "leaflet": "^1.9.4",
     "lucide-react": "^1.24.0",
     "next": "^16.2.10",
+    "next-swagger-doc": "^0.4.1",
     "papaparse": "^5.5.4",
     "pg": "^8.22.0",
     "prisma": "^7.8.0",
@@ -69,6 +72,7 @@
     "recharts": "^3.10.1",
     "server-only": "^0.0.1",
     "sonner": "^2.0.7",
+    "swagger-ui-react": "^5.32.13",
     "tailwind-merge": "^3.6.0",
     "vaul": "^1.1.2",
     "zod": "^4.4.3"

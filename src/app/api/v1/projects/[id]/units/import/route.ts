@@ -101,3 +101,32 @@ export const POST = apiHandler(
     return { data: result, status: 201 };
   },
 );
+
+/**
+ * @swagger
+ * /api/v1/projects/{id}/units/import:
+ *   post:
+ *     tags:
+ *       - projects
+ *     summary: Create projects
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             additionalProperties: true
+ *     responses:
+ *       "200":
+ *         description: OK
+ *       "401":
+ *         $ref: "#/components/responses/Unauthenticated"
+ *       "403":
+ *         $ref: "#/components/responses/Forbidden"
+ */

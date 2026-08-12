@@ -27,3 +27,19 @@ export const GET = apiHandler({}, async ({ searchParams }): Promise<Response> =>
     headers: pdfResponseHeaders(`cenovnik-${projectId.slice(0, 8)}`),
   });
 });
+
+/**
+ * @swagger
+ * /api/v1/pdf/price-list:
+ *   get:
+ *     tags:
+ *       - pdf
+ *     summary: List / read pdf
+ *     responses:
+ *       "200":
+ *         description: OK
+ *       "401":
+ *         $ref: "#/components/responses/Unauthenticated"
+ *       "403":
+ *         $ref: "#/components/responses/Forbidden"
+ */

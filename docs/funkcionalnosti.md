@@ -4,6 +4,10 @@ Kompaktna lista svih funkcionalnosti aplikacije po modulu. Namenjena
 prodajnim razgovorima, landing page-u i uvodu za nove korisnike.
 Detaljan operativni tok je u [`demo-tok.md`](./demo-tok.md).
 
+**Slide prezentacija:** otvori
+[`prezentacija-funkcionalnosti.html`](./prezentacija-funkcionalnosti.html)
+u browseru (`F` = fullscreen, `←`/`→` / Space = navigacija).
+
 Verzija: **v1** · Datum lansiranja: **01.09.2026.**
 
 ---

@@ -19,3 +19,30 @@ export const DELETE = apiHandler({ paramsSchema }, async ({ params }) => {
   });
   return { data: { ok: true } };
 });
+
+/**
+ * @swagger
+ * /api/v1/agencies/{id}/unit-overrides/{overrideId}:
+ *   delete:
+ *     tags:
+ *       - agencies
+ *     summary: Delete agencies
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *       - in: path
+ *         name: overrideId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       "200":
+ *         description: OK
+ *       "401":
+ *         $ref: "#/components/responses/Unauthenticated"
+ *       "403":
+ *         $ref: "#/components/responses/Forbidden"
+ */

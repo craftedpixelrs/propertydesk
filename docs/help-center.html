@@ -1,0 +1,3559 @@
+<!DOCTYPE html>
+<html lang="sr-Latn">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>PropertyDesk — Help Center</title>
+  <meta
+    name="description"
+    content="Detaljan Help Center za PropertyDesk: prijava, projekti, rezervacije, prodaje, KYC, agencije i FAQ."
+  />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap"
+  />
+  <link rel="stylesheet" href="assets/pd-docs.css" />
+  <style>
+    :root {
+      --topbar-h: 3.5rem;
+      --content-max: 1120px;
+      --side-w: 248px;
+    }
+
+    body {
+      font-family: var(--font-sans);
+      font-optical-sizing: auto;
+      font-feature-settings: "cv02" 1, "cv03" 1, "cv04" 1;
+    }
+
+    /* —— Topbar —— */
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      height: var(--topbar-h);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      padding: 0 1.25rem;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+    }
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.55rem;
+      font-weight: 700;
+      font-size: 0.95rem;
+      color: var(--fg);
+      text-decoration: none;
+      letter-spacing: -0.02em;
+      white-space: nowrap;
+    }
+    .brand:hover { text-decoration: none; color: var(--fg); }
+    .brand small {
+      color: var(--fg-subtle);
+      font-weight: 500;
+      margin-left: 0.15rem;
+    }
+    .top-links {
+      display: flex;
+      gap: 0.25rem;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+    .top-links a,
+    .top-links a:link,
+    .top-links a:visited {
+      color: var(--fg-muted);
+      font-size: 0.87rem;
+      padding: 0.35rem 0.7rem;
+      border-radius: var(--radius-sm);
+      text-decoration: none;
+    }
+    .top-links a:hover {
+      background: var(--surface-inset);
+      color: var(--fg);
+      text-decoration: none;
+    }
+
+    /* —— Hero —— */
+    .hero {
+      background: linear-gradient(180deg, var(--brand-50) 0%, var(--surface-muted) 100%);
+      border-bottom: 1px solid var(--border);
+      padding: 2.75rem 1.25rem 2.25rem;
+      text-align: center;
+    }
+    .hero h1 {
+      font-size: clamp(1.75rem, 4vw, 2.45rem);
+      margin: 0 0 0.5rem;
+    }
+    .hero > p {
+      color: var(--fg-muted);
+      max-width: 36rem;
+      margin: 0 auto 1.4rem;
+    }
+    .search-box {
+      max-width: 560px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 0.85rem 1.1rem;
+      box-shadow: var(--shadow-sm);
+    }
+    .search-box span { color: var(--fg-subtle); flex-shrink: 0; }
+    .search-box input {
+      border: 0;
+      outline: 0;
+      background: transparent;
+      font: inherit;
+      color: var(--fg);
+      flex: 1;
+      min-width: 0;
+      font-size: 1rem;
+    }
+    .search-hint {
+      margin-top: 0.65rem;
+      font-size: 0.8rem;
+      color: var(--fg-subtle);
+    }
+
+    /* —— Container —— */
+    .container {
+      max-width: var(--content-max);
+      margin: 0 auto;
+      padding: 1.75rem 1.25rem 4rem;
+    }
+
+    /* —— Audience tabs —— */
+    .audience-tabs {
+      display: flex;
+      gap: 0.35rem;
+      flex-wrap: wrap;
+      margin-bottom: 1.5rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 0.35rem;
+      width: fit-content;
+      max-width: 100%;
+    }
+    .audience-tabs button {
+      border: 0;
+      background: transparent;
+      padding: 0.5rem 1rem;
+      border-radius: var(--radius-md);
+      font: inherit;
+      font-weight: 500;
+      font-size: 0.9rem;
+      color: var(--fg-muted);
+      cursor: pointer;
+    }
+    .audience-tabs button:hover { color: var(--fg); }
+    .audience-tabs button.active {
+      background: var(--brand-50);
+      color: var(--brand-700);
+      font-weight: 600;
+    }
+
+    /* —— Category cards —— */
+    .cat-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 0.9rem;
+      margin-bottom: 2.25rem;
+    }
+    .cat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 1.15rem 1.25rem;
+      cursor: pointer;
+      transition: border-color 0.15s, box-shadow 0.15s;
+      text-align: left;
+      font: inherit;
+      color: inherit;
+      width: 100%;
+    }
+    .cat-card:hover {
+      border-color: var(--brand-300);
+      box-shadow: var(--shadow-md);
+    }
+    .cat-card .icon {
+      width: 2.15rem;
+      height: 2.15rem;
+      border-radius: var(--radius-md);
+      background: var(--brand-50);
+      color: var(--brand-700);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 0.95rem;
+      margin-bottom: 0.75rem;
+    }
+    .cat-card strong {
+      display: block;
+      margin-bottom: 0.25rem;
+      font-size: 0.98rem;
+      color: var(--fg);
+    }
+    .cat-card p {
+      color: var(--fg-subtle);
+      font-size: 0.86rem;
+      margin: 0;
+      line-height: 1.45;
+    }
+    .cat-card .count {
+      display: inline-block;
+      margin-top: 0.7rem;
+      font-size: 0.76rem;
+      font-weight: 600;
+      color: var(--brand-600);
+    }
+
+    /* —— Layout: side-nav + articles —— */
+    .layout {
+      display: grid;
+      grid-template-columns: var(--side-w) minmax(0, 1fr);
+      gap: 2rem;
+      align-items: start;
+    }
+    .side-nav {
+      position: sticky;
+      top: calc(var(--topbar-h) + 0.75rem);
+      max-height: calc(100vh - var(--topbar-h) - 1.5rem);
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      padding-right: 0.35rem;
+    }
+    .side-nav h4 {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--fg-subtle);
+      margin: 1rem 0 0.35rem;
+      font-weight: 600;
+    }
+    .side-nav h4:first-child { margin-top: 0; }
+    .side-nav a,
+    .side-nav a:link,
+    .side-nav a:visited {
+      display: block;
+      padding: 0.35rem 0.5rem;
+      font-size: 0.86rem;
+      color: var(--fg-muted);
+      border-radius: var(--radius-sm);
+      text-decoration: none;
+      line-height: 1.35;
+    }
+    .side-nav a:hover,
+    .side-nav a.active,
+    .side-nav a:hover:visited,
+    .side-nav a.active:visited {
+      background: var(--brand-50);
+      color: var(--brand-700);
+      font-weight: 600;
+      text-decoration: none;
+    }
+
+    .article a,
+    .article a:link,
+    .article a:visited {
+      color: var(--brand-600);
+      text-decoration: underline;
+      text-decoration-color: color-mix(in srgb, var(--brand-600) 40%, transparent);
+      text-underline-offset: 0.15em;
+    }
+    .article a:hover {
+      color: var(--brand-700);
+      text-decoration-color: var(--brand-700);
+    }
+    .side-nav a[hidden] { display: none !important; }
+
+    .articles { min-width: 0; }
+
+    .article {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      padding: clamp(1.25rem, 3vw, 2rem);
+      margin-bottom: 1.15rem;
+      scroll-margin-top: calc(var(--topbar-h) + 1rem);
+    }
+    .article[hidden] { display: none !important; }
+    .article .meta {
+      display: flex;
+      gap: 0.45rem;
+      flex-wrap: wrap;
+      margin-bottom: 0.7rem;
+    }
+    .article h2 {
+      font-size: 1.35rem;
+      margin: 0 0 0.55rem;
+    }
+    .article h3 {
+      font-size: 1.05rem;
+      margin: 1.45rem 0 0.5rem;
+    }
+    .article p {
+      color: var(--fg-muted);
+      margin: 0 0 0.75rem;
+    }
+    .article ul,
+    .article ol:not(.steps) {
+      margin: 0 0 0.9rem 1.2rem;
+      color: var(--fg-muted);
+      padding: 0;
+    }
+    .article li { margin-bottom: 0.35rem; }
+    .article table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.88rem;
+      margin: 0.75rem 0 1rem;
+    }
+    .article th,
+    .article td {
+      border: 1px solid var(--border);
+      padding: 0.5rem 0.65rem;
+      text-align: left;
+      vertical-align: top;
+    }
+    .article th {
+      background: var(--surface-muted);
+      color: var(--fg);
+      font-weight: 600;
+    }
+    .article td { color: var(--fg-muted); }
+    .path {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      flex-wrap: wrap;
+      font-size: 0.86rem;
+      color: var(--fg-muted);
+      margin-bottom: 0.85rem;
+    }
+    .path code { font-size: 0.82em; }
+
+    /* Numbered steps */
+    .steps {
+      counter-reset: step;
+      list-style: none;
+      margin: 0 0 1rem !important;
+      padding: 0;
+    }
+    .steps > li {
+      position: relative;
+      padding: 0.85rem 0.9rem 0.85rem 3.2rem;
+      background: var(--surface-muted);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      margin-bottom: 0.55rem;
+      color: var(--fg-muted);
+    }
+    .steps > li::before {
+      counter-increment: step;
+      content: counter(step);
+      position: absolute;
+      left: 0.8rem;
+      top: 0.9rem;
+      width: 1.55rem;
+      height: 1.55rem;
+      border-radius: 50%;
+      background: var(--brand-600);
+      color: #fff;
+      font-weight: 700;
+      font-size: 0.82rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+    }
+    .steps > li strong {
+      display: block;
+      color: var(--fg);
+      margin-bottom: 0.2rem;
+      font-weight: 600;
+    }
+    .steps > li ul {
+      margin: 0.4rem 0 0 1.1rem;
+    }
+
+    .tip-list {
+      margin: 0.5rem 0 0.9rem 1.1rem;
+      color: var(--fg-muted);
+    }
+
+    .empty {
+      text-align: center;
+      padding: 3rem 1rem;
+      color: var(--fg-subtle);
+      display: none;
+      background: var(--surface);
+      border: 1px dashed var(--border-strong);
+      border-radius: var(--radius-xl);
+    }
+    .empty.show { display: block; }
+    .empty strong {
+      display: block;
+      color: var(--fg);
+      margin-bottom: 0.35rem;
+      font-size: 1.05rem;
+    }
+
+    footer.doc-footer {
+      border-top: 1px solid var(--border);
+      background: var(--surface);
+      padding: 2rem 1.25rem;
+      text-align: center;
+      color: var(--fg-subtle);
+      font-size: 0.88rem;
+    }
+    footer.doc-footer a,
+    footer.doc-footer a:link,
+    footer.doc-footer a:visited {
+      margin: 0 0.45rem;
+      color: var(--brand-600);
+      text-decoration: none;
+      font-weight: 500;
+    }
+    footer.doc-footer a:hover {
+      color: var(--brand-700);
+      text-decoration: underline;
+      text-underline-offset: 0.15em;
+    }
+    footer.doc-footer .support {
+      margin-bottom: 0.55rem;
+      color: var(--fg-muted);
+    }
+    footer.doc-footer .footer-brand {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+      margin-top: 0.75rem;
+    }
+
+    @media (max-width: 860px) {
+      .layout {
+        grid-template-columns: 1fr;
+        gap: 1.25rem;
+      }
+      .side-nav {
+        position: static;
+        max-height: none;
+        overflow: visible;
+        padding: 0.85rem;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+      }
+      .side-nav-inner {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+        gap: 0 0.5rem;
+      }
+      .side-nav h4 {
+        grid-column: 1 / -1;
+        margin-top: 0.75rem;
+      }
+      .side-nav h4:first-child { margin-top: 0; }
+      .top-links a:not(.keep-mobile) { display: none; }
+    }
+
+    @media (max-width: 520px) {
+      .hero { padding: 2rem 1rem 1.75rem; }
+      .audience-tabs { width: 100%; }
+      .audience-tabs button { flex: 1; text-align: center; padding: 0.45rem 0.5rem; font-size: 0.82rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="topbar">
+    <a class="brand" href="#top">
+      <img src="assets/logo.png" alt="PropertyDesk" class="logo" width="32" height="32" />
+      PropertyDesk <small>help center</small>
+    </a>
+    <nav class="top-links" aria-label="Brzi linkovi">
+      <a href="#pocetak">Početak</a>
+      <a href="#projekti">Projekti</a>
+      <a href="#crm">Kupci</a>
+      <a href="#faq" class="keep-mobile">FAQ</a>
+      <a href="dev-portal.html" class="keep-mobile">Developer</a>
+    </nav>
+  </header>
+
+  <section class="hero" id="top">
+    <h1>Help Center</h1>
+    <p>
+      Korak-po-korak vodiči za investitore i agencije — od prijave do
+      isplate provizije, sa tačnim putanjama u aplikaciji.
+    </p>
+    <div class="search-box">
+      <span aria-hidden="true">⌕</span>
+      <input
+        type="search"
+        id="search"
+        placeholder="Pretražite: rezervacija, ugovor, IPS QR, KYC, floor plan…"
+        autocomplete="off"
+        aria-label="Pretraga članaka"
+      />
+    </div>
+    <p class="search-hint">Pretraga radi po naslovu, tagovima i tekstu članka.</p>
+  </section>
+
+  <main class="container">
+    <div class="audience-tabs" role="tablist" aria-label="Publika">
+      <button type="button" class="active" data-audience="sve" role="tab" aria-selected="true">Sve</button>
+      <button type="button" data-audience="investitor" role="tab" aria-selected="false">Investitori</button>
+      <button type="button" data-audience="agencija" role="tab" aria-selected="false">Agencije</button>
+      <button type="button" data-audience="zajednicko" role="tab" aria-selected="false">Zajedničko</button>
+    </div>
+
+    <div class="cat-grid" id="categories">
+      <button type="button" class="cat-card" data-jump="#pocetak">
+        <div class="icon">1</div>
+        <strong>Početak</strong>
+        <p>Prijava, onboarding, tim, pretraga i kalendar.</p>
+        <span class="count">4 članka</span>
+      </button>
+      <button type="button" class="cat-card" data-jump="#podesavanja-org">
+        <div class="icon">⚙</div>
+        <strong>Podešavanja</strong>
+        <p>Organizacija, uloge, pretplata, notifikacije.</p>
+        <span class="count">4 članka</span>
+      </button>
+      <button type="button" class="cat-card" data-jump="#projekti">
+        <div class="icon">2</div>
+        <strong>Projekti i zalihe</strong>
+        <p>Hijerarhija, uvoz, cene, floor plan, foto, javna ponuda.</p>
+        <span class="count">6 članaka</span>
+      </button>
+      <button type="button" class="cat-card" data-jump="#crm">
+        <div class="icon">3</div>
+        <strong>Kupci i KYC</strong>
+        <p>CRM, checklist, buyer protection, zadaci, GDPR.</p>
+        <span class="count">7 članaka</span>
+      </button>
+      <button type="button" class="cat-card" data-jump="#interna-rez">
+        <div class="icon">4</div>
+        <strong>Rezervacije</strong>
+        <p>Interna + online IPS QR, kanban, share link.</p>
+        <span class="count">5 članaka</span>
+      </button>
+      <button type="button" class="cat-card" data-jump="#prodaje">
+        <div class="icon">5</div>
+        <strong>Prodaje i naplata</strong>
+        <p>VAT/RPI, ugovor, plan, uplate, bankarski izvod, SaaS fakture.</p>
+        <span class="count">9 članaka</span>
+      </button>
+      <button type="button" class="cat-card" data-jump="#agencija">
+        <div class="icon">6</div>
+        <strong>Agencije</strong>
+        <p>Portal, referral, lifecycle provizija.</p>
+        <span class="count">3 članka</span>
+      </button>
+      <button type="button" class="cat-card" data-jump="#dashboard">
+        <div class="icon">7</div>
+        <strong>Izveštaji</strong>
+        <p>Dashboard KPI, cash-flow, P&amp;L, time-to-sale.</p>
+        <span class="count">1 članak</span>
+      </button>
+      <button type="button" class="cat-card" data-jump="#faq">
+        <div class="icon">?</div>
+        <strong>FAQ</strong>
+        <p>Česta pitanja, greške i praktični saveti.</p>
+        <span class="count">17 pitanja</span>
+      </button>
+    </div>
+
+    <div class="layout">
+      <nav class="side-nav" aria-label="Sadržaj">
+        <div class="side-nav-inner" id="side-nav-links">
+          <h4>Početak</h4>
+          <a href="#pocetak" data-nav-for="pocetak">Prijava i onboarding</a>
+          <a href="#tim" data-nav-for="tim">Tim i uloge</a>
+          <a href="#pretraga" data-nav-for="pretraga">Globalna pretraga</a>
+          <a href="#kalendar" data-nav-for="kalendar">Kalendar</a>
+
+          <h4>Podešavanja</h4>
+          <a href="#podesavanja-org" data-nav-for="podesavanja-org">Organizacija i brend</a>
+          <a href="#uloge-dozvole" data-nav-for="uloge-dozvole">Uloge i dozvole</a>
+          <a href="#pretplata" data-nav-for="pretplata">Pretplata i plan</a>
+          <a href="#notifikacije-pod" data-nav-for="notifikacije-pod">Notifikacije</a>
+
+          <h4>Projekti</h4>
+          <a href="#projekti" data-nav-for="projekti">Projekat i hijerarhija</a>
+          <a href="#uvoz" data-nav-for="uvoz">Uvoz Excel/CSV</a>
+          <a href="#cene" data-nav-for="cene">Cene i statusi</a>
+          <a href="#floorplan" data-nav-for="floorplan">Floor plan</a>
+          <a href="#foto" data-nav-for="foto">Foto galerije</a>
+          <a href="#javna-ponuda" data-nav-for="javna-ponuda">Javna ponuda</a>
+
+          <h4>Kupci</h4>
+          <a href="#crm" data-nav-for="crm">CRM i kontakt</a>
+          <a href="#kyc" data-nav-for="kyc">KYC checklist</a>
+          <a href="#protection" data-nav-for="protection">Buyer protection</a>
+
+          <h4>Tim i kupci</h4>
+          <a href="#zadaci" data-nav-for="zadaci">Zadaci</a>
+          <a href="#komentari-mentions" data-nav-for="komentari-mentions">Komentari i @mentions</a>
+          <a href="#anonimizacija" data-nav-for="anonimizacija">GDPR anonimizacija</a>
+          <a href="#lozinka" data-nav-for="lozinka">Lozinka i sigurnost</a>
+
+          <h4>Rezervacije</h4>
+          <a href="#interna-rez" data-nav-for="interna-rez">Interna rezervacija</a>
+          <a href="#online-rez" data-nav-for="online-rez">Online + IPS QR</a>
+          <a href="#kanban" data-nav-for="kanban">Kanban tabla</a>
+
+          <h4>Deljenje sa kupcima</h4>
+          <a href="#sta-vidi-kupac" data-nav-for="sta-vidi-kupac">Šta kupac vidi</a>
+          <a href="#email-kupcu" data-nav-for="email-kupcu">Email potvrde</a>
+
+          <h4>Prodaje</h4>
+          <a href="#prodaje" data-nav-for="prodaje">Kreiranje prodaje</a>
+          <a href="#ugovor" data-nav-for="ugovor">PDF ugovor</a>
+          <a href="#plan" data-nav-for="plan">Plan otplate</a>
+          <a href="#uplate" data-nav-for="uplate">Uplate FIFO</a>
+          <a href="#dokumentacija" data-nav-for="dokumentacija">Dokumentacija</a>
+          <a href="#storno" data-nav-for="storno">Storniranje uplate</a>
+          <a href="#komisije-pravila" data-nav-for="komisije-pravila">Provizijska pravila</a>
+          <a href="#bankarski-izvod" data-nav-for="bankarski-izvod">Uvoz bankarskog izvoda</a>
+          <a href="#fakture" data-nav-for="fakture">SaaS fakture</a>
+
+          <h4>Agencije</h4>
+          <a href="#agencija" data-nav-for="agencija">Agencijski portal</a>
+          <a href="#referral" data-nav-for="referral">Referral kod</a>
+          <a href="#provizije" data-nav-for="provizije">Provizije</a>
+
+          <h4>Ostalo</h4>
+          <a href="#dashboard" data-nav-for="dashboard">Dashboard i izveštaji</a>
+          <a href="#faq" data-nav-for="faq">FAQ</a>
+        </div>
+      </nav>
+
+      <div class="articles" id="articles">
+
+        <!-- 1 -->
+        <article
+          class="article"
+          id="pocetak"
+          data-audience="zajednicko"
+          data-tags="prijava login onboarding wizard prvi koraci registracija lozinka"
+        >
+          <div class="meta">
+            <span class="chip brand">Početak</span>
+            <span class="chip">Zajedničko</span>
+            <span class="chip">~ 5 min</span>
+          </div>
+          <h2>Prijava i onboarding wizard (5 koraka)</h2>
+          <p class="path">Putanja: <code>/sign-in</code> → <code>/dashboard</code> → <code>/prvi-koraci</code></p>
+          <p>
+            Posle registracije ili prihvatanja pozivnice, PropertyDesk vas vodi
+            kroz kratki onboarding. Cilj je da za nekoliko minuta imate firmu,
+            projekat, barem jednu jedinicu i kolegu u timu.
+          </p>
+
+          <h3>Prijava</h3>
+          <ol class="steps">
+            <li>
+              <strong>Otvorite aplikaciju</strong>
+              Idite na login stranicu. Unesite email i lozinku, ili koristite
+              magic link ako vam je administrator uključio passwordless prijavu.
+            </li>
+            <li>
+              <strong>Izaberite organizaciju</strong>
+              Ako ste član više organizacija, u gornjoj traci prebacite aktivni
+              tenant. Svi podaci (projekti, kupci, prodaje) su strogo odvojeni.
+            </li>
+          </ol>
+
+          <h3>Onboarding — 5 koraka</h3>
+          <ol class="steps">
+            <li>
+              <strong>Profil organizacije</strong>
+              Idi na <code>/podesavanja/organizacija</code>. Unesite pravni naziv,
+              PIB/MB (ako imate), adresu i otpremite logo. Logo i pravni naziv
+              idu u javne ponude i PDF ugovore.
+            </li>
+            <li>
+              <strong>Prvi projekat</strong>
+              <code>/projekti/novi</code> — obavezna su šifra i naziv. Ostalo
+              (grad, valuta EUR/RSD, status prodaje) možete dopuniti kasnije.
+            </li>
+            <li>
+              <strong>Pozovite člana tima</strong>
+              <code>/podesavanja/tim</code> (ili Članovi) → <em>Pozovi člana</em>.
+              Unesite email i ulogu. Link u emailu važi 7 dana.
+            </li>
+            <li>
+              <strong>Prva jedinica</strong>
+              Ručno preko <code>/projekti/{id}/jedinice/nova</code> ili uvozom
+              Excel/CSV (vidi članak <a href="#uvoz">Uvoz</a>). Bez jedinica
+              dashboard KPI ostaju prazni.
+            </li>
+            <li>
+              <strong>Prvi kupac</strong>
+              <code>/kupci/novi</code> — unesite bar ime i telefon ili email.
+              Kasnije dopunite KYC pre generisanja ugovora.
+            </li>
+          </ol>
+
+          <div class="callout">
+            <strong>Gde je checklist?</strong>
+            Na <code>/dashboard</code> i <code>/prvi-koraci</code> vidite panel
+            „Prvi koraci“ sa napretkom. Možete ga privremeno sakriti; u
+            podešavanjima se može vratiti.
+          </div>
+          <div class="callout warn">
+            <strong>Šta ako zaboravim lozinku?</strong>
+            Na login stranici kliknite <em>Zaboravljena lozinka</em> i pratite
+            email. Ako se stalno vraćate na login, proverite da otvarate tačan
+            URL aplikacije (isti domen kao u podešavanjima sesije).
+          </div>
+        </article>
+
+        <!-- 2 -->
+        <article
+          class="article"
+          id="tim"
+          data-audience="investitor"
+          data-tags="tim pozivnica uloge member invite dozvole sales finance owner admin"
+        >
+          <div class="meta">
+            <span class="chip brand">Početak</span>
+            <span class="chip">Investitor</span>
+          </div>
+          <h2>Pozivnica članova tima i uloge</h2>
+          <p class="path">Putanja: <code>/podesavanja/tim</code> · <code>/podesavanja/clanovi</code></p>
+
+          <ol class="steps">
+            <li>
+              <strong>Otvorite listu članova</strong>
+              Sidebar → Podešavanja → Tim / Članovi.
+            </li>
+            <li>
+              <strong>Kliknite „Pozovi člana“</strong>
+              Unesite email i izaberite ulogu pre slanja. Uloga određuje meni
+              i dugmad koja osoba vidi.
+            </li>
+            <li>
+              <strong>Član prihvata email</strong>
+              Link važi 7 dana. Posle prihvatanja pojavljuje se u listi sa
+              statusom aktivan.
+            </li>
+            <li>
+              <strong>Promena uloge kasnije</strong>
+              Vlasnik može promeniti ulogu postojećeg člana iz iste stranice —
+              bez nove pozivnice.
+            </li>
+          </ol>
+
+          <h3>Šta koja uloga sme (investitor)</h3>
+          <table>
+            <thead>
+              <tr><th>Uloga</th><th>Vidi</th><th>Može</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>INVESTOR_OWNER</code></td>
+                <td>Sve</td>
+                <td>Sve, uključujući naplatu i kritične akcije</td>
+              </tr>
+              <tr>
+                <td><code>INVESTOR_ADMIN</code></td>
+                <td>Sve</td>
+                <td>Operativa osim brisanja tenanta / osetljivih finansija</td>
+              </tr>
+              <tr>
+                <td><code>SALES_MANAGER</code></td>
+                <td>Zalihe + prodaje</td>
+                <td>Rezervacije, prodaje, vođenje tima prodaje</td>
+              </tr>
+              <tr>
+                <td><code>SALES_AGENT</code></td>
+                <td>Sopstvene prodaje / kupce</td>
+                <td>Unos kupaca, rezervacije, praćenje ugovora</td>
+              </tr>
+              <tr>
+                <td><code>FINANCE</code></td>
+                <td>Uplate, planovi, izveštaji</td>
+                <td>Evidentiranje uplata, finansijski izveštaji</td>
+              </tr>
+              <tr>
+                <td><code>INVESTOR_VIEWER</code></td>
+                <td>Sve (read-only)</td>
+                <td>Samo čitanje — bez izmena</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="callout warn">
+            <strong>Šta ako kolega „ne vidi dugme“?</strong>
+            To je skoro uvek uloga, ne bag. Proverite ulogu člana i da li
+            radi u pravoj organizaciji (prekidač tenanta u headeru).
+          </div>
+        </article>
+
+        <!-- 3 -->
+        <article
+          class="article"
+          id="pretraga"
+          data-audience="zajednicko"
+          data-tags="pretraga cmdk command palette ctrl k cmd k global search"
+        >
+          <div class="meta">
+            <span class="chip brand">Početak</span>
+            <span class="chip">Zajedničko</span>
+          </div>
+          <h2>Globalna pretraga (Cmd+K / Ctrl+K)</h2>
+          <p>
+            Bilo gde u aplikaciji pritisnite <kbd>⌘</kbd><kbd>K</kbd> (Mac) ili
+            <kbd>Ctrl</kbd><kbd>K</kbd> (Windows/Linux). Otvara se paleta koja
+            traži projekte, jedinice i kupce — uz poštovanje RBAC pravila.
+          </p>
+          <ol class="steps">
+            <li>
+              <strong>Otvorite paletu</strong>
+              Prečica ili dugme pretrage u headeru.
+            </li>
+            <li>
+              <strong>Unesite upit</strong>
+              Broj stana (<code>A-3-04</code>), ime kupca, email, telefon ili
+              naziv projekta.
+            </li>
+            <li>
+              <strong>Navigacija strelicama</strong>
+              ↑/↓ bira rezultat, <kbd>Enter</kbd> otvara zapis,
+              <kbd>Esc</kbd> zatvara paletu.
+            </li>
+          </ol>
+          <div class="callout">
+            <strong>Privatnost</strong>
+            Agent nikada ne vidi kupce drugog investitora. Agencija vidi samo
+            podatke u okviru svoje konekcije i dodeljenih projekata.
+          </div>
+          <ul class="tip-list">
+            <li><strong>Šta ako nema rezultata?</strong> Proverite filtere u listama — pretraga ne menja arhivirane zapise ako su sakriveni.</li>
+            <li>Na listama (<code>/jedinice</code>, <code>/kupci</code>) filteri ostaju u URL-u — link možete podeliti sa timom.</li>
+          </ul>
+        </article>
+
+        <!-- 4 -->
+        <article
+          class="article"
+          id="kalendar"
+          data-audience="zajednicko"
+          data-tags="kalendar rokovi rate zadaci primopredaja dogadjaji"
+        >
+          <div class="meta">
+            <span class="chip brand">Početak</span>
+            <span class="chip">Zajedničko</span>
+          </div>
+          <h2>Kalendar — 4 tipa događaja</h2>
+          <p class="path">Putanja: <code>/kalendar</code></p>
+          <p>
+            Mesečna mreža okuplja rokove iz cele operativa. Filter dugmad na
+            vrhu uključuju/isključuju tipove; klik na traku vodi na entitet.
+          </p>
+          <ol class="steps">
+            <li>
+              <strong>Otvorite kalendar</strong>
+              Sidebar → Kalendar.
+            </li>
+            <li>
+              <strong>Filtrirajte tipove</strong>
+              Uključite samo ono što vas zanima (npr. samo rate i rezervacije).
+            </li>
+            <li>
+              <strong>Kliknite događaj</strong>
+              Otvara se rezervacija, rata, zadatak ili prodaja sa planiranim
+              ulaskom u posed.
+            </li>
+          </ol>
+          <h3>Četiri tipa</h3>
+          <table>
+            <thead><tr><th>Tip</th><th>Šta znači</th><th>Izvor</th></tr></thead>
+            <tbody>
+              <tr>
+                <td>Rokovi rezervacija</td>
+                <td>Kada ističe TTL interne / online rezervacije</td>
+                <td><code>expiresAt</code> rezervacije</td>
+              </tr>
+              <tr>
+                <td>Dospele rate</td>
+                <td>Plan otplate — datum dospeća rate</td>
+                <td>Rate na prodaji</td>
+              </tr>
+              <tr>
+                <td>Zadaci</td>
+                <td>CRM zadaci tima sa rokom</td>
+                <td><code>/zadaci</code></td>
+              </tr>
+              <tr>
+                <td>Planirane primopredaje</td>
+                <td>Očekivani ulazak u posed / handover</td>
+                <td>Polje na prodaji</td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="callout warn">
+            <strong>Šta ako je kalendar prazan?</strong>
+            Nema aktivnih rezervacija, rata ni zadataka u tom mesecu — ili
+            filter tipova isključuje sve. Prođite na sledeći mesec strelicama.
+          </div>
+        </article>
+
+        <!-- 5 -->
+        <article
+          class="article"
+          id="projekti"
+          data-audience="investitor"
+          data-tags="projekat objekat ulaz sprat jedinica hijerarhija building entrance floor"
+        >
+          <div class="meta">
+            <span class="chip brand">Projekti</span>
+            <span class="chip">Investitor</span>
+          </div>
+          <h2>Kreiranje projekta i hijerarhija Objekat / Ulaz / Sprat / Jedinica</h2>
+          <p class="path">Putanja: <code>/projekti</code> → <code>/projekti/novi</code> → <code>/projekti/{id}</code></p>
+
+          <h3>Kreiranje projekta</h3>
+          <ol class="steps">
+            <li>
+              <strong>Novi projekat</strong>
+              Sidebar → Projekti → <em>Novi projekat</em>.
+            </li>
+            <li>
+              <strong>Obavezna polja</strong>
+              <ul>
+                <li><strong>Šifra</strong> — jedinstvena u organizaciji (npr. <code>P-BEO-001</code>). Kasnije se ne menja.</li>
+                <li><strong>Naziv</strong> — ono što vidi kupac i tim.</li>
+              </ul>
+            </li>
+            <li>
+              <strong>Preporučena polja</strong>
+              Grad, adresa, opština, valuta (<code>EUR</code>/<code>RSD</code>),
+              status (<code>DRAFT</code>, <code>PRE_SALES</code>,
+              <code>ACTIVE_SALES</code>…), datumi prodaje/gradnje.
+            </li>
+            <li>
+              <strong>Snimite</strong>
+              Otvara se detalj sa tabovima Pregled, Struktura, Jedinice,
+              Dokumenti, Timeline.
+            </li>
+          </ol>
+
+          <h3>Hijerarhija (sve razine osim projekta/jedinice su opcione)</h3>
+          <ol class="steps">
+            <li>
+              <strong>Dodaj objekat</strong>
+              Na <code>/projekti/{id}</code> u sekciji Struktura →
+              <em>+ Dodaj objekat</em> (šifra + naziv, npr. Lamela A).
+            </li>
+            <li>
+              <strong>Dodaj ulaz</strong>
+              Proširite objekat → <em>+ Ulaz</em> (Ulaz 1, Ulaz A…).
+            </li>
+            <li>
+              <strong>Dodaj sprat</strong>
+              Pored ulaza → <em>+ Sprat</em> (PR, 1, 2, PK; broj za sortiranje,
+              npr. −1 suteren, 0 prizemlje).
+            </li>
+            <li>
+              <strong>Dodaj jedinicu</strong>
+              Na formi jedinice izaberite Objekat → Ulaz → Sprat (cascading
+              filteri). Možete snimiti i bez kompletnog lanca.
+            </li>
+          </ol>
+
+          <div class="callout success">
+            <strong>Brzi start — Duplikat projekta</strong>
+            Na detalju projekta → <em>Duplikat</em>. Kopira strukturu
+            (Objekat/Ulaz/Sprat/Jedinica) sa statusom jedinica
+            <code>PLANIRANA</code>. Ne kopira kupce, rezervacije ni prodaje.
+            Opciono: kopiraj cene i floor planove.
+          </div>
+          <div class="callout warn">
+            <strong>Šta ako ne mogu da obrišem objekat?</strong>
+            Čvor koji sadrži jedinice se ne briše. Prvo premestite ili
+            arhivirajte jedinice.
+          </div>
+        </article>
+
+        <!-- 6 -->
+        <article
+          class="article"
+          id="uvoz"
+          data-audience="investitor"
+          data-tags="uvoz import excel csv xlsx wizard sablon mapiranje"
+        >
+          <div class="meta">
+            <span class="chip brand">Projekti</span>
+            <span class="chip">Investitor</span>
+          </div>
+          <h2>Uvoz Excel / CSV — wizard detaljno</h2>
+          <p class="path">Putanja: <code>/projekti/{projectId}/uvoz</code></p>
+          <p>
+            Preporučeno za više od ~10 jedinica. Podržani formati:
+            <code>.xlsx</code> (sheet „Jedinice“) i UTF-8 <code>.csv</code>
+            (zarez, tačka-zarez ili tab).
+          </p>
+
+          <ol class="steps">
+            <li>
+              <strong>Preuzmite šablon</strong>
+              Na prvom koraku wizard-a skinite CSV/XLSX sa kanonskim kolonama
+              da izbegnete greške mapiranja.
+            </li>
+            <li>
+              <strong>Popunite podatke</strong>
+              Obavezno: <code>code</code>, <code>type</code>,
+              <code>totalArea</code>, <code>listPrice</code>.
+              Opciono: <code>buildingCode</code>, <code>entranceCode</code>,
+              <code>floorLabel</code>/<code>floorNumber</code>, sobe,
+              orijentacija, status, <code>publicDescription</code>,
+              <code>internalNotes</code>.
+            </li>
+            <li>
+              <strong>Upload fajla</strong>
+              Povucite fajl ili izaberite sa diska. Ne-UTF-8 CSV se odbija sa
+              jasnom porukom.
+            </li>
+            <li>
+              <strong>Mapiranje kolona</strong>
+              Povežite zaglavlja sa poljima sistema. Dupla mapiranja se
+              označavaju — ispravite pre nastavka.
+            </li>
+            <li>
+              <strong>Validacija po redu</strong>
+              Tabela grešaka: broj reda + polje (npr. neispravan tip,
+              negativna površina). Ispravite fajl ili isključite loše redove.
+            </li>
+            <li>
+              <strong>Preview + potvrda</strong>
+              Vidite šta se kreira / ažurira. Isti <code>code</code> u projektu
+              ažurira postojeću jedinicu (bez duplikata). Potvrda ide u jednoj
+              transakciji — pri konfliktu ceo batch se vraća.
+            </li>
+          </ol>
+
+          <div class="callout">
+            <strong>Tipovi u šablonu</strong>
+            Koristite kanonske vrednosti tipa (npr. <code>APARTMENT</code>,
+            <code>PARKING</code>, <code>STORAGE</code>…). Pogrešan enum pada
+            na validaciji reda, ne „tiho“ menja tip.
+          </div>
+          <div class="callout warn">
+            <strong>Šta ako uvoz „prođe“ ali nema objekata?</strong>
+            Ako kolone <code>buildingCode</code> / <code>entranceCode</code> /
+            sprat nisu mapirane, jedinice se kreiraju bez hijerarhije. Mapirajte
+            ih ili dodajte strukturu ručno pa ponovo uvezite (isti code =
+            update).
+          </div>
+        </article>
+
+        <!-- 7 -->
+        <article
+          class="article"
+          id="cene"
+          data-audience="investitor"
+          data-tags="cena status audit price history razlog vat jedinica"
+        >
+          <div class="meta">
+            <span class="chip brand">Projekti</span>
+            <span class="chip">Investitor</span>
+          </div>
+          <h2>Cene, statusi i audit razloga</h2>
+          <p class="path">Putanja: <code>/jedinice/{id}</code> → Izmeni / Promeni status</p>
+
+          <h3>Statusi jedinice</h3>
+          <p>
+            Tipičan tok: <code>PLANIRANA</code> → <code>DOSTUPNA</code> →
+            <code>REZERVISANA</code> / <code>ON_HOLD</code> →
+            <code>PRODATA</code>. Postoje i
+            <code>POVUČENA</code> / <code>ARHIVIRANA</code> / blokade.
+            Prelazi idu kroz servis i ostavljaju <em>UnitStatusHistory</em>.
+          </p>
+
+          <ol class="steps">
+            <li>
+              <strong>Promena statusa</strong>
+              Na detalju jedinice → <em>Promeni status</em>. Unesite razlog —
+              obavezan za audit.
+            </li>
+            <li>
+              <strong>Promena cene</strong>
+              <em>Izmeni jedinicu</em> → promenite osnovnu / konačnu cenu ili
+              cenu/m². Forma traži <strong>razlog promene cene</strong> —
+              upisuje se u istoriju cena sa akterom i vremenom.
+            </li>
+            <li>
+              <strong>Optimističko zaključavanje</strong>
+              Ako neko drugi u međuvremenu snimi istu jedinicu, dobijate poruku
+              da osvežite stranicu — sprečava tiho gaženje izmena.
+            </li>
+          </ol>
+
+          <div class="callout warn">
+            <strong>Ne forsirajte „Prodata“ ručno</strong>
+            Status prodaje treba da dođe kroz rezervaciju/prodaju. Ručni skok
+            mimo dozvoljene tranzicije biće odbijen.
+          </div>
+          <div class="callout">
+            <strong>Šta ako agencija ne vidi cenu?</strong>
+            Na konekciji / pristupu projekta može biti isključeno
+            <em>canViewPrices</em>. To je namerno — ne greška u cenovniku.
+          </div>
+        </article>
+
+        <!-- 8 -->
+        <article
+          class="article"
+          id="floorplan"
+          data-audience="investitor"
+          data-tags="floor plan sprat osnova poligon svg upload otpremi osnovu"
+        >
+          <div class="meta">
+            <span class="chip brand">Projekti</span>
+            <span class="chip">Investitor</span>
+            <span class="chip warn">Česta greška</span>
+          </div>
+          <h2>Floor plan — osnova sprata i poligoni jedinica</h2>
+          <p class="path">Putanja: Struktura projekta → klik na sprat → <code>/spratovi/{id}</code></p>
+
+          <h3>Tačan fix: „Ovaj sprat još nema učitanu osnovu“</h3>
+          <p>
+            Poruka znači da za taj sprat nema rasterske slike plana
+            (<code>Floor.floorPlanUrl</code>) niti rezervnog dokumenta vezanog
+            za sprat. Poligoni se ne mogu korisno prikazati dok osnova ne postoji.
+          </p>
+          <ol class="steps">
+            <li>
+              <strong>Otvorite stranicu sprata</strong>
+              Na <code>/projekti/{id}</code> u strukturi kliknite naziv sprata
+              (link vodi na <code>/spratovi/{id}</code>).
+            </li>
+            <li>
+              <strong>Kliknite „Otpremi osnovu“</strong>
+              U praznom stanju (dashed box) dugme otvara birač fajla.
+              Dozvoljeni formati: <strong>PNG, JPG, JPEG, WebP, SVG</strong>.
+            </li>
+            <li>
+              <strong>Sačekajte upload</strong>
+              Fajl ide kroz <code>POST /api/v1/documents</code> sa
+              <code>entityType=Floor</code> i <code>entityId</code> = ID sprata.
+              Posle uspeha stranica se osvežava i prikazuje sliku.
+            </li>
+            <li>
+              <strong>Zamena osnove kasnije</strong>
+              Kad osnova već postoji, u gornjem desnom uglu (ako imate
+              <code>inventory.manage</code>) koristite <em>Promeni osnovu</em>.
+            </li>
+          </ol>
+
+          <div class="callout success">
+            <strong>Zašto „Otpremi osnovu“ a ne samo URL u formi?</strong>
+            Upload kroz dokumente koristi isti storage, RBAC i limit veličine
+            kao ostali prilozi. Ako je <code>floorPlanUrl</code> prazan, sistem
+            kao rezervu uzima najnoviji image dokument vezan za taj Floor —
+            zato je ovaj upload pravi fix za prazno stanje.
+          </div>
+
+          <h3>Poligoni jedinica</h3>
+          <ol class="steps">
+            <li>
+              <strong>Pripremite osnovu</strong>
+              Čista etaža u dobroj rezoluciji; bez teškog kompresovanja teksta.
+            </li>
+            <li>
+              <strong>Definišite zone</strong>
+              Svaka zona je poligon (najmanje 3 tačke) vezan za jednu jedinicu
+              na tom spratu. Koordinate su relativne (0–1), pa rade na svakoj
+              rezoluciji prikaza.
+            </li>
+            <li>
+              <strong>Povežite jedinicu</strong>
+              Poligon mora referencirati postojeću jedinicu sa tog sprata.
+              Boja prat status (slobodno / rezervisano / prodato…).
+            </li>
+            <li>
+              <strong>Provera</strong>
+              Na <code>/spratovi/{id}</code> klik na poligon vodi na
+              <code>/jedinice/{id}</code>. Ista osnova može da se prikaže na
+              javnoj ponudi gde je omogućeno.
+            </li>
+          </ol>
+
+          <div class="callout warn">
+            <strong>Šta ako upload ne uspe?</strong>
+            Proverite da ste ulogovani kao uloga sa
+            <code>inventory.manage</code>, da je fajl slika (ne PDF), i da nije
+            preko limita dokumenata. Poruka greške ispod dugmeta pokazuje razlog
+            sa servera.
+          </div>
+          <div class="callout">
+            <strong>Duplikat projekta</strong>
+            Ako klonirate projekat bez opcije „Kopiraj floor plans“, novi
+            spratovi opet nemaju osnovu — ponovite Otpremi osnovu.
+          </div>
+        </article>
+
+        <!-- 9 -->
+        <article
+          class="article"
+          id="foto"
+          data-audience="investitor"
+          data-tags="foto galerija fotografije cover naslovna slika open graph"
+        >
+          <div class="meta">
+            <span class="chip brand">Projekti</span>
+            <span class="chip">Investitor</span>
+          </div>
+          <h2>Foto galerije</h2>
+          <p class="path">
+            Projekat: <code>/projekti/{id}</code> · Jedinica: <code>/jedinice/{id}</code>
+          </p>
+          <ol class="steps">
+            <li>
+              <strong>Otvorite galeriju</strong>
+              Na detalju projekta ili jedinice sekcija fotografija.
+            </li>
+            <li>
+              <strong>Otpremite slike</strong>
+              PNG/JPG (i ostali dozvoljeni image MIME). Više fajlova može u
+              nizu — redosled se čuva.
+            </li>
+            <li>
+              <strong>Postavite naslovnu</strong>
+              Dugme <em>Postavi kao naslovnu</em> na kartici. Naslovna ide u
+              javnu ponudu i Open Graph pregled (Viber/WhatsApp).
+            </li>
+            <li>
+              <strong>Cover projekta (microsite)</strong>
+              U <code>/projekti/{id}/izmena</code> polje cover / hero slika za
+              javni sajt projekta.
+            </li>
+          </ol>
+          <div class="callout warn">
+            <strong>Šta ako kupac vidi staru sliku u chatu?</strong>
+            Chat aplikacije keširaju Open Graph. Promenite naslovnu, sačekajte
+            par minuta ili pošaljite link ponovo; stari preview može ostati u
+            kešu uređaja.
+          </div>
+        </article>
+
+        <!-- 10 -->
+        <article
+          class="article"
+          id="javna-ponuda"
+          data-audience="investitor"
+          data-tags="share link javna ponuda microsite slug token /p/"
+        >
+          <div class="meta">
+            <span class="chip brand">Projekti</span>
+            <span class="chip">Investitor</span>
+          </div>
+          <h2>Javna ponuda /share link + microsite slug</h2>
+
+          <h3>Share link jedinice</h3>
+          <p class="path">Putanja: <code>/jedinice/{id}</code> → Podeli sa kupcem → <code>/p/[token]</code></p>
+          <ol class="steps">
+            <li>
+              <strong>Podeli sa kupcem</strong>
+              Sistem kreira opaque token (~192 bita). Link nije pogodljiv.
+            </li>
+            <li>
+              <strong>Podesite opcije</strong>
+              <ul>
+                <li>Prikaži / sakrij cene</li>
+                <li>Omogući online rezervaciju + kaparu</li>
+                <li>Opcioni expiry (TTL linka)</li>
+              </ul>
+            </li>
+            <li>
+              <strong>Pošaljite link</strong>
+              Email, WhatsApp, Viber, Instagram. Stranica je <code>noindex</code>.
+            </li>
+            <li>
+              <strong>Opozovite po potrebi</strong>
+              Opoziv je trenutan — stari token prestaje da radi.
+            </li>
+          </ol>
+          <div class="callout">
+            <strong>Šta kupac nikad ne vidi</strong>
+            Interna napomena (<code>internalNotes</code>), KYC skenove, podatke
+            drugih kupaca — whitelist polja na serveru.
+          </div>
+
+          <h3>Microsite celog projekta</h3>
+          <p class="path"><code>/projekti/{id}/izmena</code> → sekcija Javni sajt → <code>/p/projekat/[slug]</code></p>
+          <ol class="steps">
+            <li><strong>Uključite</strong> javni microsite (<code>publicMicrositeEnabled</code>).</li>
+            <li><strong>Zadajte slug</strong> (ili ostavite podrazumevani project slug).</li>
+            <li>
+              <strong>Proverite javnu stranu</strong>
+              Hero, grid dostupnih jedinica, mapa (ako postoje koordinate),
+              kontakt firme.
+            </li>
+          </ol>
+          <div class="callout warn">
+            <strong>Šta ako slug „ne radi“?</strong>
+            Proverite da je microsite uključen i snimljen, da slug nema
+            razmake/ćirilicu u URL-u, i da jedinice imaju
+            <code>isVisibleToAgencies</code> / javnu vidljivost prema pravilima
+            filtera.
+          </div>
+        </article>
+
+        <!-- 11 -->
+        <article
+          class="article"
+          id="crm"
+          data-audience="zajednicko"
+          data-tags="kupac crm lead duplikat whatsapp viber komentar mention @"
+        >
+          <div class="meta">
+            <span class="chip brand">CRM</span>
+            <span class="chip">Zajedničko</span>
+          </div>
+          <h2>Kupci CRM — duplikati, WhatsApp/Viber, @mentions</h2>
+          <p class="path">Putanja: <code>/kupci</code> → <code>/kupci/novi</code> → <code>/kupci/{id}</code></p>
+
+          <ol class="steps">
+            <li>
+              <strong>Novi kupac</strong>
+              Tip: fizičko lice, pravno lice ili stranac (pasoš umesto JMBG).
+              Unesite kontakt i izvor (<code>WEB</code>, <code>AGENCIJA</code>,
+              <code>SAJAM</code>…).
+            </li>
+            <li>
+              <strong>Reagujte na duplikat</strong>
+              Sistem normalizuje telefon/email i upozorava pre snimanja:
+              otvori postojećeg / nastavi ipak / otkaži. Upozorenje nije
+              blokirajuće — vi potvrđujete.
+            </li>
+            <li>
+              <strong>Brze akcije WhatsApp / Viber</strong>
+              Na detalju kupca dugmad otvaraju
+              <code>https://wa.me/…</code> i <code>viber://chat?number=…</code>
+              sa normalizovanim brojem — bez prekucavanja.
+            </li>
+            <li>
+              <strong>Komentari sa @mention</strong>
+              U timeline / komentarima na kupcu (i na prodaji) napišite
+              <code>@ime</code> kolege — dobija in-app notifikaciju.
+            </li>
+            <li>
+              <strong>Aktivnosti i zadaci</strong>
+              Beležite pozive, mailove, sastanke; zakazujte zadatke sa rokom
+              i prioritetom.
+            </li>
+          </ol>
+
+          <div class="callout warn">
+            <strong>Šta ako imam dva kartona istog kupca?</strong>
+            Koristite akciju objedinjavanja (merge) sa detalja kupca — ne
+            brišite ručno istoriju rezervacija.
+          </div>
+          <div class="callout">
+            <strong>GDPR</strong>
+            Akcija Anonimizuj briše lične podatke, zadržava statistiku za
+            izveštaje.
+          </div>
+        </article>
+
+        <!-- 12 -->
+        <article
+          class="article"
+          id="kyc"
+          data-audience="investitor"
+          data-tags="kyc checklist jmbg pib lična karta poreska ugovor KYC_INCOMPLETE"
+        >
+          <div class="meta">
+            <span class="chip brand">CRM</span>
+            <span class="chip">Investitor</span>
+            <span class="chip warn">Blokada ugovora</span>
+          </div>
+          <h2>KYC checklist — fizičko / pravno lice</h2>
+          <p class="path">Putanja: <code>/kupci/{id}</code> → tab <em>KYC</em></p>
+
+          <ol class="steps">
+            <li>
+              <strong>Izaberite tip entiteta</strong>
+              Fizičko lice (<code>NATURAL</code>) ili pravno (<code>LEGAL</code>).
+              Forma sakriva nebitna polja.
+            </li>
+            <li>
+              <strong>Unesite identifikatore</strong>
+              Fizičko: JMBG (13 cifara), broj LK. Pravno: PIB (9), pravni naziv.
+              Adresa (ulica, grad, PTT, država) ide u placeholdere ugovora.
+            </li>
+            <li>
+              <strong>Označite checklist</strong>
+              <ul>
+                <li>LK prednja (<code>idFrontOk</code>)</li>
+                <li>LK zadnja (<code>idBackOk</code>)</li>
+                <li>Dokaz adrese (<code>addressProofOk</code>) — račun, izvod</li>
+                <li>Poreska potvrda (<code>taxCertOk</code>) — obavezno za pravna lica</li>
+              </ul>
+            </li>
+            <li>
+              <strong>Otpremite skenove</strong>
+              Dokumenti kategorije <code>KYC</code>, uvek
+              <code>INTERNAL</code> — nikad ne izlaze agencijama.
+            </li>
+            <li>
+              <strong>Snimite</strong>
+              Upisuju se reviewer i vreme. Audit: <code>BUYER_KYC_UPDATED</code>.
+            </li>
+          </ol>
+
+          <h3>Kada je KYC kompletan?</h3>
+          <table>
+            <thead><tr><th>Tip</th><th>Uslov</th></tr></thead>
+            <tbody>
+              <tr>
+                <td>Fizičko lice</td>
+                <td>LK prednja + LK zadnja + dokaz adrese</td>
+              </tr>
+              <tr>
+                <td>Pravno lice</td>
+                <td>Poreska potvrda + dokaz adrese</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="callout danger">
+            <strong>Zašto blokira ugovor?</strong>
+            Generisanje <em>punog</em> ugovora (<code>kind = CONTRACT</code>)
+            vraća <code>409 KYC_INCOMPLETE</code> dok checklist nije kompletan.
+            UI prikazuje toast i vodi na KYC tab. <strong>Predugovor</strong>
+            (<code>PRE_CONTRACT</code> namerno prolazi bez kompletnog KYC-a —
+            često je okidač da kupac donese dokumente.
+          </div>
+        </article>
+
+        <!-- 13 -->
+        <article
+          class="article"
+          id="protection"
+          data-audience="agencija"
+          data-tags="buyer protection zaštita kupca 60 dana conflict review agencija"
+        >
+          <div class="meta">
+            <span class="chip brand">CRM</span>
+            <span class="chip">Agencija</span>
+          </div>
+          <h2>Buyer protection — 60 dana (za agencije)</h2>
+          <p>
+            Kada agencija registruje interesenta kod investitora, sistem štiti
+            tog kupca odmah — tipično <strong>60 dana</strong> (podesivo po
+            konekciji). U tom periodu prodaja tom kupcu vezuje se za agenciju i
+            ulazi u obračun provizije.
+          </p>
+          <ol class="steps">
+            <li>
+              <strong>Registrujte interesenta</strong>
+              Portal → Moji kupci → Registruj interesenta. Izaberite projekat
+              na koji imate pristup; unesite kupca (JMBG pomaže jedinstvenost).
+            </li>
+            <li>
+              <strong>Investitor odobrava</strong>
+              Zahtev ide na pregled. Statusi: odobreno / odbijeno /
+              <code>CONFLICT_REVIEW</code> ako druga agencija već ima zaštitu
+              ili postoji istorija.
+            </li>
+            <li>
+              <strong>Radite u prozoru zaštite</strong>
+              Dok traje zaštita, rezervacije i prodaje tom kupcu na tom
+              investitoru pripisuju se vama.
+            </li>
+            <li>
+              <strong>Istek</strong>
+              Cron <code>expire-buyer-protection</code> skida isteklu zaštitu.
+              Posle isteka drugi kanal može da preuzme kupca po pravilima
+              investitora.
+            </li>
+          </ol>
+          <div class="callout warn">
+            <strong>Šta vidi druga agencija kod konflikta?</strong>
+            Ne vidi pun kontakt — dobija anonimizovan
+            <code>CONFLICT_REVIEW</code> signal da ne „krade“ lead u slepo.
+          </div>
+        </article>
+
+        <!-- 14 -->
+        <article
+          class="article"
+          id="interna-rez"
+          data-audience="zajednicko"
+          data-tags="rezervacija interna ttl istek produzi otkazi depozit"
+        >
+          <div class="meta">
+            <span class="chip brand">Rezervacije</span>
+            <span class="chip">Zajedničko</span>
+          </div>
+          <h2>Interna rezervacija + TTL + istek</h2>
+          <p class="path">
+            Iz jedinice: <code>/jedinice/{id}</code> → Rezerviši ·
+            Iz kupca: <code>/kupci/{id}</code> → Nova rezervacija ·
+            Lista: <code>/rezervacije</code>
+          </p>
+
+          <ol class="steps">
+            <li>
+              <strong>Pokrenite rezervaciju</strong>
+              Jedinica mora biti dostupna. Izaberite kupca (ili kreirajte
+              u toku) i trajanje — podrazumevano <strong>7 dana</strong>
+              (override po projektu/podešavanju).
+            </li>
+            <li>
+              <strong>Unesite depozit (opciono)</strong>
+              Iznos + valuta. Pri konverziji u prodaju depozit se pripisuje
+              prvoj rati.
+            </li>
+            <li>
+              <strong>Potvrdite</strong>
+              Jedinica → <code>REZERVISANA</code>, rezervacija
+              <code>AKTIVNA</code>, notifikacije timu / email kupcu.
+            </li>
+            <li>
+              <strong>Produži / Otkaži / Konvertuj</strong>
+              Na <code>/rezervacije/{id}</code>: produženje (uz razlog),
+              otkaz (jedinica nazad na dostupnu), ili konverzija u prodaju.
+            </li>
+          </ol>
+
+          <h3>Automatski istek</h3>
+          <ul>
+            <li>Cron <code>expire-reservations</code> (na ~15 min) — istek →
+              <code>ISTEKLA</code>, jedinica opet dostupna.</li>
+            <li>Podsetnik ~2 dana pre isteka (email + in-app / zadatak).</li>
+            <li>Ako postoji depozit — zadatak za povraćaj.</li>
+          </ul>
+
+          <div class="callout danger">
+            <strong>Dve aktivne rezervacije na isti stan?</strong>
+            Baza ne dozvoljava (partial unique index). Drugi agent dobija
+            konflikt — „jedinica je već rezervisana“.
+          </div>
+        </article>
+
+        <!-- 15 -->
+        <article
+          class="article"
+          id="online-rez"
+          data-audience="investitor"
+          data-tags="online rezervacija ips qr kapara zahtevi public share"
+        >
+          <div class="meta">
+            <span class="chip brand">Rezervacije</span>
+            <span class="chip">Investitor</span>
+          </div>
+          <h2>Online rezervacija + IPS QR kapara</h2>
+          <p class="path">
+            Kupac: <code>/p/[token]</code> ·
+            Investitor: <code>/rezervacije/zahtevi</code>
+          </p>
+
+          <h3>Šta vidi kupac</h3>
+          <ol class="steps">
+            <li>
+              <strong>Otvara share link</strong>
+              Vidi jedinicu, foto, floor plan (ako postoji), cenu (ako nije sakrivena).
+            </li>
+            <li>
+              <strong>Rezerviši online</strong>
+              Forma: ime, prezime, email, telefon, iznos kapare (EUR/RSD), napomena.
+            </li>
+            <li>
+              <strong>IPS QR + poziv na broj</strong>
+              Posle submit-a: PNG QR + uputstvo „Skeniraj u mobilnoj banci“.
+              Isti sadržaj stiže emailom (inline QR).
+            </li>
+            <li>
+              <strong>Čeka potvrdu</strong>
+              Zahtev traje podrazumevano <strong>48h</strong>. Jedinica ide u
+              privremeni hold da drugi ne rezervišu isto.
+            </li>
+          </ol>
+
+          <h3>Šta radi investitor u /rezervacije/zahtevi</h3>
+          <ol class="steps">
+            <li>
+              <strong>Otvorite listu zahteva</strong>
+              Sidebar → Rezervacije → Zahtevi. Filter po statusu
+              (<code>PENDING</code> / <code>CONFIRMED</code> / <code>DECLINED</code> /
+              <code>EXPIRED</code>.
+            </li>
+            <li>
+              <strong>Proverite uplatu kapare</strong>
+              U drawer-u vidite IPS QR, poziv na broj i kontakt. Provera je
+              na vašem izvodu — PropertyDesk ne vuče novac automatski sa računa kupca.
+            </li>
+            <li>
+              <strong>Potvrdi</strong>
+              Kreira se prava <code>Reservation</code>, upsert kupca, jedinica
+              <code>ON_HOLD → RESERVED</code>, zahtev <code>CONFIRMED</code>.
+            </li>
+            <li>
+              <strong>Odbaci</strong>
+              Obavezan razlog; jedinica se vraća na dostupnu.
+            </li>
+          </ol>
+
+          <div class="callout warn">
+            <strong>Rate limit</strong>
+            Javni endpoint: max <strong>10 zahteva / sat / IP</strong>.
+            Drugi PENDING na istoj jedinici → 409 konflikt.
+          </div>
+          <div class="callout">
+            <strong>Šta ako istekne 48h?</strong>
+            Cron <code>expire-reservation-requests</code> (15 min) označava
+            <code>EXPIRED</code> i oslobađa jedinicu.
+          </div>
+        </article>
+
+        <!-- 16 -->
+        <article
+          class="article"
+          id="kanban"
+          data-audience="zajednicko"
+          data-tags="kanban board pipeline drag drop rezervacije prodaje"
+        >
+          <div class="meta">
+            <span class="chip brand">Rezervacije</span>
+            <span class="chip">Zajedničko</span>
+          </div>
+          <h2>Kanban tabla</h2>
+          <p class="path">
+            Rezervacije: <code>/rezervacije?view=board</code> ·
+            Prodaje imaju odgovarajući board pregled u modulu prodaja.
+          </p>
+          <ol class="steps">
+            <li>
+              <strong>Prebacite se na board</strong>
+              Na listi rezervacija izaberite prikaz table (board) umesto tabele.
+            </li>
+            <li>
+              <strong>Prevucite karticu</strong>
+              Drag &amp; drop između kolona statusa. Server proverava FSM —
+              nedozvoljen prelaz se odbija sa porukom.
+            </li>
+            <li>
+              <strong>Otvorite detalj</strong>
+              Klik na karticu vodi na <code>/rezervacije/{id}</code> ili prodaju
+              za konverziju, dokumente i komentare.
+            </li>
+          </ol>
+          <div class="callout warn">
+            <strong>Šta ako drop „vrati“ karticu?</strong>
+            Prelaz nije dozvoljen iz trenutnog statusa (npr. istekla → aktivna
+            bez eksplicitne akcije). Koristite akcije na detalju (Produži,
+            Konvertuj…) umesto forsiranja kolone.
+          </div>
+        </article>
+
+        <!-- 17 -->
+        <article
+          class="article"
+          id="prodaje"
+          data-audience="investitor"
+          data-tags="prodaja wizard vat rpi pdv 10% 2.5% NONE porez"
+        >
+          <div class="meta">
+            <span class="chip brand">Prodaje</span>
+            <span class="chip">Investitor</span>
+          </div>
+          <h2>Kreiranje prodaje — VAT / RPI 10% / 2.5% / NONE</h2>
+          <p class="path">
+            Iz rezervacije: <code>/rezervacije/{id}</code> → Konvertuj ·
+            Direktno: <code>/jedinice/{id}</code> → Prodaj direktno ·
+            Lista: <code>/prodaje</code>
+          </p>
+
+          <ol class="steps">
+            <li>
+              <strong>Pokrenite wizard</strong>
+              Konverzija zadržava kupca i jedinicu; direktna prodaja traži
+              kupca dok je jedinica dostupna.
+            </li>
+            <li>
+              <strong>Osnovni podaci</strong>
+              Datum ugovora, broj ugovora, ugovorena cena, popust (fiksan/%),
+              konačna cena, način plaćanja, datum ulaska u posed.
+            </li>
+            <li>
+              <strong>Izaberite VAT/RPI mod</strong>
+              Na kartici Porez / u wizardu:
+              <ul>
+                <li><code>NEW_BUILD_10</code> — 10% PDV (novogradnja)</li>
+                <li><code>SECONDARY_MARKET_2_5</code> — 2.5% porez na prenos apsolutnih prava</li>
+                <li><code>NONE</code> — bez poreza (npr. specijalan slučaj)</li>
+              </ul>
+              Sistem računa <code>taxAmount</code>; ko plaća: kupac ili prodavac.
+            </li>
+            <li>
+              <strong>Plan otplate</strong>
+              Ako nije gotovina — primenite šablon ili unesite rate (sledeći članak).
+            </li>
+            <li>
+              <strong>Potvrdite</strong>
+              Jedinica → prodata, rezervacija → konvertovana, eventualna
+              provizija agenciji, notifikacije.
+            </li>
+          </ol>
+
+          <div class="callout">
+            <strong>Propagacija u PDF</strong>
+            Placeholders <code>{{tax.mode}}</code>, <code>{{tax.amount}}</code>,
+            <code>{{tax.payer}}</code> čitaju ovu karticu pri generisanju ugovora.
+          </div>
+          <div class="callout warn">
+            <strong>Šta ako je iznos poreza pogrešan?</strong>
+            Posle izbora moda možete ručno override-ovati iznos (fiksni dogovor),
+            ali ostavite napomenu u komentaru prodaje radi audita.
+          </div>
+        </article>
+
+        <!-- 18 -->
+        <article
+          class="article"
+          id="ugovor"
+          data-audience="investitor"
+          data-tags="ugovor pdf predugovor generate sent signed šablon"
+        >
+          <div class="meta">
+            <span class="chip brand">Prodaje</span>
+            <span class="chip">Investitor</span>
+          </div>
+          <h2>PDF ugovor — generate → sent → signed</h2>
+          <p class="path">
+            Šabloni: <code>/podesavanja/ugovori-sabloni</code> ·
+            Prodaja: <code>/prodaje/{id}</code> → kartica Ugovor
+          </p>
+
+          <ol class="steps">
+            <li>
+              <strong>Pripremite šablon</strong>
+              Kind: <code>PRE_CONTRACT</code> ili <code>CONTRACT</code>.
+              HTML sa <code>{{buyer.*}}</code>, <code>{{unit.*}}</code>,
+              <code>{{sale.*}}</code>, <code>{{tax.*}}</code>…
+            </li>
+            <li>
+              <strong>Proverite KYC</strong>
+              Za pun ugovor checklist mora biti kompletan (vidi
+              <a href="#kyc">KYC</a>). Predugovor može bez toga.
+            </li>
+            <li>
+              <strong>Generiši ugovor</strong>
+              Izaberite kind + šablon → PDF se snima kao dokument prodaje.
+              Status: <code>NONE → GENERATED</code>.
+            </li>
+            <li>
+              <strong>Označi kao poslato</strong>
+              Posle slanja kupcu (email/lično) → <code>SENT</code>
+              (+ <code>contractSentAt</code>).
+            </li>
+            <li>
+              <strong>Označi kao potpisano</strong>
+              → <code>SIGNED</code> (+ <code>contractSignedAt</code>).
+            </li>
+          </ol>
+
+          <div class="callout">
+            <strong>Regeneracija</strong>
+            Dozvoljena je — stari PDF ostaje u dokumentima (audit), novi postaje
+            trenutni. Ne brišite istoriju bez razloga.
+          </div>
+          <div class="callout warn">
+            <strong>Šta ako dobijem KYC_INCOMPLETE?</strong>
+            Generišete <code>CONTRACT</code> bez kompletnog KYC-a. Dopunite tab
+            KYC ili prvo izdajte predugovor.
+          </div>
+        </article>
+
+        <!-- 19 -->
+        <article
+          class="article"
+          id="plan"
+          data-audience="investitor"
+          data-tags="plan otplate rate šablon org project ručne rate"
+        >
+          <div class="meta">
+            <span class="chip brand">Prodaje</span>
+            <span class="chip">Investitor</span>
+          </div>
+          <h2>Plan otplate — šabloni org/projekat + ručne rate</h2>
+          <p class="path">
+            Šabloni u podešavanjima / projektu ·
+            Prodaja: <code>/prodaje/{id}/plan-placanja</code>
+          </p>
+
+          <ol class="steps">
+            <li>
+              <strong>Definišite org šablon</strong>
+              Podrazumevana šema (npr. 10–40–40–10). Procenti moraju dati
+              <strong>100%</strong> (tolerancija 0.001%).
+            </li>
+            <li>
+              <strong>Override na projektu</strong>
+              Ako projekat ima drugačiju politiku kapare — project-level šablon
+              ima prednost.
+            </li>
+            <li>
+              <strong>Primeni šablon na prodaji</strong>
+              U wizardu ili na planu: sidra datuma
+              <code>CONTRACT</code> / <code>HANDOVER</code> /
+              <code>CUSTOM_OFFSET</code>.
+            </li>
+            <li>
+              <strong>Dodajte ručnu ratu</strong>
+              Operator može ubaciti dodatnu ratu u postojeći plan (opis + iznos
+              + due date).
+            </li>
+          </ol>
+
+          <div class="callout warn">
+            <strong>Upozorenje ako zbir pređe cenu</strong>
+            Ako total rata pređe <code>finalPrice</code> prodaje, UI prikazuje
+            upozorenje pre snimanja. Ispravite iznose ili konačnu cenu —
+            ne ignorišite warning u produkciji.
+          </div>
+          <div class="callout">
+            <strong>Šta ako su rate već delimično plaćene?</strong>
+            Izmena plana je ograničena dozvolom; obavezan je razlog i audit.
+          </div>
+        </article>
+
+        <!-- 20 -->
+        <article
+          class="article"
+          id="uplate"
+          data-audience="investitor"
+          data-tags="uplate fifo storno ugovoreno uplaćeno preostalo alokacija"
+        >
+          <div class="meta">
+            <span class="chip brand">Prodaje</span>
+            <span class="chip">Investitor</span>
+          </div>
+          <h2>Uplate — FIFO, storno, Ugovoreno / Uplaćeno / Preostalo</h2>
+          <p class="path">
+            <code>/prodaje/{id}</code> → Evidentiraj uplatu ·
+            <code>/uplate</code>
+          </p>
+
+          <ol class="steps">
+            <li>
+              <strong>Evidentirajte uplatu</strong>
+              Iznos, datum, način (transfer, gotovina, kartica…), referenca izvoda.
+            </li>
+            <li>
+              <strong>Automatski FIFO</strong>
+              Sistem puni najstariju otvorenu ratu, pa sledeću. Višak ostaje kao
+              <code>unappliedAmount</code>.
+            </li>
+            <li>
+              <strong>Proverite summary na prodaji</strong>
+              <ul>
+                <li><strong>Ugovoreno</strong> — konačna cena</li>
+                <li><strong>Uplaćeno</strong> — zbir alociranih uplata</li>
+                <li><strong>Preostalo</strong> — razlika do ugovorenog</li>
+              </ul>
+              Isto se agregira na dashboard KPI karticama.
+            </li>
+            <li>
+              <strong>Ručna realokacija (opciono)</strong>
+              Ako kupac kaže „ovo je za ratu 3“, na detalju uplate koristite
+              <em>Realociraj</em> i rasporedite iznose po ratama.
+            </li>
+            <li>
+              <strong>Stornirajte grešku</strong>
+              <em>Storniraj</em> kreira paired negativnu alokaciju — ništa se ne
+              briše. Obavezan razlog. Ako je prodaja bila završena, vraća se u
+              aktivnu.
+            </li>
+          </ol>
+
+          <div class="callout warn">
+            <strong>Šta ako uplata pređe sve rate?</strong>
+            Višak ostaje neraspoređen (<code>unappliedAmount</code>) dok ga
+            ne realocirate ili ne dodate novu ratu / aneks.
+          </div>
+          <div class="callout">
+            <strong>Više prodaja, jedna uplata</strong>
+            Sa <code>/uplate</code> → Nova uplata možete raspodeliti iznos po
+            više prodaja istog kupca (stan + garaža).
+          </div>
+        </article>
+
+        <!-- 21 -->
+        <article
+          class="article"
+          id="dokumentacija"
+          data-audience="investitor"
+          data-tags="dokumentacija prodaje upload ugovor prilozi dve kategorije"
+        >
+          <div class="meta">
+            <span class="chip brand">Prodaje</span>
+            <span class="chip">Investitor</span>
+          </div>
+          <h2>Dokumentacija prodaje — upload (dve kategorije)</h2>
+          <p class="path">Putanja: <code>/prodaje/{id}</code> → tab / sekcija Dokumenti</p>
+          <p>
+            Pored generisanog PDF ugovora, na prodaji čuvate priloge za
+            potpisivanje i arhivu. MIME allowlist: PDF, JPEG, PNG, DOCX, XLSX
+            (max ~20&nbsp;MB). Download ide preko signed URL-a (kratak lifetime).
+          </p>
+          <ol class="steps">
+            <li>
+              <strong>Upload — strana investitora / prodavca</strong>
+              Predugovori, aneksi, overe, dokazi o vlasništvu, interni skenovi
+              koje potpisujete vi. Vidljivost tipično <code>INTERNAL</code>.
+            </li>
+            <li>
+              <strong>Upload — strana kupca</strong>
+              Potpisani primerci i prilozi koje je kupac vratio (odvojeno od KYC
+              taba na kupcu).
+            </li>
+            <li>
+              <strong>Provera liste</strong>
+              Broj stavki i nazivi fajlova treba da budu čitljivi finansijama
+              pre statusa <code>SIGNED</code>.
+            </li>
+          </ol>
+          <div class="callout warn">
+            <strong>KYC ≠ dokumentacija prodaje</strong>
+            Skenovi LK/PIB idu na kupca (tab KYC, kategorija <code>KYC</code>),
+            ne u agencijski portal. Dokumenti prodaje su ugovorna arhiva.
+          </div>
+          <div class="callout">
+            <strong>Šta ako agencija traži fajl?</strong>
+            Samo dokumenti sa vidljivošću <code>AGENCY</code> i pristupom na
+            projekat — inače ostaju interni.
+          </div>
+        </article>
+
+        <!-- 22 -->
+        <article
+          class="article"
+          id="agencija"
+          data-audience="agencija"
+          data-tags="agencija portal ponuda moji kupci rezervacije provizije konekcija"
+        >
+          <div class="meta">
+            <span class="chip brand">Agencije</span>
+            <span class="chip">Agencija</span>
+          </div>
+          <h2>Agencijski portal — kompletan tok</h2>
+          <p class="path">
+            Prihvatanje pozivnice → sidebar: Ponuda · Moji kupci · Moje rezervacije · Moje provizije
+          </p>
+          <ol class="steps">
+            <li>
+              <strong>Prihvatite pozivnicu investitora</strong>
+              Email link → registracija / prijava → kreira se
+              <code>AgencyConnection</code> u statusu aktivna.
+            </li>
+            <li>
+              <strong>Pregledajte Ponudu</strong>
+              <code>/ponuda</code> — samo projekti i jedinice na koje imate
+              <code>AgencyProjectAccess</code>. Rezervisane tuđe jedinice se ne nude.
+            </li>
+            <li>
+              <strong>Registrujte kupca</strong>
+              Moji kupci → pokreće buyer protection tok (vidi
+              <a href="#protection">Buyer protection</a>).
+            </li>
+            <li>
+              <strong>Rezervišite iz ponude</strong>
+              Sa dostupne jedinice → Rezerviši (vezano za vašu agenciju).
+            </li>
+            <li>
+              <strong>Pratite rezervacije i provizije</strong>
+              Moje rezervacije za TTL; Moje provizije za lifecycle do isplate.
+            </li>
+          </ol>
+          <h3>Agencijske uloge (kratko)</h3>
+          <table>
+            <thead><tr><th>Uloga</th><th>Može</th></tr></thead>
+            <tbody>
+              <tr><td><code>AGENCY_OWNER</code></td><td>Sve u tenantu agencije, konekcije, agenti</td></tr>
+              <tr><td><code>AGENCY_ADMIN</code></td><td>Operativa kao owner bez brisanja tenanta</td></tr>
+              <tr><td><code>AGENCY_AGENT</code></td><td>Svoji kupci, rezervacije, rad na ponudi</td></tr>
+              <tr><td><code>AGENCY_VIEWER</code></td><td>Samo čitanje</td></tr>
+            </tbody>
+          </table>
+          <div class="callout warn">
+            <strong>Šta ako je Ponuda prazna?</strong>
+            Investitor još nije dodelio pristup projektu, ili su sve jedinice
+            rezervisane/prodaje, ili su cene sakrivene flagovima konekcije.
+          </div>
+        </article>
+
+        <!-- 23 -->
+        <article
+          class="article"
+          id="referral"
+          data-audience="agencija"
+          data-tags="referral kod qr rotacija atribucija cookie ref"
+        >
+          <div class="meta">
+            <span class="chip brand">Agencije</span>
+            <span class="chip">Agencija</span>
+          </div>
+          <h2>Referral kod + QR + rotacija</h2>
+          <p class="path">
+            Agencija: <code>/agencija/profil</code> ·
+            Investitor: <code>/izvestaji/agencije</code>
+          </p>
+          <ol class="steps">
+            <li>
+              <strong>Generišite / prikažite kod</strong>
+              8 karaktera <code>[A-Z0-9]</code> (bez dvosmislenih 0/O/1/I/L).
+              Kod se kreira lenjo pri prvoj akciji Rotiraj / aktivaciji.
+            </li>
+            <li>
+              <strong>Podelite link sa <code>?ref=</code></strong>
+              <code>/p/[token]?ref=VAS_KOD</code> ili
+              <code>/p/projekat/[slug]?ref=VAS_KOD</code>.
+            </li>
+            <li>
+              <strong>Cookie 90 dana</strong>
+              Poseta postavlja <code>PD_REFERRAL</code> (last-touch). Forma
+              online rezervacije prosleđuje kod u zahtev.
+            </li>
+            <li>
+              <strong>QR PNG</strong>
+              Skener vodi na referral URL za izabranog investitora / projekat.
+            </li>
+            <li>
+              <strong>Rotacija</strong>
+              <em>Rotiraj</em> invalidira stari kod. Stari odštampani materijali
+              više ne atributiraju — UI upozorava pre potvrde.
+            </li>
+          </ol>
+          <div class="callout">
+            <strong>Atribucija</strong>
+            Kod mora pripadati konekciji istog investitora kao share link.
+            Nepoznat kod se čuva ali se u UI-ju vidi kao orphan / nepoznat.
+          </div>
+          <div class="callout warn">
+            <strong>Šta ako rotiram kod usred kampanje?</strong>
+            Svi stari linkovi i QR prestaju da vežu nove zahteve za vas.
+          </div>
+        </article>
+
+        <!-- 24 -->
+        <article
+          class="article"
+          id="provizije"
+          data-audience="agencija"
+          data-tags="provizija commission lifecycle pending approved paid payout"
+        >
+          <div class="meta">
+            <span class="chip brand">Agencije</span>
+            <span class="chip info">Investitor + Agencija</span>
+          </div>
+          <h2>Provizije — lifecycle</h2>
+          <p class="path">
+            Pravila (investitor) · Agencija: <code>/moje-provizije</code>
+          </p>
+          <p>
+            Pri ugovoru sa kupcem pod aktivnom zaštitom, sistem bira pravilo po
+            precedenciji: unit+agency → project+agency → connection default →
+            project default. Iznos se <strong>snapshot-uje</strong> — kasnija
+            izmena pravila ne menja već kreirane provizije.
+          </p>
+          <ol class="steps">
+            <li><strong>PENDING</strong> — automatski pri kreiranju prodaje.</li>
+            <li><strong>APPROVED</strong> — investitor odobrava (ručno ili po pravilu).</li>
+            <li><strong>READY_FOR_PAYOUT</strong> — naplata sa kupca dovoljna za pokriće.</li>
+            <li><strong>PAID</strong> — investitor beleži isplatu (<code>CommissionPayout</code>).</li>
+            <li><strong>CANCELED</strong> — ako se prodaja stornira / otkaže.</li>
+          </ol>
+          <div class="callout warn">
+            <strong>Šta ako iznos „ne liči“ na novo pravilo?</strong>
+            Gledate snapshot sa momenta ugovora — to je namerno. Novo pravilo
+            važi za buduće prodaje.
+          </div>
+        </article>
+
+        <!-- 25 -->
+        <article
+          class="article"
+          id="dashboard"
+          data-audience="investitor"
+          data-tags="dashboard kpi izveštaji cash-flow pnl time-to-sale export"
+        >
+          <div class="meta">
+            <span class="chip brand">Izveštaji</span>
+            <span class="chip">Investitor</span>
+          </div>
+          <h2>Dashboard KPI + izveštaji (cash-flow, P&amp;L, time-to-sale)</h2>
+          <p class="path"><code>/dashboard</code> · <code>/izvestaji/…</code></p>
+          <h3>Kontrolna tabla</h3>
+          <ul>
+            <li>Ukupna vrednost jedinica, ugovoreno, naplaćeno, preostalo</li>
+            <li>Aktivne rezervacije, zadaci danas, top prodavci</li>
+            <li>Donut po statusu; funnel rezervacija → ugovor → naplaćeno</li>
+            <li>Trend: mesečne prodaje i uplate</li>
+          </ul>
+          <ol class="steps">
+            <li>
+              <strong>Cash-flow 12 meseci</strong>
+              <code>/izvestaji/uplate</code> (+ kartica na dashboardu): stubovi
+              očekivanih rata minus već uplaćeno.
+            </li>
+            <li>
+              <strong>Time-to-sale</strong>
+              <code>/izvestaji/zalihe</code> — prosek dana do ugovora po projektu i tipu.
+            </li>
+            <li>
+              <strong>Project P&amp;L</strong>
+              Troškovi na <code>/projekti/{id}/izmena</code> (zemljište, gradnja,
+              marketing, ostalo). Marža u <code>/izvestaji/prodaje</code>.
+              Prazni troškovi = P&amp;L označen kao nepotpun.
+            </li>
+            <li>
+              <strong>Agencije + referral</strong>
+              <code>/izvestaji/agencije</code> — prodaje, provizije, „Preko referral-a“.
+            </li>
+            <li>
+              <strong>Export</strong>
+              CSV/XLSX i share link filterisanog izveštaja za tim.
+            </li>
+          </ol>
+          <div class="callout">
+            <strong>Šta ako je marža crvena?</strong>
+            Proverite da li su svi troškovi uneti i da li prihod uključuje samo
+            ugovorene/završene prodaje — draft ne ulazi u P&amp;L.
+          </div>
+        </article>
+
+        <!-- 27 -->
+        <article
+          class="article"
+          id="podesavanja-org"
+          data-audience="investitor"
+          data-tags="podešavanja organizacija logo pib matični iban adresa brend boja pdf ugovor share seller placeholder"
+        >
+          <div class="meta">
+            <span class="chip brand">Podešavanja</span>
+            <span class="chip">Investitor</span>
+            <span class="chip">~ 4 min</span>
+          </div>
+          <h2>Podešavanja organizacije</h2>
+          <p class="path">Putanja: <code>/podesavanja/organizacija</code></p>
+          <p>
+            Ovde definišete pravni identitet firme i vizuelni brend koji se automatski
+            pojavljuju u PDF ugovorima, fakturama, share linkovima i email potvrda kupcima.
+          </p>
+
+          <h3>Kako se koristi</h3>
+          <ol class="steps">
+            <li>
+              <strong>Otvorite podešavanja organizacije</strong>
+              Sidebar → Podešavanja → Organizacija, ili direktno
+              <code>/podesavanja/organizacija</code>.
+            </li>
+            <li>
+              <strong>Popunite osnovne podatke</strong>
+              Pravni naziv firme, PIB, matični broj, adresa sedišta (ulica, grad, PTT),
+              kontakt telefon i email. Ova polja idu u zaglavlje dokumenata.
+            </li>
+            <li>
+              <strong>Dodajte bankovni račun</strong>
+              U sekciji Bankovni računi unesite IBAN koji se prikazuje na fakturama i
+              u IPS QR kodovima za kaparu. Možete imati više računa — označite podrazumevani.
+            </li>
+            <li>
+              <strong>Otpremite logo i izaberite boju brenda</strong>
+              Logo (PNG/SVG, preporučeno kvadratno) ide u PDF ugovor, share link i email.
+              Boja brenda boji dugmad i akcente na javnim stranicama koje vidi kupac.
+            </li>
+            <li>
+              <strong>Sačuvajte</strong>
+              Promene važe odmah za nove dokumente. Već generisani PDF-ovi zadržavaju
+              snapshot iz momenta generisanja.
+            </li>
+          </ol>
+
+          <h3>Automatski placeholderi u ugovorima i fakturama</h3>
+          <p>
+            U šablonima ugovora i fakturama koristite placeholdere grupe
+            <code>{{seller.*}}</code>. Sistem ih popunjava iz podešavanja organizacije:
+          </p>
+          <table>
+            <thead><tr><th>Placeholder</th><th>Polje u podešavanjima</th></tr></thead>
+            <tbody>
+              <tr><td><code>{{seller.legalName}}</code></td><td>Pravni naziv firme</td></tr>
+              <tr><td><code>{{seller.taxId}}</code></td><td>PIB</td></tr>
+              <tr><td><code>{{seller.companyId}}</code></td><td>Matični broj</td></tr>
+              <tr><td><code>{{seller.address}}</code></td><td>Adresa sedišta</td></tr>
+              <tr><td><code>{{seller.iban}}</code></td><td>Podrazumevani IBAN</td></tr>
+              <tr><td><code>{{seller.logoUrl}}</code></td><td>Logo (u PDF zaglavlju)</td></tr>
+              <tr><td><code>{{seller.brandColor}}</code></td><td>Boja brenda</td></tr>
+            </tbody>
+          </table>
+
+          <div class="callout success">
+            <strong>Provera</strong>
+            Posle snimanja otvorite share link jedinice ili generišite test predugovor —
+            logo i boja treba da se vide odmah na javnoj stranici.
+          </div>
+          <div class="callout warn">
+            <strong>Pažnja</strong>
+            Promena IBAN-a važi od trenutka snimanja za nove fakture i IPS QR kodove.
+            Stari potpisani ugovori zadržavaju IBAN koji je bio aktivan u momentu generisanja.
+          </div>
+
+          <h3>Šta ako…</h3>
+          <p>
+            Logo izgleda isečeno u PDF-u? Otpremite verziju sa dovoljno margine oko
+            grafike (min. 200×200 px) i proverite da nije previše širok — PDF koristi
+            fiksnu visinu zaglavlja.
+          </p>
+        </article>
+
+        <!-- 28 -->
+        <article
+          class="article"
+          id="uloge-dozvole"
+          data-audience="investitor"
+          data-tags="uloge dozvole rbac owner admin sales manager agent finance marketing read-only agencija promena uloge"
+        >
+          <div class="meta">
+            <span class="chip brand">Podešavanja</span>
+            <span class="chip">Investitor</span>
+            <span class="chip">~ 5 min</span>
+          </div>
+          <h2>Uloge i dozvole (RBAC)</h2>
+          <p class="path">Putanja: <code>/podesavanja/tim</code> · <code>/podesavanja/clanovi</code></p>
+          <p>
+            Svaki član tima ima ulogu koja određuje šta vidi u meniju i koje akcije
+            sme da pokrene. Uloge se menjaju bez ponovne pozivnice.
+          </p>
+
+          <h3>Sve uloge — pregled</h3>
+          <table>
+            <thead><tr><th>Uloga</th><th>Šta vidi</th><th>Šta sme</th></tr></thead>
+            <tbody>
+              <tr>
+                <td><strong>Owner</strong></td>
+                <td>Sve u organizaciji</td>
+                <td>Sve, uključujući pretplatu, brisanje tenanta, kritične finansije</td>
+              </tr>
+              <tr>
+                <td><strong>Admin</strong></td>
+                <td>Sve</td>
+                <td>Operativa osim otkazivanja pretplate i brisanja organizacije</td>
+              </tr>
+              <tr>
+                <td><strong>Sales Manager</strong></td>
+                <td>Zalihe, prodaje, kupci tima</td>
+                <td>Rezervacije, prodaje, dodela zadataka prodajnom timu</td>
+              </tr>
+              <tr>
+                <td><strong>Sales Agent</strong></td>
+                <td>Sopstveni kupci i prodaje</td>
+                <td>Unos kupaca, rezervacije, praćenje ugovora, komentari</td>
+              </tr>
+              <tr>
+                <td><strong>Finance</strong></td>
+                <td>Uplate, planovi, izveštaji</td>
+                <td>Evidentiranje uplata, storno, bankarski izvod, finansijski izveštaji</td>
+              </tr>
+              <tr>
+                <td><strong>Marketing</strong></td>
+                <td>Projekti, javna ponuda, foto</td>
+                <td>Share linkovi, microsite, galerije — bez finansija i ugovora</td>
+              </tr>
+              <tr>
+                <td><strong>Read-only</strong></td>
+                <td>Sve (samo čitanje)</td>
+                <td>Nema izmena — idealno za računovođu ili spoljnog savetnika</td>
+              </tr>
+              <tr>
+                <td><strong>Agency Owner</strong></td>
+                <td>Portal agencije, konekcije</td>
+                <td>Sve u tenantu agencije, agenti, referral kod</td>
+              </tr>
+              <tr>
+                <td><strong>Agency Agent</strong></td>
+                <td>Ponuda, sopstveni kupci</td>
+                <td>Registracija kupaca, rezervacije, praćenje provizija</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h3>Kako promeniti ulogu člana</h3>
+          <ol class="steps">
+            <li>
+              <strong>Otvorite listu članova</strong>
+              Podešavanja → Tim / Članovi (<code>/podesavanja/tim</code>).
+            </li>
+            <li>
+              <strong>Kliknite na člana</strong>
+              Otvara se panel sa trenutnom ulogom i datumom priključenja.
+            </li>
+            <li>
+              <strong>Izaberite novu ulogu</strong>
+              Padajući meni sa svim dostupnim ulogama za investitorski tenant.
+            </li>
+            <li>
+              <strong>Sačuvajte</strong>
+              Promena važi odmah — član mora da osveži stranicu da vidi novi meni.
+            </li>
+          </ol>
+
+          <div class="callout">
+            <strong>Kada koristiti Read-only</strong>
+            Dodelite računovođi ili revizoru ulogu Read-only: vidi sve prodaje, uplate
+            i izveštaje, ali ne može slučajno da promeni cenu, obriše kupca ili stornira uplatu.
+          </div>
+          <div class="callout warn">
+            <strong>Pažnja</strong>
+            Samo Owner i Admin mogu menjati uloge drugih članova. Sales Manager ne može
+            da promoviše kolegu u Admin — to sprečava eskalaciju privilegija.
+          </div>
+
+          <h3>Šta ako…</h3>
+          <p>
+            Kolega „ne vidi dugme“ koje vi vidite? Proverite njegovu ulogu na listi članova
+            i da li je u istoj organizaciji (prekidač tenanta u gornjoj traci).
+          </p>
+        </article>
+
+        <!-- 29 -->
+        <article
+          class="article"
+          id="pretplata"
+          data-audience="investitor"
+          data-tags="pretplata plan upgrade downgrade faktura ips qr otkazivanje grace period izvoz podataka saas"
+        >
+          <div class="meta">
+            <span class="chip brand">Podešavanja</span>
+            <span class="chip">Investitor</span>
+            <span class="chip">~ 4 min</span>
+          </div>
+          <h2>Pretplata, plan i otkazivanje</h2>
+          <p class="path">Putanja: <code>/podesavanja/pretplata</code></p>
+          <p>
+            PropertyDesk se naplaćuje mesečno po planu. Ovde pratite trenutni paket,
+            istoriju faktura i možete otkazati pretplatu jednim klikom.
+          </p>
+
+          <h3>Kako se koristi</h3>
+          <ol class="steps">
+            <li>
+              <strong>Otvorite stranicu pretplate</strong>
+              Sidebar → Podešavanja → Pretplata (<code>/podesavanja/pretplata</code>).
+              Vidite trenutni plan, cenu i datum sledeće naplate.
+            </li>
+            <li>
+              <strong>Upgrade ili downgrade</strong>
+              Kliknite <em>Promeni plan</em>, izaberite novi paket i potvrdite.
+              Upgrade važi odmah (razlika se proporcionalno obračunava).
+              Downgrade stupa na snagu od sledećeg ciklusa.
+            </li>
+            <li>
+              <strong>Pregledajte istoriju faktura</strong>
+              Lista svih SaaS faktura sa statusom plaćanja. Svaku možete preuzeti kao PDF.
+            </li>
+            <li>
+              <strong>Platite fakturu preko IPS QR</strong>
+              Na fakturi u PDF-u i na ekranu nalazi se IPS QR kod — skenirajte u mobilnoj
+              banci. Poziv na broj i iznos su već popunjeni.
+            </li>
+            <li>
+              <strong>Otkazivanje (jedan klik)</strong>
+              Dugme <em>Otkaži pretplatu</em> — potvrda u dijalogu. Pretplata ostaje
+              aktivna do kraja plaćenog perioda, zatim ulazi u grace režim.
+            </li>
+          </ol>
+
+          <div class="callout success">
+            <strong>Grace period — 30 dana</strong>
+            Posle otkazivanja imate 30 dana da izvezete podatke (CSV/XLSX iz modula
+            izveštaja) pre nego što se pristup ograniči. Javna lica projekata se gasе
+            tek u statusu SUSPENDED.
+          </div>
+          <div class="callout warn">
+            <strong>Pažnja</strong>
+            Ako faktura pređe u status PAST_DUE, neke akcije (npr. kreiranje novih
+            projekata) mogu biti privremeno onemogućene dok se ne izvrši uplata.
+          </div>
+
+          <h3>Šta ako…</h3>
+          <p>
+            Platili ste fakturu a status se nije promenio? Sačekajte do 24 sata za
+            automatsko uparivanje, ili pošaljite potvrdu uplate na
+            <a href="mailto:support@propertydesk.app">support@propertydesk.app</a>
+            sa brojem fakture.
+          </p>
+        </article>
+
+        <!-- 30 -->
+        <article
+          class="article"
+          id="notifikacije-pod"
+          data-audience="zajednicko"
+          data-tags="notifikacije zvono email kategorije radno vreme pročitano in-app obaveštenja"
+        >
+          <div class="meta">
+            <span class="chip brand">Podešavanja</span>
+            <span class="chip">Zajedničko</span>
+            <span class="chip">~ 3 min</span>
+          </div>
+          <h2>Notifikacije — zvono i email</h2>
+          <p class="path">Putanja: <code>/podesavanja/notifikacije</code></p>
+          <p>
+            Kontrolišite koje događaje pratite u aplikaciji (zvono) i šta stiže na email.
+            Možete isključiti obaveštenja van radnog vremena.
+          </p>
+
+          <h3>Kako se koristi</h3>
+          <ol class="steps">
+            <li>
+              <strong>Otvorite podešavanja notifikacija</strong>
+              Kliknite avatar u headeru → Notifikacije, ili
+              <code>/podesavanja/notifikacije</code>.
+            </li>
+            <li>
+              <strong>Uključite ili isključite kategorije</strong>
+              Rezervacije, prodaje, uplate, zadaci, @mentions, agencijski zahtevi —
+              svaka kategorija ima prekidač za in-app i email posebno.
+            </li>
+            <li>
+              <strong>Radno vreme (07–19)</strong>
+              Opcija <em>Ne šalji van radnog vremena</em> odlaže email notifikacije
+              do sledećeg radnog dana u intervalu 07:00–19:00. In-app zvono i dalje
+              prikazuje sve odmah.
+            </li>
+            <li>
+              <strong>Pregled in-app notifikacija</strong>
+              Ikona zvona u headeru otvara panel sa poslednjim događajima.
+              Klik na stavku vodi na entitet (rezervacija, prodaja, kupac…).
+            </li>
+            <li>
+              <strong>Označite sve kao pročitano</strong>
+              U panelu zvona kliknite <em>Označi sve kao pročitano</em> da obrišete
+              crveni badge broja nepročitanih.
+            </li>
+          </ol>
+
+          <div class="callout">
+            <strong>Email adresa pošiljaoca</strong>
+            Transakcioni emailovi (potvrde rezervacija, pozivnice timu) stižu sa
+            <code>noreply@propertydesk.app</code>. Dodajte domen u whitelist vašeg
+            mail provajdera da ne završe u spamu.
+          </div>
+          <div class="callout warn">
+            <strong>Pažnja</strong>
+            Isključivanje kategorije „Uplate“ ne utiče na finansijski modul — samo
+            prestajete da dobijate podsetnike. Rate i dalje dospevaju po planu.
+          </div>
+
+          <h3>Šta ako…</h3>
+          <p>
+            Ne dobijate email a in-app radi? Proverite spam folder i da li je email
+            kategorija uključena u podešavanjima. Za @mentions mora biti uključena
+            i kategorija „Komentari“.
+          </p>
+        </article>
+
+        <!-- 31 -->
+        <article
+          class="article"
+          id="storno"
+          data-audience="investitor"
+          data-tags="storno uplata negativna alokacija razlog greška suma knjiga ispravka"
+        >
+          <div class="meta">
+            <span class="chip brand">Prodaje</span>
+            <span class="chip">Investitor</span>
+            <span class="chip">~ 3 min</span>
+          </div>
+          <h2>Storniranje uplate</h2>
+          <p class="path">Putanja: <code>/prodaje/{id}</code> → Uplate · <code>/uplate/{id}</code></p>
+          <p>
+            Kada ste pogrešno uneli uplatu — pogrešan iznos, dupli unos ili uplata
+            na pogrešnu prodaju — koristite storno umesto brisanja. Original ostaje
+            u knjizi radi audita.
+          </p>
+
+          <h3>Kako se koristi</h3>
+          <ol class="steps">
+            <li>
+              <strong>Pronađite uplatu</strong>
+              Na prodaji (<code>/prodaje/{id}</code>) u sekciji Uplate, ili globalno
+              na <code>/uplate</code>.
+            </li>
+            <li>
+              <strong>Kliknite Storniraj</strong>
+              Dugme je dostupno ulogama Finance i Admin/Owner. Otvara se forma sa
+              obaveznim poljem razloga.
+            </li>
+            <li>
+              <strong>Unesite razlog</strong>
+              Npr. „Dupli unos“, „Pogrešan iznos — trebalo 5.000 EUR“, „Uplata
+              pripada drugoj prodaji“. Razlog se čuva u audit logu.
+            </li>
+            <li>
+              <strong>Potvrdite storno</strong>
+              Sistem kreira uparenu negativnu alokaciju istog iznosa. U knjizi vidite
+              original + storno — neto efekat je nula. Rate se vraćaju u prethodno stanje.
+            </li>
+          </ol>
+
+          <div class="callout warn">
+            <strong>Pažnja</strong>
+            Storno se ne briše — ireverzibilna je knjižna stavka. Ako ste stornirali
+            pogrešnu uplatu, stornirajte i tu grešku pa unesite ispravnu uplatu iznova.
+          </div>
+          <div class="callout success">
+            <strong>Pogrešna suma?</strong>
+            Ne menjajte iznos postojeće uplate — stornirajte je i evidentirajte novu
+            sa tačnim iznosom. Tako audit trail ostaje čist za reviziju.
+          </div>
+
+          <h3>Šta ako…</h3>
+          <p>
+            Posle storna prodaja i dalje pokazuje status „Završena“ a rate nisu plaćene?
+            Sistem automatski vraća prodaju u aktivni status ako storno poništava poslednju
+            uplatu koja je zatvorila saldo.
+          </p>
+        </article>
+
+        <!-- 32 -->
+        <article
+          class="article"
+          id="komisije-pravila"
+          data-audience="investitor"
+          data-tags="provizija pravilo precedencija procenat fiksni iznos snapshot ugovor agencija unit project connection"
+        >
+          <div class="meta">
+            <span class="chip brand">Prodaje</span>
+            <span class="chip">Investitor</span>
+            <span class="chip">~ 4 min</span>
+          </div>
+          <h2>Provizijska pravila — kako da postavim</h2>
+          <p class="path">
+            Putanja: <code>/podesavanja/provizije</code> ·
+            Projekt: <code>/projekti/{id}/izmena</code> → Provizije
+          </p>
+          <p>
+            Definišite koliko agencija zarađuje po prodaji. Pravilo se bira automatski
+            po hijerarhiji precedencije i snapshot-uje u momentu potpisivanja ugovora.
+          </p>
+
+          <h3>Precedencija (od najspecifičnijeg ka opštem)</h3>
+          <ol class="steps">
+            <li>
+              <strong>Jedinica + agencija</strong>
+              Pravilo vezano za konkretan stan i konkretnu agenciju — najviši prioritet.
+            </li>
+            <li>
+              <strong>Projekat + agencija</strong>
+              Važi za sve jedinice projekta kod te agencije.
+            </li>
+            <li>
+              <strong>Podrazumevano na konekciji</strong>
+              Opšte pravilo za celu saradnju investitor–agencija.
+            </li>
+            <li>
+              <strong>Podrazumevano na projektu</strong>
+              Fallback ako nijedno specifičnije pravilo ne postoji.
+            </li>
+          </ol>
+
+          <h3>Postavljanje pravila</h3>
+          <ol class="steps">
+            <li>
+              <strong>Otvorite podešavanja provizija</strong>
+              <code>/podesavanja/provizije</code> ili na nivou projekta u tabu Provizije.
+            </li>
+            <li>
+              <strong>Izaberite tip iznosa</strong>
+              <strong>Procenat</strong> od konačne cene prodaje (npr. 3%) ili
+              <strong>fiksni iznos</strong> u valuti prodaje (npr. 2.000 EUR).
+            </li>
+            <li>
+              <strong>Definišite obim</strong>
+              Da li važi za celu konekciju, projekat ili samo jednu jedinicu.
+            </li>
+            <li>
+              <strong>Sačuvajte</strong>
+              Novo pravilo važi samo za buduće prodaje. Već potpisani ugovori zadržavaju
+              snapshot provizije iz momenta kreiranja prodaje.
+            </li>
+          </ol>
+
+          <h3>Praktičan primer</h3>
+          <p>
+            Agencija „Dom Nekretnine“ ima podrazumevano 2% na konekciji. Za projekat
+            „Sunčani breg“ dogovorili ste 2,5% — postavite project+agency pravilo.
+            Za penthaus A-12-01 dali ste posebnih 4% — postavite unit+agency. Kad se
+            proda A-12-01, sistem uzima 4%; za ostale stanove u Sunčanom bregu 2,5%;
+            za druge projekte te agencije 2%.
+          </p>
+
+          <div class="callout warn">
+            <strong>Pažnja</strong>
+            Kasnija promena pravila ne menja proviziju na već kreiranim prodajama —
+            to je namerno radi sporazuma sa agencijom. Za korekciju postojeće provizije
+            koristite ručno odobrenje u modulu provizija.
+          </div>
+          <div class="callout success">
+            <strong>Provera</strong>
+            Pre potpisivanja ugovora otvorite karticu Provizija na prodaji — vidite
+            koje je pravilo primenjeno i izračunati iznos pre finalizacije.
+          </div>
+
+          <h3>Šta ako…</h3>
+          <p>
+            Dve agencije imaju različita pravila za isti projekat? To je u redu —
+            precedencija se računa po konekciji. Svaka agencija dobija svoje pravilo
+            nezavisno od druge.
+          </p>
+        </article>
+
+        <!-- 33 -->
+        <article
+          class="article"
+          id="bankarski-izvod"
+          data-audience="investitor"
+          data-tags="bankarski izvod uvoz csv xlsx matcher referenca iban datum kupac ručno povezivanje"
+        >
+          <div class="meta">
+            <span class="chip brand">Prodaje</span>
+            <span class="chip">Investitor</span>
+            <span class="chip">~ 5 min</span>
+          </div>
+          <h2>Uvoz bankarskog izvoda</h2>
+          <p class="path">Putanja: <code>/finansije/bankarski-izvod</code></p>
+          <p>
+            Umesto ručnog unosa svake uplate, otpremite CSV ili XLSX izvod iz banke.
+            Sistem pokušava automatski da poveže stavke sa prodajama i planovima otplate.
+          </p>
+
+          <h3>Kako se koristi</h3>
+          <ol class="steps">
+            <li>
+              <strong>Preuzmite izvod iz banke</strong>
+              U e-banking aplikaciji izvezite izvod u CSV ili XLSX formatu za period
+              koji želite da uskladite.
+            </li>
+            <li>
+              <strong>Otpremite fajl</strong>
+              Finansije → Uvoz bankarskog izvoda (<code>/finansije/bankarski-izvod</code>).
+              Povucite fajl ili izaberite sa diska.
+            </li>
+            <li>
+              <strong>Mapirajte kolone</strong>
+              Povežite kolone izvoda sa poljima: datum, iznos, referenca/poziv na broj,
+              IBAN pošiljaoca, ime platioca. Sistem pamti mapiranje za sledeći uvoz.
+            </li>
+            <li>
+              <strong>Pregledajte automatsko uparivanje</strong>
+              Matcher koristi 5 signala: iznos, referenca/poziv na broj, IBAN,
+              blizak datum (±3 dana od dospeća rate) i ime kupca. Visoka pouzdanost
+              = zelena; srednja = žuta (proverite); niska = crvena (ručno).
+            </li>
+            <li>
+              <strong>Ručno prevežite neuparene stavke</strong>
+              Za crvene stavke kliknite <em>Poveži</em>, izaberite prodaju i ratu.
+              Možete kreirati uplatu i bez povezivanja — ostaje kao neraspoređena.
+            </li>
+            <li>
+              <strong>Potvrdite uvoz</strong>
+              Sistem kreira uplate i alocira ih po FIFO pravilu na odabrane rate.
+            </li>
+          </ol>
+
+          <div class="callout success">
+            <strong>Savet</strong>
+            Kupci neka u opis uplate stavljaju poziv na broj sa prodaje — to drastično
+            poboljšava automatsko uparivanje i smanjuje ručni rad finansija.
+          </div>
+          <div class="callout warn">
+            <strong>Pažnja</strong>
+            Dupla stavka na izvodu (ista referenca i iznos) neće biti uvezena dva puta —
+            sistem upozorava na mogući duplikat pre potvrde.
+          </div>
+
+          <h3>Šta ako…</h3>
+          <p>
+            Matcher nije pogodio a uplata je očigledno ispravna? Ručno prevežite stavku
+            na prodaju — sledeći put će sistem pametnije predložiti slične stavke od
+            istog kupca (učenje po IBAN-u i imenu).
+          </p>
+        </article>
+
+        <!-- 34 -->
+        <article
+          class="article"
+          id="fakture"
+          data-audience="investitor"
+          data-tags="saas faktura pretplata pdf ips qr payment due past due restricted suspended javno lice"
+        >
+          <div class="meta">
+            <span class="chip brand">Prodaje</span>
+            <span class="chip">Investitor</span>
+            <span class="chip">~ 3 min</span>
+          </div>
+          <h2>SaaS fakture (za investitore)</h2>
+          <p class="path">Putanja: <code>/podesavanja/pretplata</code> → Istorija faktura</p>
+          <p>
+            Ovo su fakture koje vi plaćate PropertyDesku za korišćenje platforme —
+            ne mešajte ih sa fakturama koje vi izdajete kupcima nekretnina.
+          </p>
+
+          <h3>Kako se koristi</h3>
+          <ol class="steps">
+            <li>
+              <strong>Otvorite istoriju faktura</strong>
+              Podešavanja → Pretplata → tab Fakture
+              (<code>/podesavanja/pretplata</code>).
+            </li>
+            <li>
+              <strong>Preuzmite PDF</strong>
+              Klik na fakturu → <em>Preuzmi PDF</em>. Faktura sadrži vaše podatke iz
+              podešavanja organizacije i IPS QR za plaćanje.
+            </li>
+            <li>
+              <strong>Platite preko IPS QR</strong>
+              Skenirajte QR kod sa ekrana ili iz PDF-a u mobilnoj banci. Iznos i
+              poziv na broj su unapred popunjeni.
+            </li>
+            <li>
+              <strong>Pratite status</strong>
+              Svaka faktura ima status plaćanja koji utiče na pristup platformi
+              (objašnjenje ispod).
+            </li>
+          </ol>
+
+          <h3>Statusi pretplate</h3>
+          <table>
+            <thead><tr><th>Status</th><th>Značenje</th></tr></thead>
+            <tbody>
+              <tr>
+                <td><code>PAYMENT_DUE</code></td>
+                <td>Faktura je izdata, rok plaćanja još nije istekao — sve radi normalno.</td>
+              </tr>
+              <tr>
+                <td><code>PAST_DUE</code></td>
+                <td>Rok plaćanja prošao — banner upozorenja, neke akcije mogu biti ograničene.</td>
+              </tr>
+              <tr>
+                <td><code>RESTRICTED</code></td>
+                <td>Duže kašnjenje — nema kreiranja novih projekata/jedinica, postojeći podaci su dostupni.</td>
+              </tr>
+              <tr>
+                <td><code>SUSPENDED</code></td>
+                <td>Pristup platformi obustavljen — javna lica projekata (share linkovi, microsite) su ugašena.</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="callout warn">
+            <strong>Pažnja</strong>
+            U statusu SUSPENDED kupci ne mogu pristupiti share linkovima niti slati
+            online zahteve za rezervaciju. Podaci ostaju sačuvani — nakon uplate
+            pristup se vraća automatski.
+          </div>
+          <div class="callout success">
+            <strong>Provera</strong>
+            Uverite se da je IBAN u podešavanjima organizacije tačan pre prvog plaćanja —
+            faktura koristi te podatke za identifikaciju uplate.
+          </div>
+
+          <h3>Šta ako…</h3>
+          <p>
+            Platili ste a status je i dalje PAST_DUE? Pošaljite potvrdu uplate na
+            support sa brojem fakture. Automatsko uparivanje može trajati do 24 sata.
+          </p>
+        </article>
+
+        <!-- 35 -->
+        <article
+          class="article"
+          id="zadaci"
+          data-audience="zajednicko"
+          data-tags="zadaci danas nadolazeći prekoračeni rezervacija rata ugovor dodela prioritet kupac prodaja"
+        >
+          <div class="meta">
+            <span class="chip brand">Tim i kupci</span>
+            <span class="chip">Zajedničko</span>
+            <span class="chip">~ 3 min</span>
+          </div>
+          <h2>Zadaci — Danas / Nadolazeći / Prekoračeni</h2>
+          <p class="path">Putanja: <code>/zadaci</code> · widget na <code>/dashboard</code></p>
+          <p>
+            Zadaci vam pomažu da ništa ne propustite — deo se kreira automatski iz
+            poslovnih događaja, deo ručno dodelite sebi ili kolegi.
+          </p>
+
+          <h3>Tri prikaza</h3>
+          <ul>
+            <li><strong>Danas</strong> — zadaci sa rokom danas ili ranije nezavršeni.</li>
+            <li><strong>Nadolazeći</strong> — rok u narednih 7 dana.</li>
+            <li><strong>Prekoračeni</strong> — rok prošao, status nije završen (crvena oznaka).</li>
+          </ul>
+
+          <h3>Auto-generisani zadaci</h3>
+          <ol class="steps">
+            <li>
+              <strong>Rezervacija ističe za 2 dana</strong>
+              Sistem kreira podsetnik da kontaktirate kupca ili produžite rezervaciju.
+            </li>
+            <li>
+              <strong>Rata dospela</strong>
+              Kad rata na planu otplate prođe datum dospeća bez uplate, zadatak ide
+              finansijama ili dodeljenom agentu prodaje.
+            </li>
+            <li>
+              <strong>Ugovor čeka potpisivanje</strong>
+              Prodaja u statusu „Ugovor generisan“ bez oznake potpisano — podsetnik
+              agentu da prati kupca.
+            </li>
+          </ol>
+
+          <h3>Ručno kreiranje i dodela</h3>
+          <ol class="steps">
+            <li>
+              <strong>Novi zadatak</strong>
+              <code>/zadaci</code> → <em>Novi zadatak</em> ili sa detalja kupca/prodaje.
+            </li>
+            <li>
+              <strong>Dodelite kolegi</strong>
+              Izaberite člana tima — dobija in-app notifikaciju i email (ako je uključen).
+            </li>
+            <li>
+              <strong>Postavite prioritet</strong>
+              Niska / srednja / visoka — utiče na sortiranje u listi Danas.
+            </li>
+            <li>
+              <strong>Povežite sa entitetom</strong>
+              Opciono vežite za kupca, prodaju ili rezervaciju — klik na zadatak otvara taj zapis.
+            </li>
+          </ol>
+
+          <div class="callout success">
+            <strong>Dashboard widget</strong>
+            Na kontrolnoj tabli vidite broj zadataka za danas — klik vodi direktno na
+            filtriranu listu bez pretrage.
+          </div>
+          <div class="callout warn">
+            <strong>Pažnja</strong>
+            Završavanje auto-generisanog zadatka ne rešava osnovni problem — npr.
+            zatvaranje „rata dospela“ bez uplate kreira novi zadatak sledećeg dana.
+          </div>
+
+          <h3>Šta ako…</h3>
+          <p>
+            Previše auto-zadataka za istu prodaju? Proverite da li je plan otplate
+            ažuran i da li su uplate pravilno alocirane — pogrešan plan generiše
+            lažne podsetnike za rate.
+          </p>
+        </article>
+
+        <!-- 36 -->
+        <article
+          class="article"
+          id="komentari-mentions"
+          data-audience="zajednicko"
+          data-tags="komentari mention @ pomenuti kolega autocomplete soft delete notifikacija kupac prodaja"
+        >
+          <div class="meta">
+            <span class="chip brand">Tim i kupci</span>
+            <span class="chip">Zajedničko</span>
+            <span class="chip">~ 3 min</span>
+          </div>
+          <h2>Komentari i @mentions</h2>
+          <p class="path">
+            Kupac: <code>/kupci/{id}</code> → Timeline ·
+            Prodaja: <code>/prodaje/{id}</code> → Komentari
+          </p>
+          <p>
+            Beležite internu komunikaciju uz kupca ili prodaju. Pomenite kolegu sa
+            <code>@</code> da odmah dobije obaveštenje — bez slanja emaila u CC svima.
+          </p>
+
+          <h3>Gde možete komentarisati</h3>
+          <ul>
+            <li><strong>Kupac</strong> — tab Timeline / Aktivnosti na <code>/kupci/{id}</code></li>
+            <li><strong>Prodaja</strong> — sekcija Komentari na <code>/prodaje/{id}</code></li>
+          </ul>
+
+          <h3>Kako se koristi</h3>
+          <ol class="steps">
+            <li>
+              <strong>Otvorite entitet</strong>
+              Kupac ili prodaja — skrolujte do polja za komentar na dnu timeline-a.
+            </li>
+            <li>
+              <strong>Napišite komentar</strong>
+              Tekst je vidljiv samo vašem timu — kupac i agencija ne vide ove napomene.
+            </li>
+            <li>
+              <strong>Pomenite kolegu</strong>
+              Ukucajte <code>@</code> pa počnite ime — autocomplete nudi članove tima.
+              Izaberite iz liste; pomenuti dobija in-app notifikaciju.
+            </li>
+            <li>
+              <strong>Pošaljite</strong>
+              Komentar se pojavljuje u timeline-u sa vašim imenom i vremenom.
+            </li>
+            <li>
+              <strong>Brisanje (soft-delete)</strong>
+              Autor ili Admin može obrisati komentar — ostaje trag „obrisano“ u audit-u,
+              ali se sadržaj više ne prikazuje.
+            </li>
+          </ol>
+
+          <div class="callout">
+            <strong>Razlika od internih napomena</strong>
+            Polje <code>internalNotes</code> na kupcu/jedinici je statičan tekst.
+            Komentari su hronološki thread sa @mentions i obaveštenjima.
+          </div>
+          <div class="callout warn">
+            <strong>Pažnja</strong>
+            @mention šalje notifikaciju samo pomenutoj osobi — ostatak tima ne dobija
+            email osim ako prate kategoriju „Komentari“ u podešavanjima notifikacija.
+          </div>
+
+          <h3>Šta ako…</h3>
+          <p>
+            Kolega nije dobio @mention? Proverite da li je ime tačno izabrano iz
+            autocomplete liste (ne samo ukucano ručno) i da li ima uključene in-app
+            notifikacije za kategoriju Komentari.
+          </p>
+        </article>
+
+        <!-- 37 -->
+        <article
+          class="article"
+          id="anonimizacija"
+          data-audience="investitor"
+          data-tags="gdpr anonimizacija brisanje kupac jmbg lična karta ime telefon email ireverzibilno statistika"
+        >
+          <div class="meta">
+            <span class="chip brand">Tim i kupci</span>
+            <span class="chip">Investitor</span>
+            <span class="chip">~ 3 min</span>
+          </div>
+          <h2>GDPR anonimizacija kupca</h2>
+          <p class="path">Putanja: <code>/kupci/{id}</code> → Akcije → Anonimizuj</p>
+          <p>
+            Kad kupac zatraži brisanje ličnih podataka, anonimizacija uklanja
+            identifikacione podatke ali zadržava poslovne zapise potrebne za
+            knjigovodstvo i statistiku.
+          </p>
+
+          <h3>Kako se koristi</h3>
+          <ol class="steps">
+            <li>
+              <strong>Otvorite karton kupca</strong>
+              <code>/kupci/{id}</code> — proverite da nema aktivnih rezervacija u toku.
+            </li>
+            <li>
+              <strong>Pokrenite anonimizaciju</strong>
+              Meni Akcije → <em>Anonimizuj kupca</em>. Dostupno Owner/Admin ulogama.
+            </li>
+            <li>
+              <strong>Potvrdite u dijalogu</strong>
+              Sistem prikazuje listu polja koja će biti obrisana. Unesite razlog
+              (npr. „Zahtev kupca putem emaila 12.08.2026.“).
+            </li>
+            <li>
+              <strong>Anonimizacija se izvršava</strong>
+              Polja se zamenjuju generičkim vrednostima — operacija je ireverzibilna.
+            </li>
+          </ol>
+
+          <h3>Šta se anonimizuje</h3>
+          <ul>
+            <li>Ime i prezime / naziv firme</li>
+            <li>Telefon i email</li>
+            <li>JMBG i broj lične karte</li>
+            <li>Adresa stanovanja</li>
+            <li>KYC skenovi (dokumenti se brišu iz skladišta)</li>
+          </ul>
+
+          <h3>Šta ostaje</h3>
+          <ul>
+            <li>Statistika prodaje (iznos, datum, jedinica) — bez ličnih podataka</li>
+            <li>PDF ugovor kao pravni dokaz — sa placeholderom umesto imena u nekim poljima</li>
+            <li>Istorija uplata i alokacija — finansijski audit</li>
+          </ul>
+
+          <div class="callout danger">
+            <strong>Ireverzibilno</strong>
+            Anonimizacija se ne može poništiti. Pre pokretanja arhivirajte PDF ugovor
+            lokalno ako vam treba kopija sa originalnim imenom.
+          </div>
+          <div class="callout warn">
+            <strong>Pažnja</strong>
+            Aktivna rezervacija ili neplaćena prodaja blokira anonimizaciju — prvo
+            zatvorite ili stornirajte poslovni odnos.
+          </div>
+
+          <h3>Šta ako…</h3>
+          <p>
+            Kupac traži brisanje ali ima potpisan ugovor? Objasnite da zakon dozvoljava
+            zadržavanje ugovornih podataka u anonimizovanom obliku; lični kontakt se
+            uklanja, poslovni trag ostaje za reviziju.
+          </p>
+        </article>
+
+        <!-- 38 -->
+        <article
+          class="article"
+          id="lozinka"
+          data-audience="zajednicko"
+          data-tags="lozinka zaboravljena reset promena sesija odjava sigurnost nalog više uređaja"
+        >
+          <div class="meta">
+            <span class="chip brand">Tim i kupci</span>
+            <span class="chip">Zajedničko</span>
+            <span class="chip">~ 3 min</span>
+          </div>
+          <h2>Zaboravljena lozinka i sigurnost naloga</h2>
+          <p class="path">
+            Prijava: <code>/sign-in</code> ·
+            Profil: <code>/podesavanja/profil</code>
+          </p>
+          <p>
+            Upravljajte pristupom nalogu — reset lozinke, promena lozinke i pregled
+            aktivnih sesija na više uređaja.
+          </p>
+
+          <h3>Zaboravljena lozinka</h3>
+          <ol class="steps">
+            <li>
+              <strong>Otvorite login stranicu</strong>
+              <code>/sign-in</code> → link <em>Zaboravljena lozinka</em>.
+            </li>
+            <li>
+              <strong>Unesite email</strong>
+              Na taj email stiže link za reset — važi 1 sat.
+            </li>
+            <li>
+              <strong>Postavite novu lozinku</strong>
+              Minimum 8 karaktera; preporučeno kombinovati slova, brojeve i simbol.
+            </li>
+            <li>
+              <strong>Prijavite se</strong>
+              Stari linkovi za reset prestaju da rade posle uspešne promene.
+            </li>
+          </ol>
+
+          <h3>Promena lozinke (ulogovani)</h3>
+          <ol class="steps">
+            <li>
+              <strong>Otvorite profil</strong>
+              Avatar → Profil ili <code>/podesavanja/profil</code>.
+            </li>
+            <li>
+              <strong>Unesite trenutnu i novu lozinku</strong>
+              Potvrda nove lozinke mora da se poklapa.
+            </li>
+            <li>
+              <strong>Sačuvajte</strong>
+              Ostale sesije ostaju aktivne — odjavite ih ručno ako je potrebno.
+            </li>
+          </ol>
+
+          <h3>Sesije na više uređaja</h3>
+          <ol class="steps">
+            <li>
+              <strong>Pregled aktivnih sesija</strong>
+              Profil → sekcija Sigurnost — lista uređaja sa vremenom poslednje aktivnosti.
+            </li>
+            <li>
+              <strong>Odjavite pojedinačnu sesiju</strong>
+              Klik na <em>Odjavi</em> pored uređaja koji ne prepoznajete.
+            </li>
+            <li>
+              <strong>Odjavite sve sesije</strong>
+              Dugme <em>Odjavi svuda</em> — koristite ako sumnjate na neovlašćen pristup.
+              Morate se ponovo prijaviti na trenutnom uređaju.
+            </li>
+          </ol>
+
+          <div class="callout warn">
+            <strong>Pažnja</strong>
+            Link za reset ne stiže? Proverite spam i da li ste uneli email sa kojim
+            ste registrovani. Magic-link prijava ne zahteva lozinku — ali reset i dalje
+            postavlja lozinku za klasičan login.
+          </div>
+          <div class="callout success">
+            <strong>Preporuka</strong>
+            Ne delite nalog — svaki član tima treba sopstvenu pozivnicu sa odgovarajućom
+            ulogom. Deljeni login krši audit trag i RBAC.
+          </div>
+
+          <h3>Šta ako…</h3>
+          <p>
+            Posle „Odjavi svuda“ i dalje vidite staru sesiju u listi? Osvežite stranicu —
+            sesija se uklanja sa servera odmah, prikaz liste može kasniti sekundu.
+          </p>
+        </article>
+
+        <!-- 39 -->
+        <article
+          class="article"
+          id="sta-vidi-kupac"
+          data-audience="zajednicko"
+          data-tags="share link kupac vidi logo brend foto floor plan cena ips qr interne napomene provizija"
+        >
+          <div class="meta">
+            <span class="chip brand">Deljenje</span>
+            <span class="chip">Zajedničko</span>
+            <span class="chip">~ 3 min</span>
+          </div>
+          <h2>Šta kupac vidi na share linku</h2>
+          <p class="path">Putanja kupca: <code>/p/[token]</code></p>
+          <p>
+            Share link je namerno ograničen prikaz — kupac vidi ono što mu pomaže
+            da odluči o kupovini, bez internih poslovnih podataka vašeg tima.
+          </p>
+
+          <h3>Šta kupac vidi</h3>
+          <ul>
+            <li><strong>Brend vaše firme</strong> — logo, boja brenda, kontakt telefon i email iz podešavanja organizacije</li>
+            <li><strong>Opis jedinice</strong> — tip, površina, sprat, broj soba, javni opis</li>
+            <li><strong>Foto galerija</strong> — sve slike koje ste postavili na jedinici/projektu</li>
+            <li><strong>Floor plan</strong> — interaktivna osnova sprata ako postoji</li>
+            <li><strong>Cena</strong> — samo ako niste uključili opciju „Sakrij cenu“ pri kreiranju linka</li>
+            <li><strong>IPS QR za kaparu</strong> — opciono, ako ste omogućili online rezervaciju</li>
+          </ul>
+
+          <h3>Šta kupac ne vidi</h3>
+          <ul>
+            <li>Interne napomene (<code>internalNotes</code>) na jedinici ili kupcu</li>
+            <li>Provizije, marže i finansijske detalje prodaje</li>
+            <li>Podatke drugih kupaca, rezervacija ili pregovora</li>
+            <li>KYC dokumente i internu komunikaciju tima</li>
+            <li>Status u kanban tabli ili dodeljenog agenta</li>
+          </ul>
+
+          <h3>Kako podesiti prikaz</h3>
+          <ol class="steps">
+            <li>
+              <strong>Kreirajte share link</strong>
+              <code>/jedinice/{id}</code> → <em>Podeli sa kupcem</em>.
+            </li>
+            <li>
+              <strong>Uključite/isključite cenu</strong>
+              Prekidač „Prikaži cenu“ — korisno dok pregovori traju.
+            </li>
+            <li>
+              <strong>Omogućite online rezervaciju</strong>
+              Kupac vidi formu i IPS QR posle slanja zahteva.
+            </li>
+            <li>
+              <strong>Proverite kao kupac</strong>
+              Otvorite link u privatnom prozoru pregledača — to je tačan prikaz.
+            </li>
+          </ol>
+
+          <div class="callout success">
+            <strong>Brend</strong>
+            Logo i boja dolaze iz <a href="#podesavanja-org">Podešavanja organizacije</a> —
+            ažurirajte ih pre slanja linka važnom kupcu.
+          </div>
+          <div class="callout warn">
+            <strong>Pažnja</strong>
+            Agencija na svom portalu može videti drugačiji skup polja (npr. bez cene
+            ako je <code>canViewPrices</code> isključen) — to ne utiče na share link za kupca.
+          </div>
+
+          <h3>Šta ako…</h3>
+          <p>
+            Kupac kaže da ne vidi floor plan? Proverite da li je osnova sprata otpremljena
+            (vidi <a href="#floorplan">Floor plan</a>) i da li je jedinica povezana sa poligonom.
+          </p>
+        </article>
+
+        <!-- 40 -->
+        <article
+          class="article"
+          id="email-kupcu"
+          data-audience="zajednicko"
+          data-tags="email kupac potvrda online rezervacija kapara ips qr png prodaja ugovor ponovo pošalji"
+        >
+          <div class="meta">
+            <span class="chip brand">Deljenje</span>
+            <span class="chip">Zajedničko</span>
+            <span class="chip">~ 3 min</span>
+          </div>
+          <h2>Email potvrde za kupca</h2>
+          <p>
+            PropertyDesk automatski šalje email kupcu u ključnim trenucima —
+            transakcioni mailovi sa vašim brendom, bez ručnog slanja iz Outlook-a.
+          </p>
+
+          <h3>Posle online rezervacije</h3>
+          <ol class="steps">
+            <li>
+              <strong>Kupac pošalje zahtev</strong>
+              Sa share linka (<code>/p/[token]</code>) popuni formu i klikne Rezerviši.
+            </li>
+            <li>
+              <strong>Email odmah stiže</strong>
+              Sadržaj: naziv/šifra jedinice, iznos kapare, uputstvo za uplatu,
+              <strong>IPS QR PNG u prilogu</strong> (i inline u telu maila).
+            </li>
+            <li>
+              <strong>Rok 48 sati</strong>
+              Email naglašava da je rok za uplatu kapare 48h — posle isteka zahtev
+              automatski expira.
+            </li>
+          </ol>
+
+          <h3>Posle konverzije u prodaju</h3>
+          <p>
+            Kad investitor potvrdi zahtev u <code>/rezervacije/zahtevi</code>, kupac
+            dobija email potvrde rezervacije sa kontaktom vaše firme i sledećim koracima
+            (KYC, ugovor).
+          </p>
+
+          <h3>Posle generisanja ugovora</h3>
+          <p>
+            Ako je uključeno slanje iz modula prodaje, kupac dobija obaveštenje da je
+            ugovor spreman — sa linkom za preuzimanje PDF-a ili uputstvom da vas kontaktira
+            za potpisivanje (zavisi od vašeg procesa).
+          </p>
+
+          <h3>Ponovno slanje</h3>
+          <ol class="steps">
+            <li>
+              <strong>Otvorite zahtev</strong>
+              <code>/rezervacije/zahtevi</code> → detalj PENDING ili CONFIRMED zahteva.
+            </li>
+            <li>
+              <strong>Kliknite Pošalji ponovo</strong>
+              Ponavlja isti email sa IPS QR — korisno ako je kupac izgubio poruku.
+            </li>
+          </ol>
+
+          <div class="callout warn">
+            <strong>Pažnja</strong>
+            Emailovi idu sa <code>noreply@propertydesk.app</code>. Ako kupac ne vidi
+            poruku, proverite spam i da li je email adresa tačno uneta u formi (bez
+            greške u domenu).
+          </div>
+          <div class="callout success">
+            <strong>Provera</strong>
+            Pošaljite test share link sebi, popunite formu sa svojim emailom i proverite
+            da QR u prilogu radi u vašoj banci pre nego što kampanju pustite u live.
+          </div>
+
+          <h3>Šta ako…</h3>
+          <p>
+            Email stiže ali QR ne radi u banci? Proverite da je IBAN u podešavanjima
+            organizacije tačan — QR se generiše iz tih podataka u momentu slanja.
+          </p>
+        </article>
+
+        <!-- 41 -->
+        <article
+          class="article"
+          id="faq"
+          data-audience="zajednicko"
+          data-tags="faq pitanja greške help tipovi null notes jedinica ips kyc floor plan"
+        >
+          <div class="meta">
+            <span class="chip brand">FAQ</span>
+            <span class="chip">Zajedničko</span>
+          </div>
+          <h2>Često postavljana pitanja</h2>
+
+          <h3>1. Gde je IPS QR za kaparu?</h3>
+          <p>
+            Na javnoj stranici posle submit-a online rezervacije i u emailu kupcu.
+            Investitor isti PNG / poziv na broj vidi u
+            <code>/rezervacije/zahtevi</code>. PropertyDesk ne skida novac
+            automatski — potvrđujete uplatu sa izvoda pa klikćete Potvrdi.
+          </p>
+
+          <h3>2. Zašto ne mogu da generišem ugovor?</h3>
+          <p>
+            Najčešće <code>KYC_INCOMPLETE</code> za kind <code>CONTRACT</code>.
+            Otvorite kupca → KYC. Predugovor može proći ranije.
+          </p>
+
+          <h3>3. „Ovaj sprat još nema učitanu osnovu“ — šta tačno?</h3>
+          <p>
+            Idite na <code>/spratovi/{id}</code> → <em>Otpremi osnovu</em>
+            (PNG/JPG/WebP/SVG). Detalj: <a href="#floorplan">Floor plan</a>.
+          </p>
+
+          <h3>4. Kako da opozovem share link?</h3>
+          <p>
+            Opoziv tokena je trenutan. Referral cookie na uređaju kupca može
+            ostati do 90 dana, ali bez validnog share tokena ne može da rezerviše.
+          </p>
+
+          <h3>5. Zašto agencija ne vidi cenu ili napomenu?</h3>
+          <p>
+            Cene kontrolišu flagovi konekcije (<code>canViewPrices</code>).
+            <code>internalNotes</code> i KYC dokumenti nikad ne idu u agencijski DTO.
+          </p>
+
+          <h3>6. Izmena jedinice „obriše“ napomenu / polja postanu prazna?</h3>
+          <p>
+            Na formama izmene <strong>prazno polje briše vrednost</strong>
+            (šalje se <code>null</code>) — isto za projekat i jedinicu
+            (<code>internalNotes</code>, orijentacija, opcione brojeve).
+            Ako želite da zadržite staru napomenu, ne brišite tekst pre snimanja.
+            Tipovi (enum <code>type</code>, brojevi površina) moraju ostati
+            validni; opciona polja namerno idu u <code>null</code>, ne u prazan string.
+          </p>
+
+          <h3>7. Dva agenta rezervišu isti stan u isto vreme?</h3>
+          <p>
+            Drugi dobija konflikt. Aktivna rezervacija je jedinstvena po jedinici
+            na nivou baze.
+          </p>
+
+          <h3>8. Online zahtev stoji na PENDING iako je kupac platio?</h3>
+          <p>
+            Potvrda je ručna u <code>/rezervacije/zahtevi</code> nakon provere
+            izvoda. QR samo olakšava uplatu.
+          </p>
+
+          <h3>9. Uvoz Excel-a javlja greške po redu?</h3>
+          <p>
+            Ispravite mapiranje i enum vrednosti tipa/statusa. Isti
+            <code>code</code> ažurira postojeću jedinicu — ne kreira duplikat.
+          </p>
+
+          <h3>10. Kalendar / dashboard su prazni posle demoa?</h3>
+          <p>
+            Proverite aktivnu organizaciju u headeru. Seed podaci žive u demo
+            tenantu — drugi tenant kreće od nule.
+          </p>
+
+          <h3>11. Zašto se WhatsApp dugme ne otvara?</h3>
+          <p>
+            Telefon mora biti normalizovan u cifre za <code>wa.me</code>
+            (+381…). Viber koristi <code>viber://</code> — na desktopu treba
+            instaliran klijent.
+          </p>
+
+          <h3>12. Ko može da menja uloge i planove?</h3>
+          <p>
+            Uloge članova: owner/admin u podešavanjima tima. Platformski role
+            editor i SaaS planovi su za super-admin konzolu.
+          </p>
+
+          <h3>13. Kako da izgleda naš logo na PDF ugovoru?</h3>
+          <p>
+            Idite na <a href="#podesavanja-org">Podešavanja organizacije</a>
+            (<code>/podesavanja/organizacija</code>) → otpremite logo (PNG/SVG,
+            preporučeno min. 200×200 px) i izaberite boju brenda. Logo se ubacuje
+            u PDF preko placeholdera <code>{{seller.logoUrl}}</code> pri generisanju
+            ugovora. Regenerišite ugovor posle promene loga da vidite novi izgled.
+          </p>
+
+          <h3>14. Zašto agencija ne vidi cenu na jedinici?</h3>
+          <p>
+            Dva najčešća razloga: (1) cene su sakrivene na share link-u — to ne utiče
+            na agencijski portal, ali proverite flag <code>canViewPrices</code> na
+            konekciji; (2) polje <code>basePrice</code> je interno — agencija vidi
+            <code>listPrice</code> / javnu cenu samo ako joj je dodeljen pristup
+            cenama. Detalj: <a href="#cene">Cene i statusi</a>.
+          </p>
+
+          <h3>15. Kupac ne dobija email za online rezervaciju.</h3>
+          <p>
+            Proverite spam folder i da li je <code>noreply@propertydesk.app</code>
+            na whitelist-u mail servera kupca. Proverite tačnost email adrese u zahtevu
+            na <code>/rezervacije/zahtevi</code>. Koristite dugme <em>Pošalji ponovo</em>
+            u detaljima zahteva. Detalj: <a href="#email-kupcu">Email potvrde za kupca</a>.
+          </p>
+
+          <h3>16. Kako da vidim ko je menjao cenu jedinice?</h3>
+          <p>
+            Na kartici jedinice otvorite <strong>Istorija cena</strong> ili idite na
+            <code>/jedinice/[id]/istorija</code> — za svaku promenu vidite ko je
+            promenio, kada i uneti razlog. Detalj: <a href="#cene">Cene i statusi</a>.
+          </p>
+
+          <h3>17. Kako da promenim IBAN koji se ubacuje u fakture?</h3>
+          <p>
+            Podešavanja → Organizacija → <strong>Bankovni računi</strong>
+            (<code>/podesavanja/organizacija</code>). Dodajte novi IBAN ili izmenite
+            postojeći i označite ga kao podrazumevani. Novi IBAN važi od trenutka
+            snimanja za nove fakture i IPS QR kodove; stari potpisani ugovori
+            zadržavaju IBAN iz momenta generisanja. Detalj:
+            <a href="#podesavanja-org">Podešavanja organizacije</a>.
+          </p>
+
+          <div class="callout">
+            <strong>Još uvek zapinje?</strong>
+            Pišite na
+            <a href="mailto:support@propertydesk.app">support@propertydesk.app</a>
+            sa URL-om stranice, ulogom i vremenom greške (requestId ako ga vidite).
+          </div>
+        </article>
+
+        <div class="empty" id="empty-state" hidden>
+          <strong>Nema članaka za ovaj upit</strong>
+          <p>Pokušajte drugu reč (npr. „IPS“, „KYC“, „provizija“) ili resetujte filter publike na <em>Sve</em>.</p>
+        </div>
+
+      </div>
+    </div>
+  </main>
+
+  <footer class="doc-footer">
+    <p class="support">
+      Podrška:
+      <a href="mailto:support@propertydesk.app">support@propertydesk.app</a>
+    </p>
+    <p>
+      <a href="dev-portal.html">Developer portal</a>
+      <a href="prezentacija-funkcionalnosti.html">Prezentacija funkcionalnosti</a>
+      <a href="#top">Nazad na vrh</a>
+    </p>
+    <p class="footer-brand">
+      <img src="assets/logo.png" alt="" class="logo sm" width="22" height="22" aria-hidden="true" />
+      <span>PropertyDesk Help Center · lokalna dokumentacija</span>
+    </p>
+  </footer>
+
+  <script>
+    (function () {
+      const searchInput = document.getElementById("search");
+      const emptyState = document.getElementById("empty-state");
+      const articles = Array.from(document.querySelectorAll(".article"));
+      const navLinks = Array.from(document.querySelectorAll("#side-nav-links a[data-nav-for]"));
+      const tabButtons = Array.from(document.querySelectorAll(".audience-tabs button"));
+      let audience = "sve";
+
+      function normalize(s) {
+        return (s || "")
+          .toLowerCase()
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "");
+      }
+
+      function articleVisible(el, q) {
+        const a = el.getAttribute("data-audience") || "zajednicko";
+        const audienceOk =
+          audience === "sve" ||
+          a === audience ||
+          a === "zajednicko";
+        if (!audienceOk) return false;
+        if (!q) return true;
+        const hay = normalize(
+          [el.id, el.getAttribute("data-tags"), el.getAttribute("data-audience"), el.textContent].join(" ")
+        );
+        return hay.includes(q);
+      }
+
+      function applyFilters() {
+        const q = normalize(searchInput.value.trim());
+        let visible = 0;
+        articles.forEach((el) => {
+          const show = articleVisible(el, q);
+          el.hidden = !show;
+          if (show) visible += 1;
+        });
+        navLinks.forEach((link) => {
+          const id = link.getAttribute("data-nav-for");
+          const art = id ? document.getElementById(id) : null;
+          link.hidden = !art || art.hidden;
+        });
+        const sideInner = document.getElementById("side-nav-links");
+        if (sideInner) {
+          const kids = Array.from(sideInner.children);
+          let i = 0;
+          while (i < kids.length) {
+            const node = kids[i];
+            if (node.tagName === "H4") {
+              let j = i + 1;
+              let any = false;
+              while (j < kids.length && kids[j].tagName !== "H4") {
+                if (kids[j].tagName === "A" && !kids[j].hidden) any = true;
+                j += 1;
+              }
+              node.hidden = !any;
+              i = j;
+            } else {
+              i += 1;
+            }
+          }
+        }
+        const showEmpty = visible === 0;
+        emptyState.hidden = !showEmpty;
+        emptyState.classList.toggle("show", showEmpty);
+      }
+
+      tabButtons.forEach((btn) => {
+        btn.addEventListener("click", () => {
+          audience = btn.getAttribute("data-audience") || "sve";
+          tabButtons.forEach((b) => {
+            const active = b === btn;
+            b.classList.toggle("active", active);
+            b.setAttribute("aria-selected", active ? "true" : "false");
+          });
+          applyFilters();
+        });
+      });
+
+      searchInput.addEventListener("input", applyFilters);
+
+      document.querySelectorAll(".cat-card[data-jump]").forEach((card) => {
+        card.addEventListener("click", () => {
+          const sel = card.getAttribute("data-jump");
+          const target = sel ? document.querySelector(sel) : null;
+          if (!target) return;
+          if (target.hidden) {
+            audience = "sve";
+            tabButtons.forEach((b) => {
+              const active = b.getAttribute("data-audience") === "sve";
+              b.classList.toggle("active", active);
+              b.setAttribute("aria-selected", active ? "true" : "false");
+            });
+            searchInput.value = "";
+            applyFilters();
+          }
+          target.scrollIntoView({ behavior: "smooth", block: "start" });
+        });
+      });
+
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (!entry.isIntersecting) return;
+            const id = entry.target.id;
+            navLinks.forEach((l) => {
+              l.classList.toggle("active", l.getAttribute("data-nav-for") === id);
+            });
+          });
+        },
+        { rootMargin: "-20% 0px -70% 0px", threshold: 0.01 }
+      );
+      articles.forEach((a) => observer.observe(a));
+      applyFilters();
+    })();
+  </script>
+</body>
+</html>

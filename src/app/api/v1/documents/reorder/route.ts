@@ -26,3 +26,26 @@ export const POST = apiHandler({ bodySchema }, async ({ body }) => {
   });
   return { data: { ok: true } };
 });
+
+/**
+ * @swagger
+ * /api/v1/documents/reorder:
+ *   post:
+ *     tags:
+ *       - documents
+ *     summary: Create documents
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             additionalProperties: true
+ *     responses:
+ *       "200":
+ *         description: OK
+ *       "401":
+ *         $ref: "#/components/responses/Unauthenticated"
+ *       "403":
+ *         $ref: "#/components/responses/Forbidden"
+ */
