@@ -1,9 +1,6 @@
 import type { Metadata } from "next";
 
-import { getApiDocs } from "@/lib/swagger";
 import { ReactSwagger } from "./react-swagger";
-
-export const dynamic = "force-static";
 
 export const metadata: Metadata = {
   title: "API Docs",
@@ -12,11 +9,15 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
+/**
+ * Client-side fetch of the spec ensures we always serve the live version
+ * (not a build-time snapshot) and avoids Turbopack stripping JSDoc comments
+ * from route files during production build.
+ */
 export default function ApiDocsPage() {
-  const spec = getApiDocs();
   return (
     <section className="container mx-auto px-4 py-8">
-      <ReactSwagger spec={spec} />
+      <ReactSwagger url="/api/docs" />
     </section>
   );
 }

@@ -114,7 +114,7 @@ export const POST = apiHandler(
  *                 type: number
  *                 exclusiveMinimum: 0
  *                 maximum: 10000000
- *                 description: Kapara u EUR ili RSD (zavisi od jedinice). Primer: 5000.
+ *                 description: "Kapara u EUR ili RSD (zavisi od jedinice). Primer: 5000."
  *                 example: 5000
  *               notes: { type: string, maxLength: 500, nullable: true, example: "Zainteresovan sam za termin gledanja vikendom." }
  *               referralCode: { type: string, maxLength: 32, nullable: true, description: "Referral kod agencije (sa `?ref=`)." }
