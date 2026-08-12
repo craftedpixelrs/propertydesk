@@ -33,10 +33,7 @@ COPY prisma ./prisma
 
 # `node-linker=hoisted` = flat `node_modules` (npm-style), which Next's
 # TypeScript detection needs (`require.resolve('typescript')`).
-# Cache mount for pnpm store: packages are downloaded once and reused
-# across builds, cutting install time from ~60s to ~5s on cache hit.
-RUN --mount=type=cache,id=pnpm-store,target=/app/.pnpm-store \
-    pnpm config set node-linker hoisted && \
+RUN pnpm config set node-linker hoisted && \
     pnpm config set store-dir /app/.pnpm-store && \
     pnpm install --frozen-lockfile=false --prefer-frozen-lockfile
 
