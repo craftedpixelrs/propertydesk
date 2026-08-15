@@ -19,6 +19,8 @@ export const GET = apiHandler({ paramsSchema }, async ({ params }) => {
  *     tags:
  *       - sales
  *     summary: List / read sales
+ *     description: |
+ *       **Auth:** `requirePermission("sale.read")`
  *     parameters:
  *       - in: path
  *         name: id
@@ -27,7 +29,8 @@ export const GET = apiHandler({ paramsSchema }, async ({ params }) => {
  *           type: string
  *     responses:
  *       "200":
- *         description: OK
+ *         description: |
+ *           OK
  *       "401":
  *         $ref: "#/components/responses/Unauthenticated"
  *       "403":

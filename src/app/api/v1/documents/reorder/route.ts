@@ -34,6 +34,8 @@ export const POST = apiHandler({ bodySchema }, async ({ body }) => {
  *     tags:
  *       - documents
  *     summary: Create documents
+ *     description: |
+ *       **Auth:** `requirePermission("document.manage")`
  *     requestBody:
  *       required: true
  *       content:
@@ -43,7 +45,8 @@ export const POST = apiHandler({ bodySchema }, async ({ body }) => {
  *             additionalProperties: true
  *     responses:
  *       "200":
- *         description: OK
+ *         description: |
+ *           OK
  *       "401":
  *         $ref: "#/components/responses/Unauthenticated"
  *       "403":

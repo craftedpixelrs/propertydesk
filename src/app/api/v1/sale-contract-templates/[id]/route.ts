@@ -64,6 +64,8 @@ export const DELETE = apiHandler({ paramsSchema }, async ({ params }) => {
  *     tags:
  *       - sale-contract-templates
  *     summary: List / read sale-contract-templates
+ *     description: |
+ *       **Auth:** `requirePermission("sale.manage")`
  *     parameters:
  *       - in: path
  *         name: id
@@ -72,7 +74,8 @@ export const DELETE = apiHandler({ paramsSchema }, async ({ params }) => {
  *           type: string
  *     responses:
  *       "200":
- *         description: OK
+ *         description: |
+ *           OK
  *       "401":
  *         $ref: "#/components/responses/Unauthenticated"
  *       "403":
@@ -81,6 +84,8 @@ export const DELETE = apiHandler({ paramsSchema }, async ({ params }) => {
  *     tags:
  *       - sale-contract-templates
  *     summary: Update sale-contract-templates
+ *     description: |
+ *       **Auth:** `requirePermission("sale.manage")`
  *     parameters:
  *       - in: path
  *         name: id
@@ -96,7 +101,8 @@ export const DELETE = apiHandler({ paramsSchema }, async ({ params }) => {
  *             additionalProperties: true
  *     responses:
  *       "200":
- *         description: OK
+ *         description: |
+ *           OK
  *       "401":
  *         $ref: "#/components/responses/Unauthenticated"
  *       "403":
@@ -105,6 +111,8 @@ export const DELETE = apiHandler({ paramsSchema }, async ({ params }) => {
  *     tags:
  *       - sale-contract-templates
  *     summary: Delete sale-contract-templates
+ *     description: |
+ *       **Auth:** `requirePermission("sale.manage")`
  *     parameters:
  *       - in: path
  *         name: id
@@ -113,7 +121,8 @@ export const DELETE = apiHandler({ paramsSchema }, async ({ params }) => {
  *           type: string
  *     responses:
  *       "200":
- *         description: OK
+ *         description: |
+ *           OK
  *       "401":
  *         $ref: "#/components/responses/Unauthenticated"
  *       "403":

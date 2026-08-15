@@ -94,6 +94,15 @@ model User {
   bankStatementReviews         BankStatementTransaction[] @relation("BankStatementReviewer")
   billingJobRuns               BillingJobRun[]
 
+  // Property Desk internal team (marketing / SaaS sales)
+  propertyDeskTeam             PropertyDeskTeamMember?      @relation("PropertyDeskTeamMember")
+  propertyDeskTeamCreated      PropertyDeskTeamMember[]     @relation("PropertyDeskTeamCreator")
+  marketingLeadsAssigned       MarketingLead[]              @relation("MarketingLeadAssignee")
+  marketingLeadActivities      MarketingLeadActivity[]      @relation("MarketingLeadActivityActor")
+  marketingLeadTasksCreated    MarketingLeadTask[]          @relation("MarketingLeadTaskCreator")
+  marketingLeadTasksAssigned   MarketingLeadTask[]          @relation("MarketingLeadTaskAssignee")
+  marketingLeadTasksCompleted  MarketingLeadTask[]          @relation("MarketingLeadTaskCompleter")
+
   @@index([email])
   @@map("user")
 }
@@ -212,6 +221,9 @@ model Organization {
   electronicInvoiceRecords  ElectronicInvoiceRecord[]
   billingSequences          BillingSequence[]
 
+  // Marketing leads that were converted into this tenant organization.
+  marketingLeadsConverted   MarketingLead[]            @relation("MarketingLeadConvertedTo")
+
   @@map("organization")
 }
 
@@ -238,6 +250,7 @@ model Invitation {
   status         String
   expiresAt      DateTime
   inviterId      String
+  createdAt      DateTime @default(now())
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   inviter      User         @relation("InvitationInviter", fields: [inviterId], references: [id], onDelete: Cascade)
@@ -694,6 +707,115 @@ enum NotificationCategory {
   COMMISSION
   DOCUMENT
   BILLING
+}
+
+// =============================================================================
+// Property Desk internal team & SaaS marketing pipeline
+// =============================================================================
+// This is the platform-level operational team that markets and sells the
+// PropertyDesk SaaS itself (Setter, Closer, Operations, Manager). It is
+// intentionally decoupled from tenant `Member.role` and from `User.role =
+// SUPER_ADMIN`. A user can have any combination of those layers; SUPER_ADMIN
+// always bypasses Property Desk team checks.
+
+enum PropertyDeskTeamRole {
+  SETTER
+  CLOSER
+  OPERATIONS
+  MANAGER
+}
+
+enum PropertyDeskLeadScope {
+  OWN
+  OWN_AND_UNASSIGNED
+  TEAM
+  ALL
+}
+
+enum MarketingLeadStage {
+  NEW
+  CONTACTED
+  QUALIFIED
+  DEMO
+  PROPOSAL
+  WON
+  LOST
+  NURTURING
+}
+
+/// Pipeline level (Sloj C, Property Desk). Nadgrupa stage-a — svaki
+/// stage pripada tačno jednom levelu, a level određuje ko lead vidi:
+/// SETTER radi SOURCING, CLOSER radi CLOSING, OPERATIONS radi handover
+/// na WON, MANAGER/SUPER_ADMIN vide sve (uključujući ARCHIVED = LOST).
+enum MarketingLeadLevel {
+  SOURCING
+  CLOSING
+  OPERATIONS
+  ARCHIVED
+}
+
+/// Prioritet lead-a u pipeline-u. Postavlja Setter/Closer/Manager
+/// ručno; koristi se za sortiranje liste + „hot“ dashboard widget.
+enum LeadPriority {
+  LOW
+  NORMAL
+  HIGH
+  URGENT
+}
+
+/// „Temperatura“ interesa lead-a: koliko je zainteresovan/odlučan.
+/// Ulazi u lead-score izračun.
+enum LeadTemperature {
+  COLD
+  WARM
+  HOT
+}
+
+/// Segment budžeta / plana za koji se lead interesuje. UNKNOWN dok se
+/// ne kvalifikuje.
+enum LeadBudgetTier {
+  STARTER
+  GROWTH
+  ENTERPRISE
+  UNKNOWN
+}
+
+/// Kada lead planira da počne. Ulazi u lead-score i u dashboard
+/// „Follow-up 7 dana“ vidžet.
+enum LeadTimeline {
+  WITHIN_30D
+  WITHIN_90D
+  LATER
+  UNDECIDED
+}
+
+/// Preferirani kanal kontakta koji je lead sam odabrao / preferira.
+enum LeadContactChannel {
+  PHONE
+  EMAIL
+  WHATSAPP
+  VIBER
+  OTHER
+}
+
+enum MarketingLeadAudience {
+  INVESTOR
+  AGENCY
+  OTHER
+}
+
+/// Vrste redova u timeline-u marketing lead-a. `SYSTEM` redovi se automatski
+/// upisuju (stage change, assignment, conversion, landing form) — ostali
+/// redovi su ručno uneseni od strane članova Property Desk tima.
+enum MarketingLeadActivityKind {
+  CALL
+  EMAIL
+  MEETING
+  NOTE
+  STAGE_CHANGE
+  ASSIGNMENT
+  CONVERSION
+  SYSTEM
 }
 
 // =============================================================================
@@ -2327,6 +2449,160 @@ model RolePermissionOverride {
   @@unique([role, permission])
   @@index([role])
   @@map("role_permission_override")
+}
+
+/// Property Desk internal team member — participation of a User in the
+/// platform-level operational team that markets and sells the PropertyDesk
+/// SaaS product itself. A user may exist in `user` without any Property Desk
+/// team row; adding a row here means the user can access
+/// `/administracija/property-desk/**`. This is orthogonal to `Member.role`
+/// (tenant RBAC) and to `User.role = "SUPER_ADMIN"` (platform admin).
+model PropertyDeskTeamMember {
+  id              String                @id @default(cuid())
+  userId          String                @unique
+  teamRole        PropertyDeskTeamRole
+  enabled         Boolean               @default(true)
+  leadScope       PropertyDeskLeadScope @default(OWN_AND_UNASSIGNED)
+  notes           String?
+  createdAt       DateTime              @default(now())
+  updatedAt       DateTime              @updatedAt
+  createdByUserId String?
+
+  user      User  @relation("PropertyDeskTeamMember", fields: [userId], references: [id], onDelete: Cascade)
+  createdBy User? @relation("PropertyDeskTeamCreator", fields: [createdByUserId], references: [id], onDelete: SetNull)
+
+  @@index([teamRole])
+  @@index([enabled])
+  @@map("property_desk_team_member")
+}
+
+/// Persistent marketing lead — a person / company that expressed interest in
+/// PropertyDesk (via the public landing form, ad, referral, etc.). This is
+/// completely separate from tenant `Buyer` (real-estate CRM). The record
+/// travels through a light-weight pipeline (`stage`) and can eventually be
+/// converted into a tenant `Organization` once the deal is won.
+model MarketingLead {
+  id                       String                @id @default(cuid())
+  email                    String                @unique
+  firstName                String?
+  lastName                 String?
+  phone                    String?
+  audience                 MarketingLeadAudience @default(OTHER)
+  city                     String?
+  projectCount             Int?
+  note                     String?
+  source                   String?
+  utmSource                String?
+  utmMedium                String?
+  utmCampaign              String?
+  utmTerm                  String?
+  utmContent               String?
+  consent                  Boolean               @default(false)
+  stage                    MarketingLeadStage    @default(NEW)
+  // Level je „nadgrupa“ stage-a i eksplicitno se čuva zbog vidljivosti
+  // i indeksa. Uvek prati `stage` kroz `computeLevel(stage)` u
+  // src/server/services/property-desk/lead-lifecycle.ts.
+  level                    MarketingLeadLevel    @default(SOURCING)
+  previousLevel            MarketingLeadLevel?
+  levelEnteredAt           DateTime              @default(now())
+  // Klasifikacija (setovana ručno ili preko landing forme).
+  priority                 LeadPriority          @default(NORMAL)
+  temperature              LeadTemperature       @default(COLD)
+  timelineHorizon          LeadTimeline          @default(UNDECIDED)
+  nextFollowUpAt           DateTime?
+  // Deterministički lead-score 0–100 (see lead-scoring.ts).
+  leadScore                Int                   @default(0)
+  // Firma / organizacija za koju lead radi.
+  companyName              String?
+  companyWebsite           String?
+  companySize              Int?
+  // Novac.
+  budgetTier               LeadBudgetTier        @default(UNKNOWN)
+  budgetCurrency           String?               @default("EUR")
+  // Donosilac odluke i preferirani kanal kontakta.
+  decisionMakerName        String?
+  decisionMakerTitle       String?
+  preferredContact         LeadContactChannel?
+  bestContactHour          String?
+  preferredLanguage        String?               @default("sr")
+  // Konkurencija / trenutno stanje kod klijenta.
+  competitor               String?
+  painPoint                String?
+  // Geo.
+  country                  String?               @default("RS")
+  region                   String?
+  assignedToUserId         String?
+  convertedOrganizationId  String?
+  convertedAt              DateTime?
+  lostReason               String?
+  createdAt                DateTime              @default(now())
+  updatedAt                DateTime              @updatedAt
+
+  assignedTo             User?         @relation("MarketingLeadAssignee", fields: [assignedToUserId], references: [id], onDelete: SetNull)
+  convertedOrganization  Organization? @relation("MarketingLeadConvertedTo", fields: [convertedOrganizationId], references: [id], onDelete: SetNull)
+  activities             MarketingLeadActivity[]
+  tasks                  MarketingLeadTask[]
+
+  @@index([stage])
+  @@index([level, priority])
+  @@index([assignedToUserId])
+  @@index([createdAt(sort: Desc)])
+  @@index([audience])
+  @@index([nextFollowUpAt])
+  @@index([leadScore(sort: Desc)])
+  @@map("marketing_lead")
+}
+
+/// Timeline entry for a marketing lead. `SYSTEM` rows are emitted from the
+/// services (stage change, assignment, conversion, landing form arrival);
+/// CALL/EMAIL/MEETING/NOTE are ručno uneseni od Property Desk tima.
+/// Namerno je odvojen od tenant `Activity` modela: taj je organization-scoped,
+/// dok je marketing timeline platformski (Sloj C).
+model MarketingLeadActivity {
+  id            String                    @id @default(cuid())
+  leadId        String
+  kind          MarketingLeadActivityKind
+  title         String
+  body          String?                   @db.Text
+  actorUserId   String?
+  occurredAt    DateTime                  @default(now())
+  metadata      Json?
+  createdAt     DateTime                  @default(now())
+
+  lead    MarketingLead @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  actor   User?         @relation("MarketingLeadActivityActor", fields: [actorUserId], references: [id], onDelete: SetNull)
+
+  @@index([leadId, occurredAt(sort: Desc)])
+  @@index([kind])
+  @@index([actorUserId])
+  @@map("marketing_lead_activity")
+}
+
+/// Follow-up task attached to a marketing lead. Odvojeno od tenant `Task`
+/// modela jer je platformski i vezan za `MarketingLead`, ne za tenant
+/// entitete. Overdue = `dueAt < now() AND completedAt IS NULL`.
+model MarketingLeadTask {
+  id                String    @id @default(cuid())
+  leadId            String
+  title             String
+  description       String?   @db.Text
+  dueAt             DateTime?
+  completedAt       DateTime?
+  assignedToUserId  String?
+  createdByUserId   String
+  completedByUserId String?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  lead        MarketingLead @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  assignedTo  User?         @relation("MarketingLeadTaskAssignee", fields: [assignedToUserId], references: [id], onDelete: SetNull)
+  createdBy   User          @relation("MarketingLeadTaskCreator", fields: [createdByUserId], references: [id], onDelete: Restrict)
+  completedBy User?         @relation("MarketingLeadTaskCompleter", fields: [completedByUserId], references: [id], onDelete: SetNull)
+
+  @@index([leadId])
+  @@index([assignedToUserId, completedAt])
+  @@index([dueAt])
+  @@map("marketing_lead_task")
 }
 
 /// Manually-maintained (with a stub for NBS automation) exchange-rate list.

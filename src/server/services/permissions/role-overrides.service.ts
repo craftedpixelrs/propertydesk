@@ -6,9 +6,12 @@ import { DomainErrors } from "@/lib/errors";
 import {
   organizationRoles,
   platformRoles,
+  propertyDeskTeamRoles,
   ALL_ORG_ROLE_NAMES,
+  PROPERTY_DESK_ROLE_NAMES,
   type OrganizationRole,
   type PlatformRole,
+  type PropertyDeskRole,
 } from "@/server/permissions/roles";
 import {
   permissionStatement,
@@ -37,7 +40,7 @@ import {
 // Types
 // -----------------------------------------------------------------------------
 
-export type RoleName = OrganizationRole | PlatformRole;
+export type RoleName = OrganizationRole | PlatformRole | PropertyDeskRole;
 
 export interface RoleOverrideRow {
   role: string;
@@ -70,6 +73,7 @@ export interface RoleMatrix {
 export const ALL_ROLE_NAMES: RoleName[] = [
   ...ALL_ORG_ROLE_NAMES,
   ...(Object.keys(platformRoles) as PlatformRole[]),
+  ...PROPERTY_DESK_ROLE_NAMES,
 ];
 
 /** All `resource.action` strings currently declared in the statement. */
@@ -98,6 +102,13 @@ function roleDefById(role: RoleName): RoleAuthorize | null {
   }
   if ((platformRoles as unknown as Record<string, RoleAuthorize>)[role]) {
     return (platformRoles as unknown as Record<string, RoleAuthorize>)[role]!;
+  }
+  if (
+    (propertyDeskTeamRoles as unknown as Record<string, RoleAuthorize>)[role]
+  ) {
+    return (propertyDeskTeamRoles as unknown as Record<string, RoleAuthorize>)[
+      role
+    ]!;
   }
   return null;
 }

@@ -81,6 +81,29 @@ describe("permission matrix", () => {
     }
   });
 
+  it("roles that manage members can create Better Auth invitations", () => {
+    const canInvite = [
+      "INVESTOR_OWNER",
+      "INVESTOR_ADMIN",
+      "AGENCY_OWNER",
+      "AGENCY_ADMIN",
+    ] as const;
+    const cannotInvite = ["SALES_AGENT", "AGENCY_AGENT", "INVESTOR_VIEWER"] as const;
+    for (const key of canInvite) {
+      const role = (organizationRoles as Record<string, unknown>)[key] as {
+        authorize: (req: Record<string, string[]>) => { success: boolean };
+      };
+      expect(role.authorize({ invitation: ["create"] }).success).toBe(true);
+      expect(role.authorize({ member: ["create"] }).success).toBe(true);
+    }
+    for (const key of cannotInvite) {
+      const role = (organizationRoles as Record<string, unknown>)[key] as {
+        authorize: (req: Record<string, string[]>) => { success: boolean };
+      };
+      expect(role.authorize({ invitation: ["create"] }).success).toBe(false);
+    }
+  });
+
   it("non-owner roles cannot manage global billing settings", () => {
     const cases = [
       "INVESTOR_ADMIN",

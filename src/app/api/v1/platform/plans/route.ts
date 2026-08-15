@@ -54,9 +54,13 @@ export const POST = apiHandler(
  *     tags:
  *       - platform
  *     summary: List / read platform
+ *     description: |
+ *       **Auth:** `requireSuperAdmin() — platform SUPER_ADMIN`
  *     responses:
  *       "200":
- *         description: OK
+ *         description: |
+
+ *           OK
  *       "401":
  *         $ref: "#/components/responses/Unauthenticated"
  *       "403":
@@ -65,6 +69,8 @@ export const POST = apiHandler(
  *     tags:
  *       - platform
  *     summary: Create platform
+ *     description: |
+ *       **Auth:** `requireSuperAdmin() — platform SUPER_ADMIN`
  *     requestBody:
  *       required: true
  *       content:
@@ -74,7 +80,9 @@ export const POST = apiHandler(
  *             additionalProperties: true
  *     responses:
  *       "200":
- *         description: OK
+ *         description: |
+
+ *           OK
  *       "401":
  *         $ref: "#/components/responses/Unauthenticated"
  *       "403":

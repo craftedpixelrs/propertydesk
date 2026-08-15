@@ -28,6 +28,8 @@ export const POST = apiHandler({ bodySchema }, async ({ body }) => {
  *     tags:
  *       - buyers
  *     summary: Create buyers
+ *     description: |
+ *       **Auth:** `requirePermission("lead.read")`
  *     requestBody:
  *       required: true
  *       content:
@@ -37,7 +39,8 @@ export const POST = apiHandler({ bodySchema }, async ({ body }) => {
  *             additionalProperties: true
  *     responses:
  *       "200":
- *         description: OK
+ *         description: |
+ *           OK
  *       "401":
  *         $ref: "#/components/responses/Unauthenticated"
  *       "403":

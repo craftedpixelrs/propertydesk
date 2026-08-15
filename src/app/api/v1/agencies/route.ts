@@ -61,9 +61,12 @@ export const POST = apiHandler({ bodySchema: inviteSchema }, async ({ body }) =>
  *     tags:
  *       - agencies
  *     summary: List / read agencies
+ *     description: |
+ *       **Auth:** `requirePermission("agency.read")`
  *     responses:
  *       "200":
- *         description: OK
+ *         description: |
+ *           OK
  *       "401":
  *         $ref: "#/components/responses/Unauthenticated"
  *       "403":
@@ -72,6 +75,8 @@ export const POST = apiHandler({ bodySchema: inviteSchema }, async ({ body }) =>
  *     tags:
  *       - agencies
  *     summary: Create agencies
+ *     description: |
+ *       **Auth:** `requirePermission("agency.manage") + requirePermission("agency.read")`
  *     requestBody:
  *       required: true
  *       content:
@@ -81,7 +86,8 @@ export const POST = apiHandler({ bodySchema: inviteSchema }, async ({ body }) =>
  *             additionalProperties: true
  *     responses:
  *       "200":
- *         description: OK
+ *         description: |
+ *           OK
  *       "401":
  *         $ref: "#/components/responses/Unauthenticated"
  *       "403":

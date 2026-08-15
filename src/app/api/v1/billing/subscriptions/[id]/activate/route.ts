@@ -50,6 +50,8 @@ export const POST = apiHandler(
  *     tags:
  *       - billing
  *     summary: Create billing
+ *     description: |
+ *       **Auth:** `requireSuperAdmin() — platform SUPER_ADMIN`
  *     parameters:
  *       - in: path
  *         name: id
@@ -65,7 +67,9 @@ export const POST = apiHandler(
  *             additionalProperties: true
  *     responses:
  *       "200":
- *         description: OK
+ *         description: |
+
+ *           OK
  *       "401":
  *         $ref: "#/components/responses/Unauthenticated"
  *       "403":

@@ -20,6 +20,7 @@ export interface MoreGridProps {
   organizationType: "INVESTOR" | "AGENCY" | null;
   permissions: PermissionString[];
   isSuperAdmin: boolean;
+  hasPropertyDeskAccess: boolean;
 }
 
 const HIDDEN_KEYS = new Set<string>([...MOBILE_BOTTOM_NAV_KEYS]);
@@ -28,6 +29,7 @@ export function MoreGrid({
   organizationType,
   permissions,
   isSuperAdmin,
+  hasPropertyDeskAccess,
 }: MoreGridProps) {
   const items = useMemo(() => {
     const permissionSet = new Set(permissions);
@@ -35,9 +37,10 @@ export function MoreGrid({
       organizationType,
       hasPermission: (p) => permissionSet.has(p),
       isSuperAdmin,
+      hasPropertyDeskAccess,
     });
     return filtered.filter((item) => !HIDDEN_KEYS.has(item.key));
-  }, [organizationType, permissions, isSuperAdmin]);
+  }, [organizationType, permissions, isSuperAdmin, hasPropertyDeskAccess]);
 
   if (items.length === 0) {
     return (

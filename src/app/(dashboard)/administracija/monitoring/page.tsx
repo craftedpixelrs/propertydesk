@@ -6,6 +6,7 @@ import {
   listRecentHealthChecks,
   summarizeBackupVerify,
 } from "@/server/services/monitoring/backup-verify.service";
+import { requireSuperAdmin } from "@/server/permissions/require";
 import { serverEnv } from "@/lib/env";
 import { BackupVerifyButton } from "@/features/platform-admin/backup-verify-button";
 
@@ -19,6 +20,7 @@ export const dynamic = "force-dynamic";
  * here as they are wired up.
  */
 export default async function MonitoringPage() {
+  await requireSuperAdmin();
   const [rows, summary] = await Promise.all([
     listRecentHealthChecks(30),
     summarizeBackupVerify(),

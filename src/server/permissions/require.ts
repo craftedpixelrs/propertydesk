@@ -13,6 +13,7 @@ import {
 } from "@/server/permissions/roles";
 import { type PermissionString } from "@/server/permissions/access-control";
 import { checkPermissionForRole } from "@/server/services/permissions/role-overrides.service";
+import { isInvestorOrgSetupComplete } from "@/server/services/organization-admin.service";
 
 /**
  * Deny-by-default authorization primitives.
@@ -92,6 +93,20 @@ export async function requirePermission(
 
   if (superAdmin) {
     return { session, organization: org, isSuperAdmin: true };
+  }
+
+  if (
+    org.organizationType === "INVESTOR" &&
+    permission !== "organization.read" &&
+    permission !== "organization.manage"
+  ) {
+    const setupDone = await isInvestorOrgSetupComplete(org.organizationId);
+    if (!setupDone) {
+      throw new AuthError(
+        "FORBIDDEN",
+        "Organizacija još nije podešena. Vlasnik mora da popuni podatke firme pre korišćenja aplikacije.",
+      );
+    }
   }
 
   if (!(await checkOrgRolePermission(org.organizationRole, permission))) {

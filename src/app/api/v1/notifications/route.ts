@@ -22,9 +22,12 @@ export const GET = apiHandler({}, async ({ query, searchParams }) => {
  *     tags:
  *       - notifications
  *     summary: List / read notifications
+ *     description: |
+ *       **Auth:** `sesija (ulogovan + aktivna org) — bez posebne permission`
  *     responses:
  *       "200":
- *         description: OK
+ *         description: |
+ *           OK
  *       "401":
  *         $ref: "#/components/responses/Unauthenticated"
  *       "403":

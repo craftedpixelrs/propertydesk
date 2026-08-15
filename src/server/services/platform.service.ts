@@ -4,6 +4,8 @@ import { Prisma } from "@prisma/client";
 import type {
   OrganizationStatus,
   OrganizationType,
+  PropertyDeskLeadScope,
+  PropertyDeskTeamRole,
   SubscriptionStatus,
 } from "@prisma/client";
 
@@ -11,6 +13,15 @@ import { prisma } from "@/server/db/prisma";
 import { recordAudit } from "@/server/audit/audit";
 import { DomainError, DomainErrors } from "@/lib/errors";
 import { logger } from "@/server/logger";
+import {
+  addTeamMember,
+  removeTeamMember,
+  updateTeamMember,
+} from "@/server/services/property-desk/team.service";
+import {
+  rolesForOrgType,
+  type OrganizationRole,
+} from "@/server/permissions/roles";
 
 /**
  * Platform administration service. Callers must be SUPER_ADMIN.
@@ -550,6 +561,13 @@ export async function assignOrganizationOwner(
 // Users (platform view) — used by the SUPER_ADMIN impersonation launcher
 // -----------------------------------------------------------------------------
 
+export interface PlatformUserPropertyDeskTeam {
+  id: string;
+  teamRole: PropertyDeskTeamRole;
+  leadScope: PropertyDeskLeadScope;
+  enabled: boolean;
+}
+
 export interface PlatformUserRow {
   id: string;
   name: string;
@@ -565,46 +583,98 @@ export interface PlatformUserRow {
     organizationType: OrganizationType | null;
     role: string;
   }>;
+  propertyDeskTeam: PlatformUserPropertyDeskTeam | null;
 }
+
+export type PlatformUserStatusFilter = "verified" | "unverified" | "banned";
+export type PlatformUserLayerFilter = "SUPER_ADMIN" | "user";
 
 export interface ListPlatformUsersInput {
   page: number;
   pageSize: number;
   search?: string;
+  /** Organization id, or `"none"` for accounts without a tenant membership. */
   organizationId?: string;
   role?: string;
+  orgType?: OrganizationType;
+  /**
+   * Property Desk team (Sloj C):
+   * `true` = any team member, `"none"` = not on the team, or a specific role.
+   */
+  propertyDeskTeam?: boolean | "none" | PropertyDeskTeamRole;
+  status?: PlatformUserStatusFilter;
+  platform?: PlatformUserLayerFilter;
+}
+
+export function buildPlatformUserListWhere(
+  input: Omit<ListPlatformUsersInput, "page" | "pageSize">,
+): Prisma.UserWhereInput {
+  const search = input.search?.trim();
+  const searchFilter: Prisma.UserWhereInput = search
+    ? {
+        OR: [
+          { email: { contains: search, mode: "insensitive" } },
+          { name: { contains: search, mode: "insensitive" } },
+        ],
+      }
+    : {};
+
+  let membershipFilter: Prisma.UserWhereInput = {};
+  if (input.organizationId === "none") {
+    membershipFilter = { memberships: { none: {} } };
+  } else if (input.organizationId || input.role || input.orgType) {
+    membershipFilter = {
+      memberships: {
+        some: {
+          ...(input.organizationId ? { organizationId: input.organizationId } : {}),
+          ...(input.role ? { role: input.role } : {}),
+          ...(input.orgType
+            ? { organization: { profile: { type: input.orgType } } }
+            : {}),
+        },
+      },
+    };
+  }
+
+  const pd = input.propertyDeskTeam;
+  const pdFilter: Prisma.UserWhereInput =
+    pd === true
+      ? { propertyDeskTeam: { isNot: null } }
+      : pd === "none"
+        ? { propertyDeskTeam: { is: null } }
+        : typeof pd === "string"
+          ? { propertyDeskTeam: { is: { teamRole: pd } } }
+          : {};
+
+  const statusFilter: Prisma.UserWhereInput =
+    input.status === "banned"
+      ? { banned: true }
+      : input.status === "verified"
+        ? { emailVerified: true, banned: { not: true } }
+        : input.status === "unverified"
+          ? { emailVerified: false, banned: { not: true } }
+          : {};
+
+  const platformFilter: Prisma.UserWhereInput =
+    input.platform === "SUPER_ADMIN"
+      ? { role: "SUPER_ADMIN" }
+      : input.platform === "user"
+        ? { OR: [{ role: null }, { role: { not: "SUPER_ADMIN" } }] }
+        : {};
+
+  return {
+    ...searchFilter,
+    ...membershipFilter,
+    ...pdFilter,
+    ...statusFilter,
+    ...platformFilter,
+  };
 }
 
 export async function listAllUsers(
   input: ListPlatformUsersInput,
 ): Promise<{ items: PlatformUserRow[]; total: number }> {
-  const searchFilter = input.search
-    ? {
-        OR: [
-          { email: { contains: input.search, mode: "insensitive" as const } },
-          { name: { contains: input.search, mode: "insensitive" as const } },
-        ],
-      }
-    : {};
-
-  const membershipFilter =
-    input.organizationId || input.role
-      ? {
-          memberships: {
-            some: {
-              ...(input.organizationId
-                ? { organizationId: input.organizationId }
-                : {}),
-              ...(input.role ? { role: input.role } : {}),
-            },
-          },
-        }
-      : {};
-
-  const where: Prisma.UserWhereInput = {
-    ...searchFilter,
-    ...membershipFilter,
-  };
+  const where = buildPlatformUserListWhere(input);
 
   const [total, rows] = await Promise.all([
     prisma.user.count({ where }),
@@ -618,6 +688,14 @@ export async function listAllUsers(
             },
           },
           orderBy: { createdAt: "asc" },
+        },
+        propertyDeskTeam: {
+          select: {
+            id: true,
+            teamRole: true,
+            leadScope: true,
+            enabled: true,
+          },
         },
       },
       orderBy: [{ createdAt: "desc" }],
@@ -641,9 +719,495 @@ export async function listAllUsers(
       organizationType: m.organization.profile?.type ?? null,
       role: m.role,
     })),
+    propertyDeskTeam: u.propertyDeskTeam
+      ? {
+          id: u.propertyDeskTeam.id,
+          teamRole: u.propertyDeskTeam.teamRole,
+          leadScope: u.propertyDeskTeam.leadScope,
+          enabled: u.propertyDeskTeam.enabled,
+        }
+      : null,
   }));
 
   return { items, total };
+}
+
+export interface UpdatePlatformUserInput {
+  name?: string;
+  email?: string;
+  emailVerified?: boolean;
+  banned?: boolean;
+  banReason?: string | null;
+  /** `SUPER_ADMIN` to grant platform access; `null` to revoke it. */
+  platformRole?: "SUPER_ADMIN" | null;
+  propertyDeskTeam?: {
+    member: boolean;
+    teamRole?: PropertyDeskTeamRole;
+    leadScope?: PropertyDeskLeadScope;
+    enabled?: boolean;
+  };
+}
+
+/**
+ * SUPER_ADMIN mutation for a platform user account. Tenant application roles
+ * (Sloj B) stay in the organization — this only touches the account itself
+ * (Sloj A) and optional Property Desk team membership (Sloj C).
+ */
+export async function updatePlatformUser(
+  userId: string,
+  input: UpdatePlatformUserInput,
+  actorUserId: string,
+): Promise<PlatformUserRow> {
+  const existing = await prisma.user.findUnique({
+    where: { id: userId },
+    include: {
+      propertyDeskTeam: {
+        select: {
+          id: true,
+          teamRole: true,
+          leadScope: true,
+          enabled: true,
+        },
+      },
+    },
+  });
+  if (!existing) throw DomainErrors.notFound("Korisnik");
+
+  const nextEmail = input.email
+    ? input.email.trim().toLowerCase()
+    : undefined;
+  if (nextEmail && nextEmail !== existing.email.toLowerCase()) {
+    const clash = await prisma.user.findFirst({
+      where: {
+        email: { equals: nextEmail, mode: "insensitive" },
+        NOT: { id: userId },
+      },
+      select: { id: true },
+    });
+    if (clash) {
+      throw DomainErrors.conflict("E-mail adresa je već zauzeta.");
+    }
+  }
+
+  if (input.banned === true && userId === actorUserId) {
+    throw DomainErrors.forbidden("Ne možete banovati sopstveni nalog.");
+  }
+
+  if (input.platformRole !== undefined) {
+    const currentlyAdmin = existing.role === "SUPER_ADMIN";
+    const willBeAdmin = input.platformRole === "SUPER_ADMIN";
+    if (currentlyAdmin && !willBeAdmin) {
+      if (userId === actorUserId) {
+        throw DomainErrors.forbidden(
+          "Ne možete ukloniti SUPER_ADMIN ulogu sa sopstvenog naloga.",
+        );
+      }
+      const otherAdmins = await prisma.user.count({
+        where: { role: "SUPER_ADMIN", id: { not: userId } },
+      });
+      if (otherAdmins === 0) {
+        throw DomainErrors.invalidState(
+          "Ne možete ukloniti poslednjeg administratora platforme.",
+        );
+      }
+    }
+  }
+
+  const data: Prisma.UserUpdateInput = {};
+  if (input.name !== undefined) data.name = input.name.trim();
+  if (nextEmail !== undefined) data.email = nextEmail;
+  if (input.emailVerified !== undefined) data.emailVerified = input.emailVerified;
+  if (input.banned !== undefined) {
+    data.banned = input.banned;
+    if (input.banned) {
+      data.banReason = input.banReason?.trim() || "Banovan od strane administratora platforme.";
+    } else {
+      data.banReason = null;
+      data.banExpires = null;
+    }
+  } else if (input.banReason !== undefined && existing.banned) {
+    data.banReason = input.banReason;
+  }
+  if (input.platformRole !== undefined) {
+    data.role = input.platformRole;
+  }
+
+  const previousSnapshot = {
+    name: existing.name,
+    email: existing.email,
+    emailVerified: existing.emailVerified,
+    banned: Boolean(existing.banned),
+    banReason: existing.banReason,
+    role: existing.role,
+  };
+
+  const updated = Object.keys(data).length
+    ? await prisma.user.update({ where: { id: userId }, data })
+    : existing;
+
+  if (input.banned !== undefined && input.banned !== Boolean(existing.banned)) {
+    await recordAudit({
+      action: input.banned ? "platform.user_banned" : "platform.user_unbanned",
+      entityType: "User",
+      entityId: userId,
+      actorUserId,
+      previousValues: { banned: Boolean(existing.banned), banReason: existing.banReason },
+      newValues: {
+        banned: Boolean(updated.banned),
+        banReason: updated.banReason,
+      },
+    });
+  }
+
+  const accountChanged =
+    (input.name !== undefined && input.name.trim() !== existing.name) ||
+    (nextEmail !== undefined && nextEmail !== existing.email.toLowerCase()) ||
+    (input.emailVerified !== undefined &&
+      input.emailVerified !== existing.emailVerified) ||
+    (input.platformRole !== undefined &&
+      (input.platformRole ?? null) !== (existing.role ?? null));
+
+  if (accountChanged) {
+    await recordAudit({
+      action: "platform.user_updated",
+      entityType: "User",
+      entityId: userId,
+      actorUserId,
+      previousValues: previousSnapshot,
+      newValues: {
+        name: updated.name,
+        email: updated.email,
+        emailVerified: updated.emailVerified,
+        banned: Boolean(updated.banned),
+        banReason: updated.banReason,
+        role: updated.role,
+      },
+    });
+  }
+
+  if (input.propertyDeskTeam) {
+    const pd = input.propertyDeskTeam;
+    const current = existing.propertyDeskTeam;
+    if (!pd.member) {
+      if (current) {
+        await removeTeamMember(current.id, actorUserId);
+      }
+    } else if (!current) {
+      if (!pd.teamRole) {
+        throw DomainErrors.validation(
+          "Izaberite ulogu Property Desk tima.",
+          { teamRole: ["Obavezno pri dodavanju u tim."] },
+        );
+      }
+      await addTeamMember(
+        {
+          userId,
+          teamRole: pd.teamRole,
+          leadScope: pd.leadScope,
+        },
+        actorUserId,
+      );
+    } else {
+      const roleChanged =
+        pd.teamRole !== undefined && pd.teamRole !== current.teamRole;
+      const scopeChanged =
+        pd.leadScope !== undefined && pd.leadScope !== current.leadScope;
+      const enabledChanged =
+        pd.enabled !== undefined && pd.enabled !== current.enabled;
+      if (roleChanged || scopeChanged || enabledChanged) {
+        await updateTeamMember(
+          current.id,
+          {
+            teamRole: pd.teamRole,
+            leadScope: pd.leadScope,
+            enabled: pd.enabled,
+          },
+          actorUserId,
+        );
+      }
+    }
+  }
+
+  const reloaded = await prisma.user.findUnique({
+    where: { id: userId },
+    include: {
+      memberships: {
+        include: {
+          organization: {
+            select: { id: true, name: true, profile: { select: { type: true } } },
+          },
+        },
+        orderBy: { createdAt: "asc" },
+      },
+      propertyDeskTeam: {
+        select: {
+          id: true,
+          teamRole: true,
+          leadScope: true,
+          enabled: true,
+        },
+      },
+    },
+  });
+  if (!reloaded) throw DomainErrors.notFound("Korisnik");
+
+  return {
+    id: reloaded.id,
+    name: reloaded.name,
+    email: reloaded.email,
+    role: reloaded.role ?? null,
+    emailVerified: reloaded.emailVerified,
+    banned: Boolean(reloaded.banned),
+    banReason: reloaded.banReason ?? null,
+    createdAt: reloaded.createdAt,
+    memberships: reloaded.memberships.map((m) => ({
+      organizationId: m.organizationId,
+      organizationName: m.organization.name,
+      organizationType: m.organization.profile?.type ?? null,
+      role: m.role,
+    })),
+    propertyDeskTeam: reloaded.propertyDeskTeam
+      ? {
+          id: reloaded.propertyDeskTeam.id,
+          teamRole: reloaded.propertyDeskTeam.teamRole,
+          leadScope: reloaded.propertyDeskTeam.leadScope,
+          enabled: reloaded.propertyDeskTeam.enabled,
+        }
+      : null,
+  };
+}
+
+export interface OrganizationPickerRow {
+  id: string;
+  name: string;
+  type: OrganizationType | null;
+}
+
+export async function listOrganizationsForPicker(): Promise<
+  OrganizationPickerRow[]
+> {
+  const rows = await prisma.organization.findMany({
+    select: {
+      id: true,
+      name: true,
+      profile: { select: { type: true } },
+    },
+    orderBy: { name: "asc" },
+    take: 200,
+  });
+  return rows.map((org) => ({
+    id: org.id,
+    name: org.name,
+    type: org.profile?.type ?? null,
+  }));
+}
+
+export interface CreatePlatformUserInput {
+  name: string;
+  email: string;
+  password?: string;
+  emailVerified?: boolean;
+  platformRole?: "SUPER_ADMIN" | null;
+  organizationId?: string | null;
+  organizationRole?: OrganizationRole;
+  propertyDeskTeam?: {
+    teamRole: PropertyDeskTeamRole;
+    leadScope?: PropertyDeskLeadScope;
+  } | null;
+}
+
+async function hashCredentialPassword(password: string): Promise<string> {
+  const mod = (await import("better-auth/crypto")) as {
+    hashPassword?: (p: string) => Promise<string>;
+  };
+  if (!mod.hashPassword) {
+    throw DomainErrors.invalidState(
+      "Hashiranje lozinke nije dostupno. Proverite better-auth paket.",
+    );
+  }
+  return mod.hashPassword(password);
+}
+
+/**
+ * SUPER_ADMIN creates (or reuses) a platform account and optionally places
+ * it in a tenant organization (Sloj B) and/or the Property Desk team (Sloj C).
+ */
+export async function createPlatformUser(
+  input: CreatePlatformUserInput,
+  actorUserId: string,
+): Promise<PlatformUserRow> {
+  const email = input.email.trim().toLowerCase();
+  const name = input.name.trim();
+  if (!name) throw DomainErrors.validation("Ime je obavezno.");
+  if (!email) throw DomainErrors.validation("E-mail je obavezan.");
+
+  const wantsOrg = Boolean(input.organizationId);
+  const wantsPdTeam = Boolean(input.propertyDeskTeam);
+  const wantsPlatformAdmin = input.platformRole === "SUPER_ADMIN";
+  if (!wantsOrg && !wantsPdTeam && !wantsPlatformAdmin) {
+    throw DomainErrors.validation(
+      "Izaberite gde korisnik ide: organizacija, Property Desk tim, ili SUPER_ADMIN.",
+    );
+  }
+
+  let orgType: OrganizationType | null = null;
+  if (input.organizationId) {
+    const org = await prisma.organization.findUnique({
+      where: { id: input.organizationId },
+      select: { id: true, profile: { select: { type: true } } },
+    });
+    if (!org) throw DomainErrors.notFound("Organizacija");
+    orgType = org.profile?.type ?? null;
+    if (!input.organizationRole) {
+      throw DomainErrors.validation("Izaberite ulogu u organizaciji.", {
+        organizationRole: ["Obavezno."],
+      });
+    }
+    if (orgType && !rolesForOrgType(orgType).includes(input.organizationRole)) {
+      throw DomainErrors.badRequest(
+        "Izabrana uloga nije dozvoljena za ovaj tip organizacije.",
+      );
+    }
+  }
+
+  let user = await prisma.user.findFirst({
+    where: { email: { equals: email, mode: "insensitive" } },
+  });
+  let created = false;
+
+  if (!user) {
+    const password = input.password?.trim() ?? "";
+    if (password.length < 10) {
+      throw DomainErrors.validation(
+        "Lozinka mora imati najmanje 10 karaktera.",
+        { password: ["Najmanje 10 karaktera."] },
+      );
+    }
+    const hashed = await hashCredentialPassword(password);
+    const id = createId();
+    user = await prisma.user.create({
+      data: {
+        id,
+        email,
+        name,
+        emailVerified: input.emailVerified ?? true,
+        role: input.platformRole ?? null,
+      },
+    });
+    await prisma.account.create({
+      data: {
+        id: createId(),
+        userId: user.id,
+        accountId: user.id,
+        providerId: "credential",
+        password: hashed,
+      },
+    });
+    created = true;
+    await recordAudit({
+      action: "platform.user_created",
+      entityType: "User",
+      entityId: user.id,
+      actorUserId,
+      newValues: {
+        email,
+        name,
+        role: user.role,
+        organizationId: input.organizationId ?? null,
+      },
+    });
+  } else if (input.platformRole === "SUPER_ADMIN" && user.role !== "SUPER_ADMIN") {
+    user = await prisma.user.update({
+      where: { id: user.id },
+      data: { role: "SUPER_ADMIN" },
+    });
+  }
+
+  if (input.organizationId && input.organizationRole) {
+    const existingMember = await prisma.member.findFirst({
+      where: { organizationId: input.organizationId, userId: user.id },
+    });
+    if (!existingMember) {
+      await assignOrganizationOwner(
+        input.organizationId,
+        user.id,
+        input.organizationRole,
+        actorUserId,
+      );
+    } else if (created === false) {
+      throw DomainErrors.conflict(
+        "Korisnik sa ovim e-mailom je već član izabrane organizacije.",
+      );
+    }
+  }
+
+  if (input.propertyDeskTeam) {
+    const existingTeam = await prisma.propertyDeskTeamMember.findUnique({
+      where: { userId: user.id },
+    });
+    if (!existingTeam) {
+      await addTeamMember(
+        {
+          userId: user.id,
+          teamRole: input.propertyDeskTeam.teamRole,
+          leadScope: input.propertyDeskTeam.leadScope,
+        },
+        actorUserId,
+      );
+    } else if (!created && !wantsOrg) {
+      throw DomainErrors.conflict(
+        "Korisnik je već član Property Desk tima.",
+      );
+    }
+  }
+
+  const reloaded = await prisma.user.findUnique({
+    where: { id: user.id },
+    include: {
+      memberships: {
+        include: {
+          organization: {
+            select: { id: true, name: true, profile: { select: { type: true } } },
+          },
+        },
+        orderBy: { createdAt: "asc" },
+      },
+      propertyDeskTeam: {
+        select: {
+          id: true,
+          teamRole: true,
+          leadScope: true,
+          enabled: true,
+        },
+      },
+    },
+  });
+  if (!reloaded) throw DomainErrors.notFound("Korisnik");
+
+  return {
+    id: reloaded.id,
+    name: reloaded.name,
+    email: reloaded.email,
+    role: reloaded.role ?? null,
+    emailVerified: reloaded.emailVerified,
+    banned: Boolean(reloaded.banned),
+    banReason: reloaded.banReason ?? null,
+    createdAt: reloaded.createdAt,
+    memberships: reloaded.memberships.map((m) => ({
+      organizationId: m.organizationId,
+      organizationName: m.organization.name,
+      organizationType: m.organization.profile?.type ?? null,
+      role: m.role,
+    })),
+    propertyDeskTeam: reloaded.propertyDeskTeam
+      ? {
+          id: reloaded.propertyDeskTeam.id,
+          teamRole: reloaded.propertyDeskTeam.teamRole,
+          leadScope: reloaded.propertyDeskTeam.leadScope,
+          enabled: reloaded.propertyDeskTeam.enabled,
+        }
+      : null,
+  };
 }
 
 /**

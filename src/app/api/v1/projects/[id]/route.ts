@@ -116,6 +116,8 @@ export const POST = apiHandler(
  *     tags:
  *       - projects
  *     summary: List / read projects
+ *     description: |
+ *       **Auth:** `requirePermission("project.read")`
  *     parameters:
  *       - in: path
  *         name: id
@@ -124,7 +126,8 @@ export const POST = apiHandler(
  *           type: string
  *     responses:
  *       "200":
- *         description: OK
+ *         description: |
+ *           OK
  *       "401":
  *         $ref: "#/components/responses/Unauthenticated"
  *       "403":
@@ -133,6 +136,8 @@ export const POST = apiHandler(
  *     tags:
  *       - projects
  *     summary: Create projects
+ *     description: |
+ *       **Auth:** `requirePermission("project.archive") + requirePermission("project.read") + requirePermission("project.update")`
  *     parameters:
  *       - in: path
  *         name: id
@@ -148,7 +153,8 @@ export const POST = apiHandler(
  *             additionalProperties: true
  *     responses:
  *       "200":
- *         description: OK
+ *         description: |
+ *           OK
  *       "401":
  *         $ref: "#/components/responses/Unauthenticated"
  *       "403":
@@ -157,6 +163,8 @@ export const POST = apiHandler(
  *     tags:
  *       - projects
  *     summary: Update projects
+ *     description: |
+ *       **Auth:** `requirePermission("project.update")`
  *     parameters:
  *       - in: path
  *         name: id
@@ -172,7 +180,8 @@ export const POST = apiHandler(
  *             additionalProperties: true
  *     responses:
  *       "200":
- *         description: OK
+ *         description: |
+ *           OK
  *       "401":
  *         $ref: "#/components/responses/Unauthenticated"
  *       "403":

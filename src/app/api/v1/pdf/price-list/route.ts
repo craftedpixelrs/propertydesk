@@ -35,9 +35,12 @@ export const GET = apiHandler({}, async ({ searchParams }): Promise<Response> =>
  *     tags:
  *       - pdf
  *     summary: List / read pdf
+ *     description: |
+ *       **Auth:** `requirePermission("inventory.read")`
  *     responses:
  *       "200":
- *         description: OK
+ *         description: |
+ *           OK
  *       "401":
  *         $ref: "#/components/responses/Unauthenticated"
  *       "403":

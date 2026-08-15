@@ -61,9 +61,12 @@ export const POST = apiHandler(
  *     tags:
  *       - comments
  *     summary: List / read comments
+ *     description: |
+ *       **Auth:** `requirePermission(permissionForEntity(...)) — Buyer→"buyer.read", Sale→"sale.read"`
  *     responses:
  *       "200":
- *         description: OK
+ *         description: |
+ *           OK
  *       "401":
  *         $ref: "#/components/responses/Unauthenticated"
  *       "403":
@@ -72,6 +75,8 @@ export const POST = apiHandler(
  *     tags:
  *       - comments
  *     summary: Create comments
+ *     description: |
+ *       **Auth:** `requirePermission(permissionForEntity(...)) — Buyer→"buyer.read", Sale→"sale.read"`
  *     requestBody:
  *       required: true
  *       content:
@@ -81,7 +86,8 @@ export const POST = apiHandler(
  *             additionalProperties: true
  *     responses:
  *       "200":
- *         description: OK
+ *         description: |
+ *           OK
  *       "401":
  *         $ref: "#/components/responses/Unauthenticated"
  *       "403":

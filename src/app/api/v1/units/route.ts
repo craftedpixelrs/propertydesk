@@ -126,8 +126,8 @@ export const POST = apiHandler(
  *       - units
  *     summary: Lista jedinica
  *     description: |
+ *       **Auth:** `requirePermission("inventory.read")`
  *       Paginirana lista svih jedinica u aktivnoj organizaciji, sa filterima.
- *       Dozvola: `inventory.read`.
  *     parameters:
  *       - $ref: "#/components/parameters/pageParam"
  *       - $ref: "#/components/parameters/pageSizeParam"
@@ -212,6 +212,7 @@ export const POST = apiHandler(
  *       - units
  *     summary: Kreiraj jedinicu
  *     description: |
+ *       **Auth:** `requirePermission("inventory.manage") + requirePermission("inventory.read")`
  *       Kreira novu jedinicu u projektu. Dozvola: `inventory.manage`.
  *     requestBody:
  *       required: true

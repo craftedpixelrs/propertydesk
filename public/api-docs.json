@@ -472,7 +472,7 @@
           "auth"
         ],
         "summary": "Better Auth — catch-all",
-        "description": "Sve autentifikacione rute idu kroz Better Auth (`better-auth/next-js`).\nOvaj catch-all obrađuje **sve** auth endpointe.\n\nZnačajne podrute (sve počinju sa `/api/auth/`):\n- `POST /api/auth/sign-in/email` — email + lozinka. Telo: `{ email, password }`.\n- `POST /api/auth/sign-up/email` — registracija. Telo: `{ email, password, name }`.\n- `POST /api/auth/sign-out` — odjava.\n- `POST /api/auth/forget-password` — zahtev za reset link.\n- `POST /api/auth/reset-password` — postavljanje nove lozinke sa tokenom.\n- `POST /api/auth/verify-email` — potvrda email adrese tokenom.\n- `GET  /api/auth/session` — vraća trenutnu sesiju + korisnika.\n- `POST /api/auth/organization/create` — kreira novu organizaciju (tenant).\n- `POST /api/auth/organization/set-active` — menja aktivnu organizaciju.\n- `POST /api/auth/organization/invite-member` — pozivnica članu.\n- `POST /api/auth/organization/accept-invitation` — prihvatanje poziva.\n- `POST /api/auth/admin/impersonate-user` — super-admin impersonacija.\n- `POST /api/auth/admin/stop-impersonating` — prekid impersonacije.\n",
+        "description": "**Auth:** `Better Auth (javne auth rute / session cookie)`\nSve autentifikacione rute idu kroz Better Auth (`better-auth/next-js`).\nOvaj catch-all obrađuje **sve** auth endpointe.\n\nZnačajne podrute (sve počinju sa `/api/auth/`):\n- `POST /api/auth/sign-in/email` — email + lozinka. Telo: `{ email, password }`.\n- `POST /api/auth/sign-up/email` — registracija. Telo: `{ email, password, name }`.\n- `POST /api/auth/sign-out` — odjava.\n- `POST /api/auth/forget-password` — zahtev za reset link.\n- `POST /api/auth/reset-password` — postavljanje nove lozinke sa tokenom.\n- `POST /api/auth/verify-email` — potvrda email adrese tokenom.\n- `GET  /api/auth/session` — vraća trenutnu sesiju + korisnika.\n- `POST /api/auth/organization/create` — kreira novu organizaciju (tenant).\n- `POST /api/auth/organization/set-active` — menja aktivnu organizaciju.\n- `POST /api/auth/organization/invite-member` — pozivnica članu.\n- `POST /api/auth/organization/accept-invitation` — prihvatanje poziva.\n- `POST /api/auth/admin/impersonate-user` — super-admin impersonacija.\n- `POST /api/auth/admin/stop-impersonating` — prekid impersonacije.\n",
         "security": [],
         "parameters": [
           {
@@ -502,7 +502,7 @@
           "auth"
         ],
         "summary": "Better Auth — catch-all (POST)",
-        "description": "Isto kao GET — Better Auth koristi POST za mutacije.",
+        "description": "**Auth:** `Better Auth (javne auth rute / session cookie)`\nIsto kao GET — Better Auth koristi POST za mutacije.\n",
         "security": [],
         "parameters": [
           {
@@ -547,7 +547,7 @@
           "auth"
         ],
         "summary": "Prijava email + lozinka",
-        "description": "Vraća session cookie (`__Secure-propertydesk.session_token` u\nprodukciji; `propertydesk.session_token` lokalno — HttpOnly,\nSameSite=Lax) i user objekat. `requireEmailVerification: true`\nznači da se ne može ući dok email nije potvrđen.\n\n**Swagger Try it out:** Authorize ne može da setuje HttpOnly cookie.\nPozovi ovaj endpoint iz Swaggera na istom originu — browser će sam\nsačuvati Set-Cookie i koristiti ga za sledeće pozive.\n",
+        "description": "**Auth:** `Better Auth (javne auth rute / session cookie)`\nVraća session cookie (`__Secure-propertydesk.session_token` u\nprodukciji; `propertydesk.session_token` lokalno — HttpOnly,\nSameSite=Lax) i user objekat. `requireEmailVerification: true`\nznači da se ne može ući dok email nije potvrđen.\n\n**Swagger Try it out:** Authorize ne može da setuje HttpOnly cookie.\nPozovi ovaj endpoint iz Swaggera na istom originu — browser će sam\nsačuvati Set-Cookie i koristiti ga za sledeće pozive.\n",
         "security": [],
         "requestBody": {
           "required": true,
@@ -660,7 +660,7 @@
           "auth"
         ],
         "summary": "Registracija email + lozinka",
-        "description": "Šalje verification email (24h expiry). Ne može se prijaviti dok\nemail nije potvrđen.\n",
+        "description": "**Auth:** `Better Auth (javne auth rute / session cookie)`\nŠalje verification email (24h expiry). Ne može se prijaviti dok\nemail nije potvrđen.\n",
         "security": [],
         "requestBody": {
           "required": true,
@@ -730,12 +730,8 @@
           "auth"
         ],
         "summary": "Odjava",
-        "description": "Briše session cookie i invalidira sesiju u bazi.",
-        "security": [
-          {
-            "cookieAuth": []
-          }
-        ],
+        "description": "**Auth:** `Better Auth (javne auth rute / session cookie)`\nBriše session cookie i invalidira sesiju u bazi.\n",
+        "security": [],
         "responses": {
           "200": {
             "description": "Uspešna odjava."
@@ -752,12 +748,8 @@
           "auth"
         ],
         "summary": "Trenutna sesija",
-        "description": "Vraća user + session objekat, uključujući `impersonatedBy` ako\nsuper-admin trenutno impersonira korisnika. Za kompletniji payload\n(aktivna organizacija, platform role) koristi `/api/v1/me`.\n",
-        "security": [
-          {
-            "cookieAuth": []
-          }
-        ],
+        "description": "**Auth:** `Better Auth (javne auth rute / session cookie)`\nVraća user + session objekat, uključujući `impersonatedBy` ako\nsuper-admin trenutno impersonira korisnika. Za kompletniji payload\n(aktivna organizacija, platform role) koristi `/api/v1/me`.\n",
+        "security": [],
         "responses": {
           "200": {
             "description": "Sesija postoji.",
@@ -816,7 +808,7 @@
           "public"
         ],
         "summary": "OpenAPI spec",
-        "description": "Returns the OpenAPI 3.1 JSON document for this API.",
+        "description": "**Auth:** `javno (bez sesije)`\nReturns the OpenAPI 3.1 JSON document for this API.\n",
         "security": [],
         "responses": {
           "200": {
@@ -831,6 +823,7 @@
           "public"
         ],
         "summary": "List / read public",
+        "description": "**Auth:** `javno + rate-limit (bez sesije)`\n",
         "security": [],
         "parameters": [
           {
@@ -852,7 +845,7 @@
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK\n"
           }
         }
       }
@@ -863,9 +856,10 @@
           "activities"
         ],
         "summary": "List / read activities",
+        "description": "**Auth:** `requirePermission(\"lead.read\")`\n",
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -882,6 +876,7 @@
           "agencies"
         ],
         "summary": "Update agencies",
+        "description": "**Auth:** `requirePermission(\"agency.manage\")`\n",
         "parameters": [
           {
             "in": "path",
@@ -913,7 +908,7 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -928,6 +923,7 @@
           "agencies"
         ],
         "summary": "Delete agencies",
+        "description": "**Auth:** `requirePermission(\"agency.manage\")`\n",
         "parameters": [
           {
             "in": "path",
@@ -948,7 +944,7 @@
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -965,6 +961,7 @@
           "agencies"
         ],
         "summary": "List / read agencies",
+        "description": "**Auth:** `requirePermission(\"agency.read\")`\n",
         "parameters": [
           {
             "in": "path",
@@ -977,7 +974,7 @@
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -992,6 +989,7 @@
           "agencies"
         ],
         "summary": "Create agencies",
+        "description": "**Auth:** `requirePermission(\"agency.manage\") + requirePermission(\"agency.read\")`\n",
         "parameters": [
           {
             "in": "path",
@@ -1015,7 +1013,7 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -1032,6 +1030,7 @@
           "agencies"
         ],
         "summary": "List / read agencies",
+        "description": "**Auth:** `requirePermission(\"agency.read\")`\n",
         "parameters": [
           {
             "in": "path",
@@ -1044,7 +1043,7 @@
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -1059,6 +1058,7 @@
           "agencies"
         ],
         "summary": "Update agencies",
+        "description": "**Auth:** `requirePermission(\"agency.manage\") + requirePermission(\"agency.read\")`\n",
         "parameters": [
           {
             "in": "path",
@@ -1082,7 +1082,7 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -1099,6 +1099,7 @@
           "agencies"
         ],
         "summary": "Create agencies",
+        "description": "**Auth:** `requirePermission(\"agency.manage\")`\n",
         "parameters": [
           {
             "in": "path",
@@ -1122,7 +1123,7 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -1139,6 +1140,7 @@
           "agencies"
         ],
         "summary": "Delete agencies",
+        "description": "**Auth:** `requirePermission(\"agency.manage\")`\n",
         "parameters": [
           {
             "in": "path",
@@ -1159,7 +1161,7 @@
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -1176,6 +1178,7 @@
           "agencies"
         ],
         "summary": "Create agencies",
+        "description": "**Auth:** `requirePermission(\"agency.manage\")`\n",
         "parameters": [
           {
             "in": "path",
@@ -1199,7 +1202,7 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -1216,9 +1219,10 @@
           "agencies"
         ],
         "summary": "List / read agencies",
+        "description": "**Auth:** `requirePermission(\"agency.read\")`\n",
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -1233,6 +1237,7 @@
           "agencies"
         ],
         "summary": "Create agencies",
+        "description": "**Auth:** `requirePermission(\"agency.manage\") + requirePermission(\"agency.read\")`\n",
         "requestBody": {
           "required": true,
           "content": {
@@ -1246,7 +1251,7 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -1263,6 +1268,7 @@
           "agency-registrations"
         ],
         "summary": "Create agency-registrations",
+        "description": "**Auth:** `requirePermission(\"agency.manage\")`\n",
         "parameters": [
           {
             "in": "path",
@@ -1286,7 +1292,7 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -1303,6 +1309,7 @@
           "agency-registrations"
         ],
         "summary": "Create agency-registrations",
+        "description": "**Auth:** `requirePermission(\"agency.manage\")`\n",
         "parameters": [
           {
             "in": "path",
@@ -1326,7 +1333,7 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -1343,9 +1350,10 @@
           "agency-registrations"
         ],
         "summary": "List / read agency-registrations",
+        "description": "**Auth:** `requirePermission(\"agency.manage\")`\n",
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -1362,9 +1370,10 @@
           "agency"
         ],
         "summary": "List / read agency",
+        "description": "**Auth:** `requirePermission(\"commission.read\")`\n",
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -1381,6 +1390,7 @@
           "agency"
         ],
         "summary": "Create agency",
+        "description": "**Auth:** `requirePermission(\"organization.manage\")`\n",
         "parameters": [
           {
             "in": "path",
@@ -1404,7 +1414,7 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -1421,9 +1431,10 @@
           "agency"
         ],
         "summary": "List / read agency",
+        "description": "**Auth:** `requirePermission(\"agency.read\")`\n",
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -1440,6 +1451,7 @@
           "agency"
         ],
         "summary": "List / read agency",
+        "description": "**Auth:** `requirePermission(\"agency.read\")`\n",
         "parameters": [
           {
             "in": "path",
@@ -1452,7 +1464,7 @@
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -1469,9 +1481,10 @@
           "agency"
         ],
         "summary": "List / read agency",
+        "description": "**Auth:** `requirePermission(\"agency.read\")`\n",
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -1488,6 +1501,7 @@
           "agency"
         ],
         "summary": "Create agency",
+        "description": "**Auth:** `requirePermission(\"agency.read\")`\n",
         "requestBody": {
           "required": true,
           "content": {
@@ -1501,7 +1515,7 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -1518,9 +1532,10 @@
           "agency"
         ],
         "summary": "List / read agency",
+        "description": "**Auth:** `requirePermission(\"agency.read\")`\n",
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -1535,6 +1550,7 @@
           "agency"
         ],
         "summary": "Create agency",
+        "description": "**Auth:** `requirePermission(\"agency.customer:register\") + requirePermission(\"agency.read\")`\n",
         "requestBody": {
           "required": true,
           "content": {
@@ -1548,7 +1564,7 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -1565,6 +1581,7 @@
           "agency"
         ],
         "summary": "Create agency",
+        "description": "**Auth:** `requirePermission(\"reservation.create\")`\n",
         "requestBody": {
           "required": true,
           "content": {
@@ -1578,7 +1595,7 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -1595,6 +1612,7 @@
           "billing"
         ],
         "summary": "Create billing",
+        "description": "**Auth:** `requireSuperAdmin() — platform SUPER_ADMIN`\n",
         "parameters": [
           {
             "in": "path",
@@ -1618,7 +1636,7 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "\nOK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -1635,6 +1653,7 @@
           "billing"
         ],
         "summary": "Create billing",
+        "description": "**Auth:** `requireSuperAdmin() — platform SUPER_ADMIN`\n",
         "parameters": [
           {
             "in": "path",
@@ -1658,7 +1677,7 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "\nOK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -1675,6 +1694,7 @@
           "billing"
         ],
         "summary": "Create billing",
+        "description": "**Auth:** `requireSuperAdmin() — platform SUPER_ADMIN`\n",
         "requestBody": {
           "required": true,
           "content": {
@@ -1688,7 +1708,7 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "\nOK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -1705,6 +1725,7 @@
           "billing"
         ],
         "summary": "Delete billing",
+        "description": "**Auth:** `requireSuperAdmin() — platform SUPER_ADMIN`\n",
         "parameters": [
           {
             "in": "path",
@@ -1717,7 +1738,7 @@
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "\nOK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -1734,9 +1755,10 @@
           "billing"
         ],
         "summary": "List / read billing",
+        "description": "**Auth:** `requireSuperAdmin() — platform SUPER_ADMIN`\n",
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "\nOK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -1751,6 +1773,7 @@
           "billing"
         ],
         "summary": "Create billing",
+        "description": "**Auth:** `requireSuperAdmin() — platform SUPER_ADMIN`\n",
         "requestBody": {
           "required": true,
           "content": {
@@ -1764,7 +1787,7 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "\nOK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -1781,6 +1804,7 @@
           "billing"
         ],
         "summary": "List / read billing",
+        "description": "**Auth:** `requirePermission(\"billing.invoice.read\")`\n",
         "parameters": [
           {
             "in": "path",
@@ -1793,7 +1817,7 @@
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "\nOK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -1810,6 +1834,7 @@
           "billing"
         ],
         "summary": "Create billing",
+        "description": "**Auth:** `requireSuperAdmin() — platform SUPER_ADMIN`\n",
         "parameters": [
           {
             "in": "path",
@@ -1833,7 +1858,7 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "\nOK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -1850,6 +1875,7 @@
           "billing"
         ],
         "summary": "Create billing",
+        "description": "**Auth:** `requireSuperAdmin() — platform SUPER_ADMIN`\n",
         "parameters": [
           {
             "in": "path",
@@ -1873,7 +1899,7 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "\nOK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -1890,6 +1916,7 @@
           "billing"
         ],
         "summary": "Create billing",
+        "description": "**Auth:** `requireSuperAdmin() — platform SUPER_ADMIN`\n",
         "parameters": [
           {
             "in": "path",
@@ -1913,7 +1940,7 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "\nOK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -1930,6 +1957,7 @@
           "billing"
         ],
         "summary": "Create billing",
+        "description": "**Auth:** `requireSuperAdmin() — platform SUPER_ADMIN`\n",
         "parameters": [
           {
             "in": "path",
@@ -1953,7 +1981,7 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "\nOK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -1970,6 +1998,7 @@
           "billing"
         ],
         "summary": "Create billing",
+        "description": "**Auth:** `requireSuperAdmin() — platform SUPER_ADMIN`\n",
         "parameters": [
           {
             "in": "path",
@@ -1993,7 +2022,7 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "\nOK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -2010,6 +2039,7 @@
           "billing"
         ],
         "summary": "Create billing",
+        "description": "**Auth:** `requireSuperAdmin() — platform SUPER_ADMIN`\n",
         "parameters": [
           {
             "in": "path",
@@ -2033,7 +2063,7 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "\nOK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -2050,6 +2080,7 @@
           "billing"
         ],
         "summary": "Create billing",
+        "description": "**Auth:** `requireSuperAdmin() — platform SUPER_ADMIN`\n",
         "parameters": [
           {
             "in": "path",
@@ -2073,7 +2104,7 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "\nOK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -2090,6 +2121,7 @@
           "billing"
         ],
         "summary": "Create billing",
+        "description": "**Auth:** `requireSuperAdmin() — platform SUPER_ADMIN`\n",
         "parameters": [
           {
             "in": "path",
@@ -2113,7 +2145,7 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "\nOK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -2130,6 +2162,7 @@
           "billing"
         ],
         "summary": "Create billing",
+        "description": "**Auth:** `requireSuperAdmin() — platform SUPER_ADMIN`\n",
         "parameters": [
           {
             "in": "path",
@@ -2153,7 +2186,7 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "\nOK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -2170,6 +2203,7 @@
           "billing"
         ],
         "summary": "Create billing",
+        "description": "**Auth:** `requireSuperAdmin() — platform SUPER_ADMIN`\n",
         "parameters": [
           {
             "in": "path",
@@ -2193,7 +2227,7 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "\nOK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -2210,6 +2244,7 @@
           "billing"
         ],
         "summary": "Create billing",
+        "description": "**Auth:** `requireSuperAdmin() — platform SUPER_ADMIN`\n",
         "parameters": [
           {
             "in": "path",
@@ -2233,7 +2268,7 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "\nOK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -2250,6 +2285,7 @@
           "buildings"
         ],
         "summary": "Create buildings",
+        "description": "**Auth:** `requirePermission(\"inventory.manage\")`\n",
         "parameters": [
           {
             "in": "path",
@@ -2273,7 +2309,7 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -2290,6 +2326,7 @@
           "buildings"
         ],
         "summary": "Update buildings",
+        "description": "**Auth:** `requirePermission(\"inventory.manage\")`\n",
         "parameters": [
           {
             "in": "path",
@@ -2313,7 +2350,7 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -2328,6 +2365,7 @@
           "buildings"
         ],
         "summary": "Delete buildings",
+        "description": "**Auth:** `requirePermission(\"inventory.manage\")`\n",
         "parameters": [
           {
             "in": "path",
@@ -2340,7 +2378,7 @@
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -2357,6 +2395,7 @@
           "buyers"
         ],
         "summary": "List / read buyers",
+        "description": "**Auth:** `requirePermission(\"lead.read\")`\n",
         "parameters": [
           {
             "in": "path",
@@ -2369,7 +2408,7 @@
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -2384,6 +2423,7 @@
           "buyers"
         ],
         "summary": "Create buyers",
+        "description": "**Auth:** `requirePermission(\"lead.manage\") + requirePermission(\"lead.read\")`\n",
         "parameters": [
           {
             "in": "path",
@@ -2407,7 +2447,7 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -2424,6 +2464,7 @@
           "buyers"
         ],
         "summary": "Create buyers",
+        "description": "**Auth:** `requirePermission(\"lead.manage\")`\n",
         "parameters": [
           {
             "in": "path",
@@ -2447,7 +2488,7 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -2464,6 +2505,7 @@
           "buyers"
         ],
         "summary": "List / read buyers",
+        "description": "**Auth:** `requirePermission(\"lead.read\")`\n",
         "parameters": [
           {
             "in": "path",
@@ -2476,7 +2518,7 @@
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -2491,6 +2533,7 @@
           "buyers"
         ],
         "summary": "Update buyers",
+        "description": "**Auth:** `requirePermission(\"lead.manage\") + requirePermission(\"lead.read\")`\n",
         "parameters": [
           {
             "in": "path",
@@ -2514,7 +2557,7 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -2531,6 +2574,7 @@
           "buyers"
         ],
         "summary": "List / read buyers",
+        "description": "**Auth:** `requirePermission(\"lead.read\")`\n",
         "parameters": [
           {
             "in": "path",
@@ -2543,7 +2587,7 @@
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -2558,6 +2602,7 @@
           "buyers"
         ],
         "summary": "Update buyers",
+        "description": "**Auth:** `requirePermission(\"lead.manage\") + requirePermission(\"lead.read\")`\n",
         "parameters": [
           {
             "in": "path",
@@ -2581,7 +2626,7 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -2598,6 +2643,7 @@
           "buyers"
         ],
         "summary": "Create buyers",
+        "description": "**Auth:** `requirePermission(\"lead.read\")`\n",
         "requestBody": {
           "required": true,
           "content": {
@@ -2611,7 +2657,7 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -2628,9 +2674,10 @@
           "buyers"
         ],
         "summary": "List / read buyers",
+        "description": "**Auth:** `requirePermission(\"lead.read\")`\n",
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -2645,6 +2692,7 @@
           "buyers"
         ],
         "summary": "Create buyers",
+        "description": "**Auth:** `requirePermission(\"lead.manage\") + requirePermission(\"lead.read\")`\n",
         "requestBody": {
           "required": true,
           "content": {
@@ -2658,7 +2706,7 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -2675,6 +2723,7 @@
           "comments"
         ],
         "summary": "Delete comments",
+        "description": "**Auth:** `requirePermission(\"buyer.read\") + requirePermission(\"sale.read\")`\n",
         "parameters": [
           {
             "in": "path",
@@ -2687,7 +2736,7 @@
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -2704,9 +2753,10 @@
           "comments"
         ],
         "summary": "List / read comments",
+        "description": "**Auth:** `requirePermission(\"buyer.read\") + requirePermission(\"sale.read\")`\n",
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -2723,9 +2773,10 @@
           "comments"
         ],
         "summary": "List / read comments",
+        "description": "**Auth:** `requirePermission(permissionForEntity(...)) — Buyer→\"buyer.read\", Sale→\"sale.read\"`\n",
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -2740,6 +2791,7 @@
           "comments"
         ],
         "summary": "Create comments",
+        "description": "**Auth:** `requirePermission(permissionForEntity(...)) — Buyer→\"buyer.read\", Sale→\"sale.read\"`\n",
         "requestBody": {
           "required": true,
           "content": {
@@ -2753,7 +2805,7 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -2770,6 +2822,7 @@
           "commission-rules"
         ],
         "summary": "Update commission-rules",
+        "description": "**Auth:** `requirePermission(\"commission.manage\")`\n",
         "parameters": [
           {
             "in": "path",
@@ -2793,7 +2846,7 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -2808,6 +2861,7 @@
           "commission-rules"
         ],
         "summary": "Delete commission-rules",
+        "description": "**Auth:** `requirePermission(\"commission.manage\")`\n",
         "parameters": [
           {
             "in": "path",
@@ -2820,7 +2874,7 @@
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -2837,9 +2891,10 @@
           "commission-rules"
         ],
         "summary": "List / read commission-rules",
+        "description": "**Auth:** `requirePermission(\"commission.read\")`\n",
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -2854,6 +2909,7 @@
           "commission-rules"
         ],
         "summary": "Create commission-rules",
+        "description": "**Auth:** `requirePermission(\"commission.manage\") + requirePermission(\"commission.read\")`\n",
         "requestBody": {
           "required": true,
           "content": {
@@ -2867,7 +2923,7 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -2884,6 +2940,7 @@
           "commissions"
         ],
         "summary": "Create commissions",
+        "description": "**Auth:** `requirePermission(\"commission.manage\")`\n",
         "parameters": [
           {
             "in": "path",
@@ -2907,7 +2964,7 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -2924,9 +2981,10 @@
           "commissions"
         ],
         "summary": "List / read commissions",
+        "description": "**Auth:** `requirePermission(\"commission.read\")`\n",
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -2943,6 +3001,7 @@
           "documents"
         ],
         "summary": "List / read documents",
+        "description": "**Auth:** `requirePermission(\"document.read\")`\n",
         "parameters": [
           {
             "in": "path",
@@ -2955,7 +3014,7 @@
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -2972,6 +3031,7 @@
           "documents"
         ],
         "summary": "Delete documents",
+        "description": "**Auth:** `requirePermission(\"document.manage\")`\n",
         "parameters": [
           {
             "in": "path",
@@ -2984,7 +3044,7 @@
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -3001,6 +3061,7 @@
           "documents"
         ],
         "summary": "Create documents",
+        "description": "**Auth:** `requirePermission(\"document.manage\")`\n",
         "parameters": [
           {
             "in": "path",
@@ -3024,7 +3085,7 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -3041,6 +3102,7 @@
           "documents"
         ],
         "summary": "Create documents",
+        "description": "**Auth:** `requirePermission(\"document.manage\")`\n",
         "requestBody": {
           "required": true,
           "content": {
@@ -3054,7 +3116,7 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -3071,9 +3133,10 @@
           "documents"
         ],
         "summary": "List / read documents",
+        "description": "**Auth:** `requirePermission(\"document.read\")`\n",
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -3088,6 +3151,7 @@
           "documents"
         ],
         "summary": "Create documents",
+        "description": "**Auth:** `requirePermission(\"document.manage\") + requirePermission(\"document.read\")`\n",
         "requestBody": {
           "required": true,
           "content": {
@@ -3101,7 +3165,7 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -3118,6 +3182,7 @@
           "entrances"
         ],
         "summary": "Create entrances",
+        "description": "**Auth:** `requirePermission(\"inventory.manage\")`\n",
         "parameters": [
           {
             "in": "path",
@@ -3141,7 +3206,7 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -3158,6 +3223,7 @@
           "entrances"
         ],
         "summary": "Update entrances",
+        "description": "**Auth:** `requirePermission(\"inventory.manage\")`\n",
         "parameters": [
           {
             "in": "path",
@@ -3181,7 +3247,7 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -3196,6 +3262,7 @@
           "entrances"
         ],
         "summary": "Delete entrances",
+        "description": "**Auth:** `requirePermission(\"inventory.manage\")`\n",
         "parameters": [
           {
             "in": "path",
@@ -3208,7 +3275,7 @@
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -3225,6 +3292,7 @@
           "floors"
         ],
         "summary": "Update floors",
+        "description": "**Auth:** `requirePermission(\"inventory.manage\")`\n",
         "parameters": [
           {
             "in": "path",
@@ -3248,7 +3316,7 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -3263,6 +3331,7 @@
           "floors"
         ],
         "summary": "Delete floors",
+        "description": "**Auth:** `requirePermission(\"inventory.manage\")`\n",
         "parameters": [
           {
             "in": "path",
@@ -3275,7 +3344,7 @@
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -3292,7 +3361,7 @@
           "health"
         ],
         "summary": "Readiness probe",
-        "description": "Javni endpoint — proverava da li app može da služi saobraćaj.",
+        "description": "**Auth:** `javno (bez sesije)`\nJavni endpoint — proverava da li app može da služi saobraćaj.\n",
         "security": [],
         "responses": {
           "200": {
@@ -3310,7 +3379,7 @@
           "health"
         ],
         "summary": "Liveness probe",
-        "description": "Javni endpoint — nema autentikacije. Vraća status + verziju.",
+        "description": "**Auth:** `javno (bez sesije)`\nJavni endpoint — nema autentikacije. Vraća status + verziju.\n",
         "security": [],
         "responses": {
           "200": {
@@ -3325,6 +3394,7 @@
           "jobs"
         ],
         "summary": "Create jobs",
+        "description": "**Auth:** `CRON_SECRET (Authorization: Bearer ili x-cron-secret)`\n",
         "parameters": [
           {
             "in": "path",
@@ -3348,7 +3418,7 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -3365,7 +3435,7 @@
           "marketing"
         ],
         "summary": "Prijava lead-a sa marketing landing stranice",
-        "description": "Javni endpoint — bez autentikacije. Rate-limitovan.",
+        "description": "**Auth:** `javno + rate-limit (bez sesije)`\nJavni endpoint — bez autentikacije. Rate-limitovan.\n",
         "security": [],
         "requestBody": {
           "required": true,
@@ -3397,9 +3467,10 @@
           "me"
         ],
         "summary": "List / read me",
+        "description": "**Auth:** `sesija (ulogovan + aktivna org) — bez posebne permission`\n",
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "\nOK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -3416,6 +3487,7 @@
           "notifications"
         ],
         "summary": "Create notifications",
+        "description": "**Auth:** `sesija (ulogovan + aktivna org) — bez posebne permission`\n",
         "parameters": [
           {
             "in": "path",
@@ -3439,7 +3511,7 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -3456,6 +3528,7 @@
           "notifications"
         ],
         "summary": "Create notifications",
+        "description": "**Auth:** `sesija (ulogovan + aktivna org) — bez posebne permission`\n",
         "requestBody": {
           "required": true,
           "content": {
@@ -3469,7 +3542,7 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -3486,9 +3559,10 @@
           "notifications"
         ],
         "summary": "List / read notifications",
+        "description": "**Auth:** `sesija (ulogovan + aktivna org) — bez posebne permission`\n",
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -3505,6 +3579,7 @@
           "onboarding"
         ],
         "summary": "Create onboarding",
+        "description": "**Auth:** `sesija (ulogovan + aktivna org) — bez posebne permission`\n",
         "requestBody": {
           "required": true,
           "content": {
@@ -3518,7 +3593,7 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -3535,6 +3610,7 @@
           "onboarding"
         ],
         "summary": "Create onboarding",
+        "description": "**Auth:** `sesija (ulogovan + aktivna org) — bez posebne permission`\n",
         "requestBody": {
           "required": true,
           "content": {
@@ -3548,7 +3624,7 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -3565,6 +3641,7 @@
           "organization"
         ],
         "summary": "Update organization",
+        "description": "**Auth:** `requirePermission(\"organization.members:manage\")`\n",
         "parameters": [
           {
             "in": "path",
@@ -3588,7 +3665,7 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -3603,6 +3680,7 @@
           "organization"
         ],
         "summary": "Delete organization",
+        "description": "**Auth:** `requirePermission(\"organization.members:manage\")`\n",
         "parameters": [
           {
             "in": "path",
@@ -3615,7 +3693,7 @@
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -3632,9 +3710,10 @@
           "organization"
         ],
         "summary": "List / read organization",
+        "description": "**Auth:** `requirePermission(\"organization.read\")`\n",
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -3649,6 +3728,7 @@
           "organization"
         ],
         "summary": "Create organization",
+        "description": "**Auth:** `requirePermission(\"organization.members:manage\") + requirePermission(\"organization.read\")`\n",
         "requestBody": {
           "required": true,
           "content": {
@@ -3662,7 +3742,7 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -3679,9 +3759,10 @@
           "organization"
         ],
         "summary": "List / read organization",
+        "description": "**Auth:** `requirePermission(\"organization.read\")`\n",
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -3696,6 +3777,7 @@
           "organization"
         ],
         "summary": "Update organization",
+        "description": "**Auth:** `requirePermission(\"organization.manage\") + requirePermission(\"organization.read\")`\n",
         "requestBody": {
           "required": true,
           "content": {
@@ -3709,7 +3791,7 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -3726,9 +3808,10 @@
           "organizations"
         ],
         "summary": "List / read organizations",
+        "description": "**Auth:** `sesija (ulogovan + aktivna org) — bez posebne permission`\n",
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "\nOK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -3745,6 +3828,7 @@
           "payment-plan-templates"
         ],
         "summary": "List / read payment-plan-templates",
+        "description": "**Auth:** `requirePermission(\"payment.manage\")`\n",
         "parameters": [
           {
             "in": "path",
@@ -3757,7 +3841,7 @@
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -3772,6 +3856,7 @@
           "payment-plan-templates"
         ],
         "summary": "Update payment-plan-templates",
+        "description": "**Auth:** `requirePermission(\"payment.manage\")`\n",
         "parameters": [
           {
             "in": "path",
@@ -3795,7 +3880,7 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -3810,6 +3895,7 @@
           "payment-plan-templates"
         ],
         "summary": "Delete payment-plan-templates",
+        "description": "**Auth:** `requirePermission(\"payment.manage\")`\n",
         "parameters": [
           {
             "in": "path",
@@ -3822,7 +3908,7 @@
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -3839,9 +3925,10 @@
           "payment-plan-templates"
         ],
         "summary": "List / read payment-plan-templates",
+        "description": "**Auth:** `requirePermission(\"payment.manage\")`\n",
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -3856,6 +3943,7 @@
           "payment-plan-templates"
         ],
         "summary": "Create payment-plan-templates",
+        "description": "**Auth:** `requirePermission(\"payment.manage\")`\n",
         "requestBody": {
           "required": true,
           "content": {
@@ -3869,7 +3957,7 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -3886,6 +3974,7 @@
           "payments"
         ],
         "summary": "Create payments",
+        "description": "**Auth:** `requirePermission(\"payment.manage\")`\n",
         "parameters": [
           {
             "in": "path",
@@ -3909,7 +3998,7 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -3926,9 +4015,10 @@
           "payments"
         ],
         "summary": "List / read payments",
+        "description": "**Auth:** `requirePermission(\"payment.read\")`\n",
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -3943,6 +4033,7 @@
           "payments"
         ],
         "summary": "Create payments",
+        "description": "**Auth:** `requirePermission(\"payment.manage\") + requirePermission(\"payment.read\")`\n",
         "requestBody": {
           "required": true,
           "content": {
@@ -3956,7 +4047,7 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -3973,9 +4064,10 @@
           "pdf"
         ],
         "summary": "List / read pdf",
+        "description": "**Auth:** `requirePermission(\"commission.read\")`\n",
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -3992,9 +4084,10 @@
           "pdf"
         ],
         "summary": "List / read pdf",
+        "description": "**Auth:** `requirePermission(\"inventory.read\")`\n",
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -4011,6 +4104,7 @@
           "pdf"
         ],
         "summary": "List / read pdf",
+        "description": "**Auth:** `requirePermission(\"sale.read\")`\n",
         "parameters": [
           {
             "in": "path",
@@ -4023,7 +4117,7 @@
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -4040,6 +4134,7 @@
           "pdf"
         ],
         "summary": "Create pdf",
+        "description": "**Auth:** `requirePermission(\"inventory.read\")`\n",
         "requestBody": {
           "required": true,
           "content": {
@@ -4053,7 +4148,7 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -4070,9 +4165,10 @@
           "platform"
         ],
         "summary": "List / read platform",
+        "description": "**Auth:** `requireSuperAdmin() — platform SUPER_ADMIN`\n",
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -4089,6 +4185,7 @@
           "platform"
         ],
         "summary": "Create platform",
+        "description": "**Auth:** `requireSuperAdmin() — platform SUPER_ADMIN`\n",
         "requestBody": {
           "required": true,
           "content": {
@@ -4102,7 +4199,7 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -4119,6 +4216,7 @@
           "platform"
         ],
         "summary": "Update platform",
+        "description": "**Auth:** `requireSuperAdmin() — platform SUPER_ADMIN`\n",
         "parameters": [
           {
             "in": "path",
@@ -4142,7 +4240,7 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -4159,9 +4257,10 @@
           "platform"
         ],
         "summary": "List / read platform",
+        "description": "**Auth:** `requireSuperAdmin() — platform SUPER_ADMIN`\n",
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -4176,6 +4275,7 @@
           "platform"
         ],
         "summary": "Create platform",
+        "description": "**Auth:** `requireSuperAdmin() — platform SUPER_ADMIN`\n",
         "requestBody": {
           "required": true,
           "content": {
@@ -4189,7 +4289,7 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -4206,6 +4306,248 @@
           "platform"
         ],
         "summary": "Create platform",
+        "description": "**Auth:** `requireSuperAdmin() — platform SUPER_ADMIN`\n",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "\nOK\n"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthenticated"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/platform/plans/{id}": {
+      "patch": {
+        "tags": [
+          "platform"
+        ],
+        "summary": "Update platform",
+        "description": "**Auth:** `requireSuperAdmin() — platform SUPER_ADMIN`\n",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK\n"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthenticated"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "platform"
+        ],
+        "summary": "Delete platform",
+        "description": "**Auth:** `requireSuperAdmin() — platform SUPER_ADMIN`\n",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK\n"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthenticated"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/platform/plans": {
+      "get": {
+        "tags": [
+          "platform"
+        ],
+        "summary": "List / read platform",
+        "description": "**Auth:** `requireSuperAdmin() — platform SUPER_ADMIN`\n",
+        "responses": {
+          "200": {
+            "description": "\nOK\n"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthenticated"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "platform"
+        ],
+        "summary": "Create platform",
+        "description": "**Auth:** `requireSuperAdmin() — platform SUPER_ADMIN`\n",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "\nOK\n"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthenticated"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/platform/property-desk/leads/{id}/convert": {
+      "post": {
+        "tags": [
+          "platform-property-desk"
+        ],
+        "summary": "Konvertuj marketing lead u tenant organizaciju",
+        "description": "**Auth:** `requirePropertyDeskAccess() + canViewMarketingLead(lead)`\n\nPostavlja `stage=WON`, `convertedOrganizationId`, `convertedAt` i\nupisuje audit red `marketing_lead.converted`.\n",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "organizationId": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "organizationId"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthenticated"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "description": "Lead ili organizacija ne postoji"
+          },
+          "409": {
+            "description": "Lead je već konvertovan"
+          }
+        }
+      }
+    },
+    "/api/v1/platform/property-desk/leads/{id}": {
+      "get": {
+        "tags": [
+          "platform-property-desk"
+        ],
+        "summary": "Detalj marketing lead-a",
+        "description": "**Auth:** `requirePropertyDeskAccess() + canViewMarketingLead(lead)`\n",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthenticated"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "platform-property-desk"
+        ],
+        "summary": "Ažuriraj stage / assign / notes marketing lead-a",
+        "description": "**Auth:** `requirePropertyDeskAccess() + canViewMarketingLead(lead)`\n",
         "parameters": [
           {
             "in": "path",
@@ -4240,12 +4582,77 @@
         }
       }
     },
-    "/api/v1/platform/plans/{id}": {
+    "/api/v1/platform/property-desk/leads": {
+      "get": {
+        "tags": [
+          "platform-property-desk"
+        ],
+        "summary": "Lista marketing lead-ova (scope-filtered)",
+        "description": "**Auth:** `requirePropertyDeskAccess() — SUPER_ADMIN ili aktivan property_desk_team_member`\n\nRezultat je filtriran prema `leadScope` člana tima. SUPER_ADMIN i\nMANAGER vide sve. Parametar `assignedTo=me` filtrira po korisniku,\n`assignedTo=unassigned` po neraspoređenim lead-ovima.\n",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "stage",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "audience",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "assignedTo",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "q",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "pageSize",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthenticated"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/platform/property-desk/team/{id}": {
       "patch": {
         "tags": [
-          "platform"
+          "platform-property-desk"
         ],
-        "summary": "Update platform",
+        "summary": "Ažuriraj člana Property Desk tima",
+        "description": "**Auth:** `requirePropertyDeskAccess() + (SUPER_ADMIN || teamRole=MANAGER)`\n\nPromenu `teamRole` polja može izvršiti samo SUPER_ADMIN.\n",
         "parameters": [
           {
             "in": "path",
@@ -4281,9 +4688,10 @@
       },
       "delete": {
         "tags": [
-          "platform"
+          "platform-property-desk"
         ],
-        "summary": "Delete platform",
+        "summary": "Ukloni člana Property Desk tima",
+        "description": "**Auth:** `requireSuperAdmin() — platform SUPER_ADMIN`\n",
         "parameters": [
           {
             "in": "path",
@@ -4307,12 +4715,13 @@
         }
       }
     },
-    "/api/v1/platform/plans": {
+    "/api/v1/platform/property-desk/team": {
       "get": {
         "tags": [
-          "platform"
+          "platform-property-desk"
         ],
-        "summary": "List / read platform",
+        "summary": "Lista članova Property Desk internog tima",
+        "description": "**Auth:** `requirePropertyDeskAccess() + (SUPER_ADMIN || teamRole=MANAGER)`\n\nSa `?addable=1` vraća korisnike koji još nisu u timu — dostupno\nsamo SUPER_ADMIN-u za formu dodavanja novog člana.\n",
         "responses": {
           "200": {
             "description": "OK"
@@ -4327,9 +4736,10 @@
       },
       "post": {
         "tags": [
-          "platform"
+          "platform-property-desk"
         ],
-        "summary": "Create platform",
+        "summary": "Dodaj korisnika u Property Desk tim",
+        "description": "**Auth:** `requireSuperAdmin() — platform SUPER_ADMIN`\n",
         "requestBody": {
           "required": true,
           "content": {
@@ -4342,14 +4752,17 @@
           }
         },
         "responses": {
-          "200": {
-            "description": "OK"
+          "201": {
+            "description": "Kreirano"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
           },
           "403": {
             "$ref": "#/components/responses/Forbidden"
+          },
+          "409": {
+            "description": "Korisnik je već u timu"
           }
         }
       }
@@ -4360,6 +4773,7 @@
           "platform"
         ],
         "summary": "Create platform",
+        "description": "**Auth:** `requireSuperAdmin() — platform SUPER_ADMIN`\n",
         "parameters": [
           {
             "in": "path",
@@ -4383,7 +4797,7 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "\nOK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -4400,6 +4814,7 @@
           "platform"
         ],
         "summary": "Update platform",
+        "description": "**Auth:** `requireSuperAdmin() — platform SUPER_ADMIN`\n",
         "parameters": [
           {
             "in": "path",
@@ -4423,7 +4838,7 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "\nOK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -4440,9 +4855,10 @@
           "platform"
         ],
         "summary": "List / read platform",
+        "description": "**Auth:** `requireSuperAdmin() — platform SUPER_ADMIN`\n",
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "\nOK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -4453,12 +4869,13 @@
         }
       }
     },
-    "/api/v1/projects/{id}/buildings": {
-      "post": {
+    "/api/v1/platform/users/{id}": {
+      "patch": {
         "tags": [
-          "projects"
+          "platform"
         ],
-        "summary": "Create projects",
+        "summary": "Ažuriraj nalog korisnika platforme",
+        "description": "**Auth:** `requireSuperAdmin() — platform SUPER_ADMIN`\n\nMenja nalog (ime, e-mail, verifikacija, ban, platformska uloga) i\nopciono članstvo u Property Desk internom timu (Sloj C). Aplikacione\nuloge unutar tenanta (Sloj B) se ne menjaju ovde.\n",
         "parameters": [
           {
             "in": "path",
@@ -4483,6 +4900,50 @@
         "responses": {
           "200": {
             "description": "OK"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthenticated"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "409": {
+            "description": "E-mail je već zauzet"
+          }
+        }
+      }
+    },
+    "/api/v1/projects/{id}/buildings": {
+      "post": {
+        "tags": [
+          "projects"
+        ],
+        "summary": "Create projects",
+        "description": "**Auth:** `requirePermission(\"inventory.manage\")`\n",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -4499,6 +4960,7 @@
           "projects"
         ],
         "summary": "Create projects",
+        "description": "**Auth:** `requirePermission(\"project.create\")`\n",
         "parameters": [
           {
             "in": "path",
@@ -4522,7 +4984,7 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -4539,6 +5001,7 @@
           "projects"
         ],
         "summary": "List / read projects",
+        "description": "**Auth:** `requirePermission(\"project.read\")`\n",
         "parameters": [
           {
             "in": "path",
@@ -4551,7 +5014,7 @@
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -4566,6 +5029,7 @@
           "projects"
         ],
         "summary": "Create projects",
+        "description": "**Auth:** `requirePermission(\"project.archive\") + requirePermission(\"project.read\") + requirePermission(\"project.update\")`\n",
         "parameters": [
           {
             "in": "path",
@@ -4589,7 +5053,7 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -4604,6 +5068,7 @@
           "projects"
         ],
         "summary": "Update projects",
+        "description": "**Auth:** `requirePermission(\"project.update\")`\n",
         "parameters": [
           {
             "in": "path",
@@ -4627,7 +5092,7 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -4644,6 +5109,7 @@
           "projects"
         ],
         "summary": "Create projects",
+        "description": "**Auth:** `requirePermission(\"inventory.import\")`\n",
         "parameters": [
           {
             "in": "path",
@@ -4667,7 +5133,7 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -4684,9 +5150,10 @@
           "projects"
         ],
         "summary": "List / read projects",
+        "description": "**Auth:** `requirePermission(\"project.read\")`\n",
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -4701,6 +5168,7 @@
           "projects"
         ],
         "summary": "Create projects",
+        "description": "**Auth:** `requirePermission(\"project.create\") + requirePermission(\"project.read\")`\n",
         "requestBody": {
           "required": true,
           "content": {
@@ -4714,7 +5182,7 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -4731,7 +5199,7 @@
           "public"
         ],
         "summary": "IPS QR za javnu rezervaciju",
-        "description": "Javni endpoint — vraća QR PNG/SVG za uplatu kapare.",
+        "description": "**Auth:** `javno + rate-limit (bez sesije)`\nJavni endpoint — vraća QR PNG/SVG za uplatu kapare.\n",
         "security": [],
         "parameters": [
           {
@@ -4759,7 +5227,7 @@
           "public"
         ],
         "summary": "Online rezervacija preko javnog share linka",
-        "description": "Faza 8.1 (A2). Javni endpoint — bez autentikacije.\n\nKupac dolazi na `/p/[token]` (javna stranica jedinice), popunjava\nformu za rezervaciju i ovaj endpoint:\n1. Validira unos (Zod).\n2. Proverava da jedinica nije već `RESERVED` (atomically, `UPDATE ... WHERE status = 'AVAILABLE'`).\n3. Kreira `ReservationRequest` (status `PENDING`).\n4. Generiše IPS QR za kaparu (ako investitor ima IBAN).\n5. Šalje email kupcu sa QR PNG-om i rokom od 48h.\n6. Šalje notifikaciju svim prodavcima investitora.\n\nRate limit: **5 pokušaja / 10 min po IP+token** i **20 pokušaja / sat po tokenu**.\n",
+        "description": "**Auth:** `javno + rate-limit (bez sesije)`\nFaza 8.1 (A2). Javni endpoint — bez autentikacije.\n\nKupac dolazi na `/p/[token]` (javna stranica jedinice), popunjava\nformu za rezervaciju i ovaj endpoint:\n1. Validira unos (Zod).\n2. Proverava da jedinica nije već `RESERVED` (atomically, `UPDATE ... WHERE status = 'AVAILABLE'`).\n3. Kreira `ReservationRequest` (status `PENDING`).\n4. Generiše IPS QR za kaparu (ako investitor ima IBAN).\n5. Šalje email kupcu sa QR PNG-om i rokom od 48h.\n6. Šalje notifikaciju svim prodavcima investitora.\n\nRate limit: **5 pokušaja / 10 min po IP+token** i **20 pokušaja / sat po tokenu**.\n",
         "security": [],
         "parameters": [
           {
@@ -4902,9 +5370,10 @@
           "reports"
         ],
         "summary": "List / read reports",
+        "description": "**Auth:** `requirePermission(\"report.read\")`\n",
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -4921,6 +5390,7 @@
           "reservation-requests"
         ],
         "summary": "Create reservation-requests",
+        "description": "**Auth:** `requirePermission(\"reservation.approve\")`\n",
         "parameters": [
           {
             "in": "path",
@@ -4944,7 +5414,7 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -4961,6 +5431,7 @@
           "reservation-requests"
         ],
         "summary": "Create reservation-requests",
+        "description": "**Auth:** `requirePermission(\"reservation.approve\")`\n",
         "parameters": [
           {
             "in": "path",
@@ -4984,7 +5455,7 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -5001,9 +5472,10 @@
           "reservation-requests"
         ],
         "summary": "List / read reservation-requests",
+        "description": "**Auth:** `requirePermission(\"reservation.read\")`\n",
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -5020,6 +5492,7 @@
           "reservations"
         ],
         "summary": "Create reservations",
+        "description": "**Auth:** `requirePermission(\"reservation.approve\")`\n",
         "parameters": [
           {
             "in": "path",
@@ -5043,7 +5516,7 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -5060,6 +5533,7 @@
           "reservations"
         ],
         "summary": "Create reservations",
+        "description": "**Auth:** `requirePermission(\"reservation.cancel\")`\n",
         "parameters": [
           {
             "in": "path",
@@ -5083,7 +5557,7 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -5100,6 +5574,7 @@
           "reservations"
         ],
         "summary": "Create reservations",
+        "description": "**Auth:** `requirePermission(\"sale.manage\")`\n",
         "parameters": [
           {
             "in": "path",
@@ -5123,7 +5598,7 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -5140,6 +5615,7 @@
           "reservations"
         ],
         "summary": "Create reservations",
+        "description": "**Auth:** `requirePermission(\"reservation.approve\")`\n",
         "parameters": [
           {
             "in": "path",
@@ -5163,7 +5639,7 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -5180,6 +5656,7 @@
           "reservations"
         ],
         "summary": "List / read reservations",
+        "description": "**Auth:** `requirePermission(\"reservation.read\")`\n",
         "parameters": [
           {
             "in": "path",
@@ -5192,7 +5669,7 @@
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -5209,9 +5686,10 @@
           "reservations"
         ],
         "summary": "List / read reservations",
+        "description": "**Auth:** `requirePermission(\"reservation.read\")`\n",
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -5226,6 +5704,7 @@
           "reservations"
         ],
         "summary": "Create reservations",
+        "description": "**Auth:** `requirePermission(\"reservation.create\") + requirePermission(\"reservation.read\")`\n",
         "requestBody": {
           "required": true,
           "content": {
@@ -5239,7 +5718,7 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -5256,6 +5735,7 @@
           "sale-contract-templates"
         ],
         "summary": "List / read sale-contract-templates",
+        "description": "**Auth:** `requirePermission(\"sale.manage\")`\n",
         "parameters": [
           {
             "in": "path",
@@ -5268,7 +5748,7 @@
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -5283,6 +5763,7 @@
           "sale-contract-templates"
         ],
         "summary": "Update sale-contract-templates",
+        "description": "**Auth:** `requirePermission(\"sale.manage\")`\n",
         "parameters": [
           {
             "in": "path",
@@ -5306,7 +5787,7 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -5321,6 +5802,7 @@
           "sale-contract-templates"
         ],
         "summary": "Delete sale-contract-templates",
+        "description": "**Auth:** `requirePermission(\"sale.manage\")`\n",
         "parameters": [
           {
             "in": "path",
@@ -5333,7 +5815,7 @@
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -5350,9 +5832,10 @@
           "sale-contract-templates"
         ],
         "summary": "List / read sale-contract-templates",
+        "description": "**Auth:** `requirePermission(\"sale.manage\")`\n",
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -5367,6 +5850,7 @@
           "sale-contract-templates"
         ],
         "summary": "Create sale-contract-templates",
+        "description": "**Auth:** `requirePermission(\"sale.manage\")`\n",
         "requestBody": {
           "required": true,
           "content": {
@@ -5380,7 +5864,7 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -5397,6 +5881,7 @@
           "sales"
         ],
         "summary": "Create sales",
+        "description": "**Auth:** `requirePermission(\"sale.manage\")`\n",
         "parameters": [
           {
             "in": "path",
@@ -5420,7 +5905,7 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -5437,6 +5922,7 @@
           "sales"
         ],
         "summary": "Create sales",
+        "description": "**Auth:** `requirePermission(\"sale.manage\")`\n",
         "parameters": [
           {
             "in": "path",
@@ -5460,7 +5946,7 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -5477,6 +5963,7 @@
           "sales"
         ],
         "summary": "Create sales",
+        "description": "**Auth:** `requirePermission(\"sale.manage\")`\n",
         "parameters": [
           {
             "in": "path",
@@ -5500,7 +5987,7 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -5517,6 +6004,7 @@
           "sales"
         ],
         "summary": "Create sales",
+        "description": "**Auth:** `requirePermission(\"sale.manage\")`\n",
         "parameters": [
           {
             "in": "path",
@@ -5540,7 +6028,7 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -5557,6 +6045,7 @@
           "sales"
         ],
         "summary": "Create sales",
+        "description": "**Auth:** `requirePermission(\"payment.manage\")`\n",
         "parameters": [
           {
             "in": "path",
@@ -5580,7 +6069,7 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -5597,6 +6086,7 @@
           "sales"
         ],
         "summary": "Create sales",
+        "description": "**Auth:** `requirePermission(\"payment.manage\")`\n",
         "parameters": [
           {
             "in": "path",
@@ -5620,7 +6110,7 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -5637,6 +6127,7 @@
           "sales"
         ],
         "summary": "List / read sales",
+        "description": "**Auth:** `requirePermission(\"sale.read\")`\n",
         "parameters": [
           {
             "in": "path",
@@ -5649,7 +6140,7 @@
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -5664,6 +6155,7 @@
           "sales"
         ],
         "summary": "Create sales",
+        "description": "**Auth:** `requirePermission(\"payment.manage\")`\n",
         "parameters": [
           {
             "in": "path",
@@ -5687,7 +6179,7 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -5702,6 +6194,7 @@
           "sales"
         ],
         "summary": "Delete sales",
+        "description": "**Auth:** `requirePermission(\"payment.manage\") + requirePermission(\"sale.read\")`\n",
         "parameters": [
           {
             "in": "path",
@@ -5714,7 +6207,7 @@
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -5731,6 +6224,7 @@
           "sales"
         ],
         "summary": "List / read sales",
+        "description": "**Auth:** `requirePermission(\"sale.read\")`\n",
         "parameters": [
           {
             "in": "path",
@@ -5743,7 +6237,7 @@
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -5760,6 +6254,7 @@
           "sales"
         ],
         "summary": "Create sales",
+        "description": "**Auth:** `requirePermission(\"sale.manage\")`\n",
         "parameters": [
           {
             "in": "path",
@@ -5783,7 +6278,7 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -5800,6 +6295,7 @@
           "sales"
         ],
         "summary": "Update sales",
+        "description": "**Auth:** `requirePermission(\"sale.manage\")`\n",
         "parameters": [
           {
             "in": "path",
@@ -5823,7 +6319,7 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -5840,9 +6336,10 @@
           "sales"
         ],
         "summary": "List / read sales",
+        "description": "**Auth:** `requirePermission(\"sale.read\")`\n",
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -5857,6 +6354,7 @@
           "sales"
         ],
         "summary": "Create sales",
+        "description": "**Auth:** `requirePermission(\"sale.manage\") + requirePermission(\"sale.read\")`\n",
         "requestBody": {
           "required": true,
           "content": {
@@ -5870,7 +6368,7 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -5887,9 +6385,10 @@
           "search"
         ],
         "summary": "List / read search",
+        "description": "**Auth:** `sesija (ulogovan + aktivna org) — bez posebne permission`\n",
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -5906,6 +6405,7 @@
           "share-links"
         ],
         "summary": "Delete share-links",
+        "description": "**Auth:** `requirePermission(\"inventory.read\")`\n",
         "parameters": [
           {
             "in": "path",
@@ -5918,7 +6418,7 @@
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -5935,6 +6435,7 @@
           "tasks"
         ],
         "summary": "Create tasks",
+        "description": "**Auth:** `requirePermission(\"lead.manage\")`\n",
         "parameters": [
           {
             "in": "path",
@@ -5958,7 +6459,7 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -5975,6 +6476,7 @@
           "tasks"
         ],
         "summary": "Update tasks",
+        "description": "**Auth:** `requirePermission(\"lead.manage\")`\n",
         "parameters": [
           {
             "in": "path",
@@ -5998,7 +6500,7 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -6015,9 +6517,10 @@
           "tasks"
         ],
         "summary": "List / read tasks",
+        "description": "**Auth:** `requirePermission(\"lead.read\")`\n",
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -6032,6 +6535,7 @@
           "tasks"
         ],
         "summary": "Create tasks",
+        "description": "**Auth:** `requirePermission(\"lead.manage\") + requirePermission(\"lead.read\")`\n",
         "requestBody": {
           "required": true,
           "content": {
@@ -6045,7 +6549,7 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -6062,6 +6566,7 @@
           "units"
         ],
         "summary": "Create units",
+        "description": "**Auth:** `requirePermission(\"inventory.manage\")`\n",
         "parameters": [
           {
             "in": "path",
@@ -6085,7 +6590,7 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -6102,6 +6607,7 @@
           "units"
         ],
         "summary": "List / read units",
+        "description": "**Auth:** `requirePermission(\"inventory.read\")`\n",
         "parameters": [
           {
             "in": "path",
@@ -6114,7 +6620,7 @@
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -6129,6 +6635,7 @@
           "units"
         ],
         "summary": "Update units",
+        "description": "**Auth:** `requirePermission(\"inventory.manage\") + requirePermission(\"inventory.read\")`\n",
         "parameters": [
           {
             "in": "path",
@@ -6152,7 +6659,7 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -6169,6 +6676,7 @@
           "units"
         ],
         "summary": "List / read units",
+        "description": "**Auth:** `requirePermission(\"inventory.read\")`\n",
         "parameters": [
           {
             "in": "path",
@@ -6181,7 +6689,7 @@
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -6196,6 +6704,7 @@
           "units"
         ],
         "summary": "Create units",
+        "description": "**Auth:** `requirePermission(\"inventory.read\")`\n",
         "parameters": [
           {
             "in": "path",
@@ -6219,7 +6728,7 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -6236,6 +6745,7 @@
           "units"
         ],
         "summary": "Create units",
+        "description": "**Auth:** `requirePermission(\"inventory.status\")`\n",
         "parameters": [
           {
             "in": "path",
@@ -6259,7 +6769,7 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -6276,9 +6786,10 @@
           "units"
         ],
         "summary": "List / read units",
+        "description": "**Auth:** `requirePermission(\"inventory.export\")`\n",
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK\n"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -6295,7 +6806,7 @@
           "units"
         ],
         "summary": "Lista jedinica",
-        "description": "Paginirana lista svih jedinica u aktivnoj organizaciji, sa filterima.\nDozvola: `inventory.read`.\n",
+        "description": "**Auth:** `requirePermission(\"inventory.read\")`\nPaginirana lista svih jedinica u aktivnoj organizaciji, sa filterima.\n",
         "parameters": [
           {
             "$ref": "#/components/parameters/pageParam"
@@ -6494,7 +7005,7 @@
           "units"
         ],
         "summary": "Kreiraj jedinicu",
-        "description": "Kreira novu jedinicu u projektu. Dozvola: `inventory.manage`.\n",
+        "description": "**Auth:** `requirePermission(\"inventory.manage\") + requirePermission(\"inventory.read\")`\nKreira novu jedinicu u projektu. Dozvola: `inventory.manage`.\n",
         "requestBody": {
           "required": true,
           "content": {

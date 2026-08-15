@@ -1,8 +1,10 @@
 import "server-only";
+import type { PropertyDeskLeadScope, PropertyDeskTeamRole } from "@prisma/client";
 import type { OrganizationRole } from "@/server/permissions/roles";
 import { organizationRoles } from "@/server/permissions/roles";
 import type { PermissionString } from "@/server/permissions/access-control";
 import { getActiveOrganization, getSession, isSuperAdmin } from "@/server/auth/session";
+import { getPropertyDeskTeamMember } from "@/server/permissions/property-desk";
 import {
   ALL_PERMISSIONS as ALL_PERMS,
   isPermittedWithOverrides,
@@ -33,6 +35,16 @@ export interface UserContext {
     role: OrganizationRole | null;
     status: "TRIAL" | "ACTIVE" | "RESTRICTED" | "SUSPENDED" | "CLOSED" | null;
   } | null;
+  /**
+   * Property Desk internal-team membership. `null` for regular users and
+   * for a bare SUPER_ADMIN who wasn't explicitly added to the team.
+   * SUPER_ADMIN nonetheless has full access — see `isSuperAdmin`.
+   */
+  propertyDeskTeam: {
+    teamRole: PropertyDeskTeamRole;
+    leadScope: PropertyDeskLeadScope;
+    enabled: boolean;
+  } | null;
   /** Snapshot of allowed permissions for the current caller in the active org. */
   permissions: PermissionString[];
 }
@@ -42,6 +54,7 @@ const ALL_PERMISSIONS: PermissionString[] = ALL_PERMS;
 async function computePermissions(
   role: OrganizationRole | null,
   isSuper: boolean,
+  pdTeamRole: PropertyDeskTeamRole | null,
 ): Promise<PermissionString[]> {
   // SUPER_ADMIN operates on the platform role's grants + overrides. That
   // way an operator can revoke individual defaults (e.g. narrow the
@@ -58,11 +71,24 @@ async function computePermissions(
     }
     return allowed;
   }
-  if (!role || !(role in organizationRoles)) return [];
   const allowed: PermissionString[] = [];
-  for (const perm of ALL_PERMISSIONS) {
-    if (perm.startsWith("platform.")) continue;
-    if (isPermittedWithOverrides(role, perm, overrides)) allowed.push(perm);
+  if (role && role in organizationRoles) {
+    for (const perm of ALL_PERMISSIONS) {
+      if (perm.startsWith("platform.")) continue;
+      if (perm.startsWith("pd_")) continue; // handled by pdTeamRole below
+      if (isPermittedWithOverrides(role, perm, overrides)) allowed.push(perm);
+    }
+  }
+  // Layer C — merge Property Desk `pd_*` grants for the caller's team role.
+  // A user can be both a tenant member and a Property Desk team member; the
+  // two permission surfaces are additive.
+  if (pdTeamRole) {
+    for (const perm of ALL_PERMISSIONS) {
+      if (!perm.startsWith("pd_")) continue;
+      if (isPermittedWithOverrides(pdTeamRole, perm, overrides)) {
+        allowed.push(perm);
+      }
+    }
   }
   return allowed;
 }
@@ -79,9 +105,15 @@ export async function loadUserContext(): Promise<UserContext | null> {
   }
 
   const superAdmin = isSuperAdmin(session);
+
+  const pdTeam = await getPropertyDeskTeamMember(session.user.id).catch(
+    () => null,
+  );
+
   const permissions = await computePermissions(
     activeOrg?.organizationRole ?? null,
     superAdmin,
+    pdTeam?.enabled ? pdTeam.teamRole : null,
   );
 
   return {
@@ -107,6 +139,13 @@ export async function loadUserContext(): Promise<UserContext | null> {
           type: activeOrg.organizationType,
           role: activeOrg.organizationRole,
           status: activeOrg.organizationStatus,
+        }
+      : null,
+    propertyDeskTeam: pdTeam
+      ? {
+          teamRole: pdTeam.teamRole,
+          leadScope: pdTeam.leadScope,
+          enabled: pdTeam.enabled,
         }
       : null,
     permissions,

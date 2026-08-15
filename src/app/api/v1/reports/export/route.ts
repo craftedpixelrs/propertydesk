@@ -164,9 +164,12 @@ function today(): string {
  *     tags:
  *       - reports
  *     summary: List / read reports
+ *     description: |
+ *       **Auth:** `requirePermission("report.read")`
  *     responses:
  *       "200":
- *         description: OK
+ *         description: |
+ *           OK
  *       "401":
  *         $ref: "#/components/responses/Unauthenticated"
  *       "403":

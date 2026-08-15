@@ -32,9 +32,12 @@ export const GET = apiHandler({}, async () => {
  *     tags:
  *       - comments
  *     summary: List / read comments
+ *     description: |
+ *       **Auth:** `requirePermission("buyer.read") + requirePermission("sale.read")`
  *     responses:
  *       "200":
- *         description: OK
+ *         description: |
+ *           OK
  *       "401":
  *         $ref: "#/components/responses/Unauthenticated"
  *       "403":

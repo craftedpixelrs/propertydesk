@@ -44,6 +44,8 @@ export const POST = apiHandler({ bodySchema }, async ({ req, body }) => {
  *     tags:
  *       - agency
  *     summary: Create agency
+ *     description: |
+ *       **Auth:** `requirePermission("reservation.create")`
  *     requestBody:
  *       required: true
  *       content:
@@ -53,7 +55,8 @@ export const POST = apiHandler({ bodySchema }, async ({ req, body }) => {
  *             additionalProperties: true
  *     responses:
  *       "200":
- *         description: OK
+ *         description: |
+ *           OK
  *       "401":
  *         $ref: "#/components/responses/Unauthenticated"
  *       "403":

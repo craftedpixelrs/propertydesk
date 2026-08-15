@@ -39,6 +39,8 @@ export const POST = apiHandler({ paramsSchema, bodySchema }, async ({ params, bo
  *     tags:
  *       - reservations
  *     summary: Create reservations
+ *     description: |
+ *       **Auth:** `requirePermission("sale.manage")`
  *     parameters:
  *       - in: path
  *         name: id
@@ -54,7 +56,8 @@ export const POST = apiHandler({ paramsSchema, bodySchema }, async ({ params, bo
  *             additionalProperties: true
  *     responses:
  *       "200":
- *         description: OK
+ *         description: |
+ *           OK
  *       "401":
  *         $ref: "#/components/responses/Unauthenticated"
  *       "403":

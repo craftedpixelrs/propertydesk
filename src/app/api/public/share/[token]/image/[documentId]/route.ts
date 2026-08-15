@@ -57,6 +57,8 @@ export const GET = apiHandler({ paramsSchema }, async ({ req, params }) => {
  *     tags:
  *       - public
  *     summary: List / read public
+ *     description: |
+ *       **Auth:** `javno + rate-limit (bez sesije)`
  *     security: []
  *     parameters:
  *       - in: path
@@ -71,5 +73,6 @@ export const GET = apiHandler({ paramsSchema }, async ({ req, params }) => {
  *           type: string
  *     responses:
  *       "200":
- *         description: OK
+ *         description: |
+ *           OK
  */

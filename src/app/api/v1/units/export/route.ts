@@ -45,9 +45,12 @@ export const GET = apiHandler({}, async ({ searchParams, requestId }) => {
  *     tags:
  *       - units
  *     summary: List / read units
+ *     description: |
+ *       **Auth:** `requirePermission("inventory.export")`
  *     responses:
  *       "200":
- *         description: OK
+ *         description: |
+ *           OK
  *       "401":
  *         $ref: "#/components/responses/Unauthenticated"
  *       "403":

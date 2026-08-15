@@ -53,6 +53,8 @@ export const GET = apiHandler({ paramsSchema }, async ({ params }) => {
  *     tags:
  *       - billing
  *     summary: List / read billing
+ *     description: |
+ *       **Auth:** `requirePermission("billing.invoice.read")`
  *     parameters:
  *       - in: path
  *         name: id
@@ -61,7 +63,9 @@ export const GET = apiHandler({ paramsSchema }, async ({ params }) => {
  *           type: string
  *     responses:
  *       "200":
- *         description: OK
+ *         description: |
+
+ *           OK
  *       "401":
  *         $ref: "#/components/responses/Unauthenticated"
  *       "403":

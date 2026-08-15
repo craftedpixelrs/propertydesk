@@ -1,5 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { listAuditLogs } from "@/server/services/platform.service";
+import { requireSuperAdmin } from "@/server/permissions/require";
 import { formatDateTime } from "@/lib/formatters/date";
 
 interface PageProps {
@@ -12,6 +13,7 @@ interface PageProps {
 }
 
 export default async function PlatformAuditPage({ searchParams }: PageProps) {
+  await requireSuperAdmin();
   const params = await searchParams;
   const page = Number.parseInt(params.page ?? "1", 10) || 1;
 

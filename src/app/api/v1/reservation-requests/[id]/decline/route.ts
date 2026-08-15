@@ -35,6 +35,8 @@ export const POST = apiHandler(
  *     tags:
  *       - reservation-requests
  *     summary: Create reservation-requests
+ *     description: |
+ *       **Auth:** `requirePermission("reservation.approve")`
  *     parameters:
  *       - in: path
  *         name: id
@@ -50,7 +52,8 @@ export const POST = apiHandler(
  *             additionalProperties: true
  *     responses:
  *       "200":
- *         description: OK
+ *         description: |
+ *           OK
  *       "401":
  *         $ref: "#/components/responses/Unauthenticated"
  *       "403":

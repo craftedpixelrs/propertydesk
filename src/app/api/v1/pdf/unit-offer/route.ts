@@ -42,6 +42,8 @@ export const POST = apiHandler({ bodySchema: schema }, async ({ body }): Promise
  *     tags:
  *       - pdf
  *     summary: Create pdf
+ *     description: |
+ *       **Auth:** `requirePermission("inventory.read")`
  *     requestBody:
  *       required: true
  *       content:
@@ -51,7 +53,8 @@ export const POST = apiHandler({ bodySchema: schema }, async ({ body }): Promise
  *             additionalProperties: true
  *     responses:
  *       "200":
- *         description: OK
+ *         description: |
+ *           OK
  *       "401":
  *         $ref: "#/components/responses/Unauthenticated"
  *       "403":

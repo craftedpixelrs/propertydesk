@@ -10,6 +10,7 @@ export const { GET, POST } = toNextJsHandler(auth);
  *     tags: [auth]
  *     summary: Better Auth — catch-all
  *     description: |
+ *       **Auth:** `Better Auth (javne auth rute / session cookie)`
  *       Sve autentifikacione rute idu kroz Better Auth (`better-auth/next-js`).
  *       Ovaj catch-all obrađuje **sve** auth endpointe.
  *
@@ -44,7 +45,9 @@ export const { GET, POST } = toNextJsHandler(auth);
  *   post:
  *     tags: [auth]
  *     summary: Better Auth — catch-all (POST)
- *     description: Isto kao GET — Better Auth koristi POST za mutacije.
+ *     description: |
+ *       **Auth:** `Better Auth (javne auth rute / session cookie)`
+ *       Isto kao GET — Better Auth koristi POST za mutacije.
  *     security: []
  *     parameters:
  *       - in: path
@@ -72,6 +75,7 @@ export const { GET, POST } = toNextJsHandler(auth);
  *     tags: [auth]
  *     summary: Prijava email + lozinka
  *     description: |
+ *       **Auth:** `Better Auth (javne auth rute / session cookie)`
  *       Vraća session cookie (`__Secure-propertydesk.session_token` u
  *       produkciji; `propertydesk.session_token` lokalno — HttpOnly,
  *       SameSite=Lax) i user objekat. `requireEmailVerification: true`
@@ -137,6 +141,7 @@ export const { GET, POST } = toNextJsHandler(auth);
  *     tags: [auth]
  *     summary: Registracija email + lozinka
  *     description: |
+ *       **Auth:** `Better Auth (javne auth rute / session cookie)`
  *       Šalje verification email (24h expiry). Ne može se prijaviti dok
  *       email nije potvrđen.
  *     security: []
@@ -172,9 +177,10 @@ export const { GET, POST } = toNextJsHandler(auth);
  *   post:
  *     tags: [auth]
  *     summary: Odjava
- *     description: Briše session cookie i invalidira sesiju u bazi.
- *     security:
- *       - cookieAuth: []
+ *     description: |
+ *       **Auth:** `Better Auth (javne auth rute / session cookie)`
+ *       Briše session cookie i invalidira sesiju u bazi.
+ *     security: []
  *     responses:
  *       "200":
  *         description: Uspešna odjava.
@@ -185,11 +191,11 @@ export const { GET, POST } = toNextJsHandler(auth);
  *     tags: [auth]
  *     summary: Trenutna sesija
  *     description: |
+ *       **Auth:** `Better Auth (javne auth rute / session cookie)`
  *       Vraća user + session objekat, uključujući `impersonatedBy` ako
  *       super-admin trenutno impersonira korisnika. Za kompletniji payload
  *       (aktivna organizacija, platform role) koristi `/api/v1/me`.
- *     security:
- *       - cookieAuth: []
+ *     security: []
  *     responses:
  *       "200":
  *         description: Sesija postoji.

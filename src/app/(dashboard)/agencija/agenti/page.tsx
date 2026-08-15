@@ -7,6 +7,11 @@ import {
   listPendingInvitations,
 } from "@/server/services/organization-admin.service";
 import { MembersManager } from "@/features/settings/members-manager";
+import { buildRoleCapabilityGuide } from "@/features/settings/role-capability-guide";
+import {
+  isPermittedWithOverrides,
+  loadOverridesMap,
+} from "@/server/services/permissions/role-overrides.service";
 
 export const dynamic = "force-dynamic";
 
@@ -22,10 +27,16 @@ export default async function AgentiPage() {
   }
 
   const { org } = await requireSessionAndOrg();
-  const [members, invitations] = await Promise.all([
+  const [members, invitations, overrides] = await Promise.all([
     listMembers(org.organizationId),
     listPendingInvitations(org.organizationId),
+    loadOverridesMap(),
   ]);
+  const roleGuide = org.organizationType
+    ? buildRoleCapabilityGuide(org.organizationType, (role, permission) =>
+        isPermittedWithOverrides(role, permission, overrides),
+      )
+    : null;
 
   return (
     <div className="space-y-6">
@@ -45,6 +56,8 @@ export default async function AgentiPage() {
           status: inv.status,
           expiresAt: inv.expiresAt,
         }))}
+        roleGuide={roleGuide}
+        currentUserId={ctx.user.id}
       />
     </div>
   );

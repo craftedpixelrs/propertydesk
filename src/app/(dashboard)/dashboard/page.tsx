@@ -76,6 +76,14 @@ export default async function DashboardPage() {
   // false, so this branch does not fire in that case.
   if (ctx.isSuperAdmin) redirect("/administracija");
 
+  // Property Desk internal-team members without a tenant land on their
+  // operational panel. They don't have any tenant permissions and would
+  // otherwise stare at a "no organization" empty state despite having
+  // real work available under /administracija/property-desk.
+  if (!ctx.activeOrganization && ctx.propertyDeskTeam?.enabled) {
+    redirect("/administracija/property-desk");
+  }
+
   if (!ctx.activeOrganization) {
     return <PageHeader title={t("nav.dashboard")} description={t("organization.noOrgSubtitle")} />;
   }

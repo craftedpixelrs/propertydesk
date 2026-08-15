@@ -45,9 +45,12 @@ export const GET = apiHandler({}, async ({ query, searchParams }) => {
  *     tags:
  *       - commissions
  *     summary: List / read commissions
+ *     description: |
+ *       **Auth:** `requirePermission("commission.read")`
  *     responses:
  *       "200":
- *         description: OK
+ *         description: |
+ *           OK
  *       "401":
  *         $ref: "#/components/responses/Unauthenticated"
  *       "403":

@@ -30,6 +30,8 @@ export const POST = apiHandler(
  *     tags:
  *       - agency-registrations
  *     summary: Create agency-registrations
+ *     description: |
+ *       **Auth:** `requirePermission("agency.manage")`
  *     parameters:
  *       - in: path
  *         name: id
@@ -45,7 +47,8 @@ export const POST = apiHandler(
  *             additionalProperties: true
  *     responses:
  *       "200":
- *         description: OK
+ *         description: |
+ *           OK
  *       "401":
  *         $ref: "#/components/responses/Unauthenticated"
  *       "403":

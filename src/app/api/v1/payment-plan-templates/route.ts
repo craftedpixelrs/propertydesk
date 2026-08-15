@@ -61,9 +61,12 @@ export const POST = apiHandler(
  *     tags:
  *       - payment-plan-templates
  *     summary: List / read payment-plan-templates
+ *     description: |
+ *       **Auth:** `requirePermission("payment.manage")`
  *     responses:
  *       "200":
- *         description: OK
+ *         description: |
+ *           OK
  *       "401":
  *         $ref: "#/components/responses/Unauthenticated"
  *       "403":
@@ -72,6 +75,8 @@ export const POST = apiHandler(
  *     tags:
  *       - payment-plan-templates
  *     summary: Create payment-plan-templates
+ *     description: |
+ *       **Auth:** `requirePermission("payment.manage")`
  *     requestBody:
  *       required: true
  *       content:
@@ -81,7 +86,8 @@ export const POST = apiHandler(
  *             additionalProperties: true
  *     responses:
  *       "200":
- *         description: OK
+ *         description: |
+ *           OK
  *       "401":
  *         $ref: "#/components/responses/Unauthenticated"
  *       "403":

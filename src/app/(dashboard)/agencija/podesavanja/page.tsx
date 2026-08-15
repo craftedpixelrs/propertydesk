@@ -53,6 +53,7 @@ export default async function AgencijaPodesavanjaPage() {
             : null
         }
         quota={quota}
+        orgType="AGENCY"
       />
 
       <Card>

@@ -1315,11 +1315,132 @@ deploy/                  <span class="c"># git-deploy.ps1, provision…</span></
 
         <section id="permissions">
           <h2>Permissions model <a class="anchor" href="#permissions">#</a></h2>
+
+          <h3>Dva sloja autorizacije</h3>
           <p>
-            Kanonska definicija: <code>src/server/permissions/access-control.ts</code>.
-            Enforcement: <code>requirePermission</code> /
-            <code>requirePlatformPermission</code>.
+            PropertyDesk ima <strong>tri odvojena autorizaciona sloja</strong>. Nikad ih
+            ne mešamo u istoj tabeli, istom ekranu ili istom API pozivu.
           </p>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th style="width:22%">Sloj</th>
+                  <th>Šta rešava</th>
+                  <th>Gde je izvor istine</th>
+                  <th>Admin ekran</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>Sloj A — Platforma / Nalog</strong></td>
+                  <td>„Da li nalog uopšte ima pristup?"</td>
+                  <td>
+                    <code>user.role</code> (<code>SUPER_ADMIN</code>),
+                    <code>saas_plan</code>, <code>organization_subscription</code>,
+                    <code>organization_profile.status</code>,
+                    <code>global_billing_settings</code>
+                  </td>
+                  <td>
+                    <code>/administracija/organizacije</code>,
+                    <code>/administracija/planovi</code>,
+                    <code>/administracija/naplata</code>
+                  </td>
+                </tr>
+                <tr>
+                  <td><strong>Sloj B — Aplikacija</strong></td>
+                  <td>„Šta ulogovan član radi unutar svoje org?"</td>
+                  <td>
+                    <code>member.role</code> + matrica u
+                    <code>src/server/permissions/roles.ts</code> +
+                    <code>role_permission_override</code>
+                  </td>
+                  <td>
+                    <code>/administracija/role</code> (uređivač matrice),
+                    <code>/podesavanja/korisnici</code> (dodela role članovima)
+                  </td>
+                </tr>
+                <tr>
+                  <td><strong>Sloj C — Property Desk internal team</strong></td>
+                  <td>„Ko iz našeg tima marketira i prodaje sam SaaS?"</td>
+                  <td>
+                    <code>property_desk_team_member</code> (teamRole, leadScope, enabled),
+                    <code>marketing_lead</code> pipeline
+                  </td>
+                  <td>
+                    <code>/administracija/property-desk</code>,
+                    <code>/administracija/property-desk/tim</code>,
+                    <code>/administracija/property-desk/leadovi</code>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p>
+            Kanonska definicija dozvola je u
+            <code>src/server/permissions/access-control.ts</code>. Enforcement za Sloj A/B:
+            <code>requirePermission</code> / <code>requirePlatformPermission</code>.
+            Enforcement za Sloj C:
+            <code>requirePropertyDeskAccess</code> /
+            <code>requirePdPermission(ctx, "pd_*")</code> /
+            <code>hasPdPermission(ctx, "pd_*")</code> /
+            <code>canViewMarketingLead(ctx, lead)</code> u
+            <code>src/server/permissions/property-desk.ts</code>. Sve dozvole
+            iz porodice <code>pd_*</code> se editovanjem prolaze kroz isti
+            override sloj kao aplikacione uloge, tako da se ponašanje SETTER-a,
+            CLOSER-a, OPERATIONS-a i MANAGER-a menja iz UI-ja bez redeploy-a.
+            <strong>Sloj C ne meša se sa tenant Member.role</strong> — svako je
+            samostalna dimenzija.
+          </p>
+
+          <h3>Kanonska mapa (industrijski žargon ↔ Property Desk tim)</h3>
+          <p>
+            Nazivi „Setter", „Closer", „Operations", „Property Desk Manager" iz
+            industrijskog žargona <strong>označavaju role Sloja C</strong> — internog tima
+            koji marketira SaaS. Oni <em>nisu</em> aliasi tenant rola.
+          </p>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Kanonski naziv</th>
+                  <th>Vrednost <code>teamRole</code></th>
+                  <th>Šta radi</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Setter</td>
+                  <td><code>SETTER</code></td>
+                  <td>Prvi kontakt sa lead-om, kvalifikacija (NEW → CONTACTED → QUALIFIED)</td>
+                </tr>
+                <tr>
+                  <td>Closer</td>
+                  <td><code>CLOSER</code></td>
+                  <td>Demo, ponuda, zaključenje (QUALIFIED → DEMO → PROPOSAL → WON)</td>
+                </tr>
+                <tr>
+                  <td>Operations</td>
+                  <td><code>OPERATIONS</code></td>
+                  <td>Onboarding: veže postojeći tenant ili pravi org + vlasnika iz L3 lead-a</td>
+                </tr>
+                <tr>
+                  <td>Property Desk Manager</td>
+                  <td><code>MANAGER</code></td>
+                  <td>Cross-team vidljivost, dodela lead-ova, upravljanje scope-om drugih</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="callout warn">
+            <strong>Property Desk Manager NIJE Super Admin.</strong>
+            Manager u Sloju C nema <code>platform.*</code> dozvole, ne upravlja
+            pretplatom, ne vidi tuđu organizaciju, ne menja tenant <code>Member.role</code>.
+            Super Admin je isključivo platformska rola (<code>user.role = "SUPER_ADMIN"</code>)
+            i on prolazi Sloj C provere kao bypass.
+          </div>
+
+          <h3>Kanonske dozvole po resursu</h3>
           <div class="table-wrap">
             <table>
               <thead>
@@ -1343,6 +1464,11 @@ deploy/                  <span class="c"># git-deploy.ps1, provision…</span></
                 <tr><td><code>audit</code></td><td><code>read</code></td></tr>
                 <tr><td><code>platform</code></td><td><code>organization:manage</code>, <code>impersonate</code>, <code>user:manage</code></td></tr>
                 <tr><td><code>billing</code></td><td><code>read</code>, <code>settings.manage</code>, <code>plan.manage</code>, <code>subscription.*</code>, <code>invoice.*</code>, <code>payment.*</code>, <code>bankstatement.*</code>, <code>sef.manage</code>, <code>jobs.run</code>, <code>template.manage</code>, …</td></tr>
+                <tr><td><code>pd_team</code> <span style="color:#94a3b8">(Sloj C)</span></td><td><code>view</code>, <code>add_member</code>, <code>manage_role</code>, <code>manage_scope</code>, <code>disable</code></td></tr>
+                <tr><td><code>pd_lead</code> <span style="color:#94a3b8">(Sloj C)</span></td><td><code>view_own</code>, <code>view_team</code>, <code>create</code>, <code>reassign</code>, <code>update_stage</code>, <code>update_details</code>, <code>update_classification</code>, <code>reopen</code>, <code>convert</code>, <code>delete</code>, <code>bulk</code></td></tr>
+                <tr><td><code>pd_lead_activity</code> <span style="color:#94a3b8">(Sloj C)</span></td><td><code>read</code>, <code>create</code></td></tr>
+                <tr><td><code>pd_lead_task</code> <span style="color:#94a3b8">(Sloj C)</span></td><td><code>read</code>, <code>create</code>, <code>assign</code>, <code>complete</code></td></tr>
+                <tr><td><code>pd_report</code> <span style="color:#94a3b8">(Sloj C)</span></td><td><code>pipeline</code></td></tr>
               </tbody>
             </table>
           </div>
@@ -1352,6 +1478,63 @@ deploy/                  <span class="c"># git-deploy.ps1, provision…</span></
             <code>billing.subscription.read</code>, <code>billing.invoice.read</code>,
             <code>billing.payment.read</code>, <code>document.read</code>.
           </p>
+          <div class="callout">
+            <strong>Property Desk leveli i forward-only pipeline.</strong>
+            <code>MarketingLead.level</code> (<code>SOURCING</code>,
+            <code>CLOSING</code>, <code>OPERATIONS</code>, <code>ARCHIVED</code>)
+            se deriviše iz <code>stage</code> preko <code>STAGE_TO_LEVEL</code>
+            u <code>src/server/services/property-desk/lead-lifecycle.ts</code>.
+            <code>canViewMarketingLead</code> i
+            <code>buildMarketingLeadScopeFilter</code> prvo filtriraju po
+            <code>ROLE_LEVELS[teamRole]</code>, pa tek onda po
+            <code>leadScope</code> — SETTER vidi samo <code>SOURCING</code>,
+            CLOSER samo <code>CLOSING</code>, OPERATIONS samo
+            <code>OPERATIONS</code>, MANAGER sve. Stage tranzicije su
+            jednosmerne (<code>FORWARD_TRANSITIONS</code>); sve što nije
+            forward zahteva novu dozvolu <code>pd_lead.reopen</code> (default
+            samo MANAGER + SUPER_ADMIN) <em>i</em> neprazan
+            <code>reopenReason</code>, i pored audit reda
+            <code>marketing_lead.reopened</code> upisuje <code>SYSTEM</code>
+            aktivnost u timeline. Prelazak preko granice levela automatski
+            postavlja <code>previousLevel</code>, <code>levelEnteredAt</code> i
+            <code>assignedToUserId = null</code> (auto-unassign u pool
+            sledećeg levela).
+          </div>
+          <div class="callout">
+            <strong>Bogatiji lead + deterministički score.</strong>
+            <code>MarketingLead</code> ima nova opciona polja: klasifikacija
+            (<code>priority</code>, <code>temperature</code>,
+            <code>timelineHorizon</code>, <code>nextFollowUpAt</code>,
+            <code>leadScore</code>), firma (<code>companyName</code>,
+            <code>companyWebsite</code>, <code>companySize</code>), novac
+            (<code>budgetTier</code>, <code>budgetCurrency</code>), donosilac
+            odluke (<code>decisionMakerName</code>,
+            <code>decisionMakerTitle</code>, <code>preferredContact</code>,
+            <code>bestContactHour</code>), kvalifikacija
+            (<code>competitor</code>, <code>painPoint</code>) i geo
+            (<code>country</code>, <code>region</code>,
+            <code>preferredLanguage</code>). Nova dozvola
+            <code>pd_lead.update_classification</code> (default svim PD
+            članovima) pokriva priority/temperature/timeline/nextFollowUp;
+            <code>canWriteLead</code> osigurava da SETTER/CLOSER/OPERATIONS
+            mogu da pišu samo u lead-ove svog levela. Score se računa
+            deterministički u
+            <code>src/server/services/property-desk/lead-scoring.ts</code>
+            (cap 100) i osvežava se automatski na create/update, uz opciju
+            eksplicitnog override-a kroz <code>update_classification</code>.
+          </div>
+          <div class="callout">
+            <strong>Publika je zaključana; L3 pravi tenant.</strong>
+            Kad je <code>audience</code> jednom <code>INVESTOR</code> ili
+            <code>AGENCY</code>, polje se ne sme menjati (servis baca
+            <code>INVALID_STATE</code>). Na L3 (WON) Super Admin i Operations
+            iz detalja lead-a vežu postojeću org. ili prave novu + vlasnika
+            (<code>INVESTOR_OWNER</code> / <code>AGENCY_OWNER</code>) sa
+            paketom — <code>POST /platform/property-desk/leads/{id}/convert</code>
+            prima <code>organizationId</code> ili <code>createOrganization</code>.
+            Closer i dalje sme samo da veže postojeći tenant (što prebacuje
+            lead u L3 pool).
+          </div>
         </section>
 
         <section id="audit">
@@ -1906,24 +2089,47 @@ pnpm prisma migrate deploy</code></pre>
           </p>
           <h3>Gde šta živi</h3>
           <ul>
-            <li><code>src/lib/swagger.ts</code> — konfiguracija (<code>createSwaggerSpec</code>), zajedničke sheme, <code>Error</code>, <code>PaginationMeta</code>, security scheme.</li>
-            <li><code>src/app/api/docs/route.ts</code> — <code>GET /api/docs</code> → vraća JSON spec. Javno (spec sam po sebi nije tajna).</li>
-            <li><code>src/app/api-docs/page.tsx</code> — server komponenta, preuzima spec i prosleđuje clientu.</li>
-            <li><code>src/app/api-docs/react-swagger.tsx</code> — <code>swagger-ui-react</code> wrapper sa <code>filter</code>, <code>tryItOutEnabled</code> i <code>persistAuthorization</code>.</li>
-            <li><code>scripts/generate-swagger-docs.ts</code> — CLI alat koji analizira sve <code>route.ts</code> fajlove i generiše osnovni <code>@swagger</code> JSDoc. Idempotentan.</li>
+            <li><code>src/lib/swagger.ts</code> — konfiguracija (<code>createSwaggerSpec</code>), zajedničke sheme, <code>Error</code>, <code>PaginationMeta</code>, security scheme. Prvi server je <code>/</code> (same-origin) — obavezno za Try it out.</li>
+            <li><code>src/app/api/docs/route.ts</code> — <code>GET /api/docs</code>: u <strong>dev</strong> živi generiše spek iz JSDoc-a; u <strong>produkciji</strong> čita <code>public/api-docs.json</code>.</li>
+            <li><code>src/app/api-docs/page.tsx</code> + <code>react-swagger.tsx</code> — Swagger UI (<code>filter</code>, <code>tryItOutEnabled</code>, <code>withCredentials</code>).</li>
+            <li><code>scripts/generate-swagger-docs.ts</code> — CLI koji doda osnovni <code>@swagger</code> JSDoc na rute koje ga nemaju. Idempotentan. <code>pnpm docs:swagger</code>.</li>
+            <li><code>scripts/annotate-swagger-permissions.ts</code> — iz handlera upisuje <code>**Auth:** \`…\`</code> u svaku operaciju (<code>requirePermission</code>, super-admin, sesija, javno, cron). Idempotentan. <code>pnpm docs:swagger:perms</code>.</li>
+            <li><code>scripts/check-swagger-auth.ts</code> — broji operacije sa/bez Auth u <code>public/api-docs.json</code>. Cilj: <code>without: 0</code>. <code>pnpm docs:swagger:check</code>.</li>
+            <li><code>scripts/build-swagger-spec.ts</code> — piše <code>public/api-docs.json</code>. Radi automatski u <code>pnpm build</code>, ili ručno: <code>pnpm docs:swagger:spec</code>.</li>
           </ul>
           <h3>Radni tok</h3>
           <ol class="steps">
-            <li><strong>Napiši handler</strong> — <code>export const GET = apiHandler(...)</code>.</li>
-            <li><strong>Pokreni generator</strong> — <code>node --experimental-strip-types scripts/generate-swagger-docs.ts</code>. Doda <code>@swagger</code> blok ako ga nema (sa osnovnim tagovima i parametrima).</li>
-            <li><strong>Prepravi ručno</strong> — zameni generički <code>requestBody</code> sa konkretnom Zod shemom, dodaj <code>responses</code>, <code>examples</code>. Ključne rute (auth, prodaje, online rezervacije, share linkovi) MORAJU imati punu specifikaciju.</li>
-            <li><strong>Otvori <a href="/api-docs"><code>/api-docs</code></a></strong> — proveri da se tvoja ruta pojavljuje, da "Try it out" radi (uz ulogovan session cookie), i da <code>curl</code> primeri prolaze.</li>
+            <li><strong>Napiši handler</strong> — <code>export const GET = apiHandler(...)</code> sa pravim <code>requirePermission</code> / <code>requireSuperAdmin</code> / javnim pristupom.</li>
+            <li><strong>Pokreni generator</strong> — <code>pnpm docs:swagger</code> (ako ruta nema JSDoc). Zatim ručno doteraj Zod shemu / responses.</li>
+            <li><strong>Auth u Swaggeru</strong> — <code>pnpm docs:swagger:perms</code> (upisuje <code>**Auth:**</code> iz koda). Ručno možeš i sam u <code>description: |</code>.</li>
+            <li><strong>Lokalno</strong> — otvori <a href="http://localhost:3000/api-docs"><code>/api-docs</code></a>; spek se osvežava iz JSDoc-a bez rebuild-a. Za Try it out ostavi server „Trenutni host“ i uloguj se na <code>/sign-in</code>.</li>
+            <li><strong>Pre deploy-a</strong> — <code>pnpm docs:swagger:spec</code> pa <code>pnpm docs:swagger:check</code> (ili samo <code>pnpm build</code> za spek) — <code>public/api-docs.json</code> ide u Docker image.</li>
           </ol>
+          <h3>Auth / dozvole u Swaggeru</h3>
+          <p>
+            Swagger je i <strong>dokumentacija dozvola</strong>: svaka operacija mora u
+            <code>description</code> da ima prvi red
+            <code>**Auth:** \`…\`</code> koji odgovara handleru (vidi
+            <a href="#permissions">Permissions model</a>).
+          </p>
+          <ul>
+            <li><code>requirePermission("resource.action")</code> — org RBAC (+ overrides).</li>
+            <li><code>requireSuperAdmin()</code> / <code>requirePlatformPermission("…")</code> — platform SUPER_ADMIN.</li>
+            <li><code>sesija (ulogovan + aktivna org)</code> — ulogovan, bez posebne permission.</li>
+            <li><code>javno</code> / <code>javno + rate-limit</code> / Better Auth — bez sesije ili auth cookie flow; public operacije imaju <code>security: []</code>.</li>
+            <li><code>CRON_SECRET</code> — Bearer ili <code>x-cron-secret</code>.</li>
+          </ul>
+          <p>
+            Posle izmene auth helpera u ruti: ponovo <code>pnpm docs:swagger:perms</code>,
+            zatim <code>pnpm docs:swagger:spec</code> i <code>pnpm docs:swagger:check</code>
+            (očekuj <code>without: 0</code>).
+          </p>
           <h3>Specifikacija koja je obavezna</h3>
           <ul>
+            <li>Svaka operacija: <strong><code>**Auth:** \`…\`</code></strong> u operation-level <code>description</code> (ne u <code>responses.*.description</code>).</li>
             <li>Svi <code>POST</code>/<code>PATCH</code> endpointi: <strong>tačna Zod shema</strong> u <code>requestBody</code> (ne <code>additionalProperties: true</code>).</li>
             <li>Sve <code>422 VALIDATION_ERROR</code> moraju da navedu <code>fieldErrors</code> mapu.</li>
-            <li>Public endpointi (<code>/api/public/*</code>, <code>/api/auth/*</code>, <code>/api/health</code>) imaju <code>security: []</code>.</li>
+            <li>Public endpointi (<code>/api/public/*</code>, <code>/api/auth/*</code>, <code>/api/docs</code>, health) imaju <code>security: []</code>.</li>
             <li>Sve <code>429</code> odgovore imaju <code>Retry-After</code> header naveden.</li>
           </ul>
           <h3>Kako izgleda kompletan blok</h3>
@@ -1934,8 +2140,8 @@ pnpm prisma migrate deploy</code></pre>
  *     tags: [units]
  *     summary: Lista jedinica
  *     description: |
+ *       **Auth:** `requirePermission("inventory.read")`
  *       Paginirana lista svih jedinica u aktivnoj organizaciji.
- *       Dozvola: `inventory.read`.
  *     parameters:
  *       - $ref: "#/components/parameters/pageParam"
  *       - $ref: "#/components/parameters/qParam"

@@ -81,9 +81,12 @@ export const POST = apiHandler({ bodySchema: createSchema }, async ({ req, body 
  *     tags:
  *       - reservations
  *     summary: List / read reservations
+ *     description: |
+ *       **Auth:** `requirePermission("reservation.read")`
  *     responses:
  *       "200":
- *         description: OK
+ *         description: |
+ *           OK
  *       "401":
  *         $ref: "#/components/responses/Unauthenticated"
  *       "403":
@@ -92,6 +95,8 @@ export const POST = apiHandler({ bodySchema: createSchema }, async ({ req, body 
  *     tags:
  *       - reservations
  *     summary: Create reservations
+ *     description: |
+ *       **Auth:** `requirePermission("reservation.create") + requirePermission("reservation.read")`
  *     requestBody:
  *       required: true
  *       content:
@@ -101,7 +106,8 @@ export const POST = apiHandler({ bodySchema: createSchema }, async ({ req, body 
  *             additionalProperties: true
  *     responses:
  *       "200":
- *         description: OK
+ *         description: |
+ *           OK
  *       "401":
  *         $ref: "#/components/responses/Unauthenticated"
  *       "403":

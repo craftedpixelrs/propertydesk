@@ -40,6 +40,8 @@ export const PATCH = apiHandler({ paramsSchema, bodySchema: patchSchema }, async
  *     tags:
  *       - tasks
  *     summary: Update tasks
+ *     description: |
+ *       **Auth:** `requirePermission("lead.manage")`
  *     parameters:
  *       - in: path
  *         name: id
@@ -55,7 +57,8 @@ export const PATCH = apiHandler({ paramsSchema, bodySchema: patchSchema }, async
  *             additionalProperties: true
  *     responses:
  *       "200":
- *         description: OK
+ *         description: |
+ *           OK
  *       "401":
  *         $ref: "#/components/responses/Unauthenticated"
  *       "403":

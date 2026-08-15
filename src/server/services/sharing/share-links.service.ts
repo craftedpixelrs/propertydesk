@@ -663,6 +663,31 @@ export async function ensureUnitShareLinkForMicrosite(input: {
     orderBy: { createdAt: "desc" },
   });
   if (existing) return existing.token;
+
+  const unit = await prisma.unit.findFirst({
+    where: { id: input.unitId, organizationId: input.organizationId },
+    select: {
+      project: { select: { createdByUserId: true } },
+    },
+  });
+  let createdByUserId = unit?.project.createdByUserId ?? null;
+  if (!createdByUserId) {
+    const owner = await prisma.member.findFirst({
+      where: {
+        organizationId: input.organizationId,
+        role: { in: ["INVESTOR_OWNER", "AGENCY_OWNER"] },
+      },
+      select: { userId: true },
+      orderBy: { createdAt: "asc" },
+    });
+    createdByUserId = owner?.userId ?? null;
+  }
+  if (!createdByUserId) {
+    throw DomainErrors.invalidState(
+      "Nije moguće objaviti jedinicu: organizacija nema vlasnika.",
+    );
+  }
+
   const created = await prisma.shareLink.create({
     data: {
       organizationId: input.organizationId,
@@ -670,6 +695,7 @@ export async function ensureUnitShareLinkForMicrosite(input: {
       entityId: input.unitId,
       token: generateToken(),
       showPrice: input.showPrice,
+      createdByUserId,
     },
     select: { token: true },
   });

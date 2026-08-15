@@ -86,12 +86,18 @@ function applyReferralCookie(
   return response;
 }
 
+function passThrough(request: NextRequest): NextResponse {
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set("x-pathname", request.nextUrl.pathname);
+  return NextResponse.next({ request: { headers: requestHeaders } });
+}
+
 export function middleware(request: NextRequest) {
   const host = resolveHost(request);
   const { pathname, search } = request.nextUrl;
 
   const isAppSubdomain = host === "my.propertydesk.app";
-  if (!isAppSubdomain) return applyReferralCookie(request, NextResponse.next());
+  if (!isAppSubdomain) return applyReferralCookie(request, passThrough(request));
 
   if (pathname === "/" || pathname === "") {
     const signIn = request.nextUrl.clone();
@@ -111,7 +117,7 @@ export function middleware(request: NextRequest) {
     );
   }
 
-  return applyReferralCookie(request, NextResponse.next());
+  return applyReferralCookie(request, passThrough(request));
 }
 
 export const config = {

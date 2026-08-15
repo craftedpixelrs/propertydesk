@@ -20,12 +20,12 @@ export const GET = apiHandler({}, async () => {
  *   get:
  *     tags:
  *       - health
- *     summary: List / read health
+ *     summary: Liveness probe
+ *     description: |
+ *       **Auth:** `javno (bez sesije)`
+ *       Javni endpoint — nema autentikacije. Vraća status + verziju.
+ *     security: []
  *     responses:
  *       "200":
  *         description: OK
- *       "401":
- *         $ref: "#/components/responses/Unauthenticated"
- *       "403":
- *         $ref: "#/components/responses/Forbidden"
  */

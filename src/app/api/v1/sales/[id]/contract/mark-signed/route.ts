@@ -23,6 +23,8 @@ export const POST = apiHandler({ paramsSchema }, async ({ params }) => {
  *     tags:
  *       - sales
  *     summary: Create sales
+ *     description: |
+ *       **Auth:** `requirePermission("sale.manage")`
  *     parameters:
  *       - in: path
  *         name: id
@@ -38,7 +40,8 @@ export const POST = apiHandler({ paramsSchema }, async ({ params }) => {
  *             additionalProperties: true
  *     responses:
  *       "200":
- *         description: OK
+ *         description: |
+ *           OK
  *       "401":
  *         $ref: "#/components/responses/Unauthenticated"
  *       "403":

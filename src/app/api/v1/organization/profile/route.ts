@@ -16,8 +16,17 @@ const updateSchema = z.object({
   postalCode: z.string().max(20).nullable().optional(),
   country: z.string().max(2).nullable().optional(),
   phone: z.string().max(40).nullable().optional(),
-  email: z.string().email().max(120).nullable().optional(),
-  website: z.string().url().nullable().optional(),
+  email: z
+    .union([z.string().email().max(120), z.literal("")])
+    .nullable()
+    .optional()
+    .transform((v) => (v == null || v === "" ? null : v)),
+  website: z
+    .string()
+    .max(200)
+    .nullable()
+    .optional()
+    .transform((v) => (v == null || v.trim() === "" ? null : v)),
   logoUrl: z.string().url().nullable().optional(),
   paymentAccountNumber: z.string().max(30).nullable().optional(),
   paymentBankName: z.string().max(120).nullable().optional(),
@@ -49,9 +58,12 @@ export const PATCH = apiHandler(
  *     tags:
  *       - organization
  *     summary: List / read organization
+ *     description: |
+ *       **Auth:** `requirePermission("organization.read")`
  *     responses:
  *       "200":
- *         description: OK
+ *         description: |
+ *           OK
  *       "401":
  *         $ref: "#/components/responses/Unauthenticated"
  *       "403":
@@ -60,6 +72,8 @@ export const PATCH = apiHandler(
  *     tags:
  *       - organization
  *     summary: Update organization
+ *     description: |
+ *       **Auth:** `requirePermission("organization.manage") + requirePermission("organization.read")`
  *     requestBody:
  *       required: true
  *       content:
@@ -69,7 +83,8 @@ export const PATCH = apiHandler(
  *             additionalProperties: true
  *     responses:
  *       "200":
- *         description: OK
+ *         description: |
+ *           OK
  *       "401":
  *         $ref: "#/components/responses/Unauthenticated"
  *       "403":

@@ -35,6 +35,8 @@ export type AuditAction =
   // Platform administration
   | "platform.impersonation_started"
   | "platform.impersonation_stopped"
+  | "platform.user_created"
+  | "platform.user_updated"
   | "platform.user_banned"
   | "platform.user_unbanned"
   | "platform.plan_created"
@@ -184,7 +186,18 @@ export type AuditAction =
   | "buyer.kyc_updated"
   | "agency.referral_generated"
   | "system.backup_verified"
-  | "system.backup_verify_failed";
+  | "system.backup_verify_failed"
+  // Property Desk internal team + marketing pipeline
+  | "property_desk_team.member_added"
+  | "property_desk_team.member_updated"
+  | "property_desk_team.member_removed"
+  | "marketing_lead.created"
+  | "marketing_lead.updated"
+  | "marketing_lead.stage_changed"
+  | "marketing_lead.reopened"
+  | "marketing_lead.assigned"
+  | "marketing_lead.converted"
+  | "marketing_lead.bulk_updated";
 
 export interface RecordAuditInput {
   action: AuditAction;

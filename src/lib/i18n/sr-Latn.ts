@@ -63,6 +63,7 @@ export const srLatn = {
     more: "Više",
     home: "Početna",
     platformAdmin: "Administracija platforme",
+    propertyDesk: "Property Desk",
   },
 
   auth: {
@@ -89,6 +90,15 @@ export const srLatn = {
       "Poslali smo Vam email sa linkom za potvrdu. Otvorite ga da biste aktivirali nalog.",
     invitationTitle: "Prihvatanje poziva",
     invitationSubtitle: "Prihvatanjem poziva postajete član organizacije.",
+    invitationOrg: "Pozvani ste u organizaciju {{name}}.",
+    invitationExpired: "Ovaj poziv je istekao. Zatražite novi od administratora.",
+    invitationUnavailable: "Ovaj poziv nije važeći ili je već iskorišćen.",
+    invitationWrongUser:
+      "Ulogovani ste kao {{current}}. Poziv je za {{invited}}. Odjavite se, pa otvorite link ponovo.",
+    invitationCreateAccount: "Napravi nalog i prihvati",
+    invitationHaveAccount: "Već imate nalog? Prijavite se",
+    invitationNewAccount: "Nemate nalog? Napravite ga ovde",
+    invitationSignInAccept: "Prijavi se i prihvati poziv",
     acceptInvitation: "Prihvati poziv",
     signedOutTitle: "Uspešna odjava",
     signedOutSubtitle: "Bezbedno ste se odjavili. Vidimo se ponovo.",
@@ -96,6 +106,16 @@ export const srLatn = {
     accountDeactivated: "Vaš nalog je deaktiviran. Kontaktirajte administratora.",
     organizationSuspended:
       "Vaša organizacija je trenutno suspendovana. Kontaktirajte podršku.",
+  },
+
+  orgProfile: {
+    setupBanner:
+      "Pre korišćenja aplikacije popunite sva obavezna polja organizacije.",
+    setupWaitTitle: "Organizacija još nije spremna",
+    setupWaitBody:
+      "Vlasnik treba da popuni podatke firme (PIB, matični broj, adresa, kontakt i veb). Do tada aplikacija nije dostupna. Kontaktirajte vlasnika da završi podešavanja.",
+    requiredHint: "Sva polja su obavezna za investitorske organizacije.",
+    savedAndReady: "Profil je sačuvan. Možete da koristite aplikaciju.",
   },
 
   validation: {

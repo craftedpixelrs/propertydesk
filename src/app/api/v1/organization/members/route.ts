@@ -43,9 +43,12 @@ export const POST = apiHandler(
  *     tags:
  *       - organization
  *     summary: List / read organization
+ *     description: |
+ *       **Auth:** `requirePermission("organization.read")`
  *     responses:
  *       "200":
- *         description: OK
+ *         description: |
+ *           OK
  *       "401":
  *         $ref: "#/components/responses/Unauthenticated"
  *       "403":
@@ -54,6 +57,8 @@ export const POST = apiHandler(
  *     tags:
  *       - organization
  *     summary: Create organization
+ *     description: |
+ *       **Auth:** `requirePermission("organization.members:manage") + requirePermission("organization.read")`
  *     requestBody:
  *       required: true
  *       content:
@@ -63,7 +68,8 @@ export const POST = apiHandler(
  *             additionalProperties: true
  *     responses:
  *       "200":
- *         description: OK
+ *         description: |
+ *           OK
  *       "401":
  *         $ref: "#/components/responses/Unauthenticated"
  *       "403":

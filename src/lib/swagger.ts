@@ -4,12 +4,9 @@ import { createSwaggerSpec } from "next-swagger-doc";
  * OpenAPI 3.1 spec for the PropertyDesk REST API.
  *
  * Route documentation lives inline next to every handler in
- * `src/app/api/**\/route.ts` as JSDoc swagger annotation blocks. This keeps
+ * `src/app/api/**\/route.ts` as JSDoc `@swagger` blocks. This keeps
  * documentation versioned together with the code and lets us diff spec
  * changes in the same PR review that ships the behaviour.
- *
- * Do not write the literal at-swagger token in prose comments — swagger-jsdoc
- * treats every occurrence as a path definition and injects junk numeric keys.
  *
  * The resulting spec is served at `/api/docs` and rendered by Swagger UI
  * at `/api-docs`.

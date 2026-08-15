@@ -19,6 +19,8 @@ export const POST = apiHandler({ paramsSchema }, async ({ params }) => {
  *     tags:
  *       - notifications
  *     summary: Create notifications
+ *     description: |
+ *       **Auth:** `sesija (ulogovan + aktivna org) — bez posebne permission`
  *     parameters:
  *       - in: path
  *         name: id
@@ -34,7 +36,8 @@ export const POST = apiHandler({ paramsSchema }, async ({ params }) => {
  *             additionalProperties: true
  *     responses:
  *       "200":
- *         description: OK
+ *         description: |
+ *           OK
  *       "401":
  *         $ref: "#/components/responses/Unauthenticated"
  *       "403":

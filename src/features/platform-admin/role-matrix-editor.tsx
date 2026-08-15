@@ -38,13 +38,109 @@ const ROLE_LABEL: Record<string, string> = {
   AGENCY_AGENT: "Agencija · Agent",
   AGENCY_VIEWER: "Agencija · Čitač",
   SUPER_ADMIN: "Platforma · SUPER_ADMIN",
+  SETTER: "Property Desk · Setter",
+  CLOSER: "Property Desk · Closer",
+  OPERATIONS: "Property Desk · Operativa",
+  MANAGER: "Property Desk · Menadžer tima",
+};
+
+/**
+ * Layer classification for a role. Drives visual grouping in the dropdown
+ * and the contextual header shown above the matrix, so that the admin
+ * cannot confuse platform authorization (Layer A) with in-organization
+ * application authorization (Layer B) with the internal SaaS marketing/
+ * sales team (Layer C).
+ */
+type RoleLayer = "platform" | "investor" | "agency" | "property_desk";
+type PermLayerFilter = "A" | "B" | "C" | "all";
+
+const PROPERTY_DESK_ROLES = new Set([
+  "SETTER",
+  "CLOSER",
+  "OPERATIONS",
+  "MANAGER",
+]);
+
+function classifyRole(role: string): RoleLayer {
+  if (role === "SUPER_ADMIN") return "platform";
+  if (PROPERTY_DESK_ROLES.has(role)) return "property_desk";
+  if (role.startsWith("AGENCY_")) return "agency";
+  return "investor";
+}
+
+function layerOfRole(role: string): PermLayerFilter {
+  switch (classifyRole(role)) {
+    case "platform":
+      return "A";
+    case "property_desk":
+      return "C";
+    default:
+      return "B";
+  }
+}
+
+function layerOfResource(resource: string): PermLayerFilter {
+  if (resource.startsWith("pd_")) return "C";
+  if (
+    resource === "platform" ||
+    resource === "billing" ||
+    resource === "user" ||
+    resource === "session"
+  ) {
+    return "A";
+  }
+  return "B";
+}
+
+const LAYER_META: Record<
+  RoleLayer,
+  {
+    title: string;
+    description: string;
+    badgeClass: string;
+    groupLabel: string;
+    badgeLabel: string;
+  }
+> = {
+  platform: {
+    title: "Platformski sloj (nalog · pretplata)",
+    description:
+      "Uređujete platformsku ulogu. Ove dozvole kontrolišu pristup celoj platformi i administraciju svih organizacija — ne diraju pretplate ni planove pojedinačnih naloga. Pretplata i plan se konfigurišu u „Naplati“.",
+    badgeClass: "bg-indigo-50 text-indigo-800 border-indigo-200",
+    groupLabel: "Platforma (SUPER_ADMIN)",
+    badgeLabel: "Sloj A",
+  },
+  investor: {
+    title: "Aplikacioni sloj (investitor · unutar organizacije)",
+    description:
+      "Uređujete aplikacionu ulogu koja se dodeljuje članu organizacije tipa investitor. Kontroliše šta korisnik radi u aplikaciji svoje organizacije. Dodela role članovima ide kroz „Podešavanja → Korisnici“, a ne odavde.",
+    badgeClass: "bg-emerald-50 text-emerald-800 border-emerald-200",
+    groupLabel: "Aplikacione uloge — Investitor",
+    badgeLabel: "Sloj B",
+  },
+  agency: {
+    title: "Aplikacioni sloj (agencija · unutar organizacije)",
+    description:
+      "Uređujete aplikacionu ulogu koja se dodeljuje članu organizacije tipa agencija. Kontroliše šta korisnik radi u aplikaciji svoje organizacije. Dodela role članovima ide kroz „Podešavanja → Korisnici“, a ne odavde.",
+    badgeClass: "bg-sky-50 text-sky-800 border-sky-200",
+    groupLabel: "Aplikacione uloge — Agencija",
+    badgeLabel: "Sloj B",
+  },
+  property_desk: {
+    title: "Property Desk interni tim (SaaS marketing · sales)",
+    description:
+      "Uređujete Property Desk internu ulogu — koristi se u našoj SaaS marketing/sales ekipi (Setter, Closer, Operativa, Menadžer). Ne meša se sa tenant Member.role — dodela se radi kroz „Property Desk → Tim“. Dozvole se odnose isključivo na `pd_*` resurse.",
+    badgeClass: "bg-violet-50 text-violet-800 border-violet-200",
+    groupLabel: "Property Desk (interni tim)",
+    badgeLabel: "Sloj C",
+  },
 };
 
 const RESOURCE_LABEL: Record<string, string> = {
   organization: "Organizacija",
   project: "Projekti",
   inventory: "Jedinice / zalihe",
-  lead: "Kupci / lidovi",
+  lead: "Kupci / lidovi (tenant)",
   reservation: "Rezervacije",
   sale: "Prodaje",
   payment: "Uplate",
@@ -57,6 +153,13 @@ const RESOURCE_LABEL: Record<string, string> = {
   billing: "Naplata",
   user: "Better Auth users",
   session: "Better Auth sessions",
+  invitation: "Better Auth pozivnice",
+  member: "Better Auth članovi",
+  pd_team: "Property Desk · Tim",
+  pd_lead: "Property Desk · Lead-ovi",
+  pd_lead_activity: "Property Desk · Timeline aktivnosti",
+  pd_lead_task: "Property Desk · Taskovi",
+  pd_report: "Property Desk · Izveštaji",
 };
 
 /**
@@ -163,12 +266,57 @@ const PERMISSION_HELP: Record<string, string> = {
   "session.list": "Interno (Better Auth): listanje sesija.",
   "session.revoke": "Interno (Better Auth): opoziv sesije.",
   "session.delete": "Interno (Better Auth): brisanje sesije.",
+  // Property Desk · Tim
+  "pd_team.view":
+    "Pregled liste članova Property Desk internog tima (bez uređivanja).",
+  "pd_team.add_member":
+    "Dodavanje / uklanjanje osoba iz Property Desk tima. Namerno rezervisano za SUPER_ADMIN.",
+  "pd_team.manage_role":
+    "Promena Property Desk uloge (SETTER/CLOSER/OPERATIONS/MANAGER) postojećem članu tima.",
+  "pd_team.manage_scope":
+    "Promena `leadScope` člana tima (OWN, OWN_AND_UNASSIGNED, TEAM, ALL) — koliko se lead-ova vidi.",
+  "pd_team.disable":
+    "Deaktivacija / reaktivacija člana tima. Deaktivirani član gubi pristup Property Desk delu aplikacije.",
+  // Property Desk · Lead-ovi
+  "pd_lead.view_own":
+    "Pregled lead-ova u okviru sopstvenog `leadScope` (moji + neraspoređeni, po dodeli).",
+  "pd_lead.view_team":
+    "Pregled svih lead-ova u pipeline-u, nezavisno od `leadScope` (menadžerska vidljivost).",
+  "pd_lead.create": "Manuelno kreiranje novog marketing lead-a.",
+  "pd_lead.reassign":
+    "Promena vlasnika lead-a — prebacivanje između članova tima. Uzimanje slobodnog (neraspoređenog) lead-a sebi ne zahteva ovu dozvolu.",
+  "pd_lead.update_stage": "Pomeranje lead-a kroz pipeline (NEW → … → WON/LOST).",
+  "pd_lead.update_details":
+    "Izmena kontakt polja lead-a (ime/prezime/telefon/grad/audience/source/bilješke).",
+  "pd_lead.convert":
+    "Konverzija lead-a u pravu tenant organizaciju (`stage=WON` + veza na organizaciju).",
+  "pd_lead.delete": "Trajno brisanje lead-a iz baze.",
+  "pd_lead.bulk":
+    "Bulk operacije nad selekcijom lead-ova (assign, promena faze, oznaka LOST).",
+  // Property Desk · Aktivnosti
+  "pd_lead_activity.read":
+    "Čitanje timeline-a lead-a (pozivi, mejlovi, sastanci, sistemske izmene).",
+  "pd_lead_activity.create":
+    "Ručno dodavanje aktivnosti u timeline lead-a (CALL/EMAIL/MEETING/NOTE).",
+  // Property Desk · Taskovi
+  "pd_lead_task.read": "Čitanje taskova vezanih za lead.",
+  "pd_lead_task.create": "Kreiranje novog taska nad lead-om.",
+  "pd_lead_task.assign":
+    "Dodela taska drugom članu tima (`assignedToUserId` različit od tvog).",
+  "pd_lead_task.complete":
+    "Obeležavanje taska kao završenog (`completed=true`).",
+  // Property Desk · Izveštaji
+  "pd_report.pipeline":
+    "Pristup pipeline i konverzionim izveštajima Property Desk-a.",
 };
 
 export function RoleMatrixEditor({ matrix, groups }: Props) {
   const router = useRouter();
   const [pending, setPending] = useState<Map<string, PendingChange>>(new Map());
   const [selectedRole, setSelectedRole] = useState<string>(matrix.roles[0] ?? "");
+  const [layerFilter, setLayerFilter] = useState<PermLayerFilter>(
+    layerOfRole(matrix.roles[0] ?? "INVESTOR_OWNER"),
+  );
   const [error, setError] = useState<string | null>(null);
   const [isSaving, startSave] = useTransition();
   const [isResetting, startReset] = useTransition();
@@ -285,20 +433,95 @@ export function RoleMatrixEditor({ matrix, groups }: Props) {
     (c) => c.role === selectedRole,
   ).length;
 
+  const groupedRoles = useMemo(() => {
+    const buckets: Record<RoleLayer, string[]> = {
+      platform: [],
+      investor: [],
+      agency: [],
+      property_desk: [],
+    };
+    for (const r of matrix.roles) {
+      buckets[classifyRole(r)].push(r);
+    }
+    return buckets;
+  }, [matrix.roles]);
+
+  const currentLayer = classifyRole(selectedRole);
+  const currentMeta = LAYER_META[currentLayer];
+
+  const visibleGroups = useMemo(() => {
+    if (layerFilter === "all") return groups;
+    return groups.filter((g) => layerOfResource(g.resource) === layerFilter);
+  }, [groups, layerFilter]);
+
+  const visiblePermCount = visibleGroups.reduce(
+    (n, g) => n + g.permissions.length,
+    0,
+  );
+
+  function selectRole(role: string) {
+    setSelectedRole(role);
+    setLayerFilter(layerOfRole(role));
+  }
+
+  function selectLayer(next: PermLayerFilter) {
+    setLayerFilter(next);
+    if (next === "all") return;
+    const roleLayer: RoleLayer =
+      next === "A" ? "platform" : next === "C" ? "property_desk" : "investor";
+    if (layerOfRole(selectedRole) === next) return;
+    const first =
+      next === "B"
+        ? groupedRoles.investor[0] ?? groupedRoles.agency[0]
+        : groupedRoles[roleLayer][0];
+    if (first) setSelectedRole(first);
+  }
+
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center gap-3">
         <label className="text-sm font-medium">Rola:</label>
         <select
           value={selectedRole}
-          onChange={(e) => setSelectedRole(e.target.value)}
+          onChange={(e) => selectRole(e.target.value)}
           className="h-10 min-w-64 rounded-md border border-[var(--color-border)] bg-white px-3 text-sm"
         >
-          {matrix.roles.map((r) => (
-            <option key={r} value={r}>
-              {ROLE_LABEL[r] ?? r}
-            </option>
-          ))}
+          {groupedRoles.platform.length > 0 ? (
+            <optgroup label={LAYER_META.platform.groupLabel}>
+              {groupedRoles.platform.map((r) => (
+                <option key={r} value={r}>
+                  {ROLE_LABEL[r] ?? r}
+                </option>
+              ))}
+            </optgroup>
+          ) : null}
+          {groupedRoles.investor.length > 0 ? (
+            <optgroup label={LAYER_META.investor.groupLabel}>
+              {groupedRoles.investor.map((r) => (
+                <option key={r} value={r}>
+                  {ROLE_LABEL[r] ?? r}
+                </option>
+              ))}
+            </optgroup>
+          ) : null}
+          {groupedRoles.agency.length > 0 ? (
+            <optgroup label={LAYER_META.agency.groupLabel}>
+              {groupedRoles.agency.map((r) => (
+                <option key={r} value={r}>
+                  {ROLE_LABEL[r] ?? r}
+                </option>
+              ))}
+            </optgroup>
+          ) : null}
+          {groupedRoles.property_desk.length > 0 ? (
+            <optgroup label={LAYER_META.property_desk.groupLabel}>
+              {groupedRoles.property_desk.map((r) => (
+                <option key={r} value={r}>
+                  {ROLE_LABEL[r] ?? r}
+                </option>
+              ))}
+            </optgroup>
+          ) : null}
         </select>
         <div className="ml-auto flex items-center gap-2">
           {pendingCount > 0 ? (
@@ -327,6 +550,53 @@ export function RoleMatrixEditor({ matrix, groups }: Props) {
         </div>
       </div>
 
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="text-sm font-medium">Prikaži dozvole:</span>
+        <LayerTab
+          active={layerFilter === "A"}
+          onClick={() => selectLayer("A")}
+          label="Sloj A · Platforma"
+        />
+        <LayerTab
+          active={layerFilter === "B"}
+          onClick={() => selectLayer("B")}
+          label="Sloj B · Aplikacija"
+        />
+        <LayerTab
+          active={layerFilter === "C"}
+          onClick={() => selectLayer("C")}
+          label="Sloj C · Property Desk"
+        />
+        <LayerTab
+          active={layerFilter === "all"}
+          onClick={() => selectLayer("all")}
+          label="Sve"
+        />
+        <span className="text-xs text-[var(--color-foreground-muted)]">
+          {visibleGroups.length} grupa · {visiblePermCount} dozvola
+        </span>
+      </div>
+
+      <div
+        className={`flex items-start gap-2 rounded-md border p-3 text-xs ${currentMeta.badgeClass}`}
+        role="note"
+      >
+        <span className="mt-0.5 shrink-0 rounded-sm border border-current/30 bg-white/50 px-1.5 py-0.5 font-semibold uppercase tracking-wide">
+          {currentMeta.badgeLabel}
+        </span>
+        <div className="min-w-0">
+          <div className="font-semibold">{currentMeta.title}</div>
+          <p className="mt-0.5 leading-snug">{currentMeta.description}</p>
+          {currentLayer === "property_desk" ? (
+            <p className="mt-1 text-[11px] italic opacity-80">
+              Dodela ovih rola korisnicima ide kroz „Property Desk → Tim“.
+              Prikazane dozvole važe za `pd_*` resurse — sve ostalo ostaje na
+              SUPER_ADMIN nivou.
+            </p>
+          ) : null}
+        </div>
+      </div>
+
       {error ? (
         <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
           {error}
@@ -348,7 +618,7 @@ export function RoleMatrixEditor({ matrix, groups }: Props) {
             </tr>
           </thead>
           <tbody>
-            {groups.map((group) => (
+            {visibleGroups.map((group) => (
               <GroupBlock key={group.resource} group={group} stagedCells={stagedCells} selectedRole={selectedRole} stageChange={stageChange} />
             ))}
           </tbody>
@@ -455,6 +725,31 @@ function GroupBlock({ group, stagedCells, selectedRole, stageChange }: GroupBloc
         );
       })}
     </>
+  );
+}
+
+function LayerTab({
+  active,
+  onClick,
+  label,
+}: {
+  active: boolean;
+  onClick: () => void;
+  label: string;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={active}
+      className={`h-8 rounded-md border px-2.5 text-xs font-medium ${
+        active
+          ? "border-[var(--color-brand-600)] bg-[var(--color-brand-50)] text-[var(--color-brand-800)]"
+          : "border-[var(--color-border)] bg-white text-[var(--color-foreground)] hover:bg-[var(--color-surface-inset)]"
+      }`}
+    >
+      {label}
+    </button>
   );
 }
 

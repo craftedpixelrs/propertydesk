@@ -18,6 +18,7 @@ export interface BottomNavProps {
   organizationType: "INVESTOR" | "AGENCY" | null;
   permissions: PermissionString[];
   isSuperAdmin: boolean;
+  hasPropertyDeskAccess: boolean;
 }
 
 /**
@@ -28,7 +29,12 @@ export interface BottomNavProps {
  * components) because those don't cross the SC→CC boundary. Instead the
  * server layout hands us the plain permission snapshot and we filter here.
  */
-export function BottomNav({ organizationType, permissions, isSuperAdmin }: BottomNavProps) {
+export function BottomNav({
+  organizationType,
+  permissions,
+  isSuperAdmin,
+  hasPropertyDeskAccess,
+}: BottomNavProps) {
   const pathname = usePathname();
 
   const primaryItems = useMemo<NavItem[]>(() => {
@@ -37,11 +43,12 @@ export function BottomNav({ organizationType, permissions, isSuperAdmin }: Botto
       organizationType,
       hasPermission: (p) => permissionSet.has(p),
       isSuperAdmin,
+      hasPropertyDeskAccess,
     });
     return MOBILE_BOTTOM_NAV_KEYS.map((key) => items.find((i) => i.key === key)).filter(
       (i): i is NavItem => Boolean(i),
     );
-  }, [organizationType, permissions, isSuperAdmin]);
+  }, [organizationType, permissions, isSuperAdmin, hasPropertyDeskAccess]);
 
   return (
     <nav

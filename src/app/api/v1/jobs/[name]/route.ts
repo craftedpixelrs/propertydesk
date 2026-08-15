@@ -41,6 +41,8 @@ export const POST = apiHandler({ paramsSchema }, async ({ req, params }) => {
  *     tags:
  *       - jobs
  *     summary: Create jobs
+ *     description: |
+ *       **Auth:** `CRON_SECRET (Authorization: Bearer ili x-cron-secret)`
  *     parameters:
  *       - in: path
  *         name: name
@@ -56,7 +58,8 @@ export const POST = apiHandler({ paramsSchema }, async ({ req, params }) => {
  *             additionalProperties: true
  *     responses:
  *       "200":
- *         description: OK
+ *         description: |
+ *           OK
  *       "401":
  *         $ref: "#/components/responses/Unauthenticated"
  *       "403":

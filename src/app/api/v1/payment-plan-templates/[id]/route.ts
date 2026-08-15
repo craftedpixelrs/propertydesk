@@ -69,6 +69,8 @@ export const DELETE = apiHandler({ paramsSchema }, async ({ params }) => {
  *     tags:
  *       - payment-plan-templates
  *     summary: List / read payment-plan-templates
+ *     description: |
+ *       **Auth:** `requirePermission("payment.manage")`
  *     parameters:
  *       - in: path
  *         name: id
@@ -77,7 +79,8 @@ export const DELETE = apiHandler({ paramsSchema }, async ({ params }) => {
  *           type: string
  *     responses:
  *       "200":
- *         description: OK
+ *         description: |
+ *           OK
  *       "401":
  *         $ref: "#/components/responses/Unauthenticated"
  *       "403":
@@ -86,6 +89,8 @@ export const DELETE = apiHandler({ paramsSchema }, async ({ params }) => {
  *     tags:
  *       - payment-plan-templates
  *     summary: Update payment-plan-templates
+ *     description: |
+ *       **Auth:** `requirePermission("payment.manage")`
  *     parameters:
  *       - in: path
  *         name: id
@@ -101,7 +106,8 @@ export const DELETE = apiHandler({ paramsSchema }, async ({ params }) => {
  *             additionalProperties: true
  *     responses:
  *       "200":
- *         description: OK
+ *         description: |
+ *           OK
  *       "401":
  *         $ref: "#/components/responses/Unauthenticated"
  *       "403":
@@ -110,6 +116,8 @@ export const DELETE = apiHandler({ paramsSchema }, async ({ params }) => {
  *     tags:
  *       - payment-plan-templates
  *     summary: Delete payment-plan-templates
+ *     description: |
+ *       **Auth:** `requirePermission("payment.manage")`
  *     parameters:
  *       - in: path
  *         name: id
@@ -118,7 +126,8 @@ export const DELETE = apiHandler({ paramsSchema }, async ({ params }) => {
  *           type: string
  *     responses:
  *       "200":
- *         description: OK
+ *         description: |
+ *           OK
  *       "401":
  *         $ref: "#/components/responses/Unauthenticated"
  *       "403":

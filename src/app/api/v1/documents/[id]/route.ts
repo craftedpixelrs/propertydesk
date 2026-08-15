@@ -23,6 +23,8 @@ export const DELETE = apiHandler({ paramsSchema }, async ({ params }) => {
  *     tags:
  *       - documents
  *     summary: Delete documents
+ *     description: |
+ *       **Auth:** `requirePermission("document.manage")`
  *     parameters:
  *       - in: path
  *         name: id
@@ -31,7 +33,8 @@ export const DELETE = apiHandler({ paramsSchema }, async ({ params }) => {
  *           type: string
  *     responses:
  *       "200":
- *         description: OK
+ *         description: |
+ *           OK
  *       "401":
  *         $ref: "#/components/responses/Unauthenticated"
  *       "403":

@@ -63,9 +63,12 @@ export const POST = apiHandler({ bodySchema: createSchema }, async ({ body }) =>
  *     tags:
  *       - payments
  *     summary: List / read payments
+ *     description: |
+ *       **Auth:** `requirePermission("payment.read")`
  *     responses:
  *       "200":
- *         description: OK
+ *         description: |
+ *           OK
  *       "401":
  *         $ref: "#/components/responses/Unauthenticated"
  *       "403":
@@ -74,6 +77,8 @@ export const POST = apiHandler({ bodySchema: createSchema }, async ({ body }) =>
  *     tags:
  *       - payments
  *     summary: Create payments
+ *     description: |
+ *       **Auth:** `requirePermission("payment.manage") + requirePermission("payment.read")`
  *     requestBody:
  *       required: true
  *       content:
@@ -83,7 +88,8 @@ export const POST = apiHandler({ bodySchema: createSchema }, async ({ body }) =>
  *             additionalProperties: true
  *     responses:
  *       "200":
- *         description: OK
+ *         description: |
+ *           OK
  *       "401":
  *         $ref: "#/components/responses/Unauthenticated"
  *       "403":

@@ -46,6 +46,8 @@ export const PATCH = apiHandler(
  *     tags:
  *       - buyers
  *     summary: List / read buyers
+ *     description: |
+ *       **Auth:** `requirePermission("lead.read")`
  *     parameters:
  *       - in: path
  *         name: id
@@ -54,7 +56,8 @@ export const PATCH = apiHandler(
  *           type: string
  *     responses:
  *       "200":
- *         description: OK
+ *         description: |
+ *           OK
  *       "401":
  *         $ref: "#/components/responses/Unauthenticated"
  *       "403":
@@ -63,6 +66,8 @@ export const PATCH = apiHandler(
  *     tags:
  *       - buyers
  *     summary: Update buyers
+ *     description: |
+ *       **Auth:** `requirePermission("lead.manage") + requirePermission("lead.read")`
  *     parameters:
  *       - in: path
  *         name: id
@@ -78,7 +83,8 @@ export const PATCH = apiHandler(
  *             additionalProperties: true
  *     responses:
  *       "200":
- *         description: OK
+ *         description: |
+ *           OK
  *       "401":
  *         $ref: "#/components/responses/Unauthenticated"
  *       "403":

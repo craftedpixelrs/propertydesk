@@ -35,12 +35,14 @@ export const GET = apiHandler({}, async () => {
  *   get:
  *     tags:
  *       - health
- *     summary: List / read health
+ *     summary: Readiness probe
+ *     description: |
+ *       **Auth:** `javno (bez sesije)`
+ *       Javni endpoint — proverava da li app može da služi saobraćaj.
+ *     security: []
  *     responses:
  *       "200":
- *         description: OK
- *       "401":
- *         $ref: "#/components/responses/Unauthenticated"
- *       "403":
- *         $ref: "#/components/responses/Forbidden"
+ *         description: Spreman
+ *       "503":
+ *         description: Zavisnost (npr. baza) nije dostupna
  */

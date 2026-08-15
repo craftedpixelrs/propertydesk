@@ -3,6 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { listAllOrganizations } from "@/server/services/platform.service";
+import { requireSuperAdmin } from "@/server/permissions/require";
 import { formatDate } from "@/lib/formatters/date";
 import { Plus } from "lucide-react";
 
@@ -30,6 +31,7 @@ const TYPE_LABEL: Record<string, string> = {
 export default async function PlatformOrganizationsPage({
   searchParams,
 }: PageProps) {
+  await requireSuperAdmin();
   const params = await searchParams;
   const page = Number.parseInt(params.page ?? "1", 10) || 1;
 

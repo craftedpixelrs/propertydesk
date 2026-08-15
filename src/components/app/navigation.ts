@@ -18,6 +18,7 @@ import {
   Store,
   Inbox,
   CalendarDays,
+  Radar,
 } from "lucide-react";
 import type { PermissionString } from "@/server/permissions/access-control";
 
@@ -61,7 +62,8 @@ export interface NavItem {
         | "settings"
         | "signOut"
         | "more"
-        | "platformAdmin"}`;
+        | "platformAdmin"
+        | "propertyDesk"}`;
   href: string;
   icon: LucideIcon;
   /** Required permission to see the item. `undefined` == always visible. */
@@ -70,6 +72,13 @@ export interface NavItem {
   orgTypes?: ("INVESTOR" | "AGENCY")[];
   /** Only visible to platform SUPER_ADMIN. */
   platformOnly?: boolean;
+  /**
+   * Only visible to active Property Desk team members who are NOT
+   * SUPER_ADMIN. Platform admins already reach the same surface through
+   * `platform-admin` → tab „Property Desk (tim)“, so showing this item
+   * for them would duplicate the same page in two places.
+   */
+  pdTeamOnly?: boolean;
 }
 
 export const navigation: NavItem[] = [
@@ -233,28 +242,62 @@ export const navigation: NavItem[] = [
     icon: Shield,
     platformOnly: true,
   },
+  {
+    key: "property-desk",
+    labelKey: "nav.propertyDesk",
+    href: "/administracija/property-desk",
+    icon: Radar,
+    pdTeamOnly: true,
+  },
 ];
 
 export interface NavContext {
   organizationType: "INVESTOR" | "AGENCY" | null;
   hasPermission: (perm: PermissionString) => boolean;
   isSuperAdmin: boolean;
+  /** True when the caller is an enabled Property Desk team member. */
+  hasPropertyDeskAccess: boolean;
 }
 
-// Nav keys that are safe for a SUPER_ADMIN without an active organization —
-// they either don't require a tenant scope (platform admin) or are trivial
-// landing/settings-like pages. Every other tenant page bounces the caller
-// back to /dashboard when no active org is set, so we hide them.
-const PLATFORM_ONLY_SAFE_KEYS = new Set(["dashboard", "platform-admin"]);
+// Nav keys that are safe for a SUPER_ADMIN without an active organization.
+// Tenant dashboard is hidden: `/dashboard` always redirects SUPER_ADMIN
+// to `/administracija`.
+const PLATFORM_ONLY_SAFE_KEYS = new Set([
+  "platform-admin",
+]);
+
+// Nav keys that a Property Desk team member without a tenant sees.
+// Dashboard and tenant Settings are omitted: both just bounce them
+// (settings → /dashboard → property-desk).
+const PD_ONLY_SAFE_KEYS = new Set([
+  "property-desk",
+]);
 
 export function filterNavigation(
   items: NavItem[],
   ctx: NavContext,
 ): NavItem[] {
   const superAdminWithoutOrg = ctx.isSuperAdmin && !ctx.organizationType;
+  // A user whose only relationship to the platform is Property Desk team
+  // membership (not SUPER_ADMIN, not a tenant member). They shouldn't see
+  // any tenant-scoped items — those would all bounce them back to
+  // `/dashboard` anyway.
+  const pdOnlyUser =
+    !ctx.isSuperAdmin && !ctx.organizationType && ctx.hasPropertyDeskAccess;
   return items.filter((item) => {
     if (item.platformOnly && !ctx.isSuperAdmin) return false;
+    if (item.pdTeamOnly && (ctx.isSuperAdmin || !ctx.hasPropertyDeskAccess)) {
+      return false;
+    }
+    // `/dashboard` always redirects SUPER_ADMIN → administracija and
+    // PD-only users → property-desk. Don't show a dead home link.
+    if (item.key === "dashboard" && (ctx.isSuperAdmin || pdOnlyUser)) {
+      return false;
+    }
     if (superAdminWithoutOrg && !PLATFORM_ONLY_SAFE_KEYS.has(item.key)) {
+      return false;
+    }
+    if (pdOnlyUser && !PD_ONLY_SAFE_KEYS.has(item.key)) {
       return false;
     }
     if (item.orgTypes && ctx.organizationType && !item.orgTypes.includes(ctx.organizationType)) {

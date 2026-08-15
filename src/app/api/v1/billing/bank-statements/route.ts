@@ -69,6 +69,8 @@ export const POST = apiHandler({}, async ({ req }) => {
  *     tags:
  *       - billing
  *     summary: Create billing
+ *     description: |
+ *       **Auth:** `requireSuperAdmin() — platform SUPER_ADMIN`
  *     requestBody:
  *       required: true
  *       content:
@@ -78,7 +80,9 @@ export const POST = apiHandler({}, async ({ req }) => {
  *             additionalProperties: true
  *     responses:
  *       "200":
- *         description: OK
+ *         description: |
+
+ *           OK
  *       "401":
  *         $ref: "#/components/responses/Unauthenticated"
  *       "403":

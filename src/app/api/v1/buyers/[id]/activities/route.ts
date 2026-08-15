@@ -62,6 +62,8 @@ export const POST = apiHandler({ paramsSchema, bodySchema: createSchema }, async
  *     tags:
  *       - buyers
  *     summary: List / read buyers
+ *     description: |
+ *       **Auth:** `requirePermission("lead.read")`
  *     parameters:
  *       - in: path
  *         name: id
@@ -70,7 +72,8 @@ export const POST = apiHandler({ paramsSchema, bodySchema: createSchema }, async
  *           type: string
  *     responses:
  *       "200":
- *         description: OK
+ *         description: |
+ *           OK
  *       "401":
  *         $ref: "#/components/responses/Unauthenticated"
  *       "403":
@@ -79,6 +82,8 @@ export const POST = apiHandler({ paramsSchema, bodySchema: createSchema }, async
  *     tags:
  *       - buyers
  *     summary: Create buyers
+ *     description: |
+ *       **Auth:** `requirePermission("lead.manage") + requirePermission("lead.read")`
  *     parameters:
  *       - in: path
  *         name: id
@@ -94,7 +99,8 @@ export const POST = apiHandler({ paramsSchema, bodySchema: createSchema }, async
  *             additionalProperties: true
  *     responses:
  *       "200":
- *         description: OK
+ *         description: |
+ *           OK
  *       "401":
  *         $ref: "#/components/responses/Unauthenticated"
  *       "403":

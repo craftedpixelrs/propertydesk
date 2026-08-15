@@ -58,9 +58,12 @@ export const POST = apiHandler({ bodySchema }, async ({ body }) => {
  *     tags:
  *       - commission-rules
  *     summary: List / read commission-rules
+ *     description: |
+ *       **Auth:** `requirePermission("commission.read")`
  *     responses:
  *       "200":
- *         description: OK
+ *         description: |
+ *           OK
  *       "401":
  *         $ref: "#/components/responses/Unauthenticated"
  *       "403":
@@ -69,6 +72,8 @@ export const POST = apiHandler({ bodySchema }, async ({ body }) => {
  *     tags:
  *       - commission-rules
  *     summary: Create commission-rules
+ *     description: |
+ *       **Auth:** `requirePermission("commission.manage") + requirePermission("commission.read")`
  *     requestBody:
  *       required: true
  *       content:
@@ -78,7 +83,8 @@ export const POST = apiHandler({ bodySchema }, async ({ body }) => {
  *             additionalProperties: true
  *     responses:
  *       "200":
- *         description: OK
+ *         description: |
+ *           OK
  *       "401":
  *         $ref: "#/components/responses/Unauthenticated"
  *       "403":

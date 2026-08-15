@@ -19,6 +19,8 @@ export interface SidebarNavProps {
   organizationType: "INVESTOR" | "AGENCY" | null;
   permissions: PermissionString[];
   isSuperAdmin: boolean;
+  hasPropertyDeskAccess: boolean;
+  lockNav?: boolean;
 }
 
 /**
@@ -27,7 +29,13 @@ export interface SidebarNavProps {
  * parent layout hands us only the plain-string permission snapshot and
  * we build the filtered list here on the client.
  */
-export function SidebarNav({ organizationType, permissions, isSuperAdmin }: SidebarNavProps) {
+export function SidebarNav({
+  organizationType,
+  permissions,
+  isSuperAdmin,
+  hasPropertyDeskAccess,
+  lockNav = false,
+}: SidebarNavProps) {
   const pathname = usePathname();
   const router = useRouter();
 
@@ -37,8 +45,9 @@ export function SidebarNav({ organizationType, permissions, isSuperAdmin }: Side
       organizationType,
       hasPermission: (p) => permissionSet.has(p),
       isSuperAdmin,
+      hasPropertyDeskAccess,
     });
-  }, [organizationType, permissions, isSuperAdmin]);
+  }, [organizationType, permissions, isSuperAdmin, hasPropertyDeskAccess]);
 
   async function handleSignOut() {
     await authClient.signOut();
@@ -56,39 +65,44 @@ export function SidebarNav({ organizationType, permissions, isSuperAdmin }: Side
         {/* Sidebar is narrow (~256px). Anchor the popover to the *right side*
          * of the bell so it expands into the main content area instead of
          * off-screen to the left. */}
-        <NotificationBell align="start" />
+        {lockNav ? null : <NotificationBell align="start" />}
       </div>
       <div className="border-b border-[var(--color-border)] p-3">
         <OrganizationSwitcher className="w-full" />
       </div>
-      <div className="border-b border-[var(--color-border)] p-3">
-        <SearchButton />
-      </div>
-      <nav className="flex-1 overflow-y-auto p-2">
-        <ul className="space-y-0.5">
-          {items.map((item) => {
-            const Icon = item.icon;
-            const active =
-              pathname === item.href || pathname.startsWith(`${item.href}/`);
-            return (
-              <li key={item.key}>
-                <Link
-                  href={item.href}
-                  className={cn(
-                    "flex items-center gap-3 rounded-md px-3 py-2 text-sm text-[var(--color-foreground)]",
-                    active
-                      ? "bg-[var(--color-brand-50)] text-[var(--color-brand-700)]"
-                      : "hover:bg-[var(--color-surface-inset)]",
-                  )}
-                >
-                  <Icon aria-hidden className="size-4 flex-none" />
-                  <span className="truncate">{t(item.labelKey)}</span>
-                </Link>
-              </li>
-            );
-          })}
-        </ul>
-      </nav>
+      {lockNav ? null : (
+        <>
+          <div className="border-b border-[var(--color-border)] p-3">
+            <SearchButton />
+          </div>
+          <nav className="flex-1 overflow-y-auto p-2">
+            <ul className="space-y-0.5">
+              {items.map((item) => {
+                const Icon = item.icon;
+                const active =
+                  pathname === item.href || pathname.startsWith(`${item.href}/`);
+                return (
+                  <li key={item.key}>
+                    <Link
+                      href={item.href}
+                      className={cn(
+                        "flex items-center gap-3 rounded-md px-3 py-2 text-sm text-[var(--color-foreground)]",
+                        active
+                          ? "bg-[var(--color-brand-50)] text-[var(--color-brand-700)]"
+                          : "hover:bg-[var(--color-surface-inset)]",
+                      )}
+                    >
+                      <Icon aria-hidden className="size-4 flex-none" />
+                      <span className="truncate">{t(item.labelKey)}</span>
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+          </nav>
+        </>
+      )}
+      {lockNav ? <div className="flex-1" /> : null}
       <div className="border-t border-[var(--color-border)] p-2">
         <button
           type="button"

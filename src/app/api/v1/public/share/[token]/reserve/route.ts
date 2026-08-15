@@ -76,6 +76,7 @@ export const POST = apiHandler(
  *       - public
  *     summary: Online rezervacija preko javnog share linka
  *     description: |
+ *       **Auth:** `javno + rate-limit (bez sesije)`
  *       Faza 8.1 (A2). Javni endpoint — bez autentikacije.
  *
  *       Kupac dolazi na `/p/[token]` (javna stranica jedinice), popunjava

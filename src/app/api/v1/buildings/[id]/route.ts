@@ -42,6 +42,8 @@ export const DELETE = apiHandler({ paramsSchema }, async ({ params }) => {
  *     tags:
  *       - buildings
  *     summary: Update buildings
+ *     description: |
+ *       **Auth:** `requirePermission("inventory.manage")`
  *     parameters:
  *       - in: path
  *         name: id
@@ -57,7 +59,8 @@ export const DELETE = apiHandler({ paramsSchema }, async ({ params }) => {
  *             additionalProperties: true
  *     responses:
  *       "200":
- *         description: OK
+ *         description: |
+ *           OK
  *       "401":
  *         $ref: "#/components/responses/Unauthenticated"
  *       "403":
@@ -66,6 +69,8 @@ export const DELETE = apiHandler({ paramsSchema }, async ({ params }) => {
  *     tags:
  *       - buildings
  *     summary: Delete buildings
+ *     description: |
+ *       **Auth:** `requirePermission("inventory.manage")`
  *     parameters:
  *       - in: path
  *         name: id
@@ -74,7 +79,8 @@ export const DELETE = apiHandler({ paramsSchema }, async ({ params }) => {
  *           type: string
  *     responses:
  *       "200":
- *         description: OK
+ *         description: |
+ *           OK
  *       "401":
  *         $ref: "#/components/responses/Unauthenticated"
  *       "403":

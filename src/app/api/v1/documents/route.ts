@@ -109,9 +109,12 @@ export const POST = apiHandler({}, async ({ req }) => {
  *     tags:
  *       - documents
  *     summary: List / read documents
+ *     description: |
+ *       **Auth:** `requirePermission("document.read")`
  *     responses:
  *       "200":
- *         description: OK
+ *         description: |
+ *           OK
  *       "401":
  *         $ref: "#/components/responses/Unauthenticated"
  *       "403":
@@ -120,6 +123,8 @@ export const POST = apiHandler({}, async ({ req }) => {
  *     tags:
  *       - documents
  *     summary: Create documents
+ *     description: |
+ *       **Auth:** `requirePermission("document.manage") + requirePermission("document.read")`
  *     requestBody:
  *       required: true
  *       content:
@@ -129,7 +134,8 @@ export const POST = apiHandler({}, async ({ req }) => {
  *             additionalProperties: true
  *     responses:
  *       "200":
- *         description: OK
+ *         description: |
+ *           OK
  *       "401":
  *         $ref: "#/components/responses/Unauthenticated"
  *       "403":

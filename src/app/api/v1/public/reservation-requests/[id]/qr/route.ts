@@ -62,7 +62,11 @@ export const GET = apiHandler({ paramsSchema }, async ({ req, params }) => {
  *   get:
  *     tags:
  *       - public
- *     summary: List / read public
+ *     summary: IPS QR za javnu rezervaciju
+ *     description: |
+ *       **Auth:** `javno + rate-limit (bez sesije)`
+ *       Javni endpoint — vraća QR PNG/SVG za uplatu kapare.
+ *     security: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -71,9 +75,7 @@ export const GET = apiHandler({ paramsSchema }, async ({ req, params }) => {
  *           type: string
  *     responses:
  *       "200":
- *         description: OK
- *       "401":
- *         $ref: "#/components/responses/Unauthenticated"
- *       "403":
- *         $ref: "#/components/responses/Forbidden"
+ *         description: QR image
+ *       "404":
+ *         $ref: "#/components/responses/NotFound"
  */

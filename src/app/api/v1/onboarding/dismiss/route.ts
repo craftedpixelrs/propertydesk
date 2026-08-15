@@ -24,6 +24,8 @@ export const POST = apiHandler({}, async () => {
  *     tags:
  *       - onboarding
  *     summary: Create onboarding
+ *     description: |
+ *       **Auth:** `sesija (ulogovan + aktivna org) — bez posebne permission`
  *     requestBody:
  *       required: true
  *       content:
@@ -33,7 +35,8 @@ export const POST = apiHandler({}, async () => {
  *             additionalProperties: true
  *     responses:
  *       "200":
- *         description: OK
+ *         description: |
+ *           OK
  *       "401":
  *         $ref: "#/components/responses/Unauthenticated"
  *       "403":

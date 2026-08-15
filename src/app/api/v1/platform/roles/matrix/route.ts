@@ -23,9 +23,13 @@ export const GET = apiHandler({}, async () => {
  *     tags:
  *       - platform
  *     summary: List / read platform
+ *     description: |
+ *       **Auth:** `requireSuperAdmin() — platform SUPER_ADMIN`
  *     responses:
  *       "200":
- *         description: OK
+ *         description: |
+
+ *           OK
  *       "401":
  *         $ref: "#/components/responses/Unauthenticated"
  *       "403":

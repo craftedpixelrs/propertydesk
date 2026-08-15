@@ -72,6 +72,8 @@ export const GET = apiHandler({ paramsSchema }, async ({ params, query, searchPa
  *     tags:
  *       - agency
  *     summary: List / read agency
+ *     description: |
+ *       **Auth:** `requirePermission("agency.read")`
  *     parameters:
  *       - in: path
  *         name: id
@@ -80,7 +82,8 @@ export const GET = apiHandler({ paramsSchema }, async ({ params, query, searchPa
  *           type: string
  *     responses:
  *       "200":
- *         description: OK
+ *         description: |
+ *           OK
  *       "401":
  *         $ref: "#/components/responses/Unauthenticated"
  *       "403":

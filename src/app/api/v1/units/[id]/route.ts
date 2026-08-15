@@ -74,6 +74,8 @@ export const PATCH = apiHandler(
  *     tags:
  *       - units
  *     summary: List / read units
+ *     description: |
+ *       **Auth:** `requirePermission("inventory.read")`
  *     parameters:
  *       - in: path
  *         name: id
@@ -82,7 +84,8 @@ export const PATCH = apiHandler(
  *           type: string
  *     responses:
  *       "200":
- *         description: OK
+ *         description: |
+ *           OK
  *       "401":
  *         $ref: "#/components/responses/Unauthenticated"
  *       "403":
@@ -91,6 +94,8 @@ export const PATCH = apiHandler(
  *     tags:
  *       - units
  *     summary: Update units
+ *     description: |
+ *       **Auth:** `requirePermission("inventory.manage") + requirePermission("inventory.read")`
  *     parameters:
  *       - in: path
  *         name: id
@@ -106,7 +111,8 @@ export const PATCH = apiHandler(
  *             additionalProperties: true
  *     responses:
  *       "200":
- *         description: OK
+ *         description: |
+ *           OK
  *       "401":
  *         $ref: "#/components/responses/Unauthenticated"
  *       "403":

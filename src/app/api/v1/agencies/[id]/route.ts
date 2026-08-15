@@ -43,6 +43,8 @@ export const PATCH = apiHandler(
  *     tags:
  *       - agencies
  *     summary: List / read agencies
+ *     description: |
+ *       **Auth:** `requirePermission("agency.read")`
  *     parameters:
  *       - in: path
  *         name: id
@@ -51,7 +53,8 @@ export const PATCH = apiHandler(
  *           type: string
  *     responses:
  *       "200":
- *         description: OK
+ *         description: |
+ *           OK
  *       "401":
  *         $ref: "#/components/responses/Unauthenticated"
  *       "403":
@@ -60,6 +63,8 @@ export const PATCH = apiHandler(
  *     tags:
  *       - agencies
  *     summary: Update agencies
+ *     description: |
+ *       **Auth:** `requirePermission("agency.manage") + requirePermission("agency.read")`
  *     parameters:
  *       - in: path
  *         name: id
@@ -75,7 +80,8 @@ export const PATCH = apiHandler(
  *             additionalProperties: true
  *     responses:
  *       "200":
- *         description: OK
+ *         description: |
+ *           OK
  *       "401":
  *         $ref: "#/components/responses/Unauthenticated"
  *       "403":

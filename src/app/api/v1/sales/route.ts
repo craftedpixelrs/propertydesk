@@ -79,9 +79,12 @@ export const POST = apiHandler({ bodySchema: createSchema }, async ({ body }) =>
  *     tags:
  *       - sales
  *     summary: List / read sales
+ *     description: |
+ *       **Auth:** `requirePermission("sale.read")`
  *     responses:
  *       "200":
- *         description: OK
+ *         description: |
+ *           OK
  *       "401":
  *         $ref: "#/components/responses/Unauthenticated"
  *       "403":
@@ -90,6 +93,8 @@ export const POST = apiHandler({ bodySchema: createSchema }, async ({ body }) =>
  *     tags:
  *       - sales
  *     summary: Create sales
+ *     description: |
+ *       **Auth:** `requirePermission("sale.manage") + requirePermission("sale.read")`
  *     requestBody:
  *       required: true
  *       content:
@@ -99,7 +104,8 @@ export const POST = apiHandler({ bodySchema: createSchema }, async ({ body }) =>
  *             additionalProperties: true
  *     responses:
  *       "200":
- *         description: OK
+ *         description: |
+ *           OK
  *       "401":
  *         $ref: "#/components/responses/Unauthenticated"
  *       "403":

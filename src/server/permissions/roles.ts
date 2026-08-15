@@ -30,6 +30,8 @@ export const INVESTOR_OWNER = ac.newRole({
   // Tenants get read-only visibility on their own billing. Editing plans,
   // recording payments, and running billing jobs is SUPER_ADMIN-only.
   billing: ["read", "subscription.read", "invoice.read", "payment.read"],
+  invitation: ["create", "cancel"],
+  member: ["create", "update", "delete"],
 });
 
 export const INVESTOR_ADMIN = ac.newRole({
@@ -45,6 +47,8 @@ export const INVESTOR_ADMIN = ac.newRole({
   document: ["read", "manage"],
   report: ["read"],
   audit: ["read"],
+  invitation: ["create", "cancel"],
+  member: ["create", "update", "delete"],
 });
 
 export const SALES_MANAGER = ac.newRole({
@@ -117,6 +121,8 @@ export const AGENCY_OWNER = ac.newRole({
   document: ["read"],
   report: ["read"],
   billing: ["read", "subscription.read", "invoice.read", "payment.read"],
+  invitation: ["create", "cancel"],
+  member: ["create", "update", "delete"],
 });
 
 export const AGENCY_ADMIN = ac.newRole({
@@ -129,6 +135,8 @@ export const AGENCY_ADMIN = ac.newRole({
   commission: ["read"],
   document: ["read"],
   report: ["read"],
+  invitation: ["create", "cancel"],
+  member: ["create", "update", "delete"],
 });
 
 export const AGENCY_AGENT = ac.newRole({
@@ -188,6 +196,8 @@ export const SUPER_ADMIN = ac.newRole({
     "update",
   ],
   session: ["list", "revoke", "delete"],
+  invitation: ["create", "cancel"],
+  member: ["create", "update", "delete"],
   billing: [
     "read",
     "settings.manage",
@@ -208,6 +218,103 @@ export const SUPER_ADMIN = ac.newRole({
     "profile.manage",
     "bankaccount.manage",
   ],
+  // SUPER_ADMIN uvek zadržava sve Property Desk dozvole (Sloj C). Ove
+  // dozvole se dodatno definišu per PD-role ispod, ali SA bypass gura
+  // sve provere na svakom mestu.
+  pd_team: ["view", "add_member", "manage_role", "manage_scope", "disable"],
+  pd_lead: [
+    "view_own",
+    "view_team",
+    "create",
+    "reassign",
+    "update_stage",
+    "update_details",
+    "update_classification",
+    "reopen",
+    "convert",
+    "delete",
+    "bulk",
+  ],
+  pd_lead_activity: ["read", "create"],
+  pd_lead_task: ["read", "create", "assign", "complete"],
+  pd_report: ["pipeline"],
+});
+
+// -----------------------------------------------------------------------------
+// Property Desk internal-team roles (Sloj C).
+//
+// Ove uloge važe za članove interne SaaS marketing/sales ekipe. Ne
+// dodeljuju se preko `Member.role` (tenant scope); dodeljuju se preko
+// `property_desk_team_member.teamRole`. Semantiku i default matricu
+// dokumentuje /administracija/role i docs/roles-and-plans.md.
+// -----------------------------------------------------------------------------
+
+export const SETTER = ac.newRole({
+  // Setter prihvata dolazne lead-ove i vodi ih do kvalifikacije. Radi
+  // isključivo u SOURCING levelu; ne sme reopen (to je MANAGER+SA).
+  pd_lead: [
+    "view_own",
+    "create",
+    "update_stage",
+    "update_details",
+    "update_classification",
+  ],
+  pd_lead_activity: ["read", "create"],
+  pd_lead_task: ["read", "create", "complete"],
+  pd_report: ["pipeline"],
+});
+
+export const CLOSER = ac.newRole({
+  // Closer preuzima kvalifikovane lead-ove i zatvara posao (WON).
+  pd_lead: [
+    "view_own",
+    "create",
+    "update_stage",
+    "update_details",
+    "update_classification",
+    "convert",
+  ],
+  pd_lead_activity: ["read", "create"],
+  pd_lead_task: ["read", "create", "complete"],
+  pd_report: ["pipeline"],
+});
+
+export const OPERATIONS = ac.newRole({
+  // Operativa preuzima WON (L3): veže postojeći tenant ili pravi novi
+  // org + vlasnika (INVESTOR_OWNER / AGENCY_OWNER) iz lead-a.
+  pd_lead: [
+    "view_own",
+    "update_stage",
+    "update_details",
+    "update_classification",
+    "convert",
+  ],
+  pd_lead_activity: ["read", "create"],
+  pd_lead_task: ["read", "create", "complete"],
+  pd_report: ["pipeline"],
+});
+
+export const MANAGER = ac.newRole({
+  // Menadžer tima vidi ceo pipeline, preraspoređuje, radi bulk akcije i
+  // jedini (uz SUPER_ADMIN) sme da vraća stage unazad kroz `pd_lead.reopen`.
+  // Namerno NEMA `pd_team.add_member/manage_role/manage_scope/disable` —
+  // to je SUPER_ADMIN-only da bi granice tima bile jasne.
+  pd_team: ["view"],
+  pd_lead: [
+    "view_own",
+    "view_team",
+    "create",
+    "reassign",
+    "update_stage",
+    "update_details",
+    "update_classification",
+    "reopen",
+    "convert",
+    "bulk",
+  ],
+  pd_lead_activity: ["read", "create"],
+  pd_lead_task: ["read", "create", "assign", "complete"],
+  pd_report: ["pipeline"],
 });
 
 // -----------------------------------------------------------------------------
@@ -244,14 +351,31 @@ export const platformRoles = {
   SUPER_ADMIN,
 } as const;
 
+/**
+ * Property Desk internal team roles (Sloj C). Deklarisane su ovde tako da
+ * dele infrastrukturu sa `organizationRoles` (matrix editor, override-i,
+ * audit), ali se dodeljuju preko `property_desk_team_member.teamRole`, a
+ * NE preko tenant `Member.role`.
+ */
+export const propertyDeskTeamRoles = {
+  SETTER,
+  CLOSER,
+  OPERATIONS,
+  MANAGER,
+} as const;
+
 export type InvestorRole = keyof typeof investorRoles;
 export type AgencyRole = keyof typeof agencyRoles;
 export type OrganizationRole = InvestorRole | AgencyRole;
 export type PlatformRole = keyof typeof platformRoles;
+export type PropertyDeskRole = keyof typeof propertyDeskTeamRoles;
 
 export const INVESTOR_ROLE_NAMES = Object.keys(investorRoles) as InvestorRole[];
 export const AGENCY_ROLE_NAMES = Object.keys(agencyRoles) as AgencyRole[];
 export const ALL_ORG_ROLE_NAMES = Object.keys(organizationRoles) as OrganizationRole[];
+export const PROPERTY_DESK_ROLE_NAMES = Object.keys(
+  propertyDeskTeamRoles,
+) as PropertyDeskRole[];
 
 /**
  * Given an organization type, return the roles valid for that org.

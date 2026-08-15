@@ -42,22 +42,70 @@ function keysFor(input: {
   organizationType: "INVESTOR" | "AGENCY" | null;
   permissions: Set<PermissionString>;
   isSuperAdmin: boolean;
+  hasPropertyDeskAccess?: boolean;
 }): string[] {
   return filterNavigation(navigation, {
     organizationType: input.organizationType,
     hasPermission: (p) => input.permissions.has(p),
     isSuperAdmin: input.isSuperAdmin,
+    hasPropertyDeskAccess: input.hasPropertyDeskAccess ?? input.isSuperAdmin,
   }).map((i) => i.key);
 }
 
 describe("sidebar navigation matrix", () => {
-  it("SUPER_ADMIN without active org sees only dashboard + platform-admin", () => {
+  it("SUPER_ADMIN without active org sees only platform-admin (dashboard would just redirect here)", () => {
     const keys = keysFor({
       organizationType: null,
       permissions: new Set(ALL_PERMISSIONS),
       isSuperAdmin: true,
     });
-    expect(keys.sort()).toEqual(["dashboard", "platform-admin"].sort());
+    expect(keys.sort()).toEqual(["platform-admin"].sort());
+    expect(keys).not.toContain("dashboard");
+    expect(keys).not.toContain("property-desk");
+  });
+
+  describe("Property Desk team (no tenant, no SUPER_ADMIN)", () => {
+    it("PD-only user sees only property-desk (no dashboard/settings redirects)", () => {
+      const keys = keysFor({
+        organizationType: null,
+        permissions: new Set<PermissionString>(),
+        isSuperAdmin: false,
+        hasPropertyDeskAccess: true,
+      });
+      expect(keys).toEqual(["property-desk"]);
+    });
+
+    it("PD member inside a tenant still sees the Property Desk sidebar item", () => {
+      const keys = keysFor({
+        organizationType: "INVESTOR",
+        permissions: computeOrgPermissions("INVESTOR_OWNER"),
+        isSuperAdmin: false,
+        hasPropertyDeskAccess: true,
+      });
+      expect(keys).toContain("property-desk");
+      expect(keys).not.toContain("platform-admin");
+    });
+
+    it("SUPER_ADMIN never sees a duplicate Property Desk sidebar item", () => {
+      const keys = keysFor({
+        organizationType: "INVESTOR",
+        permissions: new Set(ALL_PERMISSIONS),
+        isSuperAdmin: true,
+        hasPropertyDeskAccess: true,
+      });
+      expect(keys).toContain("platform-admin");
+      expect(keys).not.toContain("property-desk");
+    });
+
+    it("regular user without PD access never sees property-desk", () => {
+      const keys = keysFor({
+        organizationType: "INVESTOR",
+        permissions: computeOrgPermissions("INVESTOR_OWNER"),
+        isSuperAdmin: false,
+        hasPropertyDeskAccess: false,
+      });
+      expect(keys).not.toContain("property-desk");
+    });
   });
 
   it("SUPER_ADMIN acting inside an INVESTOR org sees investor items + platform-admin", () => {
@@ -66,8 +114,9 @@ describe("sidebar navigation matrix", () => {
       permissions: new Set(ALL_PERMISSIONS),
       isSuperAdmin: true,
     });
-    expect(keys).toContain("dashboard");
+    expect(keys).not.toContain("dashboard");
     expect(keys).toContain("platform-admin");
+    expect(keys).not.toContain("property-desk");
     expect(keys).toContain("projects");
     expect(keys).toContain("sales");
     expect(keys).toContain("agencies");
@@ -82,8 +131,9 @@ describe("sidebar navigation matrix", () => {
       permissions: new Set(ALL_PERMISSIONS),
       isSuperAdmin: true,
     });
-    expect(keys).toContain("dashboard");
+    expect(keys).not.toContain("dashboard");
     expect(keys).toContain("platform-admin");
+    expect(keys).not.toContain("property-desk");
     expect(keys).toContain("offer");
     expect(keys).toContain("my-buyers");
     expect(keys).toContain("connections");
@@ -107,6 +157,7 @@ describe("sidebar navigation matrix", () => {
           "customers",
           "tasks",
           "reservations",
+          "calendar",
           "sales",
           "payments",
           "agencies",
@@ -220,6 +271,7 @@ describe("sidebar navigation matrix", () => {
           "customers",
           "tasks",
           "reservations",
+          "calendar",
           "offer",
           "my-buyers",
           "my-reservations",

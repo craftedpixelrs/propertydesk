@@ -1,11 +1,23 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { listAllUsers } from "@/server/services/platform.service";
+import {
+  listAllUsers,
+  listOrganizationsForPicker,
+  type ListPlatformUsersInput,
+} from "@/server/services/platform.service";
 import { formatDate } from "@/lib/formatters/date";
-import { getSession } from "@/server/auth/session";
+import { requireSuperAdmin } from "@/server/permissions/require";
 import { ImpersonateButton } from "@/features/platform-admin/impersonate-button";
+import { EditUserDialog } from "@/features/platform-admin/edit-user-dialog";
+import { AddUserDialog } from "@/features/platform-admin/add-user-dialog";
+import { UsersFilterBar } from "@/features/platform-admin/users-filter-bar";
+import {
+  ALL_ORG_ROLE_NAMES,
+  PROPERTY_DESK_ROLE_NAMES,
+} from "@/server/permissions/roles";
 import Link from "next/link";
+import type { OrganizationType, PropertyDeskTeamRole } from "@prisma/client";
 
 export const dynamic = "force-dynamic";
 
@@ -14,55 +26,143 @@ interface PageProps {
     page?: string;
     q?: string;
     organizationId?: string;
+    orgType?: string;
+    role?: string;
+    /** @deprecated folded into `role` (PD_TEAM / SETTER / …) */
+    pdTeam?: string;
+    status?: string;
+    platform?: string;
   }>;
 }
 
+const PD_ROLE_LABEL: Record<string, string> = {
+  SETTER: "Setter",
+  CLOSER: "Closer",
+  OPERATIONS: "Operations",
+  MANAGER: "Manager",
+};
+
+const FILTER_QUERY_KEYS = [
+  "q",
+  "organizationId",
+  "orgType",
+  "role",
+  "status",
+  "platform",
+] as const;
+
+function parseRoleFilter(raw: string | undefined): {
+  role?: string;
+  propertyDeskTeam?: ListPlatformUsersInput["propertyDeskTeam"];
+} {
+  if (!raw) return {};
+  if (raw === "PD_TEAM" || raw === "any" || raw === "1") {
+    return { propertyDeskTeam: true };
+  }
+  if (PROPERTY_DESK_ROLE_NAMES.includes(raw as PropertyDeskTeamRole)) {
+    return { propertyDeskTeam: raw as PropertyDeskTeamRole };
+  }
+  if (ALL_ORG_ROLE_NAMES.includes(raw as (typeof ALL_ORG_ROLE_NAMES)[number])) {
+    return { role: raw };
+  }
+  return {};
+}
+
 /**
- * SUPER_ADMIN-only view of every user in the platform, with an "Uloguj se
- * kao" affordance for each account. The layout guards SUPER_ADMIN already;
- * we also short-circuit to `/dashboard` if somehow the session is missing.
+ * SUPER_ADMIN-only directory of every user on the platform. From here you can
+ * edit the account (Sloj A + Sloj C Property Desk team) or impersonate for
+ * support. Tenant application roles (Sloj B) stay inside the organization.
  */
 export default async function PlatformUsersPage({ searchParams }: PageProps) {
   const params = await searchParams;
   const page = Number.parseInt(params.page ?? "1", 10) || 1;
   const pageSize = 25;
+  const organizationId = params.organizationId?.trim() || undefined;
+  const orgType =
+    params.orgType === "INVESTOR" || params.orgType === "AGENCY"
+      ? (params.orgType as OrganizationType)
+      : undefined;
+  const roleFilter = parseRoleFilter(params.role || params.pdTeam);
+  const status =
+    params.status === "verified" ||
+    params.status === "unverified" ||
+    params.status === "banned"
+      ? params.status
+      : undefined;
+  const platform =
+    params.platform === "SUPER_ADMIN" || params.platform === "user"
+      ? params.platform
+      : undefined;
 
-  const session = await getSession();
-  const currentUserId = session?.user.id ?? null;
+  const ctx = await requireSuperAdmin();
+  const currentUserId = ctx.session.user.id;
 
-  const { items, total } = await listAllUsers({
-    page,
-    pageSize,
-    search: params.q,
-    organizationId: params.organizationId,
-  });
+  const [{ items, total }, organizations] = await Promise.all([
+    listAllUsers({
+      page,
+      pageSize,
+      search: params.q,
+      organizationId,
+      orgType,
+      role: roleFilter.role,
+      propertyDeskTeam: roleFilter.propertyDeskTeam,
+      status,
+      platform,
+    }),
+    listOrganizationsForPicker(),
+  ]);
 
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
+  const listQuery: Record<string, string> = {};
+  for (const key of FILTER_QUERY_KEYS) {
+    const value = params[key]?.trim();
+    if (value) listQuery[key] = value;
+  }
 
   return (
     <section className="space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-2">
+      <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h2 className="text-lg font-semibold">Korisnici ({total})</h2>
           <p className="text-xs text-[var(--color-foreground-muted)]">
-            Iz ove liste možete da se ulogujete kao bilo koji korisnik radi dijagnostike i podrške.
-            Svaka impersonacija se upisuje u revizijski zapis.
+            <strong>Dodaj korisnika</strong> pravi nalog i stavlja ga u
+            organizaciju i/ili Property Desk tim. <strong>Uredi</strong> menja
+            postojeći nalog. <strong>Uloguj se kao</strong> je za dijagnostiku.
+          </p>
+          <p className="mt-1 text-xs text-[var(--color-foreground-muted)]">
+            <strong>Platforma</strong> = Sloj A (samo{" "}
+            <code>SUPER_ADMIN</code>).{" "}
+            <strong>Property Desk</strong> = Sloj C, interni tim za marketing
+            samog SaaS-a — detaljnije na{" "}
+            <Link
+              href="/administracija/property-desk/tim"
+              className="underline decoration-dotted hover:no-underline"
+            >
+              Property Desk → Tim
+            </Link>
+            . <strong>Aplikacione uloge</strong> = Sloj B unutar organizacije.
           </p>
         </div>
+        <AddUserDialog organizations={organizations} />
       </div>
 
-      <form className="grid gap-3 sm:grid-cols-3" action="/administracija/korisnici">
-        <input
-          type="text"
-          name="q"
-          defaultValue={params.q ?? ""}
-          placeholder="Pretraga po imenu ili e-mail-u…"
-          className="h-10 rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] px-3 text-sm sm:col-span-2"
-        />
-        <Button type="submit" variant="secondary" size="sm">
-          Primeni
-        </Button>
-      </form>
+      <UsersFilterBar
+        values={{
+          q: params.q ?? "",
+          organizationId: params.organizationId ?? "",
+          orgType: params.orgType ?? "",
+          role:
+            params.role ||
+            (params.pdTeam === "1" || params.pdTeam === "any"
+              ? "PD_TEAM"
+              : params.pdTeam === "none"
+                ? ""
+                : (params.pdTeam ?? "")),
+          status: params.status ?? "",
+          platform: params.platform ?? "",
+        }}
+        organizations={organizations}
+      />
 
       <Card>
         <CardContent className="p-0">
@@ -75,11 +175,36 @@ export default async function PlatformUsersPage({ searchParams }: PageProps) {
               <table className="w-full text-sm">
                 <thead className="text-left text-xs uppercase text-[var(--color-foreground-subtle)]">
                   <tr>
-                    <th className="border-b border-[var(--color-border)] px-4 py-2">Korisnik</th>
-                    <th className="border-b border-[var(--color-border)] px-4 py-2">Uloge / Organizacije</th>
-                    <th className="border-b border-[var(--color-border)] px-4 py-2">Status</th>
-                    <th className="border-b border-[var(--color-border)] px-4 py-2">Registrovan</th>
-                    <th className="border-b border-[var(--color-border)] px-4 py-2 text-right">Akcije</th>
+                    <th className="border-b border-[var(--color-border)] px-4 py-2">
+                      Korisnik
+                    </th>
+                    <th
+                      className="border-b border-[var(--color-border)] px-4 py-2"
+                      title="Sloj A — platformski. Da li nalog uopšte ima pristup platformi."
+                    >
+                      Platforma
+                    </th>
+                    <th
+                      className="border-b border-[var(--color-border)] px-4 py-2"
+                      title="Sloj C — interni Property Desk tim za marketing SaaS-a."
+                    >
+                      Property Desk
+                    </th>
+                    <th
+                      className="border-b border-[var(--color-border)] px-4 py-2"
+                      title="Sloj B — aplikacioni. Rola člana unutar konkretne organizacije."
+                    >
+                      Aplikacione uloge / Organizacije
+                    </th>
+                    <th className="border-b border-[var(--color-border)] px-4 py-2">
+                      Status
+                    </th>
+                    <th className="border-b border-[var(--color-border)] px-4 py-2">
+                      Registrovan
+                    </th>
+                    <th className="border-b border-[var(--color-border)] px-4 py-2 text-right">
+                      Akcije
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -105,9 +230,38 @@ export default async function PlatformUsersPage({ searchParams }: PageProps) {
                           <div className="text-xs text-[var(--color-foreground-muted)]">
                             {u.email}
                           </div>
-                          {u.role ? (
-                            <div className="mt-1">
-                              <Badge tone="brand">{u.role}</Badge>
+                        </td>
+                        <td className="px-4 py-2 align-top">
+                          {isSuperAdmin ? (
+                            <Badge
+                              tone="brand"
+                              title="Platformska (Sloj A) uloga — globalni pristup celoj platformi."
+                            >
+                              Platforma · SUPER_ADMIN
+                            </Badge>
+                          ) : (
+                            <span className="text-xs text-[var(--color-foreground-muted)]">
+                              — običan korisnik —
+                            </span>
+                          )}
+                        </td>
+                        <td className="px-4 py-2 align-top">
+                          {u.propertyDeskTeam ? (
+                            <div className="space-y-1">
+                              <Badge
+                                tone={
+                                  u.propertyDeskTeam.enabled ? "info" : "warning"
+                                }
+                                title="Sloj C — interni Property Desk tim."
+                              >
+                                {PD_ROLE_LABEL[u.propertyDeskTeam.teamRole] ??
+                                  u.propertyDeskTeam.teamRole}
+                              </Badge>
+                              {!u.propertyDeskTeam.enabled ? (
+                                <div className="text-xs text-[var(--color-foreground-muted)]">
+                                  neaktivan
+                                </div>
+                              ) : null}
                             </div>
                           ) : null}
                         </td>
@@ -157,12 +311,26 @@ export default async function PlatformUsersPage({ searchParams }: PageProps) {
                           {formatDate(u.createdAt)}
                         </td>
                         <td className="px-4 py-2 text-right align-top">
-                          <ImpersonateButton
-                            userId={u.id}
-                            userName={u.name}
-                            disabled={disabled}
-                            disabledReason={disabledReason}
-                          />
+                          <div className="inline-flex flex-col items-end gap-1">
+                            <EditUserDialog
+                              user={{
+                                id: u.id,
+                                name: u.name,
+                                email: u.email,
+                                role: u.role,
+                                emailVerified: u.emailVerified,
+                                banned: u.banned,
+                                banReason: u.banReason,
+                                propertyDeskTeam: u.propertyDeskTeam,
+                              }}
+                            />
+                            <ImpersonateButton
+                              userId={u.id}
+                              userName={u.name}
+                              disabled={disabled}
+                              disabledReason={disabledReason}
+                            />
+                          </div>
                         </td>
                       </tr>
                     );
@@ -185,10 +353,7 @@ export default async function PlatformUsersPage({ searchParams }: PageProps) {
                 <Link
                   href={{
                     pathname: "/administracija/korisnici",
-                    query: {
-                      page: String(page - 1),
-                      ...(params.q ? { q: params.q } : {}),
-                    },
+                    query: { page: String(page - 1), ...listQuery },
                   }}
                 >
                   Prethodna
@@ -200,10 +365,7 @@ export default async function PlatformUsersPage({ searchParams }: PageProps) {
                 <Link
                   href={{
                     pathname: "/administracija/korisnici",
-                    query: {
-                      page: String(page + 1),
-                      ...(params.q ? { q: params.q } : {}),
-                    },
+                    query: { page: String(page + 1), ...listQuery },
                   }}
                 >
                   Sledeća

@@ -30,6 +30,7 @@ export default async function OrganizationProfilePage() {
             : null
         }
         quota={quota}
+        orgType={org.organizationType}
       />
     );
   } catch {

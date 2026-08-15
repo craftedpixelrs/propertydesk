@@ -41,9 +41,13 @@ export const GET = apiHandler({}, async () => {
  *     tags:
  *       - me
  *     summary: List / read me
+ *     description: |
+ *       **Auth:** `sesija (ulogovan + aktivna org) — bez posebne permission`
  *     responses:
  *       "200":
- *         description: OK
+ *         description: |
+
+ *           OK
  *       "401":
  *         $ref: "#/components/responses/Unauthenticated"
  *       "403":

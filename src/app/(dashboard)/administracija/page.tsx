@@ -1,9 +1,11 @@
+import { redirect } from "next/navigation";
 import Link from "next/link";
 import { Building2, Users, Shield, Layers, BadgeCheck, Handshake } from "lucide-react";
 
 import { StatCard } from "@/components/app/stat-card";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatDate, formatDateTime } from "@/lib/formatters/date";
+import { getSession, isSuperAdmin } from "@/server/auth/session";
 import { loadPlatformDashboard } from "@/server/services/dashboard/dashboard.service";
 
 export const dynamic = "force-dynamic";
@@ -11,8 +13,17 @@ export const dynamic = "force-dynamic";
 /**
  * Platform-admin landing page — real system-wide aggregates + trial expiry
  * watchlist + latest 15 audit rows.
+ *
+ * Team-only Property Desk members (not SUPER_ADMIN) share this outer layout
+ * but must NOT see the platform-wide dashboard — they are redirected to
+ * their own Property Desk overview.
  */
 export default async function PlatformAdminOverviewPage() {
+  const session = await getSession();
+  if (!session || !isSuperAdmin(session)) {
+    redirect("/administracija/property-desk");
+  }
+
   const data = await loadPlatformDashboard();
 
   return (

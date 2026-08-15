@@ -54,9 +54,12 @@ export const POST = apiHandler(
  *     tags:
  *       - sale-contract-templates
  *     summary: List / read sale-contract-templates
+ *     description: |
+ *       **Auth:** `requirePermission("sale.manage")`
  *     responses:
  *       "200":
- *         description: OK
+ *         description: |
+ *           OK
  *       "401":
  *         $ref: "#/components/responses/Unauthenticated"
  *       "403":
@@ -65,6 +68,8 @@ export const POST = apiHandler(
  *     tags:
  *       - sale-contract-templates
  *     summary: Create sale-contract-templates
+ *     description: |
+ *       **Auth:** `requirePermission("sale.manage")`
  *     requestBody:
  *       required: true
  *       content:
@@ -74,7 +79,8 @@ export const POST = apiHandler(
  *             additionalProperties: true
  *     responses:
  *       "200":
- *         description: OK
+ *         description: |
+ *           OK
  *       "401":
  *         $ref: "#/components/responses/Unauthenticated"
  *       "403":

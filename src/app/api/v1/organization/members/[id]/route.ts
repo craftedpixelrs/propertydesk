@@ -58,6 +58,8 @@ export const DELETE = apiHandler({ paramsSchema }, async ({ params }) => {
  *     tags:
  *       - organization
  *     summary: Update organization
+ *     description: |
+ *       **Auth:** `requirePermission("organization.members:manage")`
  *     parameters:
  *       - in: path
  *         name: id
@@ -73,7 +75,8 @@ export const DELETE = apiHandler({ paramsSchema }, async ({ params }) => {
  *             additionalProperties: true
  *     responses:
  *       "200":
- *         description: OK
+ *         description: |
+ *           OK
  *       "401":
  *         $ref: "#/components/responses/Unauthenticated"
  *       "403":
@@ -82,6 +85,8 @@ export const DELETE = apiHandler({ paramsSchema }, async ({ params }) => {
  *     tags:
  *       - organization
  *     summary: Delete organization
+ *     description: |
+ *       **Auth:** `requirePermission("organization.members:manage")`
  *     parameters:
  *       - in: path
  *         name: id
@@ -90,7 +95,8 @@ export const DELETE = apiHandler({ paramsSchema }, async ({ params }) => {
  *           type: string
  *     responses:
  *       "200":
- *         description: OK
+ *         description: |
+ *           OK
  *       "401":
  *         $ref: "#/components/responses/Unauthenticated"
  *       "403":

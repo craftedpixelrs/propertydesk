@@ -157,7 +157,17 @@ export class ApiClient {
   }
 
   private buildUrl(path: string, query?: RequestOptions["query"]): string {
-    const base = path.startsWith("http") ? path : `${this.baseUrl}${path.startsWith("/") ? "" : "/"}${path}`;
+    // Callers must pass paths relative to `/api/v1` (e.g. `/buyers`). If a
+    // full `/api/v1/...` path is passed anyway, strip the duplicate prefix
+    // so we don't 404 on `/api/v1/api/v1/...` and return HTML.
+    let relative = path;
+    if (!path.startsWith("http") && this.baseUrl.endsWith("/api/v1")) {
+      if (relative.startsWith("/api/v1/")) relative = relative.slice("/api/v1".length);
+      else if (relative === "/api/v1") relative = "/";
+    }
+    const base = path.startsWith("http")
+      ? path
+      : `${this.baseUrl}${relative.startsWith("/") ? "" : "/"}${relative}`;
     if (!query) return base;
     const searchParams = new URLSearchParams();
     for (const [k, v] of Object.entries(query)) {

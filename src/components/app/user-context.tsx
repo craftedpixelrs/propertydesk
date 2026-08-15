@@ -26,6 +26,17 @@ export interface ClientUserContext {
     role: string | null;
     status: "TRIAL" | "ACTIVE" | "RESTRICTED" | "SUSPENDED" | "CLOSED" | null;
   } | null;
+  /**
+   * Property Desk internal-team membership snapshot for the current caller.
+   * `null` for anyone who is not on the internal SaaS marketing/sales team.
+   * A SUPER_ADMIN who was not explicitly added to the team gets `null` here
+   * (they still have full access via `isSuperAdmin`).
+   */
+  propertyDeskTeam: {
+    teamRole: "SETTER" | "CLOSER" | "OPERATIONS" | "MANAGER";
+    leadScope: "OWN" | "OWN_AND_UNASSIGNED" | "TEAM" | "ALL";
+    enabled: boolean;
+  } | null;
   permissions: PermissionString[];
 }
 
@@ -75,4 +86,22 @@ export function usePermissions() {
     }),
     [ctx, set],
   );
+}
+
+/**
+ * Shorthand for gating Property Desk UI on a specific `pd_*` permission.
+ * Returns `true` for SUPER_ADMIN and for team members whose current role
+ * (default + overrides) grants the permission.
+ *
+ * ```tsx
+ * const canConvert = usePdPermission("pd_lead.convert");
+ * ```
+ */
+export function usePdPermission(
+  perm: `pd_${string}` extends PermissionString
+    ? PermissionString
+    : PermissionString,
+): boolean {
+  const { has } = usePermissions();
+  return has(perm);
 }

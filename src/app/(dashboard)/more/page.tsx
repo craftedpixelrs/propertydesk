@@ -15,6 +15,9 @@ export default async function MorePage() {
         organizationType={ctx.activeOrganization?.type ?? null}
         permissions={ctx.permissions}
         isSuperAdmin={ctx.isSuperAdmin}
+        hasPropertyDeskAccess={
+          ctx.isSuperAdmin || Boolean(ctx.propertyDeskTeam?.enabled)
+        }
       />
     </div>
   );
