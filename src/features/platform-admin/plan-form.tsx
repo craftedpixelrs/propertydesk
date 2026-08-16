@@ -267,5 +267,3 @@ export function PlanForm({ mode, planId, initialValues }: PlanFormProps) {
     </Card>
   );
 }
-
-}
