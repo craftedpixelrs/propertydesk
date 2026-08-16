@@ -80,7 +80,7 @@ src/
     pdf/               Shared PDF layout + document renderers
     rate-limit/        In-memory limiter + enforce helper
     services/          Domain services (transactional business logic)
-    storage/           StorageProvider (local / S3)
+    storage/           StorageProvider (local / S3; 45-day purge after soft-delete)
 prisma/                Schema + migrations + seed
 docs/                  Operator + developer documentation (this folder)
 e2e/                   Playwright tests

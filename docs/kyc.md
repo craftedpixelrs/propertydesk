@@ -89,12 +89,15 @@ KYC uploads use `DocumentCategory.KYC` and are:
 
 ## Retention
 
-Per the platform's data-retention policy KYC documents are kept for
-**5 years** after the last sale involving the buyer. Automated
-purging is not yet implemented — track the follow-up ticket in
-`docs/product/roadmap.md`. When implementing it, walk
-`Document WHERE category = 'KYC'` joined against `Buyer` +
-`sale.updatedAt`.
+Per the platform's data-retention policy KYC documents that remain in
+the app are kept for **5 years** after the last sale involving the
+buyer. Automated age-based KYC purging is not yet implemented — track
+the follow-up ticket in `docs/product/roadmap.md`.
+
+If an operator **deletes** a KYC file in the app, it follows the same
+storage rule as every other document: the row is soft-deleted
+immediately and the object is removed from S3/local 45 days later by
+`purge-deleted-documents`.
 
 ## Testing
 

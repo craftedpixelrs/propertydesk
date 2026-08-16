@@ -64,6 +64,8 @@ Every one must exit 0.
       cron secret → 200.
 - [ ] Trigger `POST /api/v1/jobs/backup-verify` with the cron secret
       → 200. `/administracija/monitoring` should show a fresh row.
+- [ ] Trigger `POST /api/v1/jobs/purge-deleted-documents` with the
+      cron secret → 200 (idempotent when nothing is 45 days old).
 - [ ] Recent audit log rows appear in `/administracija/audit-log`.
 - [ ] Send a test email (invite a fake member to a demo org) — arrives
       via the configured provider.

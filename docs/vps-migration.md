@@ -77,7 +77,7 @@ aws s3 sync s3://propertydesk-prod ./storage
 Set `STORAGE_PROVIDER=local` and `STORAGE_LOCAL_DIR=/app/storage` in
 `.env`. The compose file already binds a persistent volume.
 
-If you keep S3, just update the `S3_*` vars.
+If you keep S3, just update the `STORAGE_*` vars.
 
 ## 5. Start the app
 

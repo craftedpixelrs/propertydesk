@@ -268,6 +268,8 @@ export async function softDeleteDocument(input: {
     },
   });
   if (!existing) throw DomainErrors.notFound("Dokument");
+  // Soft-delete only. The object stays in S3/local for
+  // DOCUMENT_STORAGE_RETENTION_DAYS; `purge-deleted-documents` removes it.
   const updated = await prisma.document.update({
     where: { id: existing.id },
     data: { deletedAt: new Date() },

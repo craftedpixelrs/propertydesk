@@ -170,6 +170,7 @@ Guarded by `x-cron-secret` matching `CRON_SECRET`:
 - `POST /jobs/due-soon-notifications`
 - `POST /jobs/trial-expiration-notifications`
 - `POST /jobs/backup-verify`
+- `POST /jobs/purge-deleted-documents`
 
 ### Health
 

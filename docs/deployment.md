@@ -53,7 +53,7 @@ The critical vars (see [`src/lib/env.ts`](../src/lib/env.ts)):
 | `BETTER_AUTH_URL` | Fully-qualified HTTPS origin. |
 | `NEXT_PUBLIC_APP_URL` | Same as above, exposed to the browser. |
 | `EMAIL_PROVIDER` | `smtp` in prod. Set `SMTP_*` correctly. |
-| `STORAGE_PROVIDER` | `s3` in prod. Set `S3_*`. |
+| `STORAGE_PROVIDER` | `s3` in prod. Set `STORAGE_BUCKET`, `STORAGE_REGION`, `STORAGE_ACCESS_KEY`, `STORAGE_SECRET_KEY`. Leave `STORAGE_ENDPOINT` empty for AWS S3. |
 | `CRON_SECRET` | ≥ 32 chars, injected into every cron platform. |
 | `SENTRY_DSN` | Optional. Enables monitoring facade forwarding. |
 | `IMPERSONATION_SECRET` | ≥ 32 chars. Guards platform admin impersonation. |

@@ -123,7 +123,10 @@ Verzija: **v1** · Datum lansiranja: **01.09.2026.**
 - Vidljivost: `INTERNAL` / `AGENCY` — agencijski dokument mora imati
   i `AGENCY` visibility **i** projekat na koji agencija ima pristup.
 - MIME allowlist: PDF, JPEG, PNG, DOCX, XLSX. Max 20 MB.
-- Signed URL download (5 min lifetime).
+- Signed URL download (5 min lifetime). S3 download ruta radi
+  302 na signed URL (galerija / `<a href>`).
+- Brisanje u UI-ju je soft-delete: red nestaje iz app-a, fajl ostaje
+  u bucketu 45 dana, pa ga `purge-deleted-documents` obriše.
 - **Sale document upload** — investorska i kupčeva strana
   dokumentacije za ugovor (Faza 7).
 - **Floor plan upload** — direktno iz forme za sprat, PNG/JPG.
@@ -215,6 +218,8 @@ Verzija: **v1** · Datum lansiranja: **01.09.2026.**
 - `due-soon-notifications` (dnevno 07:00)
 - `trial-expiration-notifications` (dnevno 06:30)
 - `backup-verify` (nedeljno pon 03:00, Faza 8)
+- `purge-deleted-documents` (dnevno 04:00) — objekat sa S3/local se
+  briše 45 dana nakon soft-delete-a u aplikaciji
 - 7 billing cron-ova (invoice generation, sending, reminders,
   overdue transitions, subscription extension, SEF sync, payment
   matching).
@@ -262,6 +267,8 @@ Verzija: **v1** · Datum lansiranja: **01.09.2026.**
   produkcijski gateway pripremljen.
 - **S3-kompatibilan storage** — StorageProvider abstraction
   (Local disk / AWS S3 / Cloudflare R2 / MinIO / Wasabi).
+  Brisanje u app-u je soft-delete; objekat ostaje u bucketu 45 dana,
+  zatim ga cron `purge-deleted-documents` ukloni.
 - **Email provideri** — konzola (dev), SMTP, Resend.
 - **Sentry** — error + performance monitoring.
 

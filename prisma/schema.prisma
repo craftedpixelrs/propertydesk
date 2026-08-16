@@ -1913,12 +1913,17 @@ model Document {
   expiresAt        DateTime?
   createdAt        DateTime           @default(now())
   deletedAt        DateTime?
+  /// Set by `purge-deleted-documents` after the object is removed from
+  /// storage (45 days after `deletedAt`). Null means the file is still
+  /// in the bucket / local dir.
+  storagePurgedAt  DateTime?
 
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   uploadedByUser User         @relation("DocumentUploader", fields: [uploadedByUserId], references: [id], onDelete: Restrict)
 
   @@index([organizationId, category])
   @@index([entityType, entityId])
+  @@index([deletedAt, storagePurgedAt])
   @@map("document")
 }
 

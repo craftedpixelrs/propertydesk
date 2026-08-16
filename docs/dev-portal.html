@@ -1829,6 +1829,15 @@ deploy/                  <span class="c"># git-deploy.ps1, provision…</span></
             CSV, plain text. Max veličina: <code>MAX_UPLOAD_BYTES</code> = 20 MB.
             <code>assertAllowedMimeType()</code> pre svakog <code>put()</code>.
           </p>
+
+          <h3>Brisanje i retencija</h3>
+          <p>
+            Delete u aplikaciji je soft-delete (<code>document.deletedAt</code>) —
+            objekat ostaje u bucketu. Cron
+            <code>POST /api/v1/jobs/purge-deleted-documents</code> (dnevno 04:00)
+            briše objekte starije od <strong>45 dana</strong> i postavlja
+            <code>storagePurgedAt</code>.
+          </p>
         </section>
 
         <section id="i18n-money">
@@ -3002,6 +3011,7 @@ pwsh ./deploy/git-deploy.ps1
                 <tr><td><code>due-soon-notifications</code></td><td><code>30 6 * * *</code></td><td>Uskoro dospele rate + zaštite</td></tr>
                 <tr><td><code>trial-expiration-notifications</code></td><td><code>0 7 * * *</code></td><td>Trial ističe</td></tr>
                 <tr><td><code>backup-verify</code></td><td><code>30 4 * * 0</code></td><td>Nedeljna provera backupa</td></tr>
+                <tr><td><code>purge-deleted-documents</code></td><td><code>0 4 * * *</code></td><td>S3/local objekti 45 dana posle soft-delete-a</td></tr>
                 <tr><td><code>billing-generate-invoices</code></td><td><code>0 9 * * *</code></td><td>SaaS fakture</td></tr>
                 <tr><td><code>billing-send-invoices</code></td><td><code>15 * * * *</code></td><td>Slanje ISSUED</td></tr>
                 <tr><td><code>billing-send-reminders</code></td><td><code>30 9 * * *</code></td><td>Reminderi</td></tr>

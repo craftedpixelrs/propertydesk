@@ -618,7 +618,10 @@ Filter dokumenata je po vezi (npr. "svi dokumenti za projekat X").
 ### 10.4. Sigurnost
 
 - Fajlovi se skladište u S3/local (podešeno preko `STORAGE_PROVIDER`)
-- Pristup preko **signed URL-a** koji ističe za 15 minuta
+- Pristup preko **signed URL-a** (download ruta streamuje lokalno ili
+  302 na S3 URL koji ističe za ~5 minuta)
+- Brisanje u app-u je soft-delete: fajl ostaje u bucketu **45 dana**,
+  zatim ga cron `purge-deleted-documents` (04:00) obriše
 - RBAC gate: samo osobe sa `document.read` dozvolom nad tim entitetom vide fajl
 
 ### 10.5. Foto-galerije

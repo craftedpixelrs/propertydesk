@@ -21,3 +21,8 @@ and either streams it (local storage) or 302-redirects to a signed URL
 
 Authoritative service: `src/server/services/documents.service.ts`. All
 mutations are tenant-scoped, RBAC-gated, and audited.
+
+Delete is soft (`deletedAt`). The file stays in S3/local for 45 days;
+`POST /api/v1/jobs/purge-deleted-documents` then calls
+`StorageProvider.delete` and sets `storagePurgedAt`. See
+`src/server/services/documents-purge.service.ts`.

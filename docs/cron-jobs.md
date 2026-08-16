@@ -25,6 +25,7 @@ Contract:
 | `POST /api/v1/jobs/due-soon-notifications` | Daily 07:00 | Emails + in-app notifications for installments due in the next 7 days. |
 | `POST /api/v1/jobs/trial-expiration-notifications` | Daily 06:30 | Notifies organization owners about upcoming trial expirations (14/7/3/1 days ahead). |
 | `POST /api/v1/jobs/backup-verify` | Weekly Mon 03:00 | Faza 8.3 C4. Downloads the latest `pg_dump` from configured storage, runs `pg_restore --list` to validate integrity, writes a `SystemHealthCheck` row, and emails `BACKUP_ALERT_EMAILS` when the two most recent runs are `FAIL`. See [`docs/monitoring.md`](./monitoring.md#backup-verifier). |
+| `POST /api/v1/jobs/purge-deleted-documents` | Daily 04:00 | Deletes S3/local objects for documents soft-deleted in the app more than 45 days ago, then sets `Document.storagePurgedAt`. |
 
 ## Example crontab
 
@@ -36,6 +37,7 @@ Contract:
 30   6 * * *  curl -fsS -X POST -H "x-cron-secret: $CRON_SECRET" https://app.propertydesk.app/api/v1/jobs/trial-expiration-notifications >/dev/null
 0    * * * *  curl -fsS -X POST -H "x-cron-secret: $CRON_SECRET" https://app.propertydesk.app/api/v1/jobs/expire-buyer-protection >/dev/null
 0    3 * * 1  curl -fsS -X POST -H "x-cron-secret: $CRON_SECRET" https://app.propertydesk.app/api/v1/jobs/backup-verify >/dev/null
+0    4 * * *  curl -fsS -X POST -H "x-cron-secret: $CRON_SECRET" https://app.propertydesk.app/api/v1/jobs/purge-deleted-documents >/dev/null
 ```
 
 Kubernetes `CronJob` example:

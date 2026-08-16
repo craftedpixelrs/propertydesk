@@ -61,7 +61,7 @@ Required secrets (see [`docs/deployment.md`](./deployment.md#env-vars-in-product
 - `BETTER_AUTH_SECRET` (≥ 32 chars)
 - `IMPERSONATION_SECRET` (≥ 32 chars)
 - `CRON_SECRET` (≥ 32 chars) — injected as `x-cron-secret` header.
-- `S3_*` when `STORAGE_PROVIDER=s3`.
+- `STORAGE_ACCESS_KEY` / `STORAGE_SECRET_KEY` when `STORAGE_PROVIDER=s3`.
 
 Never commit secrets. `.env.example` documents the *shape*, not values.
 
@@ -81,13 +81,20 @@ end are logged into the immutable audit log with the source admin id
 ## Storage
 
 Uploaded documents are stored via `StorageProvider`. The local provider
-writes to `./storage/`. In production use S3 with a private bucket:
+writes to `./storage/`. In production use S3 with a private bucket
+(`STORAGE_PROVIDER=s3`, `STORAGE_BUCKET`, `STORAGE_REGION=eu-central-1`,
+`STORAGE_ACCESS_KEY` / `STORAGE_SECRET_KEY`; leave `STORAGE_ENDPOINT`
+empty for real AWS S3):
 
 - Bucket policy denies `s3:GetObject` for anyone but the app's IAM role.
-- Reads always go through the service-level signed URL emitter,
-  authenticated + tenant-scoped.
+- Reads go through `/api/v1/documents/:id/download`: local storage
+  streams bytes; S3 302-redirects to a short-lived signed URL.
 - MIME + size validation runs before the upload, then again by the
   provider on write.
+- Delete in the app is **soft** (`document.deletedAt`). The object
+  stays in the bucket. Cron `POST /api/v1/jobs/purge-deleted-documents`
+  (daily 04:00) removes objects whose `deletedAt` is older than 45 days
+  and sets `storagePurgedAt`.
 
 ## Email
 

@@ -121,6 +121,7 @@ export type AuditAction =
   // Documents
   | "document.uploaded"
   | "document.deleted"
+  | "document.storage_purged"
   // Comments
   | "comment.created"
   | "comment.deleted"

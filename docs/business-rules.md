@@ -170,7 +170,12 @@
 ## Documents
 
 - Uploaded files are streamed to the configured storage provider.
-  Downloads return signed URLs whose lifetime is capped at 5 minutes.
+  Downloads return signed URLs whose lifetime is capped at 5 minutes
+  (`/api/v1/documents/:id/download` streams locally or 302-redirects
+  to S3).
+- App delete is a soft-delete (`deletedAt`). The object remains in
+  the bucket for 45 days; `POST /api/v1/jobs/purge-deleted-documents`
+  then removes it and sets `storagePurgedAt`.
 - MIME allowlist covers PDF, JPEG, PNG, DOCX, XLSX.
 - Category × visibility matrix: an agency-visible document must have
   `visibility=AGENCY` **and** the agency must have project access.

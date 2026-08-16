@@ -9,6 +9,7 @@ import {
 } from "@/server/services/sales/installments-jobs";
 import { notifyTrialsExpiring } from "@/server/services/subscriptions/jobs";
 import { runBackupVerify } from "@/server/services/monitoring/backup-verify.service";
+import { purgeExpiredDeletedDocuments } from "@/server/services/documents-purge.service";
 // Side-effect import: registers all billing cron jobs into the shared registry.
 import "@/server/services/billing/jobs/definitions";
 
@@ -119,6 +120,19 @@ ensure("backup-verify", () =>
           fileSize: outcome.fileSize,
         },
       };
+    },
+  }),
+);
+
+ensure("purge-deleted-documents", () =>
+  registerJob({
+    name: "purge-deleted-documents",
+    description:
+      "Briše sa storage-a (S3/local) objekte dokumenata koji su u aplikaciji obrisani pre 45 dana.",
+    suggestedCron: "0 4 * * *",
+    run: async () => {
+      const { processed, errors } = await purgeExpiredDeletedDocuments();
+      return { processed, updated: processed, errors };
     },
   }),
 );
