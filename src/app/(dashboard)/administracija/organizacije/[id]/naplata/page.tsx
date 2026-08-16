@@ -91,7 +91,14 @@ export default async function OrgBillingTabPage({
   return (
     <section className="space-y-6">
       <header>
-        <h2 className="text-lg font-semibold">{t("admin.orgBilling.title", { name: org.name })}</h2>
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h2 className="text-lg font-semibold">{t("admin.orgBilling.title", { name: org.name })}</h2>
+          <Button asChild size="sm" variant="outline">
+            <Link href={`/administracija/organizacije/${id}`}>
+              {t("admin.orgsPage.edit")}
+            </Link>
+          </Button>
+        </div>
         <p className="text-sm text-[var(--color-foreground-muted)]">
           {t("admin.orgBilling.orgStatus")}{" "}
           <Badge tone={org.profile?.status === "ACTIVE" ? "success" : "warning"}>

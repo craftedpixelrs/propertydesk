@@ -27,7 +27,7 @@ const createSchema = z.object({
   email: z.string().email().max(120).optional().nullable(),
   website: z.string().url().optional().nullable(),
   planCode: z.string().min(1).max(60),
-  status: z.enum(["TRIAL", "ACTIVE", "SUSPENDED", "CLOSED"]).optional(),
+  status: z.enum(["TRIAL", "ACTIVE", "RESTRICTED", "SUSPENDED", "CLOSED"]).optional(),
   trialDays: z.number().int().min(0).max(365).optional().nullable(),
 });
 

@@ -12,6 +12,10 @@ import {
   isPermittedWithOverrides,
   loadOverridesMap,
 } from "@/server/services/permissions/role-overrides.service";
+import {
+  filterPermissionsForRestrictedMode,
+  getRestrictedModeAllowlist,
+} from "@/server/permissions/restricted-mode";
 
 /**
  * Shape used by server components (layouts, pages) to render nav/menu items
@@ -120,11 +124,15 @@ export async function loadUserContext(): Promise<UserContext | null> {
   ]);
   const locale = parseLocale(userRow?.locale) ?? DEFAULT_LOCALE;
 
-  const permissions = await computePermissions(
+  let permissions = await computePermissions(
     activeOrg?.organizationRole ?? null,
     superAdmin,
     pdTeam?.enabled ? pdTeam.teamRole : null,
   );
+  if (!superAdmin && activeOrg?.organizationStatus === "RESTRICTED") {
+    const allowlist = await getRestrictedModeAllowlist();
+    permissions = filterPermissionsForRestrictedMode(permissions, allowlist);
+  }
 
   return {
     user: {

@@ -34,6 +34,17 @@
 
 Terminal branches:  CANCELED (owner-initiated) | EXPIRED (trial ended, never activated)
 Manual reactivate:  any → ACTIVE (requires reason, audited)
+
+`expire-subscriptions` (and the first step of `trial-expiration-notifications`)
+persists those terminal states:
+
+- `TRIAL` + `trialEndsAt` in the past → subscription `EXPIRED`, org `RESTRICTED`
+- `ACTIVE` / `PAYMENT_DUE` / `PAST_DUE` + `currentPeriodEnd` or `endsAt` in the
+  past → subscription `RESTRICTED`, org `RESTRICTED`
+
+Access is also enforced on the next login even if the cron has not run yet
+(`getActiveOrganization` calls `syncExpiredAccess`). A RESTRICTED org can
+only see the lock screen + billing; writes are denied by `requirePermission`.
 ```
 
 ## Monotonic advance

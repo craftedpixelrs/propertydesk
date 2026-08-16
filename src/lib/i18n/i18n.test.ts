@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { parseLocale, t } from "./index";
+import { localeFromCookieString, localeFromRequest, parseLocale, t } from "./index";
 
 describe("t()", () => {
   it("returns a Serbian Latin string for known keys", () => {
@@ -54,5 +54,32 @@ describe("parseLocale()", () => {
     expect(parseLocale(null)).toBeNull();
     expect(parseLocale("")).toBeNull();
     expect(parseLocale("de")).toBeNull();
+  });
+});
+
+describe("localeFromCookieString()", () => {
+  it("reads pd_locale from a cookie header", () => {
+    expect(localeFromCookieString("pd_locale=en; Path=/")).toBe("en");
+    expect(localeFromCookieString("other=1; pd_locale=sr-Latn")).toBe("sr-Latn");
+    expect(localeFromCookieString("session=abc")).toBeNull();
+  });
+});
+
+describe("localeFromRequest()", () => {
+  function req(headers: Record<string, string>, cookie?: string) {
+    return {
+      headers: { get: (name: string) => headers[name.toLowerCase()] ?? null },
+      cookies: { get: (name: string) => (name === "pd_locale" && cookie ? { value: cookie } : undefined) },
+    };
+  }
+
+  it("prefers x-pd-locale over cookie", () => {
+    expect(localeFromRequest(req({ "x-pd-locale": "en" }, "sr-Latn"))).toBe("en");
+  });
+
+  it("falls back to cookie then Accept-Language", () => {
+    expect(localeFromRequest(req({}, "en"))).toBe("en");
+    expect(localeFromRequest(req({ "accept-language": "en-US,en;q=0.9" }))).toBe("en");
+    expect(localeFromRequest(req({}))).toBe("sr-Latn");
   });
 });

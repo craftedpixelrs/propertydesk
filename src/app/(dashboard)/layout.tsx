@@ -13,6 +13,7 @@ import { ImpersonationBanner } from "@/components/app/impersonation-banner";
 import { UserContextProvider } from "@/components/app/user-context";
 import { OrganizationSetupWait } from "@/features/settings/organization-setup-wait";
 import { OrganizationProfileForm } from "@/features/settings/organization-profile-form";
+import { RestrictedAccessPanel } from "@/features/settings/restricted-access-panel";
 
 export default async function DashboardLayout({ children }: { children: ReactNode }) {
   const ctx = await loadUserContext();
@@ -24,7 +25,15 @@ export default async function DashboardLayout({ children }: { children: ReactNod
   let lockNav = false;
   let gatedChildren: ReactNode = children;
 
-  if (!ctx.isSuperAdmin && ctx.activeOrganization?.type === "INVESTOR") {
+  if (
+    !ctx.isSuperAdmin &&
+    ctx.activeOrganization?.status === "RESTRICTED"
+  ) {
+    lockNav = true;
+    gatedChildren = (
+      <RestrictedAccessPanel organizationId={ctx.activeOrganization.id} />
+    );
+  } else if (!ctx.isSuperAdmin && ctx.activeOrganization?.type === "INVESTOR") {
     const setupDone = await isInvestorOrgSetupComplete(ctx.activeOrganization.id);
     if (!setupDone) {
       lockNav = true;

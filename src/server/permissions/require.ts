@@ -6,7 +6,6 @@ import {
   type ActiveOrganizationContext,
   type AppSession,
 } from "@/server/auth/session";
-import { prisma } from "@/server/db/prisma";
 import {
   organizationRoles,
   type OrganizationRole,
@@ -14,6 +13,7 @@ import {
 import { type PermissionString } from "@/server/permissions/access-control";
 import { checkPermissionForRole } from "@/server/services/permissions/role-overrides.service";
 import { isInvestorOrgSetupComplete } from "@/server/services/organization-admin.service";
+import { getRestrictedModeAllowlist } from "@/server/permissions/restricted-mode";
 
 /**
  * Deny-by-default authorization primitives.
@@ -114,53 +114,6 @@ export async function requirePermission(
   }
 
   return { session, organization: org, isSuperAdmin: false };
-}
-
-/**
- * Default allowlist of permissions still allowed in RESTRICTED mode when
- * the org has no explicit GlobalBillingSettings row. Kept broad enough that
- * tenants can pay their invoice, sign out, and read their own subscription.
- */
-const DEFAULT_RESTRICTED_ALLOWLIST: PermissionString[] = [
-  "organization.read",
-  "billing.read",
-  "billing.subscription.read",
-  "billing.invoice.read",
-  "billing.payment.read",
-  "document.read",
-];
-
-let restrictedCache: { at: number; set: Set<string> } | null = null;
-const RESTRICTED_CACHE_MS = 30_000;
-
-async function getRestrictedModeAllowlist(): Promise<Set<string>> {
-  const now = Date.now();
-  if (restrictedCache && now - restrictedCache.at < RESTRICTED_CACHE_MS) {
-    return restrictedCache.set;
-  }
-  let list: string[] = DEFAULT_RESTRICTED_ALLOWLIST.slice();
-  try {
-    const gbs = await prisma.globalBillingSettings.findFirst({
-      where: { active: true },
-      select: { restrictedModeAllowedPermissions: true },
-    });
-    if (gbs && Array.isArray(gbs.restrictedModeAllowedPermissions)) {
-      const parsed = gbs.restrictedModeAllowedPermissions as unknown[];
-      const stringPerms = parsed
-        .filter((v): v is string => typeof v === "string" && v.length > 0);
-      if (stringPerms.length > 0) list = stringPerms;
-    }
-  } catch {
-    // Fall through to defaults if the settings table doesn't exist yet
-    // (e.g. during migrations) so admins can still recover.
-  }
-  const set = new Set<string>(list);
-  restrictedCache = { at: now, set };
-  return set;
-}
-
-export function clearRestrictedAllowlistCache(): void {
-  restrictedCache = null;
 }
 
 /**

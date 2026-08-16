@@ -56,7 +56,18 @@ export default async function SubscriptionPage() {
               </p>
             </div>
             {subscription ? (
-              <Badge tone={subscription.status === "TRIAL" ? "info" : "success"}>
+              <Badge
+                tone={
+                  subscription.status === "TRIAL"
+                    ? "info"
+                    : subscription.status === "EXPIRED" ||
+                        subscription.status === "RESTRICTED" ||
+                        subscription.status === "SUSPENDED" ||
+                        subscription.status === "CANCELED"
+                      ? "danger"
+                      : "success"
+                }
+              >
                 {subscriptionStatusLabel(subscription.status)}
               </Badge>
             ) : null}

@@ -172,6 +172,10 @@ export const en: Dictionary = {
       "The owner needs to complete company details (tax ID, registration number, address, contact and website). The app stays locked until then. Ask the owner to finish setup.",
     requiredHint: "All fields are required for developer organizations.",
     savedAndReady: "Profile saved. You can use the app now.",
+    restrictedTitle: "Access is restricted",
+    restrictedBody:
+      "The trial or subscription has expired. The app is locked until an administrator activates a plan. You can view the subscription and contact support.",
+    restrictedCta: "Open subscription",
   },
 
   validation: {
@@ -185,6 +189,15 @@ export const en: Dictionary = {
     tooShort: "Value is too short.",
     tooLong: "Value is too long.",
     invalidUrl: "Enter a valid web address.",
+    minLength: "Enter at least {{min}} characters.",
+    maxLength: "Enter at most {{max}} characters.",
+    exactLength: "Enter exactly {{n}} characters.",
+    minNumber: "Number must be at least {{min}}.",
+    maxNumber: "Number must be at most {{max}}.",
+    minItems: "Select at least {{min}} items.",
+    invalidOption: "Choose one of the available options.",
+    invalidValue: "The entered value is not valid.",
+    invalidSearch: "Search parameters are not valid.",
   },
 
   errors: {
@@ -219,6 +232,7 @@ export const en: Dictionary = {
   status: {
     trial: "Trial",
     active: "Active",
+    restricted: "Restricted",
     suspended: "Suspended",
     closed: "Closed",
     pastDue: "Past due",

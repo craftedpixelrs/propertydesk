@@ -7,6 +7,7 @@ import { fail, ok, type SuccessMeta } from "@/lib/api/response";
 import { flattenZodIssues, parseListQuery, type ListQuery } from "@/lib/api/query";
 import { AuthError } from "@/server/auth/session";
 import { DomainError } from "@/lib/errors";
+import { localeFromRequest, t, type Locale } from "@/lib/i18n";
 
 /**
  * Wrapper around a Next.js Route Handler that:
@@ -14,7 +15,7 @@ import { DomainError } from "@/lib/errors";
  *   2. Optionally validates the request body against a Zod schema.
  *   3. Standardises success responses (`{ data, meta }`).
  *   4. Converts thrown `ApiError` / `AuthError` / `DomainError` / `ZodError`
- *      into the error envelope with a Serbian message and appropriate HTTP
+ *      into the error envelope with a localized message and appropriate HTTP
  *      status.
  *   5. Logs unexpected errors before returning a generic 500 to the client.
  */
@@ -46,10 +47,11 @@ export function apiHandler<TBody = unknown, TParams = Record<string, string>>(
     routeArgs: { params: Promise<TParams> } | { params: TParams } | undefined,
   ): Promise<Response> => {
     const requestId = req.headers.get("x-request-id") ?? randomUUID();
+    const locale = localeFromRequest(req);
 
     try {
       const searchParams = req.nextUrl.searchParams;
-      const query = parseListQuery(searchParams);
+      const query = parseListQuery(searchParams, locale);
 
       const rawParams = routeArgs
         ? await Promise.resolve((routeArgs as { params: Promise<TParams> | TParams }).params)
@@ -91,7 +93,7 @@ export function apiHandler<TBody = unknown, TParams = Record<string, string>>(
       response.headers.set("x-request-id", requestId);
       return response;
     } catch (err) {
-      const apiErr = toApiError(err);
+      const apiErr = toApiError(err, locale);
       if (apiErr.statusCode >= 500) {
         console.error(`[api] ${req.method} ${req.nextUrl.pathname} [${requestId}]`, err);
         // Fire-and-forget forward to monitoring facade (Sentry when
@@ -111,11 +113,11 @@ export function apiHandler<TBody = unknown, TParams = Record<string, string>>(
   };
 }
 
-function toApiError(err: unknown): ApiError {
+function toApiError(err: unknown, locale: Locale): ApiError {
   if (err instanceof ApiError) return err;
   if (err instanceof ZodError) {
-    return new ApiError("VALIDATION_ERROR", "Podaci nisu ispravni.", {
-      fieldErrors: flattenZodIssues(err.issues),
+    return new ApiError("VALIDATION_ERROR", t("errors.validation", undefined, locale), {
+      fieldErrors: flattenZodIssues(err.issues, locale),
     });
   }
   if (err instanceof AuthError) {
@@ -156,7 +158,7 @@ function toApiError(err: unknown): ApiError {
     });
   }
   console.error("[api] Unexpected error", err);
-  return new ApiError("INTERNAL_ERROR", "Došlo je do neočekivane greške.");
+  return new ApiError("INTERNAL_ERROR", t("errors.unexpected", undefined, locale));
 }
 
 /**

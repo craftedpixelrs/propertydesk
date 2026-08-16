@@ -2,6 +2,10 @@ import { headers } from "next/headers";
 import { auth } from "@/server/auth/auth";
 import { prisma } from "@/server/db/prisma";
 import type { OrganizationRole, PlatformRole } from "@/server/permissions/roles";
+import {
+  expiryReasonForSubscription,
+  syncExpiredAccess,
+} from "@/server/services/subscriptions/expire.service";
 
 /**
  * Session utilities used by the API layer and server components.
@@ -107,7 +111,17 @@ export async function getActiveOrganization(
     },
     include: {
       organization: {
-        include: { profile: true },
+        include: {
+          profile: true,
+          subscription: {
+            select: {
+              status: true,
+              trialEndsAt: true,
+              endsAt: true,
+              currentPeriodEnd: true,
+            },
+          },
+        },
       },
     },
   });
@@ -119,9 +133,18 @@ export async function getActiveOrganization(
     );
   }
 
-  const status = (membership.organization.profile?.status ?? null) as
+  let status = (membership.organization.profile?.status ?? null) as
     | OrganizationStatusValue
     | null;
+
+  const sub = membership.organization.subscription;
+  if (sub && expiryReasonForSubscription(sub, new Date())) {
+    const synced = await syncExpiredAccess(membership.organizationId).catch(
+      () => "RESTRICTED" as const,
+    );
+    status = synced ?? "RESTRICTED";
+  }
+
   if (status === "SUSPENDED" || status === "CLOSED") {
     throw new AuthError(
       "ORGANIZATION_SUSPENDED",

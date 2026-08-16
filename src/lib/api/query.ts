@@ -1,5 +1,7 @@
 import { z } from "zod";
 import { ApiError } from "@/lib/api/errors";
+import { messageForZodIssue, type ZodIssueLike } from "@/lib/api/zod-messages";
+import { DEFAULT_LOCALE, t, type Locale } from "@/lib/i18n";
 
 /**
  * Standard collection-query parameters supported by every list endpoint.
@@ -26,7 +28,10 @@ export const listQuerySchema = z.object({
   sort: z.string().trim().max(100).optional(),
 });
 
-export function parseListQuery(searchParams: URLSearchParams): ListQuery {
+export function parseListQuery(
+  searchParams: URLSearchParams,
+  locale: Locale = DEFAULT_LOCALE,
+): ListQuery {
   const parsed = listQuerySchema.safeParse({
     page: searchParams.get("page") ?? undefined,
     pageSize: searchParams.get("pageSize") ?? undefined,
@@ -35,8 +40,8 @@ export function parseListQuery(searchParams: URLSearchParams): ListQuery {
   });
 
   if (!parsed.success) {
-    throw new ApiError("VALIDATION_ERROR", "Neispravni parametri pretrage.", {
-      fieldErrors: flattenZodIssues(parsed.error.issues),
+    throw new ApiError("VALIDATION_ERROR", t("validation.invalidSearch", undefined, locale), {
+      fieldErrors: flattenZodIssues(parsed.error.issues, locale),
     });
   }
 
@@ -64,13 +69,14 @@ export function parseListQuery(searchParams: URLSearchParams): ListQuery {
 }
 
 export function flattenZodIssues(
-  issues: readonly { path: readonly PropertyKey[]; message: string }[],
+  issues: readonly ZodIssueLike[],
+  locale: Locale = DEFAULT_LOCALE,
 ): Record<string, string[]> {
   const out: Record<string, string[]> = {};
   for (const issue of issues) {
     const path = issue.path.map((p) => String(p)).join(".") || "_";
     if (!out[path]) out[path] = [];
-    out[path].push(issue.message);
+    out[path].push(messageForZodIssue(issue, locale));
   }
   return out;
 }

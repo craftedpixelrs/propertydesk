@@ -1,0 +1,1217 @@
+<!DOCTYPE html>
+<html lang="sr-Latn">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>PropertyDesk — SQL ops (app + S3)</title>
+  <meta
+    name="description"
+    content="Operativni SQL vodič za PropertyDesk: tenanti, useri, inventar, CRM, rezervacije, prodaje, agencije, billing, dokumenti i S3."
+  />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap"
+  />
+  <link
+    rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap"
+  />
+  <link rel="stylesheet" href="assets/pd-docs.css" />
+  <style>
+    :root {
+      --topbar-h: 3.5rem;
+      --sidebar-w: 280px;
+      --content-max: 880px;
+    }
+    body {
+      font-optical-sizing: auto;
+      font-feature-settings: "cv02" 1, "cv03" 1, "cv04" 1;
+    }
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      height: var(--topbar-h);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      padding: 0 1.25rem;
+      background: rgba(255, 255, 255, 0.92);
+      backdrop-filter: saturate(180%) blur(10px);
+      border-bottom: 1px solid var(--border);
+    }
+    .topbar-left { display: flex; align-items: center; gap: 0.75rem; min-width: 0; }
+    .brand {
+      display: inline-flex; align-items: center; gap: 0.55rem;
+      font-weight: 700; font-size: 0.95rem; color: var(--fg);
+      text-decoration: none; white-space: nowrap;
+    }
+    .brand:hover { text-decoration: none; color: var(--fg); }
+    .brand small { color: var(--fg-subtle); font-weight: 500; margin-left: 0.15rem; }
+    .menu-toggle {
+      display: none; align-items: center; justify-content: center;
+      width: 2.25rem; height: 2.25rem; background: var(--surface);
+      border: 1px solid var(--border); border-radius: var(--radius-sm);
+      cursor: pointer; color: var(--fg); flex-shrink: 0;
+    }
+    .topbar-actions { display: flex; align-items: center; gap: 0.5rem; flex-shrink: 0; }
+    .topbar-actions a.doc-link,
+    .topbar-actions a.doc-link:link,
+    .topbar-actions a.doc-link:visited {
+      color: var(--fg-muted); text-decoration: none; font-size: 0.85rem;
+      padding: 0.35rem 0.65rem; border-radius: var(--radius-sm); white-space: nowrap;
+    }
+    .topbar-actions a.doc-link:hover { background: var(--surface-inset); color: var(--fg); text-decoration: none; }
+    .search {
+      display: flex; align-items: center; gap: 0.45rem;
+      background: var(--surface-muted); border: 1px solid var(--border);
+      padding: 0.35rem 0.65rem; border-radius: var(--radius-md);
+      color: var(--fg-subtle); font-size: 0.85rem; min-width: 200px; max-width: 280px;
+    }
+    .search:focus-within { border-color: var(--brand-300); box-shadow: 0 0 0 3px var(--brand-50); }
+    .search input { background: transparent; border: 0; outline: 0; color: var(--fg); font: inherit; flex: 1; min-width: 0; }
+    .shell {
+      display: grid; grid-template-columns: var(--sidebar-w) minmax(0, 1fr);
+      align-items: start; min-height: calc(100vh - var(--topbar-h));
+    }
+    .sidebar-backdrop { display: none; position: fixed; inset: var(--topbar-h) 0 0 0; background: rgba(15, 23, 42, 0.35); z-index: 25; }
+    .sidebar-backdrop.open { display: block; }
+    .sidebar {
+      position: sticky; top: var(--topbar-h); height: calc(100vh - var(--topbar-h));
+      width: var(--sidebar-w); overflow-y: auto; padding: 1.15rem 0.85rem 2.5rem 1rem;
+      border-right: 1px solid var(--border); background: var(--surface-muted); z-index: 30;
+    }
+    .sidebar-group { margin-bottom: 0.85rem; }
+    .sidebar-group h4 {
+      font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.08em;
+      color: var(--fg-subtle); margin: 0 0 0.35rem 0.55rem; font-weight: 600;
+    }
+    .sidebar nav a, .sidebar nav a:link, .sidebar nav a:visited {
+      display: block; padding: 0.38rem 0.6rem; font-size: 0.86rem; color: var(--fg-muted);
+      text-decoration: none; border-radius: var(--radius-sm); border-left: 2px solid transparent;
+    }
+    .sidebar nav a:hover { background: var(--surface); color: var(--fg); text-decoration: none; }
+    .sidebar nav a.active, .sidebar nav a.active:visited {
+      background: var(--brand-50); color: var(--brand-700); font-weight: 600; border-left-color: var(--brand-600);
+    }
+    .sidebar nav a.hidden-by-search { display: none; }
+    .sidebar-empty { display: none; font-size: 0.82rem; color: var(--fg-subtle); padding: 0.5rem 0.6rem; }
+    .sidebar-empty.show { display: block; }
+    .main { min-width: 0; padding: 2rem 1.5rem 5rem; }
+    .content { max-width: var(--content-max); margin: 0 auto; }
+    section { margin-bottom: 2.75rem; scroll-margin-top: calc(var(--topbar-h) + 1.25rem); }
+    h1 { font-size: clamp(1.85rem, 3.2vw, 2.45rem); margin: 0 0 0.75rem; }
+    h2 { font-size: 1.45rem; margin: 0 0 0.75rem; padding-bottom: 0.45rem; border-bottom: 1px solid var(--border); }
+    h3 { font-size: 1.08rem; margin: 1.6rem 0 0.5rem; }
+    p { margin: 0 0 0.85rem; }
+    ul, ol { margin: 0 0 0.9rem 1.25rem; }
+    li { margin-bottom: 0.35rem; }
+    .anchor { color: var(--border-strong); text-decoration: none; margin-left: 0.35rem; opacity: 0; }
+    h2:hover .anchor, h3:hover .anchor { opacity: 1; color: var(--brand-600); }
+    .lead { font-size: 1.05rem; color: var(--fg-muted); max-width: 44rem; }
+    .eyebrow {
+      display: inline-flex; align-items: center; gap: 0.45rem; font-size: 0.72rem;
+      font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--brand-600); margin-bottom: 0.65rem;
+    }
+    .eyebrow::before { content: ""; width: 1.5rem; height: 2px; background: var(--brand-600); }
+    .table-wrap {
+      overflow-x: auto; margin: 0.85rem 0 1.15rem; border: 1px solid var(--border);
+      border-radius: var(--radius-md); background: var(--surface);
+    }
+    table { width: 100%; border-collapse: collapse; font-size: 0.88rem; margin: 0; }
+    th, td { text-align: left; padding: 0.6rem 0.75rem; border-bottom: 1px solid var(--border); vertical-align: top; }
+    tr:last-child td { border-bottom: 0; }
+    th {
+      background: var(--surface-muted); font-weight: 600; color: var(--fg);
+      font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em;
+    }
+    td { color: var(--fg-muted); }
+    .query { position: relative; margin: 0.75rem 0 1.15rem; }
+    .query .copy-btn {
+      position: absolute; top: 0.55rem; right: 0.55rem; z-index: 2;
+      border: 1px solid rgba(255,255,255,0.12); background: rgba(15,23,42,0.55);
+      color: #e2e8f0; font: inherit; font-size: 0.72rem; font-weight: 600;
+      padding: 0.28rem 0.55rem; border-radius: 6px; cursor: pointer;
+    }
+    .query .copy-btn:hover { background: rgba(15,23,42,0.8); }
+    .query .copy-btn.ok { color: #86efac; }
+    pre {
+      background: var(--code-bg); color: var(--code-fg); padding: 1rem 1.1rem 1rem 1.1rem;
+      border-radius: var(--radius-md); overflow-x: auto; margin: 0;
+      font-size: 0.8rem; line-height: 1.55; font-family: var(--font-mono);
+    }
+    pre code { background: transparent; color: inherit; padding: 0; }
+    pre .c { color: var(--code-comment); font-style: italic; }
+    .footer-note {
+      display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem;
+      margin-top: 3rem; padding-top: 1.25rem; border-top: 1px solid var(--border);
+      font-size: 0.85rem; color: var(--fg-subtle);
+    }
+    .content a:not(.anchor):not(.brand),
+    .content a:not(.anchor):not(.brand):link { color: var(--brand-600); }
+    @media (max-width: 960px) {
+      .menu-toggle { display: inline-flex; }
+      .shell { grid-template-columns: 1fr; }
+      .sidebar {
+        position: fixed; left: 0; top: var(--topbar-h); transform: translateX(-105%);
+        transition: transform 0.2s ease; width: min(var(--sidebar-w), 86vw);
+      }
+      .sidebar.open { transform: translateX(0); }
+      .topbar-actions a.doc-link.optional-md { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-left">
+      <button class="menu-toggle" id="menuToggle" type="button" aria-expanded="false" aria-controls="sidebar">☰</button>
+      <a class="brand" href="#uvod">
+        <img src="assets/logo.png" alt="PropertyDesk" class="logo" width="32" height="32" />
+        <span>PropertyDesk <small>SQL ops</small></span>
+      </a>
+    </div>
+    <div class="topbar-actions">
+      <label class="search" aria-label="Pretraga">
+        <input id="navSearch" type="search" placeholder="Pretraga sekcija…" autocomplete="off" />
+      </label>
+      <a class="doc-link" href="help-center.html">Help Center</a>
+      <a class="doc-link optional-md" href="dev-portal.html">Dev Portal</a>
+    </div>
+  </header>
+
+  <div class="sidebar-backdrop" id="sidebarBackdrop" hidden></div>
+  <div class="shell">
+    <aside class="sidebar" id="sidebar">
+      <nav id="sidebarNav">
+        <div class="sidebar-group" data-group>
+          <h4>Osnove</h4>
+          <a href="#uvod">Uvod</a>
+          <a href="#kako-pokrenuti">Kako pokrenuti SQL</a>
+          <a href="#q-org-user">Nađi org / user</a>
+        </div>
+        <div class="sidebar-group" data-group>
+          <h4>Aplikacija</h4>
+          <a href="#q-tenanti">Tenanti i članovi</a>
+          <a href="#q-inventar">Projekti i jedinice</a>
+          <a href="#q-crm">Kupci i zadaci</a>
+          <a href="#q-rezervacije">Rezervacije</a>
+          <a href="#q-prodaje">Prodaje i rate</a>
+          <a href="#q-agencije">Agencije</a>
+          <a href="#q-billing">SaaS billing</a>
+          <a href="#q-leads">Marketing leadovi</a>
+          <a href="#q-audit-app">Audit i health</a>
+        </div>
+        <div class="sidebar-group" data-group>
+          <h4>Dokumenti / S3</h4>
+          <a href="#zivotni-ciklus">Životni ciklus fajla</a>
+          <a href="#gde-gledati">Gde gledati</a>
+          <a href="#sema">Šema i ključevi</a>
+          <a href="#q-zivi">Živi dokumenti</a>
+          <a href="#q-ime">Po imenu fajla</a>
+          <a href="#q-s3">Po S3 ključu</a>
+          <a href="#q-korpa">Korpa (još na S3)</a>
+          <a href="#q-istek">Ističe uskoro</a>
+          <a href="#q-purged">Skinuto sa S3</a>
+          <a href="#q-audit">Audit dokumenata</a>
+          <a href="#q-stat">Volumen storage-a</a>
+          <a href="#q-kyc">KYC fajlovi</a>
+          <a href="#povrati">Povrat sa S3</a>
+          <a href="#aws">AWS CLI</a>
+        </div>
+        <p class="sidebar-empty" id="sidebarEmpty">Nema poklapanja.</p>
+      </nav>
+    </aside>
+
+    <main class="main">
+      <div class="content">
+        <section id="uvod">
+          <p class="eyebrow">Ops playbook</p>
+          <h1>SQL ops — cela aplikacija + S3</h1>
+          <p class="lead">
+            Copy-paste upiti za brzi rad: tenanti, useri, inventar, CRM,
+            rezervacije, prodaje, agencije, SaaS billing, leadovi — i posebno
+            dokumenti / S3 (ko je uploadovao, korpa 45 dana, restore).
+          </p>
+          <div class="callout">
+            <strong>S3 i dalje važi:</strong> soft-delete ostavlja fajl 45 dana.
+            Cron <code>purge-deleted-documents</code> (04:00 UTC) ga onda briše.
+            Scroll do sekcije Dokumenti / S3 ili kucaj „korpa“ u pretrazi.
+          </div>
+        </section>
+
+        <section id="zivotni-ciklus">
+          <h2>Životni ciklus <a class="anchor" href="#zivotni-ciklus">#</a></h2>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Stanje</th><th>U app-u</th><th>U bazi</th><th>U S3</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Upload</td>
+                  <td>Vidi se</td>
+                  <td><code>deletedAt</code> prazan</td>
+                  <td>Postoji</td>
+                </tr>
+                <tr>
+                  <td>Obrisano u app-u (0–45 dana)</td>
+                  <td>Nestalo iz UI</td>
+                  <td><code>deletedAt</code> set, <code>storagePurgedAt</code> prazan</td>
+                  <td><strong>Još postoji</strong></td>
+                </tr>
+                <tr>
+                  <td>Posle 45 dana</td>
+                  <td>Nestalo</td>
+                  <td>oba timestampa set</td>
+                  <td>Obrisano</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p>
+            Audit akcije: <code>document.uploaded</code>,
+            <code>document.deleted</code>, <code>document.storage_purged</code>.
+          </p>
+        </section>
+
+        <section id="gde-gledati">
+          <h2>Gde gledati bez SQL-a <a class="anchor" href="#gde-gledati">#</a></h2>
+          <ul>
+            <li><strong>Živi fajlovi + ko je postavio:</strong> <code>/dokumenti</code></li>
+            <li><strong>Ko je uploadovao / obrisao:</strong> <code>/administracija/revizija</code> (super-admin). Filter <code>action=document.uploaded</code> ili <code>document.deleted</code>, <code>entityType=Document</code>.</li>
+            <li><strong>S3 konzola:</strong> bucket <code>propertydesk-prod-docs</code>, region <code>eu-central-1</code>. Search po <code>storageKey</code> iz baze — ne po imenu fajla.</li>
+          </ul>
+        </section>
+
+        <section id="kako-pokrenuti">
+          <h2>Kako pokrenuti SQL <a class="anchor" href="#kako-pokrenuti">#</a></h2>
+          <ol>
+            <li><strong>Supabase</strong> → SQL Editor (produkcija).</li>
+            <li><strong>Lokalno / bilo koji Postgres:</strong> <code>pnpm db:studio</code> ili <code>psql "$DATABASE_URL"</code>.</li>
+          </ol>
+          <div class="callout warn">
+            <strong>Samo SELECT</strong> dok ne znaš tačno šta radiš.
+            <code>"user"</code> mora pod navodnicima — rezervisana reč u Postgresu.
+            Zameni <code>'…'</code> placeholdere pre pokretanja.
+          </div>
+        </section>
+
+        <section id="q-tenanti">
+          <h2>Tenanti i članovi <a class="anchor" href="#q-tenanti">#</a></h2>
+          <h3>Sve organizacije + tip + status + plan</h3>
+          <div class="query">
+            <pre><code>SELECT
+  o.id, o.name, o.slug,
+  p.type, p.status AS profile_status, p.city,
+  s.status AS sub_status, pl.code AS plan,
+  s."trialEndsAt", s."nextBillingDate",
+  o."createdAt"
+FROM organization o
+LEFT JOIN organization_profile p ON p."organizationId" = o.id
+LEFT JOIN organization_subscription s ON s."organizationId" = o.id
+LEFT JOIN saas_plan pl ON pl.id = s."planId"
+ORDER BY o."createdAt" DESC;</code></pre>
+          </div>
+          <h3>Članovi jedne org (role)</h3>
+          <div class="query">
+            <pre><code>SELECT u.name, u.email, m.role, u.role AS platform_role,
+       u."deactivatedAt", u.banned, m."createdAt"
+FROM member m
+JOIN "user" u ON u.id = m."userId"
+WHERE m."organizationId" = 'ORG_ID_OVDE'
+ORDER BY m.role, u.name;</code></pre>
+          </div>
+          <h3>User u koj orgs je</h3>
+          <div class="query">
+            <pre><code>SELECT u.email, o.name AS org, m.role, p.type
+FROM "user" u
+JOIN member m ON m."userId" = u.id
+JOIN organization o ON o.id = m."organizationId"
+LEFT JOIN organization_profile p ON p."organizationId" = o.id
+WHERE u.email ILIKE '%marko%';</code></pre>
+          </div>
+          <h3>Otvorene pozivnice</h3>
+          <div class="query">
+            <pre><code>SELECT i.email, i.role, i.status, i."expiresAt", o.name AS org, inv.name AS inviter
+FROM invitation i
+JOIN organization o ON o.id = i."organizationId"
+JOIN "user" inv ON inv.id = i."inviterId"
+WHERE i.status = 'pending'
+ORDER BY i."expiresAt";</code></pre>
+          </div>
+          <h3>Trial ističe u 14 dana</h3>
+          <div class="query">
+            <pre><code>SELECT o.name, s.status, s."trialEndsAt", pl.code AS plan
+FROM organization_subscription s
+JOIN organization o ON o.id = s."organizationId"
+JOIN saas_plan pl ON pl.id = s."planId"
+WHERE s.status = 'TRIAL'
+  AND s."trialEndsAt" BETWEEN NOW() AND NOW() + INTERVAL '14 days'
+ORDER BY s."trialEndsAt";</code></pre>
+          </div>
+        </section>
+
+        <section id="q-inventar">
+          <h2>Projekti i jedinice <a class="anchor" href="#q-inventar">#</a></h2>
+          <h3>Projekti jedne org</h3>
+          <div class="query">
+            <pre><code>SELECT id, code, name, slug, "projectStatus", city,
+       "isActive", "archivedAt", "publicMicrositeEnabled", "createdAt"
+FROM project
+WHERE "organizationId" = 'ORG_ID_OVDE'
+ORDER BY "createdAt" DESC;</code></pre>
+          </div>
+          <h3>Jedinice po statusu (ceo tenant)</h3>
+          <div class="query">
+            <pre><code>SELECT p.name AS project, u.status, COUNT(*) AS n,
+       ROUND(SUM(u."basePrice"), 2) AS base_sum,
+       ROUND(SUM(COALESCE(u."finalPrice", u."basePrice")), 2) AS final_sum
+FROM unit u
+JOIN project p ON p.id = u."projectId"
+WHERE u."organizationId" = 'ORG_ID_OVDE'
+  AND u."archivedAt" IS NULL
+GROUP BY p.name, u.status
+ORDER BY p.name, u.status;</code></pre>
+          </div>
+          <h3>Nađi jedinicu po šifri</h3>
+          <div class="query">
+            <pre><code>SELECT u.id, p.name AS project, u.code, u.type, u.status,
+       u."totalArea", u."basePrice", u."finalPrice", u.currency
+FROM unit u
+JOIN project p ON p.id = u."projectId"
+WHERE u.code ILIKE '%A1%'
+  AND u."organizationId" = 'ORG_ID_OVDE';</code></pre>
+          </div>
+          <h3>Zgrade / ulazi / spratovi</h3>
+          <div class="query">
+            <pre><code>SELECT p.name AS project, b.code AS building, e.code AS entrance,
+       f.label AS floor, COUNT(u.id) AS units
+FROM project p
+JOIN building b ON b."projectId" = p.id
+LEFT JOIN entrance e ON e."buildingId" = b.id
+LEFT JOIN floor f ON f."entranceId" = e.id
+LEFT JOIN unit u ON u."floorId" = f.id AND u."archivedAt" IS NULL
+WHERE p."organizationId" = 'ORG_ID_OVDE'
+GROUP BY p.name, b.code, e.code, f.label
+ORDER BY p.name, b.code, e.code, f.label;</code></pre>
+          </div>
+          <h3>Dostupne jedinice vidljive agencijama</h3>
+          <div class="query">
+            <pre><code>SELECT p.name, u.code, u.type, u."totalArea", u."basePrice", u.currency
+FROM unit u
+JOIN project p ON p.id = u."projectId"
+WHERE u."organizationId" = 'ORG_ID_OVDE'
+  AND u.status = 'AVAILABLE'
+  AND u."isVisibleToAgencies" = true
+  AND u."archivedAt" IS NULL
+ORDER BY p.name, u.code;</code></pre>
+          </div>
+          <h3>Jedinica SOLD a nema aktivnu prodaju (anomalia)</h3>
+          <div class="query">
+            <pre><code>SELECT u.id, p.name, u.code, u.status
+FROM unit u
+JOIN project p ON p.id = u."projectId"
+WHERE u.status = 'SOLD'
+  AND u."archivedAt" IS NULL
+  AND NOT EXISTS (
+    SELECT 1 FROM sale s
+    WHERE s."unitId" = u.id
+      AND s.status NOT IN ('CANCELED', 'DRAFT')
+  );</code></pre>
+          </div>
+        </section>
+
+        <section id="q-crm">
+          <h2>Kupci i zadaci <a class="anchor" href="#q-crm">#</a></h2>
+          <h3>Kupac po telefonu / emailu / imenu</h3>
+          <div class="query">
+            <pre><code>SELECT b.id, o.name AS org, b."firstName", b."lastName",
+       b.phone, b.email, b.status, b.source,
+       u.name AS assigned_to, b."createdAt"
+FROM buyer b
+JOIN organization o ON o.id = b."organizationId"
+LEFT JOIN "user" u ON u.id = b."assignedUserId"
+WHERE b."archivedAt" IS NULL
+  AND (
+    b."normalizedPhone" LIKE '%3816%'
+    OR b.email ILIKE '%@gmail%'
+    OR b."lastName" ILIKE '%Petrović%'
+  )
+ORDER BY b."createdAt" DESC;</code></pre>
+          </div>
+          <h3>Kupci po statusu</h3>
+          <div class="query">
+            <pre><code>SELECT status, COUNT(*) AS n
+FROM buyer
+WHERE "organizationId" = 'ORG_ID_OVDE'
+  AND "archivedAt" IS NULL
+GROUP BY status
+ORDER BY n DESC;</code></pre>
+          </div>
+          <h3>KYC checklist — ko nije kompletan</h3>
+          <div class="query">
+            <pre><code>SELECT b."firstName", b."lastName", b."entityType",
+       k."idFrontOk", k."idBackOk", k."addressProofOk", k."taxCertOk",
+       k."reviewedAt"
+FROM buyer b
+LEFT JOIN buyer_kyc_checklist k ON k."buyerId" = b.id
+WHERE b."organizationId" = 'ORG_ID_OVDE'
+  AND b."archivedAt" IS NULL
+  AND (
+    k.id IS NULL
+    OR k."idFrontOk" = false
+    OR k."idBackOk" = false
+    OR k."addressProofOk" = false
+    OR (b."entityType" = 'LEGAL' AND k."taxCertOk" = false)
+  )
+ORDER BY b."lastName";</code></pre>
+          </div>
+          <h3>Zadaci — kasne / danas</h3>
+          <div class="query">
+            <pre><code>SELECT t.title, t.status, t.priority, t."dueAt",
+       a.name AS assigned, b."lastName" AS buyer, p.name AS project
+FROM task t
+JOIN "user" a ON a.id = t."assignedUserId"
+LEFT JOIN buyer b ON b.id = t."buyerId"
+LEFT JOIN project p ON p.id = t."projectId"
+WHERE t."organizationId" = 'ORG_ID_OVDE'
+  AND t.status IN ('OPEN', 'IN_PROGRESS')
+  AND t."dueAt" &lt; NOW() + INTERVAL '1 day'
+ORDER BY t."dueAt";</code></pre>
+          </div>
+        </section>
+
+        <section id="q-rezervacije">
+          <h2>Rezervacije <a class="anchor" href="#q-rezervacije">#</a></h2>
+          <h3>Aktivne + ističu</h3>
+          <div class="query">
+            <pre><code>SELECT r.id, r.status, r."expiresAt",
+       p.name AS project, un.code AS unit,
+       b."firstName", b."lastName", r."referralCode"
+FROM reservation r
+JOIN project p ON p.id = r."projectId"
+JOIN unit un ON un.id = r."unitId"
+JOIN buyer b ON b.id = r."buyerId"
+WHERE r."organizationId" = 'ORG_ID_OVDE'
+  AND r.status IN ('REQUESTED', 'APPROVED')
+ORDER BY r."expiresAt" NULLS LAST;</code></pre>
+          </div>
+          <h3>Istekle a unit još HELD (anomalia)</h3>
+          <div class="query">
+            <pre><code>SELECT r.id, r.status, r."expiresAt", un.code, un.status AS unit_status
+FROM reservation r
+JOIN unit un ON un.id = r."unitId"
+WHERE r.status = 'EXPIRED'
+  AND un.status IN ('ON_HOLD', 'RESERVED');</code></pre>
+          </div>
+          <h3>Javni reservation request-ovi</h3>
+          <div class="query">
+            <pre><code>SELECT rr.id, rr.status, rr."expiresAt", rr."referralCode",
+       un.code AS unit, rr."createdAt"
+FROM reservation_request rr
+JOIN unit un ON un.id = rr."unitId"
+WHERE rr."organizationId" = 'ORG_ID_OVDE'
+ORDER BY rr."createdAt" DESC
+LIMIT 50;</code></pre>
+          </div>
+          <h3>Share linkovi (javna ponuda)</h3>
+          <div class="query">
+            <pre><code>SELECT sl.token, sl."entityType", sl."entityId",
+       sl."revokedAt", sl."expiresAt", sl."createdAt"
+FROM share_link sl
+WHERE sl."organizationId" = 'ORG_ID_OVDE'
+  AND sl."revokedAt" IS NULL
+ORDER BY sl."createdAt" DESC;</code></pre>
+          </div>
+        </section>
+
+        <section id="q-prodaje">
+          <h2>Prodaje i rate <a class="anchor" href="#q-prodaje">#</a></h2>
+          <h3>Prodaje + kupac + jedinica</h3>
+          <div class="query">
+            <pre><code>SELECT s.id, s.status, s."finalPrice", s.currency,
+       p.name AS project, un.code AS unit,
+       b."firstName", b."lastName",
+       resp.name AS responsible, s."contractDate"
+FROM sale s
+JOIN project p ON p.id = s."projectId"
+JOIN unit un ON un.id = s."unitId"
+JOIN buyer b ON b.id = s."buyerId"
+JOIN "user" resp ON resp.id = s."responsibleUserId"
+WHERE s."organizationId" = 'ORG_ID_OVDE'
+ORDER BY s."createdAt" DESC;</code></pre>
+          </div>
+          <h3>Pipeline po statusu (novac)</h3>
+          <div class="query">
+            <pre><code>SELECT status, currency, COUNT(*) AS n,
+       ROUND(SUM("finalPrice"), 2) AS total
+FROM sale
+WHERE "organizationId" = 'ORG_ID_OVDE'
+GROUP BY status, currency
+ORDER BY status;</code></pre>
+          </div>
+          <h3>Rate koje kasne</h3>
+          <div class="query">
+            <pre><code>SELECT i.name AS rata, i.status, i."dueDate",
+       i.amount, i."paidAmount",
+       (i.amount - i."paidAmount") AS outstanding,
+       un.code AS unit, b."lastName" AS buyer
+FROM payment_installment i
+JOIN payment_plan pp ON pp.id = i."paymentPlanId"
+JOIN sale s ON s.id = pp."saleId"
+JOIN unit un ON un.id = s."unitId"
+JOIN buyer b ON b.id = s."buyerId"
+WHERE s."organizationId" = 'ORG_ID_OVDE'
+  AND i.status IN ('OVERDUE', 'DUE', 'PARTIALLY_PAID')
+  AND i.amount &gt; i."paidAmount"
+ORDER BY i."dueDate";</code></pre>
+          </div>
+          <h3>Uplate poslednjih 30 dana</h3>
+          <div class="query">
+            <pre><code>SELECT pay."paymentDate", pay.amount, pay.currency, pay."paymentMethod",
+       pay."referenceNumber", un.code AS unit, u.name AS recorded_by
+FROM payment pay
+JOIN sale s ON s.id = pay."saleId"
+JOIN unit un ON un.id = s."unitId"
+JOIN "user" u ON u.id = pay."createdByUserId"
+WHERE pay."organizationId" = 'ORG_ID_OVDE'
+  AND pay."reversedAt" IS NULL
+  AND pay."paymentDate" &gt; NOW() - INTERVAL '30 days'
+ORDER BY pay."paymentDate" DESC;</code></pre>
+          </div>
+          <h3>Prodaja vs naplaćeno</h3>
+          <div class="query">
+            <pre><code>SELECT s.id, un.code, s."finalPrice", s.currency,
+       COALESCE(SUM(pay.amount) FILTER (WHERE pay."reversedAt" IS NULL), 0) AS paid,
+       s."finalPrice" - COALESCE(SUM(pay.amount) FILTER (WHERE pay."reversedAt" IS NULL), 0) AS leftover
+FROM sale s
+JOIN unit un ON un.id = s."unitId"
+LEFT JOIN payment pay ON pay."saleId" = s.id
+WHERE s."organizationId" = 'ORG_ID_OVDE'
+  AND s.status NOT IN ('CANCELED')
+GROUP BY s.id, un.code, s."finalPrice", s.currency
+ORDER BY leftover DESC;</code></pre>
+          </div>
+        </section>
+
+        <section id="q-agencije">
+          <h2>Agencije <a class="anchor" href="#q-agencije">#</a></h2>
+          <h3>Konekcije investitor ↔ agencija</h3>
+          <div class="query">
+            <pre><code>SELECT
+  inv.name AS investor,
+  ag.name AS agency,
+  c.status, c."referralCode",
+  c."acceptedAt", c."defaultProtectionDays"
+FROM agency_connection c
+JOIN organization inv ON inv.id = c."investorOrganizationId"
+JOIN organization ag ON ag.id = c."agencyOrganizationId"
+ORDER BY c."createdAt" DESC;</code></pre>
+          </div>
+          <h3>Pristup projektima</h3>
+          <div class="query">
+            <pre><code>SELECT ag.name AS agency, p.name AS project, a.status,
+       a."canViewPrices", a."canRequestReservations",
+       a."accessStartsAt", a."accessEndsAt"
+FROM agency_project_access a
+JOIN agency_connection c ON c.id = a."agencyConnectionId"
+JOIN organization ag ON ag.id = c."agencyOrganizationId"
+JOIN project p ON p.id = a."projectId"
+WHERE c."investorOrganizationId" = 'ORG_ID_OVDE';</code></pre>
+          </div>
+          <h3>Registracije kupaca (zaštita)</h3>
+          <div class="query">
+            <pre><code>SELECT r.status, r."protectionEndsAt",
+       inv.name AS investor, ag.name AS agency,
+       b."firstName", b."lastName", p.name AS project
+FROM agency_buyer_registration r
+JOIN organization inv ON inv.id = r."investorOrganizationId"
+JOIN organization ag ON ag.id = r."agencyOrganizationId"
+JOIN buyer b ON b.id = r."buyerId"
+JOIN project p ON p.id = r."projectId"
+WHERE r."investorOrganizationId" = 'ORG_ID_OVDE'
+ORDER BY r."registeredAt" DESC;</code></pre>
+          </div>
+          <h3>Provizije</h3>
+          <div class="query">
+            <pre><code>SELECT c.status, c."calculatedAmount", c."adjustedAmount", c.currency,
+       inv.name AS investor, ag.name AS agency, c."dueDate", c."paidAt"
+FROM commission c
+JOIN organization inv ON inv.id = c."investorOrganizationId"
+JOIN organization ag ON ag.id = c."agencyOrganizationId"
+ORDER BY c."createdAt" DESC
+LIMIT 50;</code></pre>
+          </div>
+        </section>
+
+        <section id="q-billing">
+          <h2>SaaS billing <a class="anchor" href="#q-billing">#</a></h2>
+          <h3>Fakture (platforma → tenant)</h3>
+          <div class="query">
+            <pre><code>SELECT i."invoiceNumber", i.status, o.name AS org,
+       i."totalAmount", i."amountDue", i.currency,
+       i."issueDate", i."dueDate", i."paidAt"
+FROM invoice i
+JOIN organization o ON o.id = i."organizationId"
+ORDER BY i."issueDate" DESC NULLS LAST
+LIMIT 50;</code></pre>
+          </div>
+          <h3>Neplaćene / dospele</h3>
+          <div class="query">
+            <pre><code>SELECT i."invoiceNumber", o.name, i.status, i."amountDue", i.currency, i."dueDate"
+FROM invoice i
+JOIN organization o ON o.id = i."organizationId"
+WHERE i.status IN ('ISSUED', 'SENT', 'OVERDUE', 'PARTIALLY_PAID')
+  AND i."amountDue" &gt; 0
+ORDER BY i."dueDate" NULLS LAST;</code></pre>
+          </div>
+          <h3>Poslednji billing job runovi</h3>
+          <div class="query">
+            <pre><code>SELECT "jobType", status, "startedAt", "finishedAt",
+       "processedCount", "successCount", "errorCount", "errorMessage"
+FROM billing_job_run
+ORDER BY "startedAt" DESC
+LIMIT 30;</code></pre>
+          </div>
+        </section>
+
+        <section id="q-leads">
+          <h2>Marketing leadovi <a class="anchor" href="#q-leads">#</a></h2>
+          <div class="query">
+            <pre><code>SELECT l.email, l."firstName", l."lastName", l.audience, l.stage, l.level,
+       l.priority, l.temperature, l."leadScore",
+       l."utmSource", l."utmCampaign", l."nextFollowUpAt", l."createdAt"
+FROM marketing_lead l
+ORDER BY l."createdAt" DESC
+LIMIT 80;</code></pre>
+          </div>
+          <h3>Follow-up danas / kasni</h3>
+          <div class="query">
+            <pre><code>SELECT email, stage, "nextFollowUpAt", "leadScore", temperature
+FROM marketing_lead
+WHERE "nextFollowUpAt" IS NOT NULL
+  AND "nextFollowUpAt" &lt;= NOW() + INTERVAL '1 day'
+  AND stage NOT IN ('LOST', 'WON')
+  AND "convertedAt" IS NULL
+ORDER BY "nextFollowUpAt";</code></pre>
+          </div>
+        </section>
+
+        <section id="q-audit-app">
+          <h2>Audit i health <a class="anchor" href="#q-audit-app">#</a></h2>
+          <h3>Poslednje akcije (bilo šta)</h3>
+          <div class="query">
+            <pre><code>SELECT a."createdAt", a.action, a."entityType", a."entityId",
+       o.name AS org, u.name AS actor
+FROM audit_log a
+LEFT JOIN organization o ON o.id = a."organizationId"
+LEFT JOIN "user" u ON u.id = a."actorUserId"
+ORDER BY a."createdAt" DESC
+LIMIT 80;</code></pre>
+          </div>
+          <h3>Impersonation</h3>
+          <div class="query">
+            <pre><code>SELECT a."createdAt", a.action, actor.name AS admin, a."entityId", a.metadata
+FROM audit_log a
+LEFT JOIN "user" actor ON actor.id = a."actorUserId"
+WHERE a.action IN (
+  'platform.impersonation_started',
+  'platform.impersonation_stopped'
+)
+ORDER BY a."createdAt" DESC;</code></pre>
+          </div>
+          <h3>System health (backup-verify itd.)</h3>
+          <div class="query">
+            <pre><code>SELECT kind, status, message, "runAt"
+FROM system_health_check
+ORDER BY "runAt" DESC
+LIMIT 20;</code></pre>
+          </div>
+          <h3>Aktivne sesije (ko je ulogovan)</h3>
+          <div class="query">
+            <pre><code>SELECT u.email, u.name, s."expiresAt", s."ipAddress",
+       s."impersonatedBy", s."activeOrganizationId"
+FROM session s
+JOIN "user" u ON u.id = s."userId"
+WHERE s."expiresAt" &gt; NOW()
+ORDER BY s."expiresAt" DESC;</code></pre>
+          </div>
+          <h3>Nepročitane notifikacije</h3>
+          <div class="query">
+            <pre><code>SELECT u.email, n.category, n.title, n."createdAt"
+FROM notification n
+JOIN "user" u ON u.id = n."userId"
+WHERE n."readAt" IS NULL
+ORDER BY n."createdAt" DESC
+LIMIT 50;</code></pre>
+          </div>
+          <h3>Broj redova po tenantu (brzi pregled)</h3>
+          <div class="query">
+            <pre><code>SELECT
+  o.name,
+  (SELECT COUNT(*) FROM project p WHERE p."organizationId" = o.id) AS projects,
+  (SELECT COUNT(*) FROM unit u WHERE u."organizationId" = o.id AND u."archivedAt" IS NULL) AS units,
+  (SELECT COUNT(*) FROM buyer b WHERE b."organizationId" = o.id AND b."archivedAt" IS NULL) AS buyers,
+  (SELECT COUNT(*) FROM sale s WHERE s."organizationId" = o.id) AS sales,
+  (SELECT COUNT(*) FROM document d WHERE d."organizationId" = o.id AND d."deletedAt" IS NULL) AS docs
+FROM organization o
+ORDER BY o.name;</code></pre>
+          </div>
+        </section>
+
+        <section id="sema">
+          <h2>Šema i S3 ključ <a class="anchor" href="#sema">#</a></h2>
+          <p>Tabela <code>document</code>. Bitne kolone:</p>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Kolona</th><th>Značenje</th></tr></thead>
+              <tbody>
+                <tr><td><code>originalFileName</code></td><td>Ime koje je korisnik uploadovao</td></tr>
+                <tr><td><code>storageKey</code></td><td>Putanja u bucketu</td></tr>
+                <tr><td><code>uploadedByUserId</code></td><td>Ko je postavio</td></tr>
+                <tr><td><code>category</code></td><td>PROJECT UNIT BUYER RESERVATION SALE PAYMENT AGENCY COMMISSION INVOICE KYC OTHER</td></tr>
+                <tr><td><code>entityType</code> / <code>entityId</code></td><td>Na šta je zakačen (Unit, Project, Sale…)</td></tr>
+                <tr><td><code>deletedAt</code></td><td>Soft-delete u app-u</td></tr>
+                <tr><td><code>storagePurgedAt</code></td><td>Kad je objekat skinut sa S3</td></tr>
+                <tr><td><code>size</code></td><td>Bajtovi</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p>Oblik ključa:</p>
+          <div class="query">
+            <pre><code>orgs/&lt;organizationId&gt;/&lt;CATEGORY&gt;/YYYY-MM-DD_&lt;random&gt;.ext</code></pre>
+          </div>
+        </section>
+
+        <section id="q-org-user">
+          <h2>Nađi organizaciju / korisnika <a class="anchor" href="#q-org-user">#</a></h2>
+          <h3>Org po imenu ili slug-u</h3>
+          <div class="query">
+            <pre><code>SELECT id, name, slug, "createdAt"
+FROM organization
+WHERE name ILIKE '%Gradnja%'
+   OR slug ILIKE '%gradnja%';</code></pre>
+          </div>
+          <h3>User po imenu ili emailu</h3>
+          <div class="query">
+            <pre><code>SELECT id, name, email, role, "createdAt"
+FROM "user"
+WHERE email ILIKE '%marko%'
+   OR name ILIKE '%Marko%';</code></pre>
+          </div>
+        </section>
+
+        <section id="q-zivi">
+          <h2>Živi dokumenti <a class="anchor" href="#q-zivi">#</a></h2>
+          <p>Sve što se vidi u app-u, sa uploaderom i S3 ključem.</p>
+          <div class="query">
+            <pre><code>SELECT
+  d.id,
+  o.name AS org,
+  d.category,
+  d."entityType",
+  d."entityId",
+  d."originalFileName",
+  u.name AS uploaded_by,
+  u.email AS uploaded_by_email,
+  d.size,
+  d."storageKey",
+  d."createdAt"
+FROM document d
+JOIN organization o ON o.id = d."organizationId"
+JOIN "user" u ON u.id = d."uploadedByUserId"
+WHERE d."deletedAt" IS NULL
+ORDER BY d."createdAt" DESC
+LIMIT 100;</code></pre>
+          </div>
+          <h3>Samo jedna organizacija</h3>
+          <div class="query">
+            <pre><code>SELECT d.id, d.category, d."originalFileName", u.name AS uploaded_by,
+       d."storageKey", d."createdAt"
+FROM document d
+JOIN "user" u ON u.id = d."uploadedByUserId"
+WHERE d."organizationId" = 'ORG_ID_OVDE'
+  AND d."deletedAt" IS NULL
+ORDER BY d."createdAt" DESC;</code></pre>
+          </div>
+          <h3>Dokumenti jedne jedinice / projekta / prodaje</h3>
+          <div class="query">
+            <pre><code>SELECT d.id, d.category, d."originalFileName", u.name AS uploaded_by,
+       d."storageKey", d."isCover", d."deletedAt"
+FROM document d
+JOIN "user" u ON u.id = d."uploadedByUserId"
+WHERE d."entityType" = 'Unit'          <span class="c">-- ili Project, Sale, Buyer…</span>
+  AND d."entityId" = 'ENTITY_ID_OVDE'
+ORDER BY d."sortOrder", d."createdAt" DESC;</code></pre>
+          </div>
+        </section>
+
+        <section id="q-ime">
+          <h2>Po imenu fajla <a class="anchor" href="#q-ime">#</a></h2>
+          <div class="query">
+            <pre><code>SELECT
+  d.id,
+  o.name AS org,
+  d."originalFileName",
+  u.name AS uploaded_by,
+  d."deletedAt",
+  d."storagePurgedAt",
+  d."storageKey",
+  CASE
+    WHEN d."deletedAt" IS NULL THEN 'ziv'
+    WHEN d."storagePurgedAt" IS NULL THEN 'obrisan_u_app_jos_na_s3'
+    ELSE 'skinut_sa_s3'
+  END AS status
+FROM document d
+JOIN organization o ON o.id = d."organizationId"
+JOIN "user" u ON u.id = d."uploadedByUserId"
+WHERE d."originalFileName" ILIKE '%extended%'
+ORDER BY d."createdAt" DESC;</code></pre>
+          </div>
+        </section>
+
+        <section id="q-s3">
+          <h2>Po S3 ključu / prefiksu <a class="anchor" href="#q-s3">#</a></h2>
+          <div class="query">
+            <pre><code>SELECT d.id, d."originalFileName", u.name AS uploaded_by,
+       d."deletedAt", d."storagePurgedAt", d."storageKey"
+FROM document d
+JOIN "user" u ON u.id = d."uploadedByUserId"
+WHERE d."storageKey" = 'orgs/ORG_ID/UNIT/2026-08-16_abc123.png';</code></pre>
+          </div>
+          <p>Svi fajlovi jedne org u bucketu (isti prefiks kao u S3 Search):</p>
+          <div class="query">
+            <pre><code>SELECT d."storageKey", d."originalFileName", d."deletedAt", d."storagePurgedAt"
+FROM document d
+WHERE d."storageKey" LIKE 'orgs/ORG_ID/%'
+ORDER BY d."createdAt" DESC;</code></pre>
+          </div>
+        </section>
+
+        <section id="q-korpa">
+          <h2>Obrisano u app-u, još u bucketu <a class="anchor" href="#q-korpa">#</a></h2>
+          <p>Ovo je „korpa“ za narednih 45 dana. <code>storageKey</code> lepiš u S3 Search.</p>
+          <div class="query">
+            <pre><code>SELECT
+  d.id,
+  o.name AS org,
+  d."originalFileName",
+  up.name AS uploaded_by,
+  d."deletedAt",
+  (d."deletedAt" + INTERVAL '45 days') AS purge_at,
+  GREATEST(
+    0,
+    CEIL(EXTRACT(EPOCH FROM (d."deletedAt" + INTERVAL '45 days') - NOW()) / 86400)
+  )::int AS days_left,
+  d."storageKey"
+FROM document d
+JOIN organization o ON o.id = d."organizationId"
+JOIN "user" up ON up.id = d."uploadedByUserId"
+WHERE d."deletedAt" IS NOT NULL
+  AND d."storagePurgedAt" IS NULL
+ORDER BY d."deletedAt" DESC;</code></pre>
+          </div>
+          <div class="callout success">
+            <strong>Povrat:</strong> dok je <code>days_left &gt; 0</code>, preuzmi objekat
+            sa S3 preko <code>storageKey</code> (vidi <a href="#povrati">Povrat</a>).
+            UI restore još ne postoji — uploaduješ ponovo ili vraćaš <code>deletedAt = NULL</code> ručno.
+          </div>
+        </section>
+
+        <section id="q-istek">
+          <h2>Ističe u narednih 7 dana <a class="anchor" href="#q-istek">#</a></h2>
+          <div class="query">
+            <pre><code>SELECT
+  d.id,
+  o.name AS org,
+  d."originalFileName",
+  d."deletedAt",
+  (d."deletedAt" + INTERVAL '45 days') AS purge_at,
+  d."storageKey"
+FROM document d
+JOIN organization o ON o.id = d."organizationId"
+WHERE d."deletedAt" IS NOT NULL
+  AND d."storagePurgedAt" IS NULL
+  AND d."deletedAt" + INTERVAL '45 days' &lt; NOW() + INTERVAL '7 days'
+ORDER BY purge_at;</code></pre>
+          </div>
+        </section>
+
+        <section id="q-purged">
+          <h2>Već skinuto sa S3 <a class="anchor" href="#q-purged">#</a></h2>
+          <p>Red u bazi ostaje, fajla više nema. Korisno za „šta je nestalo“.</p>
+          <div class="query">
+            <pre><code>SELECT
+  d.id,
+  o.name AS org,
+  d."originalFileName",
+  u.name AS uploaded_by,
+  d."deletedAt",
+  d."storagePurgedAt",
+  d."storageKey"
+FROM document d
+JOIN organization o ON o.id = d."organizationId"
+JOIN "user" u ON u.id = d."uploadedByUserId"
+WHERE d."storagePurgedAt" IS NOT NULL
+ORDER BY d."storagePurgedAt" DESC
+LIMIT 100;</code></pre>
+          </div>
+        </section>
+
+        <section id="q-audit">
+          <h2>Audit: ko je šta uradio <a class="anchor" href="#q-audit">#</a></h2>
+          <h3>Poslednji upload / delete / purge</h3>
+          <div class="query">
+            <pre><code>SELECT
+  a."createdAt",
+  a.action,
+  a."entityId" AS document_id,
+  o.name AS org,
+  u.name AS actor,
+  u.email AS actor_email,
+  a."newValues"
+FROM audit_log a
+LEFT JOIN organization o ON o.id = a."organizationId"
+LEFT JOIN "user" u ON u.id = a."actorUserId"
+WHERE a.action IN (
+  'document.uploaded',
+  'document.deleted',
+  'document.storage_purged'
+)
+ORDER BY a."createdAt" DESC
+LIMIT 100;</code></pre>
+          </div>
+          <h3>Ceo trag jednog dokumenta</h3>
+          <div class="query">
+            <pre><code>SELECT a."createdAt", a.action, u.name AS actor, a."newValues", a."ipAddress"
+FROM audit_log a
+LEFT JOIN "user" u ON u.id = a."actorUserId"
+WHERE a."entityType" = 'Document'
+  AND a."entityId" = 'DOCUMENT_ID_OVDE'
+ORDER BY a."createdAt";</code></pre>
+          </div>
+          <h3>Ko je obrisao (ime + koji fajl)</h3>
+          <div class="query">
+            <pre><code>SELECT
+  a."createdAt" AS deleted_at,
+  actor.name AS deleted_by,
+  actor.email,
+  d."originalFileName",
+  up.name AS originally_uploaded_by,
+  d."storageKey",
+  d."storagePurgedAt"
+FROM audit_log a
+JOIN document d ON d.id = a."entityId"
+LEFT JOIN "user" actor ON actor.id = a."actorUserId"
+LEFT JOIN "user" up ON up.id = d."uploadedByUserId"
+WHERE a.action = 'document.deleted'
+ORDER BY a."createdAt" DESC
+LIMIT 100;</code></pre>
+          </div>
+        </section>
+
+        <section id="q-stat">
+          <h2>Statistika i volumen <a class="anchor" href="#q-stat">#</a></h2>
+          <h3>Broj i GB po organizaciji</h3>
+          <div class="query">
+            <pre><code>SELECT
+  o.name AS org,
+  COUNT(*) FILTER (WHERE d."deletedAt" IS NULL) AS live,
+  COUNT(*) FILTER (WHERE d."deletedAt" IS NOT NULL AND d."storagePurgedAt" IS NULL) AS in_bucket_deleted,
+  COUNT(*) FILTER (WHERE d."storagePurgedAt" IS NOT NULL) AS purged,
+  ROUND(SUM(d.size) FILTER (WHERE d."storagePurgedAt" IS NULL) / 1024.0 / 1024.0, 2) AS mb_still_on_storage
+FROM document d
+JOIN organization o ON o.id = d."organizationId"
+GROUP BY o.id, o.name
+ORDER BY mb_still_on_storage DESC NULLS LAST;</code></pre>
+          </div>
+          <h3>Ko najviše uploaduje</h3>
+          <div class="query">
+            <pre><code>SELECT u.name, u.email, COUNT(*) AS uploads,
+       ROUND(SUM(d.size) / 1024.0 / 1024.0, 2) AS mb
+FROM document d
+JOIN "user" u ON u.id = d."uploadedByUserId"
+WHERE d."createdAt" &gt; NOW() - INTERVAL '30 days'
+GROUP BY u.id, u.name, u.email
+ORDER BY uploads DESC;</code></pre>
+          </div>
+          <h3>Po kategoriji</h3>
+          <div class="query">
+            <pre><code>SELECT category, COUNT(*) AS n,
+       ROUND(SUM(size) / 1024.0 / 1024.0, 2) AS mb
+FROM document
+WHERE "deletedAt" IS NULL
+GROUP BY category
+ORDER BY n DESC;</code></pre>
+          </div>
+        </section>
+
+        <section id="q-kyc">
+          <h2>KYC dokumenti <a class="anchor" href="#q-kyc">#</a></h2>
+          <div class="query">
+            <pre><code>SELECT
+  d.id,
+  o.name AS org,
+  d."entityId" AS buyer_id,
+  d."originalFileName",
+  u.name AS uploaded_by,
+  d."deletedAt",
+  d."storagePurgedAt",
+  d."storageKey"
+FROM document d
+JOIN organization o ON o.id = d."organizationId"
+JOIN "user" u ON u.id = d."uploadedByUserId"
+WHERE d.category = 'KYC'
+ORDER BY d."createdAt" DESC;</code></pre>
+          </div>
+          <p>
+            KYC koji ostane u app-u čuva se po poslovnom pravilu 5 godina.
+            Ako operator <em>obriše</em> KYC u UI-ju, ide isti 45-dnevni S3 purge.
+          </p>
+        </section>
+
+        <section id="povrati">
+          <h2>Povrat fajla (unutar 45 dana) <a class="anchor" href="#povrati">#</a></h2>
+          <ol>
+            <li>Nađi red upitom iz <a href="#q-korpa">korpe</a> ili po imenu.</li>
+            <li>Kopiraj <code>storageKey</code>.</li>
+            <li>Preuzmi sa S3 (dole AWS CLI) ili kroz AWS konzolu → objekat → Download.</li>
+            <li>Opciono vrati u app: upload ponovo, ili (oprezno) SQL:</li>
+          </ol>
+          <div class="query">
+            <pre><code><span class="c">-- SAMO ako si siguran. Vraća dokument u UI.</span>
+UPDATE document
+SET "deletedAt" = NULL
+WHERE id = 'DOCUMENT_ID_OVDE'
+  AND "storagePurgedAt" IS NULL;</code></pre>
+          </div>
+          <div class="callout danger">
+            <strong>Ne diraj</strong> <code>storagePurgedAt</code> ručno ako objekta više nema na S3 —
+            app bi davala broken preview.
+          </div>
+        </section>
+
+        <section id="aws">
+          <h2>AWS CLI <a class="anchor" href="#aws">#</a></h2>
+          <p>Bucket: <code>propertydesk-prod-docs</code>, region <code>eu-central-1</code>.</p>
+          <div class="query">
+            <pre><code><span class="c"># Preuzmi jedan obrisani fajl</span>
+aws s3 cp s3://propertydesk-prod-docs/orgs/ORG_ID/UNIT/2026-08-16_abc.png ./recovered.png --region eu-central-1
+
+<span class="c"># Proveri da objekat postoji</span>
+aws s3 ls s3://propertydesk-prod-docs/orgs/ORG_ID/UNIT/ --region eu-central-1
+
+<span class="c"># Sve još živo za jednu org (isti prefiks kao storageKey)</span>
+aws s3 ls s3://propertydesk-prod-docs/orgs/ORG_ID/ --recursive --region eu-central-1</code></pre>
+          </div>
+          <p>
+            Cron na VPS-u: <code>/etc/cron.d/propertydesk-purge-docs</code> u 04:00 UTC.
+            Ručni trigger (sa servera, unutar kontejnera):
+          </p>
+          <div class="query">
+            <pre><code>docker exec propertydesk-app sh -c 'wget -qO- --header="x-cron-secret: $CRON_SECRET" --post-data="" http://127.0.0.1:3000/api/v1/jobs/purge-deleted-documents'</code></pre>
+          </div>
+        </section>
+
+        <p class="footer-note">
+          <img src="assets/logo.png" alt="" class="logo sm" width="22" height="22" aria-hidden="true" />
+          <span>PropertyDesk · SQL ops</span>
+          <a href="help-center.html">Help Center</a> ·
+          <a href="dev-portal.html">Dev Portal</a> ·
+          Markdown: <code>docs/documents-ops.md</code>
+        </p>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    (function () {
+      const sidebar = document.getElementById("sidebar");
+      const backdrop = document.getElementById("sidebarBackdrop");
+      const toggle = document.getElementById("menuToggle");
+      const search = document.getElementById("navSearch");
+      const nav = document.getElementById("sidebarNav");
+      const empty = document.getElementById("sidebarEmpty");
+      const links = Array.from(nav.querySelectorAll("a[href^='#']"));
+      const groups = Array.from(nav.querySelectorAll("[data-group]"));
+
+      function setOpen(open) {
+        sidebar.classList.toggle("open", open);
+        backdrop.classList.toggle("open", open);
+        backdrop.hidden = !open;
+        toggle.setAttribute("aria-expanded", open ? "true" : "false");
+      }
+      toggle.addEventListener("click", function () {
+        setOpen(!sidebar.classList.contains("open"));
+      });
+      backdrop.addEventListener("click", function () { setOpen(false); });
+      links.forEach(function (a) {
+        a.addEventListener("click", function () {
+          if (window.matchMedia("(max-width: 960px)").matches) setOpen(false);
+        });
+      });
+
+      function applySearch(q) {
+        const query = (q || "").trim().toLowerCase();
+        let visible = 0;
+        links.forEach(function (a) {
+          const text = (a.textContent || "").toLowerCase();
+          const show = !query || text.includes(query);
+          a.classList.toggle("hidden-by-search", !show);
+          if (show) visible += 1;
+        });
+        groups.forEach(function (g) {
+          g.style.display = g.querySelectorAll("a:not(.hidden-by-search)").length ? "" : "none";
+        });
+        empty.classList.toggle("show", visible === 0);
+      }
+      search.addEventListener("input", function () { applySearch(search.value); });
+
+      document.querySelectorAll(".query pre").forEach(function (pre) {
+        const wrap = pre.parentElement;
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "copy-btn";
+        btn.textContent = "Kopiraj";
+        wrap.insertBefore(btn, pre);
+        btn.addEventListener("click", function () {
+          const text = pre.innerText.replace(/\u00a0/g, " ");
+          navigator.clipboard.writeText(text).then(function () {
+            btn.textContent = "Kopirano";
+            btn.classList.add("ok");
+            setTimeout(function () {
+              btn.textContent = "Kopiraj";
+              btn.classList.remove("ok");
+            }, 1400);
+          });
+        });
+      });
+
+      const sections = links.map(function (a) {
+        const id = (a.getAttribute("href") || "").slice(1);
+        const el = document.getElementById(id);
+        return el ? { id: id, el: el, link: a } : null;
+      }).filter(Boolean);
+      function setActive(id) {
+        links.forEach(function (a) {
+          a.classList.toggle("active", a.getAttribute("href") === "#" + id);
+        });
+      }
+      if ("IntersectionObserver" in window && sections.length) {
+        const observer = new IntersectionObserver(function (entries) {
+          const visible = entries.filter(function (en) { return en.isIntersecting; })
+            .sort(function (a, b) { return a.boundingClientRect.top - b.boundingClientRect.top; });
+          if (visible[0] && visible[0].target.id) setActive(visible[0].target.id);
+        }, { rootMargin: "-20% 0px -65% 0px", threshold: [0, 0.25, 0.5] });
+        sections.forEach(function (s) { observer.observe(s.el); });
+      }
+      if (location.hash) setActive(location.hash.slice(1));
+      else if (sections[0]) setActive(sections[0].id);
+    })();
+  </script>
+</body>
+</html>

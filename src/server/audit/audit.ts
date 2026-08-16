@@ -142,6 +142,7 @@ export type AuditAction =
   | "billing.subscription_price_changed"
   | "billing.subscription_trial_extended"
   | "billing.subscription_extended"
+  | "billing.subscription_expired"
   | "billing.subscription_restricted"
   | "billing.subscription_suspended"
   | "billing.subscription_canceled"

@@ -94,6 +94,39 @@ export function writeLocaleCookieValue(locale: Locale): string {
   return `${LOCALE_COOKIE}=${locale}; Path=/; Max-Age=${LOCALE_COOKIE_MAX_AGE}; SameSite=Lax`;
 }
 
+/** Read `pd_locale` from a Cookie header or `document.cookie` string. */
+export function localeFromCookieString(cookieHeader: string | undefined | null): Locale | null {
+  if (!cookieHeader) return null;
+  const match = cookieHeader.match(new RegExp(`(?:^|;\\s*)${LOCALE_COOKIE}=([^;]*)`));
+  return parseLocale(match?.[1] ? decodeURIComponent(match[1]) : null);
+}
+
+/**
+ * Locale for an incoming HTTP request: `x-pd-locale` header, then cookie,
+ * then `Accept-Language`, then Serbian.
+ */
+export function localeFromRequest(req: {
+  headers: { get(name: string): string | null };
+  cookies: { get(name: string): { value: string } | undefined };
+}): Locale {
+  const fromHeader = parseLocale(req.headers.get("x-pd-locale"));
+  if (fromHeader) return fromHeader;
+
+  const fromCookie = parseLocale(req.cookies.get(LOCALE_COOKIE)?.value);
+  if (fromCookie) return fromCookie;
+
+  const accept = req.headers.get("accept-language");
+  if (accept) {
+    for (const part of accept.split(",")) {
+      const tag = part.split(";")[0]?.trim();
+      const parsed = parseLocale(tag);
+      if (parsed) return parsed;
+    }
+  }
+
+  return DEFAULT_LOCALE;
+}
+
 function lookupLabel(key: TranslationKey, localeOrT: Locale | TranslateFn): string {
   const out =
     typeof localeOrT === "function" ? localeOrT(key) : t(key, undefined, localeOrT);

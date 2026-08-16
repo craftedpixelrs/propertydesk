@@ -8,6 +8,7 @@ import {
   notifyDueSoonInstallments,
 } from "@/server/services/sales/installments-jobs";
 import { notifyTrialsExpiring } from "@/server/services/subscriptions/jobs";
+import { expireEndedSubscriptions } from "@/server/services/subscriptions/expire.service";
 import { runBackupVerify } from "@/server/services/monitoring/backup-verify.service";
 import { purgeExpiredDeletedDocuments } from "@/server/services/documents-purge.service";
 // Side-effect import: registers all billing cron jobs into the shared registry.
@@ -86,15 +87,34 @@ ensure("due-soon-notifications", () =>
   }),
 );
 
+ensure("expire-subscriptions", () =>
+  registerJob({
+    name: "expire-subscriptions",
+    description:
+      "Istekli trial i istekli plaćeni periodi: pretplata EXPIRED/RESTRICTED, organizacija RESTRICTED (pristup se gasi).",
+    suggestedCron: "15 4 * * *",
+    run: async () => {
+      const { processed, errors } = await expireEndedSubscriptions();
+      return { processed, updated: processed, errors };
+    },
+  }),
+);
+
 ensure("trial-expiration-notifications", () =>
   registerJob({
     name: "trial-expiration-notifications",
     description:
-      "Obavesti vlasnike organizacija čiji probni period ističe u narednih 7 dana.",
+      "Obavesti vlasnike organizacija čiji probni period ističe u narednih 7 dana. Istovremeno gasi već istekle trial/periode.",
     suggestedCron: "0 7 * * *",
     run: async () => {
+      const expired = await expireEndedSubscriptions();
       const { processed, errors } = await notifyTrialsExpiring();
-      return { processed, updated: processed, errors };
+      return {
+        processed: processed + expired.processed,
+        updated: processed + expired.processed,
+        errors: errors + expired.errors,
+        details: { expired, notifications: { processed, errors } },
+      };
     },
   }),
 );

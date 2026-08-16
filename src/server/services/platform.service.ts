@@ -22,6 +22,7 @@ import {
   rolesForOrgType,
   type OrganizationRole,
 } from "@/server/permissions/roles";
+import { normalizeWebsite } from "@/server/services/organization-profile-completeness";
 
 /**
  * Platform administration service. Callers must be SUPER_ADMIN.
@@ -454,6 +455,168 @@ export async function createOrganizationByPlatformAdmin(
   });
 
   return result;
+}
+
+export type UpdateOrganizationInput = Omit<
+  CreateOrganizationInput,
+  "ownerEmail" | "ownerName" | "ownerRole"
+>;
+
+export async function getOrganizationForPlatformAdmin(organizationId: string) {
+  const org = await prisma.organization.findUnique({
+    where: { id: organizationId },
+    include: {
+      profile: true,
+      subscription: { include: { plan: true } },
+    },
+  });
+  if (!org) throw DomainErrors.notFound("Organizacija");
+  return org;
+}
+
+function subscriptionStatusForOrgStatus(
+  status: OrganizationStatus,
+): Pick<
+  Prisma.OrganizationSubscriptionUncheckedUpdateInput,
+  "status" | "endsAt"
+> {
+  if (status === "SUSPENDED") return { status: "SUSPENDED" };
+  if (status === "RESTRICTED") return { status: "RESTRICTED" };
+  if (status === "CLOSED") {
+    return { status: "CANCELED", endsAt: new Date() };
+  }
+  if (status === "ACTIVE") return { status: "ACTIVE", endsAt: null };
+  return { status: "TRIAL" };
+}
+
+export async function updateOrganizationByPlatformAdmin(
+  organizationId: string,
+  input: UpdateOrganizationInput,
+  actorUserId: string,
+) {
+  const existing = await getOrganizationForPlatformAdmin(organizationId);
+
+  if (input.slug !== existing.slug) {
+    const clash = await prisma.organization.findUnique({
+      where: { slug: input.slug },
+    });
+    if (clash) {
+      throw DomainErrors.validation(
+        `Organizacija sa oznakom "${input.slug}" već postoji.`,
+        { slug: [`Organizacija sa oznakom "${input.slug}" već postoji.`] },
+      );
+    }
+  }
+
+  const plan = await prisma.saaSPlan.findUnique({
+    where: { code: input.planCode },
+  });
+  const currentPlanId = existing.subscription?.planId ?? null;
+  if (!plan) throw DomainErrors.notFound("Plan");
+  if (!plan.active && plan.id !== currentPlanId) {
+    throw DomainErrors.notFound("Plan");
+  }
+
+  const previousStatus = existing.profile?.status ?? "TRIAL";
+  const nextStatus: OrganizationStatus = input.status ?? previousStatus;
+  const website = normalizeWebsite(input.website);
+  const now = new Date();
+
+  const profileData = {
+    type: input.type,
+    legalName: input.legalName,
+    displayName: input.displayName,
+    registrationNumber: input.registrationNumber ?? null,
+    taxNumber: input.taxNumber ?? null,
+    address: input.address ?? null,
+    city: input.city ?? null,
+    postalCode: input.postalCode ?? null,
+    country: input.country ?? existing.profile?.country ?? "RS",
+    phone: input.phone ?? null,
+    email: input.email ?? null,
+    website,
+    status: nextStatus,
+  };
+
+  await prisma.$transaction(async (tx) => {
+    await tx.organization.update({
+      where: { id: organizationId },
+      data: { name: input.name, slug: input.slug },
+    });
+
+    if (existing.profile) {
+      await tx.organizationProfile.update({
+        where: { organizationId },
+        data: profileData,
+      });
+    } else {
+      await tx.organizationProfile.create({
+        data: { organizationId, ...profileData },
+      });
+    }
+
+    const trialEndsAt =
+      nextStatus === "TRIAL" && input.trialDays != null
+        ? new Date(now.getTime() + input.trialDays * 24 * 60 * 60 * 1000)
+        : undefined;
+
+    const subPatch: Prisma.OrganizationSubscriptionUncheckedUpdateInput = {
+      ...subscriptionStatusForOrgStatus(nextStatus),
+      ...(plan.id !== currentPlanId
+        ? {
+            planId: plan.id,
+            ...(!existing.subscription?.customPrice
+              ? { price: plan.monthlyPrice, currency: plan.currency }
+              : {}),
+          }
+        : {}),
+      ...(trialEndsAt ? { trialEndsAt } : {}),
+    };
+
+    if (existing.subscription) {
+      await tx.organizationSubscription.update({
+        where: { organizationId },
+        data: subPatch,
+      });
+    } else {
+      await tx.organizationSubscription.create({
+        data: {
+          organizationId,
+          planId: plan.id,
+          status: nextStatus === "TRIAL" ? "TRIAL" : "ACTIVE",
+          trialEndsAt:
+            trialEndsAt ??
+            (nextStatus === "TRIAL"
+              ? new Date(now.getTime() + (input.trialDays ?? 30) * 24 * 60 * 60 * 1000)
+              : null),
+        },
+      });
+    }
+  });
+
+  await recordAudit({
+    action: "organization.updated",
+    entityType: "Organization",
+    entityId: organizationId,
+    organizationId,
+    actorUserId,
+    previousValues: {
+      name: existing.name,
+      slug: existing.slug,
+      type: existing.profile?.type ?? null,
+      status: previousStatus,
+      planCode: existing.subscription?.plan.code ?? null,
+    },
+    newValues: {
+      name: input.name,
+      slug: input.slug,
+      type: input.type,
+      status: nextStatus,
+      planCode: plan.code,
+    },
+  });
+
+  return getOrganizationForPlatformAdmin(organizationId);
 }
 
 export async function setOrganizationStatus(

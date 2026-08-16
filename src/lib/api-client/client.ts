@@ -1,4 +1,10 @@
 import { ApiClientError } from "@/lib/api-client/errors";
+import { localizeFieldErrors, localizeZodMessage } from "@/lib/api/zod-messages";
+import {
+  DEFAULT_LOCALE,
+  localeFromCookieString,
+  type Locale,
+} from "@/lib/i18n";
 
 /**
  * Typed fetch client for the PropertyDesk REST API.
@@ -64,8 +70,10 @@ export class ApiClient {
   async request<T = unknown>(path: string, opts: RequestOptions = {}): Promise<T> {
     const url = this.buildUrl(path, opts.query);
 
+    const locale = readClientLocale();
     const headers: Record<string, string> = {
       accept: "application/json",
+      "x-pd-locale": locale,
       ...opts.headers,
     };
 
@@ -124,10 +132,12 @@ export class ApiClient {
       const errBody = (parsed as ErrorBody | null)?.error;
       throw new ApiClientError(
         (errBody?.code ?? "INTERNAL_ERROR") as ApiClientError["code"],
-        errBody?.message ?? "Greška u komunikaciji sa serverom.",
+        errBody?.message
+          ? localizeZodMessage(errBody.message, locale)
+          : "Greška u komunikaciji sa serverom.",
         {
           statusCode: res.status,
-          fieldErrors: errBody?.fieldErrors,
+          fieldErrors: localizeFieldErrors(errBody?.fieldErrors, locale),
           requestId: errBody?.requestId ?? requestId,
         },
       );
@@ -177,6 +187,11 @@ export class ApiClient {
     const qs = searchParams.toString();
     return qs ? `${base}${base.includes("?") ? "&" : "?"}${qs}` : base;
   }
+}
+
+function readClientLocale(): Locale {
+  if (typeof document === "undefined") return DEFAULT_LOCALE;
+  return localeFromCookieString(document.cookie) ?? DEFAULT_LOCALE;
 }
 
 function mergeSignals(

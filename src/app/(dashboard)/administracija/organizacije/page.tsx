@@ -21,6 +21,7 @@ interface PageProps {
 const STATUS_KEY: Record<string, TranslationKey> = {
   TRIAL: "status.trial",
   ACTIVE: "status.active",
+  RESTRICTED: "status.restricted",
   SUSPENDED: "status.suspended",
   CLOSED: "status.closed",
 };
@@ -47,6 +48,7 @@ export default async function PlatformOrganizationsPage({
       (params.status as
         | "TRIAL"
         | "ACTIVE"
+        | "RESTRICTED"
         | "SUSPENDED"
         | "CLOSED"
         | undefined) ?? undefined,
@@ -90,6 +92,7 @@ export default async function PlatformOrganizationsPage({
           <option value="">{t("common.allStatuses")}</option>
           <option value="TRIAL">{t("status.trial")}</option>
           <option value="ACTIVE">{t("status.active")}</option>
+          <option value="RESTRICTED">{t("status.restricted")}</option>
           <option value="SUSPENDED">{t("status.suspended")}</option>
           <option value="CLOSED">{t("status.closed")}</option>
         </select>
@@ -133,6 +136,9 @@ export default async function PlatformOrganizationsPage({
                     <th className="border-b border-[var(--color-border)] px-4 py-2">
                       {t("admin.created")}
                     </th>
+                    <th className="border-b border-[var(--color-border)] px-4 py-2">
+                      {t("common.actions")}
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -142,7 +148,12 @@ export default async function PlatformOrganizationsPage({
                       className="border-b border-[var(--color-border)] last:border-b-0"
                     >
                       <td className="px-4 py-2">
-                        <div className="font-medium">{row.name}</div>
+                        <Link
+                          href={`/administracija/organizacije/${row.id}`}
+                          className="font-medium hover:underline"
+                        >
+                          {row.name}
+                        </Link>
                         <div className="font-mono text-xs text-[var(--color-foreground-subtle)]">
                           {row.slug}
                         </div>
@@ -179,6 +190,22 @@ export default async function PlatformOrganizationsPage({
                       </td>
                       <td className="px-4 py-2 text-xs">
                         {formatDate(row.createdAt)}
+                      </td>
+                      <td className="px-4 py-2">
+                        <div className="flex flex-wrap gap-2">
+                          <Link
+                            href={`/administracija/organizacije/${row.id}`}
+                            className="text-sm font-medium text-[var(--color-primary)] hover:underline"
+                          >
+                            {t("admin.orgsPage.edit")}
+                          </Link>
+                          <Link
+                            href={`/administracija/organizacije/${row.id}/naplata`}
+                            className="text-sm text-[var(--color-foreground-muted)] hover:underline"
+                          >
+                            {t("admin.orgsPage.billing")}
+                          </Link>
+                        </div>
                       </td>
                     </tr>
                   ))}

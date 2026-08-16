@@ -26,3 +26,7 @@ Delete is soft (`deletedAt`). The file stays in S3/local for 45 days;
 `POST /api/v1/jobs/purge-deleted-documents` then calls
 `StorageProvider.delete` and sets `storagePurgedAt`. See
 `src/server/services/documents-purge.service.ts`.
+
+Ops upiti (ko je uploadovao, korpa 45 dana, S3 ključ):
+[`docs/documents-ops.html`](../../../docs/documents-ops.html) i
+[`docs/documents-ops.md`](../../../docs/documents-ops.md).

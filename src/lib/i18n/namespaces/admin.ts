@@ -204,6 +204,9 @@ export const adminSr = {
     empty: "Nema organizacija koje odgovaraju filterima.",
     colName: "Naziv",
     colPlan: "Plan",
+    edit: "Uredi",
+    editTitle: "Izmeni organizaciju: {{name}}",
+    billing: "Naplata",
   },
 
   plansPage: {
@@ -371,6 +374,7 @@ export const adminSr = {
 
   newOrg: {
     created: "Organizacija je kreirana.",
+    updated: "Organizacija je sačuvana.",
     name: "Naziv (interni)",
     slug: "Slug",
     slugPlaceholder: "npr. gradnja-plus",
@@ -382,9 +386,13 @@ export const adminSr = {
     registrationNumber: "Matični broj",
     address: "Adresa",
     city: "Grad",
+    postalCode: "Poštanski broj",
+    country: "Država (ISO)",
+    website: "Sajt",
     contactEmail: "Kontakt email",
     trialDays: "Trajanje probnog perioda (dana)",
     create: "Kreiraj organizaciju",
+    save: "Sačuvaj izmene",
   },
 
   roleMatrix: {
@@ -1582,6 +1590,9 @@ export const adminEn: Leaves<typeof adminSr> = {
     empty: "No organizations match the filters.",
     colName: "Name",
     colPlan: "Plan",
+    edit: "Edit",
+    editTitle: "Edit organization: {{name}}",
+    billing: "Billing",
   },
 
   plansPage: {
@@ -1748,6 +1759,7 @@ export const adminEn: Leaves<typeof adminSr> = {
 
   newOrg: {
     created: "Organization created.",
+    updated: "Organization saved.",
     name: "Name (internal)",
     slug: "Slug",
     slugPlaceholder: "e.g. gradnja-plus",
@@ -1759,9 +1771,13 @@ export const adminEn: Leaves<typeof adminSr> = {
     registrationNumber: "Registration number",
     address: "Address",
     city: "City",
+    postalCode: "Postal code",
+    country: "Country (ISO)",
+    website: "Website",
     contactEmail: "Contact email",
     trialDays: "Trial length (days)",
     create: "Create organization",
+    save: "Save changes",
   },
 
   roleMatrix: {

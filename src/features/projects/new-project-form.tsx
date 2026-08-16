@@ -159,6 +159,21 @@ export function NewProjectForm({
     event.preventDefault();
     setError(null);
     setFieldErrors({});
+
+    const missing: Record<string, string[]> = {};
+    for (const field of fields) {
+      if (!field.required) continue;
+      if (field.type === "checkbox") continue;
+      if (!values[field.name]?.trim()) {
+        missing[field.name] = [t("validation.required")];
+      }
+    }
+    if (Object.keys(missing).length > 0) {
+      setFieldErrors(missing);
+      setError(t("errors.validation"));
+      return;
+    }
+
     setLoading(true);
     try {
       const payload: Record<string, unknown> = {};

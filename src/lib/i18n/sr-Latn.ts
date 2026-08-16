@@ -177,6 +177,10 @@ export const srLatn = {
       "Vlasnik treba da popuni podatke firme (PIB, matični broj, adresa, kontakt i veb). Do tada aplikacija nije dostupna. Kontaktirajte vlasnika da završi podešavanja.",
     requiredHint: "Sva polja su obavezna za investitorske organizacije.",
     savedAndReady: "Profil je sačuvan. Možete da koristite aplikaciju.",
+    restrictedTitle: "Pristup je ograničen",
+    restrictedBody:
+      "Probni period ili pretplata su istekli. Aplikacija je zaključana dok administrator ne aktivira paket. Možete pogledati pretplatu i kontaktirati podršku.",
+    restrictedCta: "Otvori pretplatu",
   },
 
   validation: {
@@ -190,6 +194,15 @@ export const srLatn = {
     tooShort: "Vrednost je prekratka.",
     tooLong: "Vrednost je preduga.",
     invalidUrl: "Unesite ispravnu web adresu.",
+    minLength: "Unesite najmanje {{min}} karaktera.",
+    maxLength: "Unesite najviše {{max}} karaktera.",
+    exactLength: "Unesite tačno {{n}} karaktera.",
+    minNumber: "Broj mora biti najmanje {{min}}.",
+    maxNumber: "Broj mora biti najviše {{max}}.",
+    minItems: "Izaberite najmanje {{min}} stavki.",
+    invalidOption: "Izaberite jednu od ponuđenih vrednosti.",
+    invalidValue: "Uneta vrednost nije ispravna.",
+    invalidSearch: "Neispravni parametri pretrage.",
   },
 
   errors: {
@@ -224,6 +237,7 @@ export const srLatn = {
   status: {
     trial: "Probni period",
     active: "Aktivno",
+    restricted: "Ograničeno",
     suspended: "Suspendovano",
     closed: "Zatvoreno",
     pastDue: "Neizmirenje",
