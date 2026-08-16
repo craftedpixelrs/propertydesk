@@ -14,7 +14,8 @@ import { EarlyBirdBonuses } from "@/features/marketing/early-bird-bonuses";
 import { Roadmap } from "@/features/marketing/roadmap";
 import { PricingTeaser } from "@/features/marketing/pricing-teaser";
 import { LeadForm } from "@/features/marketing/lead-form";
-import { Faq, faqItems } from "@/features/marketing/faq";
+import { Faq } from "@/features/marketing/faq";
+import { faqItems } from "@/features/marketing/faq-items";
 import { createT, htmlLang } from "@/lib/i18n";
 import { resolveRequestLocale } from "@/lib/i18n/resolve-locale";
 

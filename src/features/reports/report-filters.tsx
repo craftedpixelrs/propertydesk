@@ -1,10 +1,9 @@
-"use client";
-
 import Link from "next/link";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { useT } from "@/components/app/i18n-provider";
+import { createT } from "@/lib/i18n";
+import { resolveRequestLocale } from "@/lib/i18n/resolve-locale";
 
 /**
  * Server-rendered filter form used by every /izvestaji page.
@@ -14,7 +13,7 @@ import { useT } from "@/components/app/i18n-provider";
  * the current filters already; the parent computes it based on request
  * search params.
  */
-export function ReportFilters(props: {
+export async function ReportFilters(props: {
   action: string;
   projects: Array<{ id: string; name: string }>;
   selectedProjectId?: string;
@@ -24,7 +23,7 @@ export function ReportFilters(props: {
   exportXlsxHref: string;
   showProjectFilter?: boolean;
 }) {
-  const t = useT();
+  const t = createT(await resolveRequestLocale());
   return (
     <Card>
       <CardContent className="py-4">
