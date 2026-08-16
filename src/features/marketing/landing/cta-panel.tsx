@@ -1,8 +1,7 @@
-"use client";
-
 import { ArrowRight, CalendarCheck2, PhoneCall } from "lucide-react";
 
-import { useT } from "@/components/app/i18n-provider";
+import { createT } from "@/lib/i18n";
+import { resolveRequestLocale } from "@/lib/i18n/resolve-locale";
 
 interface CtaPanelProps {
   title?: string;
@@ -22,13 +21,13 @@ interface CtaPanelProps {
  * the "invisible label on white button" bug on the dark-gradient
  * background.
  */
-export function CtaPanel({
+export async function CtaPanel({
   title,
   subtitle,
   primaryHref = "/demo#zakazivanje",
   primaryLabel,
 }: CtaPanelProps) {
-  const t = useT();
+  const t = createT(await resolveRequestLocale());
 
   return (
     <section

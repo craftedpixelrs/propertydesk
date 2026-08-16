@@ -1,8 +1,7 @@
-"use client";
-
 import { AlertTriangle, CheckCircle2 } from "lucide-react";
 
-import { useT } from "@/components/app/i18n-provider";
+import { createT } from "@/lib/i18n";
+import { resolveRequestLocale } from "@/lib/i18n/resolve-locale";
 
 interface Pair {
   problem: string;
@@ -20,12 +19,12 @@ interface ProblemSolutionGridProps {
  * landing pages. Each row is one pain-point on the left and the
  * corresponding platform capability on the right.
  */
-export function ProblemSolutionGrid({
+export async function ProblemSolutionGrid({
   title,
   subtitle,
   items,
 }: ProblemSolutionGridProps) {
-  const t = useT();
+  const t = createT(await resolveRequestLocale());
 
   return (
     <section

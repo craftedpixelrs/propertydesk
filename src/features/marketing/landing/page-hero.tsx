@@ -1,11 +1,10 @@
-"use client";
-
 import type { LucideIcon } from "lucide-react";
 import { ArrowRight, PlayCircle } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { useT } from "@/components/app/i18n-provider";
+import { createT } from "@/lib/i18n";
+import { resolveRequestLocale } from "@/lib/i18n/resolve-locale";
 
 interface PageHeroProps {
   eyebrow: string;
@@ -27,7 +26,7 @@ interface PageHeroProps {
  * mockups, just one clear H1, one supporting paragraph, and the
  * booking CTA.
  */
-export function PageHero({
+export async function PageHero({
   eyebrow,
   title,
   subtitle,
@@ -36,7 +35,7 @@ export function PageHero({
   secondaryCta,
   footnote,
 }: PageHeroProps) {
-  const t = useT();
+  const t = createT(await resolveRequestLocale());
   const resolvedPrimary = primaryCta ?? {
     label: t("marketing.common.bookDemo"),
     href: "/demo#zakazivanje",
