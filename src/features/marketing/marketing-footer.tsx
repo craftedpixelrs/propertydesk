@@ -3,6 +3,8 @@ import Link from "next/link";
 
 import { APP_NAME, LANDING_IMAGES } from "@/lib/constants/app";
 import { LANDING_ROUTES } from "@/features/marketing/landing/landing-shell";
+import { createT } from "@/lib/i18n";
+import { resolveRequestLocale } from "@/lib/i18n/resolve-locale";
 
 // Solutions column: 6 of the 8 topic pages (skip /demo which lives in
 // the Contact column, and /prodaja-novogradnje which duplicates the
@@ -12,7 +14,8 @@ const SOLUTION_LINKS = LANDING_ROUTES.filter(
   (r) => r.slug !== "demo" && r.slug !== "prodaja-novogradnje",
 ).slice(0, 6);
 
-export function MarketingFooter() {
+export async function MarketingFooter() {
+  const t = createT(await resolveRequestLocale());
   const year = new Date().getFullYear();
   return (
     <footer className="border-t border-[var(--color-border)] bg-[var(--color-surface-muted)]">
@@ -29,14 +32,13 @@ export function MarketingFooter() {
             <span className="text-base">{APP_NAME}</span>
           </div>
           <p className="max-w-xs text-sm leading-relaxed text-[var(--color-foreground-muted)]">
-            Operativni sistem za prodaju novogradnje - projekti, kupci,
-            rezervacije, uplate i provizije agencija na jednom mestu.
+            {t("marketing.footer.blurb")}
           </p>
         </div>
 
         <div>
           <div className="text-xs font-semibold uppercase tracking-wider text-[var(--color-foreground-subtle)]">
-            Proizvod
+            {t("marketing.nav.product")}
           </div>
           <ul className="mt-3 space-y-2 text-sm">
             <li>
@@ -44,7 +46,7 @@ export function MarketingFooter() {
                 href="#mogucnosti"
                 className="text-[var(--color-foreground-muted)] hover:text-[var(--color-foreground)]"
               >
-                Mogućnosti
+                {t("marketing.nav.features")}
               </a>
             </li>
             <li>
@@ -52,7 +54,7 @@ export function MarketingFooter() {
                 href="#za-koga"
                 className="text-[var(--color-foreground-muted)] hover:text-[var(--color-foreground)]"
               >
-                Za koga
+                {t("marketing.nav.personas")}
               </a>
             </li>
             <li>
@@ -60,7 +62,7 @@ export function MarketingFooter() {
                 href="#uskoro"
                 className="text-[var(--color-foreground-muted)] hover:text-[var(--color-foreground)]"
               >
-                Uskoro (roadmap)
+                {t("marketing.nav.roadmapLong")}
               </a>
             </li>
             <li>
@@ -68,7 +70,7 @@ export function MarketingFooter() {
                 href="#cenovnik"
                 className="text-[var(--color-foreground-muted)] hover:text-[var(--color-foreground)]"
               >
-                Cenovnik
+                {t("marketing.nav.pricing")}
               </a>
             </li>
             <li>
@@ -76,7 +78,7 @@ export function MarketingFooter() {
                 href="#faq"
                 className="text-[var(--color-foreground-muted)] hover:text-[var(--color-foreground)]"
               >
-                Česta pitanja
+                {t("marketing.nav.faqLong")}
               </a>
             </li>
           </ul>
@@ -84,7 +86,7 @@ export function MarketingFooter() {
 
         <div>
           <div className="text-xs font-semibold uppercase tracking-wider text-[var(--color-foreground-subtle)]">
-            Rešenja
+            {t("marketing.nav.solutions")}
           </div>
           <ul className="mt-3 space-y-2 text-sm">
             {SOLUTION_LINKS.map((r) => (
@@ -93,7 +95,7 @@ export function MarketingFooter() {
                   href={`/${r.slug}`}
                   className="text-[var(--color-foreground-muted)] hover:text-[var(--color-foreground)]"
                 >
-                  {r.label}
+                  {t(r.labelKey)}
                 </Link>
               </li>
             ))}
@@ -102,7 +104,7 @@ export function MarketingFooter() {
 
         <div>
           <div className="text-xs font-semibold uppercase tracking-wider text-[var(--color-foreground-subtle)]">
-            Kontakt
+            {t("marketing.nav.contact")}
           </div>
           <ul className="mt-3 space-y-2 text-sm">
             <li>
@@ -126,7 +128,7 @@ export function MarketingFooter() {
                 href="/demo"
                 className="text-[var(--color-foreground-muted)] hover:text-[var(--color-foreground)]"
               >
-                Zakaži 25-minutni demo
+                {t("marketing.footer.bookDemo")}
               </Link>
             </li>
           </ul>
@@ -134,17 +136,17 @@ export function MarketingFooter() {
 
         <div>
           <div className="text-xs font-semibold uppercase tracking-wider text-[var(--color-foreground-subtle)]">
-            Aplikacija
+            {t("marketing.nav.app")}
           </div>
           <ul className="mt-3 space-y-2 text-sm">
             <li className="flex items-center gap-2 text-[var(--color-foreground-muted)]">
-              <span>Prijava na nalog</span>
+              <span>{t("marketing.footer.signIn")}</span>
               <span className="rounded-full bg-[var(--color-surface-inset)] px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[var(--color-foreground-subtle)]">
-                Uskoro
+                {t("common.comingSoon")}
               </span>
             </li>
             <li className="text-xs text-[var(--color-foreground-subtle)]">
-              Zvanično lansiranje: 01.09.2026.
+              {t("marketing.footer.launchDate")}
             </li>
           </ul>
         </div>
@@ -153,18 +155,18 @@ export function MarketingFooter() {
       <div className="border-t border-[var(--color-border)]">
         <div className="container-app flex flex-col items-start justify-between gap-3 py-4 text-xs text-[var(--color-foreground-subtle)] sm:flex-row sm:items-center">
           <div>
-            © {year} {APP_NAME}. Sva prava zadržana.
+            © {year} {APP_NAME}. {t("marketing.footer.rights")}
           </div>
           <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-            <span>Napravljeno za srpsko tržište · sr-Latn · EUR / RSD</span>
+            <span>{t("marketing.footer.madeFor")}</span>
             <a
               href="https://getcraftedpixel.com"
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-1.5 text-[var(--color-foreground-muted)] transition-colors hover:text-[var(--color-foreground)]"
-              aria-label="Powered by CraftedPixel"
+              aria-label={t("marketing.footer.poweredByAria")}
             >
-              <span>Powered by</span>
+              <span>{t("marketing.footer.poweredBy")}</span>
               <Image
                 src="/images/landing/craftedpixel.svg"
                 alt="CraftedPixel"

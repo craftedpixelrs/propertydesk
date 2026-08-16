@@ -1,3 +1,5 @@
+"use client";
+
 import { Rocket, ArrowRight, PlayCircle } from "lucide-react";
 
 import {
@@ -9,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { MockupFrame } from "@/features/marketing/mockup-frame";
 import { Countdown } from "@/features/marketing/countdown";
+import { useT } from "@/components/app/i18n-provider";
 
 /**
  * Hero section - first thing anonymous visitors see.
@@ -22,6 +25,8 @@ import { Countdown } from "@/features/marketing/countdown";
  * header only, and is disabled until 01.09.2026 anyway.
  */
 export function Hero() {
+  const t = useT();
+
   return (
     <section
       className="relative overflow-hidden"
@@ -41,48 +46,44 @@ export function Hero() {
           <div className="flex flex-wrap items-center gap-2">
             <Badge tone="brand" className="gap-1.5">
               <Rocket aria-hidden className="size-3.5" />
-              Lansiranje {LAUNCH_DATE_LABEL}
+              {t("marketing.hero.launchBadge", { date: LAUNCH_DATE_LABEL })}
             </Badge>
-            <Badge tone="success">
-              Rani pristup: 30 dana besplatno + 50% na naredna 3 meseca
-            </Badge>
+            <Badge tone="success">{t("marketing.hero.earlyAccessBadge")}</Badge>
           </div>
 
           <h1
             id="hero-title"
             className="mt-5 text-balance text-3xl font-extrabold leading-[1.1] tracking-tight text-[var(--color-foreground)] sm:text-5xl lg:text-6xl"
           >
-            Operativni sistem za prodaju novogradnje.
+            {t("marketing.hero.title")}
           </h1>
 
           <p className="mt-4 max-w-xl text-pretty text-base leading-relaxed text-[var(--color-foreground-muted)] sm:mt-5 sm:text-lg">
-            Jedna platforma za investitore i partnerske agencije - od projekta i
-            zaliha, preko rezervacija i ugovora, do uplata i provizija. Sve na
-            srpskom, sa IPS QR i SEF integracijom.
+            {t("marketing.hero.subtitle")}
           </p>
 
           <div className="mt-7 flex flex-col items-stretch gap-3 sm:mt-8 sm:flex-row sm:items-center">
             <Button asChild size="lg" className="w-full sm:w-auto">
               <a href="#zakazivanje">
-                Zakažite 25-minutni demo
+                {t("marketing.hero.bookDemo")}
                 <ArrowRight aria-hidden className="size-4" />
               </a>
             </Button>
             <Button asChild size="lg" variant="outline" className="w-full gap-2 sm:w-auto">
               <a href="#video">
                 <PlayCircle aria-hidden className="size-4" />
-                Pogledajte demo od 3 minuta
+                {t("marketing.hero.watchVideo")}
               </a>
             </Button>
           </div>
 
           <p className="mt-4 text-xs text-[var(--color-foreground-subtle)]">
-            Bez obaveze. Direktno iz kalendara, bez čekanja.
+            {t("marketing.hero.noObligation")}
           </p>
 
           <div className="mt-10">
             <div className="mb-2 text-xs font-medium uppercase tracking-wider text-[var(--color-foreground-subtle)]">
-              Do zvaničnog lansiranja
+              {t("marketing.hero.countdownLabel")}
             </div>
             <Countdown targetIso={LAUNCH_DATE_ISO} className="max-w-md" />
           </div>
@@ -94,7 +95,7 @@ export function Hero() {
             src={LANDING_IMAGES.heroDesktop?.src}
             width={LANDING_IMAGES.heroDesktop?.width}
             height={LANDING_IMAGES.heroDesktop?.height}
-            alt="Kontrolna tabla PropertyDesk sa projektima, jedinicama, rezervacijama i uplatama"
+            alt={t("marketing.hero.mockupAlt")}
             priority
           />
         </div>

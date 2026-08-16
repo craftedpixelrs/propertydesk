@@ -3,6 +3,8 @@ import type { PropertyDeskLeadScope, PropertyDeskTeamRole } from "@prisma/client
 import type { OrganizationRole } from "@/server/permissions/roles";
 import { organizationRoles } from "@/server/permissions/roles";
 import type { PermissionString } from "@/server/permissions/access-control";
+import { prisma } from "@/server/db/prisma";
+import { DEFAULT_LOCALE, parseLocale, type Locale } from "@/lib/i18n";
 import { getActiveOrganization, getSession, isSuperAdmin } from "@/server/auth/session";
 import { getPropertyDeskTeamMember } from "@/server/permissions/property-desk";
 import {
@@ -22,6 +24,7 @@ export interface UserContext {
     name: string;
     email: string;
     image: string | null;
+    locale: Locale;
   };
   session: {
     expiresAt: string;
@@ -106,9 +109,16 @@ export async function loadUserContext(): Promise<UserContext | null> {
 
   const superAdmin = isSuperAdmin(session);
 
-  const pdTeam = await getPropertyDeskTeamMember(session.user.id).catch(
-    () => null,
-  );
+  const [pdTeam, userRow] = await Promise.all([
+    getPropertyDeskTeamMember(session.user.id).catch(() => null),
+    prisma.user
+      .findUnique({
+        where: { id: session.user.id },
+        select: { locale: true },
+      })
+      .catch(() => null),
+  ]);
+  const locale = parseLocale(userRow?.locale) ?? DEFAULT_LOCALE;
 
   const permissions = await computePermissions(
     activeOrg?.organizationRole ?? null,
@@ -122,6 +132,7 @@ export async function loadUserContext(): Promise<UserContext | null> {
       name: session.user.name,
       email: session.user.email,
       image: session.user.image ?? null,
+      locale,
     },
     session: {
       expiresAt:

@@ -4,23 +4,25 @@ import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
+import { useT } from "@/components/app/i18n-provider";
+import type { TranslationKey } from "@/lib/i18n";
 
-const CATEGORY_OPTIONS = [
-  { value: "OTHER", label: "Ostalo" },
-  { value: "PROJECT", label: "Projekat" },
-  { value: "UNIT", label: "Jedinica" },
-  { value: "BUYER", label: "Kupac" },
-  { value: "SALE", label: "Prodaja" },
-  { value: "PAYMENT", label: "Uplata" },
-  { value: "AGENCY", label: "Agencija" },
-  { value: "COMMISSION", label: "Provizija" },
+const CATEGORY_VALUES = [
+  "OTHER",
+  "PROJECT",
+  "UNIT",
+  "BUYER",
+  "SALE",
+  "PAYMENT",
+  "AGENCY",
+  "COMMISSION",
 ] as const;
 
-const VISIBILITY_OPTIONS = [
-  { value: "INTERNAL", label: "Interno" },
-  { value: "INVESTOR_TEAM", label: "Investitor" },
-  { value: "AGENCY_SHARED", label: "Deljeno sa agencijom" },
-  { value: "BUYER_SHARED", label: "Deljeno sa kupcem" },
+const VISIBILITY_VALUES = [
+  "INTERNAL",
+  "INVESTOR_TEAM",
+  "AGENCY_SHARED",
+  "BUYER_SHARED",
 ] as const;
 
 /**
@@ -35,6 +37,7 @@ export function DocumentUploader({
   defaultEntityType?: string;
   defaultEntityId?: string;
 }) {
+  const t = useT();
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement | null>(null);
   const [category, setCategory] = useState("OTHER");
@@ -48,7 +51,7 @@ export function DocumentUploader({
   async function submit() {
     const file = inputRef.current?.files?.[0];
     if (!file) {
-      setError("Izaberite datoteku.");
+      setError(t("ops.documents.chooseFile"));
       return;
     }
     setBusy(true);
@@ -65,14 +68,15 @@ export function DocumentUploader({
       if (!res.ok) {
         const payload = await res.json().catch(() => null);
         throw new Error(
-          (payload?.error?.message as string | undefined) ?? "Otpremanje nije uspelo.",
+          (payload?.error?.message as string | undefined) ??
+            t("ops.documents.uploadFailed"),
         );
       }
-      setSuccess(`Dokument "${file.name}" je otpremljen.`);
+      setSuccess(t("ops.documents.uploadedSuccess", { name: file.name }));
       if (inputRef.current) inputRef.current.value = "";
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Došlo je do greške.");
+      setError(err instanceof Error ? err.message : t("errors.generic"));
     } finally {
       setBusy(false);
     }
@@ -93,39 +97,39 @@ export function DocumentUploader({
       <div className="grid gap-3 sm:grid-cols-2">
         <div>
           <label className="block text-xs text-[var(--color-foreground-muted)]">
-            Kategorija
+            {t("ops.documents.category")}
           </label>
           <select
             value={category}
             onChange={(e) => setCategory(e.target.value)}
             className="h-10 w-full rounded-md border border-[var(--color-border)] px-3 text-sm"
           >
-            {CATEGORY_OPTIONS.map((o) => (
-              <option key={o.value} value={o.value}>
-                {o.label}
+            {CATEGORY_VALUES.map((value) => (
+              <option key={value} value={value}>
+                {t(`ops.documents.categories.${value}` as TranslationKey)}
               </option>
             ))}
           </select>
         </div>
         <div>
           <label className="block text-xs text-[var(--color-foreground-muted)]">
-            Vidljivost
+            {t("ops.documents.visibility")}
           </label>
           <select
             value={visibility}
             onChange={(e) => setVisibility(e.target.value)}
             className="h-10 w-full rounded-md border border-[var(--color-border)] px-3 text-sm"
           >
-            {VISIBILITY_OPTIONS.map((o) => (
-              <option key={o.value} value={o.value}>
-                {o.label}
+            {VISIBILITY_VALUES.map((value) => (
+              <option key={value} value={value}>
+                {t(`ops.documents.visibilities.${value}` as TranslationKey)}
               </option>
             ))}
           </select>
         </div>
         <div>
           <label className="block text-xs text-[var(--color-foreground-muted)]">
-            Tip entiteta
+            {t("ops.documents.entityType")}
           </label>
           <input
             value={entityType}
@@ -135,7 +139,7 @@ export function DocumentUploader({
         </div>
         <div>
           <label className="block text-xs text-[var(--color-foreground-muted)]">
-            ID entiteta
+            {t("ops.documents.entityId")}
           </label>
           <input
             value={entityId}
@@ -151,7 +155,7 @@ export function DocumentUploader({
       />
       <div className="flex justify-end">
         <Button loading={busy} onClick={submit}>
-          Otpremi
+          {t("common.upload")}
         </Button>
       </div>
     </div>

@@ -5,6 +5,7 @@ import { Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
+import { useT } from "@/components/app/i18n-provider";
 import { apiClient, ApiClientError } from "@/lib/api-client";
 
 interface Props {
@@ -22,6 +23,7 @@ interface Props {
  * was signed.
  */
 export function AddInstallmentButton({ saleId, currency }: Props) {
+  const t = useT();
   const router = useRouter();
   const [open, setOpen] = React.useState(false);
   const [label, setLabel] = React.useState("");
@@ -43,12 +45,12 @@ export function AddInstallmentButton({ saleId, currency }: Props) {
 
   async function submit() {
     if (!label.trim()) {
-      setError("Naziv rate je obavezan.");
+      setError(t("deals.plan.nameRequired"));
       return;
     }
     const amtNum = Number(amount);
     if (!Number.isFinite(amtNum) || amtNum <= 0) {
-      setError("Unesite ispravan iznos.");
+      setError(t("deals.plan.invalidAmount"));
       return;
     }
     setBusy(true);
@@ -65,7 +67,7 @@ export function AddInstallmentButton({ saleId, currency }: Props) {
       router.refresh();
     } catch (err) {
       setError(
-        err instanceof ApiClientError ? err.message : "Dodavanje nije uspelo.",
+        err instanceof ApiClientError ? err.message : t("deals.plan.addFailed"),
       );
     } finally {
       setBusy(false);
@@ -75,7 +77,7 @@ export function AddInstallmentButton({ saleId, currency }: Props) {
   return (
     <>
       <Button size="sm" variant="outline" onClick={() => setOpen(true)}>
-        <Plus className="mr-1 size-4" /> Dodaj ratu
+        <Plus className="mr-1 size-4" /> {t("deals.plan.addInstallment")}
       </Button>
       {open ? (
         <div
@@ -89,12 +91,12 @@ export function AddInstallmentButton({ saleId, currency }: Props) {
             className="w-full max-w-md rounded-lg bg-[var(--color-surface)] shadow-xl"
           >
             <div className="flex items-center justify-between border-b border-[var(--color-border)] px-4 py-3">
-              <h3 className="text-base font-semibold">Dodaj ratu</h3>
+              <h3 className="text-base font-semibold">{t("deals.plan.addTitle")}</h3>
               <button
                 type="button"
                 onClick={() => setOpen(false)}
                 className="rounded p-1 text-[var(--color-foreground-muted)] hover:bg-[var(--color-surface-inset)]"
-                aria-label="Zatvori"
+                aria-label={t("common.close")}
                 disabled={busy}
               >
                 ✕
@@ -108,19 +110,19 @@ export function AddInstallmentButton({ saleId, currency }: Props) {
               ) : null}
               <div>
                 <label className="block text-xs text-[var(--color-foreground-muted)]">
-                  Naziv rate
+                  {t("deals.plan.installmentLabel")}
                 </label>
                 <input
                   value={label}
                   onChange={(e) => setLabel(e.target.value)}
                   className="h-10 w-full rounded-md border border-[var(--color-border)] px-3 text-sm"
-                  placeholder="npr. Vanredna rata"
+                  placeholder={t("deals.plan.installmentPlaceholder")}
                   autoFocus
                 />
               </div>
               <div>
                 <label className="block text-xs text-[var(--color-foreground-muted)]">
-                  Iznos ({currency})
+                  {t("deals.plan.amountWithCurrency", { currency })}
                 </label>
                 <input
                   inputMode="decimal"
@@ -131,7 +133,7 @@ export function AddInstallmentButton({ saleId, currency }: Props) {
               </div>
               <div>
                 <label className="block text-xs text-[var(--color-foreground-muted)]">
-                  Datum dospeća
+                  {t("deals.plan.dueDateLabel")}
                 </label>
                 <input
                   type="date"
@@ -142,7 +144,7 @@ export function AddInstallmentButton({ saleId, currency }: Props) {
               </div>
               <div>
                 <label className="block text-xs text-[var(--color-foreground-muted)]">
-                  Napomena (opciono)
+                  {t("deals.plan.notesOptional")}
                 </label>
                 <input
                   value={notes}
@@ -158,10 +160,10 @@ export function AddInstallmentButton({ saleId, currency }: Props) {
                 onClick={() => setOpen(false)}
                 disabled={busy}
               >
-                Otkaži
+                {t("common.cancel")}
               </Button>
               <Button size="sm" onClick={submit} loading={busy}>
-                Dodaj ratu
+                {t("deals.plan.addInstallment")}
               </Button>
             </div>
           </div>

@@ -1,37 +1,25 @@
+"use client";
+
 import { CalendarCheck, Presentation, PlayCircle, GraduationCap } from "lucide-react";
 
-const STEPS = [
-  {
-    icon: CalendarCheck,
-    number: "01",
-    title: "Zakažite demo iz kalendara",
-    body:
-      "Direktno birate slobodan termin iz našeg kalendara - bez čekanja i bez emailova napred-nazad. Dobijate potvrdu i podsetnik e-mailom.",
-  },
-  {
-    icon: Presentation,
-    number: "02",
-    title: "25-minutni personalizovan demo",
-    body:
-      "Kratak video poziv u kome kroz Vaše primere prolazimo ključne tokove: projekte, statuse jedinica, rezervacije, prodaje i uplate.",
-  },
-  {
-    icon: PlayCircle,
-    number: "03",
-    title: "30 dana besplatnog trial-a",
-    body:
-      "Ako Vam se dopadne, aktiviramo probni nalog sa svim funkcijama. Bez kartice, bez obaveze - test na Vašim realnim podacima.",
-  },
-  {
-    icon: GraduationCap,
-    number: "04",
-    title: "60-minutni onboarding za tim",
-    body:
-      "Nakon aktivacije trial-a zakazujemo praktični onboarding sa Vašim prodajnim timom - kroz konkretne najbolje prakse i realne scenarije.",
-  },
-] as const;
+import { useT } from "@/components/app/i18n-provider";
+import type { TranslationKey } from "@/lib/i18n";
+
+const STEPS: Array<{
+  icon: typeof CalendarCheck;
+  number: string;
+  titleKey: TranslationKey;
+  bodyKey: TranslationKey;
+}> = [
+  { icon: CalendarCheck, number: "01", titleKey: "marketing.demo.step1Title", bodyKey: "marketing.demo.step1Body" },
+  { icon: Presentation, number: "02", titleKey: "marketing.demo.step2Title", bodyKey: "marketing.demo.step2Body" },
+  { icon: PlayCircle, number: "03", titleKey: "marketing.demo.step3Title", bodyKey: "marketing.demo.step3Body" },
+  { icon: GraduationCap, number: "04", titleKey: "marketing.demo.step4Title", bodyKey: "marketing.demo.step4Body" },
+];
 
 export function DemoTraining() {
+  const t = useT();
+
   return (
     <section
       aria-labelledby="demo-title"
@@ -40,19 +28,16 @@ export function DemoTraining() {
       <div className="container-app py-16 sm:py-20">
         <div className="max-w-3xl">
           <div className="text-xs font-semibold uppercase tracking-wider text-[var(--color-brand-700)]">
-            Demo i onboarding
+            {t("marketing.demo.eyebrow")}
           </div>
           <h2
             id="demo-title"
             className="mt-2 text-3xl font-bold tracking-tight sm:text-4xl"
           >
-            Kratak demo, pa realni trial - onboarding tek kada odlučite da probate
+            {t("marketing.demo.title")}
           </h2>
           <p className="mt-4 text-base leading-relaxed text-[var(--color-foreground-muted)]">
-            Vaše vreme je najskuplji resurs. Prvo Vam pokažemo sistem u 25
-            minuta na Vašim primerima - bez marketinških slajdova. Ako Vam
-            ima smisla, aktiviramo probni nalog i zakazujemo praktičan
-            onboarding sa timom nakon toga.
+            {t("marketing.demo.subtitle")}
           </p>
         </div>
 
@@ -78,9 +63,9 @@ export function DemoTraining() {
                     {s.number}
                   </span>
                 </div>
-                <h3 className="mt-4 text-base font-semibold">{s.title}</h3>
+                <h3 className="mt-4 text-base font-semibold">{t(s.titleKey)}</h3>
                 <p className="mt-1.5 text-sm leading-relaxed text-[var(--color-foreground-muted)]">
-                  {s.body}
+                  {t(s.bodyKey)}
                 </p>
               </li>
             );

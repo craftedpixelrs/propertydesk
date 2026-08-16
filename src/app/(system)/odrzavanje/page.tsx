@@ -1,6 +1,13 @@
-import { APP_NAME } from "@/lib/constants/app";
+import type { Metadata } from "next";
 
-export const metadata = { title: "Održavanje" };
+import { APP_NAME } from "@/lib/constants/app";
+import { createT } from "@/lib/i18n";
+import { resolveRequestLocale } from "@/lib/i18n/resolve-locale";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const t = createT(await resolveRequestLocale());
+  return { title: t("pages.maintenanceTitle") };
+}
 
 /**
  * Static maintenance page. When we need to take the app offline for a
@@ -8,9 +15,12 @@ export const metadata = { title: "Održavanje" };
  * proxy (nginx `try_files` / Vercel middleware) without redeploying.
  *
  * Kept purely presentational so it renders even when the DB / auth
- * providers are unavailable.
+ * providers are unavailable. Locale comes from the cookie first when
+ * the session lookup fails.
  */
-export default function MaintenancePage() {
+export default async function MaintenancePage() {
+  const t = createT(await resolveRequestLocale());
+
   return (
     <main
       role="main"
@@ -18,14 +28,13 @@ export default function MaintenancePage() {
     >
       <div className="max-w-md text-center">
         <p className="text-xs font-semibold uppercase tracking-widest text-[var(--color-brand-700)]">
-          Planirano održavanje
+          {t("pages.maintenanceTitle")}
         </p>
         <h1 className="mt-2 text-3xl font-semibold text-[var(--color-foreground)]">
-          Radovi u toku
+          {t("pages.maintenanceTitle")}
         </h1>
         <p className="mt-3 text-sm text-[var(--color-foreground-muted)]">
-          Trenutno vršimo neophodno održavanje sistema. Servis će uskoro biti dostupan.
-          Zahvaljujemo na strpljenju.
+          {t("pages.maintenanceBody")}
         </p>
         <p className="mt-8 text-xs text-[var(--color-foreground-subtle)]">{APP_NAME}</p>
       </div>

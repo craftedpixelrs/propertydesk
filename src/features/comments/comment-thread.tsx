@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { apiClient, ApiClientError } from "@/lib/api-client";
 import { formatDateTime } from "@/lib/formatters";
 import type { CommentDto } from "@/server/services/comments/comments.service";
+import { useT } from "@/components/app/i18n-provider";
 
 /**
  * Wire format for a mention in the comment body:
@@ -31,6 +32,7 @@ interface Props {
 }
 
 export function CommentThread({ entityType, entityId, currentUserId }: Props) {
+  const t = useT();
   const [items, setItems] = useState<CommentDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -50,9 +52,7 @@ export function CommentThread({ entityType, entityId, currentUserId }: Props) {
       } catch (err) {
         if (!alive) return;
         setError(
-          err instanceof ApiClientError
-            ? err.message
-            : "Greška pri učitavanju komentara.",
+          err instanceof ApiClientError ? err.message : t("crm.comments.loadError"),
         );
       } finally {
         if (alive) setLoading(false);
@@ -62,7 +62,7 @@ export function CommentThread({ entityType, entityId, currentUserId }: Props) {
     return () => {
       alive = false;
     };
-  }, [entityType, entityId]);
+  }, [entityType, entityId, t]);
 
   useEffect(() => {
     let alive = true;
@@ -94,7 +94,7 @@ export function CommentThread({ entityType, entityId, currentUserId }: Props) {
       setItems((prev) => prev.filter((c) => c.id !== id));
     } catch (err) {
       setError(
-        err instanceof ApiClientError ? err.message : "Greška pri brisanju.",
+        err instanceof ApiClientError ? err.message : t("crm.comments.deleteError"),
       );
     }
   }
@@ -108,11 +108,11 @@ export function CommentThread({ entityType, entityId, currentUserId }: Props) {
       ) : null}
       {loading ? (
         <p className="text-sm text-[var(--color-foreground-muted)]">
-          Učitavanje…
+          {t("common.loading")}
         </p>
       ) : items.length === 0 ? (
         <p className="text-sm text-[var(--color-foreground-muted)]">
-          Još uvek nema komentara. Budite prvi.
+          {t("crm.comments.empty")}
         </p>
       ) : (
         <ul className="space-y-3">
@@ -134,7 +134,7 @@ export function CommentThread({ entityType, entityId, currentUserId }: Props) {
                     onClick={() => handleDelete(c.id)}
                     className="text-xs text-[var(--color-foreground-muted)] hover:text-red-600"
                   >
-                    Obriši
+                    {t("common.delete")}
                   </button>
                 ) : null}
               </div>
@@ -196,6 +196,7 @@ interface ComposeProps {
 }
 
 function ComposeForm({ mentionables, onSubmit }: ComposeProps) {
+  const t = useT();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [value, setValue] = useState("");
   const [busy, setBusy] = useState(false);
@@ -265,7 +266,7 @@ function ComposeForm({ mentionables, onSubmit }: ComposeProps) {
       setSuggest(null);
     } catch (err) {
       setError(
-        err instanceof ApiClientError ? err.message : "Greška pri slanju.",
+        err instanceof ApiClientError ? err.message : t("crm.comments.sendError"),
       );
     } finally {
       setBusy(false);
@@ -284,7 +285,7 @@ function ComposeForm({ mentionables, onSubmit }: ComposeProps) {
           ref={textareaRef}
           value={value}
           onChange={handleChange}
-          placeholder="Dodaj komentar… koristite @ za spomen"
+          placeholder={t("crm.comments.placeholder")}
           rows={3}
           className="w-full rounded-md border border-[var(--color-border)] bg-white p-2 text-sm outline-none focus:border-[var(--color-brand-500)]"
         />
@@ -316,7 +317,7 @@ function ComposeForm({ mentionables, onSubmit }: ComposeProps) {
           onClick={submit}
           disabled={busy || !value.trim()}
         >
-          {busy ? "Šaljem…" : "Pošalji"}
+          {busy ? t("crm.comments.sending") : t("crm.comments.send")}
         </Button>
       </div>
     </div>

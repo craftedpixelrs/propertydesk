@@ -8,38 +8,51 @@ import {
   buildLandingMetadata,
   LandingJsonLd,
 } from "@/features/marketing/landing/landing-shell";
+import { createT } from "@/lib/i18n";
+import { resolveRequestLocale } from "@/lib/i18n/resolve-locale";
 
-const META = {
-  slug: "demo",
-  title: "Zakažite 25-minutni demo",
-  description:
-    "Personalizovan demo PropertyDesk-a - 25 minuta na Vašim primerima, direktno iz kalendara. Bez čekanja, bez obaveze, sa video pozivom i email potvrdom. Ako Vam se dopadne - aktiviramo 30 dana besplatnog trial-a.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const locale = await resolveRequestLocale();
+  const t = createT(locale);
+  return buildLandingMetadata({
+    slug: "demo",
+    title: t("marketing.pages.demo.metaTitle"),
+    description: t("marketing.pages.demo.metaDescription"),
+    locale,
+  });
+}
 
-export const metadata: Metadata = buildLandingMetadata(META);
+export default async function Page() {
+  const locale = await resolveRequestLocale();
+  const t = createT(locale);
+  const meta = {
+    slug: "demo",
+    title: t("marketing.pages.demo.metaTitle"),
+    description: t("marketing.pages.demo.metaDescription"),
+    locale,
+  };
 
-export default function Page() {
   return (
     <>
       <PageHero
-        eyebrow="Zakažite demo"
+        eyebrow={t("marketing.pages.demo.eyebrow")}
         icon={CalendarCheck2}
-        title="25 minuta uživo. Vaši primeri. Bez slajdova."
-        subtitle="Odaberite termin ispod. Dobijate potvrdu i podsetnik e-mailom, sa linkom za video poziv. Ako nakon demoa odlučite da probate PropertyDesk - aktiviramo 30 dana besplatnog trial-a."
-        primaryCta={{ label: "Skroluj do kalendara", href: "#zakazivanje" }}
+        title={t("marketing.pages.demo.title")}
+        subtitle={t("marketing.pages.demo.subtitle")}
+        primaryCta={{ label: t("marketing.pages.demo.scrollCalendar"), href: "#zakazivanje" }}
         secondaryCta={{
-          label: "Pogledajte demo od 3 minuta",
+          label: t("marketing.common.watchVideo"),
           href: "#video",
         }}
-        footnote="Ili nas pozovite direktno: +381 65 43 63 142"
+        footnote={t("marketing.pages.demo.footnote")}
       />
       <BookingEmbed
         size="hero"
-        title="Izaberite termin koji Vam odgovara"
-        subtitle="Standardni demo traje 25 minuta putem video poziva. Podsetnik dobijate e-mailom sa linkom za sastanak. Ako Vam ne odgovara video poziv, uvek Vas možemo pozvati telefonom."
+        title={t("marketing.pages.demo.bookingTitle")}
+        subtitle={t("marketing.pages.demo.bookingSubtitle")}
       />
       <ProductVideo />
-      <LandingJsonLd {...META} />
+      <LandingJsonLd {...meta} />
     </>
   );
 }

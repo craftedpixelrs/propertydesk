@@ -6,6 +6,7 @@ import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { apiClient } from "@/lib/api-client";
+import { useT } from "@/components/app/i18n-provider";
 
 interface Response {
   status: "OK" | "FAIL";
@@ -19,6 +20,7 @@ interface Response {
  */
 export function BackupVerifyButton() {
   const router = useRouter();
+  const t = useT();
   const [pending, startTransition] = useTransition();
   const [running, setRunning] = useState(false);
 
@@ -30,9 +32,9 @@ export function BackupVerifyButton() {
         {},
       );
       if (res.status === "OK") {
-        toast.success("Backup verifikator: OK", { description: res.message });
+        toast.success(t("admin.backupVerify.ok"), { description: res.message });
       } else {
-        toast.error("Backup verifikator: FAIL", {
+        toast.error(t("admin.backupVerify.fail"), {
           description: res.message,
         });
       }
@@ -40,8 +42,8 @@ export function BackupVerifyButton() {
         router.refresh();
       });
     } catch (err) {
-      toast.error("Neuspešna provera backup-a", {
-        description: (err as Error)?.message ?? "Nepoznata greška",
+      toast.error(t("admin.backupVerify.error"), {
+        description: (err as Error)?.message ?? t("admin.unknownError"),
       });
     } finally {
       setRunning(false);
@@ -55,7 +57,7 @@ export function BackupVerifyButton() {
       onClick={run}
       disabled={running || pending}
     >
-      {running || pending ? "Pokrećem..." : "Pokreni proveru sada"}
+      {running || pending ? t("admin.running") : t("admin.backupVerify.runNow")}
     </Button>
   );
 }

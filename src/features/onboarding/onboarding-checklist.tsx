@@ -7,17 +7,27 @@ import { CheckCircle2, Circle, ArrowRight, X } from "lucide-react";
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import type { OnboardingState } from "@/server/services/onboarding.service";
+import type { OnboardingState, OnboardingStepKey } from "@/server/services/onboarding.service";
+import { useT } from "@/components/app/i18n-provider";
+import type { TranslationKey } from "@/lib/i18n";
 
 export interface OnboardingChecklistProps {
   state: Pick<OnboardingState, "steps" | "completedCount" | "totalCount" | "allDone">;
 }
+
+const STEP_LABEL: Record<OnboardingStepKey, TranslationKey> = {
+  profile: "crm.onboarding.steps.profile.label",
+  project: "crm.onboarding.steps.project.label",
+  units: "crm.onboarding.steps.units.label",
+  team: "crm.onboarding.steps.team.label",
+};
 
 /**
  * Compact checklist card rendered on the investor dashboard while the
  * operator is still bootstrapping their organization.
  */
 export function OnboardingChecklist({ state }: OnboardingChecklistProps) {
+  const t = useT();
   const router = useRouter();
   const [dismissing, setDismissing] = React.useState(false);
 
@@ -39,11 +49,10 @@ export function OnboardingChecklist({ state }: OnboardingChecklistProps) {
         <div className="flex items-start justify-between gap-3">
           <div>
             <h2 className="text-base font-semibold text-[var(--color-foreground)]">
-              Prvi koraci ({state.completedCount}/{state.totalCount})
+              {t("ui.onboarding.title")} ({state.completedCount}/{state.totalCount})
             </h2>
             <p className="text-sm text-[var(--color-foreground-muted)]">
-              Nekoliko brzih koraka do prve prodaje. Nastavite kad vam odgovara —
-              čuvamo napredak.
+              {t("crm.onboarding.subtitle")}
             </p>
           </div>
           <button
@@ -51,8 +60,8 @@ export function OnboardingChecklist({ state }: OnboardingChecklistProps) {
             onClick={handleDismiss}
             disabled={dismissing}
             className="rounded p-1.5 text-[var(--color-foreground-muted)] hover:bg-[var(--color-surface-inset)]"
-            aria-label="Sakrij"
-            title="Sakrij listu"
+            aria-label={t("common.hide")}
+            title={t("ui.onboarding.hide")}
           >
             <X className="size-4" />
           </button>
@@ -85,7 +94,7 @@ export function OnboardingChecklist({ state }: OnboardingChecklistProps) {
                         : "text-sm font-medium"
                     }
                   >
-                    {step.label}
+                    {t(STEP_LABEL[step.key])}
                   </div>
                 </div>
               </div>
@@ -93,7 +102,7 @@ export function OnboardingChecklist({ state }: OnboardingChecklistProps) {
                 href={step.href}
                 className="inline-flex items-center gap-1 text-xs font-medium text-[var(--color-brand-700)] hover:underline"
               >
-                {step.done ? "Otvori" : "Nastavi"}
+                {step.done ? t("common.open") : t("crm.onboarding.continue")}
                 <ArrowRight className="size-3.5" />
               </Link>
             </li>
@@ -102,7 +111,7 @@ export function OnboardingChecklist({ state }: OnboardingChecklistProps) {
 
         <div className="flex justify-end">
           <Button asChild variant="outline" size="sm">
-            <Link href="/prvi-koraci">Otvori vodič</Link>
+            <Link href="/prvi-koraci">{t("ui.onboarding.openGuide")}</Link>
           </Button>
         </div>
       </CardContent>

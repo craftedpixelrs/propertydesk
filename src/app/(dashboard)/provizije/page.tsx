@@ -10,14 +10,32 @@ import { prisma } from "@/server/db/prisma";
 import { formatDate, formatMoney } from "@/lib/formatters";
 import type { SupportedCurrency } from "@/lib/constants/app";
 import { CommissionRowActions } from "@/features/commissions/commission-row-actions";
+import { createT, type TranslateFn, type TranslationKey } from "@/lib/i18n";
 
 export const dynamic = "force-dynamic";
+
+const COMMISSION_STATUS_KEYS: Record<string, TranslationKey> = {
+  CALCULATED: "partners.commissionStatus.CALCULATED",
+  APPROVED: "partners.commissionStatus.APPROVED",
+  INVOICED: "partners.commissionStatus.INVOICED",
+  DUE: "partners.commissionStatus.DUE",
+  PAID: "partners.commissionStatus.PAID",
+  DISPUTED: "partners.commissionStatus.DISPUTED",
+  CANCELED: "partners.commissionStatus.CANCELED",
+};
+
+function commissionStatusLabel(status: string, t: TranslateFn): string {
+  const key = COMMISSION_STATUS_KEYS[status];
+  return key ? t(key) : status;
+}
 
 export default async function ProvizijePage() {
   const ctx = await loadUserContext();
   if (!ctx) redirect("/sign-in");
   if (!ctx.activeOrganization) redirect("/podesavanja");
   if (ctx.activeOrganization.type !== "INVESTOR") redirect("/dashboard");
+
+  const t = createT(ctx.user.locale);
 
   const rules = await listCommissionRules({
     investorOrganizationId: ctx.activeOrganization.id,
@@ -52,39 +70,38 @@ export default async function ProvizijePage() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold">Pravila provizije</h1>
+          <h1 className="text-2xl font-semibold">{t("partners.commissionsPage.title")}</h1>
           <p className="text-sm text-[var(--color-foreground-muted)]">
-            Detaljna pravila kreirajte iz kartice pojedinačne agencije. Ovde vidite kompletan
-            pregled.
+            {t("partners.commissionsPage.subtitle")}
           </p>
         </div>
         <Button asChild variant="outline">
-          <Link href="/agencije">Idi na agencije</Link>
+          <Link href="/agencije">{t("partners.commissionsPage.goToAgencies")}</Link>
         </Button>
       </div>
 
       <Card>
         <CardHeader>
           <CardTitle className="text-sm">
-            Aktivne provizije ({commissions.length})
+            {t("partners.commissionsPage.activeTitle", { count: commissions.length })}
           </CardTitle>
         </CardHeader>
         <CardContent className="p-0">
           {commissions.length === 0 ? (
             <div className="py-12 text-center text-sm text-[var(--color-foreground-muted)]">
-              Nema izračunatih provizija.
+              {t("partners.commissionsPage.emptyCalculated")}
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-[var(--color-border)] text-sm">
                 <thead className="bg-[var(--color-surface-inset)] text-left text-xs uppercase tracking-wide text-[var(--color-foreground-muted)]">
                   <tr>
-                    <th className="px-4 py-3">Prodaja</th>
-                    <th className="px-4 py-3">Agencija</th>
-                    <th className="px-4 py-3">Status</th>
-                    <th className="px-4 py-3 text-right">Iznos</th>
-                    <th className="px-4 py-3 text-right">Kreirano</th>
-                    <th className="px-4 py-3 text-right">Radnje</th>
+                    <th className="px-4 py-3">{t("partners.sale")}</th>
+                    <th className="px-4 py-3">{t("organization.types.agency")}</th>
+                    <th className="px-4 py-3">{t("common.statusLabel")}</th>
+                    <th className="px-4 py-3 text-right">{t("common.amount")}</th>
+                    <th className="px-4 py-3 text-right">{t("partners.created")}</th>
+                    <th className="px-4 py-3 text-right">{t("common.actions")}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[var(--color-border)]">
@@ -99,7 +116,7 @@ export default async function ProvizijePage() {
                         </Link>
                       </td>
                       <td className="px-4 py-3">{c.agency.name}</td>
-                      <td className="px-4 py-3">{c.status}</td>
+                      <td className="px-4 py-3">{commissionStatusLabel(c.status, t)}</td>
                       <td className="px-4 py-3 text-right font-medium">
                         {formatMoney(
                           (c.adjustedAmount ?? c.calculatedAmount).toString(),
@@ -128,24 +145,26 @@ export default async function ProvizijePage() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-sm">Ukupno pravila: {rules.length}</CardTitle>
+          <CardTitle className="text-sm">
+            {t("partners.commissionsPage.rulesTotal", { count: rules.length })}
+          </CardTitle>
         </CardHeader>
         <CardContent className="p-0">
           {rules.length === 0 ? (
             <div className="py-12 text-center text-sm text-[var(--color-foreground-muted)]">
-              Nema definisanih pravila provizije.
+              {t("partners.commissionsPage.emptyRules")}
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-[var(--color-border)] text-sm">
                 <thead className="bg-[var(--color-surface-inset)] text-left text-xs uppercase tracking-wide text-[var(--color-foreground-muted)]">
                   <tr>
-                    <th className="px-4 py-3">Agencija</th>
-                    <th className="px-4 py-3">Projekat</th>
-                    <th className="px-4 py-3">Nivo</th>
-                    <th className="px-4 py-3">Tip</th>
-                    <th className="px-4 py-3 text-right">Vrednost</th>
-                    <th className="px-4 py-3 text-right">Važi</th>
+                    <th className="px-4 py-3">{t("organization.types.agency")}</th>
+                    <th className="px-4 py-3">{t("units.columns.project")}</th>
+                    <th className="px-4 py-3">{t("partners.level")}</th>
+                    <th className="px-4 py-3">{t("common.type")}</th>
+                    <th className="px-4 py-3 text-right">{t("partners.value")}</th>
+                    <th className="px-4 py-3 text-right">{t("partners.valid")}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[var(--color-border)]">
@@ -154,22 +173,24 @@ export default async function ProvizijePage() {
                       <td className="px-4 py-3">
                         {r.agencyConnectionId
                           ? connectionNames.get(r.agencyConnectionId) ?? "—"
-                          : "Sve"}
+                          : t("common.all")}
                       </td>
                       <td className="px-4 py-3">
-                        {r.projectId ? projectNames.get(r.projectId) ?? "—" : "Svi"}
+                        {r.projectId ? projectNames.get(r.projectId) ?? "—" : t("partners.allProjectsShort")}
                       </td>
                       <td className="px-4 py-3">
                         {r.unitId
-                          ? "Jedinica"
+                          ? t("partners.ruleTier.unit")
                           : r.projectId && r.agencyConnectionId
-                            ? "Projekat + agencija"
+                            ? t("partners.ruleTier.projectAndAgency")
                             : r.agencyConnectionId
-                              ? "Konekcija"
-                              : "Projekat (default)"}
+                              ? t("partners.ruleTier.connection")
+                              : t("partners.ruleTier.projectDefault")}
                       </td>
                       <td className="px-4 py-3">
-                        {r.calculationType === "PERCENTAGE" ? "Procenat" : "Fiksni iznos"}
+                        {r.calculationType === "PERCENTAGE"
+                          ? t("partners.percentage")
+                          : t("partners.fixedAmount")}
                       </td>
                       <td className="px-4 py-3 text-right tabular-nums">
                         {r.calculationType === "PERCENTAGE"
@@ -179,7 +200,7 @@ export default async function ProvizijePage() {
                       <td className="px-4 py-3 text-right text-xs text-[var(--color-foreground-muted)]">
                         {r.validFrom || r.validTo
                           ? `${r.validFrom ? formatDate(r.validFrom) : "—"} → ${r.validTo ? formatDate(r.validTo) : "—"}`
-                          : "Bez ograničenja"}
+                          : t("partners.unlimited")}
                       </td>
                     </tr>
                   ))}

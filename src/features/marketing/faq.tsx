@@ -3,8 +3,18 @@
 import { useState } from "react";
 import { Plus } from "lucide-react";
 
-import { FAQ_ITEMS } from "@/features/marketing/content";
+import { useT } from "@/components/app/i18n-provider";
 import { cn } from "@/lib/utils";
+import type { TranslateFn, TranslationKey } from "@/lib/i18n";
+
+const FAQ_KEYS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] as const;
+
+export function faqItems(translate: TranslateFn) {
+  return FAQ_KEYS.map((n) => ({
+    question: translate(`marketing.faq.q${n}` as TranslationKey),
+    answer: translate(`marketing.faq.a${n}` as TranslationKey),
+  }));
+}
 
 /**
  * FAQ accordion with smooth open/close animation.
@@ -16,15 +26,13 @@ import { cn } from "@/lib/utils";
  * content sizes without measuring the DOM, and gracefully degrades
  * to an instant open where CSS grid transitions aren't supported.
  *
- * The full answer text is always mounted in the DOM (just clipped via
- * overflow), so the FAQPage JSON-LD schema in [page.tsx](../../app/(marketing)/page.tsx)
- * remains a faithful representation of what's visually available.
- *
  * Multiple items can be open simultaneously - matches the previous
  * `<details>`-based behaviour and lets visitors scan several answers
  * side-by-side.
  */
 export function Faq() {
+  const t = useT();
+  const items = faqItems(t);
   const [openIndexes, setOpenIndexes] = useState<Set<number>>(() => new Set());
 
   const toggle = (idx: number) => {
@@ -48,18 +56,18 @@ export function Faq() {
       <div className="container-app py-16 sm:py-20">
         <div className="max-w-3xl">
           <div className="text-xs font-semibold uppercase tracking-wider text-[var(--color-brand-700)]">
-            Česta pitanja
+            {t("marketing.faq.eyebrow")}
           </div>
           <h2
             id="faq-title"
             className="mt-2 text-3xl font-bold tracking-tight sm:text-4xl"
           >
-            Odgovori pre nego što pitate
+            {t("marketing.faq.title")}
           </h2>
         </div>
 
         <div className="mt-8 divide-y divide-[var(--color-border)] overflow-hidden rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)]">
-          {FAQ_ITEMS.map((f, idx) => {
+          {items.map((f, idx) => {
             const isOpen = openIndexes.has(idx);
             const panelId = `faq-panel-${idx}`;
             const triggerId = `faq-trigger-${idx}`;

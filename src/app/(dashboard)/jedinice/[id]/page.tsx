@@ -9,30 +9,10 @@ import { listDocuments } from "@/server/services/documents.service";
 import { listShareLinksForEntity } from "@/server/services/sharing/share-links.service";
 import { isDomainError } from "@/lib/errors";
 import { formatMoney, formatDateTime } from "@/lib/formatters";
+import { createT, unitStatusLabel, unitTypeLabel } from "@/lib/i18n";
 import { UnitStatusChanger } from "@/features/units/unit-status-changer";
 import { PhotoGallery, type PhotoItem } from "@/features/documents/photo-gallery";
 import { UnitSharePanel } from "@/features/sharing/unit-share-panel";
-
-const UNIT_STATUS_LABELS: Record<string, string> = {
-  AVAILABLE: "Slobodno",
-  ON_HOLD: "Na čekanju",
-  RESERVED: "Rezervisano",
-  DEPOSIT_PAID: "Kapara plaćena",
-  CONTRACTED: "Ugovoreno",
-  SOLD: "Prodato",
-  BLOCKED: "Blokirano",
-  NOT_FOR_SALE: "Nije u prodaji",
-};
-
-const UNIT_TYPE_LABELS: Record<string, string> = {
-  APARTMENT: "Stan",
-  GARAGE: "Garaža",
-  PARKING_SPACE: "Parking",
-  STORAGE: "Ostava",
-  COMMERCIAL: "Lokal",
-  HOUSE: "Kuća",
-  OTHER: "Ostalo",
-};
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -43,6 +23,7 @@ export default async function UnitDetail({ params }: Props) {
   const ctx = await loadUserContext();
   if (!ctx) redirect("/sign-in");
   if (!ctx.activeOrganization) redirect("/podesavanja");
+  const t = createT(ctx.user.locale);
 
   let unit: Awaited<ReturnType<typeof getUnitById>>;
   try {
@@ -107,17 +88,20 @@ export default async function UnitDetail({ params }: Props) {
             · {unit.code}
           </div>
           <h1 className="text-2xl font-semibold">
-            {UNIT_TYPE_LABELS[unit.type] ?? unit.type} {unit.code}
+            {unitTypeLabel(unit.type, t)} {unit.code}
           </h1>
           <div className="text-sm text-[var(--color-foreground-muted)]">
-            {unit.totalArea.toString()} m² · {unit.bedrooms ?? "—"} spavaćih ·{" "}
-            {unit.bathrooms ?? "—"} kupatila
+            {t("inventory.units.areaRooms", {
+              area: unit.totalArea.toString(),
+              bedrooms: unit.bedrooms ?? "—",
+              bathrooms: unit.bathrooms ?? "—",
+            })}
           </div>
         </div>
         <div className="flex flex-col items-end gap-2">
           <div className="text-right">
             <div className="text-xs uppercase tracking-wide text-[var(--color-foreground-muted)]">
-              Cena
+              {t("units.detail.pricing")}
             </div>
             <div className="text-2xl font-semibold tabular-nums">
               {formatMoney(
@@ -137,7 +121,7 @@ export default async function UnitDetail({ params }: Props) {
           </div>
           {canEdit ? (
             <Button asChild variant="outline" size="sm">
-              <Link href={`/jedinice/${unit.id}/izmena`}>Izmeni jedinicu</Link>
+              <Link href={`/jedinice/${unit.id}/izmena`}>{t("inventory.units.edit")}</Link>
             </Button>
           ) : null}
         </div>
@@ -146,11 +130,11 @@ export default async function UnitDetail({ params }: Props) {
       <Card>
         <CardHeader>
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <CardTitle>Status</CardTitle>
+            <CardTitle>{t("units.detail.status")}</CardTitle>
             <div className="text-sm">
-              Trenutni:{" "}
+              {t("inventory.units.currentStatus")}{" "}
               <span className="font-medium">
-                {UNIT_STATUS_LABELS[unit.status] ?? unit.status}
+                {unitStatusLabel(unit.status, t)}
               </span>
             </div>
           </div>
@@ -168,30 +152,30 @@ export default async function UnitDetail({ params }: Props) {
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle>Karakteristike</CardTitle>
+            <CardTitle>{t("inventory.units.features")}</CardTitle>
           </CardHeader>
           <CardContent className="grid grid-cols-2 gap-3 text-sm">
-            <InfoRow label="Tip" value={UNIT_TYPE_LABELS[unit.type] ?? unit.type} />
-            <InfoRow label="Struktura" value={unit.structure ?? "—"} />
-            <InfoRow label="Ukupna površina" value={`${unit.totalArea.toString()} m²`} />
+            <InfoRow label={t("units.fields.type")} value={unitTypeLabel(unit.type, t)} />
+            <InfoRow label={t("units.columns.structure")} value={unit.structure ?? "—"} />
+            <InfoRow label={t("inventory.units.totalAreaShort")} value={`${unit.totalArea.toString()} m²`} />
             <InfoRow
-              label="Bruto"
+              label={t("inventory.units.gross")}
               value={unit.internalArea ? `${unit.internalArea.toString()} m²` : "—"}
             />
             <InfoRow
-              label="Terasa"
+              label={t("inventory.units.terrace")}
               value={unit.terraceArea ? `${unit.terraceArea.toString()} m²` : "—"}
             />
             <InfoRow
-              label="Bašta"
+              label={t("inventory.units.garden")}
               value={unit.gardenArea ? `${unit.gardenArea.toString()} m²` : "—"}
             />
-            <InfoRow label="Orijentacija" value={unit.orientation ?? "—"} />
+            <InfoRow label={t("units.fields.orientation")} value={unit.orientation ?? "—"} />
             <InfoRow
-              label="PDV"
+              label={t("inventory.units.vat")}
               value={
                 unit.vatRate
-                  ? `${unit.vatRate.toString()}% ${unit.vatIncluded ? "(uključen)" : "(dodaje se)"}`
+                  ? `${unit.vatRate.toString()}% ${unit.vatIncluded ? t("inventory.units.vatIncluded") : t("inventory.units.vatAdded")}`
                   : "—"
               }
             />
@@ -200,16 +184,16 @@ export default async function UnitDetail({ params }: Props) {
 
         <Card>
           <CardHeader>
-            <CardTitle>Lokacija u projektu</CardTitle>
+            <CardTitle>{t("units.detail.location")}</CardTitle>
           </CardHeader>
           <CardContent className="grid grid-cols-2 gap-3 text-sm">
-            <InfoRow label="Projekat" value={unit.project.name} />
-            <InfoRow label="Objekat" value={unit.building?.name ?? "—"} />
-            <InfoRow label="Ulaz" value={unit.entrance?.name ?? "—"} />
-            <InfoRow label="Sprat" value={unit.floor?.label ?? "—"} />
+            <InfoRow label={t("units.columns.project")} value={unit.project.name} />
+            <InfoRow label={t("units.columns.building")} value={unit.building?.name ?? "—"} />
+            <InfoRow label={t("units.columns.entrance")} value={unit.entrance?.name ?? "—"} />
+            <InfoRow label={t("units.columns.floor")} value={unit.floor?.label ?? "—"} />
             <InfoRow
-              label="Vidljivost agencijama"
-              value={unit.isVisibleToAgencies ? "Da" : "Ne"}
+              label={t("inventory.units.agencyVisibility")}
+              value={unit.isVisibleToAgencies ? t("common.yes") : t("common.no")}
             />
           </CardContent>
         </Card>
@@ -218,7 +202,7 @@ export default async function UnitDetail({ params }: Props) {
       {unit.publicDescription ? (
         <Card>
           <CardHeader>
-            <CardTitle>Javni opis</CardTitle>
+            <CardTitle>{t("units.fields.publicDescription")}</CardTitle>
           </CardHeader>
           <CardContent className="whitespace-pre-wrap text-sm">
             {unit.publicDescription}
@@ -242,12 +226,12 @@ export default async function UnitDetail({ params }: Props) {
 
       <Card>
         <CardHeader>
-          <CardTitle>Istorija cena</CardTitle>
+          <CardTitle>{t("units.actions.showPriceHistory")}</CardTitle>
         </CardHeader>
         <CardContent>
           {unit.priceHistory.length === 0 ? (
             <div className="text-sm text-[var(--color-foreground-muted)]">
-              Nema izmena cena.
+              {t("inventory.units.noPriceHistory")}
             </div>
           ) : (
             <ul className="divide-y divide-[var(--color-border)] text-sm">
@@ -276,12 +260,12 @@ export default async function UnitDetail({ params }: Props) {
 
       <Card>
         <CardHeader>
-          <CardTitle>Istorija statusa</CardTitle>
+          <CardTitle>{t("units.actions.showStatusHistory")}</CardTitle>
         </CardHeader>
         <CardContent>
           {unit.statusHistory.length === 0 ? (
             <div className="text-sm text-[var(--color-foreground-muted)]">
-              Nema izmena statusa.
+              {t("inventory.units.noStatusHistory")}
             </div>
           ) : (
             <ul className="divide-y divide-[var(--color-border)] text-sm">
@@ -292,8 +276,8 @@ export default async function UnitDetail({ params }: Props) {
                 >
                   <div>
                     <div className="font-medium">
-                      {UNIT_STATUS_LABELS[h.previousStatus] ?? h.previousStatus} →{" "}
-                      {UNIT_STATUS_LABELS[h.newStatus] ?? h.newStatus}
+                      {unitStatusLabel(h.previousStatus, t)} →{" "}
+                      {unitStatusLabel(h.newStatus, t)}
                     </div>
                     {h.reason ? (
                       <div className="text-xs text-[var(--color-foreground-muted)]">

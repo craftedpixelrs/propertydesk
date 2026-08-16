@@ -16,7 +16,8 @@ import { formatDate } from "@/lib/formatters/date";
 import { toast } from "sonner";
 import type { QuotaSnapshot } from "@/server/services/quotas.service";
 import { Building2, Users, Package, Handshake } from "lucide-react";
-import { t } from "@/lib/i18n";
+import { useT } from "@/components/app/i18n-provider";
+import type { TranslationKey } from "@/lib/i18n";
 import {
   isInvestorProfileComplete,
   normalizeWebsite,
@@ -62,6 +63,7 @@ export function OrganizationProfileForm({
   quota,
   orgType,
 }: OrganizationProfileFormProps) {
+  const t = useT();
   const router = useRouter();
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -69,6 +71,12 @@ export function OrganizationProfileForm({
   const investorRequired = orgType === "INVESTOR";
   const setupIncomplete =
     investorRequired && !isInvestorProfileComplete(profile);
+
+  function subscriptionStatusLabel(status: string) {
+    const key = `billing.subscriptionStatus.${status}` as TranslationKey;
+    const out = t(key);
+    return out === key ? status : out;
+  }
 
   async function onSubmit(evt: React.FormEvent<HTMLFormElement>) {
     evt.preventDefault();
@@ -96,7 +104,7 @@ export function OrganizationProfileForm({
     try {
       await apiClient.patch("/organization/profile", payload);
       toast.success(
-        setupIncomplete ? t("orgProfile.savedAndReady") : "Profil je sačuvan.",
+        setupIncomplete ? t("orgProfile.savedAndReady") : t("ops.org.profileSaved"),
       );
       if (setupIncomplete) router.push("/dashboard");
       router.refresh();
@@ -105,7 +113,7 @@ export function OrganizationProfileForm({
         setError(err.message);
         setFieldErrors(err.fieldErrors ?? {});
       } else {
-        setError("Neočekivana greška.");
+        setError(t("common.unexpectedError"));
       }
     } finally {
       setSubmitting(false);
@@ -116,22 +124,22 @@ export function OrganizationProfileForm({
     <div className="space-y-6">
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
-          label="Aktivni projekti"
+          label={t("ops.quota.activeProjects")}
           value={`${quota.usage.projects}${quota.limits.projects != null ? " / " + quota.limits.projects : ""}`}
           icon={<Building2 className="size-5" />}
         />
         <StatCard
-          label="Jedinice"
+          label={t("ops.quota.units")}
           value={`${quota.usage.units}${quota.limits.units != null ? " / " + quota.limits.units : ""}`}
           icon={<Package className="size-5" />}
         />
         <StatCard
-          label="Korisnici"
+          label={t("ops.quota.members")}
           value={`${quota.usage.members}${quota.limits.members != null ? " / " + quota.limits.members : ""}`}
           icon={<Users className="size-5" />}
         />
         <StatCard
-          label="Agencije"
+          label={t("ops.quota.agencies")}
           value={`${quota.usage.agencies}${quota.limits.agencies != null ? " / " + quota.limits.agencies : ""}`}
           icon={<Handshake className="size-5" />}
         />
@@ -139,7 +147,7 @@ export function OrganizationProfileForm({
 
       <Card>
         <CardHeader className="flex-row items-center justify-between">
-          <CardTitle>Pretplata</CardTitle>
+          <CardTitle>{t("ops.settings.subscription")}</CardTitle>
           {subscription ? (
             <Badge tone="brand">{subscription.plan.name}</Badge>
           ) : null}
@@ -148,23 +156,23 @@ export function OrganizationProfileForm({
           {subscription ? (
             <ul className="text-sm">
               <li>
-                Status:{" "}
-                <strong>{subscription.status}</strong>
+                {t("common.statusLabel")}:{" "}
+                <strong>{subscriptionStatusLabel(subscription.status)}</strong>
               </li>
               {subscription.trialEndsAt ? (
                 <li>
-                  Probni period do:{" "}
+                  {t("ops.org.trialUntil")}{" "}
                   <strong>{formatDate(subscription.trialEndsAt)}</strong>
                 </li>
               ) : null}
               <li>
-                Oznaka plana:{" "}
+                {t("ops.org.planCode")}{" "}
                 <span className="font-mono text-xs">{subscription.plan.code}</span>
               </li>
             </ul>
           ) : (
             <p className="text-sm text-[var(--color-foreground-muted)]">
-              Nema aktivne pretplate.
+              {t("ops.org.noSubscription")}
             </p>
           )}
         </CardContent>
@@ -180,19 +188,19 @@ export function OrganizationProfileForm({
 
         {error ? (
           <Alert tone="danger">
-            <AlertTitle>Greška</AlertTitle>
+            <AlertTitle>{t("ops.error")}</AlertTitle>
             <AlertDescription>{error}</AlertDescription>
           </Alert>
         ) : null}
 
         <Card>
           <CardHeader>
-            <CardTitle>Profil organizacije</CardTitle>
+            <CardTitle>{t("ops.org.profileTitle")}</CardTitle>
           </CardHeader>
           <CardContent className="grid gap-4 sm:grid-cols-2">
             <div>
               <FieldLabel htmlFor="displayName" required={investorRequired}>
-                Prikazni naziv
+                {t("ops.org.displayName")}
               </FieldLabel>
               <Input
                 id="displayName"
@@ -203,7 +211,7 @@ export function OrganizationProfileForm({
             </div>
             <div>
               <FieldLabel htmlFor="legalName" required={investorRequired}>
-                Pravni naziv
+                {t("ops.org.legalName")}
               </FieldLabel>
               <Input
                 id="legalName"
@@ -214,7 +222,7 @@ export function OrganizationProfileForm({
             </div>
             <div>
               <FieldLabel htmlFor="taxNumber" required={investorRequired}>
-                PIB
+                {t("ops.org.taxNumber")}
               </FieldLabel>
               <Input
                 id="taxNumber"
@@ -225,7 +233,7 @@ export function OrganizationProfileForm({
             </div>
             <div>
               <FieldLabel htmlFor="registrationNumber" required={investorRequired}>
-                Matični broj
+                {t("ops.org.registrationNumber")}
               </FieldLabel>
               <Input
                 id="registrationNumber"
@@ -236,7 +244,7 @@ export function OrganizationProfileForm({
             </div>
             <div className="sm:col-span-2">
               <FieldLabel htmlFor="address" required={investorRequired}>
-                Adresa
+                {t("projects.fields.address")}
               </FieldLabel>
               <Input
                 id="address"
@@ -247,7 +255,7 @@ export function OrganizationProfileForm({
             </div>
             <div>
               <FieldLabel htmlFor="city" required={investorRequired}>
-                Grad
+                {t("projects.fields.city")}
               </FieldLabel>
               <Input
                 id="city"
@@ -258,7 +266,7 @@ export function OrganizationProfileForm({
             </div>
             <div>
               <FieldLabel htmlFor="postalCode" required={investorRequired}>
-                Poštanski broj
+                {t("projects.fields.postalCode")}
               </FieldLabel>
               <Input
                 id="postalCode"
@@ -269,7 +277,7 @@ export function OrganizationProfileForm({
             </div>
             <div>
               <FieldLabel htmlFor="phone" required={investorRequired}>
-                Telefon
+                {t("common.phone")}
               </FieldLabel>
               <Input
                 id="phone"
@@ -280,7 +288,7 @@ export function OrganizationProfileForm({
             </div>
             <div>
               <FieldLabel htmlFor="email" required={investorRequired}>
-                Email
+                {t("common.email")}
               </FieldLabel>
               <Input
                 id="email"
@@ -292,7 +300,7 @@ export function OrganizationProfileForm({
             </div>
             <div className="sm:col-span-2">
               <FieldLabel htmlFor="website" required={investorRequired}>
-                Web adresa
+                {t("ops.org.website")}
               </FieldLabel>
               <Input
                 id="website"
@@ -310,14 +318,14 @@ export function OrganizationProfileForm({
           fallback={
             <Alert tone="info">
               <AlertDescription>
-                Samo administratori organizacije mogu menjati profil.
+                {t("ops.org.adminOnly")}
               </AlertDescription>
             </Alert>
           }
         >
           <div>
             <Button type="submit" loading={submitting}>
-              Sačuvaj izmene
+              {t("common.saveChanges")}
             </Button>
             {Object.keys(fieldErrors).length > 0 ? (
               <ul className="mt-2 space-y-1 text-xs text-[var(--color-danger)]">

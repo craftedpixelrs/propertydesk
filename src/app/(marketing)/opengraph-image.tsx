@@ -1,4 +1,12 @@
 import { ImageResponse } from "next/og";
+import { cookies } from "next/headers";
+
+import {
+  DEFAULT_LOCALE,
+  LOCALE_COOKIE,
+  parseLocale,
+  t,
+} from "@/lib/i18n";
 
 /**
  * Branded OG image (1200×630) served at `/opengraph-image` for the
@@ -7,10 +15,12 @@ import { ImageResponse } from "next/og";
 export const runtime = "edge";
 export const contentType = "image/png";
 export const size = { width: 1200, height: 630 };
-export const alt =
-  "PropertyDesk - operativni sistem za prodaju novogradnje";
+export const alt = t("marketing.landing.ogAlt");
 
-export default function OgImage() {
+export default async function OgImage() {
+  const jar = await cookies();
+  const locale = parseLocale(jar.get(LOCALE_COOKIE)?.value) ?? DEFAULT_LOCALE;
+
   return new ImageResponse(
     (
       <div
@@ -68,7 +78,7 @@ export default function OgImage() {
               maxWidth: 1000,
             }}
           >
-            Operativni sistem za prodaju novogradnje
+            {t("marketing.landing.ogHeadline", undefined, locale)}
           </div>
           <div
             style={{
@@ -78,8 +88,7 @@ export default function OgImage() {
               maxWidth: 900,
             }}
           >
-            Projekti, kupci, rezervacije, uplate i provizije agencija - sve na
-            srpskom, sa IPS QR i SEF integracijom.
+            {t("marketing.landing.ogSub", undefined, locale)}
           </div>
         </div>
 
@@ -105,7 +114,7 @@ export default function OgImage() {
                 fontSize: 22,
               }}
             >
-              Lansiranje 01.09.2026 · −50% prva 3 meseca
+              {t("marketing.landing.ogBadge", undefined, locale)}
             </div>
           </div>
           <div style={{ fontWeight: 500 }}>propertydesk.app</div>

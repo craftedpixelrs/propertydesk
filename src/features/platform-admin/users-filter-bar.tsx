@@ -8,18 +8,32 @@ import {
   INVESTOR_ROLE_NAMES,
   PROPERTY_DESK_ROLE_NAMES,
 } from "@/server/permissions/roles";
-import { ORG_ROLE_LABEL } from "@/features/settings/role-capability-guide";
+import { useT } from "@/components/app/i18n-provider";
+import type { TranslationKey } from "@/lib/i18n";
 
 const PATH = "/administracija/korisnici";
 
 const selectClass =
   "h-10 w-full rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] px-3 text-sm";
 
-const PD_ROLE_LABEL: Record<string, string> = {
-  SETTER: "Setter",
-  CLOSER: "Closer",
-  OPERATIONS: "Operations",
-  MANAGER: "Manager",
+const PD_ROLE_KEY: Record<string, TranslationKey> = {
+  SETTER: "admin.pd.teamRole.SETTER",
+  CLOSER: "admin.pd.teamRole.CLOSER",
+  OPERATIONS: "admin.pd.teamRole.OPERATIONS",
+  MANAGER: "admin.pd.teamRole.MANAGER",
+};
+
+const ORG_ROLE_KEY: Record<string, TranslationKey> = {
+  INVESTOR_OWNER: "admin.orgRoles.INVESTOR_OWNER",
+  INVESTOR_ADMIN: "admin.orgRoles.INVESTOR_ADMIN",
+  SALES_MANAGER: "admin.orgRoles.SALES_MANAGER",
+  SALES_AGENT: "admin.orgRoles.SALES_AGENT",
+  FINANCE: "admin.orgRoles.FINANCE",
+  INVESTOR_VIEWER: "admin.orgRoles.INVESTOR_VIEWER",
+  AGENCY_OWNER: "admin.orgRoles.AGENCY_OWNER",
+  AGENCY_ADMIN: "admin.orgRoles.AGENCY_ADMIN",
+  AGENCY_AGENT: "admin.orgRoles.AGENCY_AGENT",
+  AGENCY_VIEWER: "admin.orgRoles.AGENCY_VIEWER",
 };
 
 export interface UsersFilterValues {
@@ -52,6 +66,7 @@ export function UsersFilterBar({
   }>;
 }) {
   const router = useRouter();
+  const t = useT();
   const [pending, startTransition] = useTransition();
   const [qLocal, setQLocal] = useState(values.q);
 
@@ -90,25 +105,25 @@ export function UsersFilterBar({
         type="search"
         value={qLocal}
         onChange={(e) => setQLocal(e.target.value)}
-        placeholder="Pretraga po imenu ili e-mail-u…"
+        placeholder={t("admin.usersFilter.searchPlaceholder")}
         className={`${selectClass} lg:col-span-2`}
-        aria-label="Pretraga"
+        aria-label={t("admin.usersFilter.searchAria")}
       />
       <select
         value={values.organizationId}
         onChange={(e) => apply({ organizationId: e.target.value })}
         className={selectClass}
-        aria-label="Organizacija"
+        aria-label={t("admin.usersFilter.orgAria")}
       >
-        <option value="">Sve organizacije</option>
-        <option value="none">Bez organizacije</option>
+        <option value="">{t("admin.usersFilter.allOrgs")}</option>
+        <option value="none">{t("admin.usersFilter.noOrg")}</option>
         {organizations.map((org) => (
           <option key={org.id} value={org.id}>
             {org.name}
             {org.type === "INVESTOR"
-              ? " (investitor)"
+              ? t("admin.orgInvestorSuffix")
               : org.type === "AGENCY"
-                ? " (agencija)"
+                ? t("admin.orgAgencySuffix")
                 : ""}
           </option>
         ))}
@@ -117,38 +132,38 @@ export function UsersFilterBar({
         value={values.orgType}
         onChange={(e) => apply({ orgType: e.target.value })}
         className={selectClass}
-        aria-label="Tip organizacije"
+        aria-label={t("admin.usersFilter.orgTypeAria")}
       >
-        <option value="">Svi tipovi</option>
-        <option value="INVESTOR">Investitor</option>
-        <option value="AGENCY">Agencija</option>
+        <option value="">{t("admin.allTypes")}</option>
+        <option value="INVESTOR">{t("organization.types.investor")}</option>
+        <option value="AGENCY">{t("organization.types.agency")}</option>
       </select>
       <select
         value={values.role}
         onChange={(e) => apply({ role: e.target.value })}
         className={selectClass}
-        aria-label="Uloga"
+        aria-label={t("admin.usersFilter.roleAria")}
       >
-        <option value="">Sve uloge</option>
-        <optgroup label="Investitor">
+        <option value="">{t("admin.usersFilter.allRoles")}</option>
+        <optgroup label={t("admin.usersFilter.groupInvestor")}>
           {INVESTOR_ROLE_NAMES.map((role) => (
             <option key={role} value={role}>
-              {ORG_ROLE_LABEL[role] ?? role}
+              {ORG_ROLE_KEY[role] ? t(ORG_ROLE_KEY[role]) : role}
             </option>
           ))}
         </optgroup>
-        <optgroup label="Agencija">
+        <optgroup label={t("admin.usersFilter.groupAgency")}>
           {AGENCY_ROLE_NAMES.map((role) => (
             <option key={role} value={role}>
-              {ORG_ROLE_LABEL[role] ?? role}
+              {ORG_ROLE_KEY[role] ? t(ORG_ROLE_KEY[role]) : role}
             </option>
           ))}
         </optgroup>
-        <optgroup label="Property Desk (interni tim)">
-          <option value="PD_TEAM">Bilo koja PD uloga</option>
+        <optgroup label={t("admin.usersFilter.groupPd")}>
+          <option value="PD_TEAM">{t("admin.usersFilter.anyPdRole")}</option>
           {PROPERTY_DESK_ROLE_NAMES.map((role) => (
             <option key={role} value={role}>
-              {PD_ROLE_LABEL[role] ?? role}
+              {PD_ROLE_KEY[role] ? t(PD_ROLE_KEY[role]) : role}
             </option>
           ))}
         </optgroup>
@@ -157,25 +172,25 @@ export function UsersFilterBar({
         value={values.status}
         onChange={(e) => apply({ status: e.target.value })}
         className={selectClass}
-        aria-label="Status naloga"
+        aria-label={t("admin.usersFilter.statusAria")}
       >
-        <option value="">Svi statusi</option>
-        <option value="verified">Verifikovan</option>
-        <option value="unverified">Neverifikovan</option>
-        <option value="banned">Banovan</option>
+        <option value="">{t("common.allStatuses")}</option>
+        <option value="verified">{t("admin.usersFilter.verified")}</option>
+        <option value="unverified">{t("admin.usersFilter.unverified")}</option>
+        <option value="banned">{t("admin.usersFilter.banned")}</option>
       </select>
       <select
         value={values.platform}
         onChange={(e) => apply({ platform: e.target.value })}
         className={selectClass}
-        aria-label="Platformska uloga"
+        aria-label={t("admin.usersFilter.platformAria")}
       >
-        <option value="">Svi — platforma</option>
+        <option value="">{t("admin.usersFilter.allPlatform")}</option>
         <option value="SUPER_ADMIN">SUPER_ADMIN</option>
-        <option value="user">Običan korisnik</option>
+        <option value="user">{t("admin.usersFilter.regularUser")}</option>
       </select>
       <div className="flex items-center gap-3 text-sm text-[var(--color-foreground-muted)]">
-        {pending ? <span>Ažuriranje…</span> : null}
+        {pending ? <span>{t("admin.updating")}</span> : null}
         {hasFilters ? (
           <button
             type="button"
@@ -192,7 +207,7 @@ export function UsersFilterBar({
               });
             }}
           >
-            Poništi filtere
+            {t("admin.usersFilter.resetFilters")}
           </button>
         ) : null}
       </div>

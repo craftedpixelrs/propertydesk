@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
+import { useT } from "@/components/app/i18n-provider";
 import { apiClient, ApiClientError } from "@/lib/api-client";
 
 interface Props {
@@ -21,6 +22,7 @@ export function ReservationActions({
   canApprove,
   canCancel,
 }: Props) {
+  const t = useT();
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -42,7 +44,7 @@ export function ReservationActions({
       setReason("");
       router.refresh();
     } catch (err) {
-      setError(err instanceof ApiClientError ? err.message : "Došlo je do greške.");
+      setError(err instanceof ApiClientError ? err.message : t("errors.generic"));
     } finally {
       setBusy(false);
     }
@@ -61,7 +63,7 @@ export function ReservationActions({
       <div className="flex flex-wrap gap-2">
         {canApprove && isPending ? (
           <Button size="sm" loading={busy} onClick={() => act("approve")}>
-            Odobri
+            {t("deals.reservationActions.approve")}
           </Button>
         ) : null}
         {canApprove && isPending ? (
@@ -71,7 +73,7 @@ export function ReservationActions({
             disabled={busy}
             onClick={() => setRejecting((v) => !v)}
           >
-            Odbij
+            {t("deals.reservationActions.reject")}
           </Button>
         ) : null}
         {canCancel ? (
@@ -79,9 +81,11 @@ export function ReservationActions({
             size="sm"
             variant="outline"
             loading={busy}
-            onClick={() => act("cancel", { reason: "Otkazano od strane korisnika" })}
+            onClick={() =>
+              act("cancel", { reason: t("deals.reservationActions.cancelReason") })
+            }
           >
-            Otkaži
+            {t("common.cancel")}
           </Button>
         ) : null}
       </div>
@@ -91,7 +95,7 @@ export function ReservationActions({
           <input
             value={reason}
             onChange={(e) => setReason(e.target.value)}
-            placeholder="Razlog odbijanja (opciono)"
+            placeholder={t("deals.reservationActions.rejectPlaceholder")}
             className="h-10 w-full rounded-md border border-[var(--color-border)] px-3 text-sm"
           />
           <div className="flex justify-end">
@@ -101,7 +105,7 @@ export function ReservationActions({
               loading={busy}
               onClick={() => act("reject", { reason: reason || undefined })}
             >
-              Potvrdi odbijanje
+              {t("deals.reservationActions.confirmReject")}
             </Button>
           </div>
         </div>

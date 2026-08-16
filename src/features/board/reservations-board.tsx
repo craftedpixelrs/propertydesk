@@ -7,17 +7,10 @@ import {
   type DropResult,
   KanbanBoard,
 } from "@/features/board/kanban-board";
+import { useT } from "@/components/app/i18n-provider";
 import { formatDate } from "@/lib/formatters";
+import { enumLabel } from "@/lib/i18n";
 import type { ReservationBoardCard } from "@/server/services/reservations.service";
-
-const STATUS_LABELS: Record<ReservationStatus, string> = {
-  REQUESTED: "Na čekanju",
-  APPROVED: "Odobrena",
-  CONVERTED: "Pretvorena u prodaju",
-  REJECTED: "Odbijena",
-  EXPIRED: "Istekla",
-  CANCELED: "Otkazana",
-};
 
 const COLUMN_ORDER: ReservationStatus[] = [
   "REQUESTED",
@@ -64,6 +57,7 @@ interface Props {
 }
 
 export function ReservationsBoard({ columns, canApprove, canManageSales }: Props) {
+  const t = useT();
   const byStatus = new Map(columns.map((c) => [c.status, c] as const));
 
   const board: BoardColumn<ReservationBoardCard & { createdAt: string; expiresAt: string | null }>[] =
@@ -71,16 +65,14 @@ export function ReservationsBoard({ columns, canApprove, canManageSales }: Props
       const col = byStatus.get(status);
       return {
         status,
-        title: STATUS_LABELS[status],
+        title: enumLabel("reservation", status, t),
         total: col?.total ?? 0,
         cards: (col?.cards ?? []) as (ReservationBoardCard & {
           createdAt: string;
           expiresAt: string | null;
         })[],
         hint:
-          status === "CONVERTED"
-            ? "Prevlačenje otvara ekran za konverziju."
-            : undefined,
+          status === "CONVERTED" ? t("deals.reservations.convertHint") : undefined,
       };
     });
 
@@ -106,7 +98,7 @@ export function ReservationsBoard({ columns, canApprove, canManageSales }: Props
           <div className="truncate text-xs">{c.buyerName}</div>
           {c.expiresAt ? (
             <div className="text-[10px] text-[var(--color-foreground-muted)]">
-              Ističe {formatDate(c.expiresAt)}
+              {t("deals.expiresOn", { date: formatDate(c.expiresAt) })}
             </div>
           ) : null}
         </div>
@@ -118,7 +110,7 @@ export function ReservationsBoard({ columns, canApprove, canManageSales }: Props
 
         if (target === "CONVERTED") {
           if (!canManageSales) {
-            return { kind: "reject", reason: "Nemate dozvolu za kreiranje prodaje." };
+            return { kind: "reject", reason: t("deals.reservations.noSalePermission") };
           }
           return { kind: "redirect", href: `/prodaje/nova?reservation=${card.id}` };
         }
@@ -130,7 +122,7 @@ export function ReservationsBoard({ columns, canApprove, canManageSales }: Props
           return {
             kind: "call",
             path: `/reservations/${card.id}/reject`,
-            body: { ...body, reason: "Odbijeno sa table" },
+            body: { ...body, reason: t("deals.reservations.rejectReasonBoard") },
           };
         }
         if (target === "CANCELED") {

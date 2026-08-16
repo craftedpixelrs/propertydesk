@@ -1,8 +1,10 @@
 import { type ReactNode } from "react";
 import { Building2, ShieldCheck, Sparkles, TrendingUp } from "lucide-react";
 
+import { LanguageSwitcher } from "@/components/app/language-switcher";
 import { APP_NAME } from "@/lib/constants/app";
-import { t } from "@/lib/i18n";
+import { t, type Locale } from "@/lib/i18n";
+import { resolveRequestLocale } from "@/lib/i18n/resolve-locale";
 
 /**
  * Auth layout — split-screen shell used by every unauthenticated page
@@ -14,10 +16,12 @@ import { t } from "@/lib/i18n";
  * collapses to a compact top logo strip so the form remains reachable
  * without scrolling.
  */
-export default function AuthLayout({ children }: { children: ReactNode }) {
+export default async function AuthLayout({ children }: { children: ReactNode }) {
+  const locale = await resolveRequestLocale();
+
   return (
     <main className="grid min-h-dvh grid-cols-1 bg-[var(--color-surface-muted)] lg:grid-cols-2">
-      <BrandingPanel />
+      <BrandingPanel locale={locale} />
 
       <section className="flex min-h-dvh flex-col justify-center px-4 py-10 sm:px-6 safe-top safe-bottom">
         <div className="mx-auto w-full max-w-md">
@@ -34,8 +38,12 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
             {children}
           </div>
 
-          <p className="mt-6 text-center text-xs text-[var(--color-foreground-subtle)]">
-            © {new Date().getFullYear()} {APP_NAME}. {t("common.appTagline")}.
+          <div className="mt-6 flex justify-center">
+            <LanguageSwitcher />
+          </div>
+
+          <p className="mt-4 text-center text-xs text-[var(--color-foreground-subtle)]">
+            © {new Date().getFullYear()} {APP_NAME}. {t("common.appTagline", undefined, locale)}.
           </p>
         </div>
       </section>
@@ -43,11 +51,11 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
   );
 }
 
-function BrandingPanel() {
+function BrandingPanel({ locale }: { locale: Locale }) {
   const features: Array<{ icon: typeof ShieldCheck; label: string }> = [
-    { icon: TrendingUp, label: "Prodaje, rezervacije i uplate na jednom mestu" },
-    { icon: ShieldCheck, label: "Sigurna razmena dokumenata sa kupcima i agencijama" },
-    { icon: Sparkles, label: "Automatski izveštaji za investitore i menadžment" },
+    { icon: TrendingUp, label: t("auth.brandingFeature1", undefined, locale) },
+    { icon: ShieldCheck, label: t("auth.brandingFeature2", undefined, locale) },
+    { icon: Sparkles, label: t("auth.brandingFeature3", undefined, locale) },
   ];
 
   return (
@@ -76,11 +84,10 @@ function BrandingPanel() {
 
       <div className="relative z-10 px-10 pb-10 text-white">
         <h2 className="max-w-md text-3xl font-semibold leading-tight tracking-tight">
-          Operativni sistem za investitore u nekretnine
+          {t("auth.brandingTitle", undefined, locale)}
         </h2>
         <p className="mt-3 max-w-md text-sm text-white/80">
-          Vodite prodaju stanova od prve rezervacije do primopredaje — bez
-          Excel tabela i izgubljenih dokumenata.
+          {t("auth.brandingSubtitle", undefined, locale)}
         </p>
 
         <ul className="mt-8 space-y-3 text-sm text-white/90">

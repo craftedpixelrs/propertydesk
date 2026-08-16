@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { apiClient, ApiClientError } from "@/lib/api-client";
 import { formatDateTime } from "@/lib/formatters/date";
+import { useT } from "@/components/app/i18n-provider";
+import type { TranslateFn } from "@/lib/i18n";
 
 export interface TaskItem {
   id: string;
@@ -37,6 +39,7 @@ export function LeadTaskPanel({
   canComplete,
 }: Props) {
   const router = useRouter();
+  const t = useT();
   const [title, setTitle] = useState("");
   const [dueAt, setDueAt] = useState<string>("");
   const [assignee, setAssignee] = useState<string>("");
@@ -61,7 +64,7 @@ export function LeadTaskPanel({
       setAssignee("");
       router.refresh();
     } catch (e) {
-      setErr(errorMessage(e));
+      setErr(errorMessage(e, t));
     } finally {
       setBusy(null);
     }
@@ -77,7 +80,7 @@ export function LeadTaskPanel({
       );
       router.refresh();
     } catch (e) {
-      setErr(errorMessage(e));
+      setErr(errorMessage(e, t));
     } finally {
       setBusy(null);
     }
@@ -91,9 +94,9 @@ export function LeadTaskPanel({
     <Card>
       <CardContent className="space-y-3 p-4">
         <div className="flex items-center justify-between">
-          <h3 className="text-sm font-semibold">Taskovi</h3>
+          <h3 className="text-sm font-semibold">{t("admin.pdTasks.title")}</h3>
           <span className="text-xs text-[var(--color-foreground-muted)]">
-            Otvoreno: {openItems.length} · završeno: {doneItems.length}
+            {t("admin.pdTasks.counts", { open: openItems.length, done: doneItems.length })}
           </span>
         </div>
 
@@ -110,7 +113,7 @@ export function LeadTaskPanel({
                 type="text"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                placeholder="Novi task (npr. Poslati ponudu do petka)"
+                placeholder={t("admin.pdTasks.placeholder")}
                 className="h-9 flex-1 min-w-64 rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] px-2 text-sm"
                 disabled={busy === "create"}
               />
@@ -128,7 +131,7 @@ export function LeadTaskPanel({
                   className="h-9 rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] px-2 text-sm"
                   disabled={busy === "create"}
                 >
-                  <option value="">— dodeli meni —</option>
+                  <option value="">{t("admin.pdTasks.assignToMe")}</option>
                   {teamMembers.map((m) => (
                     <option key={m.userId} value={m.userId}>
                       {m.name}
@@ -143,7 +146,7 @@ export function LeadTaskPanel({
                 disabled={busy === "create" || !title.trim()}
                 loading={busy === "create"}
               >
-                + Novi task
+                {t("admin.pdTasks.newTask")}
               </Button>
             </div>
           </div>
@@ -151,7 +154,7 @@ export function LeadTaskPanel({
 
         {items.length === 0 ? (
           <p className="text-sm text-[var(--color-foreground-muted)]">
-            Nema taskova za ovaj lead.
+            {t("admin.pdTasks.empty")}
           </p>
         ) : (
           <ul className="divide-y divide-[var(--color-border)]">
@@ -182,9 +185,9 @@ export function LeadTaskPanel({
                       >
                         {task.title}
                       </span>
-                      {overdue ? <Badge tone="danger">Overdue</Badge> : null}
+                      {overdue ? <Badge tone="danger">{t("admin.pdTasks.overdue")}</Badge> : null}
                       {task.completedAt ? (
-                        <Badge tone="success">Završen</Badge>
+                        <Badge tone="success">{t("admin.pdTasks.done")}</Badge>
                       ) : null}
                     </div>
                     {task.description ? (
@@ -194,13 +197,15 @@ export function LeadTaskPanel({
                     ) : null}
                     <div className="mt-1 text-[11px] text-[var(--color-foreground-subtle)]">
                       {task.dueAt
-                        ? `Rok: ${formatDateTime(new Date(task.dueAt))}`
-                        : "Bez roka"}
+                        ? t("admin.pdTasks.dueAt", { date: formatDateTime(new Date(task.dueAt)) })
+                        : t("admin.pdTasks.noDue")}
                       {task.assignedTo
-                        ? ` · Dodeljen: ${task.assignedTo.name}`
-                        : " · Bez vlasnika"}
+                        ? t("admin.pdTasks.assignedTo", { name: task.assignedTo.name })
+                        : t("admin.pdTasks.unassigned")}
                       {task.completedAt
-                        ? ` · Završen: ${formatDateTime(new Date(task.completedAt))}`
+                        ? t("admin.pdTasks.completedAt", {
+                            date: formatDateTime(new Date(task.completedAt)),
+                          })
                         : ""}
                     </div>
                   </div>
@@ -214,8 +219,8 @@ export function LeadTaskPanel({
   );
 }
 
-function errorMessage(err: unknown): string {
+function errorMessage(err: unknown, t: TranslateFn): string {
   if (err instanceof ApiClientError) return err.message;
   if (err instanceof Error) return err.message;
-  return "Došlo je do greške.";
+  return t("admin.genericError");
 }

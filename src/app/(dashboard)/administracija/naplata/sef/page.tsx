@@ -6,11 +6,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { formatDateTime } from "@/lib/formatters/date";
 import Link from "next/link";
+import { createT } from "@/lib/i18n";
+import { resolveRequestLocale } from "@/lib/i18n/resolve-locale";
 
 export const dynamic = "force-dynamic";
 
 export default async function SefPage() {
   await requireSuperAdmin();
+  const t = createT(await resolveRequestLocale());
   const [settings, profile, records] = await Promise.all([
     getOrCreateGlobalBillingSettings(),
     getCompanyBillingProfile(),
@@ -24,39 +27,51 @@ export default async function SefPage() {
   return (
     <section className="space-y-6">
       <header>
-        <h2 className="text-lg font-semibold">SEF integracija</h2>
+        <h2 className="text-lg font-semibold">{t("admin.sef.title")}</h2>
         <p className="text-sm text-[var(--color-foreground-muted)]">
-          Sistem Elektronskih Faktura (SEF). Provider trenutno postavljen na{" "}
-          <strong>{settings.electronicInvoiceProvider}</strong>. Slanje je{" "}
+          {t("admin.sef.subtitle", { provider: settings.electronicInvoiceProvider })}{" "}
           {settings.electronicInvoiceEnabled ? (
-            <Badge tone="success">omogućeno</Badge>
+            <Badge tone="success">{t("admin.sef.enabled")}</Badge>
           ) : (
-            <Badge tone="warning">isključeno</Badge>
-          )}.
+            <Badge tone="warning">{t("admin.sef.disabled")}</Badge>
+          )}
+          .
         </p>
       </header>
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Konfiguracija</CardTitle>
+          <CardTitle className="text-base">{t("admin.sef.config")}</CardTitle>
         </CardHeader>
         <CardContent className="grid gap-3 md:grid-cols-2 text-sm">
           <div>
-            <div className="text-xs text-[var(--color-foreground-muted)]">Aktivan provider</div>
+            <div className="text-xs text-[var(--color-foreground-muted)]">
+              {t("admin.sef.activeProvider")}
+            </div>
             <div className="font-medium">{settings.electronicInvoiceProvider}</div>
           </div>
           <div>
-            <div className="text-xs text-[var(--color-foreground-muted)]">Okruženje</div>
+            <div className="text-xs text-[var(--color-foreground-muted)]">
+              {t("admin.sef.environment")}
+            </div>
             <div className="font-medium">{profile?.sefEnvironment ?? "DISABLED"}</div>
           </div>
           <div>
-            <div className="text-xs text-[var(--color-foreground-muted)]">Endpoint URL</div>
-            <div className="font-mono text-xs">{profile?.sefEndpointUrl ?? "—"}</div>
+            <div className="text-xs text-[var(--color-foreground-muted)]">
+              {t("admin.sef.endpoint")}
+            </div>
+            <div className="font-mono text-xs">{profile?.sefEndpointUrl ?? t("admin.dash")}</div>
           </div>
           <div>
-            <div className="text-xs text-[var(--color-foreground-muted)]">API ključ</div>
+            <div className="text-xs text-[var(--color-foreground-muted)]">
+              {t("admin.sef.apiKey")}
+            </div>
             <div className="font-mono text-xs">
-              {profile?.sefApiKeyMasked ?? <span className="text-[var(--color-foreground-muted)]">nije postavljen</span>}
+              {profile?.sefApiKeyMasked ?? (
+                <span className="text-[var(--color-foreground-muted)]">
+                  {t("admin.sef.apiKeyMissing")}
+                </span>
+              )}
             </div>
           </div>
         </CardContent>
@@ -64,25 +79,37 @@ export default async function SefPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Poslednja slanja</CardTitle>
+          <CardTitle className="text-base">{t("admin.sef.recentSends")}</CardTitle>
         </CardHeader>
         <CardContent className="p-0">
           <table className="w-full text-sm">
             <thead className="text-left text-xs uppercase text-[var(--color-foreground-subtle)]">
               <tr>
-                <th className="border-b border-[var(--color-border)] px-3 py-2">Faktura</th>
-                <th className="border-b border-[var(--color-border)] px-3 py-2">Provider</th>
-                <th className="border-b border-[var(--color-border)] px-3 py-2">Status</th>
-                <th className="border-b border-[var(--color-border)] px-3 py-2">Poslata</th>
-                <th className="border-b border-[var(--color-border)] px-3 py-2 text-right">Pokušaji</th>
-                <th className="border-b border-[var(--color-border)] px-3 py-2">Greška</th>
+                <th className="border-b border-[var(--color-border)] px-3 py-2">
+                  {t("admin.sef.invoice")}
+                </th>
+                <th className="border-b border-[var(--color-border)] px-3 py-2">
+                  {t("admin.sef.provider")}
+                </th>
+                <th className="border-b border-[var(--color-border)] px-3 py-2">
+                  {t("common.statusLabel")}
+                </th>
+                <th className="border-b border-[var(--color-border)] px-3 py-2">
+                  {t("admin.sef.sent")}
+                </th>
+                <th className="border-b border-[var(--color-border)] px-3 py-2 text-right">
+                  {t("admin.sef.attempts")}
+                </th>
+                <th className="border-b border-[var(--color-border)] px-3 py-2">
+                  {t("admin.sef.error")}
+                </th>
               </tr>
             </thead>
             <tbody>
               {records.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="px-3 py-6 text-center text-[var(--color-foreground-muted)]">
-                    Nema slanja.
+                    {t("admin.sef.empty")}
                   </td>
                 </tr>
               ) : (
@@ -110,10 +137,10 @@ export default async function SefPage() {
                         {r.status}
                       </Badge>
                     </td>
-                    <td className="px-3 py-2 text-xs">{r.sentAt ? formatDateTime(r.sentAt) : "—"}</td>
+                    <td className="px-3 py-2 text-xs">{r.sentAt ? formatDateTime(r.sentAt) : t("admin.dash")}</td>
                     <td className="px-3 py-2 text-right tabular-nums">{r.attempts}</td>
                     <td className="px-3 py-2 text-xs text-[var(--color-foreground-muted)]">
-                      {r.errorMessage ?? "—"}
+                      {r.errorMessage ?? t("admin.dash")}
                     </td>
                   </tr>
                 ))

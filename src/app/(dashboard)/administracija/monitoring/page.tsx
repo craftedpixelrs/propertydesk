@@ -9,6 +9,8 @@ import {
 import { requireSuperAdmin } from "@/server/permissions/require";
 import { serverEnv } from "@/lib/env";
 import { BackupVerifyButton } from "@/features/platform-admin/backup-verify-button";
+import { createT } from "@/lib/i18n";
+import { resolveRequestLocale } from "@/lib/i18n/resolve-locale";
 
 export const dynamic = "force-dynamic";
 
@@ -25,6 +27,7 @@ export default async function MonitoringPage() {
     listRecentHealthChecks(30),
     summarizeBackupVerify(),
   ]);
+  const t = createT(await resolveRequestLocale());
 
   const backupRows = rows.filter((r) => r.kind === "BACKUP_VERIFY");
   const otherRows = rows.filter((r) => r.kind !== "BACKUP_VERIFY");
@@ -33,17 +36,15 @@ export default async function MonitoringPage() {
     ? summary.lastStatus === "OK"
       ? "OK"
       : "FAIL"
-    : "—";
+    : t("admin.dash");
 
   return (
     <section className="space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h2 className="text-lg font-semibold">Monitoring platforme</h2>
+          <h2 className="text-lg font-semibold">{t("admin.monitoringPage.title")}</h2>
           <p className="text-sm text-[var(--color-foreground-muted)]">
-            Automatske provere infrastrukture. Backup verifikator se pokreće
-            nedeljno (`backup-verify` cron job) i beleži rezultat u sistemsku
-            reviziju.
+            {t("admin.monitoringPage.subtitle")}
           </p>
         </div>
         <BackupVerifyButton />
@@ -51,39 +52,39 @@ export default async function MonitoringPage() {
 
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
-          label="Poslednji backup check"
+          label={t("admin.monitoringPage.lastBackup")}
           value={
-            summary.lastRunAt ? formatDateTime(summary.lastRunAt) : "Nikad"
+            summary.lastRunAt ? formatDateTime(summary.lastRunAt) : t("admin.never")
           }
-          hint={`Status: ${lastStatusLabel}`}
+          hint={t("admin.statusHint", { status: lastStatusLabel })}
         />
         <StatCard
-          label="Uzastopni neuspesi"
+          label={t("admin.monitoringPage.consecutiveFailures")}
           value={String(summary.consecutiveFailures)}
           hint={
             summary.consecutiveFailures >= 2
-              ? "Upozorenje je poslato administratorima."
-              : "Sistem je stabilan."
+              ? t("admin.monitoringPage.warningSent")
+              : t("admin.monitoringPage.systemStable")
           }
         />
         <StatCard
-          label="Uspešnost (30 provera)"
+          label={t("admin.monitoringPage.successRate")}
           value={
             summary.successRate === null
-              ? "—"
+              ? t("admin.dash")
               : `${Math.round(summary.successRate * 100)}%`
           }
         />
         <StatCard
-          label="Izvor"
+          label={t("admin.source")}
           value={
             serverEnv.BACKUP_VERIFY_SOURCE === "disabled"
-              ? "Isključeno"
+              ? t("admin.monitoringPage.sourceDisabled")
               : serverEnv.BACKUP_VERIFY_SOURCE.toUpperCase()
           }
           hint={
             serverEnv.BACKUP_VERIFY_SOURCE === "local"
-              ? serverEnv.BACKUP_VERIFY_LOCAL_DIR ?? "—"
+              ? serverEnv.BACKUP_VERIFY_LOCAL_DIR ?? t("admin.dash")
               : serverEnv.BACKUP_VERIFY_SOURCE === "s3"
                 ? [
                     serverEnv.BACKUP_VERIFY_S3_BUCKET,
@@ -91,14 +92,14 @@ export default async function MonitoringPage() {
                   ]
                     .filter(Boolean)
                     .join(" / ")
-                : "Postavite `BACKUP_VERIFY_SOURCE=local|s3` u .env"
+                : t("admin.monitoringPage.sourceHintEnv")
           }
         />
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-sm">Backup verifier — timeline</CardTitle>
+          <CardTitle className="text-sm">{t("admin.monitoringPage.timeline")}</CardTitle>
         </CardHeader>
         <CardContent className="p-0">
           <div className="overflow-x-auto">
@@ -106,13 +107,13 @@ export default async function MonitoringPage() {
               <thead className="text-left text-xs uppercase text-[var(--color-foreground-subtle)]">
                 <tr>
                   <th className="border-b border-[var(--color-border)] px-4 py-2">
-                    Vreme
+                    {t("admin.time")}
                   </th>
                   <th className="border-b border-[var(--color-border)] px-4 py-2">
-                    Status
+                    {t("common.statusLabel")}
                   </th>
                   <th className="border-b border-[var(--color-border)] px-4 py-2">
-                    Poruka
+                    {t("admin.message")}
                   </th>
                 </tr>
               </thead>
@@ -123,7 +124,7 @@ export default async function MonitoringPage() {
                       colSpan={3}
                       className="px-4 py-8 text-center text-[var(--color-foreground-muted)]"
                     >
-                      Nema zapisa. Job `backup-verify` nije još pokrenut.
+                      {t("admin.monitoringPage.emptyBackup")}
                     </td>
                   </tr>
                 ) : (
@@ -143,7 +144,7 @@ export default async function MonitoringPage() {
                         )}
                       </td>
                       <td className="px-4 py-2 text-xs text-[var(--color-foreground-muted)]">
-                        {row.message ?? "—"}
+                        {row.message ?? t("admin.dash")}
                       </td>
                     </tr>
                   ))
@@ -157,7 +158,7 @@ export default async function MonitoringPage() {
       {otherRows.length > 0 ? (
         <Card>
           <CardHeader>
-            <CardTitle className="text-sm">Ostali system-health zapisi</CardTitle>
+            <CardTitle className="text-sm">{t("admin.monitoringPage.otherHealth")}</CardTitle>
           </CardHeader>
           <CardContent className="p-0">
             <ul className="divide-y divide-[var(--color-border)]">
@@ -174,7 +175,7 @@ export default async function MonitoringPage() {
                       <Badge tone="danger">FAIL</Badge>
                     )}{" "}
                     <span className="ml-2 text-[var(--color-foreground-muted)]">
-                      {row.message ?? "—"}
+                      {row.message ?? t("admin.dash")}
                     </span>
                   </span>
                 </li>

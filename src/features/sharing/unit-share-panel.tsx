@@ -6,6 +6,8 @@ import { Share2, Trash2, Eye, Clock, Link as LinkIcon, Check } from "lucide-reac
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { useI18n } from "@/components/app/i18n-provider";
+import { intlLocale } from "@/lib/i18n";
 
 interface ShareLinkRow {
   id: string;
@@ -28,6 +30,7 @@ export function UnitSharePanel({
   initialLinks: ShareLinkRow[];
   canManage: boolean;
 }) {
+  const { t, locale } = useI18n();
   const router = useRouter();
   const [links, setLinks] = React.useState<ShareLinkRow[]>(initialLinks);
   const [busy, setBusy] = React.useState(false);
@@ -53,28 +56,28 @@ export function UnitSharePanel({
         const payload = await res.json().catch(() => null);
         throw new Error(
           (payload?.error?.message as string | undefined) ??
-            "Kreiranje linka nije uspelo.",
+            t("inventory.share.createFailed"),
         );
       }
       const created = (await res.json()) as { data: ShareLinkRow };
       setLinks((prev) => [created.data, ...prev]);
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Došlo je do greške.");
+      setError(err instanceof Error ? err.message : t("errors.generic"));
     } finally {
       setBusy(false);
     }
   }
 
   async function revoke(id: string) {
-    if (!confirm("Opozvati link? Kupac koji ga otvori dobiće 404.")) return;
+    if (!confirm(t("inventory.share.revokeConfirm"))) return;
     setBusy(true);
     setError(null);
     try {
       const res = await fetch(`/api/v1/share-links/${id}`, {
         method: "DELETE",
       });
-      if (!res.ok) throw new Error("Opoziv nije uspeo.");
+      if (!res.ok) throw new Error(t("inventory.share.revokeFailed"));
       setLinks((prev) =>
         prev.map((l) =>
           l.id === id ? { ...l, revokedAt: new Date().toISOString() } : l,
@@ -82,7 +85,7 @@ export function UnitSharePanel({
       );
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Došlo je do greške.");
+      setError(err instanceof Error ? err.message : t("errors.generic"));
     } finally {
       setBusy(false);
     }
@@ -102,7 +105,7 @@ export function UnitSharePanel({
     <Card>
       <CardContent className="space-y-3 p-4">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <h3 className="text-sm font-semibold">Javni linkovi za kupca</h3>
+          <h3 className="text-sm font-semibold">{t("inventory.share.title")}</h3>
         </div>
 
         {canManage ? (
@@ -113,7 +116,7 @@ export function UnitSharePanel({
                 checked={showPrice}
                 onChange={(e) => setShowPrice(e.target.checked)}
               />
-              Prikaži cenu na javnoj stranici
+              {t("inventory.share.showPrice")}
             </label>
             <Button
               size="sm"
@@ -121,7 +124,7 @@ export function UnitSharePanel({
               onClick={createLink}
               className="ml-auto"
             >
-              <Share2 className="mr-1 size-4" /> Kreiraj link
+              <Share2 className="mr-1 size-4" /> {t("inventory.share.create")}
             </Button>
           </div>
         ) : null}
@@ -134,8 +137,7 @@ export function UnitSharePanel({
 
         {links.length === 0 ? (
           <div className="text-sm text-[var(--color-foreground-muted)]">
-            Još nema deljenih linkova. Kada kreirate link, kupac može da otvori
-            stranicu ponude bez logina.
+            {t("inventory.share.empty")}
           </div>
         ) : (
           <ul className="divide-y divide-[var(--color-border)]">
@@ -166,25 +168,25 @@ export function UnitSharePanel({
                       {link.lastViewedAt ? (
                         <span className="inline-flex items-center gap-1">
                           <Clock className="size-3.5" />
-                          {new Date(link.lastViewedAt).toLocaleString("sr-Latn-RS")}
+                          {new Date(link.lastViewedAt).toLocaleString(intlLocale(locale))}
                         </span>
                       ) : null}
                       {revoked ? (
                         <span className="rounded bg-red-100 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-red-700">
-                          opozvan
+                          {t("inventory.share.revoked")}
                         </span>
                       ) : expired ? (
                         <span className="rounded bg-neutral-200 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-neutral-700">
-                          istekao
+                          {t("inventory.share.expired")}
                         </span>
                       ) : (
                         <span className="rounded bg-emerald-100 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-emerald-700">
-                          aktivan
+                          {t("inventory.share.active")}
                         </span>
                       )}
                       {!link.showPrice ? (
                         <span className="text-[var(--color-foreground-subtle)]">
-                          bez cene
+                          {t("inventory.share.noPrice")}
                         </span>
                       ) : null}
                     </div>
@@ -201,7 +203,7 @@ export function UnitSharePanel({
                           <Check className="size-4" />
                         </>
                       ) : (
-                        "Kopiraj"
+                        t("inventory.share.copy")
                       )}
                     </Button>
                     {canManage && active ? (

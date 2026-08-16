@@ -5,6 +5,8 @@ import Link from "next/link";
 import { getSession, isSuperAdmin } from "@/server/auth/session";
 import { getPropertyDeskTeamMember } from "@/server/permissions/property-desk";
 import { PageHeader } from "@/components/app/page-header";
+import { createT } from "@/lib/i18n";
+import { resolveRequestLocale } from "@/lib/i18n/resolve-locale";
 
 /**
  * Platform administration layout. Two audiences share this shell:
@@ -39,99 +41,94 @@ export default async function PlatformAdminLayout({
   }
 
   const canSeePlatformSections = superAdmin;
+  const t = createT(await resolveRequestLocale());
 
   return (
     <div className="space-y-6">
       <PageHeader
-        title={
-          superAdmin
-            ? "Administracija platforme"
-            : "Property Desk — operativni panel"
-        }
+        title={superAdmin ? t("admin.title") : t("admin.titlePd")}
         description={
-          superAdmin
-            ? "Upravljanje organizacijama, planovima i sistemskim revizijama."
-            : "Marketing lead pipeline i interni Property Desk tim."
+          superAdmin ? t("admin.description") : t("admin.descriptionPd")
         }
       />
       {canSeePlatformSections ? (
         <nav
           className="flex flex-wrap gap-2 border-b border-[var(--color-border)] pb-3"
-          aria-label="Sekcije administracije"
+          aria-label={t("admin.navAria")}
         >
           <Link
             className="rounded-md border border-[var(--color-border)] px-3 py-1.5 text-sm hover:bg-[var(--color-surface-inset)]"
             href="/administracija"
           >
-            Pregled
+            {t("admin.overview")}
           </Link>
           <Link
             className="rounded-md border border-[var(--color-border)] px-3 py-1.5 text-sm hover:bg-[var(--color-surface-inset)]"
             href="/administracija/organizacije"
           >
-            Organizacije
+            {t("admin.organizations")}
           </Link>
           <Link
             className="rounded-md border border-[var(--color-border)] px-3 py-1.5 text-sm hover:bg-[var(--color-surface-inset)]"
             href="/administracija/korisnici"
           >
-            Korisnici
+            {t("admin.users")}
           </Link>
           <Link
             className="rounded-md border border-[var(--color-border)] px-3 py-1.5 text-sm hover:bg-[var(--color-surface-inset)]"
             href="/administracija/planovi"
           >
-            Planovi
+            {t("admin.plans")}
           </Link>
           <Link
             className="rounded-md border border-[var(--color-border)] px-3 py-1.5 text-sm hover:bg-[var(--color-surface-inset)]"
             href="/administracija/role"
-            title="Sloj A — Platforma (SUPER_ADMIN) i Sloj B — Aplikacione uloge u organizaciji"
+            title={t("admin.rolesNavTitle")}
           >
-            Uloge i dozvole (aplikacija i platforma)
+            {t("admin.rolesNav")}
           </Link>
           <Link
             className="rounded-md border border-[var(--color-border)] px-3 py-1.5 text-sm hover:bg-[var(--color-surface-inset)]"
             href="/administracija/naplata"
           >
-            Naplata
+            {t("billing.title")}
           </Link>
           <Link
             className="rounded-md border border-[var(--color-border)] px-3 py-1.5 text-sm hover:bg-[var(--color-surface-inset)]"
             href="/administracija/revizija"
           >
-            Revizija
+            {t("admin.audit")}
           </Link>
           <Link
             className="rounded-md border border-[var(--color-border)] px-3 py-1.5 text-sm hover:bg-[var(--color-surface-inset)]"
             href="/administracija/monitoring"
           >
-            Monitoring
+            {t("admin.monitoring")}
           </Link>
           <Link
             className="rounded-md border border-[var(--color-border)] px-3 py-1.5 text-sm font-medium text-[var(--color-brand)] hover:bg-[var(--color-surface-inset)]"
             href="/administracija/property-desk"
-            title="Property Desk operativni tim: marketing pipeline, tim i lead-ovi za SaaS."
+            title={t("admin.propertyDeskTeamTitle")}
           >
-            Property Desk (tim)
+            {t("admin.propertyDeskTeam")}
           </Link>
         </nav>
       ) : (
         <nav
           className="flex flex-wrap gap-2 border-b border-[var(--color-border)] pb-3"
-          aria-label="Property Desk sekcije"
+          aria-label={t("admin.navPdAria")}
         >
           <Link
             className="rounded-md border border-[var(--color-border)] px-3 py-1.5 text-sm hover:bg-[var(--color-surface-inset)]"
             href="/administracija/property-desk/leadovi"
           >
-            Leadovi
+            {t("admin.leads")}
           </Link>
           <Link
             className="rounded-md border border-[var(--color-border)] px-3 py-1.5 text-sm hover:bg-[var(--color-surface-inset)]"
             href="/administracija/property-desk/tim"
           >
-            Tim
+            {t("admin.team")}
           </Link>
         </nav>
       )}

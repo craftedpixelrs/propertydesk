@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
+import { useT } from "@/components/app/i18n-provider";
 import { apiClient, ApiClientError } from "@/lib/api-client";
 
 interface Props {
@@ -17,6 +18,7 @@ export function ConvertReservationForm({
   defaultListPrice,
   defaultCurrency,
 }: Props) {
+  const t = useT();
   const router = useRouter();
   const [listPrice, setListPrice] = useState(defaultListPrice);
   const [discountType, setDiscountType] = useState<"" | "PERCENTAGE" | "FIXED">("");
@@ -43,7 +45,7 @@ export function ConvertReservationForm({
       );
       router.push(`/prodaje/${res.id}`);
     } catch (err) {
-      setError(err instanceof ApiClientError ? err.message : "Došlo je do greške.");
+      setError(err instanceof ApiClientError ? err.message : t("errors.generic"));
       setBusy(false);
     }
   }
@@ -58,7 +60,7 @@ export function ConvertReservationForm({
       <div className="grid gap-3 sm:grid-cols-2">
         <div>
           <label className="block text-xs text-[var(--color-foreground-muted)]">
-            Cena po ceniku
+            {t("deals.listPrice")}
           </label>
           <input
             inputMode="decimal"
@@ -69,22 +71,24 @@ export function ConvertReservationForm({
         </div>
         <div>
           <label className="block text-xs text-[var(--color-foreground-muted)]">
-            Tip popusta
+            {t("deals.convert.discountType")}
           </label>
           <select
             value={discountType}
             onChange={(e) => setDiscountType(e.target.value as "" | "PERCENTAGE" | "FIXED")}
             className="h-10 w-full rounded-md border border-[var(--color-border)] px-3 text-sm"
           >
-            <option value="">Bez popusta</option>
-            <option value="PERCENTAGE">Procenat</option>
-            <option value="FIXED">Fiksni iznos</option>
+            <option value="">{t("deals.convert.noDiscount")}</option>
+            <option value="PERCENTAGE">{t("deals.convert.percentage")}</option>
+            <option value="FIXED">{t("deals.convert.fixed")}</option>
           </select>
         </div>
         {discountType ? (
           <div>
             <label className="block text-xs text-[var(--color-foreground-muted)]">
-              {discountType === "PERCENTAGE" ? "Popust (%)" : `Popust (${defaultCurrency})`}
+              {discountType === "PERCENTAGE"
+                ? t("deals.convert.discountPercent")
+                : t("deals.convert.discountAmount", { currency: defaultCurrency })}
             </label>
             <input
               inputMode="decimal"
@@ -96,7 +100,7 @@ export function ConvertReservationForm({
         ) : null}
         <div>
           <label className="block text-xs text-[var(--color-foreground-muted)]">
-            Depozit ({defaultCurrency})
+            {t("deals.convert.depositAmount", { currency: defaultCurrency })}
           </label>
           <input
             inputMode="decimal"
@@ -107,7 +111,9 @@ export function ConvertReservationForm({
         </div>
       </div>
       <div>
-        <label className="block text-xs text-[var(--color-foreground-muted)]">Napomena</label>
+        <label className="block text-xs text-[var(--color-foreground-muted)]">
+          {t("common.notes")}
+        </label>
         <textarea
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
@@ -117,7 +123,7 @@ export function ConvertReservationForm({
       </div>
       <div className="flex justify-end">
         <Button loading={busy} onClick={submit}>
-          Kreiraj prodaju
+          {t("deals.createSale")}
         </Button>
       </div>
     </div>

@@ -1,3 +1,5 @@
+"use client";
+
 import {
   CalendarClock,
   Percent,
@@ -10,63 +12,29 @@ import {
 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
+import { useT } from "@/components/app/i18n-provider";
+import type { TranslationKey } from "@/lib/i18n";
 
 interface Bonus {
   icon: LucideIcon;
-  title: string;
-  body: string;
+  titleKey: TranslationKey;
+  bodyKey: TranslationKey;
   highlight?: boolean;
 }
 
 const BONUSES: Bonus[] = [
-  {
-    icon: CalendarClock,
-    title: "Prvih 30 dana besplatno",
-    body: "Kompletan pristup planu bez obaveze plaćanja, na Vašim realnim podacima.",
-    highlight: true,
-  },
-  {
-    icon: Percent,
-    title: "50% popusta na naredna 3 meseca",
-    body: "Polovina cene odabranog paketa u tri meseca nakon isteka trial-a.",
-    highlight: true,
-  },
-  {
-    icon: FileSpreadsheet,
-    title: "Besplatan uvoz prve Excel tabele",
-    body: "Vaš postojeći cenovnik / lista jedinica ubaci se u sistem umesto Vas.",
-  },
-  {
-    icon: Wrench,
-    title: "Besplatno podešavanje jednog projekta",
-    body: "Zajedno modelujemo strukturu Vašeg projekta (objekti, ulazi, spratovi, jedinice).",
-  },
-  {
-    icon: Users,
-    title: "Onboarding za ceo tim",
-    body: "60-minutna sesija u kojoj Vaš prodajni tim prolazi kroz sistem sa nama.",
-  },
-  {
-    icon: LifeBuoy,
-    title: "Prioritetna podrška",
-    body: "Odgovor na Vaše prijave u okviru istog radnog dana - direktna komunikacija sa timom.",
-  },
-  {
-    icon: Lock,
-    title: "Zaključana cena paketa 12 meseci",
-    body: "Cena se ne menja godinu dana - bez poskupljenja u toku prve godine korišćenja.",
-  },
+  { icon: CalendarClock, titleKey: "marketing.bonuses.trialTitle", bodyKey: "marketing.bonuses.trialBody", highlight: true },
+  { icon: Percent, titleKey: "marketing.bonuses.discountTitle", bodyKey: "marketing.bonuses.discountBody", highlight: true },
+  { icon: FileSpreadsheet, titleKey: "marketing.bonuses.excelTitle", bodyKey: "marketing.bonuses.excelBody" },
+  { icon: Wrench, titleKey: "marketing.bonuses.setupTitle", bodyKey: "marketing.bonuses.setupBody" },
+  { icon: Users, titleKey: "marketing.bonuses.onboardingTitle", bodyKey: "marketing.bonuses.onboardingBody" },
+  { icon: LifeBuoy, titleKey: "marketing.bonuses.supportTitle", bodyKey: "marketing.bonuses.supportBody" },
+  { icon: Lock, titleKey: "marketing.bonuses.lockTitle", bodyKey: "marketing.bonuses.lockBody" },
 ];
 
-/**
- * Standalone "sve što dobijate ako se prijavite do 01.09." section.
- *
- * The order matches the exact bullet list from the product brief and
- * the two headline items (30 days free + 50% off 3 months) carry a
- * `highlight` flag so they render with a stronger visual weight than
- * the operational perks.
- */
 export function EarlyBirdBonuses() {
+  const t = useT();
+
   return (
     <section
       id="rana-ponuda"
@@ -77,23 +45,21 @@ export function EarlyBirdBonuses() {
         <div className="max-w-3xl">
           <div className="flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-wider text-[var(--color-brand-700)]">
             <Badge tone="success" className="uppercase tracking-wide">
-              Rani pristup
+              {t("marketing.common.earlyAccess")}
             </Badge>
-            <span>Sve prijave do 01.09.2026.</span>
+            <span>{t("marketing.bonuses.until")}</span>
           </div>
           <h2
             id="bonuses-title"
             className="mt-2 text-3xl font-bold tracking-tight sm:text-4xl"
           >
-            Šta tačno dobijate prijavom pre lansiranja
+            {t("marketing.bonuses.title")}
           </h2>
           <p className="mt-4 text-base leading-relaxed text-[var(--color-foreground-muted)]">
             <strong className="font-semibold text-[var(--color-foreground)]">
-              Prvih 30 dana besplatno. Nakon toga 50% popusta na naredna tri
-              meseca.
+              {t("marketing.bonuses.leadStrong")}
             </strong>{" "}
-            Uz to, dobijate paket bonusa koji Vam skida ceo teret prvog
-            postavljanja i uvođenja tima u sistem - bez dodatne naplate.
+            {t("marketing.bonuses.leadRest")}
           </p>
         </div>
 
@@ -102,7 +68,7 @@ export function EarlyBirdBonuses() {
             const Icon = b.icon;
             return (
               <article
-                key={b.title}
+                key={b.titleKey}
                 className={
                   b.highlight
                     ? "rounded-xl border-2 border-[var(--color-brand-600)] bg-[var(--color-brand-50)] p-5 shadow-sm"
@@ -122,10 +88,10 @@ export function EarlyBirdBonuses() {
                   </span>
                   <div className="min-w-0">
                     <h3 className="text-base font-semibold text-[var(--color-foreground)]">
-                      {b.title}
+                      {t(b.titleKey)}
                     </h3>
                     <p className="mt-1.5 text-sm leading-relaxed text-[var(--color-foreground-muted)]">
-                      {b.body}
+                      {t(b.bodyKey)}
                     </p>
                   </div>
                 </div>
@@ -135,8 +101,7 @@ export function EarlyBirdBonuses() {
         </div>
 
         <p className="mt-6 text-xs text-[var(--color-foreground-subtle)]">
-          Rana ponuda važi za sve koji zakažu demo ili se prijave putem forme
-          do 01.09.2026. Nakon lansiranja standardni cenovnik.
+          {t("marketing.bonuses.footnote")}
         </p>
       </div>
     </section>

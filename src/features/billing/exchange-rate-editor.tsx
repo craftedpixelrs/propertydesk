@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { apiClient, ApiClientError } from "@/lib/api-client";
 import { formatMoney } from "@/lib/formatters/money";
+import { useI18n } from "@/components/app/i18n-provider";
+import { intlLocale, type Locale } from "@/lib/i18n";
 
 /**
  * A single row in the rate list as it comes back from the API. `rate` is
@@ -36,10 +38,10 @@ function todayIsoDate(): string {
   return `${y}-${m}-${day}`;
 }
 
-function formatDate(iso: string): string {
+function formatDate(iso: string, locale: Locale): string {
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return iso;
-  return d.toLocaleDateString("sr-Latn-RS", {
+  return d.toLocaleDateString(intlLocale(locale), {
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
@@ -48,6 +50,7 @@ function formatDate(iso: string): string {
 
 export function ExchangeRateEditor({ initialRates }: Props) {
   const router = useRouter();
+  const { t, locale } = useI18n();
   const [rates, setRates] = useState<ExchangeRateRow[]>(initialRates);
   const [effectiveDate, setEffectiveDate] = useState<string>(todayIsoDate());
   const [rate, setRate] = useState<string>("");
@@ -62,7 +65,7 @@ export function ExchangeRateEditor({ initialRates }: Props) {
 
     const parsed = Number(rate.replace(",", "."));
     if (!Number.isFinite(parsed) || parsed <= 0) {
-      setError("Kurs mora biti pozitivan broj (npr. 117.25).");
+      setError(t("admin.exchangeRates.invalidRate"));
       return;
     }
 
@@ -89,14 +92,14 @@ export function ExchangeRateEditor({ initialRates }: Props) {
         router.refresh();
       } catch (err) {
         setError(
-          err instanceof ApiClientError ? err.message : "Snimanje nije uspelo.",
+          err instanceof ApiClientError ? err.message : t("admin.saveFailed"),
         );
       }
     });
   }
 
   async function onDelete(id: string) {
-    if (!window.confirm("Obrisati ovaj kurs? Ova akcija se ne može poništiti.")) {
+    if (!window.confirm(t("admin.exchangeRates.deleteConfirm"))) {
       return;
     }
     setError(null);
@@ -107,7 +110,7 @@ export function ExchangeRateEditor({ initialRates }: Props) {
       router.refresh();
     } catch (err) {
       setError(
-        err instanceof ApiClientError ? err.message : "Brisanje nije uspelo.",
+        err instanceof ApiClientError ? err.message : t("admin.deleteFailed"),
       );
     } finally {
       setPendingDeleteId(null);
@@ -123,7 +126,7 @@ export function ExchangeRateEditor({ initialRates }: Props) {
         <div className="grid gap-3 md:grid-cols-4">
           <label className="grid gap-1 text-sm">
             <span className="text-xs text-[var(--color-foreground-muted)]">
-              Datum važenja
+              {t("admin.exchangeRates.effectiveDate")}
             </span>
             <Input
               type="date"
@@ -134,12 +137,12 @@ export function ExchangeRateEditor({ initialRates }: Props) {
           </label>
           <label className="grid gap-1 text-sm">
             <span className="text-xs text-[var(--color-foreground-muted)]">
-              1 EUR = ? RSD
+              {t("admin.exchangeRates.rateLabel")}
             </span>
             <Input
               type="text"
               inputMode="decimal"
-              placeholder="npr. 117.25"
+              placeholder={t("admin.exchangeRates.ratePlaceholder")}
               value={rate}
               onChange={(e) => setRate(e.target.value)}
               required
@@ -147,11 +150,11 @@ export function ExchangeRateEditor({ initialRates }: Props) {
           </label>
           <label className="grid gap-1 text-sm md:col-span-2">
             <span className="text-xs text-[var(--color-foreground-muted)]">
-              Napomena (opciono)
+              {t("admin.exchangeRates.noteOptional")}
             </span>
             <Input
               type="text"
-              placeholder="npr. NBS srednji kurs"
+              placeholder={t("admin.exchangeRates.notePlaceholder")}
               value={note}
               onChange={(e) => setNote(e.target.value)}
               maxLength={500}
@@ -165,7 +168,7 @@ export function ExchangeRateEditor({ initialRates }: Props) {
         ) : null}
         <div className="mt-3 flex justify-end">
           <Button type="submit" loading={isSaving}>
-            Dodaj kurs
+            {t("admin.exchangeRates.addRate")}
           </Button>
         </div>
       </form>
@@ -174,11 +177,21 @@ export function ExchangeRateEditor({ initialRates }: Props) {
         <table className="w-full text-sm">
           <thead className="bg-[var(--color-surface-inset)]">
             <tr>
-              <th className="px-3 py-2 text-left font-semibold">Datum važenja</th>
-              <th className="px-3 py-2 text-left font-semibold">Kurs</th>
-              <th className="px-3 py-2 text-left font-semibold">Izvor</th>
-              <th className="px-3 py-2 text-left font-semibold">Napomena</th>
-              <th className="w-24 px-3 py-2 text-right font-semibold">Akcija</th>
+              <th className="px-3 py-2 text-left font-semibold">
+                {t("admin.exchangeRates.effectiveDate")}
+              </th>
+              <th className="px-3 py-2 text-left font-semibold">
+                {t("admin.exchangeRates.colRate")}
+              </th>
+              <th className="px-3 py-2 text-left font-semibold">
+                {t("admin.exchangeRates.colSource")}
+              </th>
+              <th className="px-3 py-2 text-left font-semibold">
+                {t("admin.exchangeRates.colNote")}
+              </th>
+              <th className="w-24 px-3 py-2 text-right font-semibold">
+                {t("admin.exchangeRates.colAction")}
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -188,8 +201,7 @@ export function ExchangeRateEditor({ initialRates }: Props) {
                   colSpan={5}
                   className="px-3 py-6 text-center text-sm text-[var(--color-foreground-muted)]"
                 >
-                  Nema unetih kurseva. Dodajte prvi kurs kako biste omogućili
-                  dinarske fakture.
+                  {t("admin.exchangeRates.empty")}
                 </td>
               </tr>
             ) : (
@@ -198,15 +210,17 @@ export function ExchangeRateEditor({ initialRates }: Props) {
                   key={r.id}
                   className="border-t border-[var(--color-border)]"
                 >
-                  <td className="px-3 py-1.5">{formatDate(r.effectiveDate)}</td>
+                  <td className="px-3 py-1.5">{formatDate(r.effectiveDate, locale)}</td>
                   <td className="px-3 py-1.5 font-mono">
                     1 {r.baseCurrency} = {formatMoney(r.rate, "RSD", { withSymbol: false, decimals: 4 })} {r.quoteCurrency}
                   </td>
                   <td className="px-3 py-1.5 text-xs">
-                    {r.source === "MANUAL" ? "Ručno" : "NBS"}
+                    {r.source === "MANUAL"
+                      ? t("admin.exchangeRates.sourceManual")
+                      : t("admin.exchangeRates.sourceNbs")}
                   </td>
                   <td className="px-3 py-1.5 text-xs text-[var(--color-foreground-muted)]">
-                    {r.note ?? "—"}
+                    {r.note ?? t("admin.dash")}
                   </td>
                   <td className="px-3 py-1.5 text-right">
                     <button
@@ -215,7 +229,9 @@ export function ExchangeRateEditor({ initialRates }: Props) {
                       disabled={pendingDeleteId === r.id}
                       className="text-xs text-red-700 hover:underline disabled:opacity-50"
                     >
-                      {pendingDeleteId === r.id ? "Brisanje…" : "Obriši"}
+                      {pendingDeleteId === r.id
+                        ? t("admin.deleting")
+                        : t("common.delete")}
                     </button>
                   </td>
                 </tr>

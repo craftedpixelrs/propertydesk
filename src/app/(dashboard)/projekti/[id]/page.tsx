@@ -9,6 +9,7 @@ import { getProjectById } from "@/server/services/projects.service";
 import { listDocuments } from "@/server/services/documents.service";
 import { isDomainError } from "@/lib/errors";
 import { formatDate } from "@/lib/formatters";
+import { createT, projectStatusLabel } from "@/lib/i18n";
 import { StructureManager } from "@/features/projects/structure-manager";
 import { PhotoGallery, type PhotoItem } from "@/features/documents/photo-gallery";
 import { ProjectMap } from "@/features/projects/project-map-loader";
@@ -23,6 +24,7 @@ export default async function ProjectDetail({ params }: Props) {
   const ctx = await loadUserContext();
   if (!ctx) redirect("/sign-in");
   if (!ctx.activeOrganization) redirect("/podesavanja");
+  const t = createT(ctx.user.locale);
 
   let project: Awaited<ReturnType<typeof getProjectById>>;
   try {
@@ -68,12 +70,12 @@ export default async function ProjectDetail({ params }: Props) {
         <div className="flex flex-wrap gap-2">
           <PermissionGuard permission="project.update">
             <Button asChild variant="outline">
-              <Link href={`/projekti/${project.id}/izmena`}>Izmeni projekat</Link>
+              <Link href={`/projekti/${project.id}/izmena`}>{t("inventory.projects.edit")}</Link>
             </Button>
           </PermissionGuard>
           <PermissionGuard permission="inventory.import">
             <Button asChild variant="outline">
-              <Link href={`/projekti/${project.id}/uvoz`}>Uvoz jedinica</Link>
+              <Link href={`/projekti/${project.id}/uvoz`}>{t("import.title")}</Link>
             </Button>
           </PermissionGuard>
           <PermissionGuard permission="project.create">
@@ -85,51 +87,54 @@ export default async function ProjectDetail({ params }: Props) {
           </PermissionGuard>
           <PermissionGuard permission="inventory.manage">
             <Button asChild>
-              <Link href={`/projekti/${project.id}/jedinice/nova`}>Nova jedinica</Link>
+              <Link href={`/projekti/${project.id}/jedinice/nova`}>{t("units.newUnit")}</Link>
             </Button>
           </PermissionGuard>
         </div>
       </div>
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <StatCard label="Ukupno jedinica" value={project._count.units} />
-        <StatCard label="Rezervacije" value={project._count.reservations} />
-        <StatCard label="Prodaje" value={project._count.sales} />
-        <StatCard label="Status" value={project.projectStatus} />
+        <StatCard label={t("projects.summary.totalUnits")} value={project._count.units} />
+        <StatCard label={t("nav.reservations")} value={project._count.reservations} />
+        <StatCard label={t("nav.sales")} value={project._count.sales} />
+        <StatCard
+          label={t("common.statusLabel")}
+          value={projectStatusLabel(project.projectStatus, t)}
+        />
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>Pregled</CardTitle>
+          <CardTitle>{t("projects.tabs.overview")}</CardTitle>
         </CardHeader>
         <CardContent className="grid grid-cols-1 gap-3 text-sm sm:grid-cols-2">
-          <InfoRow label="Naziv" value={project.name} />
-          <InfoRow label="Šifra" value={project.code} />
-          <InfoRow label="Grad" value={project.city ?? "—"} />
-          <InfoRow label="Opština" value={project.municipality ?? "—"} />
-          <InfoRow label="Adresa" value={project.address ?? "—"} />
-          <InfoRow label="Poštanski broj" value={project.postalCode ?? "—"} />
-          <InfoRow label="Podrazumevana valuta" value={project.defaultCurrency} />
+          <InfoRow label={t("projects.fields.name")} value={project.name} />
+          <InfoRow label={t("inventory.columns.code")} value={project.code} />
+          <InfoRow label={t("projects.fields.city")} value={project.city ?? "—"} />
+          <InfoRow label={t("projects.fields.municipality")} value={project.municipality ?? "—"} />
+          <InfoRow label={t("projects.fields.address")} value={project.address ?? "—"} />
+          <InfoRow label={t("projects.fields.postalCode")} value={project.postalCode ?? "—"} />
+          <InfoRow label={t("projects.fields.defaultCurrency")} value={project.defaultCurrency} />
           <InfoRow
-            label="PDV stopa"
+            label={t("inventory.projects.vatRate")}
             value={project.defaultVatRate ? `${project.defaultVatRate.toString()}%` : "—"}
           />
-          <InfoRow label="Kreiran" value={formatDate(project.createdAt)} />
+          <InfoRow label={t("inventory.columns.created")} value={formatDate(project.createdAt)} />
           <InfoRow
-            label="Očekivani završetak"
+            label={t("inventory.projects.expectedCompletion")}
             value={project.expectedCompletionDate ? formatDate(project.expectedCompletionDate) : "—"}
           />
           {project.description ? (
             <div className="sm:col-span-2">
               <div className="text-xs uppercase tracking-wide text-[var(--color-foreground-muted)]">
-                Opis
+                {t("projects.fields.description")}
               </div>
               <div className="mt-1 whitespace-pre-wrap text-sm">{project.description}</div>
             </div>
           ) : null}
           {project.publicMicrositeEnabled ? (
             <div className="rounded-md border border-emerald-200 bg-emerald-50 p-3 text-sm sm:col-span-2">
-              <div className="font-medium text-emerald-800">Javna stranica aktivna</div>
+              <div className="font-medium text-emerald-800">{t("inventory.projects.micrositeActive")}</div>
               <div className="mt-1 text-emerald-700">
                 <a
                   href={`/p/projekat/${project.publicMicrositeSlug ?? project.slug}`}
@@ -155,7 +160,7 @@ export default async function ProjectDetail({ params }: Props) {
 
       <Card>
         <CardHeader>
-          <CardTitle>Lokacija</CardTitle>
+          <CardTitle>{t("inventory.projects.location")}</CardTitle>
         </CardHeader>
         <CardContent>
           {project.latitude != null && project.longitude != null ? (
@@ -165,8 +170,7 @@ export default async function ProjectDetail({ params }: Props) {
             />
           ) : (
             <div className="rounded-md border border-dashed border-[var(--color-border)] px-4 py-6 text-center text-sm text-[var(--color-foreground-muted)]">
-              Koordinate projekta još nisu unete. Otvorite izmenu projekta i
-              kliknite na mapu da postavite tačku.
+              {t("inventory.projects.noCoordinates")}
             </div>
           )}
         </CardContent>
@@ -176,12 +180,9 @@ export default async function ProjectDetail({ params }: Props) {
         <CardHeader>
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div>
-              <CardTitle>Struktura projekta</CardTitle>
+              <CardTitle>{t("structure.title")}</CardTitle>
               <p className="text-xs text-[var(--color-foreground-muted)]">
-                Organizujte projekat u Objekte (zgrade/lamele) → Ulaze → Spratove.
-                Ova hijerarhija omogućava tačno lociranje svake jedinice i lakše
-                filtriranje. Sve je opciono — ako imate samo jednu zgradu bez
-                izraženih ulaza, možete preskočiti.
+                {t("inventory.structure.help")}
               </p>
             </div>
           </div>
@@ -207,7 +208,7 @@ export default async function ProjectDetail({ params }: Props) {
 
       <div className="flex items-center gap-2">
         <Button asChild variant="outline">
-          <Link href={`/jedinice?projectId=${project.id}`}>Pogledaj sve jedinice</Link>
+          <Link href={`/jedinice?projectId=${project.id}`}>{t("inventory.projects.viewAllUnits")}</Link>
         </Button>
       </div>
     </div>

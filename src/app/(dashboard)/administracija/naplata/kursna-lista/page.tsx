@@ -4,6 +4,8 @@ import {
   ExchangeRateEditor,
   type ExchangeRateRow,
 } from "@/features/billing/exchange-rate-editor";
+import { createT } from "@/lib/i18n";
+import { resolveRequestLocale } from "@/lib/i18n/resolve-locale";
 
 export const dynamic = "force-dynamic";
 
@@ -19,6 +21,7 @@ export const dynamic = "force-dynamic";
  */
 export default async function ExchangeRatesPage() {
   await requireSuperAdmin();
+  const t = createT(await resolveRequestLocale());
   const rows = await listExchangeRates({
     baseCurrency: "EUR",
     quoteCurrency: "RSD",
@@ -38,18 +41,12 @@ export default async function ExchangeRatesPage() {
   return (
     <section className="space-y-4">
       <header className="space-y-1">
-        <h2 className="text-lg font-semibold">Kursna lista (EUR / RSD)</h2>
+        <h2 className="text-lg font-semibold">{t("admin.exchangeRates.title")}</h2>
         <p className="text-sm text-[var(--color-foreground-muted)]">
-          Ručno održavana lista srednjeg kursa. Prilikom izdavanja fakture
-          domaćem klijentu (organizacije sa uključenom opcijom
-          „Fakturiši u dinarskoj protivvrednosti"), sistem uzima najnoviji
-          kurs čiji je datum važenja pre ili jednak datumu izdavanja
-          fakture.
+          {t("admin.exchangeRates.subtitle")}
         </p>
         <p className="text-xs text-[var(--color-foreground-subtle)]">
-          Napomena: automatsko povlačenje sa NBS-a nije aktivno. Ako
-          kasnije uključimo integraciju, ovde će se pojavljivati i redovi
-          sa izvorom „NBS".
+          {t("admin.exchangeRates.nbsNote")}
         </p>
       </header>
 

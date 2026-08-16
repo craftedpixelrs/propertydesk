@@ -15,6 +15,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { apiClient, ApiClientError } from "@/lib/api-client";
+import { useT } from "@/components/app/i18n-provider";
 
 /**
  * Client-side editor for a single billing email template.
@@ -51,6 +52,7 @@ type Viewport = "desktop" | "mobile";
 
 export function TemplateEditor(props: Props) {
   const router = useRouter();
+  const t = useT();
 
   const [subject, setSubject] = useState(props.initialSubject);
   const [bodyText, setBodyText] = useState(props.initialBodyText);
@@ -113,7 +115,7 @@ export function TemplateEditor(props: Props) {
         setPreviewError(
           err instanceof ApiClientError
             ? err.message
-            : "Pregled nije uspeo. Pokušajte ponovo.",
+            : t("admin.templates.previewFailed"),
         );
       } finally {
         if (myRequestId === requestIdRef.current) {
@@ -121,7 +123,7 @@ export function TemplateEditor(props: Props) {
         }
       }
     },
-    [props.templateKey],
+    [props.templateKey, t],
   );
 
   useEffect(() => {
@@ -166,7 +168,7 @@ export function TemplateEditor(props: Props) {
   const onSendTest = useCallback(async () => {
     const recipient = testTo.trim();
     if (!recipient) {
-      setTestStatus({ kind: "error", message: "Unesite email adresu." });
+      setTestStatus({ kind: "error", message: t("admin.templates.enterEmail") });
       return;
     }
     setTestStatus({ kind: "sending" });
@@ -187,10 +189,10 @@ export function TemplateEditor(props: Props) {
         message:
           err instanceof ApiClientError
             ? err.message
-            : "Slanje test poruke nije uspelo.",
+            : t("admin.templates.testFailed"),
       });
     }
-  }, [testTo, subject, bodyText, bodyHtml, props.templateKey]);
+  }, [testTo, subject, bodyText, bodyHtml, props.templateKey, t]);
 
   // -----------------------------------------------------------------------
   // Save (via server action passed from the page)
@@ -228,12 +230,12 @@ export function TemplateEditor(props: Props) {
       {/* --------------------------- LEFT: FORM --------------------------- */}
       <form onSubmit={onSubmit} className="space-y-4">
         <div className="rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] p-4">
-          <h3 className="mb-3 text-sm font-semibold">Sadržaj šablona</h3>
+          <h3 className="mb-3 text-sm font-semibold">{t("admin.templates.content")}</h3>
 
           <div className="space-y-3">
             <label className="grid gap-1 text-sm">
               <span className="text-xs text-[var(--color-foreground-muted)]">
-                Naslov (subject)
+                {t("admin.templates.subject")}
               </span>
               <Input
                 value={subject}
@@ -244,7 +246,7 @@ export function TemplateEditor(props: Props) {
 
             <label className="grid gap-1 text-sm">
               <span className="text-xs text-[var(--color-foreground-muted)]">
-                Uvodni tekst (HTML — ide iznad kartice sa detaljima)
+                {t("admin.templates.htmlIntro")}
               </span>
               <textarea
                 ref={htmlTextareaRef}
@@ -254,14 +256,13 @@ export function TemplateEditor(props: Props) {
                 className="rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] p-2 font-mono text-xs"
               />
               <span className="text-[11px] text-[var(--color-foreground-subtle)]">
-                Struktura poruke (naslov, badge, tabela sa iznosom, CTA) se
-                dodaje automatski oko ovog uvoda.
+                {t("admin.templates.htmlHint")}
               </span>
             </label>
 
             <label className="grid gap-1 text-sm">
               <span className="text-xs text-[var(--color-foreground-muted)]">
-                Plain-text verzija (fallback za klijente bez HTML-a)
+                {t("admin.templates.plainText")}
               </span>
               <textarea
                 value={bodyText}
@@ -278,9 +279,9 @@ export function TemplateEditor(props: Props) {
                 onChange={(e) => setActive(e.target.checked)}
                 className="size-4"
               />
-              <span>Šablon aktivan</span>
+              <span>{t("admin.templates.templateActive")}</span>
               <span className="text-[11px] text-[var(--color-foreground-subtle)]">
-                (Ako je neaktivan, koristi se ugrađeni default umesto ovog reda.)
+                {t("admin.templates.templateActiveHint")}
               </span>
             </label>
           </div>
@@ -288,10 +289,10 @@ export function TemplateEditor(props: Props) {
 
         <div className="rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] p-4">
           <h3 className="mb-2 text-sm font-semibold">
-            Dostupne promenljive
+            {t("admin.templates.variables")}
           </h3>
           <p className="mb-3 text-xs text-[var(--color-foreground-muted)]">
-            Klikom se ubacuje na trenutnu poziciju kursora u HTML uvodu.
+            {t("admin.templates.variablesHint")}
           </p>
           <div className="flex flex-wrap gap-2">
             {groupedVars.map((v) => (
@@ -306,7 +307,7 @@ export function TemplateEditor(props: Props) {
             ))}
             {groupedVars.length === 0 ? (
               <span className="text-xs text-[var(--color-foreground-subtle)]">
-                Nema definisanih promenljivih za ovaj šablon.
+                {t("admin.templates.noVariables")}
               </span>
             ) : null}
           </div>
@@ -314,7 +315,7 @@ export function TemplateEditor(props: Props) {
 
         <div className="flex justify-end gap-2">
           <Button type="submit" loading={isSaving}>
-            Sačuvaj šablon
+            {t("admin.templates.saveTemplate")}
           </Button>
         </div>
       </form>
@@ -326,11 +327,11 @@ export function TemplateEditor(props: Props) {
           <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[var(--color-border)] p-3">
             <div className="flex items-center gap-2">
               <span className="text-xs font-semibold uppercase tracking-wide text-[var(--color-foreground-muted)]">
-                Pregled
+                {t("admin.templates.preview")}
               </span>
               {previewLoading ? (
                 <span className="text-[11px] text-[var(--color-foreground-subtle)]">
-                  osvežavanje…
+                  {t("admin.templates.refreshing")}
                 </span>
               ) : null}
             </div>
@@ -345,7 +346,7 @@ export function TemplateEditor(props: Props) {
                     : "bg-[var(--color-surface)] text-[var(--color-foreground-muted)] hover:bg-[var(--color-surface-muted)]")
                 }
               >
-                Desktop
+                {t("admin.templates.desktop")}
               </button>
               <button
                 type="button"
@@ -357,7 +358,7 @@ export function TemplateEditor(props: Props) {
                     : "bg-[var(--color-surface)] text-[var(--color-foreground-muted)] hover:bg-[var(--color-surface-muted)]")
                 }
               >
-                Mobile
+                {t("admin.templates.mobile")}
               </button>
             </div>
           </div>
@@ -365,10 +366,10 @@ export function TemplateEditor(props: Props) {
           {/* Subject preview strip */}
           <div className="border-b border-[var(--color-border)] bg-[var(--color-surface-muted)] px-4 py-3 text-sm">
             <div className="text-[11px] uppercase tracking-wide text-[var(--color-foreground-subtle)]">
-              Naslov u inboxu
+              {t("admin.templates.inboxSubject")}
             </div>
             <div className="mt-0.5 font-medium text-[var(--color-foreground)]">
-              {previewSubject || "—"}
+              {previewSubject || t("admin.dash")}
             </div>
           </div>
 
@@ -380,7 +381,7 @@ export function TemplateEditor(props: Props) {
               </div>
             ) : (
               <iframe
-                title="Pregled email šablona"
+                title={t("admin.templates.iframeTitle")}
                 srcDoc={previewHtml}
                 sandbox="allow-same-origin"
                 style={{
@@ -402,11 +403,11 @@ export function TemplateEditor(props: Props) {
               onClick={() => setShowPlain((s) => !s)}
               className="text-xs font-medium text-[var(--color-brand-700)] hover:underline"
             >
-              {showPlain ? "Sakrij plain-text verziju" : "Prikaži plain-text verziju"}
+              {showPlain ? t("admin.templates.hidePlain") : t("admin.templates.showPlain")}
             </button>
             {showPlain ? (
               <pre className="mt-2 max-h-64 overflow-auto whitespace-pre-wrap rounded-md border border-[var(--color-border)] bg-[var(--color-surface-muted)] p-3 font-mono text-[11px] text-[var(--color-foreground)]">
-                {previewText || "—"}
+                {previewText || t("admin.dash")}
               </pre>
             ) : null}
           </div>
@@ -414,21 +415,20 @@ export function TemplateEditor(props: Props) {
 
         {/* Test send */}
         <div className="rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] p-4">
-          <h3 className="mb-2 text-sm font-semibold">Pošalji test poruku</h3>
+          <h3 className="mb-2 text-sm font-semibold">{t("admin.templates.sendTest")}</h3>
           <p className="mb-3 text-xs text-[var(--color-foreground-muted)]">
-            Šalje se sa trenutnim (nesnimljenim) sadržajem i mock varijablama.
-            Naslov će biti obeležen sa oznakom &quot;[TEST]&quot;.
+            {t("admin.templates.sendTestHint")}
           </p>
           <div className="flex flex-wrap items-end gap-2">
             <label className="grid flex-1 gap-1 text-sm">
               <span className="text-xs text-[var(--color-foreground-muted)]">
-                Email adresa
+                {t("admin.templates.emailAddress")}
               </span>
               <Input
                 type="email"
                 value={testTo}
                 onChange={onTestToChange}
-                placeholder="ime@primer.rs"
+                placeholder={t("admin.templates.emailPlaceholder")}
               />
             </label>
             <Button
@@ -437,12 +437,12 @@ export function TemplateEditor(props: Props) {
               onClick={onSendTest}
               loading={testStatus.kind === "sending"}
             >
-              Pošalji test
+              {t("admin.templates.sendTestBtn")}
             </Button>
           </div>
           {testStatus.kind === "sent" ? (
             <div className="mt-3 rounded-md border border-emerald-200 bg-emerald-50 p-2 text-xs text-emerald-800">
-              Test poruka je poslata na <strong>{testStatus.to}</strong>.
+              {t("admin.testSentTo", { to: testStatus.to })}
             </div>
           ) : null}
           {testStatus.kind === "error" ? (

@@ -14,6 +14,8 @@ import { ConnectionStatusActions } from "@/features/agencies/connection-status-a
 import { ProjectAccessManager } from "@/features/agencies/project-access-manager";
 import { ProtectionDaysField } from "@/features/agencies/protection-days-field";
 import { CommissionRulesManager } from "@/features/agencies/commission-rules-manager";
+import { createT, type TranslationKey } from "@/lib/i18n";
+import type { AgencyConnectionStatus } from "@prisma/client";
 
 export const dynamic = "force-dynamic";
 
@@ -25,10 +27,18 @@ interface PageProps {
 const TABS = ["projects", "protection", "commissions"] as const;
 type Tab = (typeof TABS)[number];
 
-const TAB_LABELS: Record<Tab, string> = {
-  projects: "Pristup projektima",
-  protection: "Zaštita kupaca",
-  commissions: "Pravila provizije",
+const TAB_KEYS: Record<Tab, TranslationKey> = {
+  projects: "partners.detail.tabProjects",
+  protection: "partners.detail.tabProtection",
+  commissions: "partners.detail.tabCommissions",
+};
+
+const CONNECTION_STATUS_KEYS: Record<AgencyConnectionStatus, TranslationKey> = {
+  INVITED: "partners.connectionStatus.INVITED",
+  ACTIVE: "partners.connectionStatus.ACTIVE",
+  SUSPENDED: "partners.connectionStatus.SUSPENDED",
+  REJECTED: "partners.connectionStatus.REJECTED",
+  TERMINATED: "partners.connectionStatus.TERMINATED",
 };
 
 function readTab(raw: string | string[] | undefined): Tab {
@@ -46,6 +56,8 @@ export default async function AgencijaDetailPage({ params, searchParams }: PageP
   if (!ctx) redirect("/sign-in");
   if (!ctx.activeOrganization) redirect("/podesavanja");
   if (ctx.activeOrganization.type !== "INVESTOR") redirect("/dashboard");
+
+  const t = createT(ctx.user.locale);
 
   let connection: Awaited<ReturnType<typeof getConnectionDetail>>;
   try {
@@ -71,15 +83,15 @@ export default async function AgencijaDetailPage({ params, searchParams }: PageP
         <div>
           <div className="flex items-center gap-3">
             <Link href="/agencije" className="text-sm text-[var(--color-brand-700)] hover:underline">
-              ← Agencije
+              ← {t("nav.agencies")}
             </Link>
           </div>
           <h1 className="mt-2 text-2xl font-semibold">
             {connection.agency.profile?.displayName ?? connection.agency.name}
           </h1>
           <p className="text-sm text-[var(--color-foreground-muted)]">
-            Konekcija uspostavljena {formatDate(connection.invitedAt)} · Status:{" "}
-            <strong>{connection.status}</strong>
+            {t("partners.detail.established", { date: formatDate(connection.invitedAt) })}{" "}
+            <strong>{t(CONNECTION_STATUS_KEYS[connection.status])}</strong>
           </p>
         </div>
         <ConnectionStatusActions connectionId={connection.id} status={connection.status} />
@@ -87,17 +99,17 @@ export default async function AgencijaDetailPage({ params, searchParams }: PageP
 
       <nav className="border-b border-[var(--color-border)]">
         <ul className="flex gap-1 overflow-x-auto">
-          {TABS.map((t) => (
-            <li key={t}>
+          {TABS.map((tabKey) => (
+            <li key={tabKey}>
               <Link
-                href={{ pathname: `/agencije/${id}`, query: { tab: t } }}
+                href={{ pathname: `/agencije/${id}`, query: { tab: tabKey } }}
                 className={`inline-block px-3 py-2 text-sm ${
-                  tab === t
+                  tab === tabKey
                     ? "border-b-2 border-[var(--color-brand-600)] font-medium text-[var(--color-brand-700)]"
                     : "text-[var(--color-foreground-muted)] hover:text-[var(--color-foreground)]"
                 }`}
               >
-                {TAB_LABELS[t]}
+                {t(TAB_KEYS[tabKey])}
               </Link>
             </li>
           ))}
@@ -125,12 +137,11 @@ export default async function AgencijaDetailPage({ params, searchParams }: PageP
       {tab === "protection" ? (
         <Card>
           <CardHeader>
-            <CardTitle className="text-sm">Zaštita kupaca</CardTitle>
+            <CardTitle className="text-sm">{t("partners.detail.tabProtection")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-sm text-[var(--color-foreground-muted)]">
-              Broj dana zaštite koji se automatski primenjuje kada odobrite prijavu kupca od
-              ove agencije.
+              {t("partners.detail.protectionHint")}
             </p>
             <ProtectionDaysField
               connectionId={connection.id}
@@ -161,7 +172,7 @@ export default async function AgencijaDetailPage({ params, searchParams }: PageP
 
       <div className="pt-4">
         <Button asChild variant="outline">
-          <Link href="/agencije">Nazad na listu</Link>
+          <Link href="/agencije">{t("common.backToList")}</Link>
         </Button>
       </div>
     </div>

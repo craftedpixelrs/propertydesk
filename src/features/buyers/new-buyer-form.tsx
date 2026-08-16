@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { apiClient, ApiClientError } from "@/lib/api-client";
+import { useT } from "@/components/app/i18n-provider";
 
 interface DuplicateCandidate {
   id: string;
@@ -16,12 +17,6 @@ interface DuplicateCandidate {
   email: string | null;
   matchedOn: ("phone" | "email")[];
 }
-
-const CONTACT_METHODS = [
-  { value: "ANY", label: "Bilo koji" },
-  { value: "PHONE", label: "Telefon" },
-  { value: "EMAIL", label: "Email" },
-];
 
 interface BuyerFormProps {
   mode?: "create" | "edit";
@@ -34,6 +29,7 @@ export function NewBuyerForm({
   buyerId,
   initialValues,
 }: BuyerFormProps = {}) {
+  const t = useT();
   const router = useRouter();
   const isEdit = mode === "edit";
   const [values, setValues] = useState<Record<string, string>>(
@@ -45,6 +41,12 @@ export function NewBuyerForm({
   const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({});
   const [duplicates, setDuplicates] = useState<DuplicateCandidate[]>([]);
+
+  const contactMethods = [
+    { value: "ANY", label: t("crm.form.contactAny") },
+    { value: "PHONE", label: t("common.phone") },
+    { value: "EMAIL", label: t("common.email") },
+  ];
 
   const setValue = (name: string, value: string) =>
     setValues((prev) => ({ ...prev, [name]: value }));
@@ -119,7 +121,7 @@ export function NewBuyerForm({
         setError(err.message);
         setFieldErrors(err.fieldErrors ?? {});
       } else {
-        setError("Došlo je do neočekivane greške.");
+        setError(t("errors.unexpected"));
       }
     } finally {
       setLoading(false);
@@ -131,9 +133,7 @@ export function NewBuyerForm({
       <CardContent className="p-4 sm:p-6">
         {duplicates.length > 0 ? (
           <div className="mb-4 rounded-md border border-amber-300 bg-amber-50 p-3 text-sm">
-            <p className="font-medium text-amber-800">
-              Pronađeni su mogući duplikati:
-            </p>
+            <p className="font-medium text-amber-800">{t("crm.form.duplicatesTitle")}</p>
             <ul className="mt-1 space-y-1">
               {duplicates.map((d) => (
                 <li key={d.id}>
@@ -141,22 +141,40 @@ export function NewBuyerForm({
                     {d.firstName} {d.lastName} · {d.phone}
                   </Link>{" "}
                   <span className="text-xs text-amber-700">
-                    ({d.matchedOn.map((m) => (m === "phone" ? "telefon" : "email")).join(", ")})
+                    (
+                    {d.matchedOn
+                      .map((m) =>
+                        m === "phone" ? t("crm.form.matchedPhone") : t("crm.form.matchedEmail"),
+                      )
+                      .join(", ")}
+                    )
                   </span>
                 </li>
               ))}
             </ul>
-            <p className="mt-1 text-xs text-amber-700">
-              Možete nastaviti sa kreiranjem ako je ovo drugi kupac.
-            </p>
+            <p className="mt-1 text-xs text-amber-700">{t("crm.form.duplicatesHint")}</p>
           </div>
         ) : null}
 
         <form className="grid grid-cols-1 gap-4 sm:grid-cols-2" onSubmit={onSubmit}>
-          <Field label="Ime" name="firstName" required value={values.firstName} onChange={setValue} errors={fieldErrors.firstName} />
-          <Field label="Prezime" name="lastName" required value={values.lastName} onChange={setValue} errors={fieldErrors.lastName} />
           <Field
-            label="Telefon"
+            label={t("crm.form.firstName")}
+            name="firstName"
+            required
+            value={values.firstName}
+            onChange={setValue}
+            errors={fieldErrors.firstName}
+          />
+          <Field
+            label={t("crm.form.lastName")}
+            name="lastName"
+            required
+            value={values.lastName}
+            onChange={setValue}
+            errors={fieldErrors.lastName}
+          />
+          <Field
+            label={t("common.phone")}
             name="phone"
             required
             value={values.phone}
@@ -164,9 +182,14 @@ export function NewBuyerForm({
             onBlur={checkDuplicates}
             errors={fieldErrors.phone}
           />
-          <Field label="Sekundarni telefon" name="secondaryPhone" value={values.secondaryPhone} onChange={setValue} />
           <Field
-            label="Email"
+            label={t("crm.form.secondaryPhone")}
+            name="secondaryPhone"
+            value={values.secondaryPhone}
+            onChange={setValue}
+          />
+          <Field
+            label={t("common.email")}
             name="email"
             type="email"
             value={values.email}
@@ -176,7 +199,7 @@ export function NewBuyerForm({
           />
           <div className="space-y-1">
             <label className="text-sm font-medium" htmlFor="preferredContactMethod">
-              Preferirani kontakt
+              {t("crm.form.preferredContact")}
             </label>
             <select
               id="preferredContactMethod"
@@ -184,19 +207,36 @@ export function NewBuyerForm({
               onChange={(e) => setValue("preferredContactMethod", e.target.value)}
               className="h-11 w-full rounded-md border border-[var(--color-border)] bg-white px-3 text-sm"
             >
-              {CONTACT_METHODS.map((o) => (
+              {contactMethods.map((o) => (
                 <option key={o.value} value={o.value}>
                   {o.label}
                 </option>
               ))}
             </select>
           </div>
-          <Field label="Budžet od (EUR)" name="budgetMin" type="number" value={values.budgetMin} onChange={setValue} />
-          <Field label="Budžet do (EUR)" name="budgetMax" type="number" value={values.budgetMax} onChange={setValue} />
-          <Field label="Izvor" name="source" value={values.source} onChange={setValue} />
+          <Field
+            label={t("crm.form.budgetMin")}
+            name="budgetMin"
+            type="number"
+            value={values.budgetMin}
+            onChange={setValue}
+          />
+          <Field
+            label={t("crm.form.budgetMax")}
+            name="budgetMax"
+            type="number"
+            value={values.budgetMax}
+            onChange={setValue}
+          />
+          <Field
+            label={t("crm.form.source")}
+            name="source"
+            value={values.source}
+            onChange={setValue}
+          />
           <div className="space-y-1 sm:col-span-2">
             <label className="text-sm font-medium" htmlFor="notes">
-              Napomena
+              {t("crm.form.note")}
             </label>
             <textarea
               id="notes"
@@ -210,14 +250,14 @@ export function NewBuyerForm({
             <div className="space-y-3 rounded-md border border-[var(--color-border)] bg-[var(--color-surface-muted)]/30 p-4 sm:col-span-2">
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="text-sm font-semibold">Identitet (KYC podaci)</h3>
+                  <h3 className="text-sm font-semibold">{t("crm.form.identityTitle")}</h3>
                   <p className="text-xs text-[var(--color-foreground-muted)]">
-                    Neophodni podaci pre potpisivanja ugovora.
+                    {t("crm.form.identityHint")}
                   </p>
                 </div>
                 <div className="space-y-1">
                   <label className="text-xs font-medium" htmlFor="entityType">
-                    Tip lica
+                    {t("crm.form.entityType")}
                   </label>
                   <select
                     id="entityType"
@@ -225,27 +265,75 @@ export function NewBuyerForm({
                     onChange={(e) => setValue("entityType", e.target.value)}
                     className="h-9 rounded-md border border-[var(--color-border)] bg-white px-2 text-sm"
                   >
-                    <option value="NATURAL">Fizičko lice</option>
-                    <option value="LEGAL">Pravno lice</option>
+                    <option value="NATURAL">{t("crm.form.naturalPerson")}</option>
+                    <option value="LEGAL">{t("crm.form.legalPerson")}</option>
                   </select>
                 </div>
               </div>
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 {values.entityType === "LEGAL" ? (
                   <>
-                    <Field label="Naziv pravnog lica" name="legalName" value={values.legalName} onChange={setValue} errors={fieldErrors.legalName} />
-                    <Field label="PIB" name="taxId" value={values.taxId} onChange={setValue} errors={fieldErrors.taxId} />
+                    <Field
+                      label={t("crm.form.legalName")}
+                      name="legalName"
+                      value={values.legalName}
+                      onChange={setValue}
+                      errors={fieldErrors.legalName}
+                    />
+                    <Field
+                      label={t("crm.form.taxId")}
+                      name="taxId"
+                      value={values.taxId}
+                      onChange={setValue}
+                      errors={fieldErrors.taxId}
+                    />
                   </>
                 ) : (
                   <>
-                    <Field label="JMBG" name="jmbg" value={values.jmbg} onChange={setValue} errors={fieldErrors.jmbg} />
-                    <Field label="Broj lične karte" name="identityNumber" value={values.identityNumber} onChange={setValue} errors={fieldErrors.identityNumber} />
+                    <Field
+                      label={t("crm.form.jmbg")}
+                      name="jmbg"
+                      value={values.jmbg}
+                      onChange={setValue}
+                      errors={fieldErrors.jmbg}
+                    />
+                    <Field
+                      label={t("crm.form.identityNumber")}
+                      name="identityNumber"
+                      value={values.identityNumber}
+                      onChange={setValue}
+                      errors={fieldErrors.identityNumber}
+                    />
                   </>
                 )}
-                <Field label="Adresa" name="addressLine1" value={values.addressLine1} onChange={setValue} errors={fieldErrors.addressLine1} />
-                <Field label="Grad" name="city" value={values.city} onChange={setValue} errors={fieldErrors.city} />
-                <Field label="Poštanski broj" name="postalCode" value={values.postalCode} onChange={setValue} errors={fieldErrors.postalCode} />
-                <Field label="Država" name="country" value={values.country} onChange={setValue} errors={fieldErrors.country} />
+                <Field
+                  label={t("crm.form.address")}
+                  name="addressLine1"
+                  value={values.addressLine1}
+                  onChange={setValue}
+                  errors={fieldErrors.addressLine1}
+                />
+                <Field
+                  label={t("crm.form.city")}
+                  name="city"
+                  value={values.city}
+                  onChange={setValue}
+                  errors={fieldErrors.city}
+                />
+                <Field
+                  label={t("crm.form.postalCode")}
+                  name="postalCode"
+                  value={values.postalCode}
+                  onChange={setValue}
+                  errors={fieldErrors.postalCode}
+                />
+                <Field
+                  label={t("crm.form.country")}
+                  name="country"
+                  value={values.country}
+                  onChange={setValue}
+                  errors={fieldErrors.country}
+                />
               </div>
             </div>
           ) : null}
@@ -258,10 +346,10 @@ export function NewBuyerForm({
 
           <div className="flex justify-end gap-2 pt-2 sm:col-span-2">
             <Button variant="outline" type="button" onClick={() => router.back()} disabled={loading}>
-              Odustani
+              {t("common.cancel")}
             </Button>
             <Button type="submit" loading={loading}>
-              {isEdit ? "Sačuvaj izmene" : "Sačuvaj"}
+              {isEdit ? t("common.saveChanges") : t("common.save")}
             </Button>
           </div>
         </form>

@@ -14,6 +14,8 @@ import { requirePermission } from "@/server/permissions/require";
 import { buildAgencyReport } from "@/server/services/reports/reports.service";
 import { formatMoney } from "@/lib/formatters/money";
 import type { SupportedCurrency } from "@/lib/constants/app";
+import { createT } from "@/lib/i18n";
+import { resolveRequestLocale } from "@/lib/i18n/resolve-locale";
 
 export const dynamic = "force-dynamic";
 
@@ -24,6 +26,7 @@ interface PageProps {
 export default async function AgencyReportPage({ searchParams }: PageProps) {
   const ctx = await requirePermission("report.read");
   if (!ctx.organization) redirect("/dashboard");
+  const t = createT(await resolveRequestLocale());
   const sp = await searchParams;
   const parsed = parseReportSearchParams(sp);
   const filters = toReportFilters({
@@ -37,7 +40,10 @@ export default async function AgencyReportPage({ searchParams }: PageProps) {
 
   return (
     <div className="space-y-6">
-      <PageHeader title="Učinak agencija" description="Aktivnost i provizije po povezanoj agenciji." />
+      <PageHeader
+        title={t("ops.reports.agenciesTitle")}
+        description={t("ops.reports.agenciesDesc")}
+      />
 
       <ReportFilters
         action="/izvestaji/agencije"
@@ -50,44 +56,44 @@ export default async function AgencyReportPage({ searchParams }: PageProps) {
       />
 
       <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
-        <StatCard label="Agencija" value={report.totals.agencies} />
-        <StatCard label="Prodaja" value={report.totals.salesCount} />
+        <StatCard label={t("ops.reports.agency")} value={report.totals.agencies} />
+        <StatCard label={t("ops.reports.salesCount")} value={report.totals.salesCount} />
         <StatCard
-          label="Vrednost prodaja"
+          label={t("ops.reports.salesValue")}
           value={formatMoney(report.totals.salesTotal, currency)}
         />
         <StatCard
-          label="Referral prihod"
+          label={t("ops.reports.referralRevenue")}
           value={formatMoney(report.totals.referralSalesTotal, currency)}
         />
         <StatCard
-          label="Provizije (isplaćeno)"
+          label={t("ops.reports.commissionsPaid")}
           value={formatMoney(report.totals.commissionPaid, currency)}
         />
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-sm">Po agenciji</CardTitle>
+          <CardTitle className="text-sm">{t("ops.reports.byAgency")}</CardTitle>
         </CardHeader>
         <CardContent className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="text-left text-xs text-[var(--color-foreground-muted)]">
               <tr>
-                <th className="py-1">Agencija</th>
-                <th className="py-1 text-right">Rezervacije</th>
-                <th className="py-1 text-right">Prodaje</th>
-                <th className="py-1 text-right">Vrednost</th>
-                <th className="py-1 text-right">Referral prihod</th>
-                <th className="py-1 text-right">Provizija</th>
-                <th className="py-1 text-right">Isplaćeno</th>
+                <th className="py-1">{t("ops.reports.agency")}</th>
+                <th className="py-1 text-right">{t("ops.reports.reservationsCol")}</th>
+                <th className="py-1 text-right">{t("ops.reports.salesCol")}</th>
+                <th className="py-1 text-right">{t("ops.reports.value")}</th>
+                <th className="py-1 text-right">{t("ops.reports.referralRevenue")}</th>
+                <th className="py-1 text-right">{t("ops.reports.commission")}</th>
+                <th className="py-1 text-right">{t("ops.reports.paidCol")}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[var(--color-border)]">
               {report.rows.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="py-4 text-center text-[var(--color-foreground-muted)]">
-                    Nema povezanih agencija.
+                    {t("ops.reports.noAgencies")}
                   </td>
                 </tr>
               ) : (

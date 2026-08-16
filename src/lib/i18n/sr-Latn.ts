@@ -1,3 +1,14 @@
+import { adminSr } from "./namespaces/admin";
+import { crmSr } from "./namespaces/crm";
+import { dealsSr } from "./namespaces/deals";
+import { enumsSr } from "./namespaces/enums";
+import { inventorySr } from "./namespaces/inventory";
+import { marketingSr } from "./namespaces/marketing";
+import { opsSr } from "./namespaces/ops";
+import { pagesSr } from "./namespaces/pages";
+import { partnersSr } from "./namespaces/partners";
+import { uiSr } from "./namespaces/ui";
+
 /**
  * Serbian (Latin script) translations.
  *
@@ -32,6 +43,48 @@ export const srLatn = {
     required: "obavezno",
     comingSoon: "Uskoro",
     moreOptions: "Više opcija",
+    skipToContent: "Preskoči na sadržaj",
+    apply: "Primeni",
+    reset: "Poništi",
+    actions: "Radnje",
+    details: "Detalji",
+    list: "Lista",
+    board: "Tabla",
+    create: "Kreiraj",
+    update: "Ažuriraj",
+    saveChanges: "Sačuvaj izmene",
+    download: "Preuzmi",
+    upload: "Otpremi",
+    remove: "Ukloni",
+    open: "Otvori",
+    view: "Pogledaj",
+    hide: "Sakrij",
+    show: "Prikaži",
+    retry: "Pokušaj ponovo",
+    today: "Danas",
+    overdue: "Prekoračeno",
+    name: "Ime",
+    email: "Email",
+    phone: "Telefon",
+    notes: "Napomene",
+    date: "Datum",
+    amount: "Iznos",
+    type: "Tip",
+    statusLabel: "Status",
+    from: "Od",
+    to: "Do",
+    allStatuses: "Svi statusi",
+    allProjects: "Svi projekti",
+    backToList: "Nazad na listu",
+    noData: "Nema podataka za prikaz.",
+    unexpectedError: "Neočekivana greška.",
+  },
+
+  language: {
+    label: "Jezik",
+    sr: "Srpski",
+    en: "English",
+    saved: "Jezik je sačuvan.",
   },
 
   nav: {
@@ -64,6 +117,7 @@ export const srLatn = {
     home: "Početna",
     platformAdmin: "Administracija platforme",
     propertyDesk: "Property Desk",
+    search: "Pretraga",
   },
 
   auth: {
@@ -103,6 +157,13 @@ export const srLatn = {
     signedOutTitle: "Uspešna odjava",
     signedOutSubtitle: "Bezbedno ste se odjavili. Vidimo se ponovo.",
     weakPasswordHint: "Minimalno 10 znakova.",
+    brandingTitle: "Operativni sistem za investitore u nekretnine",
+    brandingSubtitle:
+      "Vodite prodaju stanova od prve rezervacije do primopredaje — bez Excel tabela i izgubljenih dokumenata.",
+    brandingFeature1: "Prodaje, rezervacije i uplate na jednom mestu",
+    brandingFeature2: "Sigurna razmena dokumenata sa kupcima i agencijama",
+    brandingFeature3: "Automatski izveštaji za investitore i menadžment",
+    inviteOnly: "Pristup po pozivu",
     accountDeactivated: "Vaš nalog je deaktiviran. Kontaktirajte administratora.",
     organizationSuspended:
       "Vaša organizacija je trenutno suspendovana. Kontaktirajte podršku.",
@@ -190,6 +251,7 @@ export const srLatn = {
   a11y: {
     openMenu: "Otvori meni",
     closeMenu: "Zatvori meni",
+    closeDialog: "Zatvori dijalog",
     userMenu: "Korisnički meni",
     primaryNavigation: "Glavna navigacija",
     bottomNavigation: "Donja navigacija",
@@ -548,6 +610,21 @@ export const srLatn = {
       downloadPdf: "Preuzmi PDF",
     },
   },
+
+  enums: enumsSr,
+  pages: pagesSr,
+  ui: uiSr,
+  inventory: inventorySr,
+  crm: crmSr,
+  deals: dealsSr,
+  partners: partnersSr,
+  ops: opsSr,
+  admin: adminSr,
+  marketing: marketingSr,
 } as const;
 
-export type Dictionary = typeof srLatn;
+type DeepStringify<T> = T extends string
+  ? string
+  : { [K in keyof T]: DeepStringify<T[K]> };
+
+export type Dictionary = DeepStringify<typeof srLatn>;

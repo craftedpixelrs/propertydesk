@@ -8,17 +8,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { apiClient, ApiClientError } from "@/lib/api-client";
 import { formatDateTime } from "@/lib/formatters/date";
+import { useT } from "@/components/app/i18n-provider";
+import type { TranslateFn, TranslationKey } from "@/lib/i18n";
 
-const KIND_LABEL: Record<string, string> = {
-  CALL: "Poziv",
-  EMAIL: "Email",
-  MEETING: "Sastanak",
-  NOTE: "Beleška",
-  STAGE_CHANGE: "Promena faze",
-  ASSIGNMENT: "Dodela",
-  CONVERSION: "Konverzija",
-  SYSTEM: "Sistem",
-};
+const ACTIVITY_KINDS = ["NOTE", "CALL", "EMAIL", "MEETING"] as const;
 
 const KIND_TONE: Record<
   string,
@@ -51,6 +44,7 @@ interface Props {
 
 export function LeadActivityPanel({ leadId, items, canCreate }: Props) {
   const router = useRouter();
+  const t = useT();
   const [kind, setKind] = useState<"CALL" | "EMAIL" | "MEETING" | "NOTE">(
     "NOTE",
   );
@@ -61,7 +55,7 @@ export function LeadActivityPanel({ leadId, items, canCreate }: Props) {
 
   async function submit() {
     if (!title.trim()) {
-      setErr("Naslov je obavezan.");
+      setErr(t("admin.pdActivity.titleRequired"));
       return;
     }
     setBusy(true);
@@ -79,7 +73,7 @@ export function LeadActivityPanel({ leadId, items, canCreate }: Props) {
       setBody("");
       router.refresh();
     } catch (e) {
-      setErr(errorMessage(e));
+      setErr(errorMessage(e, t));
     } finally {
       setBusy(false);
     }
@@ -89,9 +83,9 @@ export function LeadActivityPanel({ leadId, items, canCreate }: Props) {
     <Card>
       <CardContent className="space-y-4 p-4">
         <div className="flex items-center justify-between">
-          <h3 className="text-sm font-semibold">Timeline aktivnosti</h3>
+          <h3 className="text-sm font-semibold">{t("admin.pdActivity.title")}</h3>
           <span className="text-xs text-[var(--color-foreground-muted)]">
-            {items.length} zapisa
+            {t("admin.recordsCount", { count: items.length })}
           </span>
         </div>
 
@@ -111,16 +105,17 @@ export function LeadActivityPanel({ leadId, items, canCreate }: Props) {
                 className="h-9 rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] px-2 text-sm"
                 disabled={busy}
               >
-                <option value="NOTE">Beleška</option>
-                <option value="CALL">Poziv</option>
-                <option value="EMAIL">Email</option>
-                <option value="MEETING">Sastanak</option>
+                {ACTIVITY_KINDS.map((v) => (
+                  <option key={v} value={v}>
+                    {t(`admin.pd.activityKind.${v}` as TranslationKey)}
+                  </option>
+                ))}
               </select>
               <input
                 type="text"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                placeholder="Naslov (npr. Poziv u 14h, klijent razmišlja)"
+                placeholder={t("admin.pdActivity.titlePlaceholder")}
                 className="h-9 flex-1 min-w-64 rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] px-2 text-sm"
                 disabled={busy}
               />
@@ -131,13 +126,13 @@ export function LeadActivityPanel({ leadId, items, canCreate }: Props) {
                 disabled={busy || !title.trim()}
                 loading={busy}
               >
-                Dodaj
+                {t("common.add")}
               </Button>
             </div>
             <textarea
               value={body}
               onChange={(e) => setBody(e.target.value)}
-              placeholder="Detalji (opciono)"
+              placeholder={t("admin.pdActivity.detailsPlaceholder")}
               className="min-h-16 w-full rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] p-2 text-xs"
               disabled={busy}
             />
@@ -146,8 +141,7 @@ export function LeadActivityPanel({ leadId, items, canCreate }: Props) {
 
         {items.length === 0 ? (
           <p className="text-sm text-[var(--color-foreground-muted)]">
-            Još nema aktivnosti. Prvi zapis se automatski unosi kada lead
-            pristigne sa landing forme ili se ručno kreira.
+            {t("admin.pdActivity.empty")}
           </p>
         ) : (
           <ol className="relative border-l border-[var(--color-border)]">
@@ -162,7 +156,7 @@ export function LeadActivityPanel({ leadId, items, canCreate }: Props) {
                 />
                 <div className="flex flex-wrap items-center gap-2">
                   <Badge tone={KIND_TONE[item.kind] ?? "neutral"}>
-                    {KIND_LABEL[item.kind] ?? item.kind}
+                    {t(`admin.pd.activityKind.${item.kind}` as TranslationKey)}
                   </Badge>
                   <span className="text-sm font-medium">{item.title}</span>
                 </div>
@@ -184,8 +178,8 @@ export function LeadActivityPanel({ leadId, items, canCreate }: Props) {
   );
 }
 
-function errorMessage(err: unknown): string {
+function errorMessage(err: unknown, t: TranslateFn): string {
   if (err instanceof ApiClientError) return err.message;
   if (err instanceof Error) return err.message;
-  return "Došlo je do greške.";
+  return t("admin.genericError");
 }

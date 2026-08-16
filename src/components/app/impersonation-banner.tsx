@@ -5,7 +5,7 @@ import { useState } from "react";
 import { ShieldAlert } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
-import { t } from "@/lib/i18n";
+import { useT } from "@/components/app/i18n-provider";
 
 export interface ImpersonationBannerProps {
   userName: string;
@@ -18,6 +18,7 @@ export interface ImpersonationBannerProps {
  * initiated by a SUPER_ADMIN via the admin plugin's impersonation flow.
  */
 export function ImpersonationBanner({ userName, organizationName }: ImpersonationBannerProps) {
+  const t = useT();
   const router = useRouter();
   const [busy, setBusy] = useState(false);
 

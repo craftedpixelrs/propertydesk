@@ -18,16 +18,10 @@ import { formatDate, formatMoney } from "@/lib/formatters";
 import type { SupportedCurrency } from "@/lib/constants/app";
 import { ChartCard } from "@/components/charts/chart-card";
 import { CategoryBars } from "@/components/charts/category-bars";
+import { createT, type TranslationKey } from "@/lib/i18n";
+import { resolveRequestLocale } from "@/lib/i18n/resolve-locale";
 
 export const dynamic = "force-dynamic";
-
-const METHOD_LABELS: Record<string, string> = {
-  BANK_TRANSFER: "Nalog",
-  CASH: "Gotovina",
-  CARD: "Kartica",
-  CHECK: "Ček",
-  OTHER: "Ostalo",
-};
 
 interface PageProps {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
@@ -36,6 +30,7 @@ interface PageProps {
 export default async function PaymentsReportPage({ searchParams }: PageProps) {
   const ctx = await requirePermission("report.read");
   if (!ctx.organization) redirect("/dashboard");
+  const t = createT(await resolveRequestLocale());
   const sp = await searchParams;
   const parsed = parseReportSearchParams(sp);
   const filters = toReportFilters({
@@ -54,9 +49,18 @@ export default async function PaymentsReportPage({ searchParams }: PageProps) {
   const currency = report.totals.currency as SupportedCurrency;
   const hrefs = exportHrefs("payments", parsed);
 
+  function methodLabel(method: string) {
+    const key = `ops.paymentMethod.${method}` as TranslationKey;
+    const out = t(key);
+    return out === key ? method : out;
+  }
+
   return (
     <div className="space-y-6">
-      <PageHeader title="Uplate" description="Kretanje uplata po datumu i metodi plaćanja." />
+      <PageHeader
+        title={t("nav.payments")}
+        description={t("ops.reports.paymentsDesc")}
+      />
 
       <ReportFilters
         action="/izvestaji/uplate"
@@ -69,34 +73,40 @@ export default async function PaymentsReportPage({ searchParams }: PageProps) {
       />
 
       <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
-        <StatCard label="Broj uplata" value={report.totals.count} />
-        <StatCard label="Aktivno" value={formatMoney(report.totals.activeTotal, currency)} />
-        <StatCard label="Stornirano" value={formatMoney(report.totals.reversedTotal, currency)} />
+        <StatCard label={t("ops.reports.paymentCount")} value={report.totals.count} />
+        <StatCard
+          label={t("ops.reports.active")}
+          value={formatMoney(report.totals.activeTotal, currency)}
+        />
+        <StatCard
+          label={t("ops.reports.reversedTotal")}
+          value={formatMoney(report.totals.reversedTotal, currency)}
+        />
       </div>
 
       <CashFlowCard
         projection={cashflow}
-        title="Cash-flow projekcija (12 meseci)"
-        description="Očekivane naplate po planovima plaćanja i stvarni prilivi iz uplata — sve u jednoj slici."
+        title={t("ops.reports.cashFlowTitle")}
+        description={t("ops.reports.cashFlowDesc")}
       />
 
 
       <div className="grid gap-6 lg:grid-cols-2">
         <ChartCard
-          title="Broj uplata po metodi"
+          title={t("ops.reports.countByMethod")}
           isEmpty={report.byMethod.length === 0}
           height={240}
         >
           <CategoryBars
             data={report.byMethod.map((row) => ({
               key: row.method,
-              label: METHOD_LABELS[row.method] ?? row.method,
+              label: methodLabel(row.method),
               value: row.count,
             }))}
           />
         </ChartCard>
         <ChartCard
-          title={`Iznosi po metodi (${currency})`}
+          title={t("ops.reports.amountsByMethod", { currency })}
           isEmpty={report.byMethod.length === 0}
           height={240}
         >
@@ -104,7 +114,7 @@ export default async function PaymentsReportPage({ searchParams }: PageProps) {
             yTickFormat="compact"
             data={report.byMethod.map((row) => ({
               key: row.method,
-              label: METHOD_LABELS[row.method] ?? row.method,
+              label: methodLabel(row.method),
               value: Number(row.total),
             }))}
           />
@@ -113,28 +123,28 @@ export default async function PaymentsReportPage({ searchParams }: PageProps) {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-sm">Po metodi</CardTitle>
+          <CardTitle className="text-sm">{t("ops.reports.byMethod")}</CardTitle>
         </CardHeader>
         <CardContent>
           <table className="w-full text-sm">
             <thead className="text-left text-xs text-[var(--color-foreground-muted)]">
               <tr>
-                <th className="py-1">Metoda</th>
-                <th className="py-1 text-right">Broj</th>
-                <th className="py-1 text-right">Iznos</th>
+                <th className="py-1">{t("ops.reports.method")}</th>
+                <th className="py-1 text-right">{t("ops.reports.count")}</th>
+                <th className="py-1 text-right">{t("common.amount")}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[var(--color-border)]">
               {report.byMethod.length === 0 ? (
                 <tr>
                   <td colSpan={3} className="py-4 text-center text-[var(--color-foreground-muted)]">
-                    Nema podataka.
+                    {t("common.noData")}
                   </td>
                 </tr>
               ) : (
                 report.byMethod.map((row) => (
                   <tr key={row.method}>
-                    <td className="py-1.5">{METHOD_LABELS[row.method] ?? row.method}</td>
+                    <td className="py-1.5">{methodLabel(row.method)}</td>
                     <td className="py-1.5 text-right">{row.count}</td>
                     <td className="py-1.5 text-right">{formatMoney(row.total, currency)}</td>
                   </tr>
@@ -147,24 +157,24 @@ export default async function PaymentsReportPage({ searchParams }: PageProps) {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-sm">Detaljno</CardTitle>
+          <CardTitle className="text-sm">{t("common.details")}</CardTitle>
         </CardHeader>
         <CardContent className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="text-left text-xs text-[var(--color-foreground-muted)]">
               <tr>
-                <th className="py-1">Datum</th>
-                <th className="py-1">Jedinica</th>
-                <th className="py-1 text-right">Iznos</th>
-                <th className="py-1">Metoda</th>
-                <th className="py-1">Storno</th>
+                <th className="py-1">{t("common.date")}</th>
+                <th className="py-1">{t("partners.unit")}</th>
+                <th className="py-1 text-right">{t("common.amount")}</th>
+                <th className="py-1">{t("ops.reports.method")}</th>
+                <th className="py-1">{t("ops.reports.reversed")}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[var(--color-border)]">
               {report.rows.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="py-4 text-center text-[var(--color-foreground-muted)]">
-                    Nema podataka.
+                    {t("common.noData")}
                   </td>
                 </tr>
               ) : (
@@ -182,8 +192,8 @@ export default async function PaymentsReportPage({ searchParams }: PageProps) {
                     <td className="py-1.5 text-right">
                       {formatMoney(p.amount, p.currency as SupportedCurrency)}
                     </td>
-                    <td className="py-1.5">{METHOD_LABELS[p.method] ?? p.method}</td>
-                    <td className="py-1.5">{p.reversed ? "Da" : "—"}</td>
+                    <td className="py-1.5">{methodLabel(p.method)}</td>
+                    <td className="py-1.5">{p.reversed ? t("common.yes") : "—"}</td>
                   </tr>
                 ))
               )}

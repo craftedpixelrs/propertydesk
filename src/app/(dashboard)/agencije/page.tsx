@@ -8,16 +8,17 @@ import { loadUserContext } from "@/server/auth/context";
 import { listConnections } from "@/server/services/agencies/agencies.service";
 import { formatDate } from "@/lib/formatters";
 import { InviteAgencyForm } from "@/features/agencies/invite-agency-form";
+import { createT, type TranslationKey } from "@/lib/i18n";
 import type { AgencyConnectionStatus } from "@prisma/client";
 
 export const dynamic = "force-dynamic";
 
-const STATUS_LABELS: Record<AgencyConnectionStatus, string> = {
-  INVITED: "Pozvana",
-  ACTIVE: "Aktivna",
-  SUSPENDED: "Suspendovana",
-  REJECTED: "Odbijena",
-  TERMINATED: "Prekinuta",
+const CONNECTION_STATUS_KEYS: Record<AgencyConnectionStatus, TranslationKey> = {
+  INVITED: "partners.connectionStatus.INVITED",
+  ACTIVE: "partners.connectionStatus.ACTIVE",
+  SUSPENDED: "partners.connectionStatus.SUSPENDED",
+  REJECTED: "partners.connectionStatus.REJECTED",
+  TERMINATED: "partners.connectionStatus.TERMINATED",
 };
 
 const STATUS_TONE: Record<AgencyConnectionStatus, string> = {
@@ -36,6 +37,8 @@ export default async function AgencijePage() {
     redirect("/dashboard");
   }
 
+  const t = createT(ctx.user.locale);
+
   const { items, total } = await listConnections({
     organizationId: ctx.activeOrganization.id,
     role: "INVESTOR",
@@ -47,9 +50,9 @@ export default async function AgencijePage() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold">Agencije</h1>
+          <h1 className="text-2xl font-semibold">{t("nav.agencies")}</h1>
           <p className="text-sm text-[var(--color-foreground-muted)]">
-            Upravljajte konekcijama, pristupom projektima i zaštitom kupaca za partnerske agencije.
+            {t("partners.agencies.subtitle")}
           </p>
         </div>
         <PermissionGuard permission="agency.manage">
@@ -59,23 +62,25 @@ export default async function AgencijePage() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-sm">Ukupno konekcija: {total}</CardTitle>
+          <CardTitle className="text-sm">
+            {t("partners.agencies.totalConnections", { count: total })}
+          </CardTitle>
         </CardHeader>
         <CardContent className="p-0">
           {items.length === 0 ? (
             <div className="py-12 text-center text-sm text-[var(--color-foreground-muted)]">
-              Nemate uspostavljene konekcije sa agencijama.
+              {t("partners.agencies.empty")}
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-[var(--color-border)] text-sm">
                 <thead className="bg-[var(--color-surface-inset)] text-left text-xs uppercase tracking-wide text-[var(--color-foreground-muted)]">
                   <tr>
-                    <th className="px-4 py-3">Agencija</th>
-                    <th className="px-4 py-3">Status</th>
-                    <th className="px-4 py-3 text-right">Projekti</th>
-                    <th className="px-4 py-3 text-right">Zaštita (dana)</th>
-                    <th className="px-4 py-3 text-right">Pozvana</th>
+                    <th className="px-4 py-3">{t("organization.types.agency")}</th>
+                    <th className="px-4 py-3">{t("common.statusLabel")}</th>
+                    <th className="px-4 py-3 text-right">{t("nav.projects")}</th>
+                    <th className="px-4 py-3 text-right">{t("partners.protectionDays")}</th>
+                    <th className="px-4 py-3 text-right">{t("partners.invited")}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[var(--color-border)]">
@@ -93,7 +98,7 @@ export default async function AgencijePage() {
                         <span
                           className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_TONE[c.status]}`}
                         >
-                          {STATUS_LABELS[c.status]}
+                          {t(CONNECTION_STATUS_KEYS[c.status])}
                         </span>
                       </td>
                       <td className="px-4 py-3 text-right tabular-nums">
@@ -116,11 +121,11 @@ export default async function AgencijePage() {
 
       <div className="flex items-center gap-3 text-sm">
         <Button asChild variant="outline">
-          <Link href="/agencije/registracije">Prijave kupaca (agencije)</Link>
+          <Link href="/agencije/registracije">{t("nav.agencyRegistrations")}</Link>
         </Button>
         <PermissionGuard permission="commission.manage">
           <Button asChild variant="outline">
-            <Link href="/provizije">Pravila provizije</Link>
+            <Link href="/provizije">{t("partners.agencies.commissionRules")}</Link>
           </Button>
         </PermissionGuard>
       </div>

@@ -8,6 +8,7 @@ import { listNotifications } from "@/server/services/notifications.service";
 import { formatDateTime } from "@/lib/formatters";
 import { MarkAllReadButton } from "@/features/notifications/mark-all-read-button";
 import { cn } from "@/lib/utils";
+import { createT, type TranslationKey } from "@/lib/i18n";
 
 export const dynamic = "force-dynamic";
 
@@ -15,21 +16,25 @@ interface PageProps {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }
 
-const CATEGORY_TABS: Array<{ value: NotificationCategory | "ALL"; label: string }> = [
-  { value: "ALL", label: "Sve" },
-  { value: "RESERVATION", label: "Rezervacije" },
-  { value: "SALE", label: "Prodaje" },
-  { value: "PAYMENT", label: "Uplate" },
-  { value: "COMMISSION", label: "Provizije" },
-  { value: "AGENCY", label: "Agencije" },
-  { value: "TASK", label: "Zadaci" },
-  { value: "BUYER", label: "Kupci" },
-  { value: "SYSTEM", label: "Sistem" },
+const CATEGORY_TABS: Array<{
+  value: NotificationCategory | "ALL";
+  labelKey: TranslationKey;
+}> = [
+  { value: "ALL", labelKey: "common.all" },
+  { value: "RESERVATION", labelKey: "nav.reservations" },
+  { value: "SALE", labelKey: "nav.sales" },
+  { value: "PAYMENT", labelKey: "nav.payments" },
+  { value: "COMMISSION", labelKey: "nav.commissions" },
+  { value: "AGENCY", labelKey: "nav.agencies" },
+  { value: "TASK", labelKey: "nav.tasks" },
+  { value: "BUYER", labelKey: "nav.customers" },
+  { value: "SYSTEM", labelKey: "crm.notifications.system" },
 ];
 
 export default async function ObavestenjaPage({ searchParams }: PageProps) {
   const ctx = await loadUserContext();
   if (!ctx) redirect("/sign-in");
+  const t = createT(ctx.user.locale);
 
   const sp = await searchParams;
   const single = (key: string) => {
@@ -70,9 +75,11 @@ export default async function ObavestenjaPage({ searchParams }: PageProps) {
     <div className="space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-semibold">Obaveštenja</h1>
+          <h1 className="text-2xl font-semibold">{t("ui.notifications.title")}</h1>
           <p className="text-sm text-[var(--color-foreground-muted)]">
-            {unreadCount > 0 ? `Nepročitanih: ${unreadCount}` : "Sve je pročitano."}
+            {unreadCount > 0
+              ? t("crm.notifications.unreadCount", { count: unreadCount })
+              : t("crm.notifications.allRead")}
           </p>
         </div>
         <MarkAllReadButton disabled={unreadCount === 0} />
@@ -96,7 +103,7 @@ export default async function ObavestenjaPage({ searchParams }: PageProps) {
                   : "border-[var(--color-border)] text-[var(--color-foreground-muted)] hover:text-[var(--color-foreground)]",
               )}
             >
-              {tab.label}
+              {t(tab.labelKey)}
             </Link>
           );
         })}
@@ -109,14 +116,16 @@ export default async function ObavestenjaPage({ searchParams }: PageProps) {
               : "border-[var(--color-border)] text-[var(--color-foreground-muted)] hover:text-[var(--color-foreground)]",
           )}
         >
-          {unreadOnly ? "Samo nepročitana ✓" : "Samo nepročitana"}
+          {unreadOnly
+            ? t("crm.notifications.unreadOnlyActive")
+            : t("crm.notifications.unreadOnly")}
         </Link>
       </div>
 
       {items.length === 0 ? (
         <Card>
           <CardContent className="py-12 text-center text-sm text-[var(--color-foreground-muted)]">
-            Nemate obaveštenja.
+            {t("ui.notifications.empty")}
           </CardContent>
         </Card>
       ) : (
@@ -156,18 +165,18 @@ export default async function ObavestenjaPage({ searchParams }: PageProps) {
               href={makeHref({ page: String(page - 1) })}
               className="rounded border border-[var(--color-border)] px-3 py-1 hover:bg-[var(--color-surface-muted)]"
             >
-              ← Prethodna
+              ← {t("crm.pagination.previous")}
             </Link>
           ) : null}
           <span className="text-[var(--color-foreground-muted)]">
-            Strana {page} od {totalPages}
+            {t("crm.pagination.pageOf", { page, total: totalPages })}
           </span>
           {page < totalPages ? (
             <Link
               href={makeHref({ page: String(page + 1) })}
               className="rounded border border-[var(--color-border)] px-3 py-1 hover:bg-[var(--color-surface-muted)]"
             >
-              Sledeća →
+              {t("crm.pagination.next")} →
             </Link>
           ) : null}
         </div>

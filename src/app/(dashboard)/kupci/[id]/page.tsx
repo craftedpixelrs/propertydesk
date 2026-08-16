@@ -13,33 +13,25 @@ import { BuyerQuickActions } from "@/features/buyers/buyer-quick-actions";
 import { CommentThread } from "@/features/comments/comment-thread";
 import { KycPanel } from "@/features/buyers/kyc-panel";
 import type { DocumentItem } from "@/features/documents/document-list";
+import {
+  createT,
+  enumLabel,
+  type TranslateFn,
+  type TranslationKey,
+} from "@/lib/i18n";
 import type { ActivityType, BuyerStatus } from "@prisma/client";
 
 export const dynamic = "force-dynamic";
 
-const BUYER_STATUS_LABELS: Record<BuyerStatus, string> = {
-  NEW: "Novi",
-  CONTACTED: "Kontaktiran",
-  QUALIFIED: "Kvalifikovan",
-  VIEWING_SCHEDULED: "Razgledanje zakazano",
-  OFFER_SENT: "Ponuda poslata",
-  NEGOTIATION: "Pregovori",
-  RESERVATION: "Rezervacija",
-  WON: "Kupio",
-  LOST: "Izgubljen",
-  ARCHIVED: "Arhiviran",
-};
+function buyerStatusLabel(status: BuyerStatus, t: TranslateFn): string {
+  const fromEnum = enumLabel("buyer", status, t);
+  if (fromEnum !== status) return fromEnum;
+  return t(`crm.buyerStatus.${status}` as TranslationKey);
+}
 
-const ACTIVITY_LABELS: Record<ActivityType, string> = {
-  NOTE: "Beleška",
-  CALL: "Poziv",
-  EMAIL: "Email",
-  MEETING: "Sastanak",
-  VIEWING: "Razgledanje",
-  OFFER: "Ponuda",
-  STATUS_CHANGE: "Promena statusa",
-  SYSTEM: "Sistem",
-};
+function activityTypeLabel(type: ActivityType, t: TranslateFn): string {
+  return t(`crm.activityType.${type}` as TranslationKey);
+}
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -49,6 +41,7 @@ export default async function KupacDetaljPage({ params }: PageProps) {
   const ctx = await loadUserContext();
   if (!ctx) redirect("/sign-in");
   if (!ctx.activeOrganization) redirect("/podesavanja");
+  const t = createT(ctx.user.locale);
 
   const { id } = await params;
   let buyer;
@@ -83,7 +76,7 @@ export default async function KupacDetaljPage({ params }: PageProps) {
 
   const timelineItems = buyer.activities.map((a) => ({
     id: a.id,
-    title: `${ACTIVITY_LABELS[a.type]}${a.actor ? ` · ${a.actor.name}` : ""}`,
+    title: `${activityTypeLabel(a.type, t)}${a.actor ? ` · ${a.actor.name}` : ""}`,
     description: a.description,
     createdAt: a.occurredAt,
   }));
@@ -93,19 +86,21 @@ export default async function KupacDetaljPage({ params }: PageProps) {
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <Link href="/kupci" className="text-sm text-[var(--color-foreground-muted)] hover:underline">
-            ← Kupci
+            ← {t("nav.customers")}
           </Link>
           <h1 className="mt-1 text-2xl font-semibold">
             {buyer.firstName} {buyer.lastName}
           </h1>
           <p className="text-sm text-[var(--color-foreground-muted)]">
-            Status: {BUYER_STATUS_LABELS[buyer.status]} · Zadužen:{" "}
-            {buyer.assignedUser?.name ?? "—"}
+            {t("crm.buyers.statusAssigned", {
+              status: buyerStatusLabel(buyer.status, t),
+              name: buyer.assignedUser?.name ?? "—",
+            })}
           </p>
         </div>
         {canManage ? (
           <Button asChild variant="outline">
-            <Link href={`/kupci/${buyer.id}/izmena`}>Izmeni kupca</Link>
+            <Link href={`/kupci/${buyer.id}/izmena`}>{t("crm.buyers.editBuyer")}</Link>
           </Button>
         ) : null}
       </div>
@@ -122,12 +117,12 @@ export default async function KupacDetaljPage({ params }: PageProps) {
         <div className="space-y-6 lg:col-span-2">
           <Card>
             <CardHeader>
-              <CardTitle className="text-sm">Aktivnosti</CardTitle>
+              <CardTitle className="text-sm">{t("crm.buyers.activities")}</CardTitle>
             </CardHeader>
             <CardContent>
               {timelineItems.length === 0 ? (
                 <p className="text-sm text-[var(--color-foreground-muted)]">
-                  Nema zabeleženih aktivnosti.
+                  {t("crm.buyers.noActivities")}
                 </p>
               ) : (
                 <ActivityTimeline items={timelineItems} />
@@ -137,7 +132,7 @@ export default async function KupacDetaljPage({ params }: PageProps) {
 
           <Card>
             <CardHeader>
-              <CardTitle className="text-sm">Komentari</CardTitle>
+              <CardTitle className="text-sm">{t("crm.buyers.comments")}</CardTitle>
             </CardHeader>
             <CardContent>
               <CommentThread
@@ -150,10 +145,9 @@ export default async function KupacDetaljPage({ params }: PageProps) {
 
           <Card>
             <CardHeader>
-              <CardTitle className="text-sm">KYC</CardTitle>
+              <CardTitle className="text-sm">{t("crm.buyers.kyc")}</CardTitle>
               <p className="text-xs text-[var(--color-foreground-muted)]">
-                Provera identiteta i pratećih dokumenata pre prelaska prodaje u
-                „Ugovorena".
+                {t("crm.buyers.kycHint")}
               </p>
             </CardHeader>
             <CardContent>
@@ -177,12 +171,12 @@ export default async function KupacDetaljPage({ params }: PageProps) {
 
           <Card>
             <CardHeader>
-              <CardTitle className="text-sm">Rezervacije</CardTitle>
+              <CardTitle className="text-sm">{t("nav.reservations")}</CardTitle>
             </CardHeader>
             <CardContent>
               {buyer.reservations.length === 0 ? (
                 <p className="text-sm text-[var(--color-foreground-muted)]">
-                  Nema rezervacija.
+                  {t("ui.dashboard.noReservations")}
                 </p>
               ) : (
                 <ul className="divide-y divide-[var(--color-border)] text-sm">
@@ -195,7 +189,7 @@ export default async function KupacDetaljPage({ params }: PageProps) {
                         {r.unit?.code ?? "—"} · {r.project?.name ?? ""}
                       </Link>
                       <span className="text-xs text-[var(--color-foreground-muted)]">
-                        {r.status} · {formatDate(r.createdAt)}
+                        {enumLabel("reservation", r.status, t)} · {formatDate(r.createdAt)}
                       </span>
                     </li>
                   ))}
@@ -208,58 +202,67 @@ export default async function KupacDetaljPage({ params }: PageProps) {
         <div className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle className="text-sm">Kontakt</CardTitle>
+              <CardTitle className="text-sm">{t("crm.buyers.contact")}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2 text-sm">
-              <Row label="Telefon" value={buyer.phone} />
-              {buyer.secondaryPhone ? <Row label="Sekundarni" value={buyer.secondaryPhone} /> : null}
-              <Row label="Email" value={buyer.email ?? "—"} />
-              <Row label="Izvor" value={buyer.source ?? "—"} />
-              <Row label="Kreiran" value={formatDate(buyer.createdAt)} />
+              <Row label={t("common.phone")} value={buyer.phone} />
+              {buyer.secondaryPhone ? (
+                <Row label={t("crm.buyers.secondaryPhone")} value={buyer.secondaryPhone} />
+              ) : null}
+              <Row label={t("common.email")} value={buyer.email ?? "—"} />
+              <Row label={t("crm.buyers.source")} value={buyer.source ?? "—"} />
+              <Row label={t("crm.buyers.created")} value={formatDate(buyer.createdAt)} />
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader>
               <CardTitle className="text-sm">
-                Identitet ({buyer.entityType === "LEGAL" ? "pravno lice" : "fizičko lice"})
+                {t("crm.buyers.identity")} (
+                {buyer.entityType === "LEGAL"
+                  ? t("crm.buyers.legalPerson")
+                  : t("crm.buyers.naturalPerson")}
+                )
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-2 text-sm">
               {buyer.entityType === "LEGAL" ? (
                 <>
-                  <Row label="Naziv pravnog lica" value={buyer.legalName ?? "—"} />
-                  <Row label="PIB" value={buyer.taxId ?? "—"} />
+                  <Row label={t("crm.buyers.legalName")} value={buyer.legalName ?? "—"} />
+                  <Row label={t("crm.buyers.taxId")} value={buyer.taxId ?? "—"} />
                 </>
               ) : (
                 <>
-                  <Row label="JMBG" value={buyer.jmbg ?? "—"} />
-                  <Row label="Br. lične karte" value={buyer.identityNumber ?? "—"} />
+                  <Row label={t("crm.buyers.jmbg")} value={buyer.jmbg ?? "—"} />
+                  <Row label={t("crm.buyers.identityNumber")} value={buyer.identityNumber ?? "—"} />
                 </>
               )}
-              <Row label="Adresa" value={buyer.addressLine1 ?? "—"} />
+              <Row label={t("crm.buyers.address")} value={buyer.addressLine1 ?? "—"} />
               <Row
-                label="Grad"
+                label={t("crm.buyers.city")}
                 value={[buyer.postalCode, buyer.city].filter(Boolean).join(" ") || "—"}
               />
-              <Row label="Država" value={buyer.country ?? "—"} />
+              <Row label={t("crm.buyers.country")} value={buyer.country ?? "—"} />
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader>
-              <CardTitle className="text-sm">Zadaci</CardTitle>
+              <CardTitle className="text-sm">{t("nav.tasks")}</CardTitle>
             </CardHeader>
             <CardContent>
               {buyer.tasks.length === 0 ? (
-                <p className="text-sm text-[var(--color-foreground-muted)]">Nema zadataka.</p>
+                <p className="text-sm text-[var(--color-foreground-muted)]">
+                  {t("crm.buyers.noTasks")}
+                </p>
               ) : (
                 <ul className="space-y-2 text-sm">
                   {buyer.tasks.map((task) => (
                     <li key={task.id} className="rounded-md border border-[var(--color-border)] p-2">
                       <div className="font-medium">{task.title}</div>
                       <div className="text-xs text-[var(--color-foreground-muted)]">
-                        {task.status} · rok {formatDateTime(task.dueAt)}
+                        {t(`crm.tasks.status.${task.status}` as TranslationKey)} ·{" "}
+                        {t("crm.buyers.due", { date: formatDateTime(task.dueAt) })}
                       </div>
                     </li>
                   ))}

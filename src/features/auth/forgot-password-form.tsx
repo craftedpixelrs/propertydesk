@@ -7,10 +7,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { FormActions } from "@/components/forms/form-actions";
-import { t } from "@/lib/i18n";
+import { useT } from "@/components/app/i18n-provider";
 import { publicEnv } from "@/lib/env";
 
 export function ForgotPasswordForm() {
+  const t = useT();
   const [email, setEmail] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [sent, setSent] = useState(false);

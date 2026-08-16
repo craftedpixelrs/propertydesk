@@ -4,6 +4,7 @@ import { loadUserContext } from "@/server/auth/context";
 import { getUnitById } from "@/server/services/units.service";
 import { getProjectById } from "@/server/services/projects.service";
 import { isDomainError } from "@/lib/errors";
+import { createT } from "@/lib/i18n";
 import { NewUnitForm } from "@/features/units/new-unit-form";
 
 interface Props {
@@ -18,6 +19,7 @@ export default async function EditUnitPage({ params }: Props) {
   if (!ctx.permissions.includes("inventory.manage")) {
     redirect(`/jedinice/${id}`);
   }
+  const t = createT(ctx.user.locale);
 
   let unit: Awaited<ReturnType<typeof getUnitById>>;
   try {
@@ -69,9 +71,11 @@ export default async function EditUnitPage({ params }: Props) {
         <div className="text-xs font-mono uppercase text-[var(--color-foreground-muted)]">
           {project.code} · {project.name}
         </div>
-        <h1 className="text-2xl font-semibold">Izmeni jedinicu {unit.code}</h1>
+        <h1 className="text-2xl font-semibold">
+          {t("inventory.units.editWithCode", { code: unit.code })}
+        </h1>
         <p className="text-sm text-[var(--color-foreground-muted)]">
-          Izmena osnovne cene zahteva razlog i beleži se u istoriju cena.
+          {t("inventory.units.editSubtitle")}
         </p>
       </div>
       <NewUnitForm

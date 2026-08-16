@@ -43,6 +43,9 @@ model User {
   // without touching the Better Auth ban mechanism).
   deactivatedAt DateTime?
 
+  // Per-user UI language (`sr-Latn` | `en`). Independent of org / invoices.
+  locale String @default("sr-Latn")
+
   accounts         Account[]
   sessions         Session[]
   memberships      Member[]

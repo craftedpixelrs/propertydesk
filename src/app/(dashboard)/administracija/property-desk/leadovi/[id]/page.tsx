@@ -16,6 +16,8 @@ import { listTasksForLead } from "@/server/services/property-desk/marketing-lead
 import { listTeamMembers } from "@/server/services/property-desk/team.service";
 import { listSaaSPlans } from "@/server/services/platform.service";
 import { nextAllowedStages, ROLE_LEVELS } from "@/server/services/property-desk/lead-lifecycle";
+import { createT, type TranslateFn, type TranslationKey } from "@/lib/i18n";
+import { resolveRequestLocale } from "@/lib/i18n/resolve-locale";
 
 import { LeadDetailEditor } from "./editor";
 import {
@@ -35,6 +37,7 @@ export default async function PropertyDeskLeadDetailPage({
 }: PageProps) {
   const { id } = await params;
   const ctx = await requirePropertyDeskAccess();
+  const t = createT(await resolveRequestLocale());
 
   let lead;
   try {
@@ -44,7 +47,7 @@ export default async function PropertyDeskLeadDetailPage({
       notFound();
     }
     if (err instanceof DomainError && err.code === "FORBIDDEN") {
-      return <LeadLeftPipelineNotice />;
+      return <LeadLeftPipelineNotice t={t} />;
     }
     throw err;
   }
@@ -149,7 +152,7 @@ export default async function PropertyDeskLeadDetailPage({
               href="/administracija/property-desk/leadovi"
               className="text-xs text-[var(--color-brand-700)] hover:underline"
             >
-              ← Nazad na listu
+              ← {t("admin.pdDetail.backToList")}
             </Link>
           </div>
           <h2 className="text-lg font-semibold">
@@ -164,14 +167,10 @@ export default async function PropertyDeskLeadDetailPage({
         </div>
         <div className="flex flex-col items-end gap-1">
           <Badge tone="neutral">
-            {lead.audience === "INVESTOR"
-              ? "Investitor"
-              : lead.audience === "AGENCY"
-                ? "Agencija"
-                : "Ostalo"}
+            {t(`admin.pd.audience.${lead.audience}` as TranslationKey)}
           </Badge>
           <span className="text-xs text-[var(--color-foreground-muted)]">
-            Primljen {formatDateTime(lead.createdAt)}
+            {t("admin.pdDetail.received", { date: formatDateTime(lead.createdAt) })}
           </span>
         </div>
       </div>
@@ -260,22 +259,22 @@ export default async function PropertyDeskLeadDetailPage({
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-sm">UTM / izvor</CardTitle>
+          <CardTitle className="text-sm">{t("admin.pdDetail.utm")}</CardTitle>
         </CardHeader>
         <CardContent>
           <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
-            <dt className="text-[var(--color-foreground-muted)]">Izvor</dt>
-            <dd>{lead.source ?? "—"}</dd>
+            <dt className="text-[var(--color-foreground-muted)]">{t("admin.pdDetail.source")}</dt>
+            <dd>{lead.source ?? t("admin.dash")}</dd>
             <dt className="text-[var(--color-foreground-muted)]">utmSource</dt>
-            <dd>{lead.utmSource ?? "—"}</dd>
+            <dd>{lead.utmSource ?? t("admin.dash")}</dd>
             <dt className="text-[var(--color-foreground-muted)]">utmMedium</dt>
-            <dd>{lead.utmMedium ?? "—"}</dd>
+            <dd>{lead.utmMedium ?? t("admin.dash")}</dd>
             <dt className="text-[var(--color-foreground-muted)]">utmCampaign</dt>
-            <dd>{lead.utmCampaign ?? "—"}</dd>
+            <dd>{lead.utmCampaign ?? t("admin.dash")}</dd>
             <dt className="text-[var(--color-foreground-muted)]">
-              Broj projekata (procena)
+              {t("admin.pdDetail.projectCount")}
             </dt>
-            <dd>{lead.projectCount ?? "—"}</dd>
+            <dd>{lead.projectCount ?? t("admin.dash")}</dd>
           </dl>
         </CardContent>
       </Card>
@@ -283,29 +282,28 @@ export default async function PropertyDeskLeadDetailPage({
   );
 }
 
-function LeadLeftPipelineNotice() {
+function LeadLeftPipelineNotice({ t }: { t: TranslateFn }) {
   return (
     <div className="mx-auto max-w-lg space-y-4 py-10 text-center">
       <p className="text-xs font-semibold uppercase tracking-widest text-[var(--color-success)]">
-        Predaja uspela
+        {t("admin.pdDetail.leftKicker")}
       </p>
-      <h1 className="text-2xl font-semibold">Lead je prešao u sledeći level</h1>
+      <h1 className="text-2xl font-semibold">{t("admin.pdDetail.leftTitle")}</h1>
       <p className="text-sm text-[var(--color-foreground-muted)]">
-        Nije više u tvom pipeline-u — preuzima ga tim sledećeg levela iz
-        pool-a. To je očekivano ponašanje, ne greška.
+        {t("admin.pdDetail.leftBody")}
       </p>
       <div className="flex justify-center gap-2">
         <Link
           href="/administracija/property-desk/leadovi"
           className="rounded-md bg-[var(--color-brand-600)] px-4 py-2 text-sm font-medium text-white hover:bg-[var(--color-brand-700)]"
         >
-          Nazad na listu
+          {t("admin.pdDetail.backToList")}
         </Link>
         <Link
           href="/administracija/property-desk"
           className="rounded-md border border-[var(--color-border)] px-4 py-2 text-sm font-medium hover:bg-[var(--color-surface-inset)]"
         >
-          Dashboard
+          {t("nav.dashboard")}
         </Link>
       </div>
     </div>

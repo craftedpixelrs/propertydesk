@@ -11,7 +11,7 @@ import {
   type NavItem,
 } from "@/components/app/navigation";
 import type { PermissionString } from "@/server/permissions/access-control";
-import { t } from "@/lib/i18n";
+import { useT } from "@/components/app/i18n-provider";
 import { cn } from "@/lib/utils";
 
 export interface BottomNavProps {
@@ -36,6 +36,7 @@ export function BottomNav({
   hasPropertyDeskAccess,
 }: BottomNavProps) {
   const pathname = usePathname();
+  const t = useT();
 
   const primaryItems = useMemo<NavItem[]>(() => {
     const permissionSet = new Set(permissions);

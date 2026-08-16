@@ -7,30 +7,29 @@ import { Menu, X } from "lucide-react";
 
 import { APP_NAME, LANDING_IMAGES } from "@/lib/constants/app";
 import { Button } from "@/components/ui/button";
+import { LanguageSwitcher } from "@/components/app/language-switcher";
+import { useT } from "@/components/app/i18n-provider";
 import { cn } from "@/lib/utils";
 
 /**
  * Sticky top bar for the marketing site.
  *
  * Navigation is entirely intra-page (anchor scroll to each `<section id>`),
- * except for two external links: "Prijava" and "Rani pristup". The mobile
+ * except for two external links: sign-in and the demo CTA. The mobile
  * menu is a lightweight controlled panel - no drawer/portal - because it
  * only needs to reveal 4 anchors and 2 CTAs.
  */
-// All anchors are absolute (`/#foo`, not `#foo`) so they work from any
-// topic landing page. Native browser behavior on same-origin anchor
-// links to a different route: it navigates to `/`, then scrolls to the
-// hash - exactly what we want.
-const NAV_LINKS = [
-  { href: "/#mogucnosti", label: "Mogućnosti" },
-  { href: "/#za-koga", label: "Za koga" },
-  { href: "/#uskoro", label: "Uskoro" },
-  { href: "/#cenovnik", label: "Cenovnik" },
-  { href: "/#faq", label: "FAQ" },
-] as const;
-
 export function MarketingHeader() {
+  const t = useT();
   const [open, setOpen] = useState(false);
+
+  const navLinks = [
+    { href: "/#mogucnosti", label: t("marketing.nav.features") },
+    { href: "/#za-koga", label: t("marketing.nav.personas") },
+    { href: "/#uskoro", label: t("marketing.nav.roadmap") },
+    { href: "/#cenovnik", label: t("marketing.nav.pricing") },
+    { href: "/#faq", label: t("marketing.nav.faq") },
+  ] as const;
 
   // Close on hash-change (anchor click) so the panel doesn't sit open over
   // the newly-scrolled section.
@@ -55,7 +54,7 @@ export function MarketingHeader() {
       <div className="container-app flex h-14 items-center justify-between gap-3 sm:h-16">
         <Link
           href="/"
-          aria-label={`${APP_NAME} - početna`}
+          aria-label={t("marketing.header.homeAria", { name: APP_NAME })}
           className="flex items-center gap-2 font-semibold tracking-tight text-[var(--color-foreground)]"
         >
           <Image
@@ -69,8 +68,8 @@ export function MarketingHeader() {
           <span className="text-base sm:text-lg">{APP_NAME}</span>
         </Link>
 
-        <nav className="hidden items-center gap-1 md:flex" aria-label="Glavna navigacija">
-          {NAV_LINKS.map((l) => (
+        <nav className="hidden items-center gap-1 md:flex" aria-label={t("a11y.primaryNavigation")}>
+          {navLinks.map((l) => (
             <a
               key={l.href}
               href={l.href}
@@ -82,8 +81,9 @@ export function MarketingHeader() {
         </nav>
 
         <div className="hidden items-center gap-2 md:flex">
+          <LanguageSwitcher compact />
           {/* Sign-in is intentionally disabled until the public launch
-           * on 01.09.2026 - we surface a "Uskoro" affordance instead of
+           * on 01.09.2026 - we surface a coming-soon affordance instead of
            * silently linking to a route that would just show a login
            * page for accounts that don't exist yet. */}
           <Button
@@ -92,30 +92,27 @@ export function MarketingHeader() {
             size="sm"
             disabled
             aria-disabled="true"
-            title="Prijava biće dostupna nakon lansiranja 01.09.2026."
+            title={t("marketing.header.signInSoonTitle")}
             className="cursor-not-allowed gap-2"
           >
-            <span>Prijava</span>
+            <span>{t("auth.signIn")}</span>
             <span className="rounded-full bg-[var(--color-surface-inset)] px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[var(--color-foreground-muted)]">
-              Uskoro
+              {t("common.comingSoon")}
             </span>
           </Button>
           <Button asChild size="sm">
-            <Link href="/demo">Zakažite demo</Link>
+            <Link href="/demo">{t("marketing.header.bookDemo")}</Link>
           </Button>
         </div>
 
         <button
           type="button"
           onClick={() => setOpen((v) => !v)}
-          aria-label={open ? "Zatvori meni" : "Otvori meni"}
+          aria-label={open ? t("a11y.closeMenu") : t("a11y.openMenu")}
           aria-expanded={open}
           aria-controls="mobile-nav"
           className="relative inline-flex h-10 w-10 items-center justify-center rounded-md text-[var(--color-foreground-muted)] transition-colors hover:bg-[var(--color-surface-inset)] md:hidden"
         >
-          {/* Stacked icons that crossfade + rotate between hamburger and
-           * "X" states, so the toggle feels responsive instead of an
-           * abrupt swap. */}
           <span className="relative grid size-5 place-items-center">
             <Menu
               aria-hidden
@@ -135,12 +132,6 @@ export function MarketingHeader() {
         </button>
       </div>
 
-      {/* Mobile menu - always mounted so we can animate open/close with
-       * CSS. The `grid-template-rows: 0fr → 1fr` trick expands the panel
-       * to its intrinsic height without JS measurement, and the inner
-       * layer fades + slides in for a polished feel. `aria-hidden` and
-       * `tabIndex=-1` on the closed panel keep it out of the a11y tree
-       * and out of the tab order. */}
       <div
         id="mobile-nav"
         className={cn(
@@ -157,7 +148,7 @@ export function MarketingHeader() {
             )}
           >
             <div className="container-app flex flex-col gap-1 py-3">
-              {NAV_LINKS.map((l) => (
+              {navLinks.map((l) => (
                 <a
                   key={l.href}
                   href={l.href}
@@ -168,6 +159,9 @@ export function MarketingHeader() {
                   {l.label}
                 </a>
               ))}
+              <div className="mt-2 px-1">
+                <LanguageSwitcher compact />
+              </div>
               <div className="mt-2 grid grid-cols-2 gap-2">
                 <Button
                   type="button"
@@ -176,12 +170,12 @@ export function MarketingHeader() {
                   disabled
                   aria-disabled="true"
                   tabIndex={open ? 0 : -1}
-                  title="Prijava biće dostupna nakon lansiranja 01.09.2026."
+                  title={t("marketing.header.signInSoonTitle")}
                   className="w-full cursor-not-allowed gap-2"
                 >
-                  <span>Prijava</span>
+                  <span>{t("auth.signIn")}</span>
                   <span className="rounded-full bg-[var(--color-surface-inset)] px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[var(--color-foreground-muted)]">
-                    Uskoro
+                    {t("common.comingSoon")}
                   </span>
                 </Button>
                 <Button
@@ -191,7 +185,7 @@ export function MarketingHeader() {
                   onClick={closeMenu}
                   tabIndex={open ? 0 : -1}
                 >
-                  <Link href="/demo">Zakažite demo</Link>
+                  <Link href="/demo">{t("marketing.header.bookDemo")}</Link>
                 </Button>
               </div>
             </div>

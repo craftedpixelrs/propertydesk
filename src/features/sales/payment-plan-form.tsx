@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
+import { useT } from "@/components/app/i18n-provider";
 import { apiClient, ApiClientError } from "@/lib/api-client";
 
 type Template = "MANUAL" | "PERCENTAGE" | "EQUAL" | "TEMPLATE";
@@ -56,17 +57,18 @@ interface Props {
  * server-side Decimal validation on the first submit.
  */
 export function PaymentPlanForm({ saleId, currency, finalPrice, projectId }: Props) {
+  const t = useT();
   const router = useRouter();
   const [template, setTemplate] = useState<Template>("EQUAL");
-  const [planName, setPlanName] = useState("Standardni plan");
+  const [planName, setPlanName] = useState(() => t("deals.plan.defaultName"));
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const [manualRows, setManualRows] = useState<ManualRow[]>([
-    { name: "Prva rata", amount: "", dueDate: new Date().toISOString().slice(0, 10) },
+    { name: t("deals.plan.firstInstallment"), amount: "", dueDate: new Date().toISOString().slice(0, 10) },
   ]);
   const [pctRows, setPctRows] = useState<PctRow[]>([
-    { name: "Prva rata", percentage: "100", dueDate: new Date().toISOString().slice(0, 10) },
+    { name: t("deals.plan.firstInstallment"), percentage: "100", dueDate: new Date().toISOString().slice(0, 10) },
   ]);
   const [equalCount, setEqualCount] = useState(12);
   const [equalFirstDue, setEqualFirstDue] = useState(
@@ -131,7 +133,7 @@ export function PaymentPlanForm({ saleId, currency, finalPrice, projectId }: Pro
       );
       const draft = (res as unknown as { data: ApplyTemplateResponse }).data;
       const chosen = templateOptions.find((t) => t.id === selectedTemplateId);
-      setPlanName(chosen?.name ?? "Plan iz šablona");
+      setPlanName(chosen?.name ?? t("deals.plan.fromTemplate"));
       setManualRows(
         draft.rows.map((r) => ({
           name: r.label,
@@ -145,14 +147,14 @@ export function PaymentPlanForm({ saleId, currency, finalPrice, projectId }: Pro
       const missing = draft.rows.filter((r) => !r.dueDate).length;
       if (missing > 0) {
         setTemplateInfo(
-          `Šablon primenjen. ${missing} stavki nema definisan datum (anker nije poznat) — dopunite ih pre snimanja.`,
+          t("deals.plan.templateMissingDates", { count: missing }),
         );
       } else {
-        setTemplateInfo("Šablon primenjen. Dopunite ako treba, zatim sačuvajte.");
+        setTemplateInfo(t("deals.plan.templateApplied"));
       }
     } catch (err) {
       setError(
-        err instanceof ApiClientError ? err.message : "Primena šablona nije uspela.",
+        err instanceof ApiClientError ? err.message : t("deals.plan.applyFailed"),
       );
     } finally {
       setBusy(false);
@@ -196,7 +198,7 @@ export function PaymentPlanForm({ saleId, currency, finalPrice, projectId }: Pro
       await apiClient.post(`/sales/${saleId}/payment-plan`, body);
       router.refresh();
     } catch (err) {
-      setError(err instanceof ApiClientError ? err.message : "Došlo je do greške.");
+      setError(err instanceof ApiClientError ? err.message : t("errors.generic"));
     } finally {
       setBusy(false);
     }
@@ -213,7 +215,7 @@ export function PaymentPlanForm({ saleId, currency, finalPrice, projectId }: Pro
       <div className="grid gap-3 sm:grid-cols-2">
         <div>
           <label className="block text-xs text-[var(--color-foreground-muted)]">
-            Naziv plana
+            {t("deals.plan.planName")}
           </label>
           <input
             value={planName}
@@ -222,16 +224,16 @@ export function PaymentPlanForm({ saleId, currency, finalPrice, projectId }: Pro
           />
         </div>
         <div>
-          <label className="block text-xs text-[var(--color-foreground-muted)]">Šablon</label>
+          <label className="block text-xs text-[var(--color-foreground-muted)]">{t("deals.plan.template")}</label>
           <select
             value={template}
             onChange={(e) => setTemplate(e.target.value as Template)}
             className="h-10 w-full rounded-md border border-[var(--color-border)] px-3 text-sm"
           >
-            <option value="EQUAL">Jednake rate</option>
-            <option value="PERCENTAGE">Procentualno</option>
-            <option value="MANUAL">Ručno</option>
-            <option value="TEMPLATE">Iz šablona</option>
+            <option value="EQUAL">{t("deals.plan.equal")}</option>
+            <option value="PERCENTAGE">{t("deals.plan.percentage")}</option>
+            <option value="MANUAL">{t("deals.plan.manual")}</option>
+            <option value="TEMPLATE">{t("deals.plan.fromSaved")}</option>
           </select>
         </div>
       </div>
@@ -241,19 +243,19 @@ export function PaymentPlanForm({ saleId, currency, finalPrice, projectId }: Pro
           <div className="flex flex-wrap items-end gap-2">
             <div className="flex-1 min-w-[220px]">
               <label className="block text-xs text-[var(--color-foreground-muted)]">
-                Šablon
+                {t("deals.plan.template")}
               </label>
               <select
                 value={selectedTemplateId}
                 onChange={(e) => setSelectedTemplateId(e.target.value)}
                 className="h-10 w-full rounded-md border border-[var(--color-border)] px-3 text-sm"
               >
-                <option value="">— izaberite šablon —</option>
-                {templateOptions.map((t) => (
-                  <option key={t.id} value={t.id}>
-                    {t.name}
-                    {t.isDefault ? " ★" : ""}
-                    {t.projectName ? ` · ${t.projectName}` : " · organizacija"}
+                <option value="">{t("deals.plan.pickTemplate")}</option>
+                {templateOptions.map((opt) => (
+                  <option key={opt.id} value={opt.id}>
+                    {opt.name}
+                    {opt.isDefault ? " ★" : ""}
+                    {opt.projectName ? ` · ${opt.projectName}` : ` · ${t("deals.plan.orgScope")}`}
                   </option>
                 ))}
               </select>
@@ -265,25 +267,24 @@ export function PaymentPlanForm({ saleId, currency, finalPrice, projectId }: Pro
               loading={busy}
               disabled={!selectedTemplateId}
             >
-              Primeni šablon
+              {t("deals.plan.applyTemplate")}
             </Button>
           </div>
           {templateOptions.length === 0 ? (
             <p className="text-xs text-[var(--color-foreground-muted)]">
-              Nemate sačuvanih šablona. Kreirajte ih u{" "}
+              {t("deals.plan.noTemplatesLead")}{" "}
               <a
                 href="/podesavanja/planovi-placanja"
                 className="text-[var(--color-brand-700)] underline"
               >
-                Podešavanja → Planovi plaćanja
+                {t("deals.plan.settingsLink")}
               </a>
               .
             </p>
           ) : null}
           {templateApplied ? (
             <p className="text-xs text-emerald-700">
-              Aktivan: <strong>{templateApplied}</strong>. Dole možete
-              doraditi iznose i datume pre snimanja plana.
+              {t("deals.plan.templateActive", { name: templateApplied })}
             </p>
           ) : null}
           {templateInfo ? (
@@ -305,7 +306,7 @@ export function PaymentPlanForm({ saleId, currency, finalPrice, projectId }: Pro
                       )
                     }
                     className="h-10 rounded-md border border-[var(--color-border)] px-3 text-sm"
-                    placeholder="Naziv"
+                    placeholder={t("common.name")}
                   />
                   <input
                     inputMode="decimal"
@@ -318,7 +319,7 @@ export function PaymentPlanForm({ saleId, currency, finalPrice, projectId }: Pro
                       )
                     }
                     className="h-10 rounded-md border border-[var(--color-border)] px-3 text-sm"
-                    placeholder={`Iznos (${currency})`}
+                    placeholder={t("deals.plan.amountPlaceholder", { currency })}
                   />
                   <input
                     type="date"
@@ -344,16 +345,16 @@ export function PaymentPlanForm({ saleId, currency, finalPrice, projectId }: Pro
                       setManualRows((rs) => rs.filter((_, i) => i !== idx))
                     }
                   >
-                    Ukloni
+                    {t("common.remove")}
                   </Button>
                 </div>
               ))}
               <p className="text-xs text-[var(--color-foreground-muted)]">
-                Zbir rata:{" "}
-                <strong>
-                  {manualTotal.toFixed(2)} {currency}
-                </strong>{" "}
-                · potrebno {finalNum.toFixed(2)} {currency}.
+                {t("deals.plan.installmentSum", {
+                  sum: manualTotal.toFixed(2),
+                  currency,
+                  needed: finalNum.toFixed(2),
+                })}
               </p>
             </div>
           ) : null}
@@ -364,7 +365,7 @@ export function PaymentPlanForm({ saleId, currency, finalPrice, projectId }: Pro
         <div className="grid gap-3 sm:grid-cols-2">
           <div>
             <label className="block text-xs text-[var(--color-foreground-muted)]">
-              Broj rata
+              {t("deals.plan.installmentCount")}
             </label>
             <input
               type="number"
@@ -376,7 +377,7 @@ export function PaymentPlanForm({ saleId, currency, finalPrice, projectId }: Pro
           </div>
           <div>
             <label className="block text-xs text-[var(--color-foreground-muted)]">
-              Prva rata dospeva
+              {t("deals.plan.firstDue")}
             </label>
             <input
               type="date"
@@ -386,7 +387,7 @@ export function PaymentPlanForm({ saleId, currency, finalPrice, projectId }: Pro
             />
           </div>
           <p className="sm:col-span-2 text-xs text-[var(--color-foreground-muted)]">
-            Rate se automatski računaju iz ugovorene cene {finalNum.toFixed(2)} {currency}.
+            {t("deals.plan.equalHint", { amount: finalNum.toFixed(2), currency })}
           </p>
         </div>
       ) : null}
@@ -401,7 +402,7 @@ export function PaymentPlanForm({ saleId, currency, finalPrice, projectId }: Pro
                   setPctRows((rs) => rs.map((r, i) => (i === idx ? { ...r, name: e.target.value } : r)))
                 }
                 className="h-10 rounded-md border border-[var(--color-border)] px-3 text-sm"
-                placeholder="Naziv"
+                placeholder={t("common.name")}
               />
               <input
                 inputMode="decimal"
@@ -429,7 +430,7 @@ export function PaymentPlanForm({ saleId, currency, finalPrice, projectId }: Pro
                 variant="outline"
                 onClick={() => setPctRows((rs) => rs.filter((_, i) => i !== idx))}
               >
-                Ukloni
+                {t("common.remove")}
               </Button>
             </div>
           ))}
@@ -440,17 +441,17 @@ export function PaymentPlanForm({ saleId, currency, finalPrice, projectId }: Pro
               setPctRows((rs) => [
                 ...rs,
                 {
-                  name: `Rata ${rs.length + 1}`,
+                  name: t("deals.plan.installmentN", { n: rs.length + 1 }),
                   percentage: "0",
                   dueDate: new Date().toISOString().slice(0, 10),
                 },
               ])
             }
           >
-            Dodaj ratu
+            {t("deals.plan.addInstallment")}
           </Button>
           <p className="text-xs text-[var(--color-foreground-muted)]">
-            Zbir procenata: <strong>{pctTotal.toFixed(3)}%</strong> (potrebno 100%).
+            {t("deals.plan.pctSum", { sum: pctTotal.toFixed(3) })}
           </p>
         </div>
       ) : null}
@@ -467,7 +468,7 @@ export function PaymentPlanForm({ saleId, currency, finalPrice, projectId }: Pro
                   )
                 }
                 className="h-10 rounded-md border border-[var(--color-border)] px-3 text-sm"
-                placeholder="Naziv"
+                placeholder={t("common.name")}
               />
               <input
                 inputMode="decimal"
@@ -478,7 +479,7 @@ export function PaymentPlanForm({ saleId, currency, finalPrice, projectId }: Pro
                   )
                 }
                 className="h-10 rounded-md border border-[var(--color-border)] px-3 text-sm"
-                placeholder={`Iznos (${currency})`}
+                placeholder={t("deals.plan.amountPlaceholder", { currency })}
               />
               <input
                 type="date"
@@ -495,7 +496,7 @@ export function PaymentPlanForm({ saleId, currency, finalPrice, projectId }: Pro
                 variant="outline"
                 onClick={() => setManualRows((rs) => rs.filter((_, i) => i !== idx))}
               >
-                Ukloni
+                {t("common.remove")}
               </Button>
             </div>
           ))}
@@ -506,25 +507,28 @@ export function PaymentPlanForm({ saleId, currency, finalPrice, projectId }: Pro
               setManualRows((rs) => [
                 ...rs,
                 {
-                  name: `Rata ${rs.length + 1}`,
+                  name: t("deals.plan.installmentN", { n: rs.length + 1 }),
                   amount: "",
                   dueDate: new Date().toISOString().slice(0, 10),
                 },
               ])
             }
           >
-            Dodaj ratu
+            {t("deals.plan.addInstallment")}
           </Button>
           <p className="text-xs text-[var(--color-foreground-muted)]">
-            Zbir rata: <strong>{manualTotal.toFixed(2)} {currency}</strong> · potrebno{" "}
-            {finalNum.toFixed(2)} {currency}.
+            {t("deals.plan.installmentSum", {
+              sum: manualTotal.toFixed(2),
+              currency,
+              needed: finalNum.toFixed(2),
+            })}
           </p>
         </div>
       ) : null}
 
       <div className="flex justify-end">
         <Button loading={busy} onClick={submit}>
-          Sačuvaj plan
+          {t("deals.plan.savePlan")}
         </Button>
       </div>
     </div>

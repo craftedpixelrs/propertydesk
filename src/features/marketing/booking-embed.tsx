@@ -1,7 +1,10 @@
+"use client";
+
 import { CalendarCheck2, PhoneCall, Video, Mail, ExternalLink, ArrowRight } from "lucide-react";
 
 import { GOOGLE_APPOINTMENT_URL } from "@/lib/constants/app";
 import { Button } from "@/components/ui/button";
+import { useT } from "@/components/app/i18n-provider";
 
 /**
  * Google exposes appointment schedules in two flavors:
@@ -67,10 +70,13 @@ const HEIGHT_CLASS = {
 export function BookingEmbed({
   size = "compact",
   anchorId = "zakazivanje",
-  title = "Zakažite 25-minutni demo",
-  subtitle = "Izaberite termin koji Vam odgovara. Dobijate potvrdu i podsetnik e-mailom, sa linkom za video poziv.",
+  title,
+  subtitle,
   hideFeatures = false,
 }: BookingEmbedProps) {
+  const t = useT();
+  const resolvedTitle = title ?? t("marketing.booking.title");
+  const resolvedSubtitle = subtitle ?? t("marketing.booking.subtitle");
   const url = GOOGLE_APPOINTMENT_URL.trim();
   const hasUrl = url.length > 0;
   const isEmbeddable = hasUrl && isEmbeddableSchedulesUrl(url);
@@ -85,16 +91,16 @@ export function BookingEmbed({
         <div className="max-w-2xl">
           <div className="inline-flex items-center gap-2 rounded-full border border-[var(--color-brand-200)] bg-[var(--color-brand-50)] px-3 py-1 text-xs font-semibold uppercase tracking-wider text-[var(--color-brand-700)]">
             <CalendarCheck2 aria-hidden className="size-3.5" />
-            Direktno zakazivanje
+            {t("marketing.booking.eyebrow")}
           </div>
           <h2
             id={`${anchorId}-title`}
             className="mt-3 text-3xl font-bold tracking-tight sm:text-4xl"
           >
-            {title}
+            {resolvedTitle}
           </h2>
           <p className="mt-4 text-base leading-relaxed text-[var(--color-foreground-muted)]">
-            {subtitle}
+            {resolvedSubtitle}
           </p>
         </div>
 
@@ -102,7 +108,7 @@ export function BookingEmbed({
           {isEmbeddable ? (
             <iframe
               src={url}
-              title="Zakazivanje demo termina"
+              title={t("marketing.booking.iframeTitle")}
               className={`block w-full ${HEIGHT_CLASS[size]}`}
               loading="lazy"
               referrerPolicy="no-referrer-when-downgrade"
@@ -118,12 +124,12 @@ export function BookingEmbed({
         {!hideFeatures ? (
           <ul className="mt-6 grid gap-3 text-sm text-[var(--color-foreground-muted)] sm:grid-cols-2 lg:grid-cols-4">
             <FeatureLi icon={CalendarCheck2}>
-              Termini u realnom vremenu
+              {t("marketing.booking.liveSlots")}
             </FeatureLi>
-            <FeatureLi icon={Mail}>Potvrda i podsetnik na email</FeatureLi>
-            <FeatureLi icon={Video}>Link za video poziv u pozivnici</FeatureLi>
+            <FeatureLi icon={Mail}>{t("marketing.booking.emailConfirm")}</FeatureLi>
+            <FeatureLi icon={Video}>{t("marketing.booking.videoLink")}</FeatureLi>
             <FeatureLi icon={PhoneCall}>
-              Ili nas pozovite:{" "}
+              {t("marketing.booking.orCall")}{" "}
               <a
                 className="font-medium text-[var(--color-foreground)] hover:underline"
                 href="tel:+381654363142"
@@ -153,6 +159,7 @@ function BookingShareLinkCard({
   url: string;
   size: "hero" | "compact";
 }) {
+  const t = useT();
   return (
     <div
       className={`relative flex flex-col items-center justify-center gap-5 overflow-hidden px-6 py-16 text-center sm:px-10 ${HEIGHT_CLASS[size]}`}
@@ -173,12 +180,10 @@ function BookingShareLinkCard({
       </span>
       <div className="relative z-10 max-w-lg">
         <h3 className="text-2xl font-bold tracking-tight text-[var(--color-foreground)] sm:text-3xl">
-          Izaberite termin u Google kalendaru
+          {t("marketing.booking.shareTitle")}
         </h3>
         <p className="mt-3 text-sm leading-relaxed text-[var(--color-foreground-muted)] sm:text-base">
-          Otvara se službena stranica za zakazivanje sa realnim slobodnim
-          terminima. Dobijate potvrdu i podsetnik na email, sa Google Meet
-          linkom za video poziv.
+          {t("marketing.booking.shareBody")}
         </p>
       </div>
       <div className="relative z-10 flex flex-col items-stretch gap-3 sm:flex-row sm:items-center">
@@ -190,7 +195,7 @@ function BookingShareLinkCard({
           className="inline-flex h-12 items-center justify-center gap-2 rounded-md bg-[var(--color-brand-600)] px-6 text-base font-semibold shadow-lg shadow-[var(--color-brand-700)]/20 transition hover:bg-[var(--color-brand-700)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand-600)] focus-visible:ring-offset-2"
         >
           <CalendarCheck2 aria-hidden className="size-4" />
-          Otvori kalendar i zakaži
+          {t("marketing.booking.openCalendar")}
           <ArrowRight aria-hidden className="size-4" />
         </a>
         <a
@@ -198,18 +203,19 @@ function BookingShareLinkCard({
           className="inline-flex h-12 items-center justify-center gap-2 rounded-md border border-[var(--color-border-strong)] bg-white px-6 text-base font-semibold text-[var(--color-foreground)] transition hover:bg-[var(--color-brand-50)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand-600)] focus-visible:ring-offset-2"
         >
           <PhoneCall aria-hidden className="size-4" />
-          Pozovite nas
+          {t("marketing.common.callUs")}
         </a>
       </div>
       <p className="relative z-10 mt-1 flex items-center gap-1.5 text-xs text-[var(--color-foreground-subtle)]">
         <ExternalLink aria-hidden className="size-3" />
-        Otvara se u novom tabu (calendar.app.google)
+        {t("marketing.booking.newTab")}
       </p>
     </div>
   );
 }
 
 function BookingFallback({ size }: { size: "hero" | "compact" }) {
+  const t = useT();
   return (
     <div
       className={`flex flex-col items-center justify-center gap-4 px-6 py-16 text-center ${HEIGHT_CLASS[size]}`}
@@ -222,22 +228,20 @@ function BookingFallback({ size }: { size: "hero" | "compact" }) {
       </span>
       <div className="max-w-md">
         <h3 className="text-lg font-semibold text-[var(--color-foreground)]">
-          Direktno zakazivanje uskoro
+          {t("marketing.booking.fallbackTitle")}
         </h3>
         <p className="mt-2 text-sm text-[var(--color-foreground-muted)]">
-          Kalendar zakazivanja je u procesu aktivacije. Do tada, ostavite
-          kontakt putem forme i javljamo se sa slobodnim terminima u toku
-          istog radnog dana.
+          {t("marketing.booking.fallbackBody")}
         </p>
       </div>
       <div className="flex flex-col gap-2 sm:flex-row">
         <Button asChild size="md">
-          <a href="#prijava">Ostavite kontakt</a>
+          <a href="#prijava">{t("marketing.booking.leaveContact")}</a>
         </Button>
         <Button asChild size="md" variant="outline">
           <a href="tel:+381654363142" className="gap-2">
             <PhoneCall aria-hidden className="size-4" />
-            Pozovite nas
+            {t("marketing.common.callUs")}
           </a>
         </Button>
       </div>

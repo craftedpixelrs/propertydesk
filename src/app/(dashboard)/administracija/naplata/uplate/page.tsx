@@ -5,11 +5,14 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { formatDateTime } from "@/lib/formatters/date";
 import { formatMoney } from "@/lib/formatters/money";
+import { createT, type TranslationKey } from "@/lib/i18n";
+import { resolveRequestLocale } from "@/lib/i18n/resolve-locale";
 
 export const dynamic = "force-dynamic";
 
 export default async function BillingPaymentsPage() {
   await requireSuperAdmin();
+  const t = createT(await resolveRequestLocale());
   const [payments, total] = await Promise.all([
     prisma.subscriptionPayment.findMany({
       orderBy: { paidAt: "desc" },
@@ -27,7 +30,7 @@ export default async function BillingPaymentsPage() {
   return (
     <section className="space-y-4">
       <header className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold">Uplate ({total})</h2>
+        <h2 className="text-lg font-semibold">{t("admin.paymentsPage.title", { total })}</h2>
       </header>
 
       <Card>
@@ -35,19 +38,31 @@ export default async function BillingPaymentsPage() {
           <table className="w-full text-sm">
             <thead className="text-left text-xs uppercase text-[var(--color-foreground-subtle)]">
               <tr>
-                <th className="border-b border-[var(--color-border)] px-3 py-2">Datum</th>
-                <th className="border-b border-[var(--color-border)] px-3 py-2">Organizacija</th>
-                <th className="border-b border-[var(--color-border)] px-3 py-2">Metod</th>
-                <th className="border-b border-[var(--color-border)] px-3 py-2 text-right">Iznos</th>
-                <th className="border-b border-[var(--color-border)] px-3 py-2">Fakture</th>
-                <th className="border-b border-[var(--color-border)] px-3 py-2">Status</th>
+                <th className="border-b border-[var(--color-border)] px-3 py-2">
+                  {t("common.date")}
+                </th>
+                <th className="border-b border-[var(--color-border)] px-3 py-2">
+                  {t("billing.columns.organization")}
+                </th>
+                <th className="border-b border-[var(--color-border)] px-3 py-2">
+                  {t("admin.paymentsPage.method")}
+                </th>
+                <th className="border-b border-[var(--color-border)] px-3 py-2 text-right">
+                  {t("common.amount")}
+                </th>
+                <th className="border-b border-[var(--color-border)] px-3 py-2">
+                  {t("admin.paymentsPage.invoices")}
+                </th>
+                <th className="border-b border-[var(--color-border)] px-3 py-2">
+                  {t("common.statusLabel")}
+                </th>
               </tr>
             </thead>
             <tbody>
               {payments.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="px-3 py-6 text-center text-[var(--color-foreground-muted)]">
-                    Nema uplata.
+                    {t("admin.paymentsPage.empty")}
                   </td>
                 </tr>
               ) : (
@@ -55,13 +70,15 @@ export default async function BillingPaymentsPage() {
                   <tr key={p.id} className="border-b border-[var(--color-border)] last:border-b-0">
                     <td className="px-3 py-2 text-xs">{formatDateTime(p.paidAt)}</td>
                     <td className="px-3 py-2">{p.organization.name}</td>
-                    <td className="px-3 py-2 text-xs">{p.provider}</td>
+                    <td className="px-3 py-2 text-xs">
+                      {t(`billing.provider.${p.provider}` as TranslationKey)}
+                    </td>
                     <td className="px-3 py-2 text-right tabular-nums">
                       {formatMoney(Number(p.amount.toString()), p.currency as "EUR" | "RSD")}
                     </td>
                     <td className="px-3 py-2 text-xs">
                       {p.allocations.length === 0 ? (
-                        <span className="text-[var(--color-foreground-muted)]">—</span>
+                        <span className="text-[var(--color-foreground-muted)]">{t("admin.dash")}</span>
                       ) : (
                         p.allocations.map((a) => (
                           <Link
@@ -76,7 +93,7 @@ export default async function BillingPaymentsPage() {
                     </td>
                     <td className="px-3 py-2">
                       <Badge tone={p.status === "COMPLETED" ? "success" : p.status === "REVERSED" ? "danger" : "warning"}>
-                        {p.status}
+                        {t(`billing.paymentStatus.${p.status}` as TranslationKey)}
                       </Badge>
                     </td>
                   </tr>

@@ -3,6 +3,7 @@
 import * as React from "react";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useT } from "@/components/app/i18n-provider";
 import { cn } from "@/lib/utils";
 
 export interface ChartCardProps {
@@ -26,11 +27,13 @@ export function ChartCard({
   description,
   action,
   isEmpty = false,
-  emptyLabel = "Nema podataka za prikaz.",
+  emptyLabel,
   className,
   height = 240,
   children,
 }: ChartCardProps) {
+  const t = useT();
+  const resolvedEmpty = emptyLabel ?? t("common.noData");
   return (
     <Card className={cn("flex flex-col", className)}>
       <CardHeader className="flex flex-row items-start justify-between gap-3">
@@ -50,7 +53,7 @@ export function ChartCard({
             className="flex items-center justify-center rounded-md bg-[var(--color-surface-muted)] text-sm text-[var(--color-foreground-muted)]"
             style={{ height }}
           >
-            {emptyLabel}
+            {resolvedEmpty}
           </div>
         ) : (
           <div style={{ height, width: "100%" }}>{children}</div>

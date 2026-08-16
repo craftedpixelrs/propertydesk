@@ -6,6 +6,8 @@ import { listAllOrganizations } from "@/server/services/platform.service";
 import { requireSuperAdmin } from "@/server/permissions/require";
 import { formatDate } from "@/lib/formatters/date";
 import { Plus } from "lucide-react";
+import { createT, type TranslationKey } from "@/lib/i18n";
+import { resolveRequestLocale } from "@/lib/i18n/resolve-locale";
 
 interface PageProps {
   searchParams: Promise<{
@@ -16,16 +18,16 @@ interface PageProps {
   }>;
 }
 
-const STATUS_LABEL: Record<string, string> = {
-  TRIAL: "Probni",
-  ACTIVE: "Aktivno",
-  SUSPENDED: "Suspendovano",
-  CLOSED: "Zatvoreno",
+const STATUS_KEY: Record<string, TranslationKey> = {
+  TRIAL: "status.trial",
+  ACTIVE: "status.active",
+  SUSPENDED: "status.suspended",
+  CLOSED: "status.closed",
 };
 
-const TYPE_LABEL: Record<string, string> = {
-  INVESTOR: "Investitor",
-  AGENCY: "Agencija",
+const TYPE_KEY: Record<string, TranslationKey> = {
+  INVESTOR: "organization.types.investor",
+  AGENCY: "organization.types.agency",
 };
 
 export default async function PlatformOrganizationsPage({
@@ -34,6 +36,7 @@ export default async function PlatformOrganizationsPage({
   await requireSuperAdmin();
   const params = await searchParams;
   const page = Number.parseInt(params.page ?? "1", 10) || 1;
+  const t = createT(await resolveRequestLocale());
 
   const { items, total } = await listAllOrganizations({
     page,
@@ -52,10 +55,12 @@ export default async function PlatformOrganizationsPage({
   return (
     <section className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h2 className="text-lg font-semibold">Organizacije ({total})</h2>
+        <h2 className="text-lg font-semibold">
+          {t("admin.orgsPage.title", { total })}
+        </h2>
         <Button asChild size="sm">
           <Link href="/administracija/organizacije/nova">
-            <Plus className="size-4" /> Nova organizacija
+            <Plus className="size-4" /> {t("admin.orgsPage.newOrg")}
           </Link>
         </Button>
       </div>
@@ -65,7 +70,7 @@ export default async function PlatformOrganizationsPage({
           type="text"
           name="q"
           defaultValue={params.q ?? ""}
-          placeholder="Pretraga po nazivu..."
+          placeholder={t("admin.orgsPage.searchPlaceholder")}
           className="h-10 rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] px-3 text-sm"
         />
         <select
@@ -73,23 +78,23 @@ export default async function PlatformOrganizationsPage({
           defaultValue={params.type ?? ""}
           className="h-10 rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] px-3 text-sm"
         >
-          <option value="">Svi tipovi</option>
-          <option value="INVESTOR">Investitori</option>
-          <option value="AGENCY">Agencije</option>
+          <option value="">{t("admin.allTypes")}</option>
+          <option value="INVESTOR">{t("admin.investors")}</option>
+          <option value="AGENCY">{t("admin.agencies")}</option>
         </select>
         <select
           name="status"
           defaultValue={params.status ?? ""}
           className="h-10 rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] px-3 text-sm"
         >
-          <option value="">Svi statusi</option>
-          <option value="TRIAL">Probni</option>
-          <option value="ACTIVE">Aktivno</option>
-          <option value="SUSPENDED">Suspendovano</option>
-          <option value="CLOSED">Zatvoreno</option>
+          <option value="">{t("common.allStatuses")}</option>
+          <option value="TRIAL">{t("status.trial")}</option>
+          <option value="ACTIVE">{t("status.active")}</option>
+          <option value="SUSPENDED">{t("status.suspended")}</option>
+          <option value="CLOSED">{t("status.closed")}</option>
         </select>
         <Button type="submit" variant="secondary" size="sm">
-          Primeni filtere
+          {t("admin.applyFilters")}
         </Button>
       </form>
 
@@ -97,21 +102,37 @@ export default async function PlatformOrganizationsPage({
         <CardContent className="p-0">
           {items.length === 0 ? (
             <p className="p-6 text-sm text-[var(--color-foreground-muted)]">
-              Nema organizacija koje odgovaraju filterima.
+              {t("admin.orgsPage.empty")}
             </p>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead className="text-left text-xs uppercase text-[var(--color-foreground-subtle)]">
                   <tr>
-                    <th className="border-b border-[var(--color-border)] px-4 py-2">Naziv</th>
-                    <th className="border-b border-[var(--color-border)] px-4 py-2">Tip</th>
-                    <th className="border-b border-[var(--color-border)] px-4 py-2">Status</th>
-                    <th className="border-b border-[var(--color-border)] px-4 py-2">Plan</th>
-                    <th className="border-b border-[var(--color-border)] px-4 py-2">Članovi</th>
-                    <th className="border-b border-[var(--color-border)] px-4 py-2">Projekti</th>
-                    <th className="border-b border-[var(--color-border)] px-4 py-2">Jedinice</th>
-                    <th className="border-b border-[var(--color-border)] px-4 py-2">Kreirano</th>
+                    <th className="border-b border-[var(--color-border)] px-4 py-2">
+                      {t("admin.orgsPage.colName")}
+                    </th>
+                    <th className="border-b border-[var(--color-border)] px-4 py-2">
+                      {t("common.type")}
+                    </th>
+                    <th className="border-b border-[var(--color-border)] px-4 py-2">
+                      {t("common.statusLabel")}
+                    </th>
+                    <th className="border-b border-[var(--color-border)] px-4 py-2">
+                      {t("admin.orgsPage.colPlan")}
+                    </th>
+                    <th className="border-b border-[var(--color-border)] px-4 py-2">
+                      {t("admin.members")}
+                    </th>
+                    <th className="border-b border-[var(--color-border)] px-4 py-2">
+                      {t("nav.projects")}
+                    </th>
+                    <th className="border-b border-[var(--color-border)] px-4 py-2">
+                      {t("nav.inventory")}
+                    </th>
+                    <th className="border-b border-[var(--color-border)] px-4 py-2">
+                      {t("admin.created")}
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -127,7 +148,7 @@ export default async function PlatformOrganizationsPage({
                         </div>
                       </td>
                       <td className="px-4 py-2">
-                        {row.type ? TYPE_LABEL[row.type] : "—"}
+                        {row.type ? t(TYPE_KEY[row.type] ?? "admin.dash") : t("admin.dash")}
                       </td>
                       <td className="px-4 py-2">
                         {row.status ? (
@@ -140,13 +161,13 @@ export default async function PlatformOrganizationsPage({
                                   : "info"
                             }
                           >
-                            {STATUS_LABEL[row.status]}
+                            {t(STATUS_KEY[row.status] ?? "admin.dash")}
                           </Badge>
                         ) : (
-                          "—"
+                          t("admin.dash")
                         )}
                       </td>
-                      <td className="px-4 py-2">{row.planName ?? "—"}</td>
+                      <td className="px-4 py-2">{row.planName ?? t("admin.dash")}</td>
                       <td className="px-4 py-2 text-right tabular-nums">
                         {row.memberCount}
                       </td>

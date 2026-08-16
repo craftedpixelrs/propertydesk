@@ -8,18 +8,29 @@ import { loadUserContext } from "@/server/auth/context";
 import { listUnits } from "@/server/services/units.service";
 import { listProjects } from "@/server/services/projects.service";
 import { formatMoney } from "@/lib/formatters";
+import { createT, unitStatusLabel, unitTypeLabel } from "@/lib/i18n";
 import type { UnitStatus, UnitType } from "@prisma/client";
 
-const UNIT_STATUS_LABELS: Record<UnitStatus, string> = {
-  AVAILABLE: "Slobodno",
-  ON_HOLD: "Na čekanju",
-  RESERVED: "Rezervisano",
-  DEPOSIT_PAID: "Kapara plaćena",
-  CONTRACTED: "Ugovoreno",
-  SOLD: "Prodato",
-  BLOCKED: "Blokirano",
-  NOT_FOR_SALE: "Nije u prodaji",
-};
+const UNIT_STATUSES: UnitStatus[] = [
+  "AVAILABLE",
+  "ON_HOLD",
+  "RESERVED",
+  "DEPOSIT_PAID",
+  "CONTRACTED",
+  "SOLD",
+  "BLOCKED",
+  "NOT_FOR_SALE",
+];
+
+const UNIT_TYPES: UnitType[] = [
+  "APARTMENT",
+  "GARAGE",
+  "PARKING_SPACE",
+  "STORAGE",
+  "COMMERCIAL",
+  "HOUSE",
+  "OTHER",
+];
 
 const UNIT_STATUS_TONE: Record<UnitStatus, string> = {
   AVAILABLE: "bg-emerald-100 text-emerald-700",
@@ -30,16 +41,6 @@ const UNIT_STATUS_TONE: Record<UnitStatus, string> = {
   SOLD: "bg-slate-200 text-slate-800",
   BLOCKED: "bg-red-100 text-red-700",
   NOT_FOR_SALE: "bg-neutral-200 text-neutral-700",
-};
-
-const UNIT_TYPE_LABELS: Record<UnitType, string> = {
-  APARTMENT: "Stan",
-  GARAGE: "Garaža",
-  PARKING_SPACE: "Parking",
-  STORAGE: "Ostava",
-  COMMERCIAL: "Lokal",
-  HOUSE: "Kuća",
-  OTHER: "Ostalo",
 };
 
 interface PageProps {
@@ -60,6 +61,7 @@ export default async function UnitsPage({ searchParams }: PageProps) {
   if (!ctx) redirect("/sign-in");
   if (!ctx.activeOrganization) redirect("/podesavanja");
 
+  const t = createT(ctx.user.locale);
   const sp = await searchParams;
   const search = first(sp.q);
   const projectId = first(sp.projectId);
@@ -93,16 +95,16 @@ export default async function UnitsPage({ searchParams }: PageProps) {
     <div className="space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold">Jedinice</h1>
+          <h1 className="text-2xl font-semibold">{t("units.title")}</h1>
           <p className="text-sm text-[var(--color-foreground-muted)]">
-            Pregled i upravljanje inventarom.
+            {t("inventory.units.subtitle")}
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
           <PermissionGuard permission="inventory.export">
             <Button asChild variant="outline">
               <a href={`/api/v1/units/export?format=xlsx${projectId ? `&projectId=${projectId}` : ""}`}>
-                Izvoz (XLSX)
+                {t("inventory.units.exportXlsx")}
               </a>
             </Button>
           </PermissionGuard>
@@ -111,7 +113,7 @@ export default async function UnitsPage({ searchParams }: PageProps) {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-sm">Filteri</CardTitle>
+          <CardTitle className="text-sm">{t("common.filter")}</CardTitle>
         </CardHeader>
         <CardContent>
           <form
@@ -122,7 +124,7 @@ export default async function UnitsPage({ searchParams }: PageProps) {
             <input
               type="text"
               name="q"
-              placeholder="Šifra, projekat…"
+              placeholder={t("inventory.units.searchPlaceholder")}
               defaultValue={search ?? ""}
               className="col-span-2 h-10 rounded-md border border-[var(--color-border)] bg-white px-3 text-sm"
             />
@@ -131,7 +133,7 @@ export default async function UnitsPage({ searchParams }: PageProps) {
               defaultValue={projectId ?? ""}
               className="h-10 rounded-md border border-[var(--color-border)] bg-white px-3 text-sm"
             >
-              <option value="">Svi projekti</option>
+              <option value="">{t("common.allProjects")}</option>
               {projectsList.items.map((p) => (
                 <option key={p.id} value={p.id}>
                   {p.name}
@@ -143,35 +145,31 @@ export default async function UnitsPage({ searchParams }: PageProps) {
               defaultValue={first(sp.status) ?? ""}
               className="h-10 rounded-md border border-[var(--color-border)] bg-white px-3 text-sm"
             >
-              <option value="">Svi statusi</option>
-              {(Object.entries(UNIT_STATUS_LABELS) as [UnitStatus, string][]).map(
-                ([value, label]) => (
-                  <option key={value} value={value}>
-                    {label}
-                  </option>
-                ),
-              )}
+              <option value="">{t("common.allStatuses")}</option>
+              {UNIT_STATUSES.map((value) => (
+                <option key={value} value={value}>
+                  {unitStatusLabel(value, t)}
+                </option>
+              ))}
             </select>
             <select
               name="type"
               defaultValue={first(sp.type) ?? ""}
               className="h-10 rounded-md border border-[var(--color-border)] bg-white px-3 text-sm"
             >
-              <option value="">Svi tipovi</option>
-              {(Object.entries(UNIT_TYPE_LABELS) as [UnitType, string][]).map(
-                ([value, label]) => (
-                  <option key={value} value={value}>
-                    {label}
-                  </option>
-                ),
-              )}
+              <option value="">{t("inventory.units.allTypes")}</option>
+              {UNIT_TYPES.map((value) => (
+                <option key={value} value={value}>
+                  {unitTypeLabel(value, t)}
+                </option>
+              ))}
             </select>
             <div className="flex gap-2">
               <Button type="submit" size="md">
-                Primeni
+                {t("common.apply")}
               </Button>
               <Button asChild variant="outline">
-                <Link href="/jedinice">Poništi</Link>
+                <Link href="/jedinice">{t("common.reset")}</Link>
               </Button>
             </div>
           </form>
@@ -181,7 +179,7 @@ export default async function UnitsPage({ searchParams }: PageProps) {
       {items.length === 0 ? (
         <Card>
           <CardContent className="py-12 text-center text-sm text-[var(--color-foreground-muted)]">
-            Nema jedinica koje odgovaraju filterima.
+            {t("inventory.units.noFilterResults")}
           </CardContent>
         </Card>
       ) : (
@@ -190,12 +188,12 @@ export default async function UnitsPage({ searchParams }: PageProps) {
             <table className="min-w-full divide-y divide-[var(--color-border)] text-sm">
               <thead className="bg-[var(--color-surface-inset)] text-left text-xs uppercase tracking-wide text-[var(--color-foreground-muted)]">
                 <tr>
-                  <th className="px-4 py-3">Šifra</th>
-                  <th className="px-4 py-3">Projekat</th>
-                  <th className="px-4 py-3">Tip</th>
-                  <th className="px-4 py-3">Površina</th>
-                  <th className="px-4 py-3">Cena</th>
-                  <th className="px-4 py-3">Status</th>
+                  <th className="px-4 py-3">{t("inventory.columns.code")}</th>
+                  <th className="px-4 py-3">{t("units.columns.project")}</th>
+                  <th className="px-4 py-3">{t("units.columns.type")}</th>
+                  <th className="px-4 py-3">{t("units.columns.area")}</th>
+                  <th className="px-4 py-3">{t("units.detail.pricing")}</th>
+                  <th className="px-4 py-3">{t("common.statusLabel")}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[var(--color-border)]">
@@ -217,7 +215,7 @@ export default async function UnitsPage({ searchParams }: PageProps) {
                         {u.project.name}
                       </Link>
                     </td>
-                    <td className="px-4 py-3">{UNIT_TYPE_LABELS[u.type]}</td>
+                    <td className="px-4 py-3">{unitTypeLabel(u.type, t)}</td>
                     <td className="px-4 py-3 tabular-nums">
                       {u.totalArea.toString()} m²
                     </td>
@@ -231,7 +229,7 @@ export default async function UnitsPage({ searchParams }: PageProps) {
                       <span
                         className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${UNIT_STATUS_TONE[u.status]}`}
                       >
-                        {UNIT_STATUS_LABELS[u.status]}
+                        {unitStatusLabel(u.status, t)}
                       </span>
                     </td>
                   </tr>
@@ -254,11 +252,11 @@ export default async function UnitsPage({ searchParams }: PageProps) {
                     <span
                       className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${UNIT_STATUS_TONE[u.status]}`}
                     >
-                      {UNIT_STATUS_LABELS[u.status]}
+                      {unitStatusLabel(u.status, t)}
                     </span>
                   </div>
                   <div className="text-xs text-[var(--color-foreground-muted)]">
-                    {u.project.name} · {UNIT_TYPE_LABELS[u.type]}
+                    {u.project.name} · {unitTypeLabel(u.type, t)}
                   </div>
                   <div className="flex items-center justify-between text-sm">
                     <span>{u.totalArea.toString()} m²</span>
@@ -277,7 +275,7 @@ export default async function UnitsPage({ searchParams }: PageProps) {
           {totalPages > 1 ? (
             <div className="flex items-center justify-between text-sm">
               <span className="text-[var(--color-foreground-muted)]">
-                Strana {page} od {totalPages}
+                {t("inventory.pagination.pageOf", { page, total: totalPages })}
               </span>
               <div className="flex gap-2">
                 {page > 1 ? (
@@ -288,7 +286,7 @@ export default async function UnitsPage({ searchParams }: PageProps) {
                         query: { ...sp, page: String(page - 1) },
                       }}
                     >
-                      Prethodna
+                      {t("inventory.pagination.prev")}
                     </Link>
                   </Button>
                 ) : null}
@@ -300,7 +298,7 @@ export default async function UnitsPage({ searchParams }: PageProps) {
                         query: { ...sp, page: String(page + 1) },
                       }}
                     >
-                      Sledeća
+                      {t("inventory.pagination.next")}
                     </Link>
                   </Button>
                 ) : null}

@@ -5,6 +5,7 @@ import { Upload } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
+import { useT } from "@/components/app/i18n-provider";
 
 /**
  * Small upload UI for a floor plan raster (PNG / JPG / SVG).
@@ -28,6 +29,7 @@ interface Props {
 const ACCEPTED_MIME = "image/png,image/jpeg,image/jpg,image/webp,image/svg+xml";
 
 export function FloorPlanUpload({ floorId, variant, onUploaded }: Props) {
+  const t = useT();
   const router = useRouter();
   const inputRef = React.useRef<HTMLInputElement | null>(null);
   const [busy, setBusy] = React.useState(false);
@@ -37,7 +39,7 @@ export function FloorPlanUpload({ floorId, variant, onUploaded }: Props) {
     const file = files?.[0];
     if (!file) return;
     if (!file.type.startsWith("image/")) {
-      setError("Datoteka mora biti slika.");
+      setError(t("inventory.floorPlan.mustBeImage"));
       return;
     }
     setBusy(true);
@@ -58,14 +60,14 @@ export function FloorPlanUpload({ floorId, variant, onUploaded }: Props) {
           | { error?: { message?: string } }
           | null;
         throw new Error(
-          payload?.error?.message ?? "Otpremanje osnove nije uspelo.",
+          payload?.error?.message ?? t("inventory.floorPlan.uploadFailed"),
         );
       }
       if (inputRef.current) inputRef.current.value = "";
       onUploaded?.();
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Došlo je do greške.");
+      setError(err instanceof Error ? err.message : t("errors.generic"));
     } finally {
       setBusy(false);
     }
@@ -90,10 +92,10 @@ export function FloorPlanUpload({ floorId, variant, onUploaded }: Props) {
           size="sm"
           loading={busy}
           onClick={() => inputRef.current?.click()}
-          title="Otpremi novu sliku osnove za ovaj sprat"
+          title={t("inventory.floorPlan.changeTitle")}
         >
           <Upload className="mr-1 size-4" />
-          Promeni osnovu
+          {t("inventory.floorPlan.change")}
         </Button>
         {error ? (
           <span className="ml-2 text-xs text-red-600">{error}</span>
@@ -106,11 +108,10 @@ export function FloorPlanUpload({ floorId, variant, onUploaded }: Props) {
     <div className="rounded-md border border-dashed border-[var(--color-border)] bg-[var(--color-surface-inset)] p-6 text-center">
       {input}
       <p className="text-sm text-[var(--color-foreground)]">
-        Ovaj sprat još nema učitanu osnovu.
+        {t("inventory.floorPlan.empty")}
       </p>
       <p className="mt-1 text-xs text-[var(--color-foreground-muted)]">
-        Otpremite sliku plana (PNG, JPG, WebP ili SVG). Preko nje ćete
-        kasnije crtati poligone jedinica.
+        {t("inventory.floorPlan.emptyHint")}
       </p>
       <div className="mt-3">
         <Button
@@ -119,7 +120,7 @@ export function FloorPlanUpload({ floorId, variant, onUploaded }: Props) {
           size="sm"
         >
           <Upload className="mr-1 size-4" />
-          Otpremi osnovu
+          {t("inventory.floorPlan.upload")}
         </Button>
       </div>
       {error ? (

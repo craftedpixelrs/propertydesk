@@ -2,34 +2,42 @@ import { requireSuperAdmin } from "@/server/permissions/require";
 import { resolveDefaultBillingSettings } from "@/server/services/billing/settings/resolved.service";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { createT } from "@/lib/i18n";
+import { resolveRequestLocale } from "@/lib/i18n/resolve-locale";
 
 export const dynamic = "force-dynamic";
 
 export default async function ReminderScheduleRulesPage() {
   await requireSuperAdmin();
+  const t = createT(await resolveRequestLocale());
   const resolved = resolveDefaultBillingSettings();
 
   return (
     <section className="space-y-6">
       <header>
-        <h2 className="text-lg font-semibold">Pravila podsetnika</h2>
+        <h2 className="text-lg font-semibold">{t("admin.reminders.title")}</h2>
         <p className="text-sm text-[var(--color-foreground-muted)]">
-          Automatski podsetnici se šalju prema rasporedu ispod. Offset je izražen u danima od datuma
-          dospeća fakture (negativan = pre dospeća, pozitivan = nakon).
+          {t("admin.reminders.subtitle")}
         </p>
       </header>
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Trenutni raspored</CardTitle>
+          <CardTitle className="text-base">{t("admin.reminders.schedule")}</CardTitle>
         </CardHeader>
         <CardContent className="p-0">
           <table className="w-full text-sm">
             <thead className="text-left text-xs uppercase text-[var(--color-foreground-subtle)]">
               <tr>
-                <th className="border-b border-[var(--color-border)] px-3 py-2">Offset (dana)</th>
-                <th className="border-b border-[var(--color-border)] px-3 py-2">Šablon</th>
-                <th className="border-b border-[var(--color-border)] px-3 py-2">Kanal</th>
+                <th className="border-b border-[var(--color-border)] px-3 py-2">
+                  {t("admin.reminders.offset")}
+                </th>
+                <th className="border-b border-[var(--color-border)] px-3 py-2">
+                  {t("admin.reminders.template")}
+                </th>
+                <th className="border-b border-[var(--color-border)] px-3 py-2">
+                  {t("admin.reminders.channel")}
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -48,8 +56,7 @@ export default async function ReminderScheduleRulesPage() {
       </Card>
 
       <p className="text-xs text-[var(--color-foreground-muted)]">
-        Izmena rasporeda po organizaciji se vrši u okviru <em>Podešavanja naplate</em> na
-        detaljnoj stranici organizacije.
+        {t("admin.reminders.footer")}
       </p>
     </section>
   );

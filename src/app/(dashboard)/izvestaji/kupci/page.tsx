@@ -13,31 +13,10 @@ import {
 } from "@/features/reports/report-filters";
 import { requirePermission } from "@/server/permissions/require";
 import { buildBuyerPipelineReport } from "@/server/services/reports/reports.service";
-
-const SOURCE_LABELS: Record<string, string> = {
-  DIRECT: "Direktno",
-  WEBSITE: "Sajt",
-  REFERRAL: "Preporuka",
-  ADVERTISING: "Oglašavanje",
-  SOCIAL_MEDIA: "Društvene mreže",
-  AGENCY: "Agencija",
-  WALK_IN: "Kancelarija",
-  OTHER: "Ostalo",
-};
+import { createT, type TranslationKey } from "@/lib/i18n";
+import { resolveRequestLocale } from "@/lib/i18n/resolve-locale";
 
 export const dynamic = "force-dynamic";
-
-const STATUS_LABELS: Record<string, string> = {
-  NEW: "Novi",
-  CONTACTED: "Kontaktiran",
-  QUALIFIED: "Kvalifikovan",
-  PROPOSAL: "Ponuda",
-  NEGOTIATION: "Pregovori",
-  RESERVATION: "Rezervacija",
-  SALE: "Prodaja",
-  LOST: "Izgubljen",
-  ARCHIVED: "Arhiviran",
-};
 
 interface PageProps {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
@@ -46,6 +25,7 @@ interface PageProps {
 export default async function BuyersReportPage({ searchParams }: PageProps) {
   const ctx = await requirePermission("report.read");
   if (!ctx.organization) redirect("/dashboard");
+  const t = createT(await resolveRequestLocale());
   const sp = await searchParams;
   const parsed = parseReportSearchParams(sp);
   const filters = toReportFilters({
@@ -56,9 +36,25 @@ export default async function BuyersReportPage({ searchParams }: PageProps) {
   const report = await buildBuyerPipelineReport(filters);
   const hrefs = exportHrefs("buyers", parsed);
 
+  function statusLabel(status: string) {
+    const key = `ops.buyerStatus.${status}` as TranslationKey;
+    const out = t(key);
+    return out === key ? status : out;
+  }
+
+  function sourceLabel(source: string | null) {
+    if (!source) return "—";
+    const key = `ops.buyerSource.${source}` as TranslationKey;
+    const out = t(key);
+    return out === key ? source : out;
+  }
+
   return (
     <div className="space-y-6">
-      <PageHeader title="Kupci — pipeline" description="Broj kupaca po statusu i izvoru." />
+      <PageHeader
+        title={t("ops.reports.buyersPipeline")}
+        description={t("ops.reports.buyersDesc")}
+      />
 
       <ReportFilters
         action="/izvestaji/kupci"
@@ -71,35 +67,35 @@ export default async function BuyersReportPage({ searchParams }: PageProps) {
       />
 
       <div className="grid grid-cols-2 gap-3">
-        <StatCard label="Ukupno" value={report.totals.buyers} />
+        <StatCard label={t("ops.reports.total")} value={report.totals.buyers} />
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">
         <ChartCard
-          title="Po statusu"
+          title={t("ops.reports.byStatus")}
           isEmpty={report.byStatus.length === 0}
           height={240}
         >
           <StatusDonut
-            centerLabel="Kupci"
+            centerLabel={t("ops.reports.buyersCenter")}
             data={report.byStatus.map((row) => ({
               key: row.status,
-              label: STATUS_LABELS[row.status] ?? row.status,
+              label: statusLabel(row.status),
               value: row.count,
             }))}
           />
         </ChartCard>
 
         <ChartCard
-          title="Po izvoru"
+          title={t("ops.reports.bySource")}
           isEmpty={report.bySource.length === 0}
           height={240}
         >
           <StatusDonut
-            centerLabel="Kupci"
+            centerLabel={t("ops.reports.buyersCenter")}
             data={report.bySource.map((row) => ({
               key: row.source,
-              label: SOURCE_LABELS[row.source] ?? row.source ?? "—",
+              label: sourceLabel(row.source),
               value: row.count,
             }))}
           />
@@ -109,7 +105,7 @@ export default async function BuyersReportPage({ searchParams }: PageProps) {
       <div className="grid gap-6 md:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle className="text-sm">Po statusu — detaljno</CardTitle>
+            <CardTitle className="text-sm">{t("ops.reports.byStatusDetail")}</CardTitle>
           </CardHeader>
           <CardContent>
             <table className="w-full text-sm">
@@ -117,13 +113,13 @@ export default async function BuyersReportPage({ searchParams }: PageProps) {
                 {report.byStatus.length === 0 ? (
                   <tr>
                     <td className="py-4 text-center text-[var(--color-foreground-muted)]">
-                      Nema podataka.
+                      {t("common.noData")}
                     </td>
                   </tr>
                 ) : (
                   report.byStatus.map((row) => (
                     <tr key={row.status}>
-                      <td className="py-1.5">{STATUS_LABELS[row.status] ?? row.status}</td>
+                      <td className="py-1.5">{statusLabel(row.status)}</td>
                       <td className="py-1.5 text-right font-medium">{row.count}</td>
                     </tr>
                   ))
@@ -135,7 +131,7 @@ export default async function BuyersReportPage({ searchParams }: PageProps) {
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-sm">Po izvoru — detaljno</CardTitle>
+            <CardTitle className="text-sm">{t("ops.reports.bySourceDetail")}</CardTitle>
           </CardHeader>
           <CardContent>
             <table className="w-full text-sm">
@@ -143,13 +139,13 @@ export default async function BuyersReportPage({ searchParams }: PageProps) {
                 {report.bySource.length === 0 ? (
                   <tr>
                     <td className="py-4 text-center text-[var(--color-foreground-muted)]">
-                      Nema podataka.
+                      {t("common.noData")}
                     </td>
                   </tr>
                 ) : (
                   report.bySource.map((row) => (
                     <tr key={row.source}>
-                      <td className="py-1.5">{SOURCE_LABELS[row.source] ?? row.source ?? "—"}</td>
+                      <td className="py-1.5">{sourceLabel(row.source)}</td>
                       <td className="py-1.5 text-right font-medium">{row.count}</td>
                     </tr>
                   ))

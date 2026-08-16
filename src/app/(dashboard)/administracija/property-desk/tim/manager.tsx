@@ -7,6 +7,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { apiClient, ApiClientError } from "@/lib/api-client";
+import { useI18n } from "@/components/app/i18n-provider";
+import { intlLocale, type TranslateFn, type TranslationKey } from "@/lib/i18n";
 
 type TeamRole = "SETTER" | "CLOSER" | "OPERATIONS" | "MANAGER";
 type LeadScope = "OWN" | "OWN_AND_UNASSIGNED" | "TEAM" | "ALL";
@@ -41,19 +43,16 @@ interface Props {
   addableUsers: AddableUser[];
 }
 
-const ROLE_LABEL: Record<TeamRole, string> = {
-  SETTER: "Setter",
-  CLOSER: "Closer",
-  OPERATIONS: "Operations",
-  MANAGER: "Manager",
-};
+const TEAM_ROLES: TeamRole[] = ["SETTER", "CLOSER", "OPERATIONS", "MANAGER"];
+const LEAD_SCOPES: LeadScope[] = ["OWN", "OWN_AND_UNASSIGNED", "TEAM", "ALL"];
 
-const SCOPE_LABEL: Record<LeadScope, string> = {
-  OWN: "Samo moji",
-  OWN_AND_UNASSIGNED: "Moji + slobodni",
-  TEAM: "Ceo tim",
-  ALL: "Svi",
-};
+function roleLabel(t: TranslateFn, role: TeamRole) {
+  return t(`admin.pd.teamRole.${role}` as TranslationKey);
+}
+
+function scopeLabel(t: TranslateFn, scope: LeadScope) {
+  return t(`admin.pd.leadScope.${scope}` as TranslationKey);
+}
 
 const ROLE_TONE: Record<TeamRole, "info" | "success" | "warning" | "brand"> = {
   SETTER: "info",
@@ -69,6 +68,7 @@ export function PropertyDeskTeamManager({
   addableUsers,
 }: Props) {
   const router = useRouter();
+  const { t, locale } = useI18n();
   const [members, setMembers] = useState(initialMembers);
   const [addable, setAddable] = useState(addableUsers);
   const [pendingId, setPendingId] = useState<string | null>(null);
@@ -83,9 +83,9 @@ export function PropertyDeskTeamManager({
     () =>
       [...members].sort((a, b) => {
         if (a.enabled !== b.enabled) return a.enabled ? -1 : 1;
-        return a.user.name.localeCompare(b.user.name, "sr");
+        return a.user.name.localeCompare(b.user.name, intlLocale(locale));
       }),
-    [members],
+    [members, locale],
   );
 
   async function refresh() {
@@ -96,7 +96,7 @@ export function PropertyDeskTeamManager({
 
   async function addMember() {
     if (!newUserId) {
-      setError("Izaberite korisnika iz liste.");
+      setError(t("admin.pdTeam.pickUser"));
       return;
     }
     setError(null);
@@ -127,7 +127,7 @@ export function PropertyDeskTeamManager({
       setNewScope("OWN_AND_UNASSIGNED");
       await refresh();
     } catch (err) {
-      setError(errorMessage(err));
+      setError(errorMessage(err, t));
     } finally {
       setPendingId(null);
     }
@@ -154,14 +154,14 @@ export function PropertyDeskTeamManager({
       );
       await refresh();
     } catch (err) {
-      setError(errorMessage(err));
+      setError(errorMessage(err, t));
     } finally {
       setPendingId(null);
     }
   }
 
   async function removeMember(id: string) {
-    if (!confirm("Ukloniti člana iz Property Desk tima?")) return;
+    if (!confirm(t("admin.pdTeam.removeConfirm"))) return;
     setError(null);
     setPendingId(id);
     try {
@@ -177,12 +177,12 @@ export function PropertyDeskTeamManager({
               name: removed.user.name,
               email: removed.user.email,
             },
-          ].sort((a, b) => a.name.localeCompare(b.name, "sr")),
+          ].sort((a, b) => a.name.localeCompare(b.name, intlLocale(locale))),
         );
       }
       await refresh();
     } catch (err) {
-      setError(errorMessage(err));
+      setError(errorMessage(err, t));
     } finally {
       setPendingId(null);
     }
@@ -202,7 +202,7 @@ export function PropertyDeskTeamManager({
       {isSuperAdmin ? (
         <Card>
           <CardContent className="p-4">
-            <h3 className="mb-3 text-sm font-semibold">Dodaj člana tima</h3>
+            <h3 className="mb-3 text-sm font-semibold">{t("admin.pdTeam.addMember")}</h3>
             <div className="grid gap-3 md:grid-cols-[2fr_1fr_1fr_auto]">
               <select
                 value={newUserId}
@@ -210,7 +210,7 @@ export function PropertyDeskTeamManager({
                 className="h-10 rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] px-3 text-sm"
                 disabled={pendingId === "__new__"}
               >
-                <option value="">— izaberi korisnika —</option>
+                <option value="">{t("admin.pdTeam.pickUserOption")}</option>
                 {addable.map((u) => (
                   <option key={u.id} value={u.id}>
                     {u.name} · {u.email}
@@ -223,9 +223,9 @@ export function PropertyDeskTeamManager({
                 className="h-10 rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] px-3 text-sm"
                 disabled={pendingId === "__new__"}
               >
-                {Object.entries(ROLE_LABEL).map(([v, l]) => (
+                {TEAM_ROLES.map((v) => (
                   <option key={v} value={v}>
-                    {l}
+                    {roleLabel(t, v)}
                   </option>
                 ))}
               </select>
@@ -234,11 +234,11 @@ export function PropertyDeskTeamManager({
                 onChange={(e) => setNewScope(e.target.value as LeadScope)}
                 className="h-10 rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] px-3 text-sm"
                 disabled={pendingId === "__new__"}
-                title="Opseg lead-ova koji član vidi po difoltu."
+                title={t("admin.pdTeam.scopeTitle")}
               >
-                {Object.entries(SCOPE_LABEL).map(([v, l]) => (
+                {LEAD_SCOPES.map((v) => (
                   <option key={v} value={v}>
-                    {l}
+                    {scopeLabel(t, v)}
                   </option>
                 ))}
               </select>
@@ -247,12 +247,11 @@ export function PropertyDeskTeamManager({
                 onClick={addMember}
                 disabled={!newUserId || pendingId === "__new__"}
               >
-                Dodaj
+                {t("common.add")}
               </Button>
             </div>
             <p className="mt-2 text-xs text-[var(--color-foreground-muted)]">
-              Član tima može biti bilo koji korisnik platforme. Dodavanjem
-              ne mu se dodeljuje tenant Member.role — to je odvojen sloj.
+              {t("admin.pdTeam.addHint")}
             </p>
           </CardContent>
         </Card>
@@ -264,11 +263,11 @@ export function PropertyDeskTeamManager({
             <table className="min-w-full text-sm">
               <thead className="border-b border-[var(--color-border)] bg-[var(--color-surface-inset)] text-xs uppercase">
                 <tr>
-                  <th className="px-4 py-2 text-left">Član</th>
-                  <th className="px-4 py-2 text-left">Uloga u timu</th>
-                  <th className="px-4 py-2 text-left">Opseg lead-ova</th>
-                  <th className="px-4 py-2 text-left">Status</th>
-                  <th className="px-4 py-2 text-right">Akcije</th>
+                  <th className="px-4 py-2 text-left">{t("admin.pdTeam.colMember")}</th>
+                  <th className="px-4 py-2 text-left">{t("admin.pdTeam.colRole")}</th>
+                  <th className="px-4 py-2 text-left">{t("admin.pdTeam.colScope")}</th>
+                  <th className="px-4 py-2 text-left">{t("common.statusLabel")}</th>
+                  <th className="px-4 py-2 text-right">{t("common.actions")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -278,7 +277,7 @@ export function PropertyDeskTeamManager({
                       colSpan={5}
                       className="px-4 py-6 text-center text-[var(--color-foreground-muted)]"
                     >
-                      Nema članova Property Desk tima.
+                      {t("admin.pdTeam.empty")}
                     </td>
                   </tr>
                 ) : (
@@ -295,7 +294,7 @@ export function PropertyDeskTeamManager({
                             {m.user.name}
                             {isSelf ? (
                               <span className="ml-2 text-xs text-[var(--color-foreground-muted)]">
-                                (vi)
+                                {t("admin.you")}
                               </span>
                             ) : null}
                           </div>
@@ -315,15 +314,15 @@ export function PropertyDeskTeamManager({
                               disabled={busy}
                               className="h-9 rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] px-2 text-sm"
                             >
-                              {Object.entries(ROLE_LABEL).map(([v, l]) => (
+                              {TEAM_ROLES.map((v) => (
                                 <option key={v} value={v}>
-                                  {l}
+                                  {roleLabel(t, v)}
                                 </option>
                               ))}
                             </select>
                           ) : (
                             <Badge tone={ROLE_TONE[m.teamRole]}>
-                              {ROLE_LABEL[m.teamRole]}
+                              {roleLabel(t, m.teamRole)}
                             </Badge>
                           )}
                         </td>
@@ -338,9 +337,9 @@ export function PropertyDeskTeamManager({
                             disabled={busy}
                             className="h-9 rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] px-2 text-sm"
                           >
-                            {Object.entries(SCOPE_LABEL).map(([v, l]) => (
+                            {LEAD_SCOPES.map((v) => (
                               <option key={v} value={v}>
-                                {l}
+                                {scopeLabel(t, v)}
                               </option>
                             ))}
                           </select>
@@ -357,7 +356,7 @@ export function PropertyDeskTeamManager({
                               }
                               disabled={busy}
                             />
-                            {m.enabled ? "Aktivan" : "Isključen"}
+                            {m.enabled ? t("admin.activeInTeam") : t("admin.disabledInTeam")}
                           </label>
                         </td>
                         <td className="px-4 py-3 text-right">
@@ -369,11 +368,11 @@ export function PropertyDeskTeamManager({
                               onClick={() => removeMember(m.id)}
                               disabled={busy}
                             >
-                              Ukloni
+                              {t("admin.pdTeam.remove")}
                             </Button>
                           ) : (
                             <span className="text-xs text-[var(--color-foreground-muted)]">
-                              —
+                              {t("admin.dash")}
                             </span>
                           )}
                         </td>
@@ -390,8 +389,8 @@ export function PropertyDeskTeamManager({
   );
 }
 
-function errorMessage(err: unknown): string {
+function errorMessage(err: unknown, t: TranslateFn): string {
   if (err instanceof ApiClientError) return err.message;
   if (err instanceof Error) return err.message;
-  return "Došlo je do greške.";
+  return t("admin.genericError");
 }

@@ -7,16 +7,17 @@ import { PermissionGuard } from "@/components/app/permission-guard";
 import { loadUserContext } from "@/server/auth/context";
 import { listProjects } from "@/server/services/projects.service";
 import { formatDate } from "@/lib/formatters";
+import { createT, projectStatusLabel, type TranslateFn } from "@/lib/i18n";
 import type { ProjectStatus } from "@prisma/client";
 
-const PROJECT_STATUS_LABELS: Record<ProjectStatus, string> = {
-  DRAFT: "Radna verzija",
-  PRE_SALES: "Priprema prodaje",
-  ACTIVE_SALES: "Aktivna prodaja",
-  CONSTRUCTION: "Izgradnja",
-  COMPLETED: "Završen",
-  ARCHIVED: "Arhiviran",
-};
+const PROJECT_STATUSES: ProjectStatus[] = [
+  "DRAFT",
+  "PRE_SALES",
+  "ACTIVE_SALES",
+  "CONSTRUCTION",
+  "COMPLETED",
+  "ARCHIVED",
+];
 
 const PROJECT_STATUS_TONE: Record<ProjectStatus, string> = {
   DRAFT: "bg-slate-100 text-slate-700",
@@ -43,6 +44,7 @@ export default async function ProjektiPage({ searchParams }: PageProps) {
   if (!ctx) redirect("/sign-in");
   if (!ctx.activeOrganization) redirect("/podesavanja");
 
+  const t = createT(ctx.user.locale);
   const sp = await searchParams;
   const search = readParam(sp.q);
   const status = readParam(sp.status) as ProjectStatus | undefined;
@@ -65,21 +67,21 @@ export default async function ProjektiPage({ searchParams }: PageProps) {
     <div className="space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold">Projekti</h1>
+          <h1 className="text-2xl font-semibold">{t("projects.title")}</h1>
           <p className="text-sm text-[var(--color-foreground-muted)]">
-            Pregled i upravljanje projektima Vaše organizacije.
+            {t("inventory.projects.subtitle")}
           </p>
         </div>
         <PermissionGuard permission="project.create">
           <Button asChild>
-            <Link href="/projekti/novi">Novi projekat</Link>
+            <Link href="/projekti/novi">{t("projects.newProject")}</Link>
           </Button>
         </PermissionGuard>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-sm">Filteri</CardTitle>
+          <CardTitle className="text-sm">{t("common.filter")}</CardTitle>
         </CardHeader>
         <CardContent>
           <form
@@ -90,7 +92,7 @@ export default async function ProjektiPage({ searchParams }: PageProps) {
             <input
               type="text"
               name="q"
-              placeholder="Pretraga po nazivu, šifri, gradu…"
+              placeholder={t("inventory.projects.searchPlaceholder")}
               defaultValue={search ?? ""}
               className="col-span-2 h-10 rounded-md border border-[var(--color-border)] bg-white px-3 text-sm"
             />
@@ -99,21 +101,19 @@ export default async function ProjektiPage({ searchParams }: PageProps) {
               defaultValue={status ?? ""}
               className="h-10 rounded-md border border-[var(--color-border)] bg-white px-3 text-sm"
             >
-              <option value="">Svi statusi</option>
-              {(
-                Object.entries(PROJECT_STATUS_LABELS) as [ProjectStatus, string][]
-              ).map(([value, label]) => (
+              <option value="">{t("common.allStatuses")}</option>
+              {PROJECT_STATUSES.map((value) => (
                 <option key={value} value={value}>
-                  {label}
+                  {projectStatusLabel(value, t)}
                 </option>
               ))}
             </select>
             <div className="flex gap-2">
               <Button type="submit" size="md">
-                Primeni
+                {t("common.apply")}
               </Button>
               <Button asChild variant="outline">
-                <Link href="/projekti">Poništi</Link>
+                <Link href="/projekti">{t("common.reset")}</Link>
               </Button>
             </div>
           </form>
@@ -124,14 +124,14 @@ export default async function ProjektiPage({ searchParams }: PageProps) {
         <Card>
           <CardContent className="space-y-3 py-12 text-center text-sm text-[var(--color-foreground-muted)]">
             {search || status ? (
-              <>Nema projekata koji odgovaraju izabranim filterima.</>
+              <>{t("inventory.projects.noFilterResults")}</>
             ) : (
               <>
-                <p>Još nema projekata u ovoj organizaciji.</p>
+                <p>{t("inventory.projects.emptyOrg")}</p>
                 <PermissionGuard permission="project.create">
                   <div className="flex justify-center pt-2">
                     <Button asChild>
-                      <Link href="/projekti/novi">Kreiraj prvi projekat</Link>
+                      <Link href="/projekti/novi">{t("inventory.projects.createFirst")}</Link>
                     </Button>
                   </div>
                 </PermissionGuard>
@@ -146,12 +146,12 @@ export default async function ProjektiPage({ searchParams }: PageProps) {
             <table className="min-w-full divide-y divide-[var(--color-border)] text-sm">
               <thead className="bg-[var(--color-surface-inset)] text-left text-xs uppercase tracking-wide text-[var(--color-foreground-muted)]">
                 <tr>
-                  <th className="px-4 py-3">Šifra</th>
-                  <th className="px-4 py-3">Naziv</th>
-                  <th className="px-4 py-3">Grad</th>
-                  <th className="px-4 py-3">Status</th>
-                  <th className="px-4 py-3 text-right">Jedinice</th>
-                  <th className="px-4 py-3 text-right">Kreiran</th>
+                  <th className="px-4 py-3">{t("inventory.columns.code")}</th>
+                  <th className="px-4 py-3">{t("projects.fields.name")}</th>
+                  <th className="px-4 py-3">{t("projects.fields.city")}</th>
+                  <th className="px-4 py-3">{t("common.statusLabel")}</th>
+                  <th className="px-4 py-3 text-right">{t("units.title")}</th>
+                  <th className="px-4 py-3 text-right">{t("inventory.columns.created")}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[var(--color-border)]">
@@ -171,13 +171,15 @@ export default async function ProjektiPage({ searchParams }: PageProps) {
                       <span
                         className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${PROJECT_STATUS_TONE[p.projectStatus]}`}
                       >
-                        {PROJECT_STATUS_LABELS[p.projectStatus]}
+                        {projectStatusLabel(p.projectStatus, t)}
                       </span>
                     </td>
                     <td className="px-4 py-3 text-right tabular-nums">
                       {p.unitCounts.total}{" "}
                       <span className="text-xs text-[var(--color-foreground-muted)]">
-                        (slobodno {p.unitCounts.available})
+                        {t("inventory.projects.availableCount", {
+                          count: p.unitCounts.available,
+                        })}
                       </span>
                     </td>
                     <td className="px-4 py-3 text-right text-[var(--color-foreground-muted)]">
@@ -204,7 +206,7 @@ export default async function ProjektiPage({ searchParams }: PageProps) {
                     <span
                       className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${PROJECT_STATUS_TONE[p.projectStatus]}`}
                     >
-                      {PROJECT_STATUS_LABELS[p.projectStatus]}
+                      {projectStatusLabel(p.projectStatus, t)}
                     </span>
                   </div>
                   <div className="flex items-center justify-between text-xs text-[var(--color-foreground-muted)]">
@@ -212,26 +214,38 @@ export default async function ProjektiPage({ searchParams }: PageProps) {
                     <span>{p.city ?? "—"}</span>
                   </div>
                   <div className="text-xs text-[var(--color-foreground-muted)]">
-                    Jedinica: {p.unitCounts.total} · Slobodno {p.unitCounts.available} · Prodato {p.unitCounts.sold}
+                    {t("inventory.projects.unitSummary", {
+                      total: p.unitCounts.total,
+                      available: p.unitCounts.available,
+                      sold: p.unitCounts.sold,
+                    })}
                   </div>
                 </CardContent>
               </Card>
             ))}
           </div>
 
-          <Pagination page={page} totalPages={totalPages} />
+          <Pagination page={page} totalPages={totalPages} t={t} />
         </>
       )}
     </div>
   );
 }
 
-function Pagination({ page, totalPages }: { page: number; totalPages: number }) {
+function Pagination({
+  page,
+  totalPages,
+  t,
+}: {
+  page: number;
+  totalPages: number;
+  t: TranslateFn;
+}) {
   if (totalPages <= 1) return null;
   return (
     <div className="flex items-center justify-between text-sm">
       <span className="text-[var(--color-foreground-muted)]">
-        Strana {page} od {totalPages}
+        {t("inventory.pagination.pageOf", { page, total: totalPages })}
       </span>
       <div className="flex gap-2">
         {page > 1 ? (
@@ -242,7 +256,7 @@ function Pagination({ page, totalPages }: { page: number; totalPages: number }) 
                 query: { page: String(page - 1) },
               }}
             >
-              Prethodna
+              {t("inventory.pagination.prev")}
             </Link>
           </Button>
         ) : null}
@@ -254,7 +268,7 @@ function Pagination({ page, totalPages }: { page: number; totalPages: number }) 
                 query: { page: String(page + 1) },
               }}
             >
-              Sledeća
+              {t("inventory.pagination.next")}
             </Link>
           </Button>
         ) : null}

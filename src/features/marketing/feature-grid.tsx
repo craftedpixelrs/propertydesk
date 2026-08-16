@@ -1,3 +1,5 @@
+"use client";
+
 import type { LucideIcon } from "lucide-react";
 import {
   Building2,
@@ -6,7 +8,6 @@ import {
   BadgeCheck,
   Handshake,
   Wallet,
-  ReceiptText,
   FileText,
   BarChart3,
   Bell,
@@ -14,37 +15,86 @@ import {
   QrCode,
   TrendingUp,
   Globe,
-  Gift,
 } from "lucide-react";
 
-import { FEATURES, type FeatureItem } from "@/features/marketing/content";
+import { useT } from "@/components/app/i18n-provider";
+import type { TranslationKey } from "@/lib/i18n";
 
-/**
- * Feature matrix grid.
- *
- * Icons live here (client-only lucide bundle) but the copy comes from
- * `content.ts` so the same list can feed the JSON-LD ItemList without
- * pulling react components into a Node route.
- */
-const ICONS: Record<FeatureItem["icon"], LucideIcon> = {
-  building: Building2,
-  "layout-grid": LayoutGrid,
-  contact: Contact,
-  "badge-check": BadgeCheck,
-  handshake: Handshake,
-  wallet: Wallet,
-  receipt: ReceiptText,
-  "file-text": FileText,
-  "bar-chart": BarChart3,
-  bell: Bell,
-  "file-signature": FileSignature,
-  "qr-code": QrCode,
-  "trending-up": TrendingUp,
-  globe: Globe,
-  gift: Gift,
-};
+const FEATURES: Array<{
+  icon: LucideIcon;
+  titleKey: TranslationKey;
+  bodyKey: TranslationKey;
+}> = [
+  {
+    icon: Building2,
+    titleKey: "marketing.features.items.projects.title",
+    bodyKey: "marketing.features.items.projects.description",
+  },
+  {
+    icon: Contact,
+    titleKey: "marketing.features.items.crm.title",
+    bodyKey: "marketing.features.items.crm.description",
+  },
+  {
+    icon: BadgeCheck,
+    titleKey: "marketing.features.items.reservations.title",
+    bodyKey: "marketing.features.items.reservations.description",
+  },
+  {
+    icon: QrCode,
+    titleKey: "marketing.features.items.qr.title",
+    bodyKey: "marketing.features.items.qr.description",
+  },
+  {
+    icon: Handshake,
+    titleKey: "marketing.features.items.sales.title",
+    bodyKey: "marketing.features.items.sales.description",
+  },
+  {
+    icon: FileSignature,
+    titleKey: "marketing.features.items.contracts.title",
+    bodyKey: "marketing.features.items.contracts.description",
+  },
+  {
+    icon: Wallet,
+    titleKey: "marketing.features.items.payments.title",
+    bodyKey: "marketing.features.items.payments.description",
+  },
+  {
+    icon: LayoutGrid,
+    titleKey: "marketing.features.items.commissions.title",
+    bodyKey: "marketing.features.items.commissions.description",
+  },
+  {
+    icon: FileText,
+    titleKey: "marketing.features.items.documents.title",
+    bodyKey: "marketing.features.items.documents.description",
+  },
+  {
+    icon: Globe,
+    titleKey: "marketing.features.items.microsite.title",
+    bodyKey: "marketing.features.items.microsite.description",
+  },
+  {
+    icon: BarChart3,
+    titleKey: "marketing.features.items.reports.title",
+    bodyKey: "marketing.features.items.reports.description",
+  },
+  {
+    icon: TrendingUp,
+    titleKey: "marketing.features.items.cashflow.title",
+    bodyKey: "marketing.features.items.cashflow.description",
+  },
+  {
+    icon: Bell,
+    titleKey: "marketing.features.items.automation.title",
+    bodyKey: "marketing.features.items.automation.description",
+  },
+];
 
 export function FeatureGrid() {
+  const t = useT();
+
   return (
     <section
       id="mogucnosti"
@@ -54,27 +104,25 @@ export function FeatureGrid() {
       <div className="container-app py-16 sm:py-20">
         <div className="max-w-3xl">
           <div className="text-xs font-semibold uppercase tracking-wider text-[var(--color-brand-700)]">
-            Mogućnosti
+            {t("marketing.features.eyebrow")}
           </div>
           <h2
             id="features-title"
             className="mt-2 text-3xl font-bold tracking-tight sm:text-4xl"
           >
-            Sve što treba za prodaju novogradnje - u jednoj platformi
+            {t("marketing.features.title")}
           </h2>
           <p className="mt-4 max-w-2xl text-base leading-relaxed text-[var(--color-foreground-muted)]">
-            Bez Excel-a, bez Viber grupa i ad-hoc dogovora. Svaki korak
-            prodajnog toka - od dodavanja jedinice do isplate provizije -
-            evidentiran je, kontrolisan i praćen kroz sistem.
+            {t("marketing.features.subtitle")}
           </p>
         </div>
 
         <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {FEATURES.map((f) => {
-            const Icon = ICONS[f.icon];
+            const Icon = f.icon;
             return (
               <article
-                key={f.title}
+                key={f.titleKey}
                 className="group rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5 shadow-sm transition hover:border-[var(--color-brand-200)] hover:shadow-md"
               >
                 <div className="flex items-start gap-3">
@@ -86,10 +134,10 @@ export function FeatureGrid() {
                   </span>
                   <div className="min-w-0">
                     <h3 className="text-base font-semibold text-[var(--color-foreground)]">
-                      {f.title}
+                      {t(f.titleKey)}
                     </h3>
                     <p className="mt-1.5 text-sm leading-relaxed text-[var(--color-foreground-muted)]">
-                      {f.description}
+                      {t(f.bodyKey)}
                     </p>
                   </div>
                 </div>

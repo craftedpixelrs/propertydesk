@@ -21,24 +21,10 @@ import { StatusDonut } from "@/components/charts/status-donut";
 import { CategoryBars } from "@/components/charts/category-bars";
 import { FunnelBars } from "@/components/charts/funnel-bars";
 import { reservationStatusColor } from "@/components/charts/palette";
-
-const SOURCE_LABELS: Record<string, string> = {
-  DIRECT: "Direktno",
-  AGENCY: "Agencija",
-  IMPORT: "Uvoz",
-  OTHER: "Ostalo",
-};
+import { createT, enumLabel, type TranslationKey } from "@/lib/i18n";
+import { resolveRequestLocale } from "@/lib/i18n/resolve-locale";
 
 export const dynamic = "force-dynamic";
-
-const RES_LABELS: Record<string, string> = {
-  REQUESTED: "Na čekanju",
-  APPROVED: "Odobrena",
-  REJECTED: "Odbijena",
-  EXPIRED: "Istekla",
-  CANCELED: "Otkazana",
-  CONVERTED: "Prodaja",
-};
 
 interface PageProps {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
@@ -47,6 +33,7 @@ interface PageProps {
 export default async function ReservationsReportPage({ searchParams }: PageProps) {
   const ctx = await requirePermission("report.read");
   if (!ctx.organization) redirect("/dashboard");
+  const t = createT(await resolveRequestLocale());
   const sp = await searchParams;
   const parsed = parseReportSearchParams(sp);
   const filters = toReportFilters({
@@ -67,9 +54,24 @@ export default async function ReservationsReportPage({ searchParams }: PageProps
   const hrefs = exportHrefs("reservations", parsed);
   const conversionPct = Math.round(funnel.overallConversionRate * 100);
 
+  function sourceLabel(source: string) {
+    const key = `ops.reservationSource.${source}` as TranslationKey;
+    const out = t(key);
+    return out === key ? source : out;
+  }
+
+  function funnelLabel(key: string) {
+    const i18nKey = `ops.reports.funnel.${key}` as TranslationKey;
+    const out = t(i18nKey);
+    return out === i18nKey ? key : out;
+  }
+
   return (
     <div className="space-y-6">
-      <PageHeader title="Rezervacije" description="Struktura rezervacija po statusu i izvoru." />
+      <PageHeader
+        title={t("nav.reservations")}
+        description={t("ops.reports.reservationsDesc")}
+      />
 
       <ReportFilters
         action="/izvestaji/rezervacije"
@@ -82,22 +84,26 @@ export default async function ReservationsReportPage({ searchParams }: PageProps
       />
 
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-        <StatCard label="Ukupno" value={report.totals.count} />
+        <StatCard label={t("ops.reports.total")} value={report.totals.count} />
         {report.byStatus.slice(0, 3).map((row) => (
-          <StatCard key={row.status} label={RES_LABELS[row.status] ?? row.status} value={row.count} />
+          <StatCard
+            key={row.status}
+            label={enumLabel("reservation", row.status, t)}
+            value={row.count}
+          />
         ))}
       </div>
 
       <ChartCard
-        title="Lievak konverzije"
-        description={`Ukupan udeo prodaje u odnosu na sve rezervacije: ${conversionPct}%.`}
+        title={t("ops.reports.funnelTitle")}
+        description={t("ops.reports.funnelDesc", { pct: conversionPct })}
         isEmpty={funnel.steps.every((s) => s.count === 0)}
         height={220}
       >
         <FunnelBars
           data={funnel.steps.map((step) => ({
             key: step.key,
-            label: step.label,
+            label: funnelLabel(step.key),
             value: step.count,
           }))}
         />
@@ -105,15 +111,15 @@ export default async function ReservationsReportPage({ searchParams }: PageProps
 
       <div className="grid gap-6 lg:grid-cols-2">
         <ChartCard
-          title="Po statusu"
+          title={t("ops.reports.byStatus")}
           isEmpty={report.byStatus.length === 0}
           height={240}
         >
           <StatusDonut
-            centerLabel="Ukupno"
+            centerLabel={t("ops.reports.total")}
             data={report.byStatus.map((row) => ({
               key: row.status,
-              label: RES_LABELS[row.status] ?? row.status,
+              label: enumLabel("reservation", row.status, t),
               value: row.count,
               color: reservationStatusColor[row.status],
             }))}
@@ -121,14 +127,14 @@ export default async function ReservationsReportPage({ searchParams }: PageProps
         </ChartCard>
 
         <ChartCard
-          title="Po izvoru"
+          title={t("ops.reports.bySource")}
           isEmpty={report.bySource.length === 0}
           height={240}
         >
           <CategoryBars
             data={report.bySource.map((row) => ({
               key: row.source,
-              label: SOURCE_LABELS[row.source] ?? row.source,
+              label: sourceLabel(row.source),
               value: row.count,
             }))}
           />
@@ -137,25 +143,25 @@ export default async function ReservationsReportPage({ searchParams }: PageProps
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-sm">Rezervacije</CardTitle>
+          <CardTitle className="text-sm">{t("nav.reservations")}</CardTitle>
         </CardHeader>
         <CardContent className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="text-left text-xs text-[var(--color-foreground-muted)]">
               <tr>
-                <th className="py-1">Datum</th>
-                <th className="py-1">Projekat</th>
-                <th className="py-1">Jedinica</th>
-                <th className="py-1">Kupac</th>
-                <th className="py-1">Izvor</th>
-                <th className="py-1">Status</th>
+                <th className="py-1">{t("common.date")}</th>
+                <th className="py-1">{t("units.columns.project")}</th>
+                <th className="py-1">{t("partners.unit")}</th>
+                <th className="py-1">{t("partners.buyer")}</th>
+                <th className="py-1">{t("ops.reports.source")}</th>
+                <th className="py-1">{t("common.statusLabel")}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[var(--color-border)]">
               {report.rows.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="py-4 text-center text-[var(--color-foreground-muted)]">
-                    Nema podataka.
+                    {t("common.noData")}
                   </td>
                 </tr>
               ) : (
@@ -165,8 +171,8 @@ export default async function ReservationsReportPage({ searchParams }: PageProps
                     <td className="py-1.5">{r.projectName}</td>
                     <td className="py-1.5">{r.unitCode}</td>
                     <td className="py-1.5">{r.buyerName}</td>
-                    <td className="py-1.5">{r.source}</td>
-                    <td className="py-1.5">{RES_LABELS[r.status] ?? r.status}</td>
+                    <td className="py-1.5">{sourceLabel(r.source)}</td>
+                    <td className="py-1.5">{enumLabel("reservation", r.status, t)}</td>
                   </tr>
                 ))
               )}

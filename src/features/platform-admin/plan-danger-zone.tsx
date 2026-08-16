@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { apiClient, ApiClientError } from "@/lib/api-client";
+import { useT } from "@/components/app/i18n-provider";
 
 interface Props {
   planId: string;
@@ -23,6 +24,7 @@ export function PlanDangerZone({
   invoiceCount,
 }: Props) {
   const router = useRouter();
+  const t = useT();
   const [error, setError] = useState<string | null>(null);
   const [pendingArchive, startArchive] = useTransition();
   const [pendingDelete, startDelete] = useTransition();
@@ -39,7 +41,7 @@ export function PlanDangerZone({
         setError(
           err instanceof ApiClientError
             ? err.message
-            : "Operacija nije uspela.",
+            : t("admin.operationFailed"),
         );
       }
     });
@@ -48,7 +50,7 @@ export function PlanDangerZone({
   function callDelete() {
     if (
       !window.confirm(
-        `Obrisati plan „${planName}" trajno? Ova akcija je nepovratna. Ako plan ima istoriju, koristite arhiviranje umesto brisanja.`,
+        t("admin.planDanger.confirm", { name: planName }),
       )
     ) {
       return;
@@ -63,7 +65,7 @@ export function PlanDangerZone({
         setError(
           err instanceof ApiClientError
             ? err.message
-            : "Brisanje nije uspelo.",
+            : t("admin.deleteFailed"),
         );
       }
     });
@@ -72,18 +74,18 @@ export function PlanDangerZone({
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-sm">Opasna zona</CardTitle>
+        <CardTitle className="text-sm">{t("admin.planDanger.title")}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-3 text-sm">
         <div className="flex flex-wrap items-center justify-between gap-3 rounded-md border border-[var(--color-border)] p-3">
           <div>
             <div className="font-medium">
-              {active ? "Arhiviraj plan" : "Vrati plan u upotrebu"}
+              {active ? t("admin.planDanger.archive") : t("admin.planDanger.restore")}
             </div>
             <p className="text-xs text-[var(--color-foreground-muted)]">
               {active
-                ? "Arhiviran plan se ne prikazuje u listi za nove pretplate, ali sve postojeće pretplate i istorijske fakture ostaju netaknute."
-                : "Ponovo omogući da se ovaj plan dodeljuje novim pretplatama."}
+                ? t("admin.planDanger.archiveHint")
+                : t("admin.planDanger.restoreHint")}
             </p>
           </div>
           <Button
@@ -92,17 +94,20 @@ export function PlanDangerZone({
             onClick={() => callArchive(active ? "archive" : "restore")}
             loading={pendingArchive}
           >
-            {active ? "Arhiviraj" : "Vrati u upotrebu"}
+            {active ? t("admin.planDanger.archiveBtn") : t("admin.planDanger.restoreBtn")}
           </Button>
         </div>
 
         <div className="flex flex-wrap items-center justify-between gap-3 rounded-md border border-red-200 bg-red-50 p-3">
           <div>
-            <div className="font-medium text-red-800">Trajno obriši</div>
+            <div className="font-medium text-red-800">{t("admin.planDanger.deleteTitle")}</div>
             <p className="text-xs text-red-700">
               {canHardDelete
-                ? "Ovaj plan nema pretplata ni faktura — može se obrisati trajno. Nema povratka."
-                : `Ne može se obrisati: ${subscriptionCount} pretplata i ${invoiceCount} istorijskih faktura koriste ovaj plan. Umesto brisanja, arhivirajte.`}
+                ? t("admin.planDanger.deleteOk")
+                : t("admin.planDanger.deleteBlocked", {
+                    subs: subscriptionCount,
+                    invoices: invoiceCount,
+                  })}
             </p>
           </div>
           <Button
@@ -113,11 +118,11 @@ export function PlanDangerZone({
             disabled={!canHardDelete}
             title={
               canHardDelete
-                ? "Trajno obriši plan"
-                : "Plan ima referencirane pretplate ili fakture."
+                ? t("admin.planDanger.deleteTitleOk")
+                : t("admin.planDanger.deleteTitleBlocked")
             }
           >
-            Trajno obriši
+            {t("admin.planDanger.deleteBtn")}
           </Button>
         </div>
 

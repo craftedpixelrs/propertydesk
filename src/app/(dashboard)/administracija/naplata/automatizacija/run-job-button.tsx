@@ -4,6 +4,7 @@ import { useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Play } from "lucide-react";
+import { useT } from "@/components/app/i18n-provider";
 
 /**
  * Manual-run trigger. Posts to `/api/v1/billing/jobs/{name}/run`, refreshes
@@ -12,10 +13,11 @@ import { Play } from "lucide-react";
  */
 export function RunJobButton({ name }: { name: string }) {
   const router = useRouter();
+  const t = useT();
   const [pending, startTransition] = useTransition();
 
   async function trigger() {
-    if (!confirm(`Da li želite da ručno pokrenete ${name}?`)) return;
+    if (!confirm(t("admin.automation.confirmRun", { name }))) return;
     try {
       const res = await fetch(`/api/v1/billing/jobs/${name}/run`, {
         method: "POST",
@@ -23,19 +25,19 @@ export function RunJobButton({ name }: { name: string }) {
       });
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
-        alert(`Greška: ${err?.error?.message ?? res.statusText}`);
+        alert(t("admin.errorPrefix", { message: err?.error?.message ?? res.statusText }));
         return;
       }
       startTransition(() => router.refresh());
     } catch (err) {
-      alert(`Greška: ${(err as Error).message}`);
+      alert(t("admin.errorPrefix", { message: (err as Error).message }));
     }
   }
 
   return (
     <Button variant="secondary" size="sm" onClick={trigger} disabled={pending}>
       <Play className="size-4" />
-      {pending ? "Pokrećem…" : "Pokreni sada"}
+      {pending ? t("admin.runningEllipsis") : t("admin.automation.runNow")}
     </Button>
   );
 }

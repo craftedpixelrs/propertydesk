@@ -9,18 +9,19 @@ import { listSales, listSalesBoard } from "@/server/services/sales/sales.service
 import { formatDate, formatMoney } from "@/lib/formatters";
 import type { SupportedCurrency } from "@/lib/constants/app";
 import { SalesBoard } from "@/features/board/sales-board";
+import { createT, enumLabel, type TranslateFn } from "@/lib/i18n";
 
 export const dynamic = "force-dynamic";
 
-const STATUS_LABELS: Record<SaleStatus, string> = {
-  DRAFT: "Nacrt",
-  PRE_CONTRACT: "Predugovor",
-  CONTRACTED: "Ugovorena",
-  PAYMENT_IN_PROGRESS: "Plaćanje u toku",
-  PAID: "Plaćena",
-  HANDED_OVER: "Primopredato",
-  CANCELED: "Otkazana",
-};
+const SALE_STATUSES: SaleStatus[] = [
+  "DRAFT",
+  "PRE_CONTRACT",
+  "CONTRACTED",
+  "PAYMENT_IN_PROGRESS",
+  "PAID",
+  "HANDED_OVER",
+  "CANCELED",
+];
 
 const STATUS_TONE: Record<SaleStatus, string> = {
   DRAFT: "bg-neutral-200 text-neutral-700",
@@ -31,6 +32,10 @@ const STATUS_TONE: Record<SaleStatus, string> = {
   HANDED_OVER: "bg-emerald-200 text-emerald-800",
   CANCELED: "bg-rose-100 text-rose-700",
 };
+
+function saleStatusLabel(status: string, t: TranslateFn): string {
+  return enumLabel("sale", status === "PRE_CONTRACT" ? "PRECONTRACT" : status, t);
+}
 
 interface PageProps {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
@@ -45,6 +50,7 @@ export default async function ProdajePage({ searchParams }: PageProps) {
   if (!ctx) redirect("/sign-in");
   if (!ctx.activeOrganization) redirect("/podesavanja");
 
+  const t = createT(ctx.user.locale);
   const sp = await searchParams;
   const view = readParam(sp.view) === "board" ? "board" : "list";
   const status = readParam(sp.status) as SaleStatus | undefined;
@@ -55,12 +61,12 @@ export default async function ProdajePage({ searchParams }: PageProps) {
     <div className="space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-semibold">Prodaje</h1>
+          <h1 className="text-2xl font-semibold">{t("nav.sales")}</h1>
           <p className="text-sm text-[var(--color-foreground-muted)]">
-            Ugovori, plaćanja i primopredaje.
+            {t("deals.sales.subtitle")}
           </p>
         </div>
-        <ViewSwitcher view={view} status={status} />
+        <ViewSwitcher view={view} status={status} t={t} />
       </div>
 
       {view === "board" ? (
@@ -74,6 +80,7 @@ export default async function ProdajePage({ searchParams }: PageProps) {
           status={status}
           page={page}
           pageSize={pageSize}
+          t={t}
         />
       )}
     </div>
@@ -83,9 +90,11 @@ export default async function ProdajePage({ searchParams }: PageProps) {
 function ViewSwitcher({
   view,
   status,
+  t,
 }: {
   view: "list" | "board";
   status: SaleStatus | undefined;
+  t: TranslateFn;
 }) {
   const query: Record<string, string> = {};
   if (status) query.status = status;
@@ -99,7 +108,7 @@ function ViewSwitcher({
             : "bg-white text-[var(--color-foreground)] hover:bg-[var(--color-surface-inset)]"
         }`}
       >
-        Lista
+        {t("common.list")}
       </Link>
       <Link
         href={{ pathname: "/prodaje", query: { ...query, view: "board" } }}
@@ -109,7 +118,7 @@ function ViewSwitcher({
             : "bg-white text-[var(--color-foreground)] hover:bg-[var(--color-surface-inset)]"
         }`}
       >
-        Tabla
+        {t("common.board")}
       </Link>
     </div>
   );
@@ -140,11 +149,13 @@ async function ListView({
   status,
   page,
   pageSize,
+  t,
 }: {
   organizationId: string;
   status: SaleStatus | undefined;
   page: number;
   pageSize: number;
+  t: TranslateFn;
 }) {
   const { items, total } = await listSales({
     organizationId,
@@ -159,7 +170,7 @@ async function ListView({
     <>
       <Card>
         <CardHeader>
-          <CardTitle className="text-sm">Filteri</CardTitle>
+          <CardTitle className="text-sm">{t("common.filter")}</CardTitle>
         </CardHeader>
         <CardContent>
           <form method="get" action="/prodaje" className="flex flex-wrap gap-2">
@@ -168,20 +179,18 @@ async function ListView({
               defaultValue={status ?? ""}
               className="h-10 rounded-md border border-[var(--color-border)] bg-white px-3 text-sm"
             >
-              <option value="">Svi statusi</option>
-              {(Object.entries(STATUS_LABELS) as [SaleStatus, string][]).map(
-                ([value, label]) => (
-                  <option key={value} value={value}>
-                    {label}
-                  </option>
-                ),
-              )}
+              <option value="">{t("common.allStatuses")}</option>
+              {SALE_STATUSES.map((value) => (
+                <option key={value} value={value}>
+                  {saleStatusLabel(value, t)}
+                </option>
+              ))}
             </select>
             <Button type="submit" size="md">
-              Primeni
+              {t("common.apply")}
             </Button>
             <Button asChild variant="outline">
-              <Link href="/prodaje">Poništi</Link>
+              <Link href="/prodaje">{t("common.reset")}</Link>
             </Button>
           </form>
         </CardContent>
@@ -190,7 +199,7 @@ async function ListView({
       {items.length === 0 ? (
         <Card>
           <CardContent className="py-12 text-center text-sm text-[var(--color-foreground-muted)]">
-            Nema prodaja. Kreirajte novu iz odobrene rezervacije ili ručno.
+            {t("deals.sales.empty")}
           </CardContent>
         </Card>
       ) : (
@@ -199,12 +208,12 @@ async function ListView({
             <table className="min-w-full divide-y divide-[var(--color-border)] text-sm">
               <thead className="bg-[var(--color-surface-inset)] text-left text-xs uppercase tracking-wide text-[var(--color-foreground-muted)]">
                 <tr>
-                  <th className="px-4 py-3">Jedinica</th>
-                  <th className="px-4 py-3">Projekat</th>
-                  <th className="px-4 py-3">Kupac</th>
-                  <th className="px-4 py-3">Status</th>
-                  <th className="px-4 py-3 text-right">Iznos</th>
-                  <th className="px-4 py-3 text-right">Kreirano</th>
+                  <th className="px-4 py-3">{t("deals.unit")}</th>
+                  <th className="px-4 py-3">{t("units.columns.project")}</th>
+                  <th className="px-4 py-3">{t("deals.buyer")}</th>
+                  <th className="px-4 py-3">{t("common.statusLabel")}</th>
+                  <th className="px-4 py-3 text-right">{t("common.amount")}</th>
+                  <th className="px-4 py-3 text-right">{t("deals.created")}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[var(--color-border)]">
@@ -226,7 +235,7 @@ async function ListView({
                       <span
                         className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_TONE[s.status]}`}
                       >
-                        {STATUS_LABELS[s.status]}
+                        {saleStatusLabel(s.status, t)}
                       </span>
                     </td>
                     <td className="px-4 py-3 text-right font-medium">
@@ -255,7 +264,7 @@ async function ListView({
                     <span
                       className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_TONE[s.status]}`}
                     >
-                      {STATUS_LABELS[s.status]}
+                      {saleStatusLabel(s.status, t)}
                     </span>
                   </div>
                   <div className="text-xs text-[var(--color-foreground-muted)]">
@@ -272,7 +281,7 @@ async function ListView({
           {totalPages > 1 ? (
             <div className="flex items-center justify-between text-sm">
               <span className="text-[var(--color-foreground-muted)]">
-                Strana {page} od {totalPages}
+                {t("deals.pageOf", { page, total: totalPages })}
               </span>
               <div className="flex gap-2">
                 {page > 1 ? (
@@ -286,7 +295,7 @@ async function ListView({
                         },
                       }}
                     >
-                      Prethodna
+                      {t("common.previous")}
                     </Link>
                   </Button>
                 ) : null}
@@ -301,7 +310,7 @@ async function ListView({
                         },
                       }}
                     >
-                      Sledeća
+                      {t("common.next")}
                     </Link>
                   </Button>
                 ) : null}

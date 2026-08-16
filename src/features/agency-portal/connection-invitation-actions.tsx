@@ -5,12 +5,14 @@ import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
 import { apiClient, ApiClientError } from "@/lib/api-client";
+import { useT } from "@/components/app/i18n-provider";
 
 export function ConnectionInvitationActions({
   connectionId,
 }: {
   connectionId: string;
 }) {
+  const t = useT();
   const router = useRouter();
   const [loading, setLoading] = useState<"ACCEPT" | "REJECT" | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -24,7 +26,7 @@ export function ConnectionInvitationActions({
       });
       router.refresh();
     } catch (err) {
-      setError(err instanceof ApiClientError ? err.message : "Došlo je do greške.");
+      setError(err instanceof ApiClientError ? err.message : t("errors.generic"));
     } finally {
       setLoading(null);
     }
@@ -33,7 +35,7 @@ export function ConnectionInvitationActions({
   return (
     <div className="inline-flex flex-wrap items-center justify-end gap-2">
       <Button size="sm" onClick={() => respond("ACCEPT")} loading={loading === "ACCEPT"}>
-        Prihvati
+        {t("partners.accept")}
       </Button>
       <Button
         size="sm"
@@ -42,7 +44,7 @@ export function ConnectionInvitationActions({
         loading={loading === "REJECT"}
         className="text-red-600"
       >
-        Odbij
+        {t("partners.reject")}
       </Button>
       {error ? <span className="text-xs text-red-600">{error}</span> : null}
     </div>

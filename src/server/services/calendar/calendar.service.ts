@@ -133,12 +133,12 @@ export async function loadCalendarEvents(
       id: `res:${r.id}`,
       type: "reservation-expiry",
       date: r.expiresAt.toISOString(),
-      title: `Rezervacija ističe · ${r.unit?.code ?? "—"}`,
+      title: r.unit?.code ?? "—",
       subtitle: r.buyer
         ? `${r.buyer.firstName} ${r.buyer.lastName}`
         : undefined,
       href: `/rezervacije/${r.id}`,
-      meta: { status: r.status },
+      meta: { status: r.status, unitCode: r.unit?.code ?? "—" },
     });
   }
 
@@ -148,7 +148,7 @@ export async function loadCalendarEvents(
       id: `inst:${inst.id}`,
       type: "payment-due",
       date: inst.dueDate.toISOString(),
-      title: `Uplata · ${inst.name}`,
+      title: inst.name,
       subtitle: sale
         ? `${sale.unit?.code ?? "—"}${
             sale.buyer ? ` · ${sale.buyer.firstName} ${sale.buyer.lastName}` : ""
@@ -181,11 +181,12 @@ export async function loadCalendarEvents(
       id: `handover:${sale.id}`,
       type: "sale-handover",
       date: sale.plannedHandoverDate.toISOString(),
-      title: `Primopredaja · ${sale.unit?.code ?? "—"}`,
+      title: sale.unit?.code ?? "—",
       subtitle: sale.buyer
         ? `${sale.buyer.firstName} ${sale.buyer.lastName}`
         : undefined,
       href: `/prodaje/${sale.id}`,
+      meta: { unitCode: sale.unit?.code ?? "—" },
     });
   }
 

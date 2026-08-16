@@ -3,6 +3,8 @@
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
+import { useI18n } from "@/components/app/i18n-provider";
+import { intlLocale } from "@/lib/i18n";
 
 /**
  * Faza 8.1 (A2) — public reservation form on `/p/[token]`.
@@ -23,6 +25,7 @@ export function PublicReservationForm(props: {
   organizationName: string;
   unitCode: string;
 }) {
+  const { t, locale } = useI18n();
   const [open, setOpen] = useState(false);
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -44,12 +47,12 @@ export function PublicReservationForm(props: {
     e.preventDefault();
     setError(null);
     if (!consent) {
-      setError("Morate prihvatiti obradu podataka.");
+      setError(t("deals.public.consentRequired"));
       return;
     }
     const amount = Number(deposit.replace(/[^0-9.,]/g, "").replace(",", "."));
     if (!Number.isFinite(amount) || amount <= 0) {
-      setError("Iznos kapare mora biti pozitivan broj.");
+      setError(t("deals.public.invalidDeposit"));
       return;
     }
     setBusy(true);
@@ -69,9 +72,7 @@ export function PublicReservationForm(props: {
         }),
       });
       if (res.status === 429) {
-        throw new Error(
-          "Previše zahteva sa ove IP adrese. Pokušajte ponovo za koji trenutak.",
-        );
+        throw new Error(t("deals.public.rateLimited"));
       }
       const payload = (await res.json().catch(() => ({}))) as {
         data?: {
@@ -83,13 +84,11 @@ export function PublicReservationForm(props: {
         error?: { message?: string };
       };
       if (!res.ok || !payload.data) {
-        throw new Error(
-          payload.error?.message ?? "Greška prilikom slanja zahteva.",
-        );
+        throw new Error(payload.error?.message ?? t("deals.public.submitFailed"));
       }
       setResult(payload.data);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Greška.");
+      setError(err instanceof Error ? err.message : t("errors.generic"));
     } finally {
       setBusy(false);
     }
@@ -99,30 +98,32 @@ export function PublicReservationForm(props: {
     return (
       <section className="rounded-md border border-[var(--color-brand-200)] bg-[var(--color-brand-50)] p-5">
         <h2 className="text-base font-semibold text-[var(--color-brand-800)]">
-          Zahtev je prosleđen investitoru
+          {t("deals.public.submittedTitle")}
         </h2>
         <p className="mt-1 text-sm text-[var(--color-brand-800)]">
-          Uplatite kaparu na dole naznačen račun i pozovite se na broj{" "}
+          {t("deals.public.submittedLead")}{" "}
           <code className="rounded bg-white px-1.5 py-0.5">
             {result.ipsReference}
           </code>
-          . Investitor će potvrditi uplatu i rezervisati jedinicu na vaše ime.
+          . {t("deals.public.submittedTail")}
         </p>
         <p className="mt-1 text-xs text-[var(--color-brand-800)]">
-          Rezervacija ističe {new Date(result.expiresAt).toLocaleString("sr-Latn-RS")}.
+          {t("deals.public.expiresAt", {
+            date: new Date(result.expiresAt).toLocaleString(intlLocale(locale)),
+          })}
         </p>
         {result.ipsQrAvailable ? (
           <div className="mt-3 rounded-md border border-[var(--color-border)] bg-white p-3 text-center">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={`/api/v1/public/reservation-requests/${result.id}/qr`}
-              alt="IPS QR kod za uplatu"
+              alt={t("deals.public.qrAlt")}
               width={220}
               height={220}
               className="mx-auto"
             />
             <p className="mt-2 text-[10px] text-[var(--color-foreground-muted)]">
-              Skenirajte kod u vašoj bankarskoj aplikaciji da automatski popunite podatke za uplatu.
+              {t("deals.public.qrHint")}
             </p>
           </div>
         ) : null}
@@ -135,13 +136,14 @@ export function PublicReservationForm(props: {
       <div className="rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] p-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h2 className="text-sm font-semibold">Zainteresovani ste za {props.unitCode}?</h2>
+            <h2 className="text-sm font-semibold">
+              {t("deals.public.interested", { code: props.unitCode })}
+            </h2>
             <p className="mt-1 text-xs text-[var(--color-foreground-muted)]">
-              Rezervišite jedinicu online — investitor drži jedinicu za vas dok
-              se uplata ne obradi.
+              {t("deals.public.holdHint")}
             </p>
           </div>
-          <Button onClick={() => setOpen(true)}>Rezerviši uz kaparu</Button>
+          <Button onClick={() => setOpen(true)}>{t("deals.public.reserveWithDeposit")}</Button>
         </div>
       </div>
     );
@@ -150,18 +152,20 @@ export function PublicReservationForm(props: {
   return (
     <section className="rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] p-5">
       <div className="mb-3 flex items-center justify-between">
-        <h2 className="text-sm font-semibold">Zahtev za rezervaciju</h2>
+        <h2 className="text-sm font-semibold">{t("deals.public.requestTitle")}</h2>
         <button
           type="button"
           onClick={() => setOpen(false)}
           className="text-xs text-[var(--color-foreground-muted)] hover:underline"
         >
-          Zatvori
+          {t("common.close")}
         </button>
       </div>
       <form className="grid gap-3 sm:grid-cols-2" onSubmit={submit}>
         <label className="text-xs">
-          <span className="mb-1 block text-[var(--color-foreground-muted)]">Ime *</span>
+          <span className="mb-1 block text-[var(--color-foreground-muted)]">
+            {t("deals.firstName")} *
+          </span>
           <input
             className="h-10 w-full rounded-md border border-[var(--color-border)] px-3 text-sm"
             value={firstName}
@@ -171,7 +175,9 @@ export function PublicReservationForm(props: {
           />
         </label>
         <label className="text-xs">
-          <span className="mb-1 block text-[var(--color-foreground-muted)]">Prezime *</span>
+          <span className="mb-1 block text-[var(--color-foreground-muted)]">
+            {t("deals.lastName")} *
+          </span>
           <input
             className="h-10 w-full rounded-md border border-[var(--color-border)] px-3 text-sm"
             value={lastName}
@@ -181,7 +187,9 @@ export function PublicReservationForm(props: {
           />
         </label>
         <label className="text-xs">
-          <span className="mb-1 block text-[var(--color-foreground-muted)]">E-mail *</span>
+          <span className="mb-1 block text-[var(--color-foreground-muted)]">
+            {t("common.email")} *
+          </span>
           <input
             type="email"
             className="h-10 w-full rounded-md border border-[var(--color-border)] px-3 text-sm"
@@ -192,7 +200,9 @@ export function PublicReservationForm(props: {
           />
         </label>
         <label className="text-xs">
-          <span className="mb-1 block text-[var(--color-foreground-muted)]">Telefon *</span>
+          <span className="mb-1 block text-[var(--color-foreground-muted)]">
+            {t("common.phone")} *
+          </span>
           <input
             type="tel"
             className="h-10 w-full rounded-md border border-[var(--color-border)] px-3 text-sm"
@@ -204,7 +214,7 @@ export function PublicReservationForm(props: {
         </label>
         <label className="text-xs sm:col-span-2">
           <span className="mb-1 block text-[var(--color-foreground-muted)]">
-            Iznos kapare ({props.currency}) *
+            {t("deals.public.depositAmount", { currency: props.currency })} *
           </span>
           <input
             inputMode="decimal"
@@ -212,12 +222,12 @@ export function PublicReservationForm(props: {
             value={deposit}
             onChange={(e) => setDeposit(e.target.value)}
             required
-            placeholder={props.suggestedDeposit ?? "npr. 1000"}
+            placeholder={props.suggestedDeposit ?? t("deals.public.depositPlaceholder")}
           />
         </label>
         <label className="text-xs sm:col-span-2">
           <span className="mb-1 block text-[var(--color-foreground-muted)]">
-            Napomena za investitora (opcionalno)
+            {t("deals.public.notesForInvestor")}
           </span>
           <textarea
             className="min-h-[80px] w-full rounded-md border border-[var(--color-border)] p-2 text-sm"
@@ -233,17 +243,14 @@ export function PublicReservationForm(props: {
             onChange={(e) => setConsent(e.target.checked)}
             className="mt-0.5"
           />
-          <span>
-            Prihvatam obradu podataka od strane {props.organizationName} radi
-            obrade ovog zahteva. Podaci se čuvaju najduže 30 dana.
-          </span>
+          <span>{t("deals.public.consent", { org: props.organizationName })}</span>
         </label>
         {error ? (
           <p className="text-xs text-red-700 sm:col-span-2">{error}</p>
         ) : null}
         <div className="sm:col-span-2">
           <Button type="submit" loading={busy}>
-            Pošalji zahtev
+            {t("deals.public.submit")}
           </Button>
         </div>
       </form>

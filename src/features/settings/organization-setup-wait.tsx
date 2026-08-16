@@ -1,7 +1,10 @@
+"use client";
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { t } from "@/lib/i18n";
+import { useT } from "@/components/app/i18n-provider";
 
 export function OrganizationSetupWait() {
+  const t = useT();
   return (
     <Card>
       <CardHeader>

@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { t } from "./index";
+import { parseLocale, t } from "./index";
 
 describe("t()", () => {
   it("returns a Serbian Latin string for known keys", () => {
@@ -9,10 +9,21 @@ describe("t()", () => {
     expect(t("common.save")).toBe("Sačuvaj");
   });
 
+  it("returns English when locale is en", () => {
+    expect(t("nav.dashboard", undefined, "en")).toBe("Dashboard");
+    expect(t("nav.projects", undefined, "en")).toBe("Projects");
+    expect(t("common.save", undefined, "en")).toBe("Save");
+    expect(t("language.label", undefined, "en")).toBe("Language");
+  });
+
   it("uses Serbian diacritics correctly", () => {
     expect(t("nav.signOut")).toBe("Odjavi se");
     expect(t("nav.paymentPlans")).toBe("Planovi plaćanja");
     expect(t("common.comingSoon")).toBe("Uskoro");
+  });
+
+  it("falls back to Serbian when an English key is missing", () => {
+    expect(t("nav.signOut", undefined, "en")).toBe("Sign out");
   });
 
   it("returns the key and warns for missing translations", () => {
@@ -23,5 +34,25 @@ describe("t()", () => {
     expect(out).toBe("some.missing.key");
     expect(warn).toHaveBeenCalled();
     warn.mockRestore();
+  });
+});
+
+describe("parseLocale()", () => {
+  it("accepts supported locale codes", () => {
+    expect(parseLocale("sr-Latn")).toBe("sr-Latn");
+    expect(parseLocale("en")).toBe("en");
+  });
+
+  it("normalizes language prefixes", () => {
+    expect(parseLocale("sr")).toBe("sr-Latn");
+    expect(parseLocale("sr-RS")).toBe("sr-Latn");
+    expect(parseLocale("en-US")).toBe("en");
+    expect(parseLocale("en-GB")).toBe("en");
+  });
+
+  it("rejects unknown values", () => {
+    expect(parseLocale(null)).toBeNull();
+    expect(parseLocale("")).toBeNull();
+    expect(parseLocale("de")).toBeNull();
   });
 });

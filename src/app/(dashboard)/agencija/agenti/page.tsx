@@ -12,6 +12,7 @@ import {
   isPermittedWithOverrides,
   loadOverridesMap,
 } from "@/server/services/permissions/role-overrides.service";
+import { createT } from "@/lib/i18n";
 
 export const dynamic = "force-dynamic";
 
@@ -25,6 +26,8 @@ export default async function AgentiPage() {
   if (!ctx.permissions.includes("organization.members:manage")) {
     redirect("/dashboard");
   }
+
+  const t = createT(ctx.user.locale);
 
   const { org } = await requireSessionAndOrg();
   const [members, invitations, overrides] = await Promise.all([
@@ -41,9 +44,9 @@ export default async function AgentiPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold">Agenti</h1>
+        <h1 className="text-2xl font-semibold">{t("nav.agents")}</h1>
         <p className="text-sm text-[var(--color-foreground-muted)]">
-          Članovi Vaše agencije. Dodajte i uklanjajte agente iz ove liste.
+          {t("partners.agents.subtitle")}
         </p>
       </div>
       <MembersManager

@@ -7,6 +7,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatDate, formatDateTime } from "@/lib/formatters/date";
 import { getSession, isSuperAdmin } from "@/server/auth/session";
 import { loadPlatformDashboard } from "@/server/services/dashboard/dashboard.service";
+import { createT } from "@/lib/i18n";
+import { resolveRequestLocale } from "@/lib/i18n/resolve-locale";
 
 export const dynamic = "force-dynamic";
 
@@ -25,28 +27,32 @@ export default async function PlatformAdminOverviewPage() {
   }
 
   const data = await loadPlatformDashboard();
+  const t = createT(await resolveRequestLocale());
 
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
         <StatCard
-          label="Organizacije"
+          label={t("admin.organizations")}
           value={data.totals.totalOrganizations}
-          hint={`${data.totals.activeOrganizations} aktivnih · ${data.totals.trialOrganizations} probnih`}
+          hint={t("admin.overviewPage.orgsHint", {
+            active: data.totals.activeOrganizations,
+            trial: data.totals.trialOrganizations,
+          })}
           icon={<Building2 className="size-5" />}
         />
         <StatCard
-          label="Korisnici"
+          label={t("admin.users")}
           value={data.totals.totalUsers}
           icon={<Users className="size-5" />}
         />
         <StatCard
-          label="Projekti"
+          label={t("nav.projects")}
           value={data.totals.totalProjects}
           icon={<Layers className="size-5" />}
         />
         <StatCard
-          label="Jedinice"
+          label={t("nav.inventory")}
           value={data.totals.totalUnits}
           icon={<Layers className="size-5" />}
         />
@@ -54,22 +60,22 @@ export default async function PlatformAdminOverviewPage() {
 
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
         <StatCard
-          label="Prodaje"
+          label={t("nav.sales")}
           value={data.totals.totalSales}
           icon={<Handshake className="size-5" />}
         />
         <StatCard
-          label="Aktivne rezervacije"
+          label={t("ui.dashboard.activeReservations")}
           value={data.totals.activeReservations}
           icon={<BadgeCheck className="size-5" />}
         />
         <StatCard
-          label="Suspendovano"
+          label={t("status.suspended")}
           value={data.totals.suspendedOrganizations}
           icon={<Shield className="size-5" />}
         />
         <StatCard
-          label="Uloga"
+          label={t("admin.overviewPage.role")}
           value="SUPER_ADMIN"
           icon={<Shield className="size-5" />}
         />
@@ -78,12 +84,12 @@ export default async function PlatformAdminOverviewPage() {
       <div className="grid gap-6 lg:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle className="text-sm">Probni periodi koji ističu (7 dana)</CardTitle>
+            <CardTitle className="text-sm">{t("admin.overviewPage.trialsTitle")}</CardTitle>
           </CardHeader>
           <CardContent>
             {data.trialsExpiringSoon.length === 0 ? (
               <p className="text-sm text-[var(--color-foreground-muted)]">
-                Nema probnih pretplata koje uskoro ističu.
+                {t("admin.overviewPage.noTrials")}
               </p>
             ) : (
               <ul className="divide-y divide-[var(--color-border)]">
@@ -96,7 +102,7 @@ export default async function PlatformAdminOverviewPage() {
                       {s.organizationName}
                     </Link>
                     <span className="text-xs text-[var(--color-foreground-muted)]">
-                      Ističe {formatDate(s.trialEndsAt)}
+                      {t("admin.overviewPage.expires", { date: formatDate(s.trialEndsAt) })}
                     </span>
                   </li>
                 ))}
@@ -107,13 +113,17 @@ export default async function PlatformAdminOverviewPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-sm">Raspodela po tipu</CardTitle>
+            <CardTitle className="text-sm">{t("admin.overviewPage.byType")}</CardTitle>
           </CardHeader>
           <CardContent>
             <ul className="space-y-2 text-sm">
               {data.organizationsByType.map((row) => (
                 <li key={row.type} className="flex items-center justify-between">
-                  <span>{row.type === "INVESTOR" ? "Investitori" : "Agencije"}</span>
+                  <span>
+                    {row.type === "INVESTOR"
+                      ? t("admin.investors")
+                      : t("admin.agencies")}
+                  </span>
                   <span className="font-medium">{row.count}</span>
                 </li>
               ))}
@@ -124,12 +134,12 @@ export default async function PlatformAdminOverviewPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-sm">Poslednje revizijske stavke</CardTitle>
+          <CardTitle className="text-sm">{t("admin.overviewPage.recentAudit")}</CardTitle>
         </CardHeader>
         <CardContent>
           {data.recentAudit.length === 0 ? (
             <p className="text-sm text-[var(--color-foreground-muted)]">
-              Nema revizijskih zapisa.
+              {t("admin.overviewPage.noAudit")}
             </p>
           ) : (
             <ul className="divide-y divide-[var(--color-border)]">
@@ -151,7 +161,10 @@ export default async function PlatformAdminOverviewPage() {
                     </span>
                   </div>
                   <span className="text-xs text-[var(--color-foreground-muted)]">
-                    {row.actorEmail ?? "sistem"} · {row.organizationName ?? "—"}
+                    {t("admin.overviewPage.actorLine", {
+                      email: row.actorEmail ?? t("admin.system"),
+                      org: row.organizationName ?? t("admin.dash"),
+                    })}
                   </span>
                 </li>
               ))}

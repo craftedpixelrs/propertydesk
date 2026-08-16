@@ -7,6 +7,8 @@ import {
 import { SAMPLE_VARIABLES } from "@/server/services/billing/emails/preview";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { createT, type TranslationKey } from "@/lib/i18n";
+import { resolveRequestLocale } from "@/lib/i18n/resolve-locale";
 
 export const dynamic = "force-dynamic";
 
@@ -30,31 +32,28 @@ function previewSubject(
 
 interface GroupSpec {
   id: string;
-  label: string;
-  description: string;
+  labelKey: TranslationKey;
+  descriptionKey: TranslationKey;
   prefix: "subscription." | "invoice." | "reminder.";
 }
 
 const GROUPS: GroupSpec[] = [
   {
     id: "subscription",
-    label: "Pretplata",
-    description:
-      "Životni ciklus pretplate — probni period, aktivacija, promene, restrikcije.",
+    labelKey: "admin.templates.groupSubscription",
+    descriptionKey: "admin.templates.groupSubscriptionDesc",
     prefix: "subscription.",
   },
   {
     id: "invoice",
-    label: "Faktura",
-    description:
-      "Događaji vezani za pojedinačne fakture — izdavanje, PDF, uplata, storniranje.",
+    labelKey: "admin.templates.groupInvoice",
+    descriptionKey: "admin.templates.groupInvoiceDesc",
     prefix: "invoice.",
   },
   {
     id: "reminder",
-    label: "Podsetnik",
-    description:
-      "Automatski podsetnici za neplaćene fakture — od blage note do poslednje opomene.",
+    labelKey: "admin.templates.groupReminder",
+    descriptionKey: "admin.templates.groupReminderDesc",
     prefix: "reminder.",
   },
 ];
@@ -74,6 +73,7 @@ function groupBadgeTone(id: string): "info" | "success" | "warning" | "neutral" 
 
 export default async function BillingTemplatesPage() {
   await requireSuperAdmin();
+  const t = createT(await resolveRequestLocale());
   await seedDefaultBillingTemplates();
   const templates = await listBillingEmailTemplates();
 
@@ -81,42 +81,40 @@ export default async function BillingTemplatesPage() {
     <section className="space-y-6">
       <header>
         <h2 className="text-lg font-semibold">
-          Email šabloni ({templates.length})
+          {t("admin.templates.title", { count: templates.length })}
         </h2>
         <p className="max-w-3xl text-sm text-[var(--color-foreground-muted)]">
-          Svi šabloni koriste zajednički brendirani layout i bezbednu
-          whitelist supstituciju promenljivih. Neaktivni šabloni ne blokiraju
-          slanje — u tom slučaju se koristi ugrađeni default šablon.
+          {t("admin.templates.subtitle")}
         </p>
       </header>
 
       {GROUPS.map((group) => {
-        const rows = templates.filter((t) => t.key.startsWith(group.prefix));
+        const rows = templates.filter((tpl) => tpl.key.startsWith(group.prefix));
         if (rows.length === 0) return null;
         return (
           <div key={group.id} className="space-y-3">
             <div className="flex flex-wrap items-baseline justify-between gap-2">
               <div>
                 <h3 className="text-base font-semibold text-[var(--color-foreground)]">
-                  {group.label}
+                  {t(group.labelKey)}
                 </h3>
                 <p className="text-xs text-[var(--color-foreground-muted)]">
-                  {group.description}
+                  {t(group.descriptionKey)}
                 </p>
               </div>
               <span className="text-xs text-[var(--color-foreground-subtle)]">
-                {rows.length} šablon{rows.length === 1 ? "" : rows.length < 5 ? "a" : "a"}
+                {t("admin.templatesCount", { count: rows.length })}
               </span>
             </div>
 
             <div className="grid gap-3 md:grid-cols-2">
-              {rows.map((t) => {
+              {rows.map((tpl) => {
                 const sample =
-                  SAMPLE_VARIABLES[t.key as keyof typeof SAMPLE_VARIABLES];
-                const subjectPreview = previewSubject(t.subject, sample);
+                  SAMPLE_VARIABLES[tpl.key as keyof typeof SAMPLE_VARIABLES];
+                const subjectPreview = previewSubject(tpl.subject, sample);
                 return (
                   <Card
-                    key={t.id}
+                    key={tpl.id}
                     className="transition hover:border-[var(--color-brand-700)]"
                   >
                     <CardContent className="space-y-3 p-4">
@@ -124,30 +122,30 @@ export default async function BillingTemplatesPage() {
                         <div className="min-w-0">
                           <div className="flex items-center gap-2">
                             <Badge tone={groupBadgeTone(group.id)}>
-                              {group.label}
+                              {t(group.labelKey)}
                             </Badge>
-                            <Badge tone={t.active ? "success" : "neutral"}>
-                              {t.active ? "Aktivan" : "Neaktivan"}
+                            <Badge tone={tpl.active ? "success" : "neutral"}>
+                              {tpl.active ? t("admin.activeInTeam") : t("admin.inactive")}
                             </Badge>
                           </div>
                           <div className="mt-2 text-sm font-semibold text-[var(--color-foreground)]">
-                            {t.name}
+                            {tpl.name}
                           </div>
                           <div className="font-mono text-[11px] text-[var(--color-foreground-subtle)]">
-                            {t.key}
+                            {tpl.key}
                           </div>
                         </div>
                       </div>
 
-                      {t.description ? (
+                      {tpl.description ? (
                         <p className="text-xs text-[var(--color-foreground-muted)]">
-                          {t.description}
+                          {tpl.description}
                         </p>
                       ) : null}
 
                       <div className="rounded-md border border-[var(--color-border)] bg-[var(--color-surface-muted)] px-3 py-2">
                         <div className="text-[10px] uppercase tracking-wide text-[var(--color-foreground-subtle)]">
-                          Naslov u inboxu
+                          {t("admin.templates.inboxSubject")}
                         </div>
                         <div className="mt-0.5 truncate text-sm text-[var(--color-foreground)]">
                           {subjectPreview}
@@ -156,10 +154,10 @@ export default async function BillingTemplatesPage() {
 
                       <div className="flex justify-end">
                         <Link
-                          href={`/administracija/naplata/sabloni/${encodeURIComponent(t.key)}`}
+                          href={`/administracija/naplata/sabloni/${encodeURIComponent(tpl.key)}`}
                           className="text-sm font-medium text-[var(--color-brand-700)] hover:underline"
                         >
-                          Uredi šablon →
+                          {t("admin.templates.editTemplate")}
                         </Link>
                       </div>
                     </CardContent>

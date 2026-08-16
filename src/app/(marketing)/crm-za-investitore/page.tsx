@@ -8,59 +8,51 @@ import {
   buildLandingMetadata,
   LandingJsonLd,
 } from "@/features/marketing/landing/landing-shell";
+import { createT, type TranslateFn } from "@/lib/i18n";
+import { resolveRequestLocale } from "@/lib/i18n/resolve-locale";
 
-const META = {
-  slug: "crm-za-investitore",
-  title: "CRM za investitore u novogradnju",
-  description:
-    "HubSpot, Pipedrive i Salesforce nisu pravljeni za prodaju novogradnje. PropertyDesk je namenski CRM za investitore - povezuje kupca sa konkretnom jedinicom, ratom, ugovorom i agencijom - bez pretvaranja stanova u 'deal-ove'.",
-};
+function pairs(t: TranslateFn) {
+  return [1, 2, 3, 4].map((n) => ({
+    problem: t(`marketing.pages.crm.p${n}` as `marketing.pages.crm.p1`),
+    solution: t(`marketing.pages.crm.s${n}` as `marketing.pages.crm.s1`),
+  }));
+}
 
-export const metadata: Metadata = buildLandingMetadata(META);
+export async function generateMetadata(): Promise<Metadata> {
+  const locale = await resolveRequestLocale();
+  const t = createT(locale);
+  return buildLandingMetadata({
+    slug: "crm-za-investitore",
+    title: t("marketing.pages.crm.metaTitle"),
+    description: t("marketing.pages.crm.metaDescription"),
+    locale,
+  });
+}
 
-const PAIRS = [
-  {
-    problem:
-      "Generički CRM (HubSpot, Pipedrive) tretira stan kao apstraktan 'deal' bez veze sa jedinicom u projektu.",
-    solution:
-      "Kupac je vezan za konkretnu jedinicu, plan otplate, ugovor i agenciju - jedan klik do cele istorije.",
-  },
-  {
-    problem:
-      "Nema koncepta rezervacije, storniranja ili aneksa - morate to sami da modelujete kroz custom polja.",
-    solution:
-      "Rezervacije, storniranja, aneksi i planovi rata su ugrađeni tokovi - ne prilagođavate CRM njima.",
-  },
-  {
-    problem:
-      "Automatizacije rade na apstraktne 'stage-ove', ne na realne događaje (istek rezervacije, dospele rate).",
-    solution:
-      "Automatski podsetnici za dospele rate, istek rezervacije, obavezne dokumente - iz kutije.",
-  },
-  {
-    problem:
-      "Partnerske agencije nemaju svoj portal - morate im slati Excel svakog dana.",
-    solution:
-      "Svaka agencija ima svoj login sa pravima videti samo ono što joj Vi dopustite - stanovi, cene, provizije.",
-  },
-];
+export default async function Page() {
+  const locale = await resolveRequestLocale();
+  const t = createT(locale);
 
-export default function Page() {
   return (
     <>
       <PageHero
-        eyebrow="CRM za novogradnju"
+        eyebrow={t("marketing.pages.crm.eyebrow")}
         icon={Contact}
-        title="CRM koji razume da prodajete stanove, ne 'deal-ove'"
-        subtitle="PropertyDesk je namenski CRM za investitore - modeluje projekat, jedinicu, kupca, rezervaciju i prodaju kao prvorazredne entitete. Bez custom polja, bez izmišljanja tokova, bez integratora."
+        title={t("marketing.pages.crm.title")}
+        subtitle={t("marketing.pages.crm.subtitle")}
       />
       <ProblemSolutionGrid
-        title="Zašto generički CRM ne radi za investitore u novogradnju"
-        subtitle="Ako ste probali HubSpot, Pipedrive ili Salesforce, prepoznajete ove probleme. PropertyDesk polazi od domene novogradnje - CRM je jedan sloj u sistemu, ne cela priča."
-        items={PAIRS}
+        title={t("marketing.pages.crm.gridTitle")}
+        subtitle={t("marketing.pages.crm.gridSubtitle")}
+        items={pairs(t)}
       />
       <CtaPanel />
-      <LandingJsonLd {...META} />
+      <LandingJsonLd
+        slug="crm-za-investitore"
+        title={t("marketing.pages.crm.metaTitle")}
+        description={t("marketing.pages.crm.metaDescription")}
+        locale={locale}
+      />
     </>
   );
 }

@@ -8,18 +8,19 @@ import { loadUserContext } from "@/server/auth/context";
 import { listRegistrationsForInvestor } from "@/server/services/agencies/registrations.service";
 import { formatDate } from "@/lib/formatters";
 import { RegistrationReviewActions } from "@/features/agencies/registration-review-actions";
+import { createT, enumLabel } from "@/lib/i18n";
 
 export const dynamic = "force-dynamic";
 
-const STATUS_LABELS: Record<AgencyBuyerRegistrationStatus, string> = {
-  PENDING: "Čeka odobrenje",
-  APPROVED: "Odobrena",
-  REJECTED: "Odbijena",
-  EXPIRED: "Istekla",
-  CONVERTED: "Konvertovana",
-  CANCELED: "Otkazana",
-  CONFLICT_REVIEW: "Konflikt zaštite",
-};
+const REGISTRATION_STATUSES: AgencyBuyerRegistrationStatus[] = [
+  "PENDING",
+  "APPROVED",
+  "REJECTED",
+  "EXPIRED",
+  "CONVERTED",
+  "CANCELED",
+  "CONFLICT_REVIEW",
+];
 
 const STATUS_TONE: Record<AgencyBuyerRegistrationStatus, string> = {
   PENDING: "bg-amber-100 text-amber-700",
@@ -46,6 +47,8 @@ export default async function RegistracijePage({ searchParams }: PageProps) {
   if (!ctx.activeOrganization) redirect("/podesavanja");
   if (ctx.activeOrganization.type !== "INVESTOR") redirect("/dashboard");
 
+  const t = createT(ctx.user.locale);
+
   const sp = await searchParams;
   const status = readParam(sp.status) as AgencyBuyerRegistrationStatus | undefined;
   const page = Number(readParam(sp.page) ?? "1") || 1;
@@ -62,25 +65,24 @@ export default async function RegistracijePage({ searchParams }: PageProps) {
       <div>
         <div className="flex items-center gap-3">
           <Link href="/agencije" className="text-sm text-[var(--color-brand-700)] hover:underline">
-            ← Agencije
+            ← {t("nav.agencies")}
           </Link>
         </div>
-        <h1 className="mt-2 text-2xl font-semibold">Prijave kupaca (agencije)</h1>
+        <h1 className="mt-2 text-2xl font-semibold">{t("nav.agencyRegistrations")}</h1>
         <p className="text-sm text-[var(--color-foreground-muted)]">
-          Odobrite ili odbijte agencijske prijave. Odobrena prijava startuje zaštitu kupca za
-          konfigurisani broj dana.
+          {t("partners.registrations.subtitle")}
         </p>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-sm">Filteri</CardTitle>
+          <CardTitle className="text-sm">{t("common.filter")}</CardTitle>
         </CardHeader>
         <CardContent>
           <form method="get" action="/agencije/registracije" className="flex flex-wrap items-end gap-3">
             <div className="space-y-1">
               <label className="text-sm font-medium" htmlFor="status">
-                Status
+                {t("common.statusLabel")}
               </label>
               <select
                 id="status"
@@ -88,19 +90,17 @@ export default async function RegistracijePage({ searchParams }: PageProps) {
                 defaultValue={status ?? ""}
                 className="h-10 rounded-md border border-[var(--color-border)] bg-white px-3 text-sm"
               >
-                <option value="">Svi statusi</option>
-                {(Object.entries(STATUS_LABELS) as [AgencyBuyerRegistrationStatus, string][]).map(
-                  ([value, label]) => (
-                    <option key={value} value={value}>
-                      {label}
-                    </option>
-                  ),
-                )}
+                <option value="">{t("common.allStatuses")}</option>
+                {REGISTRATION_STATUSES.map((value) => (
+                  <option key={value} value={value}>
+                    {enumLabel("registration", value, t)}
+                  </option>
+                ))}
               </select>
             </div>
-            <Button type="submit">Primeni</Button>
+            <Button type="submit">{t("common.apply")}</Button>
             <Button asChild variant="outline">
-              <Link href="/agencije/registracije">Poništi</Link>
+              <Link href="/agencije/registracije">{t("common.reset")}</Link>
             </Button>
           </form>
         </CardContent>
@@ -108,24 +108,24 @@ export default async function RegistracijePage({ searchParams }: PageProps) {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-sm">Ukupno: {total}</CardTitle>
+          <CardTitle className="text-sm">{t("partners.totalCount", { count: total })}</CardTitle>
         </CardHeader>
         <CardContent className="p-0">
           {items.length === 0 ? (
             <div className="py-12 text-center text-sm text-[var(--color-foreground-muted)]">
-              Nema prijava.
+              {t("partners.registrations.empty")}
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-[var(--color-border)] text-sm">
                 <thead className="bg-[var(--color-surface-inset)] text-left text-xs uppercase tracking-wide text-[var(--color-foreground-muted)]">
                   <tr>
-                    <th className="px-4 py-3">Kupac</th>
-                    <th className="px-4 py-3">Projekat</th>
-                    <th className="px-4 py-3">Agencija</th>
-                    <th className="px-4 py-3">Status</th>
-                    <th className="px-4 py-3">Prijavljeno</th>
-                    <th className="px-4 py-3 text-right">Akcije</th>
+                    <th className="px-4 py-3">{t("partners.buyer")}</th>
+                    <th className="px-4 py-3">{t("units.columns.project")}</th>
+                    <th className="px-4 py-3">{t("organization.types.agency")}</th>
+                    <th className="px-4 py-3">{t("common.statusLabel")}</th>
+                    <th className="px-4 py-3">{t("partners.registeredAt")}</th>
+                    <th className="px-4 py-3 text-right">{t("common.actions")}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[var(--color-border)]">
@@ -145,7 +145,7 @@ export default async function RegistracijePage({ searchParams }: PageProps) {
                         <span
                           className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_TONE[r.status]}`}
                         >
-                          {STATUS_LABELS[r.status]}
+                          {enumLabel("registration", r.status, t)}
                         </span>
                       </td>
                       <td className="px-4 py-3 text-[var(--color-foreground-muted)]">

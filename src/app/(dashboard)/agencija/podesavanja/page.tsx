@@ -7,6 +7,7 @@ import { loadUserContext } from "@/server/auth/context";
 import { requireSessionAndOrg } from "@/server/auth/session";
 import { loadOrganizationProfile } from "@/server/services/organization-admin.service";
 import { OrganizationProfileForm } from "@/features/settings/organization-profile-form";
+import { createT } from "@/lib/i18n";
 
 export const dynamic = "force-dynamic";
 
@@ -16,6 +17,8 @@ export default async function AgencijaPodesavanjaPage() {
   if (!ctx.activeOrganization) redirect("/podesavanja");
   if (ctx.activeOrganization.type !== "AGENCY") redirect("/dashboard");
 
+  const t = createT(ctx.user.locale);
+
   const { org } = await requireSessionAndOrg();
   const { organization, quota } = await loadOrganizationProfile(org.organizationId);
 
@@ -23,13 +26,13 @@ export default async function AgencijaPodesavanjaPage() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold">Podešavanja agencije</h1>
+          <h1 className="text-2xl font-semibold">{t("partners.settings.title")}</h1>
           <p className="text-sm text-[var(--color-foreground-muted)]">
-            Podaci o Vašoj organizaciji vidljivi investitorima.
+            {t("partners.settings.subtitle")}
           </p>
         </div>
         <Button asChild variant="outline">
-          <Link href="/agencija/agenti">Agenti</Link>
+          <Link href="/agencija/agenti">{t("nav.agents")}</Link>
         </Button>
       </div>
 
@@ -58,13 +61,13 @@ export default async function AgencijaPodesavanjaPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-sm">Konekcije sa investitorima</CardTitle>
+          <CardTitle className="text-sm">{t("partners.settings.connectionsTitle")}</CardTitle>
         </CardHeader>
         <CardContent className="text-sm">
           <p className="text-[var(--color-foreground-muted)]">
-            Za pregled i prihvatanje poziva otvorite stranicu{" "}
+            {t("partners.settings.connectionsHintPrefix")}{" "}
             <Link href="/agencija/konekcije" className="text-[var(--color-brand-700)] hover:underline">
-              Konekcije
+              {t("nav.connections")}
             </Link>
             .
           </p>

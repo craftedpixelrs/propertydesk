@@ -6,6 +6,8 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { apiClient, ApiClientError } from "@/lib/api-client";
 import { DocumentList, type DocumentItem } from "@/features/documents/document-list";
+import { useI18n } from "@/components/app/i18n-provider";
+import { intlLocale } from "@/lib/i18n";
 
 /**
  * Faza 8.2 (B1) — KYC checklist panel on `/kupci/[id]`.
@@ -34,6 +36,7 @@ export function KycPanel(props: {
   kycDocuments: DocumentItem[];
   canManage: boolean;
 }) {
+  const { t, locale } = useI18n();
   const router = useRouter();
   const [state, setState] = useState({
     idFrontOk: props.initial.idFrontOk,
@@ -48,14 +51,14 @@ export function KycPanel(props: {
   const items =
     props.entityType === "NATURAL"
       ? [
-          { key: "idFrontOk" as const, label: "Lična karta (lice)" },
-          { key: "idBackOk" as const, label: "Lična karta (poleđina)" },
-          { key: "addressProofOk" as const, label: "Potvrda prebivališta / računa" },
+          { key: "idFrontOk" as const, label: t("crm.kyc.idFrontNatural") },
+          { key: "idBackOk" as const, label: t("crm.kyc.idBackNatural") },
+          { key: "addressProofOk" as const, label: t("crm.kyc.addressProofNatural") },
         ]
       : [
-          { key: "idFrontOk" as const, label: "Lična karta ovlašćenog lica" },
-          { key: "taxCertOk" as const, label: "Poreska potvrda / rešenje o PIB-u" },
-          { key: "addressProofOk" as const, label: "Potvrda sedišta / APR izvod" },
+          { key: "idFrontOk" as const, label: t("crm.kyc.idFrontLegal") },
+          { key: "taxCertOk" as const, label: t("crm.kyc.taxCertLegal") },
+          { key: "addressProofOk" as const, label: t("crm.kyc.addressProofLegal") },
         ];
 
   const missing = items.filter((i) => !state[i.key]).length;
@@ -69,7 +72,7 @@ export function KycPanel(props: {
       await apiClient.patch(`/buyers/${props.buyerId}/kyc`, state);
       router.refresh();
     } catch (err) {
-      setError(err instanceof ApiClientError ? err.message : "Greška.");
+      setError(err instanceof ApiClientError ? err.message : t("errors.generic"));
     } finally {
       setBusy(false);
     }
@@ -86,13 +89,16 @@ export function KycPanel(props: {
                 : "bg-amber-100 text-amber-800"
             }`}
           >
-            {isComplete ? "KYC potpun" : `Nedostaje ${missing} stavki`}
+            {isComplete
+              ? t("crm.kyc.complete")
+              : t("crm.kyc.missing", { count: missing })}
           </span>
           {props.initial.reviewedAt ? (
             <span className="ml-2 text-xs text-[var(--color-foreground-muted)]">
-              Pregledao{" "}
-              {props.initial.reviewerName ?? "korisnik"} —{" "}
-              {new Date(props.initial.reviewedAt).toLocaleString("sr-Latn-RS")}
+              {t("crm.kyc.reviewedBy", {
+                name: props.initial.reviewerName ?? t("crm.kyc.reviewerFallback"),
+                date: new Date(props.initial.reviewedAt).toLocaleString(intlLocale(locale)),
+              })}
             </span>
           ) : null}
         </div>
@@ -120,7 +126,7 @@ export function KycPanel(props: {
 
       <label className="block text-sm">
         <span className="mb-1 block text-xs text-[var(--color-foreground-muted)]">
-          Napomena (interna)
+          {t("crm.kyc.notes")}
         </span>
         <textarea
           className="min-h-[80px] w-full rounded-md border border-[var(--color-border)] p-2 text-sm"
@@ -140,14 +146,14 @@ export function KycPanel(props: {
       {props.canManage ? (
         <div className="flex justify-end">
           <Button loading={busy} onClick={save}>
-            Sačuvaj KYC status
+            {t("crm.kyc.save")}
           </Button>
         </div>
       ) : null}
 
       <div className="pt-3">
         <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-[var(--color-foreground-muted)]">
-          Priloženi dokumenti (KYC)
+          {t("crm.kyc.documentsTitle")}
         </h3>
         <DocumentList
           entityType="Buyer"
@@ -155,8 +161,8 @@ export function KycPanel(props: {
           documents={props.kycDocuments}
           category="KYC"
           canManage={props.canManage}
-          emptyTitle="Nema priloženih KYC dokumenata"
-          emptyDescription="Otpremite skenove lične karte, poreske potvrde ili drugih KYC dokumenata."
+          emptyTitle={t("crm.kyc.emptyTitle")}
+          emptyDescription={t("crm.kyc.emptyDescription")}
         />
       </div>
     </div>

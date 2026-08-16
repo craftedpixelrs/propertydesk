@@ -4,6 +4,7 @@ import { loadUserContext } from "@/server/auth/context";
 import { getBuyerById } from "@/server/services/buyers.service";
 import { DomainError } from "@/lib/errors";
 import { NewBuyerForm } from "@/features/buyers/new-buyer-form";
+import { createT } from "@/lib/i18n";
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -17,6 +18,7 @@ export default async function EditBuyerPage({ params }: Props) {
   if (!ctx.permissions.includes("lead.manage")) {
     redirect(`/kupci/${id}`);
   }
+  const t = createT(ctx.user.locale);
 
   let buyer;
   try {
@@ -52,11 +54,10 @@ export default async function EditBuyerPage({ params }: Props) {
     <div className="mx-auto max-w-3xl space-y-4">
       <div>
         <h1 className="text-2xl font-semibold">
-          Izmeni kupca — {buyer.firstName} {buyer.lastName}
+          {t("crm.buyers.editBuyer")} — {buyer.firstName} {buyer.lastName}
         </h1>
         <p className="text-sm text-[var(--color-foreground-muted)]">
-          Sve izmene se beleže u audit trag. Telefon/email su normalizovani za
-          detekciju duplikata.
+          {t("crm.buyers.editSubtitle")}
         </p>
       </div>
       <NewBuyerForm mode="edit" buyerId={buyer.id} initialValues={initialValues} />

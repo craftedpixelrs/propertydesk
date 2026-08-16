@@ -3,15 +3,17 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { useT } from "@/components/app/i18n-provider";
 
 export function ManualMatchForm({ transactionId }: { transactionId: string }) {
   const router = useRouter();
+  const t = useT();
   const [busy, setBusy] = useState(false);
   const [invoice, setInvoice] = useState("");
 
   async function match() {
     if (!invoice.trim()) {
-      alert("Unesite ID / broj fakture.");
+      alert(t("admin.statements.invoiceRequired"));
       return;
     }
     setBusy(true);
@@ -26,7 +28,7 @@ export function ManualMatchForm({ transactionId }: { transactionId: string }) {
       );
       if (!res.ok) {
         const j = await res.json().catch(() => ({}));
-        alert(`Greška: ${j?.error?.message ?? res.statusText}`);
+        alert(t("admin.errorPrefix", { message: j?.error?.message ?? res.statusText }));
       } else {
         router.refresh();
       }
@@ -36,7 +38,7 @@ export function ManualMatchForm({ transactionId }: { transactionId: string }) {
   }
 
   async function ignore() {
-    const reason = prompt("Razlog za ignorisanje?");
+    const reason = prompt(t("admin.statements.ignoreReason"));
     if (!reason) return;
     setBusy(true);
     try {
@@ -50,7 +52,7 @@ export function ManualMatchForm({ transactionId }: { transactionId: string }) {
       );
       if (!res.ok) {
         const j = await res.json().catch(() => ({}));
-        alert(`Greška: ${j?.error?.message ?? res.statusText}`);
+        alert(t("admin.errorPrefix", { message: j?.error?.message ?? res.statusText }));
       } else {
         router.refresh();
       }
@@ -62,16 +64,16 @@ export function ManualMatchForm({ transactionId }: { transactionId: string }) {
   return (
     <div className="flex items-center gap-2">
       <input
-        placeholder="ID / broj fakture"
+        placeholder={t("admin.statements.invoicePlaceholder")}
         value={invoice}
         onChange={(e) => setInvoice(e.target.value)}
         className="h-8 w-40 rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] px-2 text-xs"
       />
       <Button size="sm" onClick={match} disabled={busy}>
-        Upari
+        {t("admin.statements.match")}
       </Button>
       <Button size="sm" variant="secondary" onClick={ignore} disabled={busy}>
-        Ignoriši
+        {t("admin.statements.ignore")}
       </Button>
     </div>
   );

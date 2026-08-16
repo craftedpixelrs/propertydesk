@@ -6,14 +6,33 @@ import { PageHeader } from "@/components/app/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { loadUserContext } from "@/server/auth/context";
-import { loadOnboardingState } from "@/server/services/onboarding.service";
+import {
+  loadOnboardingState,
+  type OnboardingStepKey,
+} from "@/server/services/onboarding.service";
+import { createT, type TranslationKey } from "@/lib/i18n";
 
 export const dynamic = "force-dynamic";
+
+const STEP_LABEL: Record<OnboardingStepKey, TranslationKey> = {
+  profile: "crm.onboarding.steps.profile.label",
+  project: "crm.onboarding.steps.project.label",
+  units: "crm.onboarding.steps.units.label",
+  team: "crm.onboarding.steps.team.label",
+};
+
+const STEP_HINT: Record<OnboardingStepKey, TranslationKey> = {
+  profile: "crm.onboarding.steps.profile.hint",
+  project: "crm.onboarding.steps.project.hint",
+  units: "crm.onboarding.steps.units.hint",
+  team: "crm.onboarding.steps.team.hint",
+};
 
 export default async function OnboardingPage() {
   const ctx = await loadUserContext();
   if (!ctx) redirect("/sign-in");
   if (!ctx.activeOrganization) redirect("/podesavanja");
+  const t = createT(ctx.user.locale);
 
   const state = await loadOnboardingState(ctx.activeOrganization.id);
   const percent = Math.round(
@@ -23,8 +42,8 @@ export default async function OnboardingPage() {
   return (
     <div className="mx-auto max-w-3xl space-y-6">
       <PageHeader
-        title="Prvi koraci"
-        description="Kratak vodič da PropertyDesk počne da radi za vas — svaki korak vodi na tačnu stranicu i pamti napredak."
+        title={t("ui.onboarding.title")}
+        description={t("crm.onboarding.pageDescription")}
       />
 
       <Card>
@@ -32,15 +51,19 @@ export default async function OnboardingPage() {
           <div className="flex items-baseline justify-between">
             <div>
               <div className="text-sm text-[var(--color-foreground-muted)]">
-                Napredak
+                {t("ui.onboarding.progress")}
               </div>
               <div className="text-2xl font-semibold">
-                {state.completedCount} / {state.totalCount} ({percent}%)
+                {t("crm.onboarding.progressCount", {
+                  completed: state.completedCount,
+                  total: state.totalCount,
+                  percent,
+                })}
               </div>
             </div>
             {state.allDone ? (
               <span className="rounded-full bg-[var(--color-success-bg)] px-3 py-1 text-xs font-medium text-[var(--color-success)]">
-                Sve gotovo
+                {t("ui.onboarding.allDone")}
               </span>
             ) : null}
           </div>
@@ -65,18 +88,21 @@ export default async function OnboardingPage() {
                 )}
                 <div>
                   <CardTitle className="text-base">
-                    Korak {index + 1}. {step.label}
+                    {t("crm.onboarding.stepTitle", {
+                      n: index + 1,
+                      label: t(STEP_LABEL[step.key]),
+                    })}
                   </CardTitle>
                   <p className="mt-1 text-sm text-[var(--color-foreground-muted)]">
-                    {step.hint}
+                    {t(STEP_HINT[step.key])}
                   </p>
                 </div>
               </div>
             </CardHeader>
             <CardContent className="flex justify-end pt-0">
-              <Button asChild variant={step.done ? "outline" : "default"} size="sm">
+              <Button asChild variant={step.done ? "outline" : "primary"} size="sm">
                 <Link href={step.href}>
-                  {step.done ? "Otvori" : "Nastavi"}
+                  {step.done ? t("common.open") : t("crm.onboarding.continue")}
                   <ArrowRight className="ml-1 size-4" />
                 </Link>
               </Button>
@@ -89,11 +115,11 @@ export default async function OnboardingPage() {
         <Card>
           <CardContent className="flex items-center justify-between gap-2 p-4 text-sm">
             <span className="text-[var(--color-foreground-muted)]">
-              Podsetnik na dashboardu je trenutno sakriven.
+              {t("crm.onboarding.dismissedHint")}
             </span>
             <form action="/api/v1/onboarding/resurface" method="post">
               <Button type="submit" variant="outline" size="sm">
-                Ponovo prikaži
+                {t("ui.onboarding.showAgain")}
               </Button>
             </form>
           </CardContent>

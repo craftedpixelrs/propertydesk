@@ -1,23 +1,26 @@
 import { srLatn, type Dictionary } from "./sr-Latn";
+import { en } from "./en";
 
 /**
- * Minimal typed translation helper.
+ * Typed translation helper.
  *
- * Design notes:
- *   - Only `sr-Latn` is enabled in V1.
- *   - The lookup key uses dot notation, e.g. `t("nav.projects")`.
- *   - Missing keys log a warning in development and return the key itself
- *     so the missing translation is visible in the UI rather than crashing.
- *   - Interpolation uses `{{name}}` placeholders — kept lightweight on
- *     purpose; upgrade to a full i18n library only when we actually add
- *     a second locale.
+ * Lookup keys use dot notation, e.g. `t("nav.projects")`.
+ * Missing keys log a warning in development and return the key itself.
+ * Interpolation uses `{{name}}` placeholders.
+ *
+ * Pass `locale` from the request / user preference. Client components
+ * should use `useT()` so they follow the active I18nProvider.
  */
 
-export type Locale = "sr-Latn";
+export type Locale = "sr-Latn" | "en";
 export const DEFAULT_LOCALE: Locale = "sr-Latn";
+export const SUPPORTED_LOCALES: readonly Locale[] = ["sr-Latn", "en"];
+export const LOCALE_COOKIE = "pd_locale";
+export const LOCALE_COOKIE_MAX_AGE = 60 * 60 * 24 * 365;
 
 const dictionaries: Record<Locale, Dictionary> = {
   "sr-Latn": srLatn,
+  en,
 };
 
 type Path<T, Prev extends string = ""> = {
@@ -27,6 +30,27 @@ type Path<T, Prev extends string = ""> = {
 }[keyof T & string];
 
 export type TranslationKey = Path<Dictionary>;
+
+export function isLocale(value: unknown): value is Locale {
+  return value === "sr-Latn" || value === "en";
+}
+
+export function parseLocale(value: string | null | undefined): Locale | null {
+  if (!value) return null;
+  const trimmed = value.trim();
+  if (isLocale(trimmed)) return trimmed;
+  if (trimmed === "sr" || trimmed.startsWith("sr-")) return "sr-Latn";
+  if (trimmed === "en" || trimmed.startsWith("en-")) return "en";
+  return null;
+}
+
+export function htmlLang(locale: Locale): string {
+  return locale === "en" ? "en" : "sr-Latn";
+}
+
+export function intlLocale(locale: Locale): string {
+  return locale === "en" ? "en-GB" : "sr-Latn";
+}
 
 function lookup(dict: Dictionary, key: string): string | undefined {
   const parts = key.split(".");
@@ -38,13 +62,22 @@ function lookup(dict: Dictionary, key: string): string | undefined {
   return typeof node === "string" ? node : undefined;
 }
 
+export type TranslateFn = (
+  key: TranslationKey,
+  vars?: Record<string, string | number>,
+) => string;
+
+export function createT(locale: Locale): TranslateFn {
+  return (key, vars) => t(key, vars, locale);
+}
+
 export function t(
   key: TranslationKey,
   vars?: Record<string, string | number>,
   locale: Locale = DEFAULT_LOCALE,
 ): string {
-  const dict = dictionaries[locale];
-  const raw = lookup(dict, key);
+  const dict = dictionaries[locale] ?? dictionaries[DEFAULT_LOCALE];
+  const raw = lookup(dict, key) ?? lookup(dictionaries[DEFAULT_LOCALE], key);
   if (raw === undefined) {
     if (process.env.NODE_ENV !== "production") {
       console.warn(`[i18n] Missing translation for key "${key}" in locale "${locale}"`);
@@ -55,4 +88,46 @@ export function t(
   return raw.replace(/\{\{(\w+)\}\}/g, (_, name: string) =>
     Object.prototype.hasOwnProperty.call(vars, name) ? String(vars[name]) : `{{${name}}}`,
   );
+}
+
+export function writeLocaleCookieValue(locale: Locale): string {
+  return `${LOCALE_COOKIE}=${locale}; Path=/; Max-Age=${LOCALE_COOKIE_MAX_AGE}; SameSite=Lax`;
+}
+
+function lookupLabel(key: TranslationKey, localeOrT: Locale | TranslateFn): string {
+  const out =
+    typeof localeOrT === "function" ? localeOrT(key) : t(key, undefined, localeOrT);
+  return out === key ? key.split(".").pop() ?? key : out;
+}
+
+export function unitStatusLabel(
+  status: string,
+  localeOrT: Locale | TranslateFn = DEFAULT_LOCALE,
+): string {
+  return lookupLabel(`units.status.${status}` as TranslationKey, localeOrT);
+}
+
+export function projectStatusLabel(
+  status: string,
+  localeOrT: Locale | TranslateFn = DEFAULT_LOCALE,
+): string {
+  return lookupLabel(`projects.status.${status}` as TranslationKey, localeOrT);
+}
+
+export function unitTypeLabel(
+  type: string,
+  localeOrT: Locale | TranslateFn = DEFAULT_LOCALE,
+): string {
+  return lookupLabel(`units.type.${type}` as TranslationKey, localeOrT);
+}
+
+export function enumLabel(
+  group: "reservation" | "sale" | "buyer" | "registration" | "shareLink",
+  value: string,
+  localeOrT: Locale | TranslateFn = DEFAULT_LOCALE,
+): string {
+  const key = `enums.${group}.${value}` as TranslationKey;
+  const out =
+    typeof localeOrT === "function" ? localeOrT(key) : t(key, undefined, localeOrT);
+  return out === key ? value : out;
 }

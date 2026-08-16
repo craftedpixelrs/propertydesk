@@ -9,6 +9,8 @@ import type {
   FloorPlanView,
 } from "@/server/services/floor-plan/floor-plan.service";
 import { FloorPlanUpload } from "@/features/floor-plan/floor-plan-upload";
+import { useT } from "@/components/app/i18n-provider";
+import { unitStatusLabel } from "@/lib/i18n";
 
 /**
  * SVG floor-plan viewer.
@@ -54,18 +56,8 @@ const STATUS_STROKE: Record<UnitStatus, string> = {
   ON_HOLD: "#ca8a04",
 };
 
-const STATUS_LABELS: Record<UnitStatus, string> = {
-  AVAILABLE: "Slobodno",
-  ON_HOLD: "Rezervisano privremeno",
-  RESERVED: "Rezervisano",
-  DEPOSIT_PAID: "Uplaćen depozit",
-  CONTRACTED: "Ugovoreno",
-  SOLD: "Prodato",
-  BLOCKED: "Blokirano",
-  NOT_FOR_SALE: "Nije za prodaju",
-};
-
 export function FloorPlanViewer({ view, canManage = false }: Props) {
+  const t = useT();
   const [hovered, setHovered] = useState<FloorPlanAreaView | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -81,7 +73,7 @@ export function FloorPlanViewer({ view, canManage = false }: Props) {
     }
     return (
       <div className="rounded-md border border-dashed border-[var(--color-border)] bg-[var(--color-surface-inset)] p-6 text-center text-sm text-[var(--color-foreground-muted)]">
-        Ovaj sprat još nema učitanu osnovu.
+        {t("inventory.floorPlan.empty")}
       </div>
     );
   }
@@ -95,7 +87,7 @@ export function FloorPlanViewer({ view, canManage = false }: Props) {
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={view.floorPlanUrl}
-          alt={`Osnova · ${view.floorLabel}`}
+          alt={t("inventory.floorPlan.title", { label: view.floorLabel })}
           className="block h-auto w-full select-none"
           loading="lazy"
           draggable={false}
@@ -105,7 +97,7 @@ export function FloorPlanViewer({ view, canManage = false }: Props) {
           viewBox="0 0 100 100"
           preserveAspectRatio="none"
           role="img"
-          aria-label="Interaktivne zone jedinica"
+          aria-label={t("inventory.floorPlan.zonesAria")}
         >
           {view.areas.map((area) => {
             const points = area.polygon
@@ -116,7 +108,7 @@ export function FloorPlanViewer({ view, canManage = false }: Props) {
             return (
               <Link key={area.id} href={`/jedinice/${area.unitId}`} legacyBehavior>
                 <a
-                  aria-label={`${area.unitCode} · ${STATUS_LABELS[area.unitStatus]}`}
+                  aria-label={`${area.unitCode} · ${unitStatusLabel(area.unitStatus, t)}`}
                   className="pointer-events-auto"
                 >
                   <polygon
@@ -142,7 +134,7 @@ export function FloorPlanViewer({ view, canManage = false }: Props) {
           <div className="pointer-events-none absolute left-2 top-2 rounded-md bg-white/95 px-2 py-1 text-xs shadow">
             <div className="font-semibold">{hovered.unitCode}</div>
             <div className="text-[var(--color-foreground-muted)]">
-              {STATUS_LABELS[hovered.unitStatus]}
+              {unitStatusLabel(hovered.unitStatus, t)}
             </div>
           </div>
         ) : null}
@@ -159,13 +151,13 @@ export function FloorPlanViewer({ view, canManage = false }: Props) {
                 className="inline-block size-2 rounded-full"
                 style={{ background: STATUS_STROKE[s] }}
               />
-              {STATUS_LABELS[s]}
+              {unitStatusLabel(s, t)}
             </span>
           ))}
         </div>
       ) : (
         <p className="text-xs text-[var(--color-foreground-muted)]">
-          Poligoni jedinica još nisu unešeni za ovaj sprat.
+          {t("inventory.floorPlan.noPolygons")}
         </p>
       )}
     </div>

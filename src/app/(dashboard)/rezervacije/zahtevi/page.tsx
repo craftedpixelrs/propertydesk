@@ -12,15 +12,9 @@ import {
 import { formatDateTime, formatMoney } from "@/lib/formatters";
 import type { SupportedCurrency } from "@/lib/constants/app";
 import { ReservationRequestActions } from "@/features/reservations/reservation-request-actions";
+import { createT, type TranslateFn } from "@/lib/i18n";
 
 export const dynamic = "force-dynamic";
-
-const STATUS_LABELS: Record<ReservationRequestStatus, string> = {
-  PENDING: "Na čekanju",
-  CONFIRMED: "Potvrđen",
-  DECLINED: "Odbijen",
-  EXPIRED: "Istekao",
-};
 
 const STATUS_TONE: Record<ReservationRequestStatus, string> = {
   PENDING: "bg-amber-100 text-amber-800",
@@ -28,6 +22,19 @@ const STATUS_TONE: Record<ReservationRequestStatus, string> = {
   DECLINED: "bg-rose-100 text-rose-700",
   EXPIRED: "bg-neutral-200 text-neutral-700",
 };
+
+function requestStatusLabel(status: ReservationRequestStatus, t: TranslateFn): string {
+  switch (status) {
+    case "PENDING":
+      return t("deals.requests.status.PENDING");
+    case "CONFIRMED":
+      return t("deals.requests.status.CONFIRMED");
+    case "DECLINED":
+      return t("deals.requests.status.DECLINED");
+    case "EXPIRED":
+      return t("deals.requests.status.EXPIRED");
+  }
+}
 
 interface PageProps {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
@@ -45,6 +52,7 @@ export default async function ReservationRequestsPage({ searchParams }: PageProp
     redirect("/dashboard");
   }
 
+  const t = createT(ctx.user.locale);
   const sp = await searchParams;
   const rawStatus = readParam(sp.status);
   const status =
@@ -74,18 +82,18 @@ export default async function ReservationRequestsPage({ searchParams }: PageProp
             href="/rezervacije"
             className="text-sm text-[var(--color-foreground-muted)] hover:underline"
           >
-            ← Rezervacije
+            ← {t("nav.reservations")}
           </Link>
-          <h1 className="mt-1 text-2xl font-semibold">Zahtevi sa javne ponude</h1>
+          <h1 className="mt-1 text-2xl font-semibold">{t("deals.requests.title")}</h1>
           <p className="text-sm text-[var(--color-foreground-muted)]">
-            {pendingCount} aktivnih zahteva sa kaparom.
+            {t("deals.requests.pendingCount", { count: pendingCount })}
           </p>
         </div>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-sm">Filter</CardTitle>
+          <CardTitle className="text-sm">{t("common.filter")}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex flex-wrap gap-2 text-sm">
@@ -100,7 +108,7 @@ export default async function ReservationRequestsPage({ searchParams }: PageProp
                       : "border-[var(--color-border)] hover:bg-[var(--color-surface-inset)]"
                   }`}
                 >
-                  {s === "ALL" ? "Sve" : STATUS_LABELS[s]}
+                  {s === "ALL" ? t("common.all") : requestStatusLabel(s, t)}
                 </Link>
               ),
             )}
@@ -111,13 +119,15 @@ export default async function ReservationRequestsPage({ searchParams }: PageProp
       {items.length === 0 ? (
         <Card>
           <CardContent className="py-12 text-center text-sm text-[var(--color-foreground-muted)]">
-            Nema zahteva u ovom statusu.
+            {t("deals.requests.empty")}
           </CardContent>
         </Card>
       ) : (
         <Card>
           <CardHeader className="flex-row items-center justify-between space-y-0">
-            <CardTitle className="text-sm">Zahtevi ({total})</CardTitle>
+            <CardTitle className="text-sm">
+              {t("deals.requests.listTitle", { total })}
+            </CardTitle>
           </CardHeader>
           <CardContent className="p-0">
             <div className="divide-y divide-[var(--color-border)]">
@@ -131,13 +141,13 @@ export default async function ReservationRequestsPage({ searchParams }: PageProp
                       <span
                         className={`inline-flex rounded-full px-2 py-0.5 text-[10px] font-medium ${STATUS_TONE[r.status]}`}
                       >
-                        {STATUS_LABELS[r.status]}
+                        {requestStatusLabel(r.status, t)}
                       </span>
                     </div>
                     <div className="text-xs text-[var(--color-foreground-muted)]">
                       {r.unit ? (
                         <>
-                          Jedinica{" "}
+                          {t("deals.unit")}{" "}
                           <Link
                             href={`/jedinice/${r.unit.id}`}
                             className="text-[var(--color-brand-700)] hover:underline"
@@ -147,7 +157,7 @@ export default async function ReservationRequestsPage({ searchParams }: PageProp
                           · {r.unit.project?.name ?? ""}
                         </>
                       ) : (
-                        "Jedinica obrisana"
+                        t("deals.requests.unitDeleted")
                       )}
                     </div>
                     <div className="text-xs text-[var(--color-foreground-muted)]">
@@ -167,7 +177,7 @@ export default async function ReservationRequestsPage({ searchParams }: PageProp
                     </div>
                     {r.referralCode ? (
                       <div className="text-xs text-[var(--color-foreground-muted)]">
-                        Referral: <code>{r.referralCode}</code>
+                        {t("deals.requests.referral")} <code>{r.referralCode}</code>
                       </div>
                     ) : null}
                     {r.notes ? (
@@ -176,8 +186,10 @@ export default async function ReservationRequestsPage({ searchParams }: PageProp
                       </p>
                     ) : null}
                     <div className="text-[10px] text-[var(--color-foreground-subtle)]">
-                      Kreirano {formatDateTime(r.createdAt)} · Ističe{" "}
-                      {formatDateTime(r.expiresAt)}
+                      {t("deals.requests.timeline", {
+                        created: formatDateTime(r.createdAt),
+                        expires: formatDateTime(r.expiresAt),
+                      })}
                     </div>
                   </div>
                   <div className="flex flex-col items-end gap-2 text-right">
@@ -210,13 +222,10 @@ export default async function ReservationRequestsPage({ searchParams }: PageProp
 
       <Card>
         <CardContent className="flex flex-col gap-2 py-4 text-xs text-[var(--color-foreground-muted)] sm:flex-row sm:items-center sm:justify-between">
-          <span>
-            Ne primaju se novi zahtevi automatski? Otvorite podešavanja
-            profila i unesite IPS račun za primanje depozita.
-          </span>
+          <span>{t("deals.requests.ipsHint")}</span>
           <Button asChild size="sm" variant="outline">
             <Link href="/administracija/naplata/profil-firme">
-              Profil firme
+              {t("deals.requests.companyProfile")}
             </Link>
           </Button>
         </CardContent>

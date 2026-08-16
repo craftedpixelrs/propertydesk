@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { apiClient, ApiClientError } from "@/lib/api-client";
+import { useT } from "@/components/app/i18n-provider";
 
 interface ReferralCardData {
   connectionId: string;
@@ -76,6 +77,7 @@ function ReferralCard({
   busy: boolean;
   onRotate: () => void;
 }) {
+  const t = useT();
   const url = `${baseUrl}?ref=${encodeURIComponent(card.referralCode)}`;
   const qrSrc = useMemo(
     () =>
@@ -90,7 +92,7 @@ function ReferralCard({
       setCopied(true);
       setTimeout(() => setCopied(false), 1600);
     } catch {
-      window.alert(`Kopirajte ručno: ${url}`);
+      window.alert(t("partners.referral.copyManual", { url }));
     }
   }
 
@@ -109,7 +111,7 @@ function ReferralCard({
           <div>
             <CardTitle className="text-base">{card.investorName}</CardTitle>
             <p className="text-xs text-[var(--color-foreground-muted)]">
-              Referral kod: <code className="font-mono">{card.referralCode}</code>
+              {t("partners.referral.code")} <code className="font-mono">{card.referralCode}</code>
             </p>
           </div>
         </div>
@@ -119,15 +121,14 @@ function ReferralCard({
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={qrSrc}
-            alt={`QR kod za ${card.referralCode}`}
+            alt={t("partners.referral.qrAlt", { code: card.referralCode })}
             width={140}
             height={140}
             className="rounded-md border border-[var(--color-border)] bg-white"
           />
           <div className="space-y-2 text-xs">
             <p className="text-[var(--color-foreground-muted)]">
-              Delite ovaj link ili QR kod. Svaka rezervacija koja stigne
-              preko njega automatski se atribuira Vašoj agenciji.
+              {t("partners.referral.shareHint")}
             </p>
             <div className="break-all rounded border border-[var(--color-border)] bg-[var(--color-surface-muted)]/50 p-2 font-mono text-[10px]">
               {url}
@@ -136,17 +137,17 @@ function ReferralCard({
         </div>
         <div className="flex flex-wrap gap-2">
           <Button size="sm" onClick={copyLink}>
-            {copied ? "Kopirano!" : "Kopiraj link"}
+            {copied ? t("partners.referral.copied") : t("partners.referral.copyLink")}
           </Button>
           <Button size="sm" variant="outline" onClick={onRotate} loading={busy}>
-            Generiši novi kod
+            {t("partners.referral.rotate")}
           </Button>
           <a
             href={qrSrc}
             download={`referral-${card.referralCode}.png`}
             className="inline-flex h-8 items-center rounded-md border border-[var(--color-border)] px-3 text-xs font-medium hover:bg-[var(--color-surface-muted)]"
           >
-            Preuzmi QR (PNG)
+            {t("partners.referral.downloadQr")}
           </a>
         </div>
       </CardContent>

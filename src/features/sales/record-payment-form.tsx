@@ -4,16 +4,35 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
+import { useT } from "@/components/app/i18n-provider";
 import { apiClient, ApiClientError } from "@/lib/api-client";
+import type { TranslateFn } from "@/lib/i18n";
 
-const METHOD_LABELS: Record<string, string> = {
-  BANK_TRANSFER: "Uplata na račun",
-  CASH: "Gotovina",
-  CARD: "Kartica",
-  LOAN: "Kredit",
-  COMPENSATION: "Kompenzacija",
-  OTHER: "Ostalo",
-};
+const METHOD_VALUES = [
+  "BANK_TRANSFER",
+  "CASH",
+  "CARD",
+  "LOAN",
+  "COMPENSATION",
+  "OTHER",
+] as const;
+
+function methodLabel(value: (typeof METHOD_VALUES)[number], t: TranslateFn): string {
+  switch (value) {
+    case "BANK_TRANSFER":
+      return t("deals.paymentMethod.BANK_TRANSFER");
+    case "CASH":
+      return t("deals.paymentMethod.CASH");
+    case "CARD":
+      return t("deals.paymentMethod.CARD");
+    case "LOAN":
+      return t("deals.paymentMethod.LOAN");
+    case "COMPENSATION":
+      return t("deals.paymentMethod.COMPENSATION");
+    case "OTHER":
+      return t("deals.paymentMethod.OTHER");
+  }
+}
 
 interface Installment {
   id: string;
@@ -29,6 +48,7 @@ interface Props {
 }
 
 export function RecordPaymentForm({ saleId, currency, installments }: Props) {
+  const t = useT();
   const router = useRouter();
   const [amount, setAmount] = useState("");
   const [paymentDate, setPaymentDate] = useState(() => new Date().toISOString().slice(0, 10));
@@ -41,7 +61,7 @@ export function RecordPaymentForm({ saleId, currency, installments }: Props) {
 
   async function submit() {
     if (!amount.trim()) {
-      setError("Unesite iznos.");
+      setError(t("deals.payments.amountRequired"));
       return;
     }
     setBusy(true);
@@ -62,7 +82,7 @@ export function RecordPaymentForm({ saleId, currency, installments }: Props) {
       setInstallmentId("");
       router.refresh();
     } catch (err) {
-      setError(err instanceof ApiClientError ? err.message : "Došlo je do greške.");
+      setError(err instanceof ApiClientError ? err.message : t("errors.generic"));
     } finally {
       setBusy(false);
     }
@@ -78,7 +98,7 @@ export function RecordPaymentForm({ saleId, currency, installments }: Props) {
       <div className="grid gap-2 sm:grid-cols-2">
         <div>
           <label className="block text-xs text-[var(--color-foreground-muted)]">
-            Iznos ({currency})
+            {t("deals.plan.amountWithCurrency", { currency })}
           </label>
           <input
             inputMode="decimal"
@@ -89,7 +109,9 @@ export function RecordPaymentForm({ saleId, currency, installments }: Props) {
           />
         </div>
         <div>
-          <label className="block text-xs text-[var(--color-foreground-muted)]">Datum</label>
+          <label className="block text-xs text-[var(--color-foreground-muted)]">
+            {t("common.date")}
+          </label>
           <input
             type="date"
             value={paymentDate}
@@ -99,28 +121,30 @@ export function RecordPaymentForm({ saleId, currency, installments }: Props) {
         </div>
         <div>
           <label className="block text-xs text-[var(--color-foreground-muted)]">
-            Način uplate
+            {t("deals.payments.paymentMethod")}
           </label>
           <select
             value={method}
             onChange={(e) => setMethod(e.target.value)}
             className="h-10 w-full rounded-md border border-[var(--color-border)] px-3 text-sm"
           >
-            {Object.entries(METHOD_LABELS).map(([value, label]) => (
+            {METHOD_VALUES.map((value) => (
               <option key={value} value={value}>
-                {label}
+                {methodLabel(value, t)}
               </option>
             ))}
           </select>
         </div>
         <div>
-          <label className="block text-xs text-[var(--color-foreground-muted)]">Rata</label>
+          <label className="block text-xs text-[var(--color-foreground-muted)]">
+            {t("deals.payments.installment")}
+          </label>
           <select
             value={installmentId}
             onChange={(e) => setInstallmentId(e.target.value)}
             className="h-10 w-full rounded-md border border-[var(--color-border)] px-3 text-sm"
           >
-            <option value="">Bez veze sa ratom</option>
+            <option value="">{t("deals.payments.noInstallment")}</option>
             {installments
               .filter((i) => i.status !== "PAID" && i.status !== "CANCELED")
               .map((i) => (
@@ -132,7 +156,7 @@ export function RecordPaymentForm({ saleId, currency, installments }: Props) {
         </div>
         <div className="sm:col-span-2">
           <label className="block text-xs text-[var(--color-foreground-muted)]">
-            Poziv na broj
+            {t("deals.reference")}
           </label>
           <input
             value={reference}
@@ -141,7 +165,9 @@ export function RecordPaymentForm({ saleId, currency, installments }: Props) {
           />
         </div>
         <div className="sm:col-span-2">
-          <label className="block text-xs text-[var(--color-foreground-muted)]">Napomena</label>
+          <label className="block text-xs text-[var(--color-foreground-muted)]">
+            {t("common.notes")}
+          </label>
           <textarea
             value={note}
             onChange={(e) => setNote(e.target.value)}
@@ -152,7 +178,7 @@ export function RecordPaymentForm({ saleId, currency, installments }: Props) {
       </div>
       <div className="flex justify-end">
         <Button size="sm" loading={busy} onClick={submit}>
-          Evidentiraj uplatu
+          {t("deals.payments.record")}
         </Button>
       </div>
     </div>

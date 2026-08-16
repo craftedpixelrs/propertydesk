@@ -11,17 +11,28 @@ import { formatDate, formatMoney } from "@/lib/formatters";
 import type { SupportedCurrency } from "@/lib/constants/app";
 import { PaymentPlanForm } from "@/features/sales/payment-plan-form";
 import { AddInstallmentButton } from "@/features/sales/add-installment-form";
+import { createT, type TranslateFn } from "@/lib/i18n";
 
 export const dynamic = "force-dynamic";
 
-const INSTALLMENT_LABEL: Record<string, string> = {
-  UPCOMING: "Nadolazi",
-  DUE: "Dospelo",
-  PARTIALLY_PAID: "Delimično plaćeno",
-  PAID: "Plaćeno",
-  OVERDUE: "Prekoračeno",
-  CANCELED: "Otkazano",
-};
+function installmentLabel(status: string, t: TranslateFn): string {
+  switch (status) {
+    case "UPCOMING":
+      return t("deals.installment.UPCOMING");
+    case "DUE":
+      return t("deals.installment.DUE");
+    case "PARTIALLY_PAID":
+      return t("deals.installment.PARTIALLY_PAID");
+    case "PAID":
+      return t("deals.installment.PAID");
+    case "OVERDUE":
+      return t("deals.installment.OVERDUE");
+    case "CANCELED":
+      return t("deals.installment.CANCELED");
+    default:
+      return status;
+  }
+}
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -32,6 +43,7 @@ export default async function PlanPlacanjaPage({ params }: PageProps) {
   if (!ctx) redirect("/sign-in");
   if (!ctx.activeOrganization) redirect("/podesavanja");
 
+  const t = createT(ctx.user.locale);
   const { id } = await params;
   let sale;
   try {
@@ -58,11 +70,13 @@ export default async function PlanPlacanjaPage({ params }: PageProps) {
           href={`/prodaje/${sale.id}`}
           className="text-sm text-[var(--color-foreground-muted)] hover:underline"
         >
-          ← Prodaja {sale.unit.code}
+          {t("deals.sales.backToSaleCode", { code: sale.unit.code })}
         </Link>
-        <h1 className="mt-1 text-2xl font-semibold">Plan plaćanja</h1>
+        <h1 className="mt-1 text-2xl font-semibold">{t("deals.plan.title")}</h1>
         <p className="text-sm text-[var(--color-foreground-muted)]">
-          Ukupno: {formatMoney(sale.finalPrice.toString(), currency)}
+          {t("deals.plan.total", {
+            amount: formatMoney(sale.finalPrice.toString(), currency),
+          })}
         </p>
       </div>
 
@@ -86,15 +100,11 @@ export default async function PlanPlacanjaPage({ params }: PageProps) {
               const dir = diff > 0 ? "+" : "";
               return (
                 <div className="rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900">
-                  Zbir rata je{" "}
-                  <strong>{formatMoney(installmentSum, currency)}</strong>,
-                  ugovorena cena{" "}
-                  <strong>{formatMoney(finalNum, currency)}</strong> (razlika{" "}
-                  <strong>
-                    {dir}
-                    {formatMoney(diff, currency)}
-                  </strong>
-                  ).
+                  {t("deals.plan.mismatch", {
+                    sum: formatMoney(installmentSum, currency),
+                    price: formatMoney(finalNum, currency),
+                    diff: `${dir}${formatMoney(diff, currency)}`,
+                  })}
                 </div>
               );
             })()}
@@ -103,11 +113,11 @@ export default async function PlanPlacanjaPage({ params }: PageProps) {
                 <thead className="text-left text-xs uppercase tracking-wide text-[var(--color-foreground-muted)]">
                   <tr>
                     <th className="py-2 pr-3">#</th>
-                    <th className="py-2 pr-3">Naziv</th>
-                    <th className="py-2 pr-3">Dospeva</th>
-                    <th className="py-2 pr-3 text-right">Iznos</th>
-                    <th className="py-2 pr-3 text-right">Plaćeno</th>
-                    <th className="py-2 pr-3">Status</th>
+                    <th className="py-2 pr-3">{t("deals.installmentName")}</th>
+                    <th className="py-2 pr-3">{t("deals.dueDate")}</th>
+                    <th className="py-2 pr-3 text-right">{t("common.amount")}</th>
+                    <th className="py-2 pr-3 text-right">{t("deals.paidAmount")}</th>
+                    <th className="py-2 pr-3">{t("common.statusLabel")}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[var(--color-border)]">
@@ -123,7 +133,7 @@ export default async function PlanPlacanjaPage({ params }: PageProps) {
                         {formatMoney(i.paidAmount.toString(), currency)}
                       </td>
                       <td className="py-2 pr-3">
-                        {INSTALLMENT_LABEL[i.status] ?? i.status}
+                        {installmentLabel(i.status, t)}
                       </td>
                     </tr>
                   ))}
@@ -135,7 +145,7 @@ export default async function PlanPlacanjaPage({ params }: PageProps) {
       ) : canManage ? (
         <Card>
           <CardHeader>
-            <CardTitle className="text-sm">Novi plan plaćanja</CardTitle>
+            <CardTitle className="text-sm">{t("deals.plan.newTitle")}</CardTitle>
           </CardHeader>
           <CardContent>
             <PaymentPlanForm
@@ -149,14 +159,14 @@ export default async function PlanPlacanjaPage({ params }: PageProps) {
       ) : (
         <Card>
           <CardContent className="py-12 text-center text-sm text-[var(--color-foreground-muted)]">
-            Ova prodaja još nema plan plaćanja.
+            {t("deals.plan.noPlan")}
           </CardContent>
         </Card>
       )}
 
       <div>
         <Button asChild variant="outline">
-          <Link href={`/prodaje/${sale.id}`}>Nazad na prodaju</Link>
+          <Link href={`/prodaje/${sale.id}`}>{t("deals.sales.backToSale")}</Link>
         </Button>
       </div>
     </div>

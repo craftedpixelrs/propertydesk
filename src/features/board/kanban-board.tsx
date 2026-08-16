@@ -15,6 +15,8 @@ import {
   useSensors,
 } from "@dnd-kit/core";
 
+import { useT } from "@/components/app/i18n-provider";
+
 /**
  * Generic Kanban board.
  *
@@ -73,6 +75,7 @@ export function KanbanBoard<C extends BoardCard>({
   planMove,
   columnTone,
 }: KanbanBoardProps<C>) {
+  const t = useT();
   const router = useRouter();
   const [activeId, setActiveId] = useState<string | null>(null);
   const [pending, setPending] = useState<string | null>(null);
@@ -111,7 +114,7 @@ export function KanbanBoard<C extends BoardCard>({
     if (card.status === toStatus) return;
     const plan = planMove(card, toStatus);
     if (!plan || plan.kind === "reject") {
-      setError(plan?.reason ?? "Ovaj prelaz nije dozvoljen.");
+      setError(plan?.reason ?? t("deals.board.transitionForbidden"));
       return;
     }
     if (plan.kind === "redirect") {
@@ -130,12 +133,12 @@ export function KanbanBoard<C extends BoardCard>({
         const body = (await res.json().catch(() => null)) as
           | { error?: { message?: string } }
           | null;
-        setError(body?.error?.message ?? "Greška pri promeni statusa.");
+        setError(body?.error?.message ?? t("deals.board.statusChangeFailed"));
       } else {
         router.refresh();
       }
     } catch {
-      setError("Greška u komunikaciji sa serverom.");
+      setError(t("deals.board.networkError"));
     } finally {
       setPending(null);
     }
@@ -224,6 +227,7 @@ function Column<C extends BoardCard>({
   tone,
   dragState,
 }: ColumnProps<C>) {
+  const t = useT();
   const { setNodeRef, isOver } = useDroppable({
     id: column.status,
     disabled: column.readOnly,
@@ -260,7 +264,7 @@ function Column<C extends BoardCard>({
       <div className="flex flex-1 flex-col gap-2 p-2">
         {column.cards.length === 0 ? (
           <p className="py-6 text-center text-xs text-[var(--color-foreground-muted)]">
-            Prazno
+            {t("deals.board.empty")}
           </p>
         ) : (
           column.cards.map((card) => (

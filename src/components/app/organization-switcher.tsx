@@ -12,10 +12,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { t } from "@/lib/i18n";
+import { useT } from "@/components/app/i18n-provider";
 import { cn } from "@/lib/utils";
 
 export function OrganizationSwitcher({ className }: { className?: string }) {
+  const t = useT();
   const { data: organizations } = useListOrganizations();
   const { data: active } = useActiveOrganization();
   const [busy, setBusy] = useState(false);

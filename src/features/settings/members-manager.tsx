@@ -10,17 +10,15 @@ import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { apiClient, ApiClientError } from "@/lib/api-client";
 import { PermissionGuard } from "@/components/app/permission-guard";
+import { useT } from "@/components/app/i18n-provider";
 import { formatDate } from "@/lib/formatters/date";
 import {
   ALL_ORG_ROLE_NAMES,
   rolesForOrgType,
 } from "@/server/permissions/roles";
 import { toast } from "sonner";
-import {
-  ORG_ROLE_LABEL,
-  type RoleCapabilityGuide,
-  type CapabilityLevel,
-} from "./role-capability-guide";
+import type { RoleCapabilityGuide, CapabilityLevel } from "./role-capability-guide";
+import type { TranslationKey, TranslateFn } from "@/lib/i18n";
 
 interface Member {
   membershipId: string;
@@ -49,6 +47,31 @@ interface MembersManagerProps {
   currentUserId: string;
 }
 
+function roleLabel(role: string, t: TranslateFn) {
+  const key = `ops.roles.${role}` as TranslationKey;
+  const out = t(key);
+  return out === key ? role : out;
+}
+
+const INVITE_STATUS_KEY: Record<string, TranslationKey> = {
+  pending: "ops.members.invitePending",
+  PENDING: "ops.members.invitePending",
+  accepted: "ops.members.inviteAccepted",
+  ACCEPTED: "ops.members.inviteAccepted",
+  canceled: "ops.members.inviteCanceled",
+  CANCELED: "ops.members.inviteCanceled",
+  cancelled: "ops.members.inviteCanceled",
+  rejected: "ops.members.inviteRejected",
+  REJECTED: "ops.members.inviteRejected",
+  expired: "ops.members.inviteExpired",
+  EXPIRED: "ops.members.inviteExpired",
+};
+
+function inviteStatusLabel(status: string, t: TranslateFn) {
+  const key = INVITE_STATUS_KEY[status];
+  return key ? t(key) : status;
+}
+
 export function MembersManager({
   organizationType,
   members,
@@ -56,6 +79,7 @@ export function MembersManager({
   roleGuide,
   currentUserId,
 }: MembersManagerProps) {
+  const t = useT();
   const router = useRouter();
   const [inviteError, setInviteError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -70,7 +94,7 @@ export function MembersManager({
   async function sendInvite() {
     const email = inviteEmail.trim();
     if (!email) {
-      setInviteError("Unesite email.");
+      setInviteError(t("ops.members.emailRequired"));
       return;
     }
     setSubmitting(true);
@@ -80,9 +104,7 @@ export function MembersManager({
         email,
         role: inviteRole || availableRoles[0],
       });
-      toast.success(
-        "Poziv je kreiran. Kopirajte link ispod — u lokalnom okruženju mejl se ne šalje.",
-      );
+      toast.success(t("ops.members.inviteCreated"));
       setInviteEmail("");
       setInviteRole(availableRoles[0] ?? "");
       router.refresh();
@@ -90,7 +112,7 @@ export function MembersManager({
       if (err instanceof ApiClientError) {
         setInviteError(err.message);
       } else {
-        setInviteError("Slanje poziva nije uspelo.");
+        setInviteError(t("ops.members.inviteFailed"));
       }
     } finally {
       setSubmitting(false);
@@ -100,41 +122,41 @@ export function MembersManager({
   async function updateRole(membershipId: string, role: string) {
     try {
       await apiClient.patch(`/organization/members/${membershipId}`, { role });
-      toast.success("Uloga je ažurirana.");
+      toast.success(t("ops.members.roleUpdated"));
       router.refresh();
     } catch (err) {
       if (err instanceof ApiClientError) toast.error(err.message);
-      else toast.error("Neočekivana greška.");
+      else toast.error(t("common.unexpectedError"));
     }
   }
 
   async function toggleActive(membershipId: string, active: boolean) {
     const member = members.find((m) => m.membershipId === membershipId);
     if (!active && member?.userId === currentUserId) {
-      toast.error("Ne možete deaktivirati nalog na koji ste ulogovani.");
+      toast.error(t("ops.members.cannotDeactivateSelf"));
       return;
     }
     try {
       await apiClient.patch(`/organization/members/${membershipId}`, { active });
-      toast.success(active ? "Korisnik je aktiviran." : "Korisnik je deaktiviran.");
+      toast.success(active ? t("ops.members.activated") : t("ops.members.deactivated"));
       router.refresh();
     } catch (err) {
       if (err instanceof ApiClientError) toast.error(err.message);
-      else toast.error("Neočekivana greška.");
+      else toast.error(t("common.unexpectedError"));
     }
   }
 
   async function removeMember(membershipId: string) {
-    if (!confirm("Ukloniti korisnika iz organizacije? Ova akcija se ne može poništiti.")) {
+    if (!confirm(t("ops.members.removeConfirm"))) {
       return;
     }
     try {
       await apiClient.delete(`/organization/members/${membershipId}`);
-      toast.success("Korisnik je uklonjen.");
+      toast.success(t("ops.members.removed"));
       router.refresh();
     } catch (err) {
       if (err instanceof ApiClientError) toast.error(err.message);
-      else toast.error("Neočekivana greška.");
+      else toast.error(t("common.unexpectedError"));
     }
   }
 
@@ -143,12 +165,12 @@ export function MembersManager({
       <PermissionGuard permission="organization.members:manage">
         <Card>
           <CardHeader>
-            <CardTitle>Pozovi novog korisnika</CardTitle>
+            <CardTitle>{t("ops.members.inviteTitle")}</CardTitle>
           </CardHeader>
           <CardContent>
             {inviteError ? (
               <Alert tone="danger" className="mb-3">
-                <AlertTitle>Greška</AlertTitle>
+                <AlertTitle>{t("ops.error")}</AlertTitle>
                 <AlertDescription>{inviteError}</AlertDescription>
               </Alert>
             ) : null}
@@ -161,7 +183,7 @@ export function MembersManager({
               className="flex flex-col gap-3 sm:flex-row sm:items-end"
             >
               <div className="min-w-0 flex-1">
-                <Label htmlFor="invite-email">Email</Label>
+                <Label htmlFor="invite-email">{t("common.email")}</Label>
                 <Input
                   id="invite-email"
                   name="email"
@@ -173,7 +195,7 @@ export function MembersManager({
                 />
               </div>
               <div className="min-w-0 flex-1">
-                <Label htmlFor="invite-role">Uloga</Label>
+                <Label htmlFor="invite-role">{t("ops.members.role")}</Label>
                 <select
                   id="invite-role"
                   name="role"
@@ -184,13 +206,13 @@ export function MembersManager({
                 >
                   {availableRoles.map((r) => (
                     <option key={r} value={r}>
-                      {ORG_ROLE_LABEL[r] ?? r}
+                      {roleLabel(r, t)}
                     </option>
                   ))}
                 </select>
               </div>
               <Button type="submit" loading={submitting}>
-                Pošalji poziv
+                {t("ops.members.sendInvite")}
               </Button>
             </form>
           </CardContent>
@@ -199,7 +221,7 @@ export function MembersManager({
 
       <Card>
         <CardHeader>
-          <CardTitle>Aktivni članovi ({members.length})</CardTitle>
+          <CardTitle>{t("ops.members.activeMembers", { count: members.length })}</CardTitle>
         </CardHeader>
         <CardContent className="p-0">
           <div className="overflow-x-auto">
@@ -207,13 +229,19 @@ export function MembersManager({
               <thead className="text-left text-xs uppercase text-[var(--color-foreground-subtle)]">
                 <tr>
                   <th className="border-b border-[var(--color-border)] px-4 py-2">
-                    Ime
+                    {t("common.name")}
                   </th>
-                  <th className="border-b border-[var(--color-border)] px-4 py-2">Email</th>
-                  <th className="border-b border-[var(--color-border)] px-4 py-2">Uloga</th>
-                  <th className="border-b border-[var(--color-border)] px-4 py-2">Status</th>
+                  <th className="border-b border-[var(--color-border)] px-4 py-2">
+                    {t("common.email")}
+                  </th>
+                  <th className="border-b border-[var(--color-border)] px-4 py-2">
+                    {t("ops.members.role")}
+                  </th>
+                  <th className="border-b border-[var(--color-border)] px-4 py-2">
+                    {t("common.statusLabel")}
+                  </th>
                   <th className="border-b border-[var(--color-border)] px-4 py-2 text-right">
-                    Akcije
+                    {t("billing.columns.actions")}
                   </th>
                 </tr>
               </thead>
@@ -230,7 +258,7 @@ export function MembersManager({
                     <td className="px-4 py-2">
                       <PermissionGuard
                         permission="organization.members:manage"
-                        fallback={<span>{ORG_ROLE_LABEL[m.role] ?? m.role}</span>}
+                        fallback={<span>{roleLabel(m.role, t)}</span>}
                       >
                         <select
                           defaultValue={m.role}
@@ -239,7 +267,7 @@ export function MembersManager({
                         >
                           {availableRoles.map((r) => (
                             <option key={r} value={r}>
-                              {ORG_ROLE_LABEL[r] ?? r}
+                              {roleLabel(r, t)}
                             </option>
                           ))}
                         </select>
@@ -247,11 +275,11 @@ export function MembersManager({
                     </td>
                     <td className="px-4 py-2">
                       {m.deactivatedAt ? (
-                        <Badge tone="danger">Deaktivirano</Badge>
+                        <Badge tone="danger">{t("ops.members.deactivatedBadge")}</Badge>
                       ) : m.emailVerified ? (
-                        <Badge tone="success">Aktivno</Badge>
+                        <Badge tone="success">{t("ops.members.activeBadge")}</Badge>
                       ) : (
-                        <Badge tone="warning">Nepotvrđeno</Badge>
+                        <Badge tone="warning">{t("ops.members.unverifiedBadge")}</Badge>
                       )}
                     </td>
                     <td className="px-4 py-2 text-right">
@@ -265,21 +293,23 @@ export function MembersManager({
                             }
                             title={
                               m.userId === currentUserId && !m.deactivatedAt
-                                ? "Ne možete deaktivirati nalog na koji ste ulogovani."
+                                ? t("ops.members.cannotDeactivateSelf")
                                 : undefined
                             }
                             onClick={() =>
                               toggleActive(m.membershipId, m.deactivatedAt !== null)
                             }
                           >
-                            {m.deactivatedAt ? "Aktiviraj" : "Deaktiviraj"}
+                            {m.deactivatedAt
+                              ? t("ops.members.activate")
+                              : t("ops.members.deactivate")}
                           </Button>
                           <Button
                             size="sm"
                             variant="destructive"
                             onClick={() => removeMember(m.membershipId)}
                           >
-                            Ukloni
+                            {t("common.remove")}
                           </Button>
                         </div>
                       </PermissionGuard>
@@ -295,12 +325,13 @@ export function MembersManager({
       {invitations.length > 0 ? (
         <Card>
           <CardHeader>
-            <CardTitle>Pozivi u čekanju ({invitations.length})</CardTitle>
+            <CardTitle>
+              {t("ops.members.pendingInvites", { count: invitations.length })}
+            </CardTitle>
           </CardHeader>
           <CardContent className="p-0">
             <p className="border-b border-[var(--color-border)] px-4 py-3 text-sm text-[var(--color-foreground-muted)]">
-              Korisnik još nije u organizaciji. Pošaljite mu link za prihvatanje
-              — nalog se kreira / veže tek kad otvori link i prihvati poziv.
+              {t("ops.members.pendingHint")}
             </p>
             <ul className="divide-y divide-[var(--color-border)]">
               {invitations.map((inv) => (
@@ -311,8 +342,10 @@ export function MembersManager({
                   <div>
                     <div className="font-medium">{inv.email}</div>
                     <div className="text-xs text-[var(--color-foreground-muted)]">
-                      Uloga: {ORG_ROLE_LABEL[inv.role] ?? inv.role} · Ističe:{" "}
-                      {formatDate(inv.expiresAt)}
+                      {t("ops.members.roleExpires", {
+                        role: roleLabel(inv.role, t),
+                        date: formatDate(inv.expiresAt),
+                      })}
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
@@ -323,7 +356,7 @@ export function MembersManager({
                           : "neutral"
                       }
                     >
-                      {inv.status}
+                      {inviteStatusLabel(inv.status, t)}
                     </Badge>
                     <Button
                       type="button"
@@ -332,12 +365,12 @@ export function MembersManager({
                       onClick={() => {
                         const url = `${window.location.origin}/accept-invitation/${inv.id}`;
                         void navigator.clipboard.writeText(url).then(
-                          () => toast.success("Link poziva je kopiran."),
-                          () => toast.error("Kopiranje nije uspelo."),
+                          () => toast.success(t("ops.members.linkCopied")),
+                          () => toast.error(t("ops.members.copyFailed")),
                         );
                       }}
                     >
-                      Kopiraj link
+                      {t("ops.members.copyLink")}
                     </Button>
                   </div>
                 </li>
@@ -352,30 +385,39 @@ export function MembersManager({
   );
 }
 
+const CAPABILITY_SECTION_KEY: Record<string, TranslationKey> = {
+  Organizacija: "ops.capability.section.organization",
+  "Projekti i jedinice": "ops.capability.section.projects",
+  Prodaja: "ops.capability.section.sales",
+  Saradnja: "ops.capability.section.collaboration",
+  Ostalo: "ops.capability.section.other",
+  Ponuda: "ops.capability.section.offer",
+};
+
 function RolePermissionsTable({ guide }: { guide: RoleCapabilityGuide }) {
+  const t = useT();
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Šta koja uloga sme</CardTitle>
+        <CardTitle>{t("ops.members.capabilityTitle")}</CardTitle>
       </CardHeader>
       <CardContent className="p-0">
         <p className="border-b border-[var(--color-border)] px-4 py-3 text-sm text-[var(--color-foreground-muted)]">
-          Pregled dozvola po ulozi u vašoj organizaciji. Kad dodelite ulogu,
-          član dobija tačno ova prava.
+          {t("ops.members.capabilityHint")}
         </p>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="text-left text-xs uppercase text-[var(--color-foreground-subtle)]">
               <tr>
                 <th className="border-b border-[var(--color-border)] px-4 py-2 font-medium">
-                  Dozvola
+                  {t("ops.members.permission")}
                 </th>
                 {guide.roles.map((role) => (
                   <th
                     key={role.key}
                     className="border-b border-[var(--color-border)] px-3 py-2 text-center font-medium"
                   >
-                    {role.label}
+                    {roleLabel(role.key, t)}
                   </th>
                 ))}
               </tr>
@@ -406,6 +448,8 @@ function SectionRows({
   colSpan: number;
   roleKeys: string[];
 }) {
+  const t = useT();
+  const sectionKey = CAPABILITY_SECTION_KEY[section.title];
   return (
     <>
       <tr className="bg-[var(--color-surface-inset)]">
@@ -413,30 +457,35 @@ function SectionRows({
           colSpan={colSpan}
           className="px-4 py-1.5 text-xs font-semibold uppercase tracking-wide text-[var(--color-foreground-muted)]"
         >
-          {section.title}
+          {sectionKey ? t(sectionKey) : section.title}
         </td>
       </tr>
-      {section.rows.map((row) => (
-        <tr
-          key={row.id}
-          className="border-b border-[var(--color-border)] last:border-b-0"
-        >
-          <td className="px-4 py-2">{row.label}</td>
-          {roleKeys.map((key) => (
-            <td key={key} className="px-3 py-2 text-center">
-              <CapabilityMark level={row.cells[key] ?? "no"} />
-            </td>
-          ))}
-        </tr>
-      ))}
+      {section.rows.map((row) => {
+        const rowKey = `ops.capability.row.${row.id}` as TranslationKey;
+        const rowLabel = t(rowKey);
+        return (
+          <tr
+            key={row.id}
+            className="border-b border-[var(--color-border)] last:border-b-0"
+          >
+            <td className="px-4 py-2">{rowLabel === rowKey ? row.label : rowLabel}</td>
+            {roleKeys.map((key) => (
+              <td key={key} className="px-3 py-2 text-center">
+                <CapabilityMark level={row.cells[key] ?? "no"} />
+              </td>
+            ))}
+          </tr>
+        );
+      })}
     </>
   );
 }
 
 function CapabilityMark({ level }: { level: CapabilityLevel }) {
+  const t = useT();
   if (level === "yes") {
     return (
-      <span className="font-medium text-[var(--color-success)]" title="Dozvoljeno">
+      <span className="font-medium text-[var(--color-success)]" title={t("ops.members.allowed")}>
         ✓
       </span>
     );
@@ -445,14 +494,14 @@ function CapabilityMark({ level }: { level: CapabilityLevel }) {
     return (
       <span
         className="text-xs text-[var(--color-foreground-muted)]"
-        title="Samo pregled"
+        title={t("ops.members.readOnly")}
       >
-        pregled
+        {t("ops.members.readOnlyShort")}
       </span>
     );
   }
   return (
-    <span className="text-[var(--color-foreground-subtle)]" title="Nema pristup">
+    <span className="text-[var(--color-foreground-subtle)]" title={t("ops.members.noAccess")}>
       —
     </span>
   );

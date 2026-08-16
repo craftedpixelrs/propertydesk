@@ -7,7 +7,8 @@ import { useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
 import { APP_NAME } from "@/lib/constants/app";
-import { t } from "@/lib/i18n";
+import { useT } from "@/components/app/i18n-provider";
+import { LanguageSwitcher } from "@/components/app/language-switcher";
 import { cn } from "@/lib/utils";
 import { filterNavigation, navigation } from "@/components/app/navigation";
 import type { PermissionString } from "@/server/permissions/access-control";
@@ -38,6 +39,7 @@ export function SidebarNav({
 }: SidebarNavProps) {
   const pathname = usePathname();
   const router = useRouter();
+  const t = useT();
 
   const items = useMemo(() => {
     const permissionSet = new Set(permissions);
@@ -103,7 +105,8 @@ export function SidebarNav({
         </>
       )}
       {lockNav ? <div className="flex-1" /> : null}
-      <div className="border-t border-[var(--color-border)] p-2">
+      <div className="border-t border-[var(--color-border)] p-2 space-y-1">
+        <LanguageSwitcher className="px-3 py-1" compact />
         <button
           type="button"
           onClick={handleSignOut}

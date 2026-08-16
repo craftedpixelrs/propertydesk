@@ -14,8 +14,10 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { apiClient, ApiClientError } from "@/lib/api-client";
+import { useT } from "@/components/app/i18n-provider";
 
 export function InviteAgencyForm() {
+  const t = useT();
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [agencyOrganizationId, setAgencyOrganizationId] = useState("");
@@ -39,7 +41,7 @@ export function InviteAgencyForm() {
       setNotes("");
       router.refresh();
     } catch (err) {
-      setError(err instanceof ApiClientError ? err.message : "Došlo je do greške.");
+      setError(err instanceof ApiClientError ? err.message : t("errors.generic"));
     } finally {
       setLoading(false);
     }
@@ -48,19 +50,19 @@ export function InviteAgencyForm() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button>Pozovi agenciju</Button>
+        <Button>{t("partners.inviteForm.trigger")}</Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Pozivanje agencije</DialogTitle>
+          <DialogTitle>{t("partners.inviteForm.title")}</DialogTitle>
           <DialogDescription>
-            Unesite ID organizacije agencije. Agencija dobija poziv na svom portalu.
+            {t("partners.inviteForm.description")}
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={onSubmit} className="space-y-3">
           <div className="space-y-1">
             <label className="text-sm font-medium" htmlFor="agencyOrganizationId">
-              ID organizacije agencije
+              {t("partners.inviteForm.orgId")}
             </label>
             <input
               id="agencyOrganizationId"
@@ -72,7 +74,7 @@ export function InviteAgencyForm() {
           </div>
           <div className="space-y-1">
             <label className="text-sm font-medium" htmlFor="defaultProtectionDays">
-              Podrazumevana zaštita kupca (dana)
+              {t("partners.inviteForm.protectionDays")}
             </label>
             <input
               id="defaultProtectionDays"
@@ -86,7 +88,7 @@ export function InviteAgencyForm() {
           </div>
           <div className="space-y-1">
             <label className="text-sm font-medium" htmlFor="notes">
-              Napomena (opciono)
+              {t("partners.note")} ({t("common.optional")})
             </label>
             <textarea
               id="notes"
@@ -102,10 +104,10 @@ export function InviteAgencyForm() {
           ) : null}
           <DialogFooter>
             <Button variant="outline" type="button" onClick={() => setOpen(false)} disabled={loading}>
-              Otkaži
+              {t("common.cancel")}
             </Button>
             <Button type="submit" loading={loading}>
-              Pozovi
+              {t("partners.invite")}
             </Button>
           </DialogFooter>
         </form>

@@ -1,4 +1,8 @@
+"use client";
+
 import { ArrowRight, CalendarCheck2, PhoneCall } from "lucide-react";
+
+import { useT } from "@/components/app/i18n-provider";
 
 interface CtaPanelProps {
   title?: string;
@@ -19,11 +23,13 @@ interface CtaPanelProps {
  * background.
  */
 export function CtaPanel({
-  title = "Videli ste šta radi. Vidimo se na demo pozivu?",
-  subtitle = "Prvih 30 dana besplatno. Nakon toga 50% popusta na naredna tri meseca. Zaključana cena paketa 12 meseci - za sve prijave do 01.09.2026.",
+  title,
+  subtitle,
   primaryHref = "/demo#zakazivanje",
-  primaryLabel = "Zakažite 25-minutni demo",
+  primaryLabel,
 }: CtaPanelProps) {
+  const t = useT();
+
   return (
     <section
       aria-labelledby="cta-panel-title"
@@ -49,10 +55,10 @@ export function CtaPanel({
             id="cta-panel-title"
             className="mt-5 text-3xl font-bold tracking-tight text-white sm:text-4xl"
           >
-            {title}
+            {title ?? t("marketing.cta.title")}
           </h2>
           <p className="mx-auto mt-4 max-w-2xl text-base leading-relaxed text-white/90">
-            {subtitle}
+            {subtitle ?? t("marketing.cta.subtitle")}
           </p>
           <div className="mt-8 flex w-full flex-col items-stretch justify-center gap-3 sm:w-auto sm:flex-row sm:items-center">
             <a
@@ -60,7 +66,7 @@ export function CtaPanel({
               style={{ color: "#1e40af" }}
               className="inline-flex h-12 items-center justify-center gap-2 rounded-md bg-white px-6 text-base font-semibold shadow-lg shadow-black/10 transition hover:bg-neutral-100 hover:shadow-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-blue-800"
             >
-              {primaryLabel}
+              {primaryLabel ?? t("marketing.common.bookDemo")}
               <ArrowRight aria-hidden className="size-4" />
             </a>
             <a
@@ -68,8 +74,8 @@ export function CtaPanel({
               className="inline-flex h-12 items-center justify-center gap-2 rounded-md border border-white/40 bg-white/10 px-6 text-base font-semibold text-white backdrop-blur-sm transition hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-blue-800"
             >
               <PhoneCall aria-hidden className="size-4" />
-              <span className="sm:hidden">Pozovite nas</span>
-              <span className="hidden sm:inline">Pozovite nas: +381 65 43 63 142</span>
+              <span className="sm:hidden">{t("marketing.common.callUs")}</span>
+              <span className="hidden sm:inline">{t("marketing.common.callUsPhone")}</span>
             </a>
           </div>
         </div>

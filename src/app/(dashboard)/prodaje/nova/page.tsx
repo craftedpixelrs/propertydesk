@@ -8,6 +8,7 @@ import { ConvertReservationForm } from "@/features/sales/convert-reservation-for
 import { formatDate, formatMoney } from "@/lib/formatters";
 import type { SupportedCurrency } from "@/lib/constants/app";
 import { prisma } from "@/server/db/prisma";
+import { createT } from "@/lib/i18n";
 
 export const dynamic = "force-dynamic";
 
@@ -24,6 +25,7 @@ export default async function NovaProdajaPage({ searchParams }: PageProps) {
   if (!ctx) redirect("/sign-in");
   if (!ctx.activeOrganization) redirect("/podesavanja");
 
+  const t = createT(ctx.user.locale);
   const sp = await searchParams;
   const reservationId = readParam(sp.reservation);
 
@@ -39,9 +41,9 @@ export default async function NovaProdajaPage({ searchParams }: PageProps) {
     if (!reservation) {
       return (
         <div className="space-y-4">
-          <h1 className="text-2xl font-semibold">Nova prodaja</h1>
+          <h1 className="text-2xl font-semibold">{t("deals.sales.newSale")}</h1>
           <Card>
-            <CardContent className="py-8 text-sm">Rezervacija nije pronađena.</CardContent>
+            <CardContent className="py-8 text-sm">{t("deals.sales.reservationNotFound")}</CardContent>
           </Card>
         </div>
       );
@@ -49,10 +51,10 @@ export default async function NovaProdajaPage({ searchParams }: PageProps) {
     if (reservation.status !== "APPROVED") {
       return (
         <div className="space-y-4">
-          <h1 className="text-2xl font-semibold">Nova prodaja</h1>
+          <h1 className="text-2xl font-semibold">{t("deals.sales.newSale")}</h1>
           <Card>
             <CardContent className="py-8 text-sm">
-              Prodaja se može kreirati samo iz odobrene rezervacije.
+              {t("deals.sales.onlyApproved")}
             </CardContent>
           </Card>
         </div>
@@ -69,19 +71,21 @@ export default async function NovaProdajaPage({ searchParams }: PageProps) {
             href="/prodaje"
             className="text-sm text-[var(--color-foreground-muted)] hover:underline"
           >
-            ← Prodaje
+            ← {t("nav.sales")}
           </Link>
           <h1 className="mt-1 text-2xl font-semibold">
-            Kreiraj prodaju iz rezervacije {reservation.unit.code}
+            {t("deals.sales.createFromReservation", { code: reservation.unit.code })}
           </h1>
           <p className="text-sm text-[var(--color-foreground-muted)]">
-            {reservation.project.name} · Kupac: {reservation.buyer.firstName}{" "}
-            {reservation.buyer.lastName}
+            {t("deals.sales.buyerNamed", {
+              project: reservation.project.name,
+              name: `${reservation.buyer.firstName} ${reservation.buyer.lastName}`,
+            })}
           </p>
         </div>
         <Card>
           <CardHeader>
-            <CardTitle className="text-sm">Uslovi prodaje</CardTitle>
+            <CardTitle className="text-sm">{t("deals.sales.terms")}</CardTitle>
           </CardHeader>
           <CardContent>
             <ConvertReservationForm
@@ -105,16 +109,16 @@ export default async function NovaProdajaPage({ searchParams }: PageProps) {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold">Nova prodaja</h1>
+        <h1 className="text-2xl font-semibold">{t("deals.sales.newSale")}</h1>
         <p className="text-sm text-[var(--color-foreground-muted)]">
-          Izaberite odobrenu rezervaciju za konverziju u prodaju.
+          {t("deals.sales.pickApproved")}
         </p>
       </div>
 
       {approved.length === 0 ? (
         <Card>
           <CardContent className="py-8 text-sm">
-            Nema odobrenih rezervacija spremnih za konverziju.
+            {t("deals.sales.noApproved")}
           </CardContent>
         </Card>
       ) : (
@@ -127,12 +131,13 @@ export default async function NovaProdajaPage({ searchParams }: PageProps) {
                     {r.unit?.code ?? "—"} · {r.project?.name ?? ""}
                   </div>
                   <div className="text-xs text-[var(--color-foreground-muted)]">
-                    Kupac: {r.buyer?.firstName} {r.buyer?.lastName} · Odobrena:{" "}
+                    {t("deals.buyer")}: {r.buyer?.firstName} {r.buyer?.lastName} ·{" "}
+                    {t("deals.sales.approvedOn")}{" "}
                     {r.approvedAt ? formatDate(r.approvedAt) : "—"}
                     {r.reservationAmount ? (
                       <>
                         {" "}
-                        · Depozit:{" "}
+                        · {t("deals.sales.depositLabel")}{" "}
                         {formatMoney(
                           r.reservationAmount.toString(),
                           (r.currency ?? "EUR") as SupportedCurrency,
@@ -145,7 +150,7 @@ export default async function NovaProdajaPage({ searchParams }: PageProps) {
                   href={`/prodaje/nova?reservation=${r.id}`}
                   className="text-sm text-[var(--color-brand-700)] hover:underline"
                 >
-                  Kreiraj prodaju →
+                  {t("deals.createSaleArrow")}
                 </Link>
               </CardContent>
             </Card>

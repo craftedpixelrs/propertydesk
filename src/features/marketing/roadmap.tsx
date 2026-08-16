@@ -1,3 +1,5 @@
+"use client";
+
 import type { LucideIcon } from "lucide-react";
 import {
   Blocks,
@@ -9,68 +11,28 @@ import {
 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
+import { useT } from "@/components/app/i18n-provider";
+import type { TranslationKey } from "@/lib/i18n";
 
-/**
- * Compact "what's next" section.
- *
- * Kept short on purpose: PropertyDesk 1.0 already covers the full sales
- * flow, so we don't want to burn conversion attention on features that
- * the buyer can't use today. Each card is one icon + short name + one
- * sentence + ETA badge.
- */
 interface RoadmapItem {
   icon: LucideIcon;
-  title: string;
-  description: string;
+  titleKey: TranslationKey;
+  bodyKey: TranslationKey;
   eta: string;
 }
 
 const ROADMAP: RoadmapItem[] = [
-  {
-    icon: Blocks,
-    title: "WordPress plugin",
-    description:
-      "Auto-sync projekata, jedinica i cena sa sajtom - bez ručnog održavanja.",
-    eta: "Q4 2026",
-  },
-  {
-    icon: Bot,
-    title: "AI asistent za sajtove",
-    description:
-      "Chat widget kao jedan <script> tag - odgovara na pitanja o Vašim jedinicama 24/7.",
-    eta: "Q1 2027",
-  },
-  {
-    icon: SearchCheck,
-    title: "Automatska kvalifikacija upita",
-    description:
-      "AI čita zahtev kupca i predlaže 3 najbolje jedinice iz Vašeg inventara.",
-    eta: "Q1 2027",
-  },
-  {
-    icon: Zap,
-    title: "Integracije za lead-ove",
-    description:
-      "Meta i Google forme, WhatsApp / Viber inbox, email drip - sve u istom pipeline-u.",
-    eta: "Q2 2027",
-  },
-  {
-    icon: FileSignature,
-    title: "Elektronski potpis",
-    description:
-      "Predugovori i ugovori online, sa vremenskim žigom i pravnom snagom u Srbiji.",
-    eta: "Q2 2027",
-  },
-  {
-    icon: Network,
-    title: "Marketplace investitor - agencija",
-    description:
-      "Otvoreni katalog projekata dostupan verifikovanoj mreži partnerskih agencija.",
-    eta: "Q3 2027",
-  },
+  { icon: Blocks, titleKey: "marketing.roadmap.wpTitle", bodyKey: "marketing.roadmap.wpBody", eta: "Q4 2026" },
+  { icon: Bot, titleKey: "marketing.roadmap.aiTitle", bodyKey: "marketing.roadmap.aiBody", eta: "Q1 2027" },
+  { icon: SearchCheck, titleKey: "marketing.roadmap.qualifyTitle", bodyKey: "marketing.roadmap.qualifyBody", eta: "Q1 2027" },
+  { icon: Zap, titleKey: "marketing.roadmap.leadsTitle", bodyKey: "marketing.roadmap.leadsBody", eta: "Q2 2027" },
+  { icon: FileSignature, titleKey: "marketing.roadmap.signTitle", bodyKey: "marketing.roadmap.signBody", eta: "Q2 2027" },
+  { icon: Network, titleKey: "marketing.roadmap.marketTitle", bodyKey: "marketing.roadmap.marketBody", eta: "Q3 2027" },
 ];
 
 export function Roadmap() {
+  const t = useT();
+
   return (
     <section
       id="uskoro"
@@ -80,18 +42,16 @@ export function Roadmap() {
       <div className="container-app py-14 sm:py-16">
         <div className="max-w-3xl">
           <div className="text-xs font-semibold uppercase tracking-wider text-[var(--color-brand-700)]">
-            Šta dolazi sledeće
+            {t("marketing.roadmap.eyebrow")}
           </div>
           <h2
             id="roadmap-title"
             className="mt-2 text-2xl font-bold tracking-tight sm:text-3xl"
           >
-            Roadmap posle lansiranja
+            {t("marketing.roadmap.title")}
           </h2>
           <p className="mt-3 max-w-2xl text-sm leading-relaxed text-[var(--color-foreground-muted)]">
-            PropertyDesk 1.0 već pokriva ceo prodajni tok od projekta do
-            provizije. Ovo su naredni koraci - rani pretplatnici ih dobijaju
-            čim budu dostupni, bez doplate.
+            {t("marketing.roadmap.subtitle")}
           </p>
         </div>
 
@@ -100,7 +60,7 @@ export function Roadmap() {
             const Icon = item.icon;
             return (
               <article
-                key={item.title}
+                key={item.titleKey}
                 className="flex flex-col gap-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5 shadow-sm"
               >
                 <div className="flex items-center justify-between gap-2">
@@ -116,10 +76,10 @@ export function Roadmap() {
                 </div>
                 <div>
                   <h3 className="text-base font-semibold text-[var(--color-foreground)]">
-                    {item.title}
+                    {t(item.titleKey)}
                   </h3>
                   <p className="mt-1 text-sm leading-relaxed text-[var(--color-foreground-muted)]">
-                    {item.description}
+                    {t(item.bodyKey)}
                   </p>
                 </div>
               </article>

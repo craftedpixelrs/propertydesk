@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import type { SaleStatus } from "@prisma/client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -21,18 +20,53 @@ import {
   DocumentList,
   type DocumentItem,
 } from "@/features/documents/document-list";
+import { createT, enumLabel, type TranslateFn } from "@/lib/i18n";
 
 export const dynamic = "force-dynamic";
 
-const STATUS_LABELS: Record<SaleStatus, string> = {
-  DRAFT: "Nacrt",
-  PRE_CONTRACT: "Predugovor",
-  CONTRACTED: "Ugovorena",
-  PAYMENT_IN_PROGRESS: "Plaćanje u toku",
-  PAID: "Plaćena",
-  HANDED_OVER: "Primopredato",
-  CANCELED: "Otkazana",
-};
+function saleStatusLabel(status: string, t: TranslateFn): string {
+  return enumLabel("sale", status === "PRE_CONTRACT" ? "PRECONTRACT" : status, t);
+}
+
+function paymentMethodLabel(method: string, t: TranslateFn): string {
+  switch (method) {
+    case "BANK_TRANSFER":
+      return t("deals.paymentMethod.BANK_TRANSFER");
+    case "CASH":
+      return t("deals.paymentMethod.CASH");
+    case "CARD":
+      return t("deals.paymentMethod.CARD");
+    case "LOAN":
+      return t("deals.paymentMethod.LOAN");
+    case "COMPENSATION":
+      return t("deals.paymentMethod.COMPENSATION");
+    case "OTHER":
+      return t("deals.paymentMethod.OTHER");
+    default:
+      return method;
+  }
+}
+
+function commissionStatusLabel(status: string, t: TranslateFn): string {
+  switch (status) {
+    case "CALCULATED":
+      return t("deals.commissionStatus.CALCULATED");
+    case "APPROVED":
+      return t("deals.commissionStatus.APPROVED");
+    case "INVOICED":
+      return t("deals.commissionStatus.INVOICED");
+    case "DUE":
+      return t("deals.commissionStatus.DUE");
+    case "PAID":
+      return t("deals.commissionStatus.PAID");
+    case "DISPUTED":
+      return t("deals.commissionStatus.DISPUTED");
+    case "CANCELED":
+      return t("deals.commissionStatus.CANCELED");
+    default:
+      return status;
+  }
+}
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -43,6 +77,7 @@ export default async function ProdajaDetaljPage({ params }: PageProps) {
   if (!ctx) redirect("/sign-in");
   if (!ctx.activeOrganization) redirect("/podesavanja");
 
+  const t = createT(ctx.user.locale);
   const { id } = await params;
   let sale;
   try {
@@ -113,22 +148,24 @@ export default async function ProdajaDetaljPage({ params }: PageProps) {
             href="/prodaje"
             className="text-sm text-[var(--color-foreground-muted)] hover:underline"
           >
-            ← Prodaje
+            ← {t("nav.sales")}
           </Link>
-          <h1 className="mt-1 text-2xl font-semibold">Prodaja · {sale.unit.code}</h1>
+          <h1 className="mt-1 text-2xl font-semibold">
+            {t("deals.sales.heading", { code: sale.unit.code })}
+          </h1>
           <p className="text-sm text-[var(--color-foreground-muted)]">
-            {STATUS_LABELS[sale.status]} · {sale.project.name} · {sale.buyer.firstName}{" "}
+            {saleStatusLabel(sale.status, t)} · {sale.project.name} · {sale.buyer.firstName}{" "}
             {sale.buyer.lastName}
           </p>
         </div>
         <div className="flex gap-2">
           {sale.paymentPlan ? (
             <Button asChild variant="outline" size="sm">
-              <Link href={`/prodaje/${sale.id}/plan-placanja`}>Plan plaćanja</Link>
+              <Link href={`/prodaje/${sale.id}/plan-placanja`}>{t("deals.paymentPlan")}</Link>
             </Button>
           ) : canManagePayments && sale.status !== "CANCELED" ? (
             <Button asChild size="sm">
-              <Link href={`/prodaje/${sale.id}/plan-placanja`}>Kreiraj plan</Link>
+              <Link href={`/prodaje/${sale.id}/plan-placanja`}>{t("deals.sales.createPlan")}</Link>
             </Button>
           ) : null}
         </div>
@@ -138,11 +175,11 @@ export default async function ProdajaDetaljPage({ params }: PageProps) {
         <div className="space-y-6 lg:col-span-2">
           <Card>
             <CardHeader>
-              <CardTitle className="text-sm">Detalji</CardTitle>
+              <CardTitle className="text-sm">{t("common.details")}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2 text-sm">
               <Row
-                label="Kupac"
+                label={t("deals.buyer")}
                 value={
                   <Link
                     href={`/kupci/${sale.buyer.id}`}
@@ -152,15 +189,22 @@ export default async function ProdajaDetaljPage({ params }: PageProps) {
                   </Link>
                 }
               />
-              <Row label="Jedinica" value={sale.unit.code} />
-              <Row label="Projekat" value={sale.project.name} />
-              <Row label="Zadužen" value={sale.responsibleUser?.name ?? "—"} />
-              <Row label="Kreirao" value={sale.createdByUser?.name ?? "—"} />
-              <Row label="Izvor" value={sale.sourceType === "AGENCY" ? "Agencija" : "Interno"} />
-              <Row label="Cena po ceniku" value={formatMoney(sale.listPrice.toString(), currency)} />
+              <Row label={t("deals.unit")} value={sale.unit.code} />
+              <Row label={t("units.columns.project")} value={sale.project.name} />
+              <Row label={t("deals.assignedTo")} value={sale.responsibleUser?.name ?? "—"} />
+              <Row label={t("deals.createdBy")} value={sale.createdByUser?.name ?? "—"} />
+              <Row
+                label={t("deals.source")}
+                value={
+                  sale.sourceType === "AGENCY"
+                    ? t("organization.types.agency")
+                    : t("deals.sourceInternal")
+                }
+              />
+              <Row label={t("deals.listPrice")} value={formatMoney(sale.listPrice.toString(), currency)} />
               {sale.discountType ? (
                 <Row
-                  label="Popust"
+                  label={t("deals.discount")}
                   value={
                     sale.discountType === "PERCENTAGE"
                       ? `${sale.discountValue?.toString() ?? "0"} %`
@@ -169,7 +213,7 @@ export default async function ProdajaDetaljPage({ params }: PageProps) {
                 />
               ) : null}
               <Row
-                label="Ugovorena cena"
+                label={t("deals.contractedPrice")}
                 value={
                   <span className="text-base font-semibold">
                     {formatMoney(sale.finalPrice.toString(), currency)}
@@ -178,43 +222,43 @@ export default async function ProdajaDetaljPage({ params }: PageProps) {
               />
               {sale.taxAmount ? (
                 <Row
-                  label="Porez"
+                  label={t("deals.sales.tax")}
                   value={
                     <span className="text-xs text-[var(--color-foreground-muted)]">
                       {formatMoney(sale.taxAmount.toString(), currency)}
                       {sale.vatMode === "NEW_BUILD_10"
-                        ? " · PDV 10%"
+                        ? ` · ${t("deals.sales.vat10")}`
                         : sale.vatMode === "SECONDARY_MARKET_2_5"
-                          ? " · PPAP 2,5%"
+                          ? ` · ${t("deals.sales.ppap25")}`
                           : ""}
                     </span>
                   }
                 />
               ) : null}
-              <Row label="Uplaćeno" value={formatMoney(paidTotal, currency)} />
-              <Row label="Ostatak" value={formatMoney(remaining, currency)} />
+              <Row label={t("deals.paid")} value={formatMoney(paidTotal, currency)} />
+              <Row label={t("deals.remaining")} value={formatMoney(remaining, currency)} />
               {sale.contractDate ? (
-                <Row label="Datum ugovora" value={formatDate(sale.contractDate)} />
+                <Row label={t("deals.contractDate")} value={formatDate(sale.contractDate)} />
               ) : null}
               {sale.actualHandoverDate ? (
-                <Row label="Primopredaja" value={formatDate(sale.actualHandoverDate)} />
+                <Row label={t("deals.handover")} value={formatDate(sale.actualHandoverDate)} />
               ) : null}
-              {sale.notes ? <Row label="Napomena" value={sale.notes} /> : null}
+              {sale.notes ? <Row label={t("common.notes")} value={sale.notes} /> : null}
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader>
-              <CardTitle className="text-sm">Dokumenti</CardTitle>
+              <CardTitle className="text-sm">{t("nav.documents")}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-5">
               <section className="space-y-2">
                 <div className="flex items-center justify-between">
                   <h3 className="text-xs font-semibold uppercase tracking-wide text-[var(--color-foreground-muted)]">
-                    Dokumenti prodaje
+                    {t("deals.sales.saleDocuments")}
                   </h3>
                   <span className="text-xs text-[var(--color-foreground-muted)]">
-                    {saleDocuments.length} stavki
+                    {t("deals.sales.itemCount", { count: saleDocuments.length })}
                   </span>
                 </div>
                 <DocumentList
@@ -224,20 +268,20 @@ export default async function ProdajaDetaljPage({ params }: PageProps) {
                   category="SALE"
                   canManage={canManageDocs}
                   offerBuyerVisibility
-                  emptyTitle="Nema dokumenata prodaje"
-                  emptyDescription="Otpremite ugovor, aneks i drugu dokumentaciju vezanu za ovu prodaju."
+                  emptyTitle={t("deals.sales.saleDocsEmptyTitle")}
+                  emptyDescription={t("deals.sales.saleDocsEmptyHint")}
                 />
               </section>
               <section className="space-y-2">
                 <div className="flex items-center justify-between">
                   <h3 className="text-xs font-semibold uppercase tracking-wide text-[var(--color-foreground-muted)]">
-                    Dokumentacija jedinice
+                    {t("deals.sales.unitDocuments")}
                   </h3>
                   <Link
                     href={`/jedinice/${sale.unit.id}`}
                     className="text-xs text-[var(--color-brand-700)] hover:underline"
                   >
-                    Uredi na jedinici →
+                    {t("deals.sales.editOnUnit")}
                   </Link>
                 </div>
                 <DocumentList
@@ -247,8 +291,8 @@ export default async function ProdajaDetaljPage({ params }: PageProps) {
                   category="UNIT"
                   canManage={false}
                   hideUploadWhenNoPermission
-                  emptyTitle="Nema dokumenata jedinice"
-                  emptyDescription="Ugovorna dokumentacija priložena na samu jedinicu (npr. energetski pasoš, planovi) prikazuje se ovde."
+                  emptyTitle={t("deals.sales.unitDocsEmptyTitle")}
+                  emptyDescription={t("deals.sales.unitDocsEmptyHint")}
                 />
               </section>
             </CardContent>
@@ -256,22 +300,22 @@ export default async function ProdajaDetaljPage({ params }: PageProps) {
 
           <Card>
             <CardHeader className="flex flex-row items-start justify-between gap-3 space-y-0">
-              <CardTitle className="text-sm">Uplate</CardTitle>
+              <CardTitle className="text-sm">{t("nav.payments")}</CardTitle>
               <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-[var(--color-foreground-muted)]">
                 <span>
-                  Ugovoreno:{" "}
+                  {t("deals.contracted")}:{" "}
                   <strong className="text-[var(--color-foreground)]">
                     {formatMoney(finalPrice, currency)}
                   </strong>
                 </span>
                 <span>
-                  Uplaćeno:{" "}
+                  {t("deals.paid")}:{" "}
                   <strong className="text-[var(--color-foreground)]">
                     {formatMoney(paidTotal, currency)}
                   </strong>
                 </span>
                 <span>
-                  Preostalo:{" "}
+                  {t("deals.remainingLabel")}:{" "}
                   <strong
                     className={
                       remaining > 0 ? "text-amber-700" : "text-emerald-700"
@@ -285,18 +329,18 @@ export default async function ProdajaDetaljPage({ params }: PageProps) {
             <CardContent className="space-y-3">
               {sale.payments.length === 0 ? (
                 <p className="text-sm text-[var(--color-foreground-muted)]">
-                  Nema evidentiranih uplata.
+                  {t("deals.sales.noPayments")}
                 </p>
               ) : (
                 <div className="overflow-x-auto">
                   <table className="min-w-full divide-y divide-[var(--color-border)] text-sm">
                     <thead className="text-left text-xs uppercase tracking-wide text-[var(--color-foreground-muted)]">
                       <tr>
-                        <th className="py-2 pr-3">Datum</th>
-                        <th className="py-2 pr-3">Iznos</th>
-                        <th className="py-2 pr-3">Način</th>
-                        <th className="py-2 pr-3">Poziv na broj</th>
-                        <th className="py-2 pr-3 text-right">Radnje</th>
+                        <th className="py-2 pr-3">{t("common.date")}</th>
+                        <th className="py-2 pr-3">{t("common.amount")}</th>
+                        <th className="py-2 pr-3">{t("deals.method")}</th>
+                        <th className="py-2 pr-3">{t("deals.reference")}</th>
+                        <th className="py-2 pr-3 text-right">{t("common.actions")}</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-[var(--color-border)]">
@@ -306,7 +350,9 @@ export default async function ProdajaDetaljPage({ params }: PageProps) {
                           <td className="py-2 pr-3 font-medium">
                             {formatMoney(p.amount.toString(), currency)}
                           </td>
-                          <td className="py-2 pr-3">{p.paymentMethod}</td>
+                          <td className="py-2 pr-3">
+                            {paymentMethodLabel(p.paymentMethod, t)}
+                          </td>
                           <td className="py-2 pr-3 text-xs text-[var(--color-foreground-muted)]">
                             {p.referenceNumber ?? "—"}
                           </td>
@@ -315,7 +361,7 @@ export default async function ProdajaDetaljPage({ params }: PageProps) {
                               <PaymentRowActions paymentId={p.id} reversed={Boolean(p.reversedAt)} />
                             ) : p.reversedAt ? (
                               <span className="text-xs text-[var(--color-foreground-muted)]">
-                                Stornirano
+                                {t("deals.reversed")}
                               </span>
                             ) : null}
                           </td>
@@ -327,7 +373,7 @@ export default async function ProdajaDetaljPage({ params }: PageProps) {
               )}
               {canManagePayments && sale.status !== "CANCELED" ? (
                 <div className="rounded-md border border-[var(--color-border)] p-3">
-                  <h3 className="mb-2 text-sm font-medium">Nova uplata</h3>
+                  <h3 className="mb-2 text-sm font-medium">{t("deals.sales.newPayment")}</h3>
                   <RecordPaymentForm
                     saleId={sale.id}
                     currency={sale.currency}
@@ -347,7 +393,7 @@ export default async function ProdajaDetaljPage({ params }: PageProps) {
 
           <Card>
             <CardHeader>
-              <CardTitle className="text-sm">Komentari</CardTitle>
+              <CardTitle className="text-sm">{t("deals.comments")}</CardTitle>
             </CardHeader>
             <CardContent>
               <CommentThread
@@ -360,7 +406,7 @@ export default async function ProdajaDetaljPage({ params }: PageProps) {
 
           <Card>
             <CardHeader>
-              <CardTitle className="text-sm">Istorija statusa</CardTitle>
+              <CardTitle className="text-sm">{t("deals.statusHistory")}</CardTitle>
             </CardHeader>
             <CardContent>
               <ul className="space-y-2 text-sm">
@@ -370,7 +416,7 @@ export default async function ProdajaDetaljPage({ params }: PageProps) {
                     className="flex items-center justify-between border-b border-[var(--color-border)] pb-2 last:border-0"
                   >
                     <span>
-                      {STATUS_LABELS[h.previousStatus]} → {STATUS_LABELS[h.newStatus]}
+                      {saleStatusLabel(h.previousStatus, t)} → {saleStatusLabel(h.newStatus, t)}
                       {h.reason ? (
                         <span className="text-[var(--color-foreground-muted)]"> · {h.reason}</span>
                       ) : null}
@@ -388,7 +434,7 @@ export default async function ProdajaDetaljPage({ params }: PageProps) {
         <div className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle className="text-sm">Radnje</CardTitle>
+              <CardTitle className="text-sm">{t("common.actions")}</CardTitle>
             </CardHeader>
             <CardContent>
               <SaleActions
@@ -402,7 +448,7 @@ export default async function ProdajaDetaljPage({ params }: PageProps) {
 
           <Card>
             <CardHeader>
-              <CardTitle className="text-sm">Porez (PDV / PPAP)</CardTitle>
+              <CardTitle className="text-sm">{t("deals.sales.taxSection")}</CardTitle>
             </CardHeader>
             <CardContent>
               <SaleTaxSection
@@ -419,7 +465,7 @@ export default async function ProdajaDetaljPage({ params }: PageProps) {
 
           <Card>
             <CardHeader>
-              <CardTitle className="text-sm">Ugovor</CardTitle>
+              <CardTitle className="text-sm">{t("deals.sales.contract")}</CardTitle>
             </CardHeader>
             <CardContent>
               <ContractSection
@@ -428,10 +474,10 @@ export default async function ProdajaDetaljPage({ params }: PageProps) {
                 contractSentAt={sale.contractSentAt?.toISOString() ?? null}
                 contractSignedAt={sale.contractSignedAt?.toISOString() ?? null}
                 contractTemplateId={sale.contractTemplateId ?? null}
-                templates={contractTemplates.map((t) => ({
-                  id: t.id,
-                  name: t.name,
-                  kind: t.kind,
+                templates={contractTemplates.map((tmpl) => ({
+                  id: tmpl.id,
+                  name: tmpl.name,
+                  kind: tmpl.kind,
                 }))}
                 canManage={canManage}
               />
@@ -441,19 +487,22 @@ export default async function ProdajaDetaljPage({ params }: PageProps) {
           {sale.commission ? (
             <Card>
               <CardHeader>
-                <CardTitle className="text-sm">Provizija agenciji</CardTitle>
+                <CardTitle className="text-sm">{t("deals.sales.agencyCommission")}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-1 text-sm">
-                <Row label="Status" value={sale.commission.status} />
                 <Row
-                  label="Iznos"
+                  label={t("common.statusLabel")}
+                  value={commissionStatusLabel(sale.commission.status, t)}
+                />
+                <Row
+                  label={t("common.amount")}
                   value={formatMoney(
                     (sale.commission.adjustedAmount ?? sale.commission.calculatedAmount).toString(),
                     sale.commission.currency as SupportedCurrency,
                   )}
                 />
                 <Row
-                  label="Osnovica"
+                  label={t("deals.sales.commissionBase")}
                   value={formatMoney(
                     sale.commission.baseAmount.toString(),
                     sale.commission.currency as SupportedCurrency,

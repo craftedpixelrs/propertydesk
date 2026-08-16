@@ -2,6 +2,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { listAuditLogs } from "@/server/services/platform.service";
 import { requireSuperAdmin } from "@/server/permissions/require";
 import { formatDateTime } from "@/lib/formatters/date";
+import { createT } from "@/lib/i18n";
+import { resolveRequestLocale } from "@/lib/i18n/resolve-locale";
 
 interface PageProps {
   searchParams: Promise<{
@@ -16,6 +18,7 @@ export default async function PlatformAuditPage({ searchParams }: PageProps) {
   await requireSuperAdmin();
   const params = await searchParams;
   const page = Number.parseInt(params.page ?? "1", 10) || 1;
+  const t = createT(await resolveRequestLocale());
 
   const { items, total } = await listAuditLogs({
     page,
@@ -27,35 +30,37 @@ export default async function PlatformAuditPage({ searchParams }: PageProps) {
 
   return (
     <section className="space-y-4">
-      <h2 className="text-lg font-semibold">Revizija ({total})</h2>
+      <h2 className="text-lg font-semibold">
+        {t("admin.auditPage.title", { total })}
+      </h2>
 
       <form className="grid gap-3 sm:grid-cols-4" action="/administracija/revizija">
         <input
           type="text"
           name="action"
           defaultValue={params.action ?? ""}
-          placeholder="Akcija (npr. organization.created)"
+          placeholder={t("admin.auditPage.actionPlaceholder")}
           className="h-10 rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] px-3 text-sm"
         />
         <input
           type="text"
           name="entityType"
           defaultValue={params.entityType ?? ""}
-          placeholder="Tip entiteta"
+          placeholder={t("admin.auditPage.entityPlaceholder")}
           className="h-10 rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] px-3 text-sm"
         />
         <input
           type="text"
           name="organizationId"
           defaultValue={params.organizationId ?? ""}
-          placeholder="ID organizacije"
+          placeholder={t("admin.auditPage.orgIdPlaceholder")}
           className="h-10 rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] px-3 text-sm"
         />
         <button
           type="submit"
           className="h-10 rounded-md border border-[var(--color-border)] bg-[var(--color-surface-inset)] px-3 text-sm"
         >
-          Primeni
+          {t("common.apply")}
         </button>
       </form>
 
@@ -65,11 +70,21 @@ export default async function PlatformAuditPage({ searchParams }: PageProps) {
             <table className="w-full text-sm">
               <thead className="text-left text-xs uppercase text-[var(--color-foreground-subtle)]">
                 <tr>
-                  <th className="border-b border-[var(--color-border)] px-4 py-2">Vreme</th>
-                  <th className="border-b border-[var(--color-border)] px-4 py-2">Akcija</th>
-                  <th className="border-b border-[var(--color-border)] px-4 py-2">Entitet</th>
-                  <th className="border-b border-[var(--color-border)] px-4 py-2">Organizacija</th>
-                  <th className="border-b border-[var(--color-border)] px-4 py-2">Akter</th>
+                  <th className="border-b border-[var(--color-border)] px-4 py-2">
+                    {t("admin.time")}
+                  </th>
+                  <th className="border-b border-[var(--color-border)] px-4 py-2">
+                    {t("admin.auditPage.colAction")}
+                  </th>
+                  <th className="border-b border-[var(--color-border)] px-4 py-2">
+                    {t("admin.entity")}
+                  </th>
+                  <th className="border-b border-[var(--color-border)] px-4 py-2">
+                    {t("billing.columns.organization")}
+                  </th>
+                  <th className="border-b border-[var(--color-border)] px-4 py-2">
+                    {t("admin.actor")}
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -79,7 +94,7 @@ export default async function PlatformAuditPage({ searchParams }: PageProps) {
                       colSpan={5}
                       className="px-4 py-8 text-center text-[var(--color-foreground-muted)]"
                     >
-                      Nema revizijskih zapisa.
+                      {t("admin.auditPage.empty")}
                     </td>
                   </tr>
                 ) : (
@@ -103,14 +118,14 @@ export default async function PlatformAuditPage({ searchParams }: PageProps) {
                         ) : null}
                       </td>
                       <td className="px-4 py-2 text-xs">
-                        {row.organization?.name ?? "—"}
+                        {row.organization?.name ?? t("admin.dash")}
                       </td>
                       <td className="px-4 py-2 text-xs">
                         {row.actor
                           ? row.actor.email
                           : row.impersonatedBy
-                            ? `${row.impersonatedBy.email} (impersonated)`
-                            : "sistem"}
+                            ? `${row.impersonatedBy.email} ${t("admin.impersonated")}`
+                            : t("admin.system")}
                       </td>
                     </tr>
                   ))

@@ -4,6 +4,7 @@ import Link from "next/link";
 
 import { loadUserContext } from "@/server/auth/context";
 import { PageHeader } from "@/components/app/page-header";
+import { createT } from "@/lib/i18n";
 
 /**
  * Tenant-side settings layout. Requires an active organization.
@@ -19,52 +20,53 @@ export default async function SettingsLayout({ children }: { children: ReactNode
     if (ctx.isSuperAdmin) redirect("/administracija");
     redirect("/dashboard");
   }
+  const t = createT(ctx.user.locale);
 
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Podešavanja"
-        description={`Organizacija: ${ctx.activeOrganization.name}`}
+        title={t("nav.settings")}
+        description={t("ops.settings.orgName", { name: ctx.activeOrganization.name })}
       />
       <nav
         className="flex flex-wrap gap-2 border-b border-[var(--color-border)] pb-3"
-        aria-label="Sekcije podešavanja"
+        aria-label={t("ops.settings.sectionsAria")}
       >
         <Link
           className="rounded-md border border-[var(--color-border)] px-3 py-1.5 text-sm hover:bg-[var(--color-surface-inset)]"
           href="/podesavanja/organizacija"
         >
-          Organizacija
+          {t("ops.settings.organization")}
         </Link>
         <Link
           className="rounded-md border border-[var(--color-border)] px-3 py-1.5 text-sm hover:bg-[var(--color-surface-inset)]"
           href="/podesavanja/korisnici"
         >
-          Korisnici
+          {t("ops.settings.members")}
         </Link>
         <Link
           className="rounded-md border border-[var(--color-border)] px-3 py-1.5 text-sm hover:bg-[var(--color-surface-inset)]"
           href="/podesavanja/pretplata"
         >
-          Pretplata
+          {t("ops.settings.subscription")}
         </Link>
         <Link
           className="rounded-md border border-[var(--color-border)] px-3 py-1.5 text-sm hover:bg-[var(--color-surface-inset)]"
           href="/podesavanja/fakture"
         >
-          Fakture
+          {t("ops.settings.invoices")}
         </Link>
         <Link
           className="rounded-md border border-[var(--color-border)] px-3 py-1.5 text-sm hover:bg-[var(--color-surface-inset)]"
           href="/podesavanja/planovi-placanja"
         >
-          Planovi plaćanja
+          {t("nav.paymentPlans")}
         </Link>
         <Link
           className="rounded-md border border-[var(--color-border)] px-3 py-1.5 text-sm hover:bg-[var(--color-surface-inset)]"
           href="/podesavanja/ugovori-sabloni"
         >
-          Ugovori
+          {t("ops.settings.contracts")}
         </Link>
       </nav>
       {children}

@@ -1,34 +1,29 @@
+"use client";
+
 import { CalendarClock, Percent, Lock } from "lucide-react";
+
+import { useT } from "@/components/app/i18n-provider";
 
 /**
  * Compact "why sign up now" strip between hero and features.
- *
- * The three cards mirror the exact wording of the early-bird offer
- * (`Prvih 30 dana besplatno. Nakon toga 50% popusta na naredna tri
- * meseca.`) so the visitor sees the pricing story before the pricing
- * table itself. The dedicated `EarlyBirdBonuses` section below breaks
- * down the accompanying non-price perks (Excel import, project setup,
- * onboarding, priority support, locked-in price).
  */
 export function OfferBanner() {
+  const t = useT();
   const items = [
     {
       icon: CalendarClock,
-      title: "Prvih 30 dana besplatno",
-      body:
-        "Kompletan pristup svim funkcijama plana bez obaveze plaćanja - test na Vašim projektima i podacima.",
+      title: t("marketing.offer.trialTitle"),
+      body: t("marketing.offer.trialBody"),
     },
     {
       icon: Percent,
-      title: "50% popusta na naredna 3 meseca",
-      body:
-        "Nakon isteka trial-a, sledeća tri meseca plaćate polovinu cene odabranog plana. Popust se aktivira automatski.",
+      title: t("marketing.offer.discountTitle"),
+      body: t("marketing.offer.discountBody"),
     },
     {
       icon: Lock,
-      title: "Zaključana cena 12 meseci",
-      body:
-        "Cena Vašeg paketa se ne menja godinu dana - nema iznenađenja i poskupljenja u prvoj godini korišćenja.",
+      title: t("marketing.offer.lockTitle"),
+      body: t("marketing.offer.lockBody"),
     },
   ];
 
@@ -39,7 +34,7 @@ export function OfferBanner() {
     >
       <div className="container-app py-10 sm:py-14">
         <h2 id="offer-title" className="sr-only">
-          Šta dobijate prijavom za rani pristup
+          {t("marketing.offer.title")}
         </h2>
         <div className="grid gap-4 sm:grid-cols-3">
           {items.map((it) => {

@@ -14,8 +14,10 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { apiClient, ApiClientError } from "@/lib/api-client";
+import { useT } from "@/components/app/i18n-provider";
 
 export function RegisterBuyerButton({ projectId }: { projectId: string }) {
+  const t = useT();
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [firstName, setFirstName] = useState("");
@@ -45,7 +47,7 @@ export function RegisterBuyerButton({ projectId }: { projectId: string }) {
       setResult({ status: res.status, message: res.message });
       router.refresh();
     } catch (err) {
-      setError(err instanceof ApiClientError ? err.message : "Došlo je do greške.");
+      setError(err instanceof ApiClientError ? err.message : t("errors.generic"));
     } finally {
       setLoading(false);
     }
@@ -64,14 +66,13 @@ export function RegisterBuyerButton({ projectId }: { projectId: string }) {
   return (
     <Dialog open={open} onOpenChange={(v) => (v ? setOpen(true) : close())}>
       <DialogTrigger asChild>
-        <Button variant="outline">Prijavi kupca (zaštita)</Button>
+        <Button variant="outline">{t("partners.registerBuyer.trigger")}</Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Prijava kupca za zaštitu</DialogTitle>
+          <DialogTitle>{t("partners.registerBuyer.title")}</DialogTitle>
           <DialogDescription>
-            Kupac koji Vas kontaktirao za ovaj projekat biva prijavljen investitoru na
-            zaštitu.
+            {t("partners.registerBuyer.description")}
           </DialogDescription>
         </DialogHeader>
         {result ? (
@@ -83,14 +84,14 @@ export function RegisterBuyerButton({ projectId }: { projectId: string }) {
             }`}
           >
             {result.status === "PENDING"
-              ? "Prijava je uspešno kreirana i čeka odobrenje investitora."
-              : result.message ?? "Prijava je označena za pregled."}
+              ? t("partners.registerBuyer.pending")
+              : result.message ?? t("partners.registerBuyer.conflict")}
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div className="space-y-1">
               <label className="text-sm font-medium" htmlFor="firstName">
-                Ime
+                {t("common.name")}
               </label>
               <input
                 id="firstName"
@@ -102,7 +103,7 @@ export function RegisterBuyerButton({ projectId }: { projectId: string }) {
             </div>
             <div className="space-y-1">
               <label className="text-sm font-medium" htmlFor="lastName">
-                Prezime
+                {t("partners.lastName")}
               </label>
               <input
                 id="lastName"
@@ -114,7 +115,7 @@ export function RegisterBuyerButton({ projectId }: { projectId: string }) {
             </div>
             <div className="space-y-1">
               <label className="text-sm font-medium" htmlFor="phone">
-                Telefon
+                {t("common.phone")}
               </label>
               <input
                 id="phone"
@@ -126,7 +127,7 @@ export function RegisterBuyerButton({ projectId }: { projectId: string }) {
             </div>
             <div className="space-y-1">
               <label className="text-sm font-medium" htmlFor="email">
-                Email (opciono)
+                {t("common.email")} ({t("common.optional")})
               </label>
               <input
                 id="email"
@@ -145,7 +146,7 @@ export function RegisterBuyerButton({ projectId }: { projectId: string }) {
         )}
         <DialogFooter>
           <Button variant="outline" onClick={close} disabled={loading}>
-            {result ? "Zatvori" : "Otkaži"}
+            {result ? t("common.close") : t("common.cancel")}
           </Button>
           {!result ? (
             <Button
@@ -153,7 +154,7 @@ export function RegisterBuyerButton({ projectId }: { projectId: string }) {
               loading={loading}
               disabled={!firstName || !lastName || !phone}
             >
-              Prijavi
+              {t("partners.registerBuyer.submit")}
             </Button>
           ) : null}
         </DialogFooter>

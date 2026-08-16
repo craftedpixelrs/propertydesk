@@ -17,11 +17,12 @@ import {
   DialogContent,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { apiClient } from "@/lib/api-client";
-import { t } from "@/lib/i18n";
+import { apiClient, ApiClientError } from "@/lib/api-client";
+import { useT } from "@/components/app/i18n-provider";
+import type { TranslationKey } from "@/lib/i18n";
 
 interface SearchHit {
-  entity: "project" | "unit" | "buyer";
+  entity: "project" | "unit" | "buyer" | "organization" | "user" | "lead";
   id: string;
   title: string;
   subtitle: string | null;
@@ -92,6 +93,7 @@ interface DialogProps {
 }
 
 function CommandPaletteDialog({ open, onOpenChange }: DialogProps) {
+  const t = useT();
   const router = useRouter();
   const [q, setQ] = useState("");
   const [hits, setHits] = useState<SearchHit[]>([]);
@@ -130,9 +132,13 @@ function CommandPaletteDialog({ open, onOpenChange }: DialogProps) {
           setHits(data.hits);
           setError(null);
         })
-        .catch(() => {
+        .catch((err: unknown) => {
           if (seq !== requestSeq.current) return;
-          setError("Pretraga nije uspela.");
+          const message =
+            err instanceof ApiClientError
+              ? err.message
+              : t("ui.search.failed");
+          setError(message);
           setHits([]);
         })
         .finally(() => {
@@ -141,9 +147,9 @@ function CommandPaletteDialog({ open, onOpenChange }: DialogProps) {
         });
     }, 200);
     return () => clearTimeout(handle);
-  }, [q, open]);
+  }, [q, open, t]);
 
-  const grouped = useMemo(() => groupHits(hits), [hits]);
+  const grouped = useMemo(() => groupHits(hits, t), [hits, t]);
 
   function go(href: string) {
     onOpenChange(false);
@@ -154,10 +160,10 @@ function CommandPaletteDialog({ open, onOpenChange }: DialogProps) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl gap-0 p-0">
         <DialogTitle className="sr-only">
-          {t("nav.search") ?? "Pretraga"}
+          {t("ui.search.title")}
         </DialogTitle>
         <Command
-          label="Globalna pretraga"
+          label={t("ui.search.globalLabel")}
           shouldFilter={false}
           className="flex flex-col"
         >
@@ -165,7 +171,7 @@ function CommandPaletteDialog({ open, onOpenChange }: DialogProps) {
             <Command.Input
               value={q}
               onValueChange={setQ}
-              placeholder="Pretraži projekte, jedinice i kupce…"
+              placeholder={t("ui.search.placeholder")}
               autoFocus
               className="h-12 w-full bg-transparent text-sm outline-none placeholder:text-[var(--color-foreground-muted)]"
             />
@@ -176,13 +182,13 @@ function CommandPaletteDialog({ open, onOpenChange }: DialogProps) {
             ) : null}
             {loading && hits.length === 0 ? (
               <div className="px-3 py-4 text-sm text-[var(--color-foreground-muted)]">
-                Tražim…
+                {t("ui.search.searching")}
               </div>
             ) : null}
             <Command.Empty className="px-3 py-6 text-sm text-[var(--color-foreground-muted)]">
               {q.trim().length < 2
-                ? "Ukucajte bar dva karaktera za pretragu."
-                : "Nema rezultata."}
+                ? t("ui.search.emptyHint")
+                : t("empty.noResults")}
             </Command.Empty>
             {grouped.map((group) => (
               <Command.Group
@@ -214,7 +220,7 @@ function CommandPaletteDialog({ open, onOpenChange }: DialogProps) {
             ))}
           </Command.List>
           <footer className="flex items-center justify-between border-t border-[var(--color-border)] px-4 py-2 text-[11px] text-[var(--color-foreground-muted)]">
-            <span>Enter za otvaranje</span>
+            <span>{t("ui.search.enterToOpen")}</span>
             <kbd className="rounded border border-[var(--color-border)] bg-white px-1.5 py-0.5 font-mono text-[10px]">
               Ctrl/⌘ + K
             </kbd>
@@ -231,15 +237,28 @@ interface HitGroup {
   items: SearchHit[];
 }
 
-const GROUP_LABELS: Record<SearchHit["entity"], string> = {
-  project: "Projekti",
-  unit: "Jedinice",
-  buyer: "Kupci",
+const GROUP_LABEL_KEYS: Record<SearchHit["entity"], TranslationKey> = {
+  project: "ui.search.entity.project",
+  unit: "ui.search.entity.unit",
+  buyer: "ui.search.entity.buyer",
+  organization: "ui.search.entity.organization",
+  user: "ui.search.entity.user",
+  lead: "ui.search.entity.lead",
 };
 
-const GROUP_ORDER: SearchHit["entity"][] = ["project", "unit", "buyer"];
+const GROUP_ORDER: SearchHit["entity"][] = [
+  "project",
+  "unit",
+  "buyer",
+  "organization",
+  "user",
+  "lead",
+];
 
-function groupHits(hits: SearchHit[]): HitGroup[] {
+function groupHits(
+  hits: SearchHit[],
+  translate: (key: TranslationKey) => string,
+): HitGroup[] {
   const buckets = new Map<SearchHit["entity"], SearchHit[]>();
   for (const hit of hits) {
     const list = buckets.get(hit.entity) ?? [];
@@ -250,7 +269,11 @@ function groupHits(hits: SearchHit[]): HitGroup[] {
   for (const entity of GROUP_ORDER) {
     const items = buckets.get(entity);
     if (!items || items.length === 0) continue;
-    groups.push({ entity, label: GROUP_LABELS[entity], items });
+    groups.push({
+      entity,
+      label: translate(GROUP_LABEL_KEYS[entity]),
+      items,
+    });
   }
   return groups;
 }

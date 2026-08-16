@@ -5,7 +5,9 @@ import { useRouter } from "next/navigation";
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { useT } from "@/components/app/i18n-provider";
 import { apiClient, ApiClientError } from "@/lib/api-client";
+import { unitTypeLabel } from "@/lib/i18n";
 
 interface FloorOpt {
   id: string;
@@ -24,15 +26,15 @@ interface BuildingOpt {
   entrances: EntranceOpt[];
 }
 
-const UNIT_TYPES = [
-  { value: "APARTMENT", label: "Stan" },
-  { value: "GARAGE", label: "Garaža" },
-  { value: "PARKING_SPACE", label: "Parking" },
-  { value: "STORAGE", label: "Ostava" },
-  { value: "COMMERCIAL", label: "Lokal" },
-  { value: "HOUSE", label: "Kuća" },
-  { value: "OTHER", label: "Ostalo" },
-];
+const UNIT_TYPE_VALUES = [
+  "APARTMENT",
+  "GARAGE",
+  "PARKING_SPACE",
+  "STORAGE",
+  "COMMERCIAL",
+  "HOUSE",
+  "OTHER",
+] as const;
 
 interface UnitFormProps {
   projectId: string;
@@ -51,6 +53,7 @@ export function NewUnitForm({
   initialValues,
   expectedVersion,
 }: UnitFormProps) {
+  const t = useT();
   const router = useRouter();
   const isEdit = mode === "edit";
   const [values, setValues] = useState<Record<string, string>>(
@@ -157,7 +160,7 @@ export function NewUnitForm({
         setError(err.message);
         setFieldErrors(err.fieldErrors ?? {});
       } else {
-        setError("Došlo je do neočekivane greške.");
+        setError(t("common.unexpectedError"));
       }
     } finally {
       setLoading(false);
@@ -170,37 +173,37 @@ export function NewUnitForm({
         <form className="grid grid-cols-1 gap-4 sm:grid-cols-2" onSubmit={onSubmit}>
           <Field
             name="code"
-            label="Šifra jedinice"
+            label={t("units.fields.code")}
             required
             value={values.code ?? ""}
             onChange={(v) => setValue("code", v)}
             errors={fieldErrors.code}
             disabled={isEdit}
-            hint={isEdit ? "Šifra jedinice ne može se menjati posle kreiranja." : undefined}
+            hint={isEdit ? t("inventory.units.codeImmutable") : undefined}
           />
           <div className="space-y-1">
-            <label className="text-sm font-medium">Tip</label>
+            <label className="text-sm font-medium">{t("units.fields.type")}</label>
             <select
               value={values.type ?? "APARTMENT"}
               onChange={(e) => setValue("type", e.target.value)}
               className="h-11 w-full rounded-md border border-[var(--color-border)] bg-white px-3 text-sm"
             >
-              {UNIT_TYPES.map((t) => (
-                <option key={t.value} value={t.value}>
-                  {t.label}
+              {UNIT_TYPE_VALUES.map((value) => (
+                <option key={value} value={value}>
+                  {unitTypeLabel(value, t)}
                 </option>
               ))}
             </select>
           </div>
 
           <div className="space-y-1">
-            <label className="text-sm font-medium">Objekat</label>
+            <label className="text-sm font-medium">{t("units.columns.building")}</label>
             <select
               value={values.buildingId ?? ""}
               onChange={(e) => setValue("buildingId", e.target.value)}
               className="h-11 w-full rounded-md border border-[var(--color-border)] bg-white px-3 text-sm"
             >
-              <option value="">— nije određeno —</option>
+              <option value="">{t("inventory.form.unspecified")}</option>
               {structure.map((b) => (
                 <option key={b.id} value={b.id}>
                   {b.name} ({b.code})
@@ -209,14 +212,14 @@ export function NewUnitForm({
             </select>
           </div>
           <div className="space-y-1">
-            <label className="text-sm font-medium">Ulaz</label>
+            <label className="text-sm font-medium">{t("units.columns.entrance")}</label>
             <select
               value={values.entranceId ?? ""}
               onChange={(e) => setValue("entranceId", e.target.value)}
               disabled={!selectedBuilding}
               className="h-11 w-full rounded-md border border-[var(--color-border)] bg-white px-3 text-sm disabled:opacity-50"
             >
-              <option value="">— nije određeno —</option>
+              <option value="">{t("inventory.form.unspecified")}</option>
               {selectedBuilding?.entrances.map((e) => (
                 <option key={e.id} value={e.id}>
                   {e.name} ({e.code})
@@ -225,14 +228,14 @@ export function NewUnitForm({
             </select>
           </div>
           <div className="space-y-1">
-            <label className="text-sm font-medium">Sprat</label>
+            <label className="text-sm font-medium">{t("units.columns.floor")}</label>
             <select
               value={values.floorId ?? ""}
               onChange={(e) => setValue("floorId", e.target.value)}
               disabled={!selectedEntrance}
               className="h-11 w-full rounded-md border border-[var(--color-border)] bg-white px-3 text-sm disabled:opacity-50"
             >
-              <option value="">— nije određeno —</option>
+              <option value="">{t("inventory.form.unspecified")}</option>
               {selectedEntrance?.floors.map((f) => (
                 <option key={f.id} value={f.id}>
                   {f.label}
@@ -242,14 +245,14 @@ export function NewUnitForm({
           </div>
           <Field
             name="structure"
-            label="Struktura (npr. 2.5)"
+            label={t("units.fields.structure")}
             value={values.structure ?? ""}
             onChange={(v) => setValue("structure", v)}
           />
 
           <Field
             name="totalArea"
-            label="Ukupna površina (m²)"
+            label={t("units.fields.totalArea")}
             type="number"
             required
             value={values.totalArea ?? ""}
@@ -258,21 +261,21 @@ export function NewUnitForm({
           />
           <Field
             name="internalArea"
-            label="Neto površina (m²)"
+            label={t("units.fields.internalArea")}
             type="number"
             value={values.internalArea ?? ""}
             onChange={(v) => setValue("internalArea", v)}
           />
           <Field
             name="terraceArea"
-            label="Terasa (m²)"
+            label={t("units.fields.terraceArea")}
             type="number"
             value={values.terraceArea ?? ""}
             onChange={(v) => setValue("terraceArea", v)}
           />
           <Field
             name="gardenArea"
-            label="Bašta (m²)"
+            label={t("units.fields.gardenArea")}
             type="number"
             value={values.gardenArea ?? ""}
             onChange={(v) => setValue("gardenArea", v)}
@@ -280,7 +283,7 @@ export function NewUnitForm({
 
           <Field
             name="basePrice"
-            label="Osnovna cena"
+            label={t("units.fields.basePrice")}
             type="number"
             required
             value={values.basePrice ?? ""}
@@ -289,20 +292,20 @@ export function NewUnitForm({
           />
           <Field
             name="finalPrice"
-            label="Konačna cena"
+            label={t("units.fields.finalPrice")}
             type="number"
             value={values.finalPrice ?? ""}
             onChange={(v) => setValue("finalPrice", v)}
           />
           <Field
             name="currency"
-            label="Valuta"
+            label={t("units.fields.currency")}
             value={values.currency ?? "EUR"}
             onChange={(v) => setValue("currency", v)}
           />
           <Field
             name="vatRate"
-            label="PDV (%)"
+            label={t("units.fields.vatRate")}
             type="number"
             value={values.vatRate ?? ""}
             onChange={(v) => setValue("vatRate", v)}
@@ -310,14 +313,14 @@ export function NewUnitForm({
 
           <Field
             name="bedrooms"
-            label="Spavaće sobe"
+            label={t("units.fields.bedrooms")}
             type="number"
             value={values.bedrooms ?? ""}
             onChange={(v) => setValue("bedrooms", v)}
           />
           <Field
             name="bathrooms"
-            label="Kupatila"
+            label={t("units.fields.bathrooms")}
             type="number"
             value={values.bathrooms ?? ""}
             onChange={(v) => setValue("bathrooms", v)}
@@ -325,13 +328,13 @@ export function NewUnitForm({
 
           <Field
             name="orientation"
-            label="Orijentacija"
+            label={t("units.fields.orientation")}
             value={values.orientation ?? ""}
             onChange={(v) => setValue("orientation", v)}
           />
 
           <div className="sm:col-span-2 space-y-1">
-            <label className="text-sm font-medium">Javni opis</label>
+            <label className="text-sm font-medium">{t("units.fields.publicDescription")}</label>
             <textarea
               className="min-h-20 w-full rounded-md border border-[var(--color-border)] bg-white px-3 py-2 text-sm"
               value={values.publicDescription ?? ""}
@@ -339,7 +342,7 @@ export function NewUnitForm({
             />
           </div>
           <div className="sm:col-span-2 space-y-1">
-            <label className="text-sm font-medium">Interne napomene</label>
+            <label className="text-sm font-medium">{t("units.fields.internalNotes")}</label>
             <textarea
               className="min-h-20 w-full rounded-md border border-[var(--color-border)] bg-white px-3 py-2 text-sm"
               value={values.internalNotes ?? ""}
@@ -350,7 +353,7 @@ export function NewUnitForm({
           {basePriceChanged ? (
             <div className="sm:col-span-2 space-y-1">
               <label className="text-sm font-medium">
-                Razlog promene cene <span className="text-red-500">*</span>
+                {t("inventory.units.priceChangeReason")} <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
@@ -358,10 +361,10 @@ export function NewUnitForm({
                 onChange={(e) => setPriceChangeReason(e.target.value)}
                 required
                 className="h-11 w-full rounded-md border border-[var(--color-border)] bg-white px-3 text-sm"
-                placeholder="npr. korekcija zbog povećanja površine terase"
+                placeholder={t("inventory.units.priceChangePlaceholder")}
               />
               <p className="text-xs text-[var(--color-foreground-muted)]">
-                Beleži se u istoriju cena i audit trag. Obavezno kada menjaš osnovnu cenu.
+                {t("inventory.units.priceChangeHint")}
               </p>
             </div>
           ) : null}
@@ -374,14 +377,14 @@ export function NewUnitForm({
 
           <div className="sm:col-span-2 flex justify-end gap-2 pt-2">
             <Button variant="outline" type="button" onClick={() => router.back()} disabled={loading}>
-              Odustani
+              {t("inventory.discard")}
             </Button>
             <Button
               type="submit"
               loading={loading}
               disabled={basePriceChanged && priceChangeReason.trim().length === 0}
             >
-              {isEdit ? "Sačuvaj izmene" : "Kreiraj jedinicu"}
+              {isEdit ? t("common.saveChanges") : t("inventory.units.create")}
             </Button>
           </div>
         </form>

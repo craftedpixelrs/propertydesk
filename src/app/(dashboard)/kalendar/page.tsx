@@ -4,6 +4,7 @@ import { endOfMonth, startOfMonth } from "date-fns";
 import { loadUserContext } from "@/server/auth/context";
 import { loadCalendarEvents } from "@/server/services/calendar/calendar.service";
 import { MonthGrid } from "@/features/calendar/month-grid";
+import { createT } from "@/lib/i18n";
 
 export const dynamic = "force-dynamic";
 
@@ -20,6 +21,7 @@ export default async function KalendarPage({ searchParams }: PageProps) {
   if (!ctx) redirect("/sign-in");
   if (!ctx.activeOrganization) redirect("/podesavanja");
 
+  const t = createT(ctx.user.locale);
   const sp = await searchParams;
   const now = new Date();
   const year = Number(readParam(sp.year) ?? now.getFullYear()) || now.getFullYear();
@@ -36,9 +38,9 @@ export default async function KalendarPage({ searchParams }: PageProps) {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold">Kalendar</h1>
+        <h1 className="text-2xl font-semibold">{t("nav.calendar")}</h1>
         <p className="text-sm text-[var(--color-foreground-muted)]">
-          Rezervacije, uplate, zadaci i primopredaje na jednom mestu.
+          {t("deals.calendar.subtitle")}
         </p>
       </div>
       <MonthGrid initialYear={year} initialMonth={month} events={events} />

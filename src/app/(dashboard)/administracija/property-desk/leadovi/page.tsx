@@ -10,6 +10,8 @@ import {
 import { listMarketingLeads } from "@/server/services/property-desk/marketing-leads.service";
 import { listTeamMembers } from "@/server/services/property-desk/team.service";
 import { STAGE_TO_LEVEL } from "@/server/services/property-desk/lead-lifecycle";
+import { createT, type TranslateFn, type TranslationKey } from "@/lib/i18n";
+import { resolveRequestLocale } from "@/lib/i18n/resolve-locale";
 
 import { LeadListView, type LeadRow } from "./lead-list-view";
 
@@ -49,56 +51,13 @@ const querySchema = z.object({
   q: z.string().optional(),
 });
 
-const STAGE_LABEL: Record<string, string> = {
-  NEW: "Novi",
-  CONTACTED: "Kontaktirano",
-  QUALIFIED: "Kvalifikovano",
-  DEMO: "Demo",
-  PROPOSAL: "Ponuda",
-  WON: "Konvertovano",
-  LOST: "Izgubljeno",
-  NURTURING: "Nurturing",
-};
-
-const AUDIENCE_LABEL: Record<string, string> = {
-  INVESTOR: "Investitor",
-  AGENCY: "Agencija",
-  OTHER: "Ostalo",
-};
-
-const LEVEL_LABEL: Record<string, string> = {
-  SOURCING: "L1 Sourcing",
-  CLOSING: "L2 Closing",
-  OPERATIONS: "L3 Operations",
-  ARCHIVED: "Arhivirano",
-};
-
-const PRIORITY_LABEL: Record<string, string> = {
-  LOW: "Nizak",
-  NORMAL: "Normalan",
-  HIGH: "Visok",
-  URGENT: "Hitno",
-};
-
-const TEMPERATURE_LABEL: Record<string, string> = {
-  COLD: "Cold",
-  WARM: "Warm",
-  HOT: "Hot",
-};
-
-const TIMELINE_LABEL: Record<string, string> = {
-  WITHIN_30D: "≤ 30 dana",
-  WITHIN_90D: "30–90 dana",
-  LATER: "Kasnije",
-  UNDECIDED: "Neodređeno",
-};
-
 interface PageProps {
   searchParams: Promise<Record<string, string | undefined>>;
 }
 
 export default async function PropertyDeskLeadsPage({ searchParams }: PageProps) {
   const ctx = await requirePropertyDeskAccess();
+  const t = createT(await resolveRequestLocale());
   const raw = await searchParams;
   const parsed = querySchema.parse(raw);
   const page = Number.parseInt(parsed.page ?? "1", 10) || 1;
@@ -178,19 +137,16 @@ export default async function PropertyDeskLeadsPage({ searchParams }: PageProps)
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h2 className="text-lg font-semibold">Marketing lead pipeline</h2>
+          <h2 className="text-lg font-semibold">{t("admin.pdLeads.title")}</h2>
           <p className="text-sm text-[var(--color-foreground-muted)]">
-            Persistirani lead-ovi grupisani po levelima (Sourcing → Closing →
-            Operations). Vidljivost je scoping-aware — vidite samo lead-ove u
-            vašem level-u i <code>leadScope</code>-u (osim ako imate{" "}
-            <code>pd_lead.view_team</code>).
+            {t("admin.pdLeads.subtitle")}
           </p>
         </div>
-        <Badge tone="neutral">Ukupno: {total}</Badge>
+        <Badge tone="neutral">{t("admin.pdLeads.total", { total })}</Badge>
       </div>
 
       {raw.handoff ? (
-        <HandoffBanner stage={raw.handoff} />
+        <HandoffBanner stage={raw.handoff} t={t} />
       ) : null}
 
       <Card>
@@ -203,7 +159,7 @@ export default async function PropertyDeskLeadsPage({ searchParams }: PageProps)
               type="text"
               name="q"
               defaultValue={parsed.q ?? ""}
-              placeholder="Pretraga (ime, email, telefon, grad, firma, beleška)"
+              placeholder={t("admin.pdLeads.searchPlaceholder")}
               className="h-10 rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] px-3 text-sm md:col-span-3"
             />
             <select
@@ -211,10 +167,10 @@ export default async function PropertyDeskLeadsPage({ searchParams }: PageProps)
               defaultValue={parsed.level ?? ""}
               className="h-10 rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] px-3 text-sm"
             >
-              <option value="">— svi leveli —</option>
-              {Object.entries(LEVEL_LABEL).map(([v, l]) => (
+              <option value="">{t("admin.pdLeads.allLevels")}</option>
+              {LEVEL_ENUM.map((v) => (
                 <option key={v} value={v}>
-                  {l}
+                  {t(`admin.pd.level.${v}` as TranslationKey)}
                 </option>
               ))}
             </select>
@@ -223,10 +179,10 @@ export default async function PropertyDeskLeadsPage({ searchParams }: PageProps)
               defaultValue={parsed.stage ?? ""}
               className="h-10 rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] px-3 text-sm"
             >
-              <option value="">— sve faze —</option>
-              {Object.entries(STAGE_LABEL).map(([v, l]) => (
+              <option value="">{t("admin.pdLeads.allStages")}</option>
+              {STAGE_ENUM.map((v) => (
                 <option key={v} value={v}>
-                  {l}
+                  {t(`admin.pd.stage.${v}` as TranslationKey)}
                 </option>
               ))}
             </select>
@@ -235,10 +191,10 @@ export default async function PropertyDeskLeadsPage({ searchParams }: PageProps)
               defaultValue={parsed.audience ?? ""}
               className="h-10 rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] px-3 text-sm"
             >
-              <option value="">— sve publike —</option>
-              {Object.entries(AUDIENCE_LABEL).map(([v, l]) => (
+              <option value="">{t("admin.pdLeads.allAudiences")}</option>
+              {AUDIENCE_ENUM.map((v) => (
                 <option key={v} value={v}>
-                  {l}
+                  {t(`admin.pd.audience.${v}` as TranslationKey)}
                 </option>
               ))}
             </select>
@@ -247,10 +203,10 @@ export default async function PropertyDeskLeadsPage({ searchParams }: PageProps)
               defaultValue={parsed.priority ?? ""}
               className="h-10 rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] px-3 text-sm"
             >
-              <option value="">— svi prioriteti —</option>
-              {Object.entries(PRIORITY_LABEL).map(([v, l]) => (
+              <option value="">{t("admin.pdLeads.allPriorities")}</option>
+              {PRIORITY_ENUM.map((v) => (
                 <option key={v} value={v}>
-                  {l}
+                  {t(`admin.pd.priority.${v}` as TranslationKey)}
                 </option>
               ))}
             </select>
@@ -259,10 +215,10 @@ export default async function PropertyDeskLeadsPage({ searchParams }: PageProps)
               defaultValue={parsed.temperature ?? ""}
               className="h-10 rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] px-3 text-sm"
             >
-              <option value="">— svi „grade" —</option>
-              {Object.entries(TEMPERATURE_LABEL).map(([v, l]) => (
+              <option value="">{t("admin.pdLeads.allGrades")}</option>
+              {TEMPERATURE_ENUM.map((v) => (
                 <option key={v} value={v}>
-                  {l}
+                  {t(`admin.pd.temperature.${v}` as TranslationKey)}
                 </option>
               ))}
             </select>
@@ -271,10 +227,10 @@ export default async function PropertyDeskLeadsPage({ searchParams }: PageProps)
               defaultValue={parsed.timeline ?? ""}
               className="h-10 rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] px-3 text-sm"
             >
-              <option value="">— svi timeline-ovi —</option>
-              {Object.entries(TIMELINE_LABEL).map(([v, l]) => (
+              <option value="">{t("admin.pdLeads.allTimelines")}</option>
+              {TIMELINE_ENUM.map((v) => (
                 <option key={v} value={v}>
-                  {l}
+                  {t(`admin.pd.timeline.${v}` as TranslationKey)}
                 </option>
               ))}
             </select>
@@ -283,9 +239,9 @@ export default async function PropertyDeskLeadsPage({ searchParams }: PageProps)
               defaultValue={parsed.assignedTo ?? ""}
               className="h-10 rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] px-3 text-sm"
             >
-              <option value="">— svi vlasnici —</option>
-              <option value="me">Meni dodeljeno</option>
-              <option value="unassigned">Bez vlasnika</option>
+              <option value="">{t("admin.pdLeads.allOwners")}</option>
+              <option value="me">{t("admin.pdLeads.assignedToMe")}</option>
+              <option value="unassigned">{t("admin.pdLeads.unassigned")}</option>
               {teamMembers.map((tm) => (
                 <option key={tm.userId} value={tm.userId}>
                   {tm.user.name}
@@ -297,9 +253,9 @@ export default async function PropertyDeskLeadsPage({ searchParams }: PageProps)
               defaultValue={parsed.sort ?? ""}
               className="h-10 rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] px-3 text-sm"
             >
-              <option value="">Sort: score desc (default)</option>
-              <option value="recent">Sort: najnoviji</option>
-              <option value="score">Sort: score desc</option>
+              <option value="">{t("admin.pdLeads.sortDefault")}</option>
+              <option value="recent">{t("admin.pdLeads.sortRecent")}</option>
+              <option value="score">{t("admin.pdLeads.sortScore")}</option>
             </select>
             <input
               type="number"
@@ -307,7 +263,7 @@ export default async function PropertyDeskLeadsPage({ searchParams }: PageProps)
               min={0}
               max={100}
               defaultValue={parsed.minScore ?? ""}
-              placeholder="Min score (0-100)"
+              placeholder={t("admin.pdLeads.minScore")}
               className="h-10 rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] px-3 text-sm"
             />
             <input
@@ -316,7 +272,7 @@ export default async function PropertyDeskLeadsPage({ searchParams }: PageProps)
               min={0}
               max={365}
               defaultValue={parsed.followUpWithinDays ?? ""}
-              placeholder="Follow-up u N dana"
+              placeholder={t("admin.pdLeads.followUpN")}
               className="h-10 rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] px-3 text-sm"
             />
             <label className="flex items-center gap-2 text-sm">
@@ -326,13 +282,13 @@ export default async function PropertyDeskLeadsPage({ searchParams }: PageProps)
                 value="1"
                 defaultChecked={parsed.hasOverdueTask === "1"}
               />
-              Overdue task
+              {t("admin.pdLeads.overdueTask")}
             </label>
             <input
               type="text"
               name="source"
               defaultValue={parsed.source ?? ""}
-              placeholder="Izvor (npr. landing, manual)"
+              placeholder={t("admin.pdLeads.sourcePlaceholder")}
               className="h-10 rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] px-3 text-sm"
             />
             <input
@@ -347,13 +303,13 @@ export default async function PropertyDeskLeadsPage({ searchParams }: PageProps)
                 type="submit"
                 className="h-10 rounded-md bg-[var(--color-brand-600)] px-4 text-sm text-white hover:bg-[var(--color-brand-700)]"
               >
-                Primeni filtere
+                {t("admin.applyFilters")}
               </button>
               <Link
                 href="/administracija/property-desk/leadovi"
                 className="h-10 rounded-md border border-[var(--color-border)] px-4 text-sm leading-10 hover:bg-[var(--color-surface-inset)]"
               >
-                Reset
+                {t("common.reset")}
               </Link>
             </div>
           </form>
@@ -377,16 +333,16 @@ export default async function PropertyDeskLeadsPage({ searchParams }: PageProps)
       {totalPages > 1 ? (
         <div className="flex items-center justify-end gap-2 text-sm">
           <PageLink
-            label="← Prethodna"
+            label={t("admin.previousPageArrow")}
             page={page - 1}
             disabled={page <= 1}
             params={parsed}
           />
           <span className="px-2 text-[var(--color-foreground-muted)]">
-            Strana {page} / {totalPages}
+            {t("admin.pageSlash", { page, total: totalPages })}
           </span>
           <PageLink
-            label="Sledeća →"
+            label={t("admin.nextPageArrow")}
             page={page + 1}
             disabled={page >= totalPages}
             params={parsed}
@@ -397,31 +353,32 @@ export default async function PropertyDeskLeadsPage({ searchParams }: PageProps)
   );
 }
 
-function HandoffBanner({ stage }: { stage: string }) {
-  const stageLabel = STAGE_LABEL[stage] ?? stage;
+function HandoffBanner({ stage, t }: { stage: string; t: TranslateFn }) {
+  const stageLabel = t(`admin.pd.stage.${stage}` as TranslationKey);
   const level = STAGE_TO_LEVEL[stage as keyof typeof STAGE_TO_LEVEL];
-  const levelLabel = level ? LEVEL_LABEL[level] : null;
+  const levelLabel = level ? t(`admin.pd.level.${level}` as TranslationKey) : null;
   const body =
     stage === "LOST"
-      ? "Lead je označen kao izgubljen i arhiviran. Više nije u tvom aktivnom pipeline-u."
+      ? t("admin.pdLeads.handoffLost")
       : stage === "WON"
-        ? "Lead je konvertovan i prešao u L3 Operations. Handover je uspeo — više nije u tvom pipeline-u."
-        : `Lead je prebačen u fazu „${stageLabel}”${
-            levelLabel ? ` (${levelLabel})` : ""
-          } i predat sledećem timu u pool. To je uspešna predaja, ne greška.`;
+        ? t("admin.pdLeads.handoffWon")
+        : t("admin.pdLeads.handoffOther", {
+            stage: stageLabel,
+            level: levelLabel ? t("admin.pdLeads.handoffLevel", { level: levelLabel }) : "",
+          });
 
   return (
     <div
       className="rounded-md border border-[var(--color-success)] bg-[var(--color-success-bg)] p-4 text-sm text-[var(--color-success)]"
       role="status"
     >
-      <p className="font-semibold">Predaja uspela</p>
+      <p className="font-semibold">{t("admin.pdLeads.handoffTitle")}</p>
       <p className="mt-1">{body}</p>
       <Link
         href="/administracija/property-desk/leadovi"
         className="mt-2 inline-block text-xs font-medium underline"
       >
-        Sakrij poruku
+        {t("admin.pdLeads.hideMessage")}
       </Link>
     </div>
   );

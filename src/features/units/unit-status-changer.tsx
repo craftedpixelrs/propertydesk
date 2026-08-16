@@ -4,19 +4,10 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
+import { useT } from "@/components/app/i18n-provider";
 import { apiClient, ApiClientError } from "@/lib/api-client";
+import { unitStatusLabel } from "@/lib/i18n";
 import { ALLOWED_UNIT_STATUS_TRANSITIONS } from "@/features/units/status-transitions";
-
-const LABELS: Record<string, string> = {
-  AVAILABLE: "Slobodno",
-  ON_HOLD: "Na čekanju",
-  RESERVED: "Rezervisano",
-  DEPOSIT_PAID: "Kapara plaćena",
-  CONTRACTED: "Ugovoreno",
-  SOLD: "Prodato",
-  BLOCKED: "Blokirano",
-  NOT_FOR_SALE: "Nije u prodaji",
-};
 
 export function UnitStatusChanger({
   unitId,
@@ -25,6 +16,7 @@ export function UnitStatusChanger({
   unitId: string;
   currentStatus: string;
 }) {
+  const t = useT();
   const router = useRouter();
   const [target, setTarget] = useState("");
   const [reason, setReason] = useState("");
@@ -35,8 +27,7 @@ export function UnitStatusChanger({
   if (options.length === 0) {
     return (
       <p className="text-sm text-[var(--color-foreground-muted)]">
-        Iz trenutnog statusa nije dozvoljena nijedna promena. Sistemski
-        događaji (npr. otkaz rezervacije) mogu izmeniti status automatski.
+        {t("inventory.units.noStatusTransitions")}
       </p>
     );
   }
@@ -58,7 +49,7 @@ export function UnitStatusChanger({
       setError(
         err instanceof ApiClientError
           ? err.message
-          : "Greška prilikom izmene statusa.",
+          : t("inventory.units.statusChangeError"),
       );
     } finally {
       setLoading(false);
@@ -75,22 +66,22 @@ export function UnitStatusChanger({
         onChange={(e) => setTarget(e.target.value)}
         className="h-10 rounded-md border border-[var(--color-border)] bg-white px-3 text-sm"
       >
-        <option value="">Novi status…</option>
+        <option value="">{t("inventory.units.newStatusPlaceholder")}</option>
         {options.map((o) => (
           <option key={o} value={o}>
-            {LABELS[o] ?? o}
+            {unitStatusLabel(o, t)}
           </option>
         ))}
       </select>
       <input
         type="text"
-        placeholder="Razlog (opciono)"
+        placeholder={t("units.price.reason")}
         value={reason}
         onChange={(e) => setReason(e.target.value)}
         className="h-10 rounded-md border border-[var(--color-border)] bg-white px-3 text-sm"
       />
       <Button type="submit" loading={loading} disabled={!target}>
-        Promeni status
+        {t("units.actions.changeStatus")}
       </Button>
       {error ? (
         <div className="sm:col-span-3 rounded-md border border-red-200 bg-red-50 p-2 text-xs text-red-700">

@@ -1,4 +1,8 @@
+"use client";
+
 import { AlertTriangle, CheckCircle2 } from "lucide-react";
+
+import { useT } from "@/components/app/i18n-provider";
 
 interface Pair {
   problem: string;
@@ -17,10 +21,12 @@ interface ProblemSolutionGridProps {
  * corresponding platform capability on the right.
  */
 export function ProblemSolutionGrid({
-  title = "Šta vas boli danas i kako to PropertyDesk rešava",
+  title,
   subtitle,
   items,
 }: ProblemSolutionGridProps) {
+  const t = useT();
+
   return (
     <section
       aria-labelledby="ps-title"
@@ -32,7 +38,7 @@ export function ProblemSolutionGrid({
             id="ps-title"
             className="text-3xl font-bold tracking-tight sm:text-4xl"
           >
-            {title}
+            {title ?? t("marketing.cta.title")}
           </h2>
           {subtitle ? (
             <p className="mt-4 text-base leading-relaxed text-[var(--color-foreground-muted)]">
@@ -56,7 +62,7 @@ export function ProblemSolutionGrid({
                 </span>
                 <div>
                   <div className="text-xs font-semibold uppercase tracking-wider text-red-600">
-                    Problem
+                    {t("marketing.common.problem")}
                   </div>
                   <p className="mt-1 text-sm leading-relaxed text-[var(--color-foreground)]">
                     {it.problem}

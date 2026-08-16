@@ -12,47 +12,48 @@ import {
 import { PageHeader } from "@/components/app/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { loadUserContext } from "@/server/auth/context";
+import { createT, type TranslationKey } from "@/lib/i18n";
 
 const REPORTS: Array<{
   href: string;
-  title: string;
-  description: string;
+  titleKey: TranslationKey;
+  descriptionKey: TranslationKey;
   Icon: typeof Building2;
 }> = [
   {
     href: "/izvestaji/zalihe",
-    title: "Zalihe jedinica",
-    description: "Raspoloživost, prodato, rezervisano — po projektu i statusu.",
+    titleKey: "ops.reports.inventoryTitle",
+    descriptionKey: "ops.reports.inventoryCardDesc",
     Icon: Building2,
   },
   {
     href: "/izvestaji/prodaje",
-    title: "Prodaje",
-    description: "Ugovorene, naplaćene, preostalo — filteri po projektu i periodu.",
+    titleKey: "ops.reports.salesTitle",
+    descriptionKey: "ops.reports.salesCardDesc",
     Icon: Handshake,
   },
   {
     href: "/izvestaji/kupci",
-    title: "Kupci",
-    description: "Distribucija po statusu i izvoru — pipeline kupaca.",
+    titleKey: "ops.reports.buyersTitle",
+    descriptionKey: "ops.reports.buyersCardDesc",
     Icon: Users,
   },
   {
     href: "/izvestaji/rezervacije",
-    title: "Rezervacije",
-    description: "Struktura rezervacija po statusu i izvoru.",
+    titleKey: "ops.reports.reservationsTitle",
+    descriptionKey: "ops.reports.reservationsCardDesc",
     Icon: BadgeCheck,
   },
   {
     href: "/izvestaji/uplate",
-    title: "Uplate",
-    description: "Kretanje uplata sa metodama plaćanja.",
+    titleKey: "ops.reports.paymentsTitle",
+    descriptionKey: "ops.reports.paymentsCardDesc",
     Icon: Wallet,
   },
   {
     href: "/izvestaji/agencije",
-    title: "Učinak agencija",
-    description: "Rezervacije, prodaje i provizije po povezanoj agenciji.",
+    titleKey: "ops.reports.agenciesTitle",
+    descriptionKey: "ops.reports.agenciesCardDesc",
     Icon: Store,
   },
 ];
@@ -61,6 +62,7 @@ export default async function ReportsIndexPage() {
   const ctx = await loadUserContext();
   if (!ctx) redirect("/sign-in");
   if (!ctx.activeOrganization) redirect("/dashboard");
+  const t = createT(ctx.user.locale);
   const isInvestor = ctx.activeOrganization.type === "INVESTOR";
   const items = isInvestor
     ? REPORTS
@@ -69,8 +71,8 @@ export default async function ReportsIndexPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Izveštaji"
-        description="Server-strana obračunata analitika. Filtri po projektu i periodu; export u CSV/XLSX."
+        title={t("nav.reports")}
+        description={t("ops.reports.subtitle")}
       />
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {items.map((r) => (
@@ -78,10 +80,10 @@ export default async function ReportsIndexPage() {
             <Card className="h-full transition hover:border-[var(--color-brand-300)]">
               <CardHeader className="flex flex-row items-center gap-3">
                 <r.Icon className="size-5 text-[var(--color-brand-700)]" />
-                <CardTitle className="text-base">{r.title}</CardTitle>
+                <CardTitle className="text-base">{t(r.titleKey)}</CardTitle>
               </CardHeader>
               <CardContent className="text-sm text-[var(--color-foreground-muted)]">
-                {r.description}
+                {t(r.descriptionKey)}
               </CardContent>
             </Card>
           </Link>

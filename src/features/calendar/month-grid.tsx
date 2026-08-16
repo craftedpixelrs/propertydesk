@@ -17,6 +17,8 @@ import { useMemo, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { useI18n } from "@/components/app/i18n-provider";
+import { intlLocale, type TranslateFn } from "@/lib/i18n";
 import type {
   CalendarEvent,
   CalendarEventType,
@@ -28,13 +30,6 @@ interface Props {
   events: CalendarEvent[];
 }
 
-const TYPE_LABELS: Record<CalendarEventType, string> = {
-  "reservation-expiry": "Rezervacije",
-  "payment-due": "Uplate",
-  task: "Zadaci",
-  "sale-handover": "Primopredaje",
-};
-
 const TYPE_TONE: Record<CalendarEventType, string> = {
   "reservation-expiry": "bg-amber-100 text-amber-800",
   "payment-due": "bg-sky-100 text-sky-800",
@@ -42,7 +37,25 @@ const TYPE_TONE: Record<CalendarEventType, string> = {
   "sale-handover": "bg-indigo-100 text-indigo-800",
 };
 
-const WEEKDAY_LABELS = ["Pon", "Uto", "Sre", "Čet", "Pet", "Sub", "Ned"];
+const EVENT_TYPES: CalendarEventType[] = [
+  "reservation-expiry",
+  "payment-due",
+  "task",
+  "sale-handover",
+];
+
+function typeLabel(type: CalendarEventType, t: TranslateFn): string {
+  switch (type) {
+    case "reservation-expiry":
+      return t("nav.reservations");
+    case "payment-due":
+      return t("nav.payments");
+    case "task":
+      return t("nav.tasks");
+    case "sale-handover":
+      return t("deals.calendar.handovers");
+  }
+}
 
 /**
  * Month-grid calendar built on `date-fns` primitives. The grid uses a
@@ -50,16 +63,11 @@ const WEEKDAY_LABELS = ["Pon", "Uto", "Sre", "Čet", "Pet", "Sub", "Ned"];
  * columns stay aligned across months.
  */
 export function MonthGrid({ initialYear, initialMonth, events }: Props) {
+  const { t, locale } = useI18n();
   const [year, setYear] = useState(initialYear);
   const [month, setMonth] = useState(initialMonth);
   const [types, setTypes] = useState<Set<CalendarEventType>>(
-    () =>
-      new Set<CalendarEventType>([
-        "reservation-expiry",
-        "payment-due",
-        "task",
-        "sale-handover",
-      ]),
+    () => new Set<CalendarEventType>(EVENT_TYPES),
   );
 
   const cursor = useMemo(() => new Date(year, month - 1, 1), [year, month]);
@@ -86,17 +94,29 @@ export function MonthGrid({ initialYear, initialMonth, events }: Props) {
     setMonth(next.getMonth() + 1);
   }
 
-  function toggleType(t: CalendarEventType) {
+  function toggleType(eventType: CalendarEventType) {
     setTypes((prev) => {
       const next = new Set(prev);
-      if (next.has(t)) next.delete(t);
-      else next.add(t);
+      if (next.has(eventType)) next.delete(eventType);
+      else next.add(eventType);
       return next;
     });
   }
 
-  const monthLabel = format(cursor, "LLLL yyyy");
+  const monthLabel = new Intl.DateTimeFormat(intlLocale(locale), {
+    month: "long",
+    year: "numeric",
+  }).format(cursor);
   const today = new Date();
+  const weekdays = [
+    t("deals.calendar.weekday.mon"),
+    t("deals.calendar.weekday.tue"),
+    t("deals.calendar.weekday.wed"),
+    t("deals.calendar.weekday.thu"),
+    t("deals.calendar.weekday.fri"),
+    t("deals.calendar.weekday.sat"),
+    t("deals.calendar.weekday.sun"),
+  ];
 
   return (
     <div className="space-y-3">
@@ -119,36 +139,34 @@ export function MonthGrid({ initialYear, initialMonth, events }: Props) {
               setMonth(today.getMonth() + 1);
             }}
           >
-            Danas
+            {t("common.today")}
           </Button>
         </div>
         <div className="flex flex-wrap gap-2">
-          {(Object.keys(TYPE_LABELS) as CalendarEventType[]).map((t) => (
+          {EVENT_TYPES.map((eventType) => (
             <button
-              key={t}
+              key={eventType}
               type="button"
-              onClick={() => toggleType(t)}
-              aria-pressed={types.has(t)}
+              onClick={() => toggleType(eventType)}
+              aria-pressed={types.has(eventType)}
               className={`inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-xs ${
-                types.has(t)
-                  ? "border-transparent " + TYPE_TONE[t]
+                types.has(eventType)
+                  ? "border-transparent " + TYPE_TONE[eventType]
                   : "border-[var(--color-border)] bg-white text-[var(--color-foreground-muted)]"
               }`}
             >
               <span
-                className={`size-2 rounded-full ${
-                  TYPE_TONE[t].split(" ")[0]
-                }`}
+                className={`size-2 rounded-full ${TYPE_TONE[eventType].split(" ")[0]}`}
                 aria-hidden
               />
-              {TYPE_LABELS[t]}
+              {typeLabel(eventType, t)}
             </button>
           ))}
         </div>
       </div>
 
       <div className="grid grid-cols-7 overflow-hidden rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] text-sm">
-        {WEEKDAY_LABELS.map((label) => (
+        {weekdays.map((label) => (
           <div
             key={label}
             className="border-b border-[var(--color-border)] bg-[var(--color-surface-inset)] px-2 py-1.5 text-center text-[11px] font-semibold uppercase tracking-wide text-[var(--color-foreground-muted)]"
@@ -199,14 +217,33 @@ export function MonthGrid({ initialYear, initialMonth, events }: Props) {
   );
 }
 
+function eventTitle(event: CalendarEvent, t: TranslateFn): string {
+  switch (event.type) {
+    case "reservation-expiry":
+      return t("deals.calendar.reservationExpires", {
+        code: String(event.meta?.unitCode ?? event.title),
+      });
+    case "payment-due":
+      return t("deals.calendar.paymentDue", { name: event.title });
+    case "sale-handover":
+      return t("deals.calendar.handover", {
+        code: String(event.meta?.unitCode ?? event.title),
+      });
+    default:
+      return event.title;
+  }
+}
+
 function EventPill({ event }: { event: CalendarEvent }) {
+  const { t } = useI18n();
   const tone = TYPE_TONE[event.type];
+  const title = eventTitle(event, t);
   const inner = (
     <div
-      title={event.subtitle ? `${event.title} · ${event.subtitle}` : event.title}
+      title={event.subtitle ? `${title} · ${event.subtitle}` : title}
       className={`truncate rounded-sm px-1.5 py-0.5 text-[10px] leading-4 ${tone}`}
     >
-      {event.title}
+      {title}
     </div>
   );
   if (event.href) {

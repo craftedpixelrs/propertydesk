@@ -1,8 +1,11 @@
+"use client";
+
 import type { LucideIcon } from "lucide-react";
 import { ArrowRight, PlayCircle } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { useT } from "@/components/app/i18n-provider";
 
 interface PageHeroProps {
   eyebrow: string;
@@ -29,13 +32,21 @@ export function PageHero({
   title,
   subtitle,
   icon: Icon,
-  primaryCta = { label: "Zakažite 25-minutni demo", href: "/demo#zakazivanje" },
-  secondaryCta = {
-    label: "Pogledajte demo od 3 minuta",
-    href: "/#video",
-  },
-  footnote = "Bez obaveze. Direktno iz kalendara, bez čekanja.",
+  primaryCta,
+  secondaryCta,
+  footnote,
 }: PageHeroProps) {
+  const t = useT();
+  const resolvedPrimary = primaryCta ?? {
+    label: t("marketing.common.bookDemo"),
+    href: "/demo#zakazivanje",
+  };
+  const resolvedSecondary = secondaryCta ?? {
+    label: t("marketing.common.watchVideo"),
+    href: "/#video",
+  };
+  const resolvedFootnote = footnote ?? t("marketing.common.noObligation");
+
   return (
     <section
       className="relative overflow-hidden border-b border-[var(--color-border)]"
@@ -68,22 +79,22 @@ export function PageHero({
 
           <div className="mt-7 flex flex-col items-stretch justify-center gap-3 sm:mt-8 sm:flex-row sm:items-center">
             <Button asChild size="lg" className="w-full sm:w-auto">
-              <a href={primaryCta.href}>
-                {primaryCta.label}
+              <a href={resolvedPrimary.href}>
+                {resolvedPrimary.label}
                 <ArrowRight aria-hidden className="size-4" />
               </a>
             </Button>
             <Button asChild size="lg" variant="outline" className="w-full gap-2 sm:w-auto">
-              <a href={secondaryCta.href}>
+              <a href={resolvedSecondary.href}>
                 <PlayCircle aria-hidden className="size-4" />
-                {secondaryCta.label}
+                {resolvedSecondary.label}
               </a>
             </Button>
           </div>
 
-          {footnote ? (
+          {resolvedFootnote ? (
             <p className="mt-4 text-xs text-[var(--color-foreground-subtle)]">
-              {footnote}
+              {resolvedFootnote}
             </p>
           ) : null}
         </div>

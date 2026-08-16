@@ -1,3 +1,5 @@
+"use client";
+
 import {
   QrCode,
   FileCheck,
@@ -9,50 +11,27 @@ import {
   FileSignature,
 } from "lucide-react";
 
-const ITEMS = [
-  {
-    icon: Languages,
-    title: "Srpski jezik i format",
-    body: "Ceo interfejs, emailovi, PDF izlazi i validacije - na srpskom (sr-Latn). Format datuma, adresa i telefona po lokalnom standardu.",
-  },
-  {
-    icon: Coins,
-    title: "EUR i RSD",
-    body: "Ugrađena podrška za obe valute. Automatski preračun po srednjem kursu NBS na dan izdavanja fakture za dinarsku protivvrednost.",
-  },
-  {
-    icon: QrCode,
-    title: "IPS QR za kaparu i fakture",
-    body: "Ispravan IPS QR usklađen sa NBS specifikacijom - i na SaaS fakturama i na online rezervacijama sa kaparom. Kupac plaća skeniranjem, bez prekucavanja poziva na broj.",
-  },
-  {
-    icon: FileCheck,
-    title: "Integracija sa SEF-om",
-    body: "Sistem elektronskih faktura, sa provajder-agnostičnom arhitekturom. Fakture se šalju i status prati kroz aplikaciju.",
-  },
-  {
-    icon: ShieldCheck,
-    title: "KYC za kupce (fizička i pravna lica)",
-    body: "JMBG, broj lične karte, PIB, adresa - sa checklist-om (LK, potvrda adrese, poreska potvrda za pravna lica). Blok na prelazak u ugovor dok KYC nije potpun.",
-  },
-  {
-    icon: Percent,
-    title: "PDV režim: novogradnja i sekundarno tržište",
-    body: "Automatski obračun PDV-a 10% za novogradnju ili poreza na prenos apsolutnih prava 2.5% za sekundarno tržište - upisan na svaku prodaju i propagiran u PDF ugovor.",
-  },
-  {
-    icon: FileSignature,
-    title: "Ugovori i predugovori u PDF-u",
-    body: "Šabloni sa placeholder-ima ({{buyer.jmbg}}, {{sale.finalPrice}}, {{plan.installments}}) - generišu se u par klikova, sa audit tragom za status (poslato, potpisano).",
-  },
-  {
-    icon: FileSpreadsheet,
-    title: "Uvoz bankarskih izvoda i cenovnika",
-    body: "CSV/XLSX izvod iz banke se uparuje po pozivu na broj i iznosu. Uvoz jedinica iz Excel-a: 3-korak wizard sa mapiranjem kolona i preview-om pre snimanja.",
-  },
-] as const;
+import { useT } from "@/components/app/i18n-provider";
+import type { TranslationKey } from "@/lib/i18n";
+
+const ITEMS: Array<{
+  icon: typeof Languages;
+  titleKey: TranslationKey;
+  bodyKey: TranslationKey;
+}> = [
+  { icon: Languages, titleKey: "marketing.serbia.languageTitle", bodyKey: "marketing.serbia.languageBody" },
+  { icon: Coins, titleKey: "marketing.serbia.currencyTitle", bodyKey: "marketing.serbia.currencyBody" },
+  { icon: QrCode, titleKey: "marketing.serbia.qrTitle", bodyKey: "marketing.serbia.qrBody" },
+  { icon: FileCheck, titleKey: "marketing.serbia.sefTitle", bodyKey: "marketing.serbia.sefBody" },
+  { icon: ShieldCheck, titleKey: "marketing.serbia.kycTitle", bodyKey: "marketing.serbia.kycBody" },
+  { icon: Percent, titleKey: "marketing.serbia.vatTitle", bodyKey: "marketing.serbia.vatBody" },
+  { icon: FileSignature, titleKey: "marketing.serbia.contractsTitle", bodyKey: "marketing.serbia.contractsBody" },
+  { icon: FileSpreadsheet, titleKey: "marketing.serbia.importTitle", bodyKey: "marketing.serbia.importBody" },
+];
 
 export function SerbiaSection() {
+  const t = useT();
+
   return (
     <section
       aria-labelledby="serbia-title"
@@ -61,17 +40,16 @@ export function SerbiaSection() {
       <div className="container-app py-16 sm:py-20">
         <div className="max-w-3xl">
           <div className="text-xs font-semibold uppercase tracking-wider text-[var(--color-brand-700)]">
-            Napravljeno za Srbiju
+            {t("marketing.serbia.eyebrow")}
           </div>
           <h2
             id="serbia-title"
             className="mt-2 text-3xl font-bold tracking-tight sm:text-4xl"
           >
-            Zakonska usklađenost i lokalni standardi ugrađeni od prvog dana
+            {t("marketing.serbia.title")}
           </h2>
           <p className="mt-4 text-base leading-relaxed text-[var(--color-foreground-muted)]">
-            Ne prilagođavamo strani softver srpskom tržištu - PropertyDesk je
-            izgrađen ovde, za ovaj poslovni kontekst.
+            {t("marketing.serbia.subtitle")}
           </p>
         </div>
 
@@ -80,7 +58,7 @@ export function SerbiaSection() {
             const Icon = it.icon;
             return (
               <div
-                key={it.title}
+                key={it.titleKey}
                 className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5 shadow-sm"
               >
                 <span
@@ -89,9 +67,9 @@ export function SerbiaSection() {
                 >
                   <Icon className="size-5" />
                 </span>
-                <h3 className="mt-4 text-base font-semibold">{it.title}</h3>
+                <h3 className="mt-4 text-base font-semibold">{t(it.titleKey)}</h3>
                 <p className="mt-1.5 text-sm leading-relaxed text-[var(--color-foreground-muted)]">
-                  {it.body}
+                  {t(it.bodyKey)}
                 </p>
               </div>
             );

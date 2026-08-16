@@ -7,6 +7,8 @@ import type { AgencyProjectAccessStatus } from "@prisma/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { apiClient, ApiClientError } from "@/lib/api-client";
+import { useT } from "@/components/app/i18n-provider";
+import type { TranslationKey } from "@/lib/i18n";
 
 interface ProjectAccessRow {
   id: string;
@@ -26,10 +28,10 @@ interface ProjectSummary {
   code: string;
 }
 
-const STATUS_LABELS: Record<AgencyProjectAccessStatus, string> = {
-  ACTIVE: "Aktivan",
-  SUSPENDED: "Suspendovan",
-  ENDED: "Završen",
+const ACCESS_STATUS_KEYS: Record<AgencyProjectAccessStatus, TranslationKey> = {
+  ACTIVE: "partners.accessStatus.ACTIVE",
+  SUSPENDED: "partners.accessStatus.SUSPENDED",
+  ENDED: "partners.accessStatus.ENDED",
 };
 
 export function ProjectAccessManager({
@@ -41,6 +43,7 @@ export function ProjectAccessManager({
   existing: ProjectAccessRow[];
   availableProjects: ProjectSummary[];
 }) {
+  const t = useT();
   const router = useRouter();
   const [selectedProjectId, setSelectedProjectId] = useState("");
   const [canViewPrices, setCanViewPrices] = useState(true);
@@ -65,21 +68,21 @@ export function ProjectAccessManager({
       setSelectedProjectId("");
       router.refresh();
     } catch (err) {
-      setError(err instanceof ApiClientError ? err.message : "Došlo je do greške.");
+      setError(err instanceof ApiClientError ? err.message : t("errors.generic"));
     } finally {
       setLoading(false);
     }
   }
 
   async function revoke(accessId: string) {
-    if (!confirm("Da li ste sigurni da želite da opozovete pristup?")) return;
+    if (!confirm(t("partners.access.revokeConfirm"))) return;
     setPendingAccessId(accessId);
     setError(null);
     try {
       await apiClient.delete(`/agencies/${connectionId}/project-access/${accessId}`);
       router.refresh();
     } catch (err) {
-      setError(err instanceof ApiClientError ? err.message : "Došlo je do greške.");
+      setError(err instanceof ApiClientError ? err.message : t("errors.generic"));
     } finally {
       setPendingAccessId(null);
     }
@@ -94,7 +97,7 @@ export function ProjectAccessManager({
       });
       router.refresh();
     } catch (err) {
-      setError(err instanceof ApiClientError ? err.message : "Došlo je do greške.");
+      setError(err instanceof ApiClientError ? err.message : t("errors.generic"));
     } finally {
       setPendingAccessId(null);
     }
@@ -104,18 +107,18 @@ export function ProjectAccessManager({
     <div className="space-y-4">
       <Card>
         <CardHeader>
-          <CardTitle className="text-sm">Odobri pristup novom projektu</CardTitle>
+          <CardTitle className="text-sm">{t("partners.access.grantTitle")}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
           {candidates.length === 0 ? (
             <p className="text-sm text-[var(--color-foreground-muted)]">
-              Svi projekti su već pristupačni ovoj agenciji.
+              {t("partners.access.allGranted")}
             </p>
           ) : (
             <div className="grid gap-3 sm:grid-cols-2">
               <div className="space-y-1">
                 <label className="text-sm font-medium" htmlFor="project">
-                  Projekat
+                  {t("units.columns.project")}
                 </label>
                 <select
                   id="project"
@@ -123,7 +126,7 @@ export function ProjectAccessManager({
                   onChange={(e) => setSelectedProjectId(e.target.value)}
                   className="h-11 w-full rounded-md border border-[var(--color-border)] bg-white px-3 text-sm"
                 >
-                  <option value="">Izaberite projekat</option>
+                  <option value="">{t("partners.access.selectProject")}</option>
                   {candidates.map((p) => (
                     <option key={p.id} value={p.id}>
                       {p.name} ({p.code})
@@ -138,7 +141,7 @@ export function ProjectAccessManager({
                     checked={canViewPrices}
                     onChange={(e) => setCanViewPrices(e.target.checked)}
                   />
-                  Sme videti cene
+                  {t("partners.access.canViewPrices")}
                 </label>
                 <label className="flex items-center gap-2 text-sm">
                   <input
@@ -146,7 +149,7 @@ export function ProjectAccessManager({
                     checked={canRequestReservations}
                     onChange={(e) => setCanRequestReservations(e.target.checked)}
                   />
-                  Sme kreirati rezervacije
+                  {t("partners.access.canRequestReservations")}
                 </label>
               </div>
             </div>
@@ -159,7 +162,7 @@ export function ProjectAccessManager({
                 disabled={!selectedProjectId}
                 loading={loading}
               >
-                Dodeli pristup
+                {t("partners.access.grant")}
               </Button>
             </div>
           ) : null}
@@ -168,22 +171,22 @@ export function ProjectAccessManager({
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-sm">Dodeljeni pristupi</CardTitle>
+          <CardTitle className="text-sm">{t("partners.access.assignedTitle")}</CardTitle>
         </CardHeader>
         <CardContent className="p-0">
           {existing.length === 0 ? (
             <div className="py-12 text-center text-sm text-[var(--color-foreground-muted)]">
-              Ova agencija još nema pristup nijednom projektu.
+              {t("partners.access.empty")}
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-[var(--color-border)] text-sm">
                 <thead className="bg-[var(--color-surface-inset)] text-left text-xs uppercase tracking-wide text-[var(--color-foreground-muted)]">
                   <tr>
-                    <th className="px-4 py-3">Projekat</th>
-                    <th className="px-4 py-3">Status</th>
-                    <th className="px-4 py-3">Cene</th>
-                    <th className="px-4 py-3">Rezervacije</th>
+                    <th className="px-4 py-3">{t("units.columns.project")}</th>
+                    <th className="px-4 py-3">{t("common.statusLabel")}</th>
+                    <th className="px-4 py-3">{t("partners.access.prices")}</th>
+                    <th className="px-4 py-3">{t("partners.access.reservations")}</th>
                     <th className="px-4 py-3"></th>
                   </tr>
                 </thead>
@@ -196,7 +199,7 @@ export function ProjectAccessManager({
                           ({a.projectCode})
                         </span>
                       </td>
-                      <td className="px-4 py-3">{STATUS_LABELS[a.status]}</td>
+                      <td className="px-4 py-3">{t(ACCESS_STATUS_KEYS[a.status])}</td>
                       <td className="px-4 py-3">
                         <label className="inline-flex cursor-pointer items-center gap-2 text-xs">
                           <input
@@ -205,11 +208,11 @@ export function ProjectAccessManager({
                             disabled={pendingAccessId === a.id}
                             onChange={(e) => togglePricing(a.id, e.target.checked)}
                           />
-                          Prikazuj
+                          {t("partners.access.showPrices")}
                         </label>
                       </td>
                       <td className="px-4 py-3 text-xs">
-                        {a.canRequestReservations ? "Da" : "Ne"}
+                        {a.canRequestReservations ? t("common.yes") : t("common.no")}
                       </td>
                       <td className="px-4 py-3 text-right">
                         <Button
@@ -219,7 +222,7 @@ export function ProjectAccessManager({
                           loading={pendingAccessId === a.id}
                           className="text-red-600"
                         >
-                          Opozovi
+                          {t("partners.access.revoke")}
                         </Button>
                       </td>
                     </tr>

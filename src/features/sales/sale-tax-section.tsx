@@ -4,7 +4,9 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
+import { useI18n } from "@/components/app/i18n-provider";
 import { apiClient, ApiClientError } from "@/lib/api-client";
+import { intlLocale, type TranslateFn } from "@/lib/i18n";
 
 type VatMode = "NEW_BUILD_10" | "SECONDARY_MARKET_2_5" | "NONE";
 type TaxPayer = "BUYER" | "SELLER";
@@ -19,17 +21,18 @@ interface Props {
   canManage: boolean;
 }
 
-const VAT_MODE_LABELS: Record<VatMode | "NULL", string> = {
-  NULL: "Nije određeno",
-  NEW_BUILD_10: "PDV 10% (novogradnja)",
-  SECONDARY_MARKET_2_5: "PPAP 2,5% (sekundarno tržište)",
-  NONE: "Bez poreza",
-};
-
-const TAX_PAYER_LABELS: Record<TaxPayer, string> = {
-  BUYER: "Kupac",
-  SELLER: "Prodavac",
-};
+function vatModeLabel(mode: VatMode | "NULL", t: TranslateFn): string {
+  switch (mode) {
+    case "NULL":
+      return t("deals.tax.mode.NULL");
+    case "NEW_BUILD_10":
+      return t("deals.tax.mode.NEW_BUILD_10");
+    case "SECONDARY_MARKET_2_5":
+      return t("deals.tax.mode.SECONDARY_MARKET_2_5");
+    case "NONE":
+      return t("deals.tax.mode.NONE");
+  }
+}
 
 function estimateTax(finalPrice: string, mode: VatMode | null): string | null {
   if (!mode) return null;
@@ -48,6 +51,7 @@ export function SaleTaxSection({
   taxPayer,
   canManage,
 }: Props) {
+  const { t, locale } = useI18n();
   const router = useRouter();
   const [editing, setEditing] = useState(false);
   const [mode, setMode] = useState<VatMode | "NULL">(vatMode ?? "NULL");
@@ -79,7 +83,7 @@ export function SaleTaxSection({
       setError(
         err instanceof ApiClientError
           ? err.message
-          : "Došlo je do neočekivane greške.",
+          : t("errors.unexpected"),
       );
     } finally {
       setSaving(false);
@@ -90,23 +94,30 @@ export function SaleTaxSection({
     const displayMode: VatMode | "NULL" = vatMode ?? "NULL";
     return (
       <div className="space-y-2 text-sm">
-        <Row label="Poreski režim" value={VAT_MODE_LABELS[displayMode]} />
+        <Row label={t("deals.tax.regime")} value={vatModeLabel(displayMode, t)} />
         <Row
-          label="Iznos poreza"
+          label={t("deals.tax.amount")}
           value={
             taxAmount
-              ? `${new Intl.NumberFormat("sr-Latn-RS", {
+              ? `${new Intl.NumberFormat(intlLocale(locale), {
                   minimumFractionDigits: 2,
                   maximumFractionDigits: 2,
                 }).format(Number(taxAmount))} ${currency}`
               : "—"
           }
         />
-        <Row label="Porez plaća" value={TAX_PAYER_LABELS[taxPayer]} />
+        <Row
+          label={t("deals.tax.payer")}
+          value={
+            taxPayer === "BUYER"
+              ? t("deals.tax.payerOption.BUYER")
+              : t("deals.tax.payerOption.SELLER")
+          }
+        />
         {canManage ? (
           <div className="pt-2">
             <Button size="sm" variant="outline" onClick={() => setEditing(true)}>
-              Izmeni porez
+              {t("deals.tax.edit")}
             </Button>
           </div>
         ) : null}
@@ -118,7 +129,7 @@ export function SaleTaxSection({
     <div className="space-y-3 text-sm">
       <div className="space-y-1">
         <label className="text-xs font-medium" htmlFor="vatMode">
-          Poreski režim
+          {t("deals.tax.regime")}
         </label>
         <select
           id="vatMode"
@@ -126,18 +137,18 @@ export function SaleTaxSection({
           onChange={(e) => setMode(e.target.value as VatMode | "NULL")}
           className="h-10 w-full rounded-md border border-[var(--color-border)] bg-white px-3 text-sm"
         >
-          <option value="NULL">Nije određeno</option>
-          <option value="NEW_BUILD_10">PDV 10% (novogradnja)</option>
+          <option value="NULL">{t("deals.tax.mode.NULL")}</option>
+          <option value="NEW_BUILD_10">{t("deals.tax.mode.NEW_BUILD_10")}</option>
           <option value="SECONDARY_MARKET_2_5">
-            PPAP 2,5% (sekundarno tržište)
+            {t("deals.tax.mode.SECONDARY_MARKET_2_5")}
           </option>
-          <option value="NONE">Bez poreza</option>
+          <option value="NONE">{t("deals.tax.mode.NONE")}</option>
         </select>
       </div>
 
       <div className="space-y-1">
         <label className="text-xs font-medium" htmlFor="taxPayer">
-          Porez plaća
+          {t("deals.tax.payer")}
         </label>
         <select
           id="taxPayer"
@@ -145,8 +156,8 @@ export function SaleTaxSection({
           onChange={(e) => setPayer(e.target.value as TaxPayer)}
           className="h-10 w-full rounded-md border border-[var(--color-border)] bg-white px-3 text-sm"
         >
-          <option value="BUYER">Kupac</option>
-          <option value="SELLER">Prodavac</option>
+          <option value="BUYER">{t("deals.tax.payerOption.BUYER")}</option>
+          <option value="SELLER">{t("deals.tax.payerOption.SELLER")}</option>
         </select>
       </div>
 
@@ -154,7 +165,7 @@ export function SaleTaxSection({
         <div className="rounded-md border border-[var(--color-border)] bg-[var(--color-surface-muted)]/40 p-3">
           <div className="flex items-center justify-between">
             <span className="text-xs text-[var(--color-foreground-muted)]">
-              Automatski izračunat porez
+              {t("deals.tax.autoCalculated")}
             </span>
             <span className="font-mono text-sm">
               {derived ?? "—"} {currency}
@@ -166,7 +177,7 @@ export function SaleTaxSection({
               checked={useOverride}
               onChange={(e) => setUseOverride(e.target.checked)}
             />
-            <span>Ručno postavi iznos</span>
+            <span>{t("deals.tax.override")}</span>
           </label>
           {useOverride ? (
             <input
@@ -190,7 +201,7 @@ export function SaleTaxSection({
 
       <div className="flex gap-2">
         <Button size="sm" onClick={onSave} loading={saving}>
-          Sačuvaj
+          {t("common.save")}
         </Button>
         <Button
           size="sm"
@@ -198,7 +209,7 @@ export function SaleTaxSection({
           onClick={() => setEditing(false)}
           disabled={saving}
         >
-          Odustani
+          {t("deals.saleActions.dismiss")}
         </Button>
       </div>
     </div>

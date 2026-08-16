@@ -8,7 +8,7 @@ import {
   navigation,
 } from "@/components/app/navigation";
 import type { PermissionString } from "@/server/permissions/access-control";
-import { t } from "@/lib/i18n";
+import { useT } from "@/components/app/i18n-provider";
 import { cn } from "@/lib/utils";
 
 /**
@@ -31,6 +31,7 @@ export function MoreGrid({
   isSuperAdmin,
   hasPropertyDeskAccess,
 }: MoreGridProps) {
+  const t = useT();
   const items = useMemo(() => {
     const permissionSet = new Set(permissions);
     const filtered = filterNavigation(navigation, {

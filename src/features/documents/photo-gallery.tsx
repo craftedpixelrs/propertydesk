@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { EmptyState } from "@/components/app/empty-state";
+import { useT } from "@/components/app/i18n-provider";
 import { cn } from "@/lib/utils";
 
 export interface PhotoItem {
@@ -48,6 +49,7 @@ export function PhotoGallery({
   canManage,
   uploadCategory,
 }: PhotoGalleryProps) {
+  const t = useT();
   const router = useRouter();
   const inputRef = React.useRef<HTMLInputElement | null>(null);
   const [busy, setBusy] = React.useState(false);
@@ -66,7 +68,7 @@ export function PhotoGallery({
     try {
       for (const file of Array.from(files)) {
         if (!file.type.startsWith("image/")) {
-          throw new Error(`"${file.name}" nije slika.`);
+          throw new Error(t("ops.gallery.notImage", { name: file.name }));
         }
         const form = new FormData();
         form.append("file", file);
@@ -82,14 +84,14 @@ export function PhotoGallery({
           const payload = await res.json().catch(() => null);
           throw new Error(
             (payload?.error?.message as string | undefined) ??
-              "Otpremanje nije uspelo.",
+              t("ops.documents.uploadFailed"),
           );
         }
       }
       if (inputRef.current) inputRef.current.value = "";
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Došlo je do greške.");
+      setError(err instanceof Error ? err.message : t("errors.generic"));
     } finally {
       setBusy(false);
     }
@@ -102,25 +104,25 @@ export function PhotoGallery({
       const res = await fetch(`/api/v1/documents/${id}/set-cover`, {
         method: "POST",
       });
-      if (!res.ok) throw new Error("Neuspela promena naslovne slike.");
+      if (!res.ok) throw new Error(t("ops.gallery.coverFailed"));
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Došlo je do greške.");
+      setError(err instanceof Error ? err.message : t("errors.generic"));
     } finally {
       setBusy(false);
     }
   }
 
   async function handleDelete(id: string) {
-    if (!confirm("Obrisati sliku?")) return;
+    if (!confirm(t("ops.gallery.deleteConfirm"))) return;
     setBusy(true);
     setError(null);
     try {
       const res = await fetch(`/api/v1/documents/${id}`, { method: "DELETE" });
-      if (!res.ok) throw new Error("Brisanje nije uspelo.");
+      if (!res.ok) throw new Error(t("ops.documents.deleteFailed"));
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Došlo je do greške.");
+      setError(err instanceof Error ? err.message : t("errors.generic"));
     } finally {
       setBusy(false);
     }
@@ -154,7 +156,7 @@ export function PhotoGallery({
       <CardContent className="space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h3 className="text-sm font-semibold">
-            Galerija{" "}
+            {t("ops.gallery.title")}{" "}
             <span className="text-xs font-normal text-[var(--color-foreground-muted)]">
               ({orderedPhotos.length})
             </span>
@@ -175,7 +177,7 @@ export function PhotoGallery({
                 loading={busy}
                 onClick={() => inputRef.current?.click()}
               >
-                <Upload className="mr-1 size-4" /> Otpremi slike
+                <Upload className="mr-1 size-4" /> {t("ops.gallery.uploadPhotos")}
               </Button>
             </>
           ) : null}
@@ -189,11 +191,11 @@ export function PhotoGallery({
 
         {orderedPhotos.length === 0 ? (
           <EmptyState
-            title="Nema fotografija"
+            title={t("ops.gallery.emptyTitle")}
             description={
               canManage
-                ? "Otpremite fotografije koje će se videti u ponudi i galeriji."
-                : "Kada operater doda fotografije, biće prikazane ovde."
+                ? t("ops.gallery.emptyCanManage")
+                : t("ops.gallery.emptyReadOnly")
             }
           />
         ) : (
@@ -210,7 +212,9 @@ export function PhotoGallery({
                   type="button"
                   onClick={() => openLightbox(index)}
                   className="block aspect-[4/3] w-full"
-                  aria-label={`Otvori sliku ${photo.originalFileName}`}
+                  aria-label={t("ops.gallery.openPhoto", {
+                    name: photo.originalFileName,
+                  })}
                 >
                   {/*
                    * Serve directly through the authenticated download
@@ -228,7 +232,7 @@ export function PhotoGallery({
                 </button>
                 {photo.isCover ? (
                   <div className="absolute left-1 top-1 rounded bg-[var(--color-brand-600)] px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-white">
-                    Naslovna
+                    {t("ops.gallery.coverBadge")}
                   </div>
                 ) : null}
                 {canManage ? (
@@ -242,8 +246,8 @@ export function PhotoGallery({
                       className="rounded bg-white/95 p-1 text-[var(--color-foreground)] shadow"
                       aria-label={
                         photo.isCover
-                          ? "Ukloni naslovnu"
-                          : "Postavi kao naslovnu"
+                          ? t("ops.gallery.removeCover")
+                          : t("ops.gallery.setCover")
                       }
                       disabled={busy}
                     >
@@ -260,7 +264,7 @@ export function PhotoGallery({
                         handleDelete(photo.id);
                       }}
                       className="rounded bg-white/95 p-1 text-red-600 shadow"
-                      aria-label="Obriši sliku"
+                      aria-label={t("ops.gallery.deletePhoto")}
                       disabled={busy}
                     >
                       <Trash2 className="size-3.5" />
@@ -283,7 +287,7 @@ export function PhotoGallery({
           <button
             type="button"
             className="absolute right-4 top-4 rounded p-2 text-white hover:bg-white/10"
-            aria-label="Zatvori"
+            aria-label={t("common.close")}
             onClick={(e) => {
               e.stopPropagation();
               setLightboxIndex(null);
@@ -296,7 +300,7 @@ export function PhotoGallery({
               <button
                 type="button"
                 className="absolute left-4 top-1/2 -translate-y-1/2 rounded-full bg-white/10 p-2 text-white hover:bg-white/20"
-                aria-label="Prethodna"
+                aria-label={t("common.previous")}
                 onClick={(e) => {
                   e.stopPropagation();
                   navigate(-1);
@@ -307,7 +311,7 @@ export function PhotoGallery({
               <button
                 type="button"
                 className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full bg-white/10 p-2 text-white hover:bg-white/20"
-                aria-label="Sledeća"
+                aria-label={t("common.next")}
                 onClick={(e) => {
                   e.stopPropagation();
                   navigate(1);

@@ -18,6 +18,8 @@ import {
 } from "@/server/permissions/roles";
 import Link from "next/link";
 import type { OrganizationType, PropertyDeskTeamRole } from "@prisma/client";
+import { createT, type TranslationKey } from "@/lib/i18n";
+import { resolveRequestLocale } from "@/lib/i18n/resolve-locale";
 
 export const dynamic = "force-dynamic";
 
@@ -35,11 +37,11 @@ interface PageProps {
   }>;
 }
 
-const PD_ROLE_LABEL: Record<string, string> = {
-  SETTER: "Setter",
-  CLOSER: "Closer",
-  OPERATIONS: "Operations",
-  MANAGER: "Manager",
+const PD_ROLE_KEY: Record<string, TranslationKey> = {
+  SETTER: "admin.pd.teamRole.SETTER",
+  CLOSER: "admin.pd.teamRole.CLOSER",
+  OPERATIONS: "admin.pd.teamRole.OPERATIONS",
+  MANAGER: "admin.pd.teamRole.MANAGER",
 };
 
 const FILTER_QUERY_KEYS = [
@@ -96,6 +98,7 @@ export default async function PlatformUsersPage({ searchParams }: PageProps) {
 
   const ctx = await requireSuperAdmin();
   const currentUserId = ctx.session.user.id;
+  const t = createT(await resolveRequestLocale());
 
   const [{ items, total }, organizations] = await Promise.all([
     listAllUsers({
@@ -123,24 +126,22 @@ export default async function PlatformUsersPage({ searchParams }: PageProps) {
     <section className="space-y-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h2 className="text-lg font-semibold">Korisnici ({total})</h2>
+          <h2 className="text-lg font-semibold">
+            {t("admin.usersPage.title", { total })}
+          </h2>
           <p className="text-xs text-[var(--color-foreground-muted)]">
-            <strong>Dodaj korisnika</strong> pravi nalog i stavlja ga u
-            organizaciju i/ili Property Desk tim. <strong>Uredi</strong> menja
-            postojeći nalog. <strong>Uloguj se kao</strong> je za dijagnostiku.
+            {t("admin.usersPage.intro1")}
           </p>
           <p className="mt-1 text-xs text-[var(--color-foreground-muted)]">
-            <strong>Platforma</strong> = Sloj A (samo{" "}
-            <code>SUPER_ADMIN</code>).{" "}
-            <strong>Property Desk</strong> = Sloj C, interni tim za marketing
-            samog SaaS-a — detaljnije na{" "}
+            {t("admin.usersPage.intro2a")}
+            {t("admin.usersPage.intro2b")}
             <Link
               href="/administracija/property-desk/tim"
               className="underline decoration-dotted hover:no-underline"
             >
-              Property Desk → Tim
+              {t("admin.usersPage.intro2c")}
             </Link>
-            . <strong>Aplikacione uloge</strong> = Sloj B unutar organizacije.
+            {t("admin.usersPage.intro2d")}
           </p>
         </div>
         <AddUserDialog organizations={organizations} />
@@ -168,7 +169,7 @@ export default async function PlatformUsersPage({ searchParams }: PageProps) {
         <CardContent className="p-0">
           {items.length === 0 ? (
             <p className="p-6 text-sm text-[var(--color-foreground-muted)]">
-              Nema korisnika koji odgovaraju filterima.
+              {t("admin.usersPage.empty")}
             </p>
           ) : (
             <div className="overflow-x-auto">
@@ -176,34 +177,34 @@ export default async function PlatformUsersPage({ searchParams }: PageProps) {
                 <thead className="text-left text-xs uppercase text-[var(--color-foreground-subtle)]">
                   <tr>
                     <th className="border-b border-[var(--color-border)] px-4 py-2">
-                      Korisnik
+                      {t("admin.usersPage.colUser")}
                     </th>
                     <th
                       className="border-b border-[var(--color-border)] px-4 py-2"
-                      title="Sloj A — platformski. Da li nalog uopšte ima pristup platformi."
+                      title={t("admin.usersPage.colPlatformTitle")}
                     >
-                      Platforma
+                      {t("admin.usersPage.colPlatform")}
                     </th>
                     <th
                       className="border-b border-[var(--color-border)] px-4 py-2"
-                      title="Sloj C — interni Property Desk tim za marketing SaaS-a."
+                      title={t("admin.usersPage.colPdTitle")}
                     >
-                      Property Desk
+                      {t("admin.usersPage.colPd")}
                     </th>
                     <th
                       className="border-b border-[var(--color-border)] px-4 py-2"
-                      title="Sloj B — aplikacioni. Rola člana unutar konkretne organizacije."
+                      title={t("admin.usersPage.colAppRolesTitle")}
                     >
-                      Aplikacione uloge / Organizacije
+                      {t("admin.usersPage.colAppRoles")}
                     </th>
                     <th className="border-b border-[var(--color-border)] px-4 py-2">
-                      Status
+                      {t("common.statusLabel")}
                     </th>
                     <th className="border-b border-[var(--color-border)] px-4 py-2">
-                      Registrovan
+                      {t("admin.registered")}
                     </th>
                     <th className="border-b border-[var(--color-border)] px-4 py-2 text-right">
-                      Akcije
+                      {t("common.actions")}
                     </th>
                   </tr>
                 </thead>
@@ -213,11 +214,11 @@ export default async function PlatformUsersPage({ searchParams }: PageProps) {
                     const isSuperAdmin = u.role === "SUPER_ADMIN";
                     const disabled = isSelf || isSuperAdmin || u.banned;
                     const disabledReason = isSelf
-                      ? "Ne možete se ulogovati kao Vi sami."
+                      ? t("admin.usersPage.cannotImpersonateSelf")
                       : isSuperAdmin
-                        ? "Impersonacija drugih administratora platforme nije dozvoljena."
+                        ? t("admin.usersPage.cannotImpersonateAdmin")
                         : u.banned
-                          ? "Korisnik je banovan."
+                          ? t("admin.usersPage.userBanned")
                           : undefined;
 
                     return (
@@ -235,13 +236,13 @@ export default async function PlatformUsersPage({ searchParams }: PageProps) {
                           {isSuperAdmin ? (
                             <Badge
                               tone="brand"
-                              title="Platformska (Sloj A) uloga — globalni pristup celoj platformi."
+                              title={t("admin.usersPage.platformSuperAdminTitle")}
                             >
-                              Platforma · SUPER_ADMIN
+                              {t("admin.usersPage.platformSuperAdmin")}
                             </Badge>
                           ) : (
                             <span className="text-xs text-[var(--color-foreground-muted)]">
-                              — običan korisnik —
+                              {t("admin.usersPage.regularUser")}
                             </span>
                           )}
                         </td>
@@ -252,14 +253,16 @@ export default async function PlatformUsersPage({ searchParams }: PageProps) {
                                 tone={
                                   u.propertyDeskTeam.enabled ? "info" : "warning"
                                 }
-                                title="Sloj C — interni Property Desk tim."
+                                title={t("admin.usersPage.pdBadgeTitle")}
                               >
-                                {PD_ROLE_LABEL[u.propertyDeskTeam.teamRole] ??
-                                  u.propertyDeskTeam.teamRole}
+                                {t(
+                                  PD_ROLE_KEY[u.propertyDeskTeam.teamRole] ??
+                                    "admin.pd.teamRole.SETTER",
+                                )}
                               </Badge>
                               {!u.propertyDeskTeam.enabled ? (
                                 <div className="text-xs text-[var(--color-foreground-muted)]">
-                                  neaktivan
+                                  {t("admin.usersPage.pdInactive")}
                                 </div>
                               ) : null}
                             </div>
@@ -268,7 +271,7 @@ export default async function PlatformUsersPage({ searchParams }: PageProps) {
                         <td className="px-4 py-2 align-top">
                           {u.memberships.length === 0 ? (
                             <span className="text-xs text-[var(--color-foreground-muted)]">
-                              — bez organizacije —
+                              {t("admin.usersPage.noOrg")}
                             </span>
                           ) : (
                             <ul className="space-y-1">
@@ -288,8 +291,8 @@ export default async function PlatformUsersPage({ searchParams }: PageProps) {
                                     <span className="text-[var(--color-foreground-subtle)]">
                                       {" ("}
                                       {m.organizationType === "INVESTOR"
-                                        ? "investitor"
-                                        : "agencija"}
+                                        ? t("admin.investorLower")
+                                        : t("admin.agencyLower")}
                                       {")"}
                                     </span>
                                   ) : null}
@@ -300,11 +303,11 @@ export default async function PlatformUsersPage({ searchParams }: PageProps) {
                         </td>
                         <td className="px-4 py-2 align-top">
                           {u.banned ? (
-                            <Badge tone="danger">Banovan</Badge>
+                            <Badge tone="danger">{t("admin.usersPage.banned")}</Badge>
                           ) : u.emailVerified ? (
-                            <Badge tone="success">Verifikovan</Badge>
+                            <Badge tone="success">{t("admin.usersPage.verified")}</Badge>
                           ) : (
-                            <Badge tone="warning">Neverifikovan</Badge>
+                            <Badge tone="warning">{t("admin.usersPage.unverified")}</Badge>
                           )}
                         </td>
                         <td className="px-4 py-2 text-xs align-top">
@@ -345,7 +348,7 @@ export default async function PlatformUsersPage({ searchParams }: PageProps) {
       {totalPages > 1 ? (
         <div className="flex items-center justify-between text-sm">
           <span className="text-[var(--color-foreground-muted)]">
-            Strana {page} od {totalPages}
+            {t("admin.pageOf", { page, total: totalPages })}
           </span>
           <div className="flex gap-2">
             {page > 1 ? (
@@ -356,7 +359,7 @@ export default async function PlatformUsersPage({ searchParams }: PageProps) {
                     query: { page: String(page - 1), ...listQuery },
                   }}
                 >
-                  Prethodna
+                  {t("admin.previousPage")}
                 </Link>
               </Button>
             ) : null}
@@ -368,7 +371,7 @@ export default async function PlatformUsersPage({ searchParams }: PageProps) {
                     query: { page: String(page + 1), ...listQuery },
                   }}
                 >
-                  Sledeća
+                  {t("admin.nextPage")}
                 </Link>
               </Button>
             ) : null}

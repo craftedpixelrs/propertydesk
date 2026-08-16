@@ -5,6 +5,8 @@ import { requireSuperAdmin } from "@/server/permissions/require";
 import { prisma } from "@/server/db/prisma";
 import { PlanForm } from "@/features/platform-admin/plan-form";
 import { PlanDangerZone } from "@/features/platform-admin/plan-danger-zone";
+import { createT } from "@/lib/i18n";
+import { resolveRequestLocale } from "@/lib/i18n/resolve-locale";
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -12,6 +14,7 @@ interface Props {
 
 export default async function EditPlanPage({ params }: Props) {
   await requireSuperAdmin();
+  const t = createT(await resolveRequestLocale());
   const { id } = await params;
 
   const plan = await prisma.saaSPlan.findUnique({
@@ -50,12 +53,13 @@ export default async function EditPlanPage({ params }: Props) {
           href="/administracija/planovi"
           className="text-sm text-[var(--color-foreground-muted)] hover:underline"
         >
-          ← Planovi
+          ← {t("admin.plans")}
         </Link>
-        <h2 className="mt-2 text-lg font-semibold">Izmeni plan: {plan.name}</h2>
+        <h2 className="mt-2 text-lg font-semibold">
+          {t("admin.plansPage.editTitle", { name: plan.name })}
+        </h2>
         <p className="text-sm text-[var(--color-foreground-muted)]">
-          Šifra plana je zaključana. Sve ostale izmene se audit-uju.
-          Pretplata koje ga trenutno koriste: {plan._count.subscriptions}.
+          {t("admin.plansPage.editHint", { count: plan._count.subscriptions })}
         </p>
       </div>
 

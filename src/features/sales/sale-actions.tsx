@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
+import { useT } from "@/components/app/i18n-provider";
 import { apiClient, ApiClientError } from "@/lib/api-client";
 
 interface Props {
@@ -28,6 +29,7 @@ interface Props {
  * user fails cleanly with an "OPTIMISTIC_LOCK" error.
  */
 export function SaleActions({ saleId, status, version, canManage }: Props) {
+  const t = useT();
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -41,7 +43,7 @@ export function SaleActions({ saleId, status, version, canManage }: Props) {
       await apiClient.post(`/sales/${saleId}/status`, { target, expectedVersion: version });
       router.refresh();
     } catch (err) {
-      setError(err instanceof ApiClientError ? err.message : "Došlo je do greške.");
+      setError(err instanceof ApiClientError ? err.message : t("errors.generic"));
     } finally {
       setBusy(false);
     }
@@ -49,7 +51,7 @@ export function SaleActions({ saleId, status, version, canManage }: Props) {
 
   async function cancel() {
     if (!reason.trim()) {
-      setError("Unesite razlog otkazivanja.");
+      setError(t("deals.saleActions.cancelReasonMissing"));
       return;
     }
     setBusy(true);
@@ -63,7 +65,7 @@ export function SaleActions({ saleId, status, version, canManage }: Props) {
       setReason("");
       router.refresh();
     } catch (err) {
-      setError(err instanceof ApiClientError ? err.message : "Došlo je do greške.");
+      setError(err instanceof ApiClientError ? err.message : t("errors.generic"));
     } finally {
       setBusy(false);
     }
@@ -88,22 +90,22 @@ export function SaleActions({ saleId, status, version, canManage }: Props) {
       <div className="flex flex-wrap gap-2">
         {canPreContract ? (
           <Button size="sm" loading={busy} onClick={() => transition("PRE_CONTRACT")}>
-            Predugovor
+            {t("deals.saleActions.preContract")}
           </Button>
         ) : null}
         {canContract ? (
           <Button size="sm" loading={busy} onClick={() => transition("CONTRACTED")}>
-            Ugovor potpisan
+            {t("deals.saleActions.contractSigned")}
           </Button>
         ) : null}
         {canPaidQuick ? (
           <Button size="sm" variant="secondary" loading={busy} onClick={() => transition("PAID")}>
-            Plaćeno u celosti
+            {t("deals.saleActions.paidInFull")}
           </Button>
         ) : null}
         {canHandOver ? (
           <Button size="sm" loading={busy} onClick={() => transition("HANDED_OVER")}>
-            Primopredaja
+            {t("deals.handover")}
           </Button>
         ) : null}
         {canCancel ? (
@@ -113,7 +115,7 @@ export function SaleActions({ saleId, status, version, canManage }: Props) {
             disabled={busy}
             onClick={() => setShowCancel((v) => !v)}
           >
-            Otkaži prodaju
+            {t("deals.saleActions.cancelSale")}
           </Button>
         ) : null}
       </div>
@@ -121,7 +123,7 @@ export function SaleActions({ saleId, status, version, canManage }: Props) {
       {showCancel ? (
         <div className="space-y-2 rounded-md border border-[var(--color-border)] p-3">
           <label className="block text-sm text-[var(--color-foreground-muted)]">
-            Razlog otkazivanja (obavezno)
+            {t("deals.saleActions.cancelReasonRequired")}
           </label>
           <input
             value={reason}
@@ -130,10 +132,10 @@ export function SaleActions({ saleId, status, version, canManage }: Props) {
           />
           <div className="flex justify-end gap-2">
             <Button size="sm" variant="outline" onClick={() => setShowCancel(false)}>
-              Odustani
+              {t("deals.saleActions.dismiss")}
             </Button>
             <Button size="sm" variant="destructive" loading={busy} onClick={cancel}>
-              Potvrdi otkazivanje
+              {t("deals.saleActions.confirmCancel")}
             </Button>
           </div>
         </div>

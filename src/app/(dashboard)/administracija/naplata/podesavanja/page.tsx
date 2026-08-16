@@ -8,12 +8,28 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { createT, type TranslationKey } from "@/lib/i18n";
+import { resolveRequestLocale } from "@/lib/i18n/resolve-locale";
 
 export const dynamic = "force-dynamic";
+
+const TOGGLES = [
+  ["billingEnabled", "billing.toggles.billingEnabled"],
+  ["autoGenerateInvoicesEnabled", "billing.toggles.autoGenerateInvoicesEnabled"],
+  ["autoSendInvoicesEnabled", "billing.toggles.autoSendInvoicesEnabled"],
+  ["autoRemindersEnabled", "billing.toggles.autoRemindersEnabled"],
+  ["autoOverdueEnabled", "billing.toggles.autoOverdueEnabled"],
+  ["autoExtendSubscriptions", "billing.toggles.autoExtendSubscriptions"],
+  ["autoRestrictAccessEnabled", "billing.toggles.autoRestrictAccessEnabled"],
+  ["autoSuspendEnabled", "billing.toggles.autoSuspendEnabled"],
+  ["requireManualConfirmation", "billing.toggles.requireManualConfirmation"],
+  ["defaultInvoiceInRsd", "admin.settingsPage.invoiceInRsd"],
+] as const satisfies ReadonlyArray<readonly [string, TranslationKey]>;
 
 export default async function BillingGlobalSettingsPage() {
   const ctx = await requireSuperAdmin();
   const s = await getOrCreateGlobalBillingSettings();
+  const t = createT(await resolveRequestLocale());
 
   async function save(formData: FormData) {
     "use server";
@@ -54,35 +70,18 @@ export default async function BillingGlobalSettingsPage() {
   return (
     <section className="space-y-6">
       <header>
-        <h2 className="text-lg font-semibold">Globalna podešavanja naplate</h2>
+        <h2 className="text-lg font-semibold">{t("admin.settingsPage.title")}</h2>
         <p className="text-sm text-[var(--color-foreground-muted)]">
-          Ova podešavanja važe za sve organizacije, sem ako pojedinačna organizacija ima
-          override. Master prekidač "Naplata aktivna" onemogućava sve automatske poslove.
+          {t("admin.settingsPage.subtitle")}
         </p>
       </header>
       <form action={save} className="space-y-4">
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Prekidači automatizacije</CardTitle>
+            <CardTitle className="text-base">{t("admin.settingsPage.togglesTitle")}</CardTitle>
           </CardHeader>
           <CardContent className="grid gap-3 md:grid-cols-2">
-            {(
-              [
-                ["billingEnabled", "Naplata aktivna (master)"],
-                ["autoGenerateInvoicesEnabled", "Automatsko kreiranje faktura"],
-                ["autoSendInvoicesEnabled", "Automatsko slanje faktura"],
-                ["autoRemindersEnabled", "Automatski podsetnici"],
-                ["autoOverdueEnabled", "Automatski prelazak u PAST_DUE"],
-                ["autoExtendSubscriptions", "Automatsko produženje pretplate"],
-                ["autoRestrictAccessEnabled", "Restrikcija pristupa nakon roka"],
-                ["autoSuspendEnabled", "Automatska suspenzija"],
-                ["requireManualConfirmation", "Zahtevaj ručnu potvrdu"],
-                [
-                  "defaultInvoiceInRsd",
-                  "Fakturiši u dinarskoj protivvrednosti (podrazumevano)",
-                ],
-              ] as const
-            ).map(([key, label]) => (
+            {TOGGLES.map(([key, labelKey]) => (
               <label
                 key={key}
                 className="flex items-center gap-3 rounded-md border border-[var(--color-border)] px-3 py-2 text-sm"
@@ -93,7 +92,7 @@ export default async function BillingGlobalSettingsPage() {
                   defaultChecked={Boolean((s as unknown as Record<string, unknown>)[key])}
                   className="size-4"
                 />
-                <span>{label}</span>
+                <span>{t(labelKey)}</span>
               </label>
             ))}
           </CardContent>
@@ -101,23 +100,23 @@ export default async function BillingGlobalSettingsPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Podrazumevane vrednosti</CardTitle>
+            <CardTitle className="text-base">{t("admin.settingsPage.defaultsTitle")}</CardTitle>
           </CardHeader>
           <CardContent className="grid gap-3 md:grid-cols-2">
-            <Field label="Osnovna valuta" name="defaultCurrency" defaultValue={s.defaultCurrency} />
-            <Field label="Trajanje probnog perioda (dana)" name="defaultTrialDays" type="number" defaultValue={String(s.defaultTrialDays)} />
-            <Field label="Grace period (dana)" name="defaultGracePeriodDays" type="number" defaultValue={String(s.defaultGracePeriodDays)} />
-            <Field label="Rok za plaćanje (dana)" name="defaultDueInDays" type="number" defaultValue={String(s.defaultDueInDays)} />
-            <Field label="Restrikcija nakon (dana kašnjenja)" name="restrictedAfterDays" type="number" defaultValue={String(s.restrictedAfterDays)} />
-            <Field label="Suspenzija nakon (dana kašnjenja)" name="suspendedAfterDays" type="number" defaultValue={String(s.suspendedAfterDays)} />
+            <Field label={t("admin.settingsPage.defaultCurrency")} name="defaultCurrency" defaultValue={s.defaultCurrency} />
+            <Field label={t("admin.settingsPage.trialDays")} name="defaultTrialDays" type="number" defaultValue={String(s.defaultTrialDays)} />
+            <Field label={t("admin.settingsPage.graceDays")} name="defaultGracePeriodDays" type="number" defaultValue={String(s.defaultGracePeriodDays)} />
+            <Field label={t("admin.settingsPage.dueDays")} name="defaultDueInDays" type="number" defaultValue={String(s.defaultDueInDays)} />
+            <Field label={t("admin.settingsPage.restrictAfter")} name="restrictedAfterDays" type="number" defaultValue={String(s.restrictedAfterDays)} />
+            <Field label={t("admin.settingsPage.suspendAfter")} name="suspendedAfterDays" type="number" defaultValue={String(s.suspendedAfterDays)} />
             <Field
-              label="Format broja fakture"
+              label={t("admin.settingsPage.invoiceFormat")}
               name="invoiceNumberFormat"
               defaultValue={s.invoiceNumberFormat}
-              hint="Placeholderi: {YYYY}, {YY}, {MM}, {SEQ:N}."
+              hint={t("admin.settingsPage.invoiceFormatHint")}
             />
             <Field
-              label="Napomena u podnožju fakture"
+              label={t("admin.settingsPage.footerNote")}
               name="invoiceFooterNote"
               defaultValue={s.invoiceFooterNote ?? ""}
             />
@@ -125,7 +124,7 @@ export default async function BillingGlobalSettingsPage() {
         </Card>
 
         <div className="flex justify-end">
-          <Button type="submit">Sačuvaj</Button>
+          <Button type="submit">{t("common.save")}</Button>
         </div>
         <input type="hidden" name="_actor" value={ctx.session.user.id} />
       </form>

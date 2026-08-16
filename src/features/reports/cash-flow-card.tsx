@@ -1,6 +1,9 @@
+"use client";
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChartCard } from "@/components/charts/chart-card";
 import { TrendLine } from "@/components/charts/trend-line";
+import { useT } from "@/components/app/i18n-provider";
 import { formatMoney } from "@/lib/formatters/money";
 import type { SupportedCurrency } from "@/lib/constants/app";
 import type {
@@ -21,6 +24,7 @@ export function CashFlowCard(props: {
   title?: string;
   description?: string;
 }) {
+  const t = useT();
   const { projection } = props;
   const isEmpty = projection.buckets.length === 0;
 
@@ -28,7 +32,7 @@ export function CashFlowCard(props: {
     <Card>
       <CardHeader>
         <CardTitle className="text-sm">
-          {props.title ?? "Cash-flow projekcija"}
+          {props.title ?? t("ops.reports.cashFlowDefaultTitle")}
         </CardTitle>
         {props.description ? (
           <p className="text-xs text-[var(--color-foreground-muted)]">
@@ -39,7 +43,7 @@ export function CashFlowCard(props: {
       <CardContent className="space-y-6">
         {isEmpty ? (
           <p className="rounded-md border border-dashed border-[var(--color-border)] p-6 text-center text-sm text-[var(--color-foreground-muted)]">
-            Nema aktivnih planova plaćanja u traženom periodu.
+            {t("ops.reports.cashFlowEmpty")}
           </p>
         ) : (
           projection.currencies.map((currency) => {
@@ -56,7 +60,7 @@ export function CashFlowCard(props: {
                   currency={currency as SupportedCurrency}
                 />
                 <ChartCard
-                  title={`Mesečni tok (${currency})`}
+                  title={t("ops.reports.monthlyFlow", { currency })}
                   isEmpty={currencyBuckets.length === 0}
                   height={280}
                 >
@@ -69,10 +73,10 @@ export function CashFlowCard(props: {
                       received: Number(b.received),
                     }))}
                     series={[
-                      { key: "expected", label: "Očekivano" },
-                      { key: "received", label: "Naplaćeno" },
+                      { key: "expected", label: t("ops.reports.expected") },
+                      { key: "received", label: t("ops.reports.received") },
                     ]}
-                    ariaLabel="Cash-flow po mesecima"
+                    ariaLabel={t("ops.reports.cashFlowAria")}
                   />
                 </ChartCard>
               </div>
@@ -88,21 +92,22 @@ function SummaryRow(props: {
   summary: CashFlowSummary | undefined;
   currency: SupportedCurrency;
 }) {
+  const t = useT();
   if (!props.summary) return null;
   return (
     <div className="grid grid-cols-3 gap-3 text-sm">
       <SummaryStat
-        label="Očekivano"
+        label={t("ops.reports.expected")}
         value={formatMoney(props.summary.expectedTotal, props.currency)}
         tone="neutral"
       />
       <SummaryStat
-        label="Naplaćeno"
+        label={t("ops.reports.received")}
         value={formatMoney(props.summary.receivedTotal, props.currency)}
         tone="positive"
       />
       <SummaryStat
-        label="U dospeću (prošlo)"
+        label={t("ops.reports.overduePast")}
         value={formatMoney(props.summary.overdueTotal, props.currency)}
         tone={Number(props.summary.overdueTotal) > 0 ? "warning" : "neutral"}
       />

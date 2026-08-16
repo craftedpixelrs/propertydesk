@@ -62,6 +62,110 @@ export const REQUIRED_FIELDS: UnitImportField[] = [
   "basePrice",
 ];
 
+/** Canonical column order for the downloadable import template. */
+export const UNIT_IMPORT_TEMPLATE_COLUMNS: UnitImportField[] = [
+  "code",
+  "type",
+  "status",
+  "buildingCode",
+  "entranceCode",
+  "floorLabel",
+  "totalArea",
+  "internalArea",
+  "terraceArea",
+  "gardenArea",
+  "basePrice",
+  "finalPrice",
+  "currency",
+  "vatRate",
+  "bedrooms",
+  "bathrooms",
+  "orientation",
+  "publicDescription",
+  "internalNotes",
+  "externalReference",
+];
+
+export const UNIT_IMPORT_TEMPLATE_SAMPLE: Record<UnitImportField, string>[] = [
+  {
+    code: "A-1.1",
+    type: "APARTMENT",
+    status: "AVAILABLE",
+    buildingCode: "A",
+    entranceCode: "1",
+    floorLabel: "1",
+    totalArea: "68.40",
+    internalArea: "62.10",
+    terraceArea: "6.30",
+    gardenArea: "",
+    basePrice: "145000",
+    finalPrice: "145000",
+    currency: "EUR",
+    vatRate: "20",
+    bedrooms: "2",
+    bathrooms: "1",
+    orientation: "jugoistok",
+    publicDescription: "Dvosoban stan sa terasom",
+    internalNotes: "",
+    externalReference: "",
+  },
+  {
+    code: "P-01",
+    type: "PARKING_SPACE",
+    status: "AVAILABLE",
+    buildingCode: "A",
+    entranceCode: "1",
+    floorLabel: "Suteren",
+    totalArea: "12.00",
+    internalArea: "",
+    terraceArea: "",
+    gardenArea: "",
+    basePrice: "15000",
+    finalPrice: "15000",
+    currency: "EUR",
+    vatRate: "20",
+    bedrooms: "",
+    bathrooms: "",
+    orientation: "",
+    publicDescription: "Parking mesto",
+    internalNotes: "",
+    externalReference: "",
+  },
+];
+
+export function buildImportTemplateCsv(): string {
+  const header = UNIT_IMPORT_TEMPLATE_COLUMNS.join(",");
+  const lines = UNIT_IMPORT_TEMPLATE_SAMPLE.map((row) =>
+    UNIT_IMPORT_TEMPLATE_COLUMNS.map((col) => csvEscape(row[col] ?? "")).join(
+      ",",
+    ),
+  );
+  return `\uFEFF${[header, ...lines].join("\r\n")}\r\n`;
+}
+
+export async function buildImportTemplateXlsx(): Promise<Buffer> {
+  const wb = new ExcelJS.Workbook();
+  const ws = wb.addWorksheet("Jedinice");
+  ws.columns = UNIT_IMPORT_TEMPLATE_COLUMNS.map((key) => ({
+    header: key,
+    key,
+    width: Math.max(14, key.length + 2),
+  }));
+  for (const row of UNIT_IMPORT_TEMPLATE_SAMPLE) {
+    ws.addRow(row);
+  }
+  ws.getRow(1).font = { bold: true };
+  const arr = await wb.xlsx.writeBuffer();
+  return Buffer.from(arr);
+}
+
+function csvEscape(value: string): string {
+  if (/[",\r\n]/.test(value)) {
+    return `"${value.replace(/"/g, '""')}"`;
+  }
+  return value;
+}
+
 // -----------------------------------------------------------------------------
 // Parsers
 // -----------------------------------------------------------------------------

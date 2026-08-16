@@ -1,27 +1,10 @@
+"use client";
+
 import { Check, Building2, Users } from "lucide-react";
 
 import { LANDING_IMAGES } from "@/lib/constants/app";
 import { MockupFrame } from "@/features/marketing/mockup-frame";
-
-const INVESTOR_ITEMS = [
-  "Zalihe stanova, garaža i lokala kroz više projekata (uvoz iz Excel-a, klon projekta)",
-  "CRM sa KYC-em (JMBG, PIB, LK), detekcijom duplikata i @mentions komentarima",
-  "Online rezervacija sa IPS QR kaparom - kupac plaća skeniranjem",
-  "Generator ugovora i predugovora u PDF-u sa svim placeholder-ima",
-  "Cash-flow projekcija 12 meseci, marža po projektu i vreme do prodaje",
-  "Javni sajt projekta (microsite) sa mapom i dostupnim jedinicama",
-  "Kontrola pristupa i provizija za partnerske agencije",
-];
-
-const AGENCY_ITEMS = [
-  "Pregled dodeljenih projekata i slobodnih jedinica",
-  "Referral kod sa jedinstvenim linkom i QR-om za marketing",
-  "Registracija i zaštita kupaca (buyer protection)",
-  "Rezervacije direktno iz ponude investitora, uz KYC checklist",
-  "Praćenje provizija od odobrenja do isplate, sa referral bonusima",
-  "Zaseban tim agenata i uloge sa dozvolama",
-  "Nema više izgubljenih kontakata i konfuzije sa investitorima",
-];
+import { useT } from "@/components/app/i18n-provider";
 
 interface PersonaCardProps {
   icon: React.ComponentType<{ className?: string; "aria-hidden"?: boolean }>;
@@ -71,6 +54,8 @@ function PersonaCard({
 }
 
 export function Personas() {
+  const t = useT();
+
   return (
     <section
       id="za-koga"
@@ -80,35 +65,49 @@ export function Personas() {
       <div className="container-app py-16 sm:py-20">
         <div className="max-w-3xl">
           <div className="text-xs font-semibold uppercase tracking-wider text-[var(--color-brand-700)]">
-            Za koga
+            {t("marketing.personas.eyebrow")}
           </div>
           <h2
             id="personas-title"
             className="mt-2 text-3xl font-bold tracking-tight sm:text-4xl"
           >
-            Dve strane, jedna platforma
+            {t("marketing.personas.title")}
           </h2>
           <p className="mt-4 text-base leading-relaxed text-[var(--color-foreground-muted)]">
-            PropertyDesk je dizajniran za dvosmernu saradnju investitora i
-            agencija. Svaka strana dobija svoj portal i tačno one podatke koji
-            su joj potrebni - ništa više, ništa manje.
+            {t("marketing.personas.subtitle")}
           </p>
         </div>
 
         <div className="mt-10 grid gap-6 lg:grid-cols-2">
           <PersonaCard
             icon={Building2}
-            eyebrow="Za investitore"
-            title="Prodaja novogradnje pod punom kontrolom"
-            description="Vodite prodajni tim, projekte i zalihe. Kontrolišete kojim agencijama otvarate ponudu, pod kojim uslovima i sa kakvom provizijom."
-            items={INVESTOR_ITEMS}
+            eyebrow={t("marketing.personas.investorEyebrow")}
+            title={t("marketing.personas.investorTitle")}
+            description={t("marketing.personas.investorDescription")}
+            items={[
+              t("marketing.personas.investor1"),
+              t("marketing.personas.investor2"),
+              t("marketing.personas.investor3"),
+              t("marketing.personas.investor4"),
+              t("marketing.personas.investor5"),
+              t("marketing.personas.investor6"),
+              t("marketing.personas.investor7"),
+            ]}
           />
           <PersonaCard
             icon={Users}
-            eyebrow="Za agencije za nekretnine"
-            title="Sve što treba za rad sa investitorima"
-            description="Bez haosa u Excel-u i Viber grupama. Vidite tačno šta je slobodno, štitite kupca i pratite proviziju do isplate."
-            items={AGENCY_ITEMS}
+            eyebrow={t("marketing.personas.agencyEyebrow")}
+            title={t("marketing.personas.agencyTitle")}
+            description={t("marketing.personas.agencyDescription")}
+            items={[
+              t("marketing.personas.agency1"),
+              t("marketing.personas.agency2"),
+              t("marketing.personas.agency3"),
+              t("marketing.personas.agency4"),
+              t("marketing.personas.agency5"),
+              t("marketing.personas.agency6"),
+              t("marketing.personas.agency7"),
+            ]}
           />
         </div>
 
@@ -118,8 +117,8 @@ export function Personas() {
             src={LANDING_IMAGES.personasMobile?.src}
             width={LANDING_IMAGES.personasMobile?.width}
             height={LANDING_IMAGES.personasMobile?.height}
-            alt="Mobilna aplikacija PropertyDesk za rad na terenu"
-            label="PWA za teren - uskoro"
+            alt={t("marketing.personas.mobileAlt")}
+            label={t("marketing.personas.mobileLabel")}
           />
         </div>
       </div>

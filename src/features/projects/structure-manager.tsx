@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
+import { useT } from "@/components/app/i18n-provider";
 import { apiClient, ApiClientError } from "@/lib/api-client";
 
 interface FloorLite {
@@ -41,6 +42,7 @@ export function StructureManager({
   buildings,
   canManage,
 }: StructureManagerProps) {
+  const t = useT();
   const router = useRouter();
   const [openForm, setOpenForm] = useState<OpenForm>(null);
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
@@ -63,10 +65,7 @@ export function StructureManager({
     <div className="space-y-3 text-sm">
       {buildings.length === 0 ? (
         <div className="rounded-md border border-dashed border-[var(--color-border)] p-4 text-[var(--color-foreground-muted)]">
-          Projekat još uvek nema objekata. Dodajte prvi objekat da biste
-          organizovali jedinice po objektima, ulazima i spratovima. Ako
-          nemate više objekata (samo jedna zgrada), možete i preskočiti — sva
-          polja Objekat/Ulaz/Sprat na jedinici su opciona.
+          {t("inventory.structure.emptyHelp")}
         </div>
       ) : (
         buildings.map((b) => {
@@ -89,9 +88,10 @@ export function StructureManager({
                     </span>
                   </div>
                   <div className="text-xs text-[var(--color-foreground-muted)]">
-                    {b.entrances.length} ulaza ·{" "}
-                    {b.entrances.reduce((sum, e) => sum + e.floors.length, 0)}{" "}
-                    spratova
+                    {t("inventory.structure.entranceFloorCounts", {
+                      entrances: b.entrances.length,
+                      floors: b.entrances.reduce((sum, e) => sum + e.floors.length, 0),
+                    })}
                   </div>
                 </button>
                 {canManage ? (
@@ -107,7 +107,7 @@ export function StructureManager({
                       })
                     }
                   >
-                    + Ulaz
+                    {t("inventory.structure.addEntranceShort")}
                   </Button>
                 ) : null}
               </div>
@@ -120,12 +120,14 @@ export function StructureManager({
                     >
                       <div className="flex items-center justify-between gap-2">
                         <div>
-                          <span className="font-medium">Ulaz {e.name}</span>{" "}
+                          <span className="font-medium">
+                            {t("inventory.structure.entranceName", { name: e.name })}
+                          </span>{" "}
                           <span className="text-xs font-mono text-[var(--color-foreground-muted)]">
                             ({e.code})
                           </span>
                           <div className="text-xs text-[var(--color-foreground-muted)]">
-                            {e.floors.length} spratova
+                            {t("inventory.structure.floorCount", { count: e.floors.length })}
                           </div>
                         </div>
                         {canManage ? (
@@ -137,11 +139,14 @@ export function StructureManager({
                               setOpenForm({
                                 kind: "floor",
                                 entranceId: e.id,
-                                entranceLabel: `${b.name} · Ulaz ${e.name}`,
+                                entranceLabel: t("inventory.structure.entranceLabel", {
+                                  building: b.name,
+                                  entrance: e.name,
+                                }),
                               })
                             }
                           >
-                            + Sprat
+                            {t("inventory.structure.addFloorShort")}
                           </Button>
                         ) : null}
                       </div>
@@ -174,7 +179,7 @@ export function StructureManager({
             variant="outline"
             onClick={() => setOpenForm({ kind: "building" })}
           >
-            + Dodaj objekat
+            {t("inventory.structure.addBuildingShort")}
           </Button>
         </div>
       ) : null}
@@ -215,6 +220,7 @@ function Modal({
   children: React.ReactNode;
   onClose: () => void;
 }) {
+  const t = useT();
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
       <div className="w-full max-w-md rounded-lg bg-white p-4 shadow-lg">
@@ -224,7 +230,7 @@ function Modal({
             type="button"
             onClick={onClose}
             className="text-[var(--color-foreground-muted)] hover:text-black"
-            aria-label="Zatvori"
+            aria-label={t("common.close")}
           >
             ×
           </button>
@@ -244,6 +250,7 @@ function BuildingForm({
   onClose: () => void;
   onCreated: () => void;
 }) {
+  const t = useT();
   const [values, setValues] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -263,7 +270,7 @@ function BuildingForm({
       setError(
         err instanceof ApiClientError
           ? err.message
-          : "Došlo je do neočekivane greške.",
+          : t("common.unexpectedError"),
       );
     } finally {
       setLoading(false);
@@ -271,24 +278,24 @@ function BuildingForm({
   }
 
   return (
-    <Modal title="Novi objekat" onClose={onClose}>
+    <Modal title={t("inventory.structure.newBuilding")} onClose={onClose}>
       <form onSubmit={onSubmit} className="space-y-3">
         <ModalField
-          label="Šifra"
-          hint="Kratka jedinstvena šifra u okviru projekta (npr. A, L1)."
+          label={t("structure.fields.code")}
+          hint={t("inventory.structure.buildingCodeHint")}
           value={values.code ?? ""}
           onChange={(v) => setValues({ ...values, code: v })}
           required
         />
         <ModalField
-          label="Naziv"
-          hint="Naziv objekta (npr. Lamela A, Zgrada 1)."
+          label={t("structure.fields.name")}
+          hint={t("inventory.structure.buildingNameHint")}
           value={values.name ?? ""}
           onChange={(v) => setValues({ ...values, name: v })}
           required
         />
         <ModalField
-          label="Opis"
+          label={t("structure.fields.description")}
           value={values.description ?? ""}
           onChange={(v) => setValues({ ...values, description: v })}
         />
@@ -299,10 +306,10 @@ function BuildingForm({
         ) : null}
         <div className="flex justify-end gap-2 pt-2">
           <Button variant="outline" type="button" onClick={onClose} disabled={loading}>
-            Odustani
+            {t("inventory.discard")}
           </Button>
           <Button type="submit" loading={loading}>
-            Dodaj objekat
+            {t("structure.addBuilding")}
           </Button>
         </div>
       </form>
@@ -321,6 +328,7 @@ function EntranceForm({
   onClose: () => void;
   onCreated: () => void;
 }) {
+  const t = useT();
   const [values, setValues] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -339,7 +347,7 @@ function EntranceForm({
       setError(
         err instanceof ApiClientError
           ? err.message
-          : "Došlo je do neočekivane greške.",
+          : t("common.unexpectedError"),
       );
     } finally {
       setLoading(false);
@@ -347,18 +355,18 @@ function EntranceForm({
   }
 
   return (
-    <Modal title={`Novi ulaz — ${buildingName}`} onClose={onClose}>
+    <Modal title={t("inventory.structure.newEntrance", { name: buildingName })} onClose={onClose}>
       <form onSubmit={onSubmit} className="space-y-3">
         <ModalField
-          label="Šifra"
-          hint="Kratka šifra ulaza (npr. 1, 2, A)."
+          label={t("structure.fields.code")}
+          hint={t("inventory.structure.entranceCodeHint")}
           value={values.code ?? ""}
           onChange={(v) => setValues({ ...values, code: v })}
           required
         />
         <ModalField
-          label="Naziv"
-          hint="Kako se ulaz zove/vidi (npr. Ulaz 1, Ulaz A)."
+          label={t("structure.fields.name")}
+          hint={t("inventory.structure.entranceNameHint")}
           value={values.name ?? ""}
           onChange={(v) => setValues({ ...values, name: v })}
           required
@@ -370,10 +378,10 @@ function EntranceForm({
         ) : null}
         <div className="flex justify-end gap-2 pt-2">
           <Button variant="outline" type="button" onClick={onClose} disabled={loading}>
-            Odustani
+            {t("inventory.discard")}
           </Button>
           <Button type="submit" loading={loading}>
-            Dodaj ulaz
+            {t("structure.addEntrance")}
           </Button>
         </div>
       </form>
@@ -392,6 +400,7 @@ function FloorForm({
   onClose: () => void;
   onCreated: () => void;
 }) {
+  const t = useT();
   const [values, setValues] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -409,7 +418,7 @@ function FloorForm({
       setError(
         err instanceof ApiClientError
           ? err.message
-          : "Došlo je do neočekivane greške.",
+          : t("common.unexpectedError"),
       );
     } finally {
       setLoading(false);
@@ -417,18 +426,18 @@ function FloorForm({
   }
 
   return (
-    <Modal title={`Novi sprat — ${entranceLabel}`} onClose={onClose}>
+    <Modal title={t("inventory.structure.newFloor", { label: entranceLabel })} onClose={onClose}>
       <form onSubmit={onSubmit} className="space-y-3">
         <ModalField
-          label="Oznaka sprata"
-          hint="Kako sprat piše (npr. PR za prizemlje, 1, 2, PK za potkrovlje, S za suteren)."
+          label={t("structure.fields.floorLabel")}
+          hint={t("inventory.structure.floorLabelHint")}
           value={values.label ?? ""}
           onChange={(v) => setValues({ ...values, label: v })}
           required
         />
         <ModalField
-          label="Broj sprata"
-          hint="Numerička vrednost za sortiranje (npr. 0 za prizemlje, -1 za suteren)."
+          label={t("structure.fields.floorNumber")}
+          hint={t("inventory.structure.floorNumberHint")}
           type="number"
           value={values.number ?? ""}
           onChange={(v) => setValues({ ...values, number: v })}
@@ -440,10 +449,10 @@ function FloorForm({
         ) : null}
         <div className="flex justify-end gap-2 pt-2">
           <Button variant="outline" type="button" onClick={onClose} disabled={loading}>
-            Odustani
+            {t("inventory.discard")}
           </Button>
           <Button type="submit" loading={loading}>
-            Dodaj sprat
+            {t("structure.addFloor")}
           </Button>
         </div>
       </form>

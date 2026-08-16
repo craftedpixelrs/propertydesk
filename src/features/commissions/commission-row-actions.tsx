@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
 import { apiClient, ApiClientError } from "@/lib/api-client";
+import { useT } from "@/components/app/i18n-provider";
 
 interface Props {
   commissionId: string;
@@ -12,6 +13,7 @@ interface Props {
 }
 
 export function CommissionRowActions({ commissionId, status }: Props) {
+  const t = useT();
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -23,7 +25,7 @@ export function CommissionRowActions({ commissionId, status }: Props) {
       await apiClient.post(`/commissions/${commissionId}/actions`, payload);
       router.refresh();
     } catch (err) {
-      setError(err instanceof ApiClientError ? err.message : "Došlo je do greške.");
+      setError(err instanceof ApiClientError ? err.message : t("errors.generic"));
     } finally {
       setBusy(false);
     }
@@ -39,7 +41,7 @@ export function CommissionRowActions({ commissionId, status }: Props) {
       {error ? <span className="text-red-700">{error}</span> : null}
       {canApprove ? (
         <Button size="sm" loading={busy} onClick={() => act({ action: "approve" })}>
-          Odobri
+          {t("partners.approve")}
         </Button>
       ) : null}
       {canInvoice ? (
@@ -49,7 +51,7 @@ export function CommissionRowActions({ commissionId, status }: Props) {
           loading={busy}
           onClick={() => act({ action: "invoice" })}
         >
-          Fakturisano
+          {t("partners.commissionActions.invoiced")}
         </Button>
       ) : null}
       {canPaid ? (
@@ -59,7 +61,7 @@ export function CommissionRowActions({ commissionId, status }: Props) {
           loading={busy}
           onClick={() => act({ action: "paid" })}
         >
-          Plaćeno
+          {t("partners.commissionActions.paid")}
         </Button>
       ) : null}
       {canCancel ? (
@@ -68,11 +70,11 @@ export function CommissionRowActions({ commissionId, status }: Props) {
           variant="ghost"
           loading={busy}
           onClick={() => {
-            const reason = window.prompt("Razlog otkazivanja:") ?? "";
+            const reason = window.prompt(t("partners.commissionActions.cancelReason")) ?? "";
             if (reason.trim()) act({ action: "cancel", reason });
           }}
         >
-          Otkaži
+          {t("common.cancel")}
         </Button>
       ) : null}
     </div>

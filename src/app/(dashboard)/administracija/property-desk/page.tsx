@@ -30,6 +30,8 @@ import {
   getLeadTaskCounts,
   listTasksForView,
 } from "@/server/services/property-desk/marketing-lead-tasks.service";
+import { createT, type TranslationKey } from "@/lib/i18n";
+import { resolveRequestLocale } from "@/lib/i18n/resolve-locale";
 
 export const dynamic = "force-dynamic";
 
@@ -40,23 +42,6 @@ export const dynamic = "force-dynamic";
  * je scoping-aware — SETTER vidi pipeline u okviru svog `leadScope`,
  * MANAGER i SUPER_ADMIN vide sve.
  */
-const STAGE_LABEL: Record<string, string> = {
-  NEW: "Novi",
-  CONTACTED: "Kontaktirano",
-  QUALIFIED: "Kvalifikovano",
-  DEMO: "Demo",
-  PROPOSAL: "Ponuda",
-  WON: "Konvertovano",
-  LOST: "Izgubljeno",
-  NURTURING: "Nurturing",
-};
-
-const AUDIENCE_LABEL: Record<string, string> = {
-  INVESTOR: "Investitor",
-  AGENCY: "Agencija",
-  OTHER: "Ostalo",
-};
-
 const STAGE_TONE: Record<
   string,
   "neutral" | "brand" | "info" | "success" | "warning" | "danger" | "violet"
@@ -71,13 +56,6 @@ const STAGE_TONE: Record<
   NURTURING: "neutral",
 };
 
-const LEVEL_LABEL: Record<string, string> = {
-  SOURCING: "L1 Sourcing",
-  CLOSING: "L2 Closing",
-  OPERATIONS: "L3 Operations",
-  ARCHIVED: "Arhivirano",
-};
-
 const LEVEL_TONE: Record<
   string,
   "neutral" | "brand" | "info" | "success" | "warning" | "danger"
@@ -90,6 +68,7 @@ const LEVEL_TONE: Record<
 
 export default async function PropertyDeskDashboardPage() {
   const ctx = await requirePropertyDeskAccess();
+  const t = createT(await resolveRequestLocale());
   const [stats, recent, hot, followUps, taskCounts, canReadTasks] =
     await Promise.all([
       getPipelineStats(ctx),
@@ -106,7 +85,7 @@ export default async function PropertyDeskDashboardPage() {
   const roleBadge = ctx.isSuperAdmin
     ? { label: "SUPER_ADMIN", tone: "brand" as const }
     : {
-        label: `Property Desk · ${ctx.teamMember.teamRole}`,
+        label: `Property Desk · ${t(`admin.pd.teamRole.${ctx.teamMember.teamRole}` as TranslationKey)}`,
         tone: "info" as const,
       };
 
@@ -114,11 +93,9 @@ export default async function PropertyDeskDashboardPage() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h2 className="text-lg font-semibold">Property Desk pipeline</h2>
+          <h2 className="text-lg font-semibold">{t("admin.pdDash.title")}</h2>
           <p className="text-sm text-[var(--color-foreground-muted)]">
-            Marketing lead-ovi za sam PropertyDesk SaaS. Ovo je platformski
-            (interni) tim — potpuno odvojen od tenant Member.role i
-            SUPER_ADMIN sekcija.
+            {t("admin.pdDash.subtitle")}
           </p>
         </div>
         <Badge tone={roleBadge.tone}>{roleBadge.label}</Badge>
@@ -126,23 +103,26 @@ export default async function PropertyDeskDashboardPage() {
 
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
         <StatCard
-          label="Otvoreni pipeline"
+          label={t("admin.pdDash.openPipeline")}
           value={stats.totalOpen}
-          hint={`Novi: ${stats.byStage.NEW} · Kontaktirano: ${stats.byStage.CONTACTED}`}
+          hint={t("admin.pdDash.openHint", {
+            new: stats.byStage.NEW,
+            contacted: stats.byStage.CONTACTED,
+          })}
           icon={<Inbox className="size-5" />}
         />
         <StatCard
-          label="Konvertovano"
+          label={t("admin.pdDash.won")}
           value={stats.totalWon}
           icon={<Handshake className="size-5" />}
         />
         <StatCard
-          label="Izgubljeno"
+          label={t("admin.pdDash.lost")}
           value={stats.totalLost}
           icon={<Mail className="size-5" />}
         />
         <StatCard
-          label="Nurturing"
+          label={t("admin.pdDash.nurturing")}
           value={stats.byStage.NURTURING}
           icon={<Sparkles className="size-5" />}
         />
@@ -151,21 +131,21 @@ export default async function PropertyDeskDashboardPage() {
       {canReadTasks ? (
         <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
           <StatCard
-            label="Moji taskovi (otvoreno)"
+            label={t("admin.pdDash.myOpenTasks")}
             value={taskCounts.mineOpen}
-            hint="Nezavršeni koji su dodeljeni tebi"
+            hint={t("admin.pdDash.myOpenHint")}
             icon={<CheckSquare className="size-5" />}
           />
           <StatCard
-            label="Moji taskovi (overdue)"
+            label={t("admin.pdDash.myOverdue")}
             value={taskCounts.mineOverdue}
-            hint="Prošao rok, još nisi završio"
+            hint={t("admin.pdDash.myOverdueHint")}
             icon={<Clock className="size-5" />}
           />
           <StatCard
-            label="Tim overdue"
+            label={t("admin.pdDash.teamOverdue")}
             value={taskCounts.teamOverdue}
-            hint="Ukupno overdue u vidljivom pipeline-u"
+            hint={t("admin.pdDash.teamOverdueHint")}
             icon={<Clock className="size-5" />}
           />
         </div>
@@ -174,7 +154,7 @@ export default async function PropertyDeskDashboardPage() {
       <div className="grid gap-6 lg:grid-cols-3">
         <Card>
           <CardHeader>
-            <CardTitle className="text-sm">Po levelu</CardTitle>
+            <CardTitle className="text-sm">{t("admin.pdDash.byLevel")}</CardTitle>
           </CardHeader>
           <CardContent>
             <ul className="space-y-2 text-sm">
@@ -185,7 +165,7 @@ export default async function PropertyDeskDashboardPage() {
                     className="flex items-center gap-2 hover:underline"
                   >
                     <Badge tone={LEVEL_TONE[level] ?? "neutral"}>
-                      {LEVEL_LABEL[level] ?? level}
+                      {t(`admin.pd.level.${level}` as TranslationKey)}
                     </Badge>
                   </Link>
                   <span className="font-medium">{count}</span>
@@ -197,12 +177,12 @@ export default async function PropertyDeskDashboardPage() {
 
         <Card>
           <CardHeader className="flex items-center justify-between gap-3">
-            <CardTitle className="text-sm">Po fazi</CardTitle>
+            <CardTitle className="text-sm">{t("admin.pdDash.byStage")}</CardTitle>
             <Link
               href="/administracija/property-desk/leadovi"
               className="inline-flex items-center gap-1 text-xs text-[var(--color-brand-700)] hover:underline"
             >
-              Svi lead-ovi <ArrowRight className="size-3" />
+              {t("admin.pdDash.allLeads")} <ArrowRight className="size-3" />
             </Link>
           </CardHeader>
           <CardContent>
@@ -217,7 +197,7 @@ export default async function PropertyDeskDashboardPage() {
                     className="flex items-center gap-2 hover:underline"
                   >
                     <Badge tone={STAGE_TONE[stage] ?? "neutral"}>
-                      {STAGE_LABEL[stage] ?? stage}
+                      {t(`admin.pd.stage.${stage}` as TranslationKey)}
                     </Badge>
                   </Link>
                   <span className="font-medium">{count}</span>
@@ -229,13 +209,13 @@ export default async function PropertyDeskDashboardPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-sm">Po publici</CardTitle>
+            <CardTitle className="text-sm">{t("admin.pdDash.byAudience")}</CardTitle>
           </CardHeader>
           <CardContent>
             <ul className="space-y-2 text-sm">
               {Object.entries(stats.byAudience).map(([aud, count]) => (
                 <li key={aud} className="flex items-center justify-between">
-                  <span>{AUDIENCE_LABEL[aud] ?? aud}</span>
+                  <span>{t(`admin.pd.audience.${aud}` as TranslationKey)}</span>
                   <span className="font-medium">{count}</span>
                 </li>
               ))}
@@ -249,19 +229,19 @@ export default async function PropertyDeskDashboardPage() {
           <CardHeader className="flex items-center justify-between gap-3">
             <CardTitle className="text-sm flex items-center gap-2">
               <Flame className="size-4 text-[var(--color-danger)]" />
-              Hot lead-ovi
+              {t("admin.pdDash.hotLeads")}
             </CardTitle>
             <Link
               href="/administracija/property-desk/leadovi?temperature=HOT&sort=score"
               className="inline-flex items-center gap-1 text-xs text-[var(--color-brand-700)] hover:underline"
             >
-              Svi <ArrowRight className="size-3" />
+              {t("admin.pdDash.all")} <ArrowRight className="size-3" />
             </Link>
           </CardHeader>
           <CardContent>
             {hot.length === 0 ? (
               <p className="text-sm text-[var(--color-foreground-muted)]">
-                Nema „hot" lead-ova u vašem opsegu.
+                {t("admin.pdDash.noHot")}
               </p>
             ) : (
               <ul className="divide-y divide-[var(--color-border)]">
@@ -290,7 +270,7 @@ export default async function PropertyDeskDashboardPage() {
                       </div>
                       <div className="flex items-center gap-2">
                         <Badge tone={STAGE_TONE[lead.stage] ?? "neutral"}>
-                          {STAGE_LABEL[lead.stage] ?? lead.stage}
+                          {t(`admin.pd.stage.${lead.stage}` as TranslationKey)}
                         </Badge>
                         <span className="text-xs font-medium">
                           {lead.leadScore}
@@ -308,19 +288,19 @@ export default async function PropertyDeskDashboardPage() {
           <CardHeader className="flex items-center justify-between gap-3">
             <CardTitle className="text-sm flex items-center gap-2">
               <CalendarClock className="size-4" />
-              Follow-up narednih 7 dana
+              {t("admin.pdDash.followUp7")}
             </CardTitle>
             <Link
               href="/administracija/property-desk/leadovi?followUpWithinDays=7"
               className="inline-flex items-center gap-1 text-xs text-[var(--color-brand-700)] hover:underline"
             >
-              Svi <ArrowRight className="size-3" />
+              {t("admin.pdDash.all")} <ArrowRight className="size-3" />
             </Link>
           </CardHeader>
           <CardContent>
             {followUps.length === 0 ? (
               <p className="text-sm text-[var(--color-foreground-muted)]">
-                Nema zakazanih follow-up-ova u narednih 7 dana.
+                {t("admin.pdDash.noFollowUp")}
               </p>
             ) : (
               <ul className="divide-y divide-[var(--color-border)]">
@@ -349,7 +329,7 @@ export default async function PropertyDeskDashboardPage() {
                       <span className="text-xs text-[var(--color-foreground-muted)]">
                         {lead.nextFollowUpAt
                           ? formatDateTime(lead.nextFollowUpAt)
-                          : "—"}
+                          : t("admin.dash")}
                       </span>
                     </li>
                   );
@@ -364,19 +344,19 @@ export default async function PropertyDeskDashboardPage() {
         <CardHeader className="flex items-center justify-between gap-3">
           <CardTitle className="text-sm flex items-center gap-2">
             <Users className="size-4" />
-            Poslednji lead-ovi
+            {t("admin.pdDash.recentLeads")}
           </CardTitle>
           <Link
             href="/administracija/property-desk/leadovi"
             className="inline-flex items-center gap-1 text-xs text-[var(--color-brand-700)] hover:underline"
           >
-            Sve <ArrowRight className="size-3" />
+            {t("admin.pdDash.allRecent")} <ArrowRight className="size-3" />
           </Link>
         </CardHeader>
         <CardContent>
           {recent.length === 0 ? (
             <p className="text-sm text-[var(--color-foreground-muted)]">
-              Još nema lead-ova u pipeline-u.
+              {t("admin.pdDash.noLeads")}
             </p>
           ) : (
             <ul className="divide-y divide-[var(--color-border)]">
@@ -401,13 +381,13 @@ export default async function PropertyDeskDashboardPage() {
                         {lead.email}
                         {lead.city ? ` · ${lead.city}` : ""}
                         {lead.audience
-                          ? ` · ${AUDIENCE_LABEL[lead.audience] ?? lead.audience}`
+                          ? ` · ${t(`admin.pd.audience.${lead.audience}` as TranslationKey)}`
                           : ""}
                       </div>
                     </div>
                     <div>
                       <Badge tone={STAGE_TONE[lead.stage] ?? "neutral"}>
-                        {STAGE_LABEL[lead.stage] ?? lead.stage}
+                        {t(`admin.pd.stage.${lead.stage}` as TranslationKey)}
                       </Badge>
                     </div>
                     <span className="text-xs text-[var(--color-foreground-muted)]">
@@ -426,13 +406,13 @@ export default async function PropertyDeskDashboardPage() {
           <CardHeader className="flex items-center justify-between gap-3">
             <CardTitle className="text-sm flex items-center gap-2">
               <CheckSquare className="size-4" />
-              Moji otvoreni taskovi
+              {t("admin.pdDash.myOpenTasksCard")}
             </CardTitle>
           </CardHeader>
           <CardContent>
             {mineOpenTasks.length === 0 ? (
               <p className="text-sm text-[var(--color-foreground-muted)]">
-                Nemaš otvorenih taskova. Kreiraj nove sa detalja lead-a.
+                {t("admin.pdDash.noMyTasks")}
               </p>
             ) : (
               <ul className="divide-y divide-[var(--color-border)]">
@@ -462,15 +442,15 @@ export default async function PropertyDeskDashboardPage() {
                       </div>
                       <div>
                         {overdue ? (
-                          <Badge tone="danger">Overdue</Badge>
+                          <Badge tone="danger">{t("admin.pdDash.overdue")}</Badge>
                         ) : task.dueAt ? (
-                          <Badge tone="warning">Sa rokom</Badge>
+                          <Badge tone="warning">{t("admin.pdDash.withDue")}</Badge>
                         ) : (
-                          <Badge tone="neutral">Bez roka</Badge>
+                          <Badge tone="neutral">{t("admin.pdDash.noDue")}</Badge>
                         )}
                       </div>
                       <span className="text-xs text-[var(--color-foreground-muted)]">
-                        {task.dueAt ? formatDateTime(task.dueAt) : "—"}
+                        {task.dueAt ? formatDateTime(task.dueAt) : t("admin.dash")}
                       </span>
                     </li>
                   );
@@ -486,13 +466,13 @@ export default async function PropertyDeskDashboardPage() {
           href="/administracija/property-desk/tim"
           className="rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2 text-sm hover:bg-[var(--color-surface-inset)]"
         >
-          Upravljanje timom →
+          {t("admin.pdDash.manageTeam")}
         </Link>
         <Link
           href="/administracija/property-desk/leadovi"
           className="rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2 text-sm hover:bg-[var(--color-surface-inset)]"
         >
-          Otvori lead pipeline →
+          {t("admin.pdDash.openPipelineLink")}
         </Link>
       </div>
     </div>

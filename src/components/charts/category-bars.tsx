@@ -13,6 +13,7 @@ import {
   YAxis,
 } from "recharts";
 
+import { useT } from "@/components/app/i18n-provider";
 import { chartBrandScale, pickColor } from "./palette";
 
 export interface CategoryBarDatum {
@@ -72,17 +73,19 @@ function resolveYTickFormatter(
 export function CategoryBars({
   data,
   series,
-  ariaLabel = "Distribucija",
+  ariaLabel,
   colorPerBar = true,
   yTickFormatter,
   yTickFormat,
   stacked = false,
   layout = "horizontal",
 }: CategoryBarsProps) {
+  const t = useT();
   const tickFormatter = resolveYTickFormatter(yTickFormatter, yTickFormat);
   const resolvedSeries: CategoryBarSeries[] = series ?? [
-    { key: "value", label: "Broj" },
+    { key: "value", label: t("marketing.charts.count") },
   ];
+  const resolvedAria = ariaLabel ?? t("marketing.charts.distribution");
   const isVertical = layout === "vertical";
 
   return (
@@ -91,7 +94,7 @@ export function CategoryBars({
         data={data}
         layout={layout}
         margin={{ top: 8, right: 16, left: 0, bottom: 8 }}
-        aria-label={ariaLabel}
+        aria-label={resolvedAria}
       >
         <CartesianGrid
           stroke="var(--color-border)"

@@ -1,11 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { useT } from "@/components/app/i18n-provider";
 import { apiClient, ApiClientError } from "@/lib/api-client";
+import type { TranslateFn } from "@/lib/i18n";
 
 type Step = "upload" | "map" | "preview" | "done";
 
@@ -21,28 +23,30 @@ interface ValidatedRow {
   raw: Record<string, string>;
 }
 
-const IMPORT_FIELDS: { value: string; label: string }[] = [
-  { value: "code", label: "Šifra jedinice (obavezno)" },
-  { value: "type", label: "Tip (obavezno)" },
-  { value: "status", label: "Status" },
-  { value: "buildingCode", label: "Šifra objekta" },
-  { value: "entranceCode", label: "Šifra ulaza" },
-  { value: "floorLabel", label: "Oznaka sprata" },
-  { value: "totalArea", label: "Ukupna površina (obavezno)" },
-  { value: "internalArea", label: "Neto površina" },
-  { value: "terraceArea", label: "Terasa" },
-  { value: "gardenArea", label: "Bašta" },
-  { value: "basePrice", label: "Osnovna cena (obavezno)" },
-  { value: "finalPrice", label: "Konačna cena" },
-  { value: "currency", label: "Valuta" },
-  { value: "vatRate", label: "PDV" },
-  { value: "bedrooms", label: "Spavaće sobe" },
-  { value: "bathrooms", label: "Kupatila" },
-  { value: "orientation", label: "Orijentacija" },
-  { value: "publicDescription", label: "Javni opis" },
-  { value: "internalNotes", label: "Interne napomene" },
-  { value: "externalReference", label: "Ext. referenca" },
-];
+function importFields(t: TranslateFn): { value: string; label: string }[] {
+  return [
+    { value: "code", label: t("inventory.import.fields.code") },
+    { value: "type", label: t("inventory.import.fields.type") },
+    { value: "status", label: t("inventory.import.fields.status") },
+    { value: "buildingCode", label: t("inventory.import.fields.buildingCode") },
+    { value: "entranceCode", label: t("inventory.import.fields.entranceCode") },
+    { value: "floorLabel", label: t("inventory.import.fields.floorLabel") },
+    { value: "totalArea", label: t("inventory.import.fields.totalArea") },
+    { value: "internalArea", label: t("inventory.import.fields.internalArea") },
+    { value: "terraceArea", label: t("inventory.import.fields.terraceArea") },
+    { value: "gardenArea", label: t("inventory.import.fields.gardenArea") },
+    { value: "basePrice", label: t("inventory.import.fields.basePrice") },
+    { value: "finalPrice", label: t("inventory.import.fields.finalPrice") },
+    { value: "currency", label: t("inventory.import.fields.currency") },
+    { value: "vatRate", label: t("inventory.import.fields.vatRate") },
+    { value: "bedrooms", label: t("inventory.import.fields.bedrooms") },
+    { value: "bathrooms", label: t("inventory.import.fields.bathrooms") },
+    { value: "orientation", label: t("inventory.import.fields.orientation") },
+    { value: "publicDescription", label: t("inventory.import.fields.publicDescription") },
+    { value: "internalNotes", label: t("inventory.import.fields.internalNotes") },
+    { value: "externalReference", label: t("inventory.import.fields.externalReference") },
+  ];
+}
 
 const AUTO_MAP: Record<string, string> = {
   code: "code",
@@ -95,6 +99,8 @@ function autoMap(header: string): string | null {
 }
 
 export function ImportWizard({ projectId }: { projectId: string }) {
+  const t = useT();
+  const fields = useMemo(() => importFields(t), [t]);
   const router = useRouter();
   const [step, setStep] = useState<Step>("upload");
   const [file, setFile] = useState<File | null>(null);
@@ -138,7 +144,7 @@ export function ImportWizard({ projectId }: { projectId: string }) {
       setError(
         err instanceof ApiClientError
           ? err.message
-          : "Greška prilikom čitanja fajla.",
+          : t("inventory.import.parseError"),
       );
     } finally {
       setLoading(false);
@@ -161,7 +167,7 @@ export function ImportWizard({ projectId }: { projectId: string }) {
       setError(
         err instanceof ApiClientError
           ? err.message
-          : "Greška prilikom validacije.",
+          : t("inventory.import.validateError"),
       );
     } finally {
       setLoading(false);
@@ -183,7 +189,7 @@ export function ImportWizard({ projectId }: { projectId: string }) {
       setError(
         err instanceof ApiClientError
           ? err.message
-          : "Greška prilikom uvoza.",
+          : t("inventory.import.commitError"),
       );
     } finally {
       setLoading(false);
@@ -194,9 +200,35 @@ export function ImportWizard({ projectId }: { projectId: string }) {
     <div className="space-y-4">
       <Card>
         <CardHeader>
-          <CardTitle>Korak 1: Otpremanje fajla</CardTitle>
+          <CardTitle>{t("inventory.import.stepUpload")}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
+          {step === "upload" ? (
+            <div className="rounded-md border border-[var(--color-border)] bg-[var(--color-surface-inset)] p-3 text-sm">
+              <div className="font-medium">{t("inventory.import.downloadTemplateTitle")}</div>
+              <p className="mt-1 text-[var(--color-foreground-muted)]">
+                {t("inventory.import.templateHelp")}
+              </p>
+              <div className="mt-3 flex flex-wrap gap-2">
+                <Button variant="outline" size="sm" asChild>
+                  <a
+                    href={`/api/v1/projects/${projectId}/units/import?format=csv`}
+                    download="propertydesk-jedinice-sablon.csv"
+                  >
+                    {t("inventory.import.downloadCsv")}
+                  </a>
+                </Button>
+                <Button variant="outline" size="sm" asChild>
+                  <a
+                    href={`/api/v1/projects/${projectId}/units/import?format=xlsx`}
+                    download="propertydesk-jedinice-sablon.xlsx"
+                  >
+                    {t("inventory.import.downloadXlsx")}
+                  </a>
+                </Button>
+              </div>
+            </div>
+          ) : null}
           <input
             type="file"
             accept=".csv,.xlsx,.xls,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
@@ -206,7 +238,7 @@ export function ImportWizard({ projectId }: { projectId: string }) {
           />
           {step === "upload" ? (
             <Button onClick={handleUpload} loading={loading} disabled={!file}>
-              Učitaj i pređi na mapiranje
+              {t("inventory.import.loadAndMap")}
             </Button>
           ) : null}
         </CardContent>
@@ -215,7 +247,7 @@ export function ImportWizard({ projectId }: { projectId: string }) {
       {step !== "upload" && parsed ? (
         <Card>
           <CardHeader>
-            <CardTitle>Korak 2: Mapiranje kolona</CardTitle>
+            <CardTitle>{t("inventory.import.stepMap")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
@@ -233,8 +265,8 @@ export function ImportWizard({ projectId }: { projectId: string }) {
                     className="h-10 rounded-md border border-[var(--color-border)] bg-white px-2 text-sm"
                     disabled={step !== "map"}
                   >
-                    <option value="">— preskoči —</option>
-                    {IMPORT_FIELDS.map((o) => (
+                    <option value="">{t("inventory.import.skipColumn")}</option>
+                    {fields.map((o) => (
                       <option key={o.value} value={o.value}>
                         {o.label}
                       </option>
@@ -245,7 +277,7 @@ export function ImportWizard({ projectId }: { projectId: string }) {
             </div>
             {step === "map" ? (
               <Button onClick={handleValidate} loading={loading}>
-                Validiraj i pregledaj
+                {t("inventory.import.validate")}
               </Button>
             ) : null}
           </CardContent>
@@ -255,13 +287,15 @@ export function ImportWizard({ projectId }: { projectId: string }) {
       {step === "preview" || step === "done" ? (
         <Card>
           <CardHeader>
-            <CardTitle>Korak 3: Pregled i potvrda</CardTitle>
+            <CardTitle>{t("inventory.import.stepPreview")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             {summary ? (
               <div className="text-sm">
-                Ukupno redova: <strong>{summary.total}</strong>. Ispravnih:{" "}
-                <strong className="text-emerald-700">{summary.ok}</strong>. Sa greškom:{" "}
+                {t("inventory.import.previewTotal")} <strong>{summary.total}</strong>.{" "}
+                {t("inventory.import.previewOk")}{" "}
+                <strong className="text-emerald-700">{summary.ok}</strong>.{" "}
+                {t("inventory.import.previewErrors")}{" "}
                 <strong className="text-red-700">{summary.errors}</strong>.
               </div>
             ) : null}
@@ -271,7 +305,10 @@ export function ImportWizard({ projectId }: { projectId: string }) {
                   .filter((r) => !r.ok)
                   .map((r) => (
                     <div key={r.index}>
-                      Red {r.index + 1}: {r.errors.join("; ")}
+                      {t("inventory.import.rowErrors", {
+                        row: r.index + 1,
+                        errors: r.errors.join("; "),
+                      })}
                     </div>
                   ))}
               </div>
@@ -283,10 +320,10 @@ export function ImportWizard({ projectId }: { projectId: string }) {
                   loading={loading}
                   disabled={!summary || summary.ok === 0}
                 >
-                  Potvrdi i uvezi {summary?.ok ?? 0} jedinica
+                  {t("inventory.import.confirmCount", { count: summary?.ok ?? 0 })}
                 </Button>
                 <Button variant="outline" onClick={() => setStep("map")}>
-                  Nazad na mapiranje
+                  {t("inventory.import.backToMap")}
                 </Button>
               </div>
             ) : null}
@@ -297,29 +334,34 @@ export function ImportWizard({ projectId }: { projectId: string }) {
       {step === "done" && commitResult ? (
         <Card>
           <CardHeader>
-            <CardTitle>Uvoz završen</CardTitle>
+            <CardTitle>{t("inventory.import.doneTitle")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3 text-sm">
             <div>
-              Kreirano: <strong className="text-emerald-700">{commitResult.created}</strong>.
-              Preskočeno: <strong>{commitResult.skipped}</strong>. Grešaka:{" "}
+              {t("inventory.import.commitCreated")}{" "}
+              <strong className="text-emerald-700">{commitResult.created}</strong>.{" "}
+              {t("inventory.import.commitSkipped")} <strong>{commitResult.skipped}</strong>.{" "}
+              {t("inventory.import.commitErrors")}{" "}
               <strong className="text-red-700">{commitResult.errors.length}</strong>.
             </div>
             {commitResult.errors.length > 0 ? (
               <div className="max-h-60 overflow-auto rounded-md border border-red-200 bg-red-50 p-2 text-xs">
                 {commitResult.errors.map((e, i) => (
                   <div key={i}>
-                    Red {e.row}: {e.message}
+                    {t("inventory.import.rowErrors", {
+                      row: e.row,
+                      errors: e.message,
+                    })}
                   </div>
                 ))}
               </div>
             ) : null}
             <div className="flex gap-2">
               <Button onClick={() => router.push(`/projekti/${projectId}`)}>
-                Nazad na projekat
+                {t("inventory.import.backToProject")}
               </Button>
               <Button variant="outline" onClick={() => router.push("/jedinice")}>
-                Pogledaj jedinice
+                {t("inventory.import.viewUnits")}
               </Button>
             </div>
           </CardContent>

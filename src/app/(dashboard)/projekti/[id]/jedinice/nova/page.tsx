@@ -3,6 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { loadUserContext } from "@/server/auth/context";
 import { getProjectById } from "@/server/services/projects.service";
 import { isDomainError } from "@/lib/errors";
+import { createT } from "@/lib/i18n";
 import { NewUnitForm } from "@/features/units/new-unit-form";
 
 interface Props {
@@ -17,6 +18,7 @@ export default async function NewUnitPage({ params }: Props) {
   if (!ctx.permissions.includes("inventory.manage")) {
     redirect(`/projekti/${id}`);
   }
+  const t = createT(ctx.user.locale);
 
   let project;
   try {
@@ -44,7 +46,7 @@ export default async function NewUnitPage({ params }: Props) {
         <div className="text-xs font-mono uppercase text-[var(--color-foreground-muted)]">
           {project.code} · {project.name}
         </div>
-        <h1 className="text-2xl font-semibold">Nova jedinica</h1>
+        <h1 className="text-2xl font-semibold">{t("units.newUnit")}</h1>
       </div>
       <NewUnitForm projectId={project.id} structure={structure} />
     </div>

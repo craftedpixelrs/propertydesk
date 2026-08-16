@@ -7,8 +7,10 @@ import {
   type DropResult,
   KanbanBoard,
 } from "@/features/board/kanban-board";
+import { useT } from "@/components/app/i18n-provider";
 import { formatDate, formatMoney } from "@/lib/formatters";
 import { SUPPORTED_CURRENCIES, type SupportedCurrency } from "@/lib/constants/app";
+import { enumLabel, type TranslateFn } from "@/lib/i18n";
 import type { SaleBoardCard } from "@/server/services/sales/sales.service";
 
 function displayMoney(amount: string, currency: string): string {
@@ -18,15 +20,9 @@ function displayMoney(amount: string, currency: string): string {
   return `${amount} ${currency}`;
 }
 
-const STATUS_LABELS: Record<SaleStatus, string> = {
-  DRAFT: "Nacrt",
-  PRE_CONTRACT: "Predugovor",
-  CONTRACTED: "Ugovor potpisan",
-  PAYMENT_IN_PROGRESS: "Uplate u toku",
-  PAID: "Uplaćeno",
-  HANDED_OVER: "Primopredaja",
-  CANCELED: "Otkazano",
-};
+function saleStatusLabel(status: string, t: TranslateFn): string {
+  return enumLabel("sale", status === "PRE_CONTRACT" ? "PRECONTRACT" : status, t);
+}
 
 const COLUMN_ORDER: SaleStatus[] = [
   "DRAFT",
@@ -74,6 +70,7 @@ interface Props {
 }
 
 export function SalesBoard({ columns, canManage }: Props) {
+  const t = useT();
   const byStatus = new Map(columns.map((c) => [c.status, c] as const));
   const board: BoardColumn<
     SaleBoardCard & { createdAt: string; contractDate: string | null }
@@ -81,7 +78,7 @@ export function SalesBoard({ columns, canManage }: Props) {
     const col = byStatus.get(status);
     return {
       status,
-      title: STATUS_LABELS[status],
+      title: saleStatusLabel(status, t),
       total: col?.total ?? 0,
       cards: (col?.cards ?? []) as (SaleBoardCard & {
         createdAt: string;
@@ -90,7 +87,7 @@ export function SalesBoard({ columns, canManage }: Props) {
       readOnly: status === "PAYMENT_IN_PROGRESS",
       hint:
         status === "PAYMENT_IN_PROGRESS"
-          ? "Automatska kolona — račna se iz uplata."
+          ? t("deals.sales.paymentInProgressHint")
           : undefined,
     };
   });
@@ -120,7 +117,7 @@ export function SalesBoard({ columns, canManage }: Props) {
           </div>
           {c.contractDate ? (
             <div className="text-[10px] text-[var(--color-foreground-muted)]">
-              Ugovor {formatDate(c.contractDate)}
+              {t("deals.sales.contractOn", { date: formatDate(c.contractDate) })}
             </div>
           ) : null}
         </div>
@@ -134,7 +131,7 @@ export function SalesBoard({ columns, canManage }: Props) {
           return {
             kind: "call",
             path: `/sales/${card.id}/cancel`,
-            body: { ...body, reason: "Otkazano sa table" },
+            body: { ...body, reason: t("deals.sales.cancelReasonBoard") },
           };
         }
         return {

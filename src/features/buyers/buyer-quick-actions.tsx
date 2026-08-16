@@ -17,6 +17,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { apiClient, ApiClientError } from "@/lib/api-client";
 import { normalizePhone } from "@/lib/normalize";
+import { useI18n } from "@/components/app/i18n-provider";
+import { intlLocale } from "@/lib/i18n";
 
 type Panel = "note" | "task" | "viewing" | "reservation" | null;
 
@@ -39,6 +41,7 @@ export function BuyerQuickActions({
   canManage: boolean;
   canReserve: boolean;
 }) {
+  const { t, locale } = useI18n();
   const router = useRouter();
   const [panel, setPanel] = useState<Panel>(null);
   const [busy, setBusy] = useState(false);
@@ -81,7 +84,7 @@ export function BuyerQuickActions({
       reset();
       router.refresh();
     } catch (err) {
-      setError(err instanceof ApiClientError ? err.message : "Došlo je do greške.");
+      setError(err instanceof ApiClientError ? err.message : t("errors.generic"));
     } finally {
       setBusy(false);
     }
@@ -91,10 +94,10 @@ export function BuyerQuickActions({
     <Card>
       <CardContent className="space-y-3 p-4">
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-          <ActionButton icon={<Phone className="size-4" />} label="Pozovi" href={`tel:${phone}`} />
+          <ActionButton icon={<Phone className="size-4" />} label={t("crm.actions.call")} href={`tel:${phone}`} />
           <ActionButton
             icon={<Mail className="size-4" />}
-            label="Email"
+            label={t("common.email")}
             href={email ? `mailto:${email}` : undefined}
             disabled={!email}
           />
@@ -109,14 +112,14 @@ export function BuyerQuickActions({
               <>
                 <ActionButton
                   icon={<MessageCircle className="size-4" />}
-                  label="WhatsApp"
+                  label={t("crm.actions.whatsapp")}
                   href={waHref}
                   disabled={!waHref}
                   external
                 />
                 <ActionButton
                   icon={<Send className="size-4" />}
-                  label="Viber"
+                  label={t("crm.actions.viber")}
                   href={viberHref}
                   disabled={!viberHref}
                 />
@@ -127,17 +130,17 @@ export function BuyerQuickActions({
             <>
               <ActionButton
                 icon={<StickyNote className="size-4" />}
-                label="Beleška"
+                label={t("crm.actions.note")}
                 onClick={() => setPanel(panel === "note" ? null : "note")}
               />
               <ActionButton
                 icon={<ClipboardList className="size-4" />}
-                label="Zadatak"
+                label={t("crm.actions.task")}
                 onClick={() => setPanel(panel === "task" ? null : "task")}
               />
               <ActionButton
                 icon={<CalendarClock className="size-4" />}
-                label="Razgledanje"
+                label={t("crm.actions.viewing")}
                 onClick={() => setPanel(panel === "viewing" ? null : "viewing")}
               />
             </>
@@ -145,7 +148,7 @@ export function BuyerQuickActions({
           {canReserve ? (
             <ActionButton
               icon={<BadgeCheck className="size-4" />}
-              label="Rezervacija"
+              label={t("crm.actions.reservation")}
               onClick={() => setPanel(panel === "reservation" ? null : "reservation")}
             />
           ) : null}
@@ -162,7 +165,7 @@ export function BuyerQuickActions({
             <textarea
               value={note}
               onChange={(e) => setNote(e.target.value)}
-              placeholder="Sadržaj beleške…"
+              placeholder={t("crm.actions.notePlaceholder")}
               className="min-h-20 w-full rounded-md border border-[var(--color-border)] px-3 py-2 text-sm"
             />
             <div className="flex justify-end">
@@ -179,7 +182,7 @@ export function BuyerQuickActions({
                   })
                 }
               >
-                Sačuvaj belešku
+                {t("crm.actions.saveNote")}
               </Button>
             </div>
           </div>
@@ -190,7 +193,7 @@ export function BuyerQuickActions({
             <input
               value={taskTitle}
               onChange={(e) => setTaskTitle(e.target.value)}
-              placeholder="Naslov zadatka"
+              placeholder={t("crm.actions.taskTitlePlaceholder")}
               className="h-10 w-full rounded-md border border-[var(--color-border)] px-3 text-sm"
             />
             <input
@@ -214,7 +217,7 @@ export function BuyerQuickActions({
                   })
                 }
               >
-                Kreiraj zadatak
+                {t("crm.actions.createTask")}
               </Button>
             </div>
           </div>
@@ -231,7 +234,7 @@ export function BuyerQuickActions({
             <input
               value={viewingNote}
               onChange={(e) => setViewingNote(e.target.value)}
-              placeholder="Napomena (lokacija, jedinica…)"
+              placeholder={t("crm.actions.viewingNotePlaceholder")}
               className="h-10 w-full rounded-md border border-[var(--color-border)] px-3 text-sm"
             />
             <div className="flex justify-end">
@@ -244,13 +247,16 @@ export function BuyerQuickActions({
                     const when = new Date(viewingWhen);
                     await apiClient.post(`/buyers/${buyerId}/activities`, {
                       type: "VIEWING",
-                      description: `Zakazano razgledanje za ${when.toLocaleString("sr-Latn-RS")}. ${viewingNote}`.trim(),
+                      description: t("crm.actions.viewingDescription", {
+                        when: when.toLocaleString(intlLocale(locale)),
+                        note: viewingNote,
+                      }).trim(),
                       occurredAt: when.toISOString(),
                     });
                   })
                 }
               >
-                Zakaži razgledanje
+                {t("crm.actions.scheduleViewing")}
               </Button>
             </div>
           </div>
@@ -263,7 +269,7 @@ export function BuyerQuickActions({
               onChange={(e) => setUnitId(e.target.value)}
               className="h-10 w-full rounded-md border border-[var(--color-border)] px-3 text-sm"
             >
-              <option value="">— izaberite dostupnu jedinicu —</option>
+              <option value="">{t("crm.actions.selectUnit")}</option>
               {units.map((u) => (
                 <option key={u.id} value={u.id}>
                   {u.code} {u.project ? `· ${u.project.name}` : ""}
@@ -273,7 +279,7 @@ export function BuyerQuickActions({
             <input
               value={resNote}
               onChange={(e) => setResNote(e.target.value)}
-              placeholder="Napomena (opciono)"
+              placeholder={t("crm.actions.noteOptional")}
               className="h-10 w-full rounded-md border border-[var(--color-border)] px-3 text-sm"
             />
             <div className="flex justify-end">
@@ -292,7 +298,7 @@ export function BuyerQuickActions({
                   })
                 }
               >
-                Kreiraj rezervaciju
+                {t("crm.actions.createReservation")}
               </Button>
             </div>
           </div>

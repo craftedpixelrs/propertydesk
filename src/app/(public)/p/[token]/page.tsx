@@ -3,6 +3,8 @@ import { notFound } from "next/navigation";
 
 import { formatMoney } from "@/lib/formatters/money";
 import type { SupportedCurrency } from "@/lib/constants/app";
+import { createT, unitTypeLabel, type TranslateFn } from "@/lib/i18n";
+import { resolveRequestLocale } from "@/lib/i18n/resolve-locale";
 import {
   recordShareView,
   resolvePublicUnitOffer,
@@ -16,16 +18,6 @@ interface PageProps {
   params: Promise<{ token: string }>;
 }
 
-const UNIT_TYPE_LABELS: Record<string, string> = {
-  APARTMENT: "Stan",
-  GARAGE: "Garaža",
-  PARKING_SPACE: "Parking",
-  STORAGE: "Ostava",
-  COMMERCIAL: "Lokal",
-  HOUSE: "Kuća",
-  OTHER: "Ostalo",
-};
-
 /**
  * Emit `noindex` so shared offers never surface in Google. Twitter
  * and Open Graph tags come from the resolved offer — this is what
@@ -33,9 +25,10 @@ const UNIT_TYPE_LABELS: Record<string, string> = {
  */
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { token } = await params;
+  const t = createT(await resolveRequestLocale());
   const offer = await resolvePublicUnitOffer(token);
   if (!offer) {
-    return { title: "Ponuda nije dostupna", robots: { index: false, follow: false } };
+    return { title: t("marketing.public.offerUnavailable"), robots: { index: false, follow: false } };
   }
   const title = `${offer.project.name} · ${offer.unit.code}`;
   const description = offer.unit.publicDescription ?? offer.project.publicDescription ?? undefined;
@@ -64,6 +57,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function PublicUnitOfferPage({ params }: PageProps) {
   const { token } = await params;
+  const locale = await resolveRequestLocale();
+  const t = createT(locale);
   const offer = await resolvePublicUnitOffer(token);
   if (!offer) return notFound();
 
@@ -71,10 +66,18 @@ export default async function PublicUnitOfferPage({ params }: PageProps) {
   // block the render.
   recordShareView(token).catch(() => {});
 
-  return <OfferView offer={offer} token={token} />;
+  return <OfferView offer={offer} token={token} t={t} />;
 }
 
-function OfferView({ offer, token }: { offer: PublicUnitOffer; token: string }) {
+function OfferView({
+  offer,
+  token,
+  t,
+}: {
+  offer: PublicUnitOffer;
+  token: string;
+  t: TranslateFn;
+}) {
   const priceString =
     offer.showPrice && offer.unit.price
       ? formatMoney(offer.unit.price, offer.unit.currency as SupportedCurrency)
@@ -103,7 +106,7 @@ function OfferView({ offer, token }: { offer: PublicUnitOffer; token: string }) 
             {offer.project.city ? ` · ${offer.project.city}` : ""}
           </div>
           <h1 className="text-2xl font-semibold sm:text-3xl">
-            {UNIT_TYPE_LABELS[offer.unit.type] ?? offer.unit.type} {offer.unit.code}
+            {unitTypeLabel(offer.unit.type, t)} {offer.unit.code}
           </h1>
           {priceString ? (
             <div className="mt-1 text-2xl font-semibold text-[var(--color-brand-700)]">
@@ -136,37 +139,61 @@ function OfferView({ offer, token }: { offer: PublicUnitOffer; token: string }) 
 
         <div className="grid gap-4 md:grid-cols-2">
           <section className="rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] p-4">
-            <h2 className="text-sm font-semibold">Karakteristike</h2>
+            <h2 className="text-sm font-semibold">{t("marketing.public.features")}</h2>
             <dl className="mt-2 grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
-              <InfoRow label="Tip" value={UNIT_TYPE_LABELS[offer.unit.type] ?? offer.unit.type} />
-              <InfoRow label="Struktura" value={offer.unit.structure ?? "—"} />
               <InfoRow
-                label="Ukupna površina"
-                value={`${offer.unit.totalArea} m²`}
+                label={t("marketing.public.type")}
+                value={unitTypeLabel(offer.unit.type, t)}
+              />
+              <InfoRow
+                label={t("marketing.public.structure")}
+                value={offer.unit.structure ?? t("marketing.public.emDash")}
+              />
+              <InfoRow
+                label={t("marketing.public.totalArea")}
+                value={t("marketing.public.areaM2", { value: offer.unit.totalArea })}
               />
               {offer.unit.internalArea ? (
-                <InfoRow label="Neto" value={`${offer.unit.internalArea} m²`} />
+                <InfoRow
+                  label={t("marketing.public.netArea")}
+                  value={t("marketing.public.areaM2", { value: offer.unit.internalArea })}
+                />
               ) : null}
               {offer.unit.terraceArea ? (
-                <InfoRow label="Terasa" value={`${offer.unit.terraceArea} m²`} />
+                <InfoRow
+                  label={t("marketing.public.terrace")}
+                  value={t("marketing.public.areaM2", { value: offer.unit.terraceArea })}
+                />
               ) : null}
               {offer.unit.gardenArea ? (
-                <InfoRow label="Bašta" value={`${offer.unit.gardenArea} m²`} />
+                <InfoRow
+                  label={t("marketing.public.garden")}
+                  value={t("marketing.public.areaM2", { value: offer.unit.gardenArea })}
+                />
               ) : null}
               {offer.unit.bedrooms != null ? (
-                <InfoRow label="Spavaće" value={String(offer.unit.bedrooms)} />
+                <InfoRow
+                  label={t("marketing.public.bedrooms")}
+                  value={String(offer.unit.bedrooms)}
+                />
               ) : null}
               {offer.unit.bathrooms != null ? (
-                <InfoRow label="Kupatila" value={String(offer.unit.bathrooms)} />
+                <InfoRow
+                  label={t("marketing.public.bathroomsLabel")}
+                  value={String(offer.unit.bathrooms)}
+                />
               ) : null}
               {offer.unit.orientation ? (
-                <InfoRow label="Orijentacija" value={offer.unit.orientation} />
+                <InfoRow
+                  label={t("marketing.public.orientation")}
+                  value={offer.unit.orientation}
+                />
               ) : null}
             </dl>
           </section>
 
           <section className="rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] p-4">
-            <h2 className="text-sm font-semibold">Kontakt</h2>
+            <h2 className="text-sm font-semibold">{t("marketing.public.contact")}</h2>
             <div className="mt-2 space-y-1 text-sm">
               <div>{offer.organization.name}</div>
               {offer.organization.phone ? (
@@ -207,7 +234,7 @@ function OfferView({ offer, token }: { offer: PublicUnitOffer; token: string }) 
 
         {offer.unit.publicDescription ? (
           <section className="rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] p-4">
-            <h2 className="text-sm font-semibold">O jedinici</h2>
+            <h2 className="text-sm font-semibold">{t("marketing.public.aboutUnit")}</h2>
             <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed">
               {offer.unit.publicDescription}
             </p>
@@ -216,7 +243,7 @@ function OfferView({ offer, token }: { offer: PublicUnitOffer; token: string }) 
 
         {offer.project.publicDescription ? (
           <section className="rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] p-4">
-            <h2 className="text-sm font-semibold">O projektu</h2>
+            <h2 className="text-sm font-semibold">{t("marketing.public.aboutProject")}</h2>
             <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed">
               {offer.project.publicDescription}
             </p>
@@ -228,14 +255,16 @@ function OfferView({ offer, token }: { offer: PublicUnitOffer; token: string }) 
             token={token}
             currency={offer.unit.currency}
             suggestedDeposit={suggestedDeposit(offer)}
-            organizationName={offer.organization.name || "investitor"}
+            organizationName={
+              offer.organization.name || t("organization.types.investor")
+            }
             unitCode={offer.unit.code}
           />
         ) : null}
       </div>
 
       <footer className="border-t border-[var(--color-border)] bg-[var(--color-surface)] py-4 text-center text-xs text-[var(--color-foreground-muted)]">
-        Ova ponuda je privatna. Iznos i dostupnost mogu se promeniti bez najave.
+        {t("marketing.public.footerPrivate")}
       </footer>
     </main>
   );

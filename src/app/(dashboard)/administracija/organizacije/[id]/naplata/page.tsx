@@ -15,9 +15,21 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { formatDate } from "@/lib/formatters/date";
 import { formatMoney } from "@/lib/formatters/money";
+import { createT, type TranslateFn, type TranslationKey } from "@/lib/i18n";
+import { resolveRequestLocale } from "@/lib/i18n/resolve-locale";
 import { SubscriptionActionsPanel } from "./actions-panel";
 
 export const dynamic = "force-dynamic";
+
+function labeled(
+  prefix: "billing.subscriptionStatus" | "billing.invoiceStatus" | "billing.paymentStatus" | "billing.cycle" | "billing.provider",
+  value: string,
+  t: TranslateFn,
+): string {
+  const key = `${prefix}.${value}` as TranslationKey;
+  const out = t(key);
+  return out === key ? value : out;
+}
 
 /**
  * Per-organization billing surface. All manual super-admin actions live here:
@@ -31,6 +43,7 @@ export default async function OrgBillingTabPage({
   params: Promise<{ id: string }>;
 }) {
   await requireSuperAdmin();
+  const t = createT(await resolveRequestLocale());
   const { id } = await params;
 
   const org = await prisma.organization.findUnique({
@@ -78,44 +91,46 @@ export default async function OrgBillingTabPage({
   return (
     <section className="space-y-6">
       <header>
-        <h2 className="text-lg font-semibold">Naplata: {org.name}</h2>
+        <h2 className="text-lg font-semibold">{t("admin.orgBilling.title", { name: org.name })}</h2>
         <p className="text-sm text-[var(--color-foreground-muted)]">
-          Status organizacije:{" "}
+          {t("admin.orgBilling.orgStatus")}{" "}
           <Badge tone={org.profile?.status === "ACTIVE" ? "success" : "warning"}>
-            {org.profile?.status ?? "—"}
+            {org.profile?.status
+              ? labeled("billing.subscriptionStatus", org.profile.status, t)
+              : "—"}
           </Badge>{" "}
-          · Master naplata:{" "}
+          · {t("admin.orgBilling.masterBilling")}{" "}
           {settings.billingEnabled ? (
-            <Badge tone="success">aktivna</Badge>
+            <Badge tone="success">{t("admin.orgBilling.enabled")}</Badge>
           ) : (
-            <Badge tone="warning">isključena</Badge>
+            <Badge tone="warning">{t("admin.orgBilling.disabled")}</Badge>
           )}
         </p>
       </header>
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Pretplata</CardTitle>
+          <CardTitle className="text-base">{t("admin.orgBilling.subscription")}</CardTitle>
         </CardHeader>
         <CardContent>
           {!sub || !summary ? (
             <p className="text-sm text-[var(--color-foreground-muted)]">
-              Ova organizacija još uvek nema pretplatu. Kreirajte je iz sekcije "Organizacije → Nova".
+              {t("admin.orgBilling.noSubscription")}
             </p>
           ) : (
             <div className="grid gap-3 md:grid-cols-3 text-sm">
-              <Row label="Plan" value={sub.plan.name} />
-              <Row label="Ciklus" value={sub.billingCycle} />
-              <Row label="Status" value={sub.status} />
+              <Row label={t("admin.orgBilling.plan")} value={sub.plan.name} />
+              <Row label={t("admin.orgBilling.cycle")} value={labeled("billing.cycle", sub.billingCycle, t)} />
+              <Row label={t("common.statusLabel")} value={labeled("billing.subscriptionStatus", sub.status, t)} />
               <Row
-                label="Cena"
+                label={t("admin.orgBilling.price")}
                 value={formatMoney(
                   Number(sub.price.toString()),
                   sub.currency as "EUR" | "RSD",
                 )}
               />
               <Row
-                label="Trenutni period"
+                label={t("admin.orgBilling.currentPeriod")}
                 value={
                   sub.currentPeriodStart && sub.currentPeriodEnd
                     ? `${formatDate(sub.currentPeriodStart)} — ${formatDate(sub.currentPeriodEnd)}`
@@ -123,20 +138,24 @@ export default async function OrgBillingTabPage({
                 }
               />
               <Row
-                label="Sledeća naplata"
+                label={t("admin.orgBilling.nextBilling")}
                 value={sub.nextBillingDate ? formatDate(sub.nextBillingDate) : "—"}
               />
               <Row
-                label="Probni period"
-                value={sub.trialEndsAt ? `Do ${formatDate(sub.trialEndsAt)}` : "Nije aktivan"}
+                label={t("admin.orgBilling.trial")}
+                value={
+                  sub.trialEndsAt
+                    ? t("admin.orgBilling.trialUntil", { date: formatDate(sub.trialEndsAt) })
+                    : t("admin.orgBilling.trialInactive")
+                }
               />
               <Row
-                label="Grace period"
+                label={t("admin.orgBilling.gracePeriod")}
                 value={sub.gracePeriodEndsAt ? formatDate(sub.gracePeriodEndsAt) : "—"}
               />
               <Row
-                label="Auto-renew"
-                value={sub.autoRenew ? "Da" : "Ne"}
+                label={t("admin.orgBilling.autoRenew")}
+                value={sub.autoRenew ? t("common.yes") : t("common.no")}
               />
             </div>
           )}
@@ -155,31 +174,29 @@ export default async function OrgBillingTabPage({
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Valuta fakture</CardTitle>
+          <CardTitle className="text-base">{t("admin.orgBilling.invoiceCurrency")}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3 text-sm">
           <p className="text-[var(--color-foreground-muted)]">
-            Kada je uključeno, faktura ovoj organizaciji se prilikom
-            izdavanja konvertuje iz EUR u RSD po srednjem kursu na dan
-            izdavanja. Kurs se održava u{" "}
+            {t("admin.orgBilling.invoiceCurrencyHint")}{" "}
             <Link
               href="/administracija/naplata/kursna-lista"
               className="text-[var(--color-brand-700)] hover:underline"
             >
-              kursnoj listi
+              {t("admin.orgBilling.rateList")}
             </Link>
             .
           </p>
           <div className="text-xs text-[var(--color-foreground-subtle)]">
-            Trenutno efektivno:{" "}
+            {t("admin.orgBilling.currently")}{" "}
             <strong>
               {settings.invoiceInRsd
-                ? "Fakturisanje u RSD (uključeno)"
-                : "Fakturisanje u EUR (isključeno)"}
+                ? t("admin.orgBilling.invoicingRsd")
+                : t("admin.orgBilling.invoicingEur")}
             </strong>
             {orgSettings.invoiceInRsd == null
-              ? " · nasleđeno iz globalnih podešavanja"
-              : " · override na nivou organizacije"}
+              ? t("admin.orgBilling.inherited")
+              : t("admin.orgBilling.override")}
           </div>
           <form action={saveInvoiceInRsd} className="flex flex-wrap gap-2">
             <Button
@@ -189,7 +206,7 @@ export default async function OrgBillingTabPage({
               variant={orgSettings.invoiceInRsd === true ? "primary" : "outline"}
               size="sm"
             >
-              Fakturiši u RSD
+              {t("admin.orgBilling.invoiceRsd")}
             </Button>
             <Button
               type="submit"
@@ -198,7 +215,7 @@ export default async function OrgBillingTabPage({
               variant={orgSettings.invoiceInRsd === false ? "primary" : "outline"}
               size="sm"
             >
-              Fakturiši u EUR
+              {t("admin.orgBilling.invoiceEur")}
             </Button>
             <Button
               type="submit"
@@ -207,7 +224,7 @@ export default async function OrgBillingTabPage({
               variant={orgSettings.invoiceInRsd == null ? "primary" : "outline"}
               size="sm"
             >
-              Nasledi iz globalnog
+              {t("admin.orgBilling.inheritGlobal")}
             </Button>
           </form>
         </CardContent>
@@ -215,20 +232,34 @@ export default async function OrgBillingTabPage({
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Poslednje fakture ({invoices.length})</CardTitle>
+          <CardTitle className="text-base">
+            {t("admin.orgBilling.recentInvoices", { count: invoices.length })}
+          </CardTitle>
         </CardHeader>
         <CardContent className="p-0">
           {invoices.length === 0 ? (
-            <p className="p-4 text-sm text-[var(--color-foreground-muted)]">Nema faktura.</p>
+            <p className="p-4 text-sm text-[var(--color-foreground-muted)]">
+              {t("admin.orgBilling.noInvoices")}
+            </p>
           ) : (
             <table className="w-full text-sm">
               <thead className="text-left text-xs uppercase text-[var(--color-foreground-subtle)]">
                 <tr>
-                  <th className="border-b border-[var(--color-border)] px-3 py-2">Broj</th>
-                  <th className="border-b border-[var(--color-border)] px-3 py-2">Status</th>
-                  <th className="border-b border-[var(--color-border)] px-3 py-2">Rok</th>
-                  <th className="border-b border-[var(--color-border)] px-3 py-2 text-right">Ukupno</th>
-                  <th className="border-b border-[var(--color-border)] px-3 py-2 text-right">Preostalo</th>
+                  <th className="border-b border-[var(--color-border)] px-3 py-2">
+                    {t("billing.columns.invoiceNumber")}
+                  </th>
+                  <th className="border-b border-[var(--color-border)] px-3 py-2">
+                    {t("billing.columns.status")}
+                  </th>
+                  <th className="border-b border-[var(--color-border)] px-3 py-2">
+                    {t("billing.columns.dueDate")}
+                  </th>
+                  <th className="border-b border-[var(--color-border)] px-3 py-2 text-right">
+                    {t("billing.columns.total")}
+                  </th>
+                  <th className="border-b border-[var(--color-border)] px-3 py-2 text-right">
+                    {t("billing.columns.remaining")}
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -239,11 +270,11 @@ export default async function OrgBillingTabPage({
                         href={`/administracija/naplata/fakture/${inv.id}`}
                         className="text-[var(--color-brand-700)] hover:underline"
                       >
-                        {inv.invoiceNumber ?? "(nacrt)"}
+                        {inv.invoiceNumber ?? t("admin.orgBilling.draft")}
                       </Link>
                     </td>
                     <td className="px-3 py-2">
-                      <Badge tone="info">{inv.status}</Badge>
+                      <Badge tone="info">{labeled("billing.invoiceStatus", inv.status, t)}</Badge>
                     </td>
                     <td className="px-3 py-2 text-xs">
                       {inv.dueDate ? formatDate(inv.dueDate) : "—"}
@@ -264,32 +295,46 @@ export default async function OrgBillingTabPage({
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Poslednje uplate ({payments.length})</CardTitle>
+          <CardTitle className="text-base">
+            {t("admin.orgBilling.recentPayments", { count: payments.length })}
+          </CardTitle>
         </CardHeader>
         <CardContent className="p-0">
           {payments.length === 0 ? (
-            <p className="p-4 text-sm text-[var(--color-foreground-muted)]">Nema uplata.</p>
+            <p className="p-4 text-sm text-[var(--color-foreground-muted)]">
+              {t("admin.orgBilling.noPayments")}
+            </p>
           ) : (
             <table className="w-full text-sm">
               <thead className="text-left text-xs uppercase text-[var(--color-foreground-subtle)]">
                 <tr>
-                  <th className="border-b border-[var(--color-border)] px-3 py-2">Datum</th>
-                  <th className="border-b border-[var(--color-border)] px-3 py-2">Metod</th>
-                  <th className="border-b border-[var(--color-border)] px-3 py-2 text-right">Iznos</th>
-                  <th className="border-b border-[var(--color-border)] px-3 py-2">Status</th>
+                  <th className="border-b border-[var(--color-border)] px-3 py-2">
+                    {t("common.date")}
+                  </th>
+                  <th className="border-b border-[var(--color-border)] px-3 py-2">
+                    {t("admin.orgBilling.method")}
+                  </th>
+                  <th className="border-b border-[var(--color-border)] px-3 py-2 text-right">
+                    {t("common.amount")}
+                  </th>
+                  <th className="border-b border-[var(--color-border)] px-3 py-2">
+                    {t("common.statusLabel")}
+                  </th>
                 </tr>
               </thead>
               <tbody>
                 {payments.map((p) => (
                   <tr key={p.id} className="border-b border-[var(--color-border)] last:border-b-0">
                     <td className="px-3 py-2 text-xs">{formatDate(p.paidAt)}</td>
-                    <td className="px-3 py-2 text-xs">{p.provider}</td>
+                    <td className="px-3 py-2 text-xs">
+                      {labeled("billing.provider", p.provider, t)}
+                    </td>
                     <td className="px-3 py-2 text-right tabular-nums">
                       {formatMoney(Number(p.amount.toString()), p.currency as "EUR" | "RSD")}
                     </td>
                     <td className="px-3 py-2">
                       <Badge tone={p.status === "COMPLETED" ? "success" : "warning"}>
-                        {p.status}
+                        {labeled("billing.paymentStatus", p.status, t)}
                       </Badge>
                     </td>
                   </tr>

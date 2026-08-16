@@ -9,60 +9,52 @@ import {
   buildLandingMetadata,
   LandingJsonLd,
 } from "@/features/marketing/landing/landing-shell";
+import { createT, type TranslateFn } from "@/lib/i18n";
+import { resolveRequestLocale } from "@/lib/i18n/resolve-locale";
 
-const META = {
-  slug: "prodaja-novogradnje",
-  title: "Softver za prodaju novogradnje u Srbiji",
-  description:
-    "Prodaja stanova u fazi izgradnje uključuje projekte, cenovnike, rezervacije, ugovore, planove otplate i provizije agencija. PropertyDesk povezuje sve učesnike - investitora, prodajni tim, agencije, kupce - u jednom sistemu na srpskom.",
-};
+function pairs(t: TranslateFn) {
+  return [1, 2, 3, 4].map((n) => ({
+    problem: t(`marketing.pages.newBuild.p${n}` as `marketing.pages.newBuild.p1`),
+    solution: t(`marketing.pages.newBuild.s${n}` as `marketing.pages.newBuild.s1`),
+  }));
+}
 
-export const metadata: Metadata = buildLandingMetadata(META);
+export async function generateMetadata(): Promise<Metadata> {
+  const locale = await resolveRequestLocale();
+  const t = createT(locale);
+  return buildLandingMetadata({
+    slug: "prodaja-novogradnje",
+    title: t("marketing.pages.newBuild.metaTitle"),
+    description: t("marketing.pages.newBuild.metaDescription"),
+    locale,
+  });
+}
 
-const PAIRS = [
-  {
-    problem:
-      "Prodaja u fazi izgradnje traje mesecima ili godinama - podaci se razbacaju po više alata.",
-    solution:
-      "Jedan sistem koji prati kupca od prve rezervacije do poslednje rate - sa vremenskom linijom svakog događaja.",
-  },
-  {
-    problem:
-      "Predugovor, ugovor, aneksi i storniranje - svaki dokument u zasebnom folderu na disku.",
-    solution:
-      "Centralno skladište dokumenata vezano za konkretnu prodaju, sa audit tragom svake promene.",
-  },
-  {
-    problem:
-      "Različiti planovi otplate za različite kupce - lako se pogreši u ratama i valuti.",
-    solution:
-      "Prilagođeni planovi rata sa validacijom, konverzija EUR/RSD, IPS QR kod i SEF integracija.",
-  },
-  {
-    problem:
-      "Uplate iz banke stižu na različite načine - teško ih je uparivati sa ratama.",
-    solution:
-      "Automatska FIFO alokacija na najstarije otvorene rate, ručna realokacija po potrebi.",
-  },
-];
+export default async function Page() {
+  const locale = await resolveRequestLocale();
+  const t = createT(locale);
 
-export default function Page() {
   return (
     <>
       <PageHero
-        eyebrow="Prodaja novogradnje"
+        eyebrow={t("marketing.pages.newBuild.eyebrow")}
         icon={LayoutGrid}
-        title="Kompletan operativni sistem za prodaju stanova u novogradnji"
-        subtitle="Od projekta i cenovnika, preko rezervacija i ugovora, do uplata i provizija - PropertyDesk pokriva ceo tok prodaje novogradnje u Srbiji. Sve na srpskom, sa IPS QR i SEF integracijom."
+        title={t("marketing.pages.newBuild.title")}
+        subtitle={t("marketing.pages.newBuild.subtitle")}
       />
       <ProblemSolutionGrid
-        title="Zašto Excel i Google Sheets ne rade za novogradnju"
-        subtitle="Prodaja u fazi izgradnje ima kompleksne, vremenski razvučene tokove koje generički alati ne razumeju. PropertyDesk je pravljen za tačno taj scenario."
-        items={PAIRS}
+        title={t("marketing.pages.newBuild.gridTitle")}
+        subtitle={t("marketing.pages.newBuild.gridSubtitle")}
+        items={pairs(t)}
       />
       <FeatureGrid />
       <CtaPanel />
-      <LandingJsonLd {...META} />
+      <LandingJsonLd
+        slug="prodaja-novogradnje"
+        title={t("marketing.pages.newBuild.metaTitle")}
+        description={t("marketing.pages.newBuild.metaDescription")}
+        locale={locale}
+      />
     </>
   );
 }

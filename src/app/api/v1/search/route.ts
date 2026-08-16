@@ -3,18 +3,19 @@ import { z } from "zod";
 import { apiHandler } from "@/lib/api/handler";
 import { loadUserContext } from "@/server/auth/context";
 import { ApiError } from "@/lib/api/errors";
-import { listProjects } from "@/server/services/projects.service";
-import { listUnits } from "@/server/services/units.service";
-import { listBuyers } from "@/server/services/buyers.service";
+import {
+  runGlobalSearch,
+  toSearchCaller,
+  type SearchHit,
+} from "@/server/services/search.service";
 
 /**
  * Global command-palette search endpoint.
  *
- * Each entity type is fetched only when the caller has the matching
- * `*.read` permission — an agency operator will never receive the
- * investor's buyers here. The result set is intentionally tiny
- * (`take: 5` per entity type) because this is meant to power a
- * type-ahead palette, not a search page.
+ * Tenant hits (projects / units / buyers) are included only when the
+ * caller has an active organization and the matching `*.read` permission.
+ * SUPER_ADMIN and Property Desk operators can search without an active
+ * org — they get organizations, users and marketing leads instead.
  */
 
 const querySchema = z.object({
@@ -22,17 +23,11 @@ const querySchema = z.object({
   limit: z.coerce.number().int().min(1).max(20).optional(),
 });
 
-export interface SearchHit {
-  entity: "project" | "unit" | "buyer";
-  id: string;
-  title: string;
-  subtitle: string | null;
-  href: string;
-}
+export type { SearchHit };
 
 export const GET = apiHandler({}, async ({ req }) => {
   const ctx = await loadUserContext();
-  if (!ctx || !ctx.activeOrganization) {
+  if (!ctx) {
     throw new ApiError("UNAUTHENTICATED", "Prijava je obavezna.", {
       statusCode: 401,
     });
@@ -46,70 +41,11 @@ export const GET = apiHandler({}, async ({ req }) => {
     return { data: { hits: [] as SearchHit[] } };
   }
 
-  const q = parsed.data.q;
-  const perEntity = parsed.data.limit ?? 5;
-  const organizationId = ctx.activeOrganization.id;
-  const perms = new Set(ctx.permissions);
-
-  const [projects, units, buyers] = await Promise.all([
-    perms.has("project.read")
-      ? listProjects({
-          organizationId,
-          page: 1,
-          pageSize: perEntity,
-          search: q,
-          activeOnly: true,
-        }).catch(() => ({ items: [] }))
-      : Promise.resolve({ items: [] }),
-    perms.has("inventory.read")
-      ? listUnits({
-          organizationId,
-          page: 1,
-          pageSize: perEntity,
-          search: q,
-          activeOnly: true,
-        }).catch(() => ({ items: [] }))
-      : Promise.resolve({ items: [] }),
-    perms.has("buyer.read")
-      ? listBuyers({
-          organizationId,
-          page: 1,
-          pageSize: perEntity,
-          search: q,
-          activeOnly: true,
-        }).catch(() => ({ items: [] }))
-      : Promise.resolve({ items: [] }),
-  ]);
-
-  const hits: SearchHit[] = [
-    ...projects.items.map(
-      (p): SearchHit => ({
-        entity: "project",
-        id: p.id,
-        title: p.name,
-        subtitle: [p.code, p.city].filter(Boolean).join(" · ") || null,
-        href: `/projekti/${p.id}`,
-      }),
-    ),
-    ...units.items.map(
-      (u): SearchHit => ({
-        entity: "unit",
-        id: u.id,
-        title: u.code,
-        subtitle: u.project?.name ?? null,
-        href: `/jedinice/${u.id}`,
-      }),
-    ),
-    ...buyers.items.map(
-      (b): SearchHit => ({
-        entity: "buyer",
-        id: b.id,
-        title: `${b.firstName} ${b.lastName}`.trim(),
-        subtitle: b.email ?? b.phone ?? null,
-        href: `/kupci/${b.id}`,
-      }),
-    ),
-  ];
+  const hits = await runGlobalSearch({
+    caller: toSearchCaller(ctx),
+    q: parsed.data.q,
+    perEntity: parsed.data.limit ?? 5,
+  });
 
   return { data: { hits } };
 });
@@ -120,9 +56,11 @@ export const GET = apiHandler({}, async ({ req }) => {
  *   get:
  *     tags:
  *       - search
- *     summary: List / read search
+ *     summary: Globalna pretraga
  *     description: |
- *       **Auth:** `sesija (ulogovan + aktivna org) — bez posebne permission`
+ *       **Auth:** sesija (ulogovan). Aktivna organizacija nije obavezna —
+ *       platform admin i Property Desk tim pretražuju svoje entitete i
+ *       bez nje.
  *     responses:
  *       "200":
  *         description: |

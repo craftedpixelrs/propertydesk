@@ -3,6 +3,8 @@ import { Inter } from "next/font/google";
 
 import { APP_NAME, APP_LOCALE, APP_URL } from "@/lib/constants/app";
 import { Providers } from "@/components/app/providers";
+import { htmlLang, t, type Locale } from "@/lib/i18n";
+import { resolveRequestLocale } from "@/lib/i18n/resolve-locale";
 import "./globals.css";
 
 /**
@@ -19,73 +21,63 @@ const inter = Inter({
   weight: ["400", "500", "600", "700", "800"],
 });
 
-export const metadata: Metadata = {
-  metadataBase: new URL(APP_URL),
-  title: {
-    default: `${APP_NAME} - Operativni sistem za prodaju novogradnje`,
-    template: `%s · ${APP_NAME}`,
-  },
-  description:
-    "PropertyDesk je multi-tenant SaaS platforma za investitore u nekretnine i partnerske agencije. Projekti, jedinice, kupci, rezervacije, prodaje, plan otplate, uplate, provizije, dokumenti i izveštaji - sve na srpskom, sa IPS QR i SEF integracijom.",
-  applicationName: APP_NAME,
-  manifest: "/manifest.webmanifest",
-  appleWebApp: {
-    capable: true,
-    statusBarStyle: "default",
-    title: APP_NAME,
-  },
-  formatDetection: {
-    telephone: false,
-  },
-  keywords: [
-    "PropertyDesk",
-    "softver za investitore u nekretnine",
-    "CRM za nekretnine",
-    "prodaja novogradnje",
-    "upravljanje projektima nekretnina",
-    "rezervacije stanova",
-    "plan otplate",
-    "provizije agencija",
-    "IPS QR",
-    "SEF",
-    "sistem elektronskih faktura",
-    "e-fakture",
-    "Srbija",
-  ],
-  authors: [{ name: APP_NAME }],
-  creator: APP_NAME,
-  publisher: APP_NAME,
-  alternates: {
-    canonical: "/",
-  },
-  openGraph: {
-    type: "website",
-    locale: APP_LOCALE,
-    url: APP_URL,
-    siteName: APP_NAME,
-    title: `${APP_NAME} - Operativni sistem za prodaju novogradnje`,
-    description:
-      "Multi-tenant platforma za investitore i partnerske agencije. Od projekta i zaliha, preko rezervacija i ugovora, do uplata i provizija - sve na srpskom.",
-    // OG image is auto-attached from `(marketing)/opengraph-image.tsx`
-    // for the landing route via Next's file-convention metadata.
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: `${APP_NAME} - Operativni sistem za prodaju novogradnje`,
-    description:
-      "Multi-tenant platforma za investitore i partnerske agencije. Sve na srpskom, sa IPS QR i SEF integracijom.",
-  },
-  robots: {
-    index: true,
-    follow: true,
-    googleBot: {
+function ogLocale(locale: Locale): string {
+  return locale === "en" ? "en_GB" : APP_LOCALE;
+}
+
+export async function generateMetadata(): Promise<Metadata> {
+  const locale = await resolveRequestLocale();
+  const title = t("marketing.site.title", { name: APP_NAME }, locale);
+  const description = t("marketing.site.description", undefined, locale);
+  return {
+    metadataBase: new URL(APP_URL),
+    title: {
+      default: title,
+      template: `%s · ${APP_NAME}`,
+    },
+    description,
+    applicationName: APP_NAME,
+    manifest: "/manifest.webmanifest",
+    appleWebApp: {
+      capable: true,
+      statusBarStyle: "default",
+      title: APP_NAME,
+    },
+    formatDetection: {
+      telephone: false,
+    },
+    keywords: t("marketing.site.keywords", undefined, locale).split(","),
+    authors: [{ name: APP_NAME }],
+    creator: APP_NAME,
+    publisher: APP_NAME,
+    alternates: {
+      canonical: "/",
+    },
+    openGraph: {
+      type: "website",
+      locale: ogLocale(locale),
+      url: APP_URL,
+      siteName: APP_NAME,
+      title,
+      description: t("marketing.site.ogDescription", undefined, locale),
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description: t("marketing.site.twitterDescription", undefined, locale),
+    },
+    robots: {
       index: true,
       follow: true,
-      "max-image-preview": "large",
-      "max-snippet": -1,
+      googleBot: {
+        index: true,
+        follow: true,
+        "max-image-preview": "large",
+        "max-snippet": -1,
+      },
     },
-  },
-};
+  };
+}
 
 export const viewport: Viewport = {
   themeColor: "#ffffff",
@@ -94,18 +86,23 @@ export const viewport: Viewport = {
   viewportFit: "cover",
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const locale = await resolveRequestLocale();
   return (
     <html
-      lang={APP_LOCALE}
+      lang={htmlLang(locale)}
       suppressHydrationWarning
       className={inter.variable}
     >
       <body suppressHydrationWarning>
         <a href="#main-content" className="skip-link">
-          Preskoči na sadržaj
+            {t("common.skipToContent", undefined, locale)}
         </a>
-        <Providers>{children}</Providers>
+        <Providers locale={locale}>{children}</Providers>
       </body>
     </html>
   );

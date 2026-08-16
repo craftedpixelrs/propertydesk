@@ -7,18 +7,9 @@ import { getReservationById } from "@/server/services/reservations.service";
 import { DomainError } from "@/lib/errors";
 import { formatDate, formatDateTime } from "@/lib/formatters";
 import { ReservationActions } from "@/features/reservations/reservation-actions";
-import type { ReservationStatus } from "@prisma/client";
+import { createT, enumLabel } from "@/lib/i18n";
 
 export const dynamic = "force-dynamic";
-
-const STATUS_LABELS: Record<ReservationStatus, string> = {
-  REQUESTED: "Na čekanju",
-  APPROVED: "Odobrena",
-  REJECTED: "Odbijena",
-  EXPIRED: "Istekla",
-  CANCELED: "Otkazana",
-  CONVERTED: "Pretvorena u prodaju",
-};
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -29,6 +20,7 @@ export default async function RezervacijaDetaljPage({ params }: PageProps) {
   if (!ctx) redirect("/sign-in");
   if (!ctx.activeOrganization) redirect("/podesavanja");
 
+  const t = createT(ctx.user.locale);
   const { id } = await params;
   let reservation;
   try {
@@ -48,13 +40,13 @@ export default async function RezervacijaDetaljPage({ params }: PageProps) {
           href="/rezervacije"
           className="text-sm text-[var(--color-foreground-muted)] hover:underline"
         >
-          ← Rezervacije
+          ← {t("nav.reservations")}
         </Link>
         <h1 className="mt-1 text-2xl font-semibold">
-          Rezervacija · {reservation.unit?.code ?? "—"}
+          {t("deals.reservations.heading", { code: reservation.unit?.code ?? "—" })}
         </h1>
         <p className="text-sm text-[var(--color-foreground-muted)]">
-          {STATUS_LABELS[reservation.status]} · {reservation.project?.name ?? ""}
+          {enumLabel("reservation", reservation.status, t)} · {reservation.project?.name ?? ""}
         </p>
       </div>
 
@@ -62,11 +54,11 @@ export default async function RezervacijaDetaljPage({ params }: PageProps) {
         <div className="space-y-6 lg:col-span-2">
           <Card>
             <CardHeader>
-              <CardTitle className="text-sm">Detalji</CardTitle>
+              <CardTitle className="text-sm">{t("common.details")}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2 text-sm">
               <Row
-                label="Kupac"
+                label={t("deals.buyer")}
                 value={
                   reservation.buyer ? (
                     <Link
@@ -80,26 +72,36 @@ export default async function RezervacijaDetaljPage({ params }: PageProps) {
                   )
                 }
               />
-              <Row label="Kreirao" value={reservation.createdByUser?.name ?? "—"} />
-              <Row label="Zadužen" value={reservation.assignedUser?.name ?? "—"} />
-              <Row label="Izvor" value={reservation.sourceType === "AGENCY" ? "Agencija" : "Interno"} />
-              <Row label="Kreirana" value={formatDate(reservation.createdAt)} />
+              <Row label={t("deals.createdBy")} value={reservation.createdByUser?.name ?? "—"} />
+              <Row label={t("deals.assignedTo")} value={reservation.assignedUser?.name ?? "—"} />
+              <Row
+                label={t("deals.source")}
+                value={
+                  reservation.sourceType === "AGENCY"
+                    ? t("organization.types.agency")
+                    : t("deals.sourceInternal")
+                }
+              />
+              <Row label={t("deals.created")} value={formatDate(reservation.createdAt)} />
               {reservation.approvedAt ? (
-                <Row label="Odobrena" value={formatDateTime(reservation.approvedAt)} />
+                <Row
+                  label={enumLabel("reservation", "APPROVED", t)}
+                  value={formatDateTime(reservation.approvedAt)}
+                />
               ) : null}
               {reservation.expiresAt ? (
-                <Row label="Ističe" value={formatDateTime(reservation.expiresAt)} />
+                <Row label={t("deals.expiresAt")} value={formatDateTime(reservation.expiresAt)} />
               ) : null}
               {reservation.rejectionReason ? (
-                <Row label="Razlog odbijanja" value={reservation.rejectionReason} />
+                <Row label={t("deals.rejectionReason")} value={reservation.rejectionReason} />
               ) : null}
-              {reservation.notes ? <Row label="Napomena" value={reservation.notes} /> : null}
+              {reservation.notes ? <Row label={t("common.notes")} value={reservation.notes} /> : null}
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader>
-              <CardTitle className="text-sm">Istorija statusa</CardTitle>
+              <CardTitle className="text-sm">{t("deals.statusHistory")}</CardTitle>
             </CardHeader>
             <CardContent>
               <ul className="space-y-2 text-sm">
@@ -109,7 +111,8 @@ export default async function RezervacijaDetaljPage({ params }: PageProps) {
                     className="flex items-center justify-between border-b border-[var(--color-border)] pb-2 last:border-0"
                   >
                     <span>
-                      {STATUS_LABELS[h.previousStatus]} → {STATUS_LABELS[h.newStatus]}
+                      {enumLabel("reservation", h.previousStatus, t)} →{" "}
+                      {enumLabel("reservation", h.newStatus, t)}
                       {h.reason ? (
                         <span className="text-[var(--color-foreground-muted)]"> · {h.reason}</span>
                       ) : null}
@@ -127,7 +130,7 @@ export default async function RezervacijaDetaljPage({ params }: PageProps) {
         <div className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle className="text-sm">Radnje</CardTitle>
+              <CardTitle className="text-sm">{t("common.actions")}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
               <ReservationActions
@@ -143,13 +146,13 @@ export default async function RezervacijaDetaljPage({ params }: PageProps) {
                   href={`/prodaje/nova?reservation=${reservation.id}`}
                   className="inline-flex h-9 items-center rounded-md bg-[var(--color-brand-600)] px-3 text-sm font-medium text-white hover:bg-[var(--color-brand-700)]"
                 >
-                  Kreiraj prodaju
+                  {t("deals.createSale")}
                 </Link>
               ) : null}
               {reservation.status !== "REQUESTED" &&
               reservation.status !== "APPROVED" ? (
                 <p className="text-sm text-[var(--color-foreground-muted)]">
-                  Nema dostupnih radnji za ovu rezervaciju.
+                  {t("deals.reservations.noActions")}
                 </p>
               ) : null}
             </CardContent>

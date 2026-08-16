@@ -1,7 +1,10 @@
+"use client";
+
 import Link from "next/link";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { useT } from "@/components/app/i18n-provider";
 
 /**
  * Server-rendered filter form used by every /izvestaji page.
@@ -21,6 +24,7 @@ export function ReportFilters(props: {
   exportXlsxHref: string;
   showProjectFilter?: boolean;
 }) {
+  const t = useT();
   return (
     <Card>
       <CardContent className="py-4">
@@ -31,13 +35,15 @@ export function ReportFilters(props: {
         >
           {props.showProjectFilter !== false ? (
             <label className="flex flex-col gap-1 text-xs">
-              <span className="text-[var(--color-foreground-muted)]">Projekat</span>
+              <span className="text-[var(--color-foreground-muted)]">
+                {t("units.columns.project")}
+              </span>
               <select
                 name="projectId"
                 defaultValue={props.selectedProjectId ?? ""}
                 className="h-9 rounded border border-[var(--color-border)] bg-white px-2 text-sm"
               >
-                <option value="">Svi projekti</option>
+                <option value="">{t("common.allProjects")}</option>
                 {props.projects.map((p) => (
                   <option key={p.id} value={p.id}>
                     {p.name}
@@ -47,15 +53,15 @@ export function ReportFilters(props: {
             </label>
           ) : null}
           <label className="flex flex-col gap-1 text-xs">
-            <span className="text-[var(--color-foreground-muted)]">Od</span>
+            <span className="text-[var(--color-foreground-muted)]">{t("common.from")}</span>
             <Input type="date" name="from" defaultValue={props.from ?? ""} className="w-40" />
           </label>
           <label className="flex flex-col gap-1 text-xs">
-            <span className="text-[var(--color-foreground-muted)]">Do</span>
+            <span className="text-[var(--color-foreground-muted)]">{t("common.to")}</span>
             <Input type="date" name="to" defaultValue={props.to ?? ""} className="w-40" />
           </label>
           <Button type="submit" size="sm">
-            Primeni
+            {t("common.apply")}
           </Button>
           <div className="ml-auto flex gap-2">
             <Button asChild size="sm" variant="outline">

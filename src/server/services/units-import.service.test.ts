@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 
-import { validateRows, type HeaderMap } from "./units-import.service";
+import {
+  UNIT_IMPORT_TEMPLATE_COLUMNS,
+  UNIT_IMPORT_TEMPLATE_SAMPLE,
+  buildImportTemplateCsv,
+  validateRows,
+  type HeaderMap,
+} from "./units-import.service";
 
 /**
  * Focused unit tests for the CSV/XLSX validator.
@@ -73,5 +79,19 @@ describe("validateRows", () => {
       { code: "A4", type: "APARTMENT", totalArea: "50", basePrice: "125.000,50" },
     ])[0]!;
     expect(row.ok).toBe(false);
+  });
+});
+
+describe("import template", () => {
+  it("emits canonical headers and sample rows that pass validation", () => {
+    const csv = buildImportTemplateCsv();
+    expect(csv.startsWith("\uFEFF")).toBe(true);
+    expect(csv).toContain(UNIT_IMPORT_TEMPLATE_COLUMNS.join(","));
+
+    const identityMap: HeaderMap = Object.fromEntries(
+      UNIT_IMPORT_TEMPLATE_COLUMNS.map((col) => [col, col]),
+    );
+    const rows = validateRows(identityMap, UNIT_IMPORT_TEMPLATE_SAMPLE);
+    expect(rows.every((r) => r.ok)).toBe(true);
   });
 });

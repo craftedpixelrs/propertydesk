@@ -5,6 +5,7 @@ import { AlertCircle, CheckCircle2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useT } from "@/components/app/i18n-provider";
 import { cn } from "@/lib/utils";
 
 /**
@@ -46,20 +47,19 @@ type FormState =
   | { kind: "success" }
   | { kind: "error"; message: string; fields?: FieldErrors };
 
-const AUDIENCE_OPTIONS: Array<{ value: Audience; label: string }> = [
-  { value: "INVESTOR", label: "Investitor" },
-  { value: "AGENCY", label: "Agencija za nekretnine" },
-];
-
-const PROJECT_COUNT_OPTIONS: Array<{ value: ProjectCount; label: string }> = [
-  { value: "ZERO", label: "0 - u pripremi" },
-  { value: "ONE_TWO", label: "1–2 projekta" },
-  { value: "THREE_FIVE", label: "3–5 projekata" },
-  { value: "SIX_TEN", label: "6–10 projekata" },
-  { value: "TEN_PLUS", label: "10+ projekata" },
-];
-
 export function LeadForm() {
+  const t = useT();
+  const audienceOptions: Array<{ value: Audience; label: string }> = [
+    { value: "INVESTOR", label: t("marketing.lead.investor") },
+    { value: "AGENCY", label: t("marketing.lead.agency") },
+  ];
+  const projectCountOptions: Array<{ value: ProjectCount; label: string }> = [
+    { value: "ZERO", label: t("marketing.lead.projects0") },
+    { value: "ONE_TWO", label: t("marketing.lead.projects12") },
+    { value: "THREE_FIVE", label: t("marketing.lead.projects35") },
+    { value: "SIX_TEN", label: t("marketing.lead.projects610") },
+    { value: "TEN_PLUS", label: t("marketing.lead.projects10") },
+  ];
   const [state, setState] = useState<FormState>({ kind: "idle" });
   const [isPending, startTransition] = useTransition();
   const [audience, setAudience] = useState<Audience | "">("");
@@ -100,7 +100,7 @@ export function LeadForm() {
     if (audienceValue !== "INVESTOR" && audienceValue !== "AGENCY") {
       setState({
         kind: "error",
-        message: "Molimo označite da li ste investitor ili agencija.",
+        message: t("marketing.lead.audienceRequired"),
       });
       return;
     }
@@ -150,8 +150,8 @@ export function LeadForm() {
           const message =
             json?.error?.message ??
             (res.status === 429
-              ? "Previše pokušaja. Sačekajte minut i pokušajte ponovo."
-              : "Slanje nije uspelo. Pokušajte ponovo za koji trenutak.");
+              ? t("marketing.lead.rateLimited")
+              : t("marketing.lead.sendFailed"));
           setState({ kind: "error", message, fields });
           return;
         }
@@ -164,8 +164,8 @@ export function LeadForm() {
           kind: "error",
           message:
             err instanceof Error && err.message.includes("Failed to fetch")
-              ? "Nema veze sa serverom. Proverite internet i pokušajte ponovo."
-              : "Slanje nije uspelo. Pokušajte ponovo za koji trenutak.",
+              ? t("marketing.lead.network")
+              : t("marketing.lead.sendFailed"),
         });
       }
     });
@@ -187,22 +187,20 @@ export function LeadForm() {
         <div className="mx-auto grid max-w-5xl gap-10 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:items-start">
           <div>
             <div className="text-xs font-semibold uppercase tracking-wider text-[var(--color-brand-700)]">
-              Rani pristup
+              {t("marketing.lead.eyebrow")}
             </div>
             <h2
               id="lead-title"
               className="mt-2 text-3xl font-bold tracking-tight sm:text-4xl"
             >
-              Prijavite se za rani pristup i besplatnu obuku
+              {t("marketing.lead.title")}
             </h2>
             <p className="mt-4 text-base leading-relaxed text-[var(--color-foreground-muted)]">
-              Ostavite kontakt - javljamo se u roku od 2 radna dana radi
-              dogovora za demo i obuku u trajanju od sat vremena. Prijavljeni
-              korisnici automatski ostvaruju pravo na{" "}
+              {t("marketing.lead.subtitleBefore")}{" "}
               <strong className="font-semibold text-[var(--color-foreground)]">
-                50% popusta prva 3 meseca
+                {t("marketing.lead.subtitleStrong")}
               </strong>{" "}
-              nakon lansiranja 01.09.2026.
+              {t("marketing.lead.subtitleAfter")}
             </p>
 
             <ul className="mt-6 space-y-2.5 text-sm text-[var(--color-foreground-muted)]">
@@ -211,24 +209,21 @@ export function LeadForm() {
                   aria-hidden
                   className="mt-0.5 size-4 flex-none text-[var(--color-success)]"
                 />
-                <span>Bez obaveze - sve dok Vi ne odlučite drugačije.</span>
+                <span>{t("marketing.lead.perk1")}</span>
               </li>
               <li className="flex items-start gap-2">
                 <CheckCircle2
                   aria-hidden
                   className="mt-0.5 size-4 flex-none text-[var(--color-success)]"
                 />
-                <span>Podaci ostaju u EU, brišu se na Vaš zahtev.</span>
+                <span>{t("marketing.lead.perk2")}</span>
               </li>
               <li className="flex items-start gap-2">
                 <CheckCircle2
                   aria-hidden
                   className="mt-0.5 size-4 flex-none text-[var(--color-success)]"
                 />
-                <span>
-                  Obuka je nezavisna od aplikacije - koristi Vam i ako
-                  izaberete drugu platformu.
-                </span>
+                <span>{t("marketing.lead.perk3")}</span>
               </li>
             </ul>
           </div>
@@ -246,10 +241,9 @@ export function LeadForm() {
                 >
                   <CheckCircle2 className="size-7" />
                 </span>
-                <h3 className="text-xl font-bold">Hvala Vam na prijavi!</h3>
+                <h3 className="text-xl font-bold">{t("marketing.lead.successTitle")}</h3>
                 <p className="max-w-md text-sm text-[var(--color-foreground-muted)]">
-                  Javljamo se u roku od 2 radna dana radi dogovora za demo i
-                  obuku. Do tada, slobodno pogledajte ostatak stranice.
+                  {t("marketing.lead.successBody")}
                 </p>
               </div>
             ) : (
@@ -263,18 +257,18 @@ export function LeadForm() {
                 noValidate
               >
                 <div className="grid gap-4 sm:grid-cols-2">
-                  <Field label="Ime" required error={fieldError("firstName")}>
+                  <Field label={t("marketing.lead.firstName")} required error={fieldError("firstName")}>
                     <Input
                       name="firstName"
                       type="text"
                       autoComplete="given-name"
-                      placeholder="Marko"
+                      placeholder={t("marketing.lead.firstNamePh")}
                       required
                       maxLength={80}
                     />
                   </Field>
                   <Field
-                    label="Prezime"
+                    label={t("marketing.lead.lastName")}
                     required
                     error={fieldError("lastName")}
                   >
@@ -282,7 +276,7 @@ export function LeadForm() {
                       name="lastName"
                       type="text"
                       autoComplete="family-name"
-                      placeholder="Marković"
+                      placeholder={t("marketing.lead.lastNamePh")}
                       required
                       maxLength={80}
                     />
@@ -290,24 +284,24 @@ export function LeadForm() {
                 </div>
 
                 <div className="grid gap-4 sm:grid-cols-2">
-                  <Field label="Email" required error={fieldError("email")}>
+                  <Field label={t("common.email")} required error={fieldError("email")}>
                     <Input
                       name="email"
                       type="email"
                       autoComplete="email"
                       inputMode="email"
-                      placeholder="ime@firma.rs"
+                      placeholder={t("marketing.lead.emailPh")}
                       required
                       maxLength={200}
                     />
                   </Field>
-                  <Field label="Telefon" required error={fieldError("phone")}>
+                  <Field label={t("common.phone")} required error={fieldError("phone")}>
                     <Input
                       name="phone"
                       type="tel"
                       autoComplete="tel"
                       inputMode="tel"
-                      placeholder="+381 60 000 0000"
+                      placeholder={t("marketing.lead.phonePh")}
                       required
                       maxLength={40}
                     />
@@ -316,28 +310,28 @@ export function LeadForm() {
 
                 <div className="grid gap-4 sm:grid-cols-2">
                   <Field
-                    label="Naziv firme"
-                    hint="opciono"
+                    label={t("marketing.lead.company")}
+                    hint={t("common.optional")}
                     error={fieldError("companyName")}
                   >
                     <Input
                       name="companyName"
                       type="text"
                       autoComplete="organization"
-                      placeholder="AKME Nekretnine d.o.o."
+                      placeholder={t("marketing.lead.companyPh")}
                       maxLength={120}
                     />
                   </Field>
                   <Field
-                    label="Grad"
-                    hint="opciono"
+                    label={t("marketing.lead.city")}
+                    hint={t("common.optional")}
                     error={fieldError("city")}
                   >
                     <Input
                       name="city"
                       type="text"
                       autoComplete="address-level2"
-                      placeholder="Beograd"
+                      placeholder={t("marketing.lead.cityPh")}
                       maxLength={80}
                     />
                   </Field>
@@ -345,11 +339,11 @@ export function LeadForm() {
 
                 <fieldset>
                   <legend className="mb-2 text-sm font-medium text-[var(--color-foreground)]">
-                    Ko ste Vi?{" "}
+                    {t("marketing.lead.who")}{" "}
                     <span className="text-[var(--color-danger)]">*</span>
                   </legend>
                   <div className="grid gap-2 sm:grid-cols-2">
-                    {AUDIENCE_OPTIONS.map((opt) => {
+                    {audienceOptions.map((opt) => {
                       const selected = audience === opt.value;
                       return (
                         <label
@@ -383,8 +377,8 @@ export function LeadForm() {
                 </fieldset>
 
                 <Field
-                  label="Broj projekata koji trenutno vodite / prodajete"
-                  hint="opciono"
+                  label={t("marketing.lead.projectCount")}
+                  hint={t("common.optional")}
                   error={fieldError("projectCount")}
                 >
                   <select
@@ -392,8 +386,8 @@ export function LeadForm() {
                     defaultValue=""
                     className="block min-h-11 w-full rounded-md border border-[var(--color-border-strong)] bg-[var(--color-surface)] px-3 py-2 text-base text-[var(--color-foreground)] shadow-sm outline-none focus:border-[var(--color-brand-600)] focus:ring-2 focus:ring-[var(--color-brand-100)] sm:min-h-10 sm:text-sm"
                   >
-                    <option value="">Izaberite…</option>
-                    {PROJECT_COUNT_OPTIONS.map((opt) => (
+                    <option value="">{t("marketing.lead.select")}</option>
+                    {projectCountOptions.map((opt) => (
                       <option key={opt.value} value={opt.value}>
                         {opt.label}
                       </option>
@@ -402,8 +396,8 @@ export function LeadForm() {
                 </Field>
 
                 <Field
-                  label="Napomena"
-                  hint="opciono"
+                  label={t("marketing.lead.note")}
+                  hint={t("common.optional")}
                   error={fieldError("note")}
                 >
                   <textarea
@@ -411,7 +405,7 @@ export function LeadForm() {
                     rows={3}
                     maxLength={2000}
                     className="block w-full rounded-md border border-[var(--color-border-strong)] bg-[var(--color-surface)] px-3 py-2 text-base text-[var(--color-foreground)] shadow-sm outline-none placeholder:text-[var(--color-foreground-subtle)] focus:border-[var(--color-brand-600)] focus:ring-2 focus:ring-[var(--color-brand-100)] sm:text-sm"
-                    placeholder="Recite nam ukratko šta prodajete i koje su Vaše najveće prepreke trenutno."
+                    placeholder={t("marketing.lead.notePh")}
                   />
                 </Field>
 
@@ -440,10 +434,7 @@ export function LeadForm() {
                     className="mt-0.5 h-4 w-4 accent-[var(--color-brand-600)]"
                   />
                   <span>
-                    Saglasan/a sam da PropertyDesk koristi ove podatke
-                    isključivo radi kontaktiranja u vezi sa ranim pristupom,
-                    demoom i obukom. Podatke mogu povući u bilo kom trenutku
-                    slanjem mejla na{" "}
+                    {t("marketing.lead.consent")}{" "}
                     <a
                       href="mailto:marko.banovic@craftedpixel.rs"
                       className="underline hover:text-[var(--color-brand-700)]"
@@ -474,10 +465,10 @@ export function LeadForm() {
                   className="w-full"
                   loading={isPending || state.kind === "submitting"}
                 >
-                  Pošalji prijavu
+                  {t("marketing.lead.submit")}
                 </Button>
                 <p className="text-center text-[11px] text-[var(--color-foreground-subtle)]">
-                  Nakon slanja, kontaktiramo Vas u roku od 2 radna dana.
+                  {t("marketing.lead.afterSubmit")}
                 </p>
               </form>
             )}

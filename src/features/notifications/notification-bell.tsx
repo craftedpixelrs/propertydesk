@@ -6,6 +6,7 @@ import { Bell, BellOff } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { formatDateTime } from "@/lib/formatters";
+import { useT } from "@/components/app/i18n-provider";
 
 interface NotificationItem {
   id: string;
@@ -41,6 +42,7 @@ export interface NotificationBellProps {
  * action. Reads the raw envelope so it can access `meta.unreadCount`.
  */
 export function NotificationBell({ align = "end" }: NotificationBellProps) {
+  const t = useT();
   const [items, setItems] = useState<NotificationItem[]>([]);
   const [unread, setUnread] = useState(0);
   const [open, setOpen] = useState(false);
@@ -97,7 +99,7 @@ export function NotificationBell({ align = "end" }: NotificationBellProps) {
     <div ref={containerRef} className="relative">
       <button
         type="button"
-        aria-label="Obaveštenja"
+        aria-label={t("ui.notifications.title")}
         onClick={() => setOpen((v) => !v)}
         className="relative flex size-9 items-center justify-center rounded-md text-[var(--color-foreground-muted)] hover:bg-[var(--color-surface-inset)]"
       >
@@ -112,7 +114,7 @@ export function NotificationBell({ align = "end" }: NotificationBellProps) {
       {open ? (
         <div
           role="dialog"
-          aria-label="Obaveštenja"
+          aria-label={t("ui.notifications.title")}
           className={cn(
             "absolute z-40 mt-2 w-[22rem] max-w-[calc(100vw-1rem)] overflow-hidden rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] shadow-xl",
             align === "start"
@@ -121,14 +123,14 @@ export function NotificationBell({ align = "end" }: NotificationBellProps) {
           )}
         >
           <div className="flex items-center justify-between gap-2 border-b border-[var(--color-border)] px-4 py-2.5">
-            <span className="text-sm font-semibold">Obaveštenja</span>
+            <span className="text-sm font-semibold">{t("ui.notifications.title")}</span>
             {unread > 0 ? (
               <button
                 type="button"
                 onClick={markAllRead}
                 className="rounded-md text-xs font-medium text-[var(--color-brand-700)] hover:underline"
               >
-                Označi sve kao pročitano
+                {t("ui.notifications.markAllRead")}
               </button>
             ) : null}
           </div>
@@ -140,10 +142,10 @@ export function NotificationBell({ align = "end" }: NotificationBellProps) {
                   className="size-8 text-[var(--color-foreground-subtle)]"
                 />
                 <p className="text-sm font-medium text-[var(--color-foreground-muted)]">
-                  Nemate obaveštenja
+                  {t("ui.notifications.empty")}
                 </p>
                 <p className="text-xs text-[var(--color-foreground-subtle)]">
-                  Kada se nešto dogodi, prikazaće se ovde.
+                  {t("crm.notifications.emptyHint")}
                 </p>
               </div>
             ) : (
@@ -211,7 +213,7 @@ export function NotificationBell({ align = "end" }: NotificationBellProps) {
               onClick={() => setOpen(false)}
               className="text-xs font-medium text-[var(--color-brand-700)] hover:underline"
             >
-              Sva obaveštenja →
+              {t("ui.notifications.viewAll")}
             </Link>
           </div>
         </div>

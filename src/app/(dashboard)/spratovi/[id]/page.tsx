@@ -6,6 +6,7 @@ import { DomainError } from "@/lib/errors";
 import { loadFloorPlan } from "@/server/services/floor-plan/floor-plan.service";
 import { FloorPlanViewer } from "@/features/floor-plan/floor-plan-viewer";
 import { FloorPlanUpload } from "@/features/floor-plan/floor-plan-upload";
+import { createT } from "@/lib/i18n";
 
 export const dynamic = "force-dynamic";
 
@@ -17,6 +18,7 @@ export default async function SpratPage({ params }: PageProps) {
   const ctx = await loadUserContext();
   if (!ctx) redirect("/sign-in");
   if (!ctx.activeOrganization) redirect("/podesavanja");
+  const t = createT(ctx.user.locale);
 
   const { id } = await params;
   let view;
@@ -40,13 +42,13 @@ export default async function SpratPage({ params }: PageProps) {
             href="/projekti"
             className="text-sm text-[var(--color-foreground-muted)] hover:underline"
           >
-            ← Projekti
+            {t("inventory.floorPlan.backToProjects")}
           </Link>
           <h1 className="mt-1 text-2xl font-semibold">
-            Osnova · {view.floorLabel}
+            {t("inventory.floorPlan.title", { label: view.floorLabel })}
           </h1>
           <p className="text-sm text-[var(--color-foreground-muted)]">
-            Kliknite na jedinicu za detaljne informacije.
+            {t("inventory.floorPlan.hint")}
           </p>
         </div>
         {canManage && view.floorPlanUrl ? (

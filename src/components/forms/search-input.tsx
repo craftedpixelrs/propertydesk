@@ -3,7 +3,7 @@
 import * as React from "react";
 import { Search, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { t } from "@/lib/i18n";
+import { useT } from "@/components/app/i18n-provider";
 import { cn } from "@/lib/utils";
 
 export interface SearchInputProps
@@ -21,6 +21,7 @@ export function SearchInput({
   className,
   ...props
 }: SearchInputProps) {
+  const t = useT();
   return (
     <div className={cn("relative", className)}>
       <Search

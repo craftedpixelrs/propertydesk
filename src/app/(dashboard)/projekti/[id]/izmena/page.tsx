@@ -3,6 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { loadUserContext } from "@/server/auth/context";
 import { getProjectById } from "@/server/services/projects.service";
 import { isDomainError } from "@/lib/errors";
+import { createT } from "@/lib/i18n";
 import { NewProjectForm } from "@/features/projects/new-project-form";
 
 interface Props {
@@ -22,6 +23,7 @@ export default async function EditProjectPage({ params }: Props) {
   if (!ctx.permissions.includes("project.update")) {
     redirect(`/projekti/${id}`);
   }
+  const t = createT(ctx.user.locale);
 
   let project: Awaited<ReturnType<typeof getProjectById>>;
   try {
@@ -64,9 +66,9 @@ export default async function EditProjectPage({ params }: Props) {
         <div className="text-xs font-mono uppercase text-[var(--color-foreground-muted)]">
           {project.code}
         </div>
-        <h1 className="text-2xl font-semibold">Izmeni projekat</h1>
+        <h1 className="text-2xl font-semibold">{t("inventory.projects.edit")}</h1>
         <p className="text-sm text-[var(--color-foreground-muted)]">
-          Šifra projekta ne može se menjati posle kreiranja. Sve ostale izmene se audit-uju.
+          {t("inventory.projects.editSubtitle")}
         </p>
       </div>
       <NewProjectForm mode="edit" projectId={project.id} initialValues={initialValues} />

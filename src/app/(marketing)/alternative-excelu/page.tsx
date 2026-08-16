@@ -8,68 +8,54 @@ import {
   buildLandingMetadata,
   LandingJsonLd,
 } from "@/features/marketing/landing/landing-shell";
+import { createT, type TranslateFn } from "@/lib/i18n";
+import { resolveRequestLocale } from "@/lib/i18n/resolve-locale";
 
-const META = {
-  slug: "alternative-excelu",
-  title: "Alternativa Excelu za prodaju novogradnje",
-  description:
-    "Ako Vaš prodajni tim još uvek vodi projekte u Excel tabelama, ovo je Vaš prvi korak dalje. PropertyDesk uvozi Vaš postojeći Excel i pretvara ga u kolaborativan sistem sa istorijom, pravima pristupa i real-time statusima jedinica.",
-};
+function pairs(t: TranslateFn) {
+  return [1, 2, 3, 4, 5].map((n) => ({
+    problem: t(`marketing.pages.excel.p${n}` as `marketing.pages.excel.p1`),
+    solution: t(`marketing.pages.excel.s${n}` as `marketing.pages.excel.s1`),
+  }));
+}
 
-export const metadata: Metadata = buildLandingMetadata(META);
+export async function generateMetadata(): Promise<Metadata> {
+  const locale = await resolveRequestLocale();
+  const t = createT(locale);
+  return buildLandingMetadata({
+    slug: "alternative-excelu",
+    title: t("marketing.pages.excel.metaTitle"),
+    description: t("marketing.pages.excel.metaDescription"),
+    locale,
+  });
+}
 
-const PAIRS = [
-  {
-    problem:
-      "Excel se otvara u više verzija - kolega prepisuje ćeliju bez znanja da ste Vi već upisali novi status.",
-    solution:
-      "Jedna baza podataka, svako radi u istom trenutku, sa audit tragom ko je i kada promenio šta.",
-  },
-  {
-    problem:
-      "Formule pucaju - jedan pogrešan copy-paste briše polovinu izračuna cena.",
-    solution:
-      "Poslovna pravila su ugrađena u sistem, ne u formule - ne mogu se slučajno obrisati.",
-  },
-  {
-    problem:
-      "Nema koncepta prava pristupa - ceo tim vidi sve, ili niko ne vidi ništa.",
-    solution:
-      "Uloge (direktor, prodavac, agent, kontrolor) sa preciznim pravima po projektu i akciji.",
-  },
-  {
-    problem:
-      "Excel ne šalje podsetnike - dospele rate ostaju neprijavljene mesecima.",
-    solution:
-      "Automatski email podsetnici za kupce i notifikacije za prodajni tim - bez ručnog praćenja kalendara.",
-  },
-  {
-    problem:
-      "Prelazak na novi alat obično znači ručno ukucavanje 1.000+ jedinica.",
-    solution:
-      "Besplatan uvoz Vaše prve Excel tabele - mi radimo mapiranje, vi samo pošaljete fajl.",
-  },
-];
+export default async function Page() {
+  const locale = await resolveRequestLocale();
+  const t = createT(locale);
 
-export default function Page() {
   return (
     <>
       <PageHero
-        eyebrow="Alternativa Excelu"
+        eyebrow={t("marketing.pages.excel.eyebrow")}
         icon={FileSpreadsheet}
-        title="Iz Excela u sistem koji ne puca kad tim raste"
-        subtitle="PropertyDesk uvozi Vaše postojeće cenovnike i liste jedinica, dodaje slojeve prava pristupa, istorije i notifikacija - i daje Vam sistem u kojem svaki član tima vidi tačno ono što treba, u realnom vremenu."
+        title={t("marketing.pages.excel.title")}
+        subtitle={t("marketing.pages.excel.subtitle")}
       />
       <ProblemSolutionGrid
-        title="5 razloga zbog kojih Excel počinje da Vas usporava"
-        subtitle="Excel je odličan za pojedinca. Za tim od 5 ljudi koji istovremeno vode 300 jedinica - postaje uzrok grešaka. Ovo su najčešće tačke bola."
-        items={PAIRS}
+        title={t("marketing.pages.excel.gridTitle")}
+        subtitle={t("marketing.pages.excel.gridSubtitle")}
+        items={pairs(t)}
       />
       <CtaPanel
-        title="Pošaljite nam Vašu Excel tabelu - postavimo Vam sistem besplatno"
-        subtitle="Prijave do 01.09.2026. dobijaju besplatan uvoz prve Excel tabele i besplatno podešavanje jednog projekta. Prvih 30 dana korišćenja bez plaćanja."
+        title={t("marketing.pages.excel.ctaTitle")}
+        subtitle={t("marketing.pages.excel.ctaSubtitle")}
       />
-      <LandingJsonLd {...META} />
+      <LandingJsonLd
+        slug="alternative-excelu"
+        title={t("marketing.pages.excel.metaTitle")}
+        description={t("marketing.pages.excel.metaDescription")}
+        locale={locale}
+      />
     </>
   );
 }

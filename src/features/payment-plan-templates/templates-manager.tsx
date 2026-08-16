@@ -6,8 +6,10 @@ import { Pencil, Plus, Star, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useT } from "@/components/app/i18n-provider";
 import { ApiClientError, apiClient } from "@/lib/api-client";
 import { EmptyState } from "@/components/app/empty-state";
+import type { TranslateFn } from "@/lib/i18n";
 
 type Anchor = "CONTRACT" | "HANDOVER" | "CUSTOM_OFFSET";
 
@@ -42,11 +44,16 @@ interface Props {
   projects: ProjectOption[];
 }
 
-const ANCHOR_LABELS: Record<Anchor, string> = {
-  CONTRACT: "Ugovor",
-  HANDOVER: "Primopredaja",
-  CUSTOM_OFFSET: "Od danas",
-};
+function anchorLabel(anchor: Anchor, t: TranslateFn): string {
+  switch (anchor) {
+    case "CONTRACT":
+      return t("deals.planTemplates.anchor.CONTRACT");
+    case "HANDOVER":
+      return t("deals.planTemplates.anchor.HANDOVER");
+    case "CUSTOM_OFFSET":
+      return t("deals.planTemplates.anchor.CUSTOM_OFFSET");
+  }
+}
 
 function emptyItem(seq: number): TemplateItem {
   return {
@@ -59,6 +66,7 @@ function emptyItem(seq: number): TemplateItem {
 }
 
 export function PaymentPlanTemplatesManager({ templates, projects }: Props) {
+  const t = useT();
   const [editorOpen, setEditorOpen] = React.useState(false);
   const [editing, setEditing] = React.useState<TemplateView | null>(null);
   const [filterProjectId, setFilterProjectId] = React.useState<string>("");
@@ -87,10 +95,9 @@ export function PaymentPlanTemplatesManager({ templates, projects }: Props) {
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h2 className="text-lg font-semibold">Šabloni planova plaćanja</h2>
+          <h2 className="text-lg font-semibold">{t("deals.planTemplates.title")}</h2>
           <p className="text-sm text-[var(--color-foreground-muted)]">
-            Definišite razgovorene modele rata koje operatori mogu da primene
-            na svaku prodaju.
+            {t("deals.planTemplates.subtitle")}
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -98,10 +105,10 @@ export function PaymentPlanTemplatesManager({ templates, projects }: Props) {
             value={filterProjectId}
             onChange={(e) => setFilterProjectId(e.target.value)}
             className="h-9 rounded-md border border-[var(--color-border)] px-3 text-sm"
-            aria-label="Filter po projektu"
+            aria-label={t("deals.planTemplates.filterProject")}
           >
-            <option value="">Svi</option>
-            <option value="__org__">Samo organizacija</option>
+            <option value="">{t("common.all")}</option>
+            <option value="__org__">{t("deals.planTemplates.orgOnly")}</option>
             {projects.map((p) => (
               <option key={p.id} value={p.id}>
                 {p.name}
@@ -109,15 +116,15 @@ export function PaymentPlanTemplatesManager({ templates, projects }: Props) {
             ))}
           </select>
           <Button size="sm" onClick={openCreate}>
-            <Plus className="mr-1 size-4" /> Novi šablon
+            <Plus className="mr-1 size-4" /> {t("deals.planTemplates.newTemplate")}
           </Button>
         </div>
       </div>
 
       {filtered.length === 0 ? (
         <EmptyState
-          title="Nema šablona"
-          description="Kreirajte šablon koji definiše procenat, anker i pomeraj za svaku ratu."
+          title={t("deals.planTemplates.emptyTitle")}
+          description={t("deals.planTemplates.emptyHint")}
         />
       ) : (
         <div className="grid gap-3 md:grid-cols-2">
@@ -148,6 +155,7 @@ function TemplateCard({
   template: TemplateView;
   onEdit: () => void;
 }) {
+  const t = useT();
   const router = useRouter();
   const [busy, setBusy] = React.useState(false);
 
@@ -157,14 +165,14 @@ function TemplateCard({
   );
 
   async function handleDelete() {
-    if (!confirm(`Obrisati šablon "${template.name}"?`)) return;
+    if (!confirm(t("deals.planTemplates.deleteConfirm", { name: template.name }))) return;
     setBusy(true);
     try {
       await apiClient.delete(`/payment-plan-templates/${template.id}`);
       router.refresh();
     } catch (err) {
       alert(
-        err instanceof ApiClientError ? err.message : "Došlo je do greške.",
+        err instanceof ApiClientError ? err.message : t("errors.generic"),
       );
     } finally {
       setBusy(false);
@@ -180,7 +188,7 @@ function TemplateCard({
       router.refresh();
     } catch (err) {
       alert(
-        err instanceof ApiClientError ? err.message : "Došlo je do greške.",
+        err instanceof ApiClientError ? err.message : t("errors.generic"),
       );
     } finally {
       setBusy(false);
@@ -195,14 +203,14 @@ function TemplateCard({
             {template.name}
             {template.isDefault ? (
               <span className="ml-2 inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800">
-                <Star className="mr-1 size-3" /> Podrazumevan
+                <Star className="mr-1 size-3" /> {t("deals.planTemplates.defaultBadge")}
               </span>
             ) : null}
           </CardTitle>
           <p className="mt-1 text-xs text-[var(--color-foreground-muted)]">
             {template.projectName
-              ? `Projekat: ${template.projectName}`
-              : "Organizacija (svi projekti)"}
+              ? t("deals.planTemplates.projectNamed", { name: template.projectName })
+              : t("deals.planTemplates.orgAllProjects")}
             {template.description ? ` · ${template.description}` : ""}
           </p>
         </div>
@@ -211,8 +219,8 @@ function TemplateCard({
             type="button"
             onClick={onEdit}
             className="rounded p-1.5 text-[var(--color-foreground-muted)] hover:bg-[var(--color-surface-inset)]"
-            aria-label="Uredi"
-            title="Uredi"
+            aria-label={t("common.edit")}
+            title={t("common.edit")}
           >
             <Pencil className="size-4" />
           </button>
@@ -220,8 +228,8 @@ function TemplateCard({
             type="button"
             onClick={handleDelete}
             className="rounded p-1.5 text-red-600 hover:bg-red-50"
-            aria-label="Obriši"
-            title="Obriši"
+            aria-label={t("common.delete")}
+            title={t("common.delete")}
             disabled={busy}
           >
             <Trash2 className="size-4" />
@@ -233,10 +241,10 @@ function TemplateCard({
           <thead className="text-left text-[var(--color-foreground-muted)]">
             <tr>
               <th className="py-1 pr-2">#</th>
-              <th className="py-1 pr-2">Naziv</th>
+              <th className="py-1 pr-2">{t("deals.planTemplates.colName")}</th>
               <th className="py-1 pr-2 text-right">%</th>
-              <th className="py-1 pr-2">Anker</th>
-              <th className="py-1 pr-2 text-right">±dana</th>
+              <th className="py-1 pr-2">{t("deals.planTemplates.colAnchor")}</th>
+              <th className="py-1 pr-2 text-right">{t("deals.planTemplates.colOffset")}</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-[var(--color-border)]">
@@ -249,7 +257,7 @@ function TemplateCard({
                 <td className="py-1 pr-2 text-right tabular-nums">
                   {Number(it.percentage).toFixed(2)}
                 </td>
-                <td className="py-1 pr-2">{ANCHOR_LABELS[it.dueDateAnchor]}</td>
+                <td className="py-1 pr-2">{anchorLabel(it.dueDateAnchor, t)}</td>
                 <td className="py-1 pr-2 text-right tabular-nums">
                   {it.offsetDays >= 0 ? `+${it.offsetDays}` : it.offsetDays}
                 </td>
@@ -257,7 +265,7 @@ function TemplateCard({
             ))}
             <tr className="text-[var(--color-foreground-muted)]">
               <td colSpan={2} className="py-1 pr-2 text-right">
-                Zbir
+                {t("deals.planTemplates.sum")}
               </td>
               <td className="py-1 pr-2 text-right font-medium tabular-nums">
                 {sum.toFixed(2)}%
@@ -269,7 +277,7 @@ function TemplateCard({
         {!template.isDefault ? (
           <div className="mt-3 flex justify-end">
             <Button size="sm" variant="outline" onClick={handleSetDefault}>
-              <Star className="mr-1 size-3" /> Postavi kao podrazumevan
+              <Star className="mr-1 size-3" /> {t("deals.planTemplates.setDefault")}
             </Button>
           </div>
         ) : null}
@@ -287,6 +295,7 @@ function TemplateEditor({
   projects: ProjectOption[];
   onClose: () => void;
 }) {
+  const t = useT();
   const router = useRouter();
   const [name, setName] = React.useState(initial?.name ?? "");
   const [description, setDescription] = React.useState(
@@ -300,14 +309,14 @@ function TemplateEditor({
       : [
           {
             sequenceNumber: 1,
-            label: "Kapara",
+            label: t("deals.planTemplates.defaultDeposit"),
             percentage: "10",
             dueDateAnchor: "CONTRACT",
             offsetDays: 0,
           },
           {
             sequenceNumber: 2,
-            label: "Ostatak",
+            label: t("deals.planTemplates.defaultRemainder"),
             percentage: "90",
             dueDateAnchor: "HANDOVER",
             offsetDays: 0,
@@ -338,11 +347,11 @@ function TemplateEditor({
 
   async function submit() {
     if (!name.trim()) {
-      setError("Naziv je obavezan.");
+      setError(t("deals.planTemplates.nameRequired"));
       return;
     }
     if (!totalOk) {
-      setError(`Zbir procenata mora biti 100% (trenutno ${totalPct.toFixed(3)}%).`);
+      setError(t("deals.planTemplates.pctMustBe100", { sum: totalPct.toFixed(3) }));
       return;
     }
     setBusy(true);
@@ -369,7 +378,7 @@ function TemplateEditor({
       onClose();
     } catch (err) {
       setError(
-        err instanceof ApiClientError ? err.message : "Snimanje nije uspelo.",
+        err instanceof ApiClientError ? err.message : t("deals.planTemplates.saveFailed"),
       );
     } finally {
       setBusy(false);
@@ -389,13 +398,15 @@ function TemplateEditor({
       >
         <div className="flex items-center justify-between border-b border-[var(--color-border)] px-4 py-3">
           <h3 className="text-base font-semibold">
-            {initial ? `Uredi šablon: ${initial.name}` : "Novi šablon"}
+            {initial
+              ? t("deals.planTemplates.editTitle", { name: initial.name })
+              : t("deals.planTemplates.newTitle")}
           </h3>
           <button
             type="button"
             onClick={onClose}
             className="rounded p-1 text-[var(--color-foreground-muted)] hover:bg-[var(--color-surface-inset)]"
-            aria-label="Zatvori"
+            aria-label={t("common.close")}
           >
             ✕
           </button>
@@ -411,25 +422,25 @@ function TemplateEditor({
           <div className="grid gap-3 sm:grid-cols-2">
             <div>
               <label className="block text-xs text-[var(--color-foreground-muted)]">
-                Naziv
+                {t("common.name")}
               </label>
               <input
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 className="h-10 w-full rounded-md border border-[var(--color-border)] px-3 text-sm"
-                placeholder="npr. 10 / 40 / 50"
+                placeholder={t("deals.planTemplates.namePlaceholder")}
               />
             </div>
             <div>
               <label className="block text-xs text-[var(--color-foreground-muted)]">
-                Projekat
+                {t("units.columns.project")}
               </label>
               <select
                 value={projectId}
                 onChange={(e) => setProjectId(e.target.value)}
                 className="h-10 w-full rounded-md border border-[var(--color-border)] px-3 text-sm"
               >
-                <option value="">Svi projekti (org. default)</option>
+                <option value="">{t("deals.planTemplates.allProjectsDefault")}</option>
                 {projects.map((p) => (
                   <option key={p.id} value={p.id}>
                     {p.name}
@@ -439,7 +450,7 @@ function TemplateEditor({
             </div>
             <div className="sm:col-span-2">
               <label className="block text-xs text-[var(--color-foreground-muted)]">
-                Opis (opciono)
+                {t("deals.planTemplates.descriptionOptional")}
               </label>
               <input
                 value={description}
@@ -453,15 +464,15 @@ function TemplateEditor({
                 checked={isDefault}
                 onChange={(e) => setIsDefault(e.target.checked)}
               />
-              Postavi kao podrazumevan u ovom obimu
+              {t("deals.planTemplates.setDefaultScope")}
             </label>
           </div>
 
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <h4 className="text-sm font-medium">Stavke</h4>
+              <h4 className="text-sm font-medium">{t("deals.planTemplates.items")}</h4>
               <Button size="sm" variant="outline" onClick={addRow}>
-                <Plus className="mr-1 size-3" /> Dodaj stavku
+                <Plus className="mr-1 size-3" /> {t("deals.planTemplates.addItem")}
               </Button>
             </div>
             <div className="overflow-x-auto">
@@ -469,10 +480,10 @@ function TemplateEditor({
                 <thead className="text-left text-xs uppercase tracking-wide text-[var(--color-foreground-muted)]">
                   <tr>
                     <th className="py-1 pr-2">#</th>
-                    <th className="py-1 pr-2">Naziv</th>
+                    <th className="py-1 pr-2">{t("deals.planTemplates.colName")}</th>
                     <th className="py-1 pr-2 text-right">%</th>
-                    <th className="py-1 pr-2">Anker</th>
-                    <th className="py-1 pr-2 text-right">±dana</th>
+                    <th className="py-1 pr-2">{t("deals.planTemplates.colAnchor")}</th>
+                    <th className="py-1 pr-2 text-right">{t("deals.planTemplates.colOffset")}</th>
                     <th className="py-1 pr-2" />
                   </tr>
                 </thead>
@@ -489,7 +500,7 @@ function TemplateEditor({
                             setItem(idx, { label: e.target.value })
                           }
                           className="h-9 w-full rounded-md border border-[var(--color-border)] px-2 text-sm"
-                          placeholder="npr. Kapara"
+                          placeholder={t("deals.planTemplates.labelPlaceholder")}
                         />
                       </td>
                       <td className="py-1 pr-2">
@@ -512,9 +523,9 @@ function TemplateEditor({
                           }
                           className="h-9 rounded-md border border-[var(--color-border)] px-2 text-sm"
                         >
-                          <option value="CONTRACT">Ugovor</option>
-                          <option value="HANDOVER">Primopredaja</option>
-                          <option value="CUSTOM_OFFSET">Od danas</option>
+                          <option value="CONTRACT">{t("deals.planTemplates.anchor.CONTRACT")}</option>
+                          <option value="HANDOVER">{t("deals.planTemplates.anchor.HANDOVER")}</option>
+                          <option value="CUSTOM_OFFSET">{t("deals.planTemplates.anchor.CUSTOM_OFFSET")}</option>
                         </select>
                       </td>
                       <td className="py-1 pr-2">
@@ -534,7 +545,7 @@ function TemplateEditor({
                           type="button"
                           onClick={() => removeRow(idx)}
                           className="rounded p-1 text-red-600 hover:bg-red-50"
-                          title="Ukloni"
+                          title={t("common.remove")}
                         >
                           <Trash2 className="size-4" />
                         </button>
@@ -552,18 +563,19 @@ function TemplateEditor({
                   : "text-red-600")
               }
             >
-              Zbir procenata: <strong>{totalPct.toFixed(3)}%</strong>{" "}
-              {totalOk ? "✓" : "(potrebno tačno 100%)"}
+              {totalOk
+                ? t("deals.planTemplates.pctSumOk", { sum: totalPct.toFixed(3) })
+                : t("deals.planTemplates.pctSumBad", { sum: totalPct.toFixed(3) })}
             </p>
           </div>
         </div>
 
         <div className="flex items-center justify-end gap-2 border-t border-[var(--color-border)] px-4 py-3">
           <Button variant="outline" size="sm" onClick={onClose}>
-            Otkaži
+            {t("common.cancel")}
           </Button>
           <Button size="sm" onClick={submit} loading={busy}>
-            {initial ? "Sačuvaj izmene" : "Kreiraj šablon"}
+            {initial ? t("common.saveChanges") : t("deals.planTemplates.createTemplate")}
           </Button>
         </div>
       </div>

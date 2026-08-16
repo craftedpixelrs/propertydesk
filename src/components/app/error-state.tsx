@@ -1,8 +1,10 @@
+"use client";
+
 import * as React from "react";
 import { AlertTriangle } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { t } from "@/lib/i18n";
+import { useT } from "@/components/app/i18n-provider";
 import { cn } from "@/lib/utils";
 
 export interface ErrorStateProps {
@@ -13,6 +15,7 @@ export interface ErrorStateProps {
 }
 
 export function ErrorState({ title, description, onRetry, className }: ErrorStateProps) {
+  const t = useT();
   return (
     <Card
       className={cn(

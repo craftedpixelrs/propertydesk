@@ -6,19 +6,21 @@ import { Badge } from "@/components/ui/badge";
 import { formatDate } from "@/lib/formatters/date";
 import { formatMoney } from "@/lib/formatters/money";
 import type { InvoiceStatus } from "@prisma/client";
+import { createT, type TranslationKey } from "@/lib/i18n";
+import { resolveRequestLocale } from "@/lib/i18n/resolve-locale";
 
 export const dynamic = "force-dynamic";
 
-const STATUS_LABEL: Record<InvoiceStatus, string> = {
-  DRAFT: "Nacrt",
-  ISSUED: "Izdata",
-  SENT: "Poslata",
-  PARTIALLY_PAID: "Delimično",
-  PAID: "Plaćena",
-  OVERDUE: "Zakasnela",
-  CANCELED: "Otkazana",
-  VOID: "Poništena",
-};
+const INVOICE_STATUSES = [
+  "DRAFT",
+  "ISSUED",
+  "SENT",
+  "PARTIALLY_PAID",
+  "PAID",
+  "OVERDUE",
+  "CANCELED",
+  "VOID",
+] as const satisfies readonly InvoiceStatus[];
 
 interface PageProps {
   searchParams: Promise<{ page?: string; status?: string }>;
@@ -26,6 +28,7 @@ interface PageProps {
 
 export default async function TenantInvoicesPage({ searchParams }: PageProps) {
   const ctx = await requirePermission("billing.invoice.read");
+  const t = createT(await resolveRequestLocale());
   const sp = await searchParams;
   const page = Number.parseInt(sp.page ?? "1", 10) || 1;
   const status = sp.status ? (sp.status as InvoiceStatus) : undefined;
@@ -36,13 +39,19 @@ export default async function TenantInvoicesPage({ searchParams }: PageProps) {
     status,
   });
 
+  function invoiceStatusLabel(value: InvoiceStatus) {
+    const key = `billing.invoiceStatus.${value}` as TranslationKey;
+    const out = t(key);
+    return out === key ? value : out;
+  }
+
   return (
     <section className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
-          <h2 className="text-lg font-semibold">Moje fakture ({total})</h2>
+          <h2 className="text-lg font-semibold">{t("ops.invoices.myInvoices", { total })}</h2>
           <p className="text-sm text-[var(--color-foreground-muted)]">
-            Pregled svih faktura vaše organizacije. PDF verzija je uvek dostupna sa detalja fakture.
+            {t("ops.invoices.subtitle")}
           </p>
         </div>
         <form className="flex items-center gap-2" action="/podesavanja/fakture">
@@ -51,16 +60,16 @@ export default async function TenantInvoicesPage({ searchParams }: PageProps) {
             defaultValue={sp.status ?? ""}
             className="h-9 rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] px-3 text-sm"
           >
-            <option value="">Svi statusi</option>
-            {(Object.keys(STATUS_LABEL) as InvoiceStatus[]).map((s) => (
-              <option key={s} value={s}>{STATUS_LABEL[s]}</option>
+            <option value="">{t("common.allStatuses")}</option>
+            {INVOICE_STATUSES.map((s) => (
+              <option key={s} value={s}>{invoiceStatusLabel(s)}</option>
             ))}
           </select>
           <button
             type="submit"
             className="h-9 rounded-md border border-[var(--color-border)] px-3 text-sm hover:bg-[var(--color-surface-hover)]"
           >
-            Primeni
+            {t("common.apply")}
           </button>
         </form>
       </div>
@@ -70,19 +79,31 @@ export default async function TenantInvoicesPage({ searchParams }: PageProps) {
           <table className="w-full text-sm">
             <thead className="text-left text-xs uppercase text-[var(--color-foreground-subtle)]">
               <tr>
-                <th className="border-b border-[var(--color-border)] px-3 py-2">Broj</th>
-                <th className="border-b border-[var(--color-border)] px-3 py-2">Status</th>
-                <th className="border-b border-[var(--color-border)] px-3 py-2">Izdata</th>
-                <th className="border-b border-[var(--color-border)] px-3 py-2">Rok</th>
-                <th className="border-b border-[var(--color-border)] px-3 py-2 text-right">Ukupno</th>
-                <th className="border-b border-[var(--color-border)] px-3 py-2 text-right">Preostalo</th>
+                <th className="border-b border-[var(--color-border)] px-3 py-2">
+                  {t("billing.columns.invoiceNumber")}
+                </th>
+                <th className="border-b border-[var(--color-border)] px-3 py-2">
+                  {t("billing.columns.status")}
+                </th>
+                <th className="border-b border-[var(--color-border)] px-3 py-2">
+                  {t("billing.columns.issueDate")}
+                </th>
+                <th className="border-b border-[var(--color-border)] px-3 py-2">
+                  {t("billing.columns.dueDate")}
+                </th>
+                <th className="border-b border-[var(--color-border)] px-3 py-2 text-right">
+                  {t("billing.columns.total")}
+                </th>
+                <th className="border-b border-[var(--color-border)] px-3 py-2 text-right">
+                  {t("billing.columns.remaining")}
+                </th>
               </tr>
             </thead>
             <tbody>
               {items.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="px-3 py-6 text-center text-[var(--color-foreground-muted)]">
-                    Nema faktura.
+                    {t("ops.invoices.empty")}
                   </td>
                 </tr>
               ) : (
@@ -90,12 +111,12 @@ export default async function TenantInvoicesPage({ searchParams }: PageProps) {
                   <tr key={inv.id} className="border-b border-[var(--color-border)] last:border-b-0">
                     <td className="px-3 py-2 font-mono text-xs">
                       <Link href={`/podesavanja/fakture/${inv.id}`} className="text-[var(--color-brand-700)] hover:underline">
-                        {inv.invoiceNumber ?? "(nacrt)"}
+                        {inv.invoiceNumber ?? t("ops.invoices.draftNumber")}
                       </Link>
                     </td>
                     <td className="px-3 py-2">
                       <Badge tone={inv.status === "PAID" ? "success" : inv.status === "OVERDUE" ? "danger" : "info"}>
-                        {STATUS_LABEL[inv.status]}
+                        {invoiceStatusLabel(inv.status)}
                       </Badge>
                     </td>
                     <td className="px-3 py-2 text-xs">{inv.issueDate ? formatDate(inv.issueDate) : "—"}</td>

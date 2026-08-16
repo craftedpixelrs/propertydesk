@@ -4,20 +4,14 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
+import { useI18n } from "@/components/app/i18n-provider";
 import { apiClient, ApiClientError } from "@/lib/api-client";
+import { intlLocale, type TranslateFn } from "@/lib/i18n";
 
 export type ContractTemplateOption = {
   id: string;
   name: string;
   kind: "PRE_CONTRACT" | "CONTRACT";
-};
-
-const STATUS_LABELS: Record<string, string> = {
-  NONE: "Nije generisan",
-  GENERATED: "Generisan",
-  SENT: "Poslat kupcu",
-  SIGNED: "Potpisan",
-  CANCELED: "Otkazan",
 };
 
 const STATUS_STYLES: Record<string, string> = {
@@ -27,6 +21,23 @@ const STATUS_STYLES: Record<string, string> = {
   SIGNED: "bg-emerald-100 text-emerald-800",
   CANCELED: "bg-slate-100 text-slate-500",
 };
+
+function contractStatusLabel(status: string, t: TranslateFn): string {
+  switch (status) {
+    case "NONE":
+      return t("deals.contract.status.NONE");
+    case "GENERATED":
+      return t("deals.contract.status.GENERATED");
+    case "SENT":
+      return t("deals.contract.status.SENT");
+    case "SIGNED":
+      return t("deals.contract.status.SIGNED");
+    case "CANCELED":
+      return t("deals.contract.status.CANCELED");
+    default:
+      return status;
+  }
+}
 
 /**
  * Faza 8.1 (A1) — "Ugovor" panel on `/prodaje/[id]`.
@@ -45,10 +56,11 @@ export function ContractSection(props: {
   templates: ContractTemplateOption[];
   canManage: boolean;
 }) {
+  const { t, locale } = useI18n();
   const router = useRouter();
   const [selectedId, setSelectedId] = useState<string>(
     props.contractTemplateId ??
-      props.templates.find((t) => t.kind === "PRE_CONTRACT")?.id ??
+      props.templates.find((tmpl) => tmpl.kind === "PRE_CONTRACT")?.id ??
       props.templates[0]?.id ??
       "",
   );
@@ -56,8 +68,8 @@ export function ContractSection(props: {
   const [error, setError] = useState<string | null>(null);
 
   const groups = useMemo(() => {
-    const pre = props.templates.filter((t) => t.kind === "PRE_CONTRACT");
-    const full = props.templates.filter((t) => t.kind === "CONTRACT");
+    const pre = props.templates.filter((tmpl) => tmpl.kind === "PRE_CONTRACT");
+    const full = props.templates.filter((tmpl) => tmpl.kind === "CONTRACT");
     return { pre, full };
   }, [props.templates]);
 
@@ -77,7 +89,7 @@ export function ContractSection(props: {
         const err = (await res.json().catch(() => ({}))) as {
           error?: { message?: string };
         };
-        throw new Error(err.error?.message ?? "Greška pri generisanju PDF-a.");
+        throw new Error(err.error?.message ?? t("deals.contract.generateFailed"));
       }
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
@@ -85,14 +97,14 @@ export function ContractSection(props: {
       const cd = res.headers.get("content-disposition") ?? "";
       const filenameMatch = /filename="?([^"]+)"?/.exec(cd);
       anchor.href = url;
-      anchor.download = filenameMatch?.[1] ?? "ugovor.pdf";
+      anchor.download = filenameMatch?.[1] ?? t("deals.contract.defaultFilename");
       document.body.appendChild(anchor);
       anchor.click();
       anchor.remove();
       URL.revokeObjectURL(url);
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Došlo je do greške.");
+      setError(err instanceof Error ? err.message : t("errors.generic"));
     } finally {
       setBusy(null);
     }
@@ -106,7 +118,7 @@ export function ContractSection(props: {
       router.refresh();
     } catch (err) {
       setError(
-        err instanceof ApiClientError ? err.message : "Došlo je do greške.",
+        err instanceof ApiClientError ? err.message : t("errors.generic"),
       );
     } finally {
       setBusy(null);
@@ -119,13 +131,21 @@ export function ContractSection(props: {
         <span
           className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_STYLES[props.contractStatus] ?? STATUS_STYLES.NONE}`}
         >
-          {STATUS_LABELS[props.contractStatus] ?? props.contractStatus}
+          {contractStatusLabel(props.contractStatus, t)}
         </span>
         <div className="text-xs text-[var(--color-foreground-muted)]">
           {props.contractSignedAt ? (
-            <span>Potpisan: {new Date(props.contractSignedAt).toLocaleDateString("sr-Latn-RS")}</span>
+            <span>
+              {t("deals.contract.signedOn", {
+                date: new Date(props.contractSignedAt).toLocaleDateString(intlLocale(locale)),
+              })}
+            </span>
           ) : props.contractSentAt ? (
-            <span>Poslat: {new Date(props.contractSentAt).toLocaleDateString("sr-Latn-RS")}</span>
+            <span>
+              {t("deals.contract.sentOn", {
+                date: new Date(props.contractSentAt).toLocaleDateString(intlLocale(locale)),
+              })}
+            </span>
           ) : null}
         </div>
       </div>
@@ -138,18 +158,18 @@ export function ContractSection(props: {
 
       {noTemplates ? (
         <p className="rounded-md border border-dashed border-[var(--color-border)] p-3 text-sm text-[var(--color-foreground-muted)]">
-          Još niste kreirali šablon ugovora.{" "}
+          {t("deals.contract.noTemplates")}{" "}
           <a
             href="/podesavanja/ugovori-sabloni"
             className="font-medium text-[var(--color-brand-700)] hover:underline"
           >
-            Otvori podešavanja →
+            {t("deals.contract.openSettings")}
           </a>
         </p>
       ) : (
         <div className="space-y-2">
           <label className="block text-xs text-[var(--color-foreground-muted)]">
-            Izaberi šablon
+            {t("deals.contract.pickTemplate")}
           </label>
           <select
             className="h-10 w-full rounded-md border border-[var(--color-border)] px-3 text-sm"
@@ -158,19 +178,19 @@ export function ContractSection(props: {
             disabled={!props.canManage || busy != null}
           >
             {groups.pre.length ? (
-              <optgroup label="Predugovori">
-                {groups.pre.map((t) => (
-                  <option key={t.id} value={t.id}>
-                    {t.name}
+              <optgroup label={t("deals.contract.preContracts")}>
+                {groups.pre.map((tmpl) => (
+                  <option key={tmpl.id} value={tmpl.id}>
+                    {tmpl.name}
                   </option>
                 ))}
               </optgroup>
             ) : null}
             {groups.full.length ? (
-              <optgroup label="Ugovori">
-                {groups.full.map((t) => (
-                  <option key={t.id} value={t.id}>
-                    {t.name}
+              <optgroup label={t("deals.contract.contracts")}>
+                {groups.full.map((tmpl) => (
+                  <option key={tmpl.id} value={tmpl.id}>
+                    {tmpl.name}
                   </option>
                 ))}
               </optgroup>
@@ -187,7 +207,7 @@ export function ContractSection(props: {
             disabled={noTemplates || !selectedId}
             onClick={generatePdf}
           >
-            Generiši PDF
+            {t("deals.contract.generatePdf")}
           </Button>
           {props.contractStatus === "GENERATED" ? (
             <Button
@@ -196,7 +216,7 @@ export function ContractSection(props: {
               loading={busy === "mark-sent"}
               onClick={() => transition("mark-sent")}
             >
-              Označi kao poslato
+              {t("deals.contract.markSent")}
             </Button>
           ) : null}
           {props.contractStatus === "GENERATED" ||
@@ -206,7 +226,7 @@ export function ContractSection(props: {
               loading={busy === "mark-signed"}
               onClick={() => transition("mark-signed")}
             >
-              Označi kao potpisano
+              {t("deals.contract.markSigned")}
             </Button>
           ) : null}
         </div>

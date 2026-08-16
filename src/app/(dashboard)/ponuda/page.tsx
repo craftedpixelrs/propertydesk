@@ -7,6 +7,7 @@ import { loadUserContext } from "@/server/auth/context";
 import { listOfferProjects } from "@/server/services/agencies/offer.service";
 import { listAgencyReferralCards } from "@/server/services/agencies/agencies.service";
 import { ReferralCards } from "@/features/agencies/referral-cards";
+import { createT } from "@/lib/i18n";
 
 export const dynamic = "force-dynamic";
 
@@ -15,6 +16,7 @@ export default async function PonudaPage() {
   if (!ctx) redirect("/sign-in");
   if (!ctx.activeOrganization) redirect("/podesavanja");
   if (ctx.activeOrganization.type !== "AGENCY") redirect("/dashboard");
+  const t = createT(ctx.user.locale);
 
   const [projects, referralConnections] = await Promise.all([
     listOfferProjects({
@@ -33,7 +35,7 @@ export default async function PonudaPage() {
     .map((c) => ({
       connectionId: c.id,
       investorName:
-        c.investor.profile?.displayName ?? c.investor.name ?? "Investitor",
+        c.investor.profile?.displayName ?? c.investor.name ?? t("organization.types.investor"),
       investorLogoUrl: c.investor.profile?.logoUrl ?? null,
       referralCode: c.referralCode!,
     }));
@@ -41,19 +43,18 @@ export default async function PonudaPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold">Ponuda</h1>
+        <h1 className="text-2xl font-semibold">{t("nav.offer")}</h1>
         <p className="text-sm text-[var(--color-foreground-muted)]">
-          Projekti za koje Vaša agencija ima aktivan pristup.
+          {t("inventory.offer.subtitle")}
         </p>
       </div>
 
       {referralCards.length > 0 ? (
         <section className="space-y-3">
           <div>
-            <h2 className="text-lg font-semibold">Vaši referral kodovi</h2>
+            <h2 className="text-lg font-semibold">{t("inventory.offer.referralTitle")}</h2>
             <p className="text-sm text-[var(--color-foreground-muted)]">
-              Delite link ili QR kod sa potencijalnim kupcima. Sve rezervacije
-              preko referral linka automatski se atribuiraju Vašoj agenciji.
+              {t("inventory.offer.referralBody")}
             </p>
           </div>
           <ReferralCards cards={referralCards} baseUrl={baseUrl} />
@@ -63,7 +64,7 @@ export default async function PonudaPage() {
       {projects.length === 0 ? (
         <Card>
           <CardContent className="py-12 text-center text-sm text-[var(--color-foreground-muted)]">
-            Za sada nemate aktivan pristup nijednom projektu. Kontaktirajte investitora.
+            {t("inventory.offer.empty")}
           </CardContent>
         </Card>
       ) : (
@@ -95,7 +96,7 @@ export default async function PonudaPage() {
                     href={`/ponuda/${p.id}/jedinice`}
                     className="text-sm text-[var(--color-brand-700)] hover:underline"
                   >
-                    Pogledaj jedinice →
+                    {t("inventory.offer.viewUnits")}
                   </Link>
                 </div>
               </CardContent>

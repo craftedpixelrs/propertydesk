@@ -6,6 +6,8 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { apiClient, ApiClientError } from "@/lib/api-client";
+import { useT } from "@/components/app/i18n-provider";
+import type { TranslationKey } from "@/lib/i18n";
 
 interface PlanFormProps {
   mode: "create" | "edit";
@@ -15,9 +17,9 @@ interface PlanFormProps {
 
 interface FieldSpec {
   name: string;
-  label: string;
+  labelKey: TranslationKey;
   type?: "text" | "number" | "textarea" | "checkbox";
-  hint?: string;
+  hintKey?: TranslationKey;
   required?: boolean;
   step?: string;
   immutable?: boolean; // disabled on edit
@@ -26,56 +28,56 @@ interface FieldSpec {
 const FIELDS: FieldSpec[] = [
   {
     name: "code",
-    label: "Šifra",
+    labelKey: "admin.planForm.code",
     required: true,
-    hint: "Kratka jedinstvena oznaka (mala slova, brojevi, crtica). Ne menja se posle kreiranja.",
+    hintKey: "admin.planForm.codeHint",
     immutable: true,
   },
-  { name: "name", label: "Naziv", required: true },
-  { name: "description", label: "Opis", type: "textarea" },
+  { name: "name", labelKey: "admin.planForm.name", required: true },
+  { name: "description", labelKey: "admin.planForm.description", type: "textarea" },
 
-  { name: "monthlyPrice", label: "Mesečna cena", type: "number", required: true, step: "0.01" },
+  { name: "monthlyPrice", labelKey: "admin.planForm.monthlyPrice", type: "number", required: true, step: "0.01" },
   {
     name: "quarterlyPrice",
-    label: "Kvartalna cena",
+    labelKey: "admin.planForm.quarterlyPrice",
     type: "number",
     step: "0.01",
-    hint: "Ako je prazno, sistem koristi 3 × mesečna cena.",
+    hintKey: "admin.planForm.quarterlyHint",
   },
   {
     name: "semiAnnualPrice",
-    label: "Polugodišnja cena",
+    labelKey: "admin.planForm.semiAnnualPrice",
     type: "number",
     step: "0.01",
-    hint: "Ako je prazno, sistem koristi 6 × mesečna cena.",
+    hintKey: "admin.planForm.semiAnnualHint",
   },
   {
     name: "annualPrice",
-    label: "Godišnja cena",
+    labelKey: "admin.planForm.annualPrice",
     type: "number",
     step: "0.01",
-    hint: "Ako je prazno, sistem koristi 12 × mesečna cena.",
+    hintKey: "admin.planForm.annualHint",
   },
   {
     name: "onboardingFee",
-    label: "Jednokratna naknada za aktivaciju",
+    labelKey: "admin.planForm.onboardingFee",
     type: "number",
     step: "0.01",
-    hint: "Dodaje se prvoj fakturi nakon aktivacije pretplate.",
+    hintKey: "admin.planForm.onboardingHint",
   },
-  { name: "currency", label: "Valuta", required: true, hint: "3-slovni ISO kod (EUR, RSD, USD…)." },
+  { name: "currency", labelKey: "admin.planForm.currency", required: true, hintKey: "admin.planForm.currencyHint" },
 
-  { name: "defaultTrialDays", label: "Trajanje probnog perioda (dani)", type: "number", hint: "Prazno = koristi globalno podešavanje." },
+  { name: "defaultTrialDays", labelKey: "admin.planForm.trialDays", type: "number", hintKey: "admin.planForm.trialHint" },
 
-  { name: "maxActiveProjects", label: "Max aktivnih projekata", type: "number", hint: "Prazno = neograničeno." },
-  { name: "maxUnits", label: "Max jedinica", type: "number", hint: "Prazno = neograničeno." },
-  { name: "maxMembers", label: "Max korisnika", type: "number", hint: "Prazno = neograničeno." },
-  { name: "maxAgencyConnections", label: "Max konekcija sa agencijama", type: "number", hint: "Prazno = neograničeno." },
+  { name: "maxActiveProjects", labelKey: "admin.planForm.maxProjects", type: "number", hintKey: "admin.planForm.unlimitedHint" },
+  { name: "maxUnits", labelKey: "admin.planForm.maxUnits", type: "number", hintKey: "admin.planForm.unlimitedHint" },
+  { name: "maxMembers", labelKey: "admin.planForm.maxMembers", type: "number", hintKey: "admin.planForm.unlimitedHint" },
+  { name: "maxAgencyConnections", labelKey: "admin.planForm.maxAgencies", type: "number", hintKey: "admin.planForm.unlimitedHint" },
 
-  { name: "sortOrder", label: "Redosled prikaza", type: "number", hint: "Manji broj = ranije u listi." },
-  { name: "active", label: "Aktivan", type: "checkbox", hint: "Neaktivan plan ne može se dodeliti novim organizacijama." },
-  { name: "publiclyAvailable", label: "Javno dostupan", type: "checkbox", hint: "Prikazuje se na javnoj stranici sa cenama." },
-  { name: "recommended", label: "Preporučeno", type: "checkbox", hint: "Dobija „preporučeno\" oznaku u prikazu planova." },
+  { name: "sortOrder", labelKey: "admin.planForm.sortOrder", type: "number", hintKey: "admin.planForm.sortHint" },
+  { name: "active", labelKey: "admin.planForm.active", type: "checkbox", hintKey: "admin.planForm.activeHint" },
+  { name: "publiclyAvailable", labelKey: "admin.planForm.public", type: "checkbox", hintKey: "admin.planForm.publicHint" },
+  { name: "recommended", labelKey: "admin.planForm.recommended", type: "checkbox", hintKey: "admin.planForm.recommendedHint" },
 ];
 
 const NUMERIC_FIELDS = new Set([
@@ -105,6 +107,7 @@ function toDefaults(): Record<string, string> {
 
 export function PlanForm({ mode, planId, initialValues }: PlanFormProps) {
   const router = useRouter();
+  const t = useT();
   const isEdit = mode === "edit";
   const [values, setValues] = useState<Record<string, string>>({
     ...toDefaults(),
@@ -142,7 +145,7 @@ export function PlanForm({ mode, planId, initialValues }: PlanFormProps) {
           if (!Number.isFinite(n)) {
             setFieldErrors((prev) => ({
               ...prev,
-              [f.name]: ["Očekivan je broj."],
+              [f.name]: [t("admin.expectedNumber")],
             }));
             setLoading(false);
             return;
@@ -171,7 +174,7 @@ export function PlanForm({ mode, planId, initialValues }: PlanFormProps) {
         setError(err.message);
         setFieldErrors(err.fieldErrors ?? {});
       } else {
-        setError("Došlo je do neočekivane greške.");
+        setError(t("errors.unexpected"));
       }
     } finally {
       setLoading(false);
@@ -191,7 +194,7 @@ export function PlanForm({ mode, planId, initialValues }: PlanFormProps) {
                 className={`space-y-1 ${spanFull ? "sm:col-span-2" : ""}`}
               >
                 <label htmlFor={f.name} className="text-sm font-medium">
-                  {f.label}
+                  {t(f.labelKey)}
                   {f.required ? <span className="text-red-500">*</span> : null}
                 </label>
                 {f.type === "textarea" ? (
@@ -212,7 +215,7 @@ export function PlanForm({ mode, planId, initialValues }: PlanFormProps) {
                       }
                       className="size-4"
                     />
-                    <span className="text-sm">{f.hint ?? ""}</span>
+                    <span className="text-sm">{f.hintKey ? t(f.hintKey) : ""}</span>
                   </label>
                 ) : (
                   <input
@@ -226,9 +229,9 @@ export function PlanForm({ mode, planId, initialValues }: PlanFormProps) {
                     className="h-11 w-full rounded-md border border-[var(--color-border)] bg-white px-3 text-sm disabled:bg-neutral-100 disabled:text-neutral-500"
                   />
                 )}
-                {f.hint && f.type !== "checkbox" ? (
+                {f.hintKey && f.type !== "checkbox" ? (
                   <p className="text-xs text-[var(--color-foreground-muted)]">
-                    {f.hint}
+                    {t(f.hintKey)}
                   </p>
                 ) : null}
                 {fieldErrors[f.name]?.map((m, i) => (
@@ -253,14 +256,16 @@ export function PlanForm({ mode, planId, initialValues }: PlanFormProps) {
               onClick={() => router.back()}
               disabled={loading}
             >
-              Odustani
+              {t("admin.planForm.abandon")}
             </Button>
             <Button type="submit" loading={loading}>
-              {isEdit ? "Sačuvaj izmene" : "Kreiraj plan"}
+              {isEdit ? t("common.saveChanges") : t("admin.planForm.create")}
             </Button>
           </div>
         </form>
       </CardContent>
     </Card>
   );
+}
+
 }

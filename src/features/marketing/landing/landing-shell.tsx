@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
 
 import { APP_NAME, MARKETING_URL } from "@/lib/constants/app";
+import { htmlLang, t, type Locale, type TranslationKey } from "@/lib/i18n";
 
 interface LandingMeta {
   slug: string;
   title: string;
   description: string;
+  locale: Locale;
   /**
    * Optional short label used for the `BreadcrumbList` item name.
    * Defaults to the page title.
@@ -22,6 +24,7 @@ export function buildLandingMetadata({
   slug,
   title,
   description,
+  locale,
 }: LandingMeta): Metadata {
   const url = `${MARKETING_URL}/${slug}`;
   return {
@@ -33,7 +36,7 @@ export function buildLandingMetadata({
       description,
       url,
       type: "website",
-      locale: "sr_Latn",
+      locale: locale === "en" ? "en_GB" : "sr_Latn",
     },
     twitter: {
       card: "summary_large_image",
@@ -51,6 +54,7 @@ export function LandingJsonLd({
   slug,
   title,
   description,
+  locale,
   breadcrumb,
 }: LandingMeta) {
   const url = `${MARKETING_URL}/${slug}`;
@@ -60,7 +64,7 @@ export function LandingJsonLd({
     name: `${title} | ${APP_NAME}`,
     description,
     url,
-    inLanguage: "sr-Latn",
+    inLanguage: htmlLang(locale),
     isPartOf: {
       "@type": "WebSite",
       name: APP_NAME,
@@ -75,7 +79,7 @@ export function LandingJsonLd({
       {
         "@type": "ListItem",
         position: 1,
-        name: "Početna",
+        name: t("nav.home", undefined, locale),
         item: MARKETING_URL,
       },
       {
@@ -106,14 +110,14 @@ export function LandingJsonLd({
  * every topic landing page is discoverable via internal links.
  */
 export const LANDING_ROUTES = [
-  { slug: "za-investitore", label: "Za investitore" },
-  { slug: "za-agencije", label: "Za agencije" },
-  { slug: "prodaja-novogradnje", label: "Prodaja novogradnje" },
-  { slug: "crm-za-investitore", label: "CRM za investitore" },
-  { slug: "alternative-excelu", label: "Alternativa Excelu" },
-  { slug: "rezervacije-i-uplate", label: "Rezervacije i uplate" },
-  { slug: "provizije-agencija", label: "Provizije agencija" },
-  { slug: "demo", label: "Zakažite demo" },
-] as const;
+  { slug: "za-investitore", labelKey: "marketing.nav.investors" },
+  { slug: "za-agencije", labelKey: "marketing.nav.agencies" },
+  { slug: "prodaja-novogradnje", labelKey: "marketing.nav.newBuild" },
+  { slug: "crm-za-investitore", labelKey: "marketing.nav.crm" },
+  { slug: "alternative-excelu", labelKey: "marketing.nav.excel" },
+  { slug: "rezervacije-i-uplate", labelKey: "marketing.nav.reservations" },
+  { slug: "provizije-agencija", labelKey: "marketing.nav.commissions" },
+  { slug: "demo", labelKey: "marketing.nav.bookDemo" },
+] as const satisfies ReadonlyArray<{ slug: string; labelKey: TranslationKey }>;
 
 export type LandingSlug = (typeof LANDING_ROUTES)[number]["slug"];

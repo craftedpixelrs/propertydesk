@@ -24,18 +24,14 @@ import { computeProjectPnl } from "@/server/services/projects/pnl.service";
 import { TrendLine } from "@/components/charts/trend-line";
 import { formatDate, formatMoney } from "@/lib/formatters";
 import type { SupportedCurrency } from "@/lib/constants/app";
+import { createT, enumLabel, type TranslateFn } from "@/lib/i18n";
+import { resolveRequestLocale } from "@/lib/i18n/resolve-locale";
 
 export const dynamic = "force-dynamic";
 
-const SALE_LABELS: Record<string, string> = {
-  DRAFT: "Nacrt",
-  PRE_CONTRACT: "Predugovor",
-  CONTRACTED: "Ugovorena",
-  PAYMENT_IN_PROGRESS: "Plaćanje u toku",
-  PAID: "Plaćena",
-  HANDED_OVER: "Primopredato",
-  CANCELED: "Otkazana",
-};
+function saleLabel(status: string, t: TranslateFn) {
+  return enumLabel("sale", status === "PRE_CONTRACT" ? "PRECONTRACT" : status, t);
+}
 
 interface PageProps {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
@@ -44,6 +40,7 @@ interface PageProps {
 export default async function SalesReportPage({ searchParams }: PageProps) {
   const ctx = await requirePermission("report.read");
   if (!ctx.organization) redirect("/dashboard");
+  const t = createT(await resolveRequestLocale());
   const sp = await searchParams;
   const parsed = parseReportSearchParams(sp);
   const filters = toReportFilters({
@@ -91,12 +88,15 @@ export default async function SalesReportPage({ searchParams }: PageProps) {
   });
   const trendSeries = trend.currencies.map((c) => ({
     key: `${c}_total`,
-    label: `Ugovoreno (${c})`,
+    label: t("ops.reports.contractedCurrency", { currency: c }),
   }));
 
   return (
     <div className="space-y-6">
-      <PageHeader title="Prodaje" description="Realizovane prodaje sa naplatom po jedinici." />
+      <PageHeader
+        title={t("nav.sales")}
+        description={t("ops.reports.salesDesc")}
+      />
 
       <ReportFilters
         action="/izvestaji/prodaje"
@@ -109,15 +109,24 @@ export default async function SalesReportPage({ searchParams }: PageProps) {
       />
 
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-        <StatCard label="Prodaja" value={report.totals.count} />
-        <StatCard label="Ugovoreno" value={formatMoney(report.totals.finalPriceTotal, currency)} />
-        <StatCard label="Naplaćeno" value={formatMoney(report.totals.paidTotal, currency)} />
-        <StatCard label="Preostalo" value={formatMoney(report.totals.outstandingTotal, currency)} />
+        <StatCard label={t("ops.reports.salesCount")} value={report.totals.count} />
+        <StatCard
+          label={t("ops.reports.contracted")}
+          value={formatMoney(report.totals.finalPriceTotal, currency)}
+        />
+        <StatCard
+          label={t("ops.reports.collected")}
+          value={formatMoney(report.totals.paidTotal, currency)}
+        />
+        <StatCard
+          label={t("ops.reports.outstanding")}
+          value={formatMoney(report.totals.outstandingTotal, currency)}
+        />
       </div>
 
       <ChartCard
-        title="Ugovorena vrednost po mesecu"
-        description="Zbir finalne cene prodaja, gruban trend rasta."
+        title={t("ops.reports.monthlyValue")}
+        description={t("ops.reports.monthlyValueDesc")}
         isEmpty={trendData.length === 0}
         height={280}
       >
@@ -130,16 +139,16 @@ export default async function SalesReportPage({ searchParams }: PageProps) {
 
       <div className="grid gap-6 lg:grid-cols-2">
         <ChartCard
-          title="Prodaje po statusu"
-          description="Ukupan broj prodaja."
+          title={t("ops.reports.salesByStatus")}
+          description={t("ops.reports.salesByStatusHint")}
           isEmpty={report.byStatus.length === 0}
           height={240}
         >
           <StatusDonut
-            centerLabel="Prodaje"
+            centerLabel={t("ops.reports.salesCenter")}
             data={report.byStatus.map((row) => ({
               key: row.status,
-              label: SALE_LABELS[row.status] ?? row.status,
+              label: saleLabel(row.status, t),
               value: row.count,
               color: saleStatusColor[row.status],
             }))}
@@ -147,8 +156,8 @@ export default async function SalesReportPage({ searchParams }: PageProps) {
         </ChartCard>
 
         <ChartCard
-          title="Ugovorena vrednost po statusu"
-          description={`Suma finalne cene, ${currency}.`}
+          title={t("ops.reports.valueByStatus")}
+          description={t("ops.reports.valueByStatusHint", { currency })}
           isEmpty={report.byStatus.length === 0}
           height={240}
         >
@@ -156,7 +165,7 @@ export default async function SalesReportPage({ searchParams }: PageProps) {
             yTickFormat="compact"
             data={report.byStatus.map((row) => ({
               key: row.status,
-              label: SALE_LABELS[row.status] ?? row.status,
+              label: saleLabel(row.status, t),
               value: Number(row.finalPriceTotal),
               color: saleStatusColor[row.status],
             }))}
@@ -166,11 +175,9 @@ export default async function SalesReportPage({ searchParams }: PageProps) {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-sm">Marža po projektu</CardTitle>
+          <CardTitle className="text-sm">{t("ops.reports.marginTitle")}</CardTitle>
           <p className="text-xs text-[var(--color-foreground-muted)]">
-            Prihod = zbir finalne cene svih ne-otkazanih prodaja. Trošak =
-            zbir zemljišta, izgradnje, marketinga, ostalih troškova (iz
-            projekta) i provizije agencijama. Neto = prihod − trošak.
+            {t("ops.reports.marginHint")}
           </p>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -182,7 +189,7 @@ export default async function SalesReportPage({ searchParams }: PageProps) {
                   className="rounded-md border border-[var(--color-border)] p-3"
                 >
                   <div className="text-xs text-[var(--color-foreground-muted)]">
-                    Neto ({s.currency})
+                    {t("ops.reports.netCurrency", { currency: s.currency })}
                   </div>
                   <div
                     className={`mt-1 text-lg font-semibold ${
@@ -192,9 +199,10 @@ export default async function SalesReportPage({ searchParams }: PageProps) {
                     {formatMoney(s.netMargin, s.currency as SupportedCurrency)}
                   </div>
                   <div className="mt-1 text-xs text-[var(--color-foreground-muted)]">
-                    Prihod {formatMoney(s.revenueTotal, s.currency as SupportedCurrency)}
-                    {" · "}
-                    Trošak {formatMoney(s.costTotal, s.currency as SupportedCurrency)}
+                    {t("ops.reports.revenueCost", {
+                      revenue: formatMoney(s.revenueTotal, s.currency as SupportedCurrency),
+                      cost: formatMoney(s.costTotal, s.currency as SupportedCurrency),
+                    })}
                   </div>
                 </div>
               ))}
@@ -202,21 +210,21 @@ export default async function SalesReportPage({ searchParams }: PageProps) {
           ) : null}
           {pnl.rows.length === 0 ? (
             <p className="rounded-md border border-dashed border-[var(--color-border)] p-6 text-center text-sm text-[var(--color-foreground-muted)]">
-              Nema aktivnih projekata za prikaz.
+              {t("ops.reports.noActiveProjects")}
             </p>
           ) : (
             <table className="w-full text-sm">
               <thead className="text-left text-xs text-[var(--color-foreground-muted)]">
                 <tr>
-                  <th className="py-1">Projekat</th>
-                  <th className="py-1 text-right">Prodaje</th>
-                  <th className="py-1 text-right">Prihod</th>
-                  <th className="py-1 text-right">Zemljište</th>
-                  <th className="py-1 text-right">Izgradnja</th>
-                  <th className="py-1 text-right">Marketing</th>
-                  <th className="py-1 text-right">Ostalo</th>
-                  <th className="py-1 text-right">Provizija</th>
-                  <th className="py-1 text-right">Neto</th>
+                  <th className="py-1">{t("units.columns.project")}</th>
+                  <th className="py-1 text-right">{t("ops.reports.salesCol")}</th>
+                  <th className="py-1 text-right">{t("ops.reports.revenue")}</th>
+                  <th className="py-1 text-right">{t("ops.reports.land")}</th>
+                  <th className="py-1 text-right">{t("ops.reports.construction")}</th>
+                  <th className="py-1 text-right">{t("ops.reports.marketing")}</th>
+                  <th className="py-1 text-right">{t("ops.reports.other")}</th>
+                  <th className="py-1 text-right">{t("ops.reports.commission")}</th>
+                  <th className="py-1 text-right">{t("ops.reports.net")}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[var(--color-border)]">
@@ -231,7 +239,7 @@ export default async function SalesReportPage({ searchParams }: PageProps) {
                       </Link>
                       {!r.hasCosts ? (
                         <span className="ml-1 text-[10px] text-amber-700">
-                          (bez troškova)
+                          {t("ops.reports.noCosts")}
                         </span>
                       ) : null}
                     </td>
@@ -273,27 +281,27 @@ export default async function SalesReportPage({ searchParams }: PageProps) {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-sm">Prodaje</CardTitle>
+          <CardTitle className="text-sm">{t("nav.sales")}</CardTitle>
         </CardHeader>
         <CardContent className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="text-left text-xs text-[var(--color-foreground-muted)]">
               <tr>
-                <th className="py-1">Datum</th>
-                <th className="py-1">Jedinica</th>
-                <th className="py-1">Kupac</th>
-                <th className="py-1">Agencija</th>
-                <th className="py-1">Status</th>
-                <th className="py-1 text-right">Cena</th>
-                <th className="py-1 text-right">Uplaćeno</th>
-                <th className="py-1 text-right">Preostalo</th>
+                <th className="py-1">{t("common.date")}</th>
+                <th className="py-1">{t("partners.unit")}</th>
+                <th className="py-1">{t("partners.buyer")}</th>
+                <th className="py-1">{t("nav.agencies")}</th>
+                <th className="py-1">{t("common.statusLabel")}</th>
+                <th className="py-1 text-right">{t("ops.reports.price")}</th>
+                <th className="py-1 text-right">{t("ops.reports.paid")}</th>
+                <th className="py-1 text-right">{t("ops.reports.outstanding")}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[var(--color-border)]">
               {report.rows.length === 0 ? (
                 <tr>
                   <td colSpan={8} className="py-4 text-center text-[var(--color-foreground-muted)]">
-                    Nema podataka.
+                    {t("common.noData")}
                   </td>
                 </tr>
               ) : (
@@ -310,7 +318,7 @@ export default async function SalesReportPage({ searchParams }: PageProps) {
                     </td>
                     <td className="py-1.5">{r.buyerName}</td>
                     <td className="py-1.5">{r.agencyName ?? "—"}</td>
-                    <td className="py-1.5">{SALE_LABELS[r.status] ?? r.status}</td>
+                    <td className="py-1.5">{saleLabel(r.status, t)}</td>
                     <td className="py-1.5 text-right">
                       {formatMoney(r.finalPrice, r.currency as SupportedCurrency)}
                     </td>

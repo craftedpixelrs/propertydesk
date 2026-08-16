@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
+import { useT } from "@/components/app/i18n-provider";
 import { apiClient, ApiClientError } from "@/lib/api-client";
 
 export interface ContractTemplateRow {
@@ -25,6 +26,7 @@ export interface ContractTemplateRow {
 export function ContractTemplatesManager(props: {
   templates: ContractTemplateRow[];
 }) {
+  const t = useT();
   const router = useRouter();
   const [selectedId, setSelectedId] = useState<string | null>(
     props.templates[0]?.id ?? null,
@@ -51,17 +53,17 @@ export function ContractTemplatesManager(props: {
     setDraftKind("PRE_CONTRACT");
     setDraftName("");
     setDraftDescription("");
-    setDraftContent(SAMPLE_CONTENT);
+    setDraftContent(t("deals.contractTemplates.sampleContent"));
   }
 
   async function save() {
     setError(null);
     if (!draftName.trim()) {
-      setError("Naziv šablona je obavezan.");
+      setError(t("deals.contractTemplates.nameRequired"));
       return;
     }
     if (!draftContent.trim()) {
-      setError("Sadržaj šablona ne sme biti prazan.");
+      setError(t("deals.contractTemplates.contentRequired"));
       return;
     }
     setBusy(true);
@@ -84,21 +86,21 @@ export function ContractTemplatesManager(props: {
       setCreating(false);
       router.refresh();
     } catch (err) {
-      setError(err instanceof ApiClientError ? err.message : "Greška.");
+      setError(err instanceof ApiClientError ? err.message : t("errors.generic"));
     } finally {
       setBusy(false);
     }
   }
 
   async function remove(id: string) {
-    if (!confirm("Obrisati šablon? Ova radnja se ne može poništiti.")) return;
+    if (!confirm(t("deals.contractTemplates.deleteConfirm"))) return;
     setBusy(true);
     try {
       await apiClient.delete(`/sale-contract-templates/${id}`);
       if (selectedId === id) setSelectedId(null);
       router.refresh();
     } catch (err) {
-      setError(err instanceof ApiClientError ? err.message : "Greška.");
+      setError(err instanceof ApiClientError ? err.message : t("errors.generic"));
     } finally {
       setBusy(false);
     }
@@ -112,19 +114,19 @@ export function ContractTemplatesManager(props: {
       });
       router.refresh();
     } catch (err) {
-      setError(err instanceof ApiClientError ? err.message : "Greška.");
+      setError(err instanceof ApiClientError ? err.message : t("errors.generic"));
     } finally {
       setBusy(false);
     }
   }
 
-  function editSelected(t: ContractTemplateRow) {
+  function editSelected(row: ContractTemplateRow) {
     setCreating(false);
-    setSelectedId(t.id);
-    setDraftKind(t.kind);
-    setDraftName(t.name);
-    setDraftDescription(t.description ?? "");
-    setDraftContent(t.contentHtml);
+    setSelectedId(row.id);
+    setDraftKind(row.kind);
+    setDraftName(row.name);
+    setDraftDescription(row.description ?? "");
+    setDraftContent(row.contentHtml);
   }
 
   const editorTemplate = creating
@@ -135,38 +137,42 @@ export function ContractTemplatesManager(props: {
     <div className="grid gap-6 lg:grid-cols-[300px_1fr]">
       <aside className="space-y-3">
         <div className="flex items-center justify-between">
-          <h2 className="text-sm font-semibold">Šabloni</h2>
+          <h2 className="text-sm font-semibold">{t("deals.contractTemplates.title")}</h2>
           <Button size="sm" onClick={startCreate} disabled={busy}>
-            Novi
+            {t("deals.contractTemplates.new")}
           </Button>
         </div>
         {props.templates.length === 0 ? (
           <p className="rounded-md border border-dashed border-[var(--color-border)] p-3 text-xs text-[var(--color-foreground-muted)]">
-            Još nemate ni jedan šablon. Klik na "Novi" da dodate prvi.
+            {t("deals.contractTemplates.empty")}
           </p>
         ) : (
           <ul className="space-y-1">
-            {props.templates.map((t) => (
-              <li key={t.id}>
+            {props.templates.map((row) => (
+              <li key={row.id}>
                 <button
                   type="button"
-                  onClick={() => editSelected(t)}
+                  onClick={() => editSelected(row)}
                   className={`flex w-full flex-col items-start rounded-md border px-3 py-2 text-left text-sm transition ${
-                    selectedId === t.id && !creating
+                    selectedId === row.id && !creating
                       ? "border-[var(--color-brand-500)] bg-[var(--color-brand-50)]"
                       : "border-[var(--color-border)] hover:bg-[var(--color-surface-inset)]"
                   }`}
                 >
                   <div className="flex w-full items-center justify-between gap-2">
-                    <span className="truncate font-medium">{t.name}</span>
+                    <span className="truncate font-medium">{row.name}</span>
                     <span className="shrink-0 text-[10px] uppercase text-[var(--color-foreground-muted)]">
-                      {t.kind === "PRE_CONTRACT" ? "Predugovor" : "Ugovor"}
+                      {row.kind === "PRE_CONTRACT"
+                        ? t("deals.contract.kindPre")
+                        : t("deals.contract.kindFull")}
                     </span>
                   </div>
                   <span
-                    className={`mt-0.5 text-[10px] ${t.isActive ? "text-emerald-700" : "text-slate-500"}`}
+                    className={`mt-0.5 text-[10px] ${row.isActive ? "text-emerald-700" : "text-slate-500"}`}
                   >
-                    {t.isActive ? "Aktivan" : "Deaktiviran"}
+                    {row.isActive
+                      ? t("deals.contractTemplates.active")
+                      : t("deals.contractTemplates.inactive")}
                   </span>
                 </button>
               </li>
@@ -186,7 +192,7 @@ export function ContractTemplatesManager(props: {
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="mb-1 block text-xs text-[var(--color-foreground-muted)]">
-                  Naziv šablona
+                  {t("deals.contractTemplates.name")}
                 </label>
                 <input
                   type="text"
@@ -197,7 +203,7 @@ export function ContractTemplatesManager(props: {
               </div>
               <div>
                 <label className="mb-1 block text-xs text-[var(--color-foreground-muted)]">
-                  Vrsta
+                  {t("deals.contractTemplates.kind")}
                 </label>
                 <select
                   className="h-10 w-full rounded-md border border-[var(--color-border)] px-3 text-sm"
@@ -206,14 +212,14 @@ export function ContractTemplatesManager(props: {
                     setDraftKind(e.target.value as "PRE_CONTRACT" | "CONTRACT")
                   }
                 >
-                  <option value="PRE_CONTRACT">Predugovor</option>
-                  <option value="CONTRACT">Ugovor</option>
+                  <option value="PRE_CONTRACT">{t("deals.contract.kindPre")}</option>
+                  <option value="CONTRACT">{t("deals.contract.kindFull")}</option>
                 </select>
               </div>
             </div>
             <div>
-              <label className="mb-1 block text-xs text-[var(--color-foreground-muted)]">
-                Opis (interni)
+                <label className="mb-1 block text-xs text-[var(--color-foreground-muted)]">
+                {t("deals.contractTemplates.description")}
               </label>
               <input
                 type="text"
@@ -225,10 +231,10 @@ export function ContractTemplatesManager(props: {
             <div>
               <div className="mb-1 flex items-center justify-between text-xs">
                 <span className="text-[var(--color-foreground-muted)]">
-                  Sadržaj (HTML) — koristite <code>{`{{var}}`}</code> placeholder-e
+                  {t("deals.contractTemplates.contentHint")}
                 </span>
                 <span className="text-[var(--color-foreground-subtle)]">
-                  {draftContent.length} znakova
+                  {t("deals.contractTemplates.charCount", { count: draftContent.length })}
                 </span>
               </div>
               <textarea
@@ -240,7 +246,7 @@ export function ContractTemplatesManager(props: {
             </div>
             <details className="rounded-md border border-[var(--color-border)] p-3 text-xs">
               <summary className="cursor-pointer font-medium">
-                Dostupni placeholder-i
+                {t("deals.contractTemplates.placeholders")}
               </summary>
               <div className="mt-2 grid grid-cols-2 gap-1 font-mono text-[11px] text-[var(--color-foreground-muted)]">
                 {AVAILABLE_PLACEHOLDERS.map((p) => (
@@ -257,7 +263,9 @@ export function ContractTemplatesManager(props: {
                     disabled={busy}
                     onClick={() => toggleActive(selected.id, selected.isActive)}
                   >
-                    {selected.isActive ? "Deaktiviraj" : "Aktiviraj"}
+                    {selected.isActive
+                      ? t("deals.contractTemplates.deactivate")
+                      : t("deals.contractTemplates.activate")}
                   </Button>
                 ) : null}
               </div>
@@ -269,18 +277,18 @@ export function ContractTemplatesManager(props: {
                     disabled={busy}
                     onClick={() => remove(selected.id)}
                   >
-                    Obriši
+                    {t("common.delete")}
                   </Button>
                 ) : null}
                 <Button loading={busy} onClick={save}>
-                  Sačuvaj
+                  {t("common.save")}
                 </Button>
               </div>
             </div>
           </>
         ) : (
           <p className="rounded-md border border-dashed border-[var(--color-border)] p-6 text-center text-sm text-[var(--color-foreground-muted)]">
-            Izaberite šablon sa liste ili kreirajte novi.
+            {t("deals.contractTemplates.pickOrCreate")}
           </p>
         )}
       </section>
@@ -321,16 +329,3 @@ const AVAILABLE_PLACEHOLDERS = [
   "investor.address",
   "today",
 ];
-
-const SAMPLE_CONTENT = `<p><strong>Ugovor o kupoprodaji nepokretnosti</strong></p>
-<p>Zaključen dana {{today}} između:</p>
-<p><strong>Prodavac:</strong> {{investor.legalName}}, PIB {{investor.pib}}, sedište {{investor.address}}, koga zastupa direktor.</p>
-<p><strong>Kupac:</strong> {{buyer.fullName}}, {{buyer.identity}}, adresa {{buyer.address}}.</p>
-<p><strong>Predmet ugovora:</strong></p>
-<p>Prodavac prodaje, a kupac kupuje jedinicu <strong>{{unit.code}}</strong> u projektu <strong>{{unit.projectName}}</strong>, na adresi {{unit.address}}, ukupne površine {{unit.totalArea}} m² (od čega korisne {{unit.internalArea}} m²).</p>
-<p><strong>Cena:</strong> {{sale.finalPrice}} {{sale.currency}} (slovima).</p>
-<p>Način plaćanja:</p>
-{{plan.installments}}
-<p>Porez: {{tax.mode}}, iznos {{tax.amount}} {{sale.currency}}, obveznik {{tax.payer}}.</p>
-<p>Datum ugovora: {{sale.contractDate}}. Planirana primopredaja: {{sale.plannedHandoverDate}}.</p>
-<p>Ugovorne strane potvrđuju da su pročitale i razumele sadržaj ugovora i istovremeno ga potpisuju.</p>`;

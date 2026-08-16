@@ -5,6 +5,8 @@ import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { apiClient, ApiClientError } from "@/lib/api-client";
+import { useT } from "@/components/app/i18n-provider";
+import type { TranslationKey } from "@/lib/i18n";
 
 type Audience = "INVESTOR" | "AGENCY" | "OTHER";
 
@@ -74,13 +76,14 @@ export function LeadProvisionPanel(props: Props) {
     onError,
     onConverted,
   } = props;
+  const t = useT();
 
   const fullName = [firstName, lastName].filter(Boolean).join(" ").trim();
   const defaultOrgName = companyName?.trim() || fullName || email.split("@")[0];
   const audienceLocked = audience === "INVESTOR" || audience === "AGENCY";
   const orgType = audience === "AGENCY" ? "AGENCY" : "INVESTOR";
   const ownerRoleLabel =
-    orgType === "AGENCY" ? "Vlasnik agencije" : "Vlasnik (investitor)";
+    orgType === "AGENCY" ? t("admin.pdProvision.ownerAgency") : t("admin.pdProvision.ownerInvestor");
 
   const [mode, setMode] = useState<"existing" | "new">(
     canCreateNewOrg ? "new" : "existing",
@@ -113,11 +116,9 @@ export function LeadProvisionPanel(props: Props) {
     return (
       <Card>
         <CardContent className="space-y-2 p-4">
-          <h3 className="text-sm font-semibold">Tenant organizacija</h3>
+          <h3 className="text-sm font-semibold">{t("admin.pdProvision.tenantOrg")}</h3>
           <p className="text-sm">
-            Lead je vezan za{" "}
-            <strong>{linked?.name ?? "organizaciju"}</strong>. Vlasnik dalje
-            upravlja članovima i pristupom iz svog naloga.
+            {t("admin.pdProvision.linked", { name: linked?.name ?? t("admin.pdProvision.linkedFallback") })}
           </p>
         </CardContent>
       </Card>
@@ -126,7 +127,7 @@ export function LeadProvisionPanel(props: Props) {
 
   async function linkExisting() {
     if (!convertOrg) {
-      onError("Izaberite postojeću organizaciju.");
+      onError(t("admin.pdProvision.pickExisting"));
       return;
     }
     onBusy(true);
@@ -140,7 +141,7 @@ export function LeadProvisionPanel(props: Props) {
       onError(
         err instanceof ApiClientError
           ? err.message
-          : "Povezivanje sa organizacijom nije uspelo.",
+          : t("admin.pdProvision.linkFailed"),
       );
     } finally {
       onBusy(false);
@@ -150,16 +151,16 @@ export function LeadProvisionPanel(props: Props) {
   async function createNew() {
     if (!audienceLocked) {
       onError(
-        "Prvo postavite publiku na Investitor ili Agencija — polje se zatim zaključava.",
+        t("admin.pdProvision.audienceFirst"),
       );
       return;
     }
     if (ownerPassword.trim().length < 10) {
-      onError("Lozinka vlasnika mora imati najmanje 10 karaktera.");
+      onError(t("admin.pdProvision.passwordMin"));
       return;
     }
     if (!planCode) {
-      onError("Izaberite paket (plan).");
+      onError(t("admin.pdProvision.pickPlan"));
       return;
     }
     onBusy(true);
@@ -194,7 +195,7 @@ export function LeadProvisionPanel(props: Props) {
       onError(
         err instanceof ApiClientError
           ? err.message
-          : "Kreiranje organizacije nije uspelo.",
+          : t("admin.pdProvision.createFailed"),
       );
     } finally {
       onBusy(false);
@@ -205,11 +206,11 @@ export function LeadProvisionPanel(props: Props) {
     <Card>
       <CardContent className="space-y-4 p-4">
         <div>
-          <h3 className="text-sm font-semibold">Onboarding u tenant</h3>
+          <h3 className="text-sm font-semibold">{t("admin.pdProvision.onboarding")}</h3>
           <p className="mt-1 text-xs text-[var(--color-foreground-muted)]">
             {canCreateNewOrg
-              ? "Lead je u L3. Vežite postojeću organizaciju ili napravite novu sa vlasnikom najvišeg stepena i paketom — on dalje dodaje naloge iz svog naloga."
-              : "Lead je u L3. Vežite postojeću tenant organizaciju sa kojom je posao zaključen."}
+              ? t("admin.pdProvision.onboardingCanCreate")
+              : t("admin.pdProvision.onboardingLinkOnly")}
           </p>
         </div>
 
@@ -222,7 +223,7 @@ export function LeadProvisionPanel(props: Props) {
               onClick={() => setMode("new")}
               disabled={busy}
             >
-              Nova organizacija
+              {t("admin.pdProvision.newOrg")}
             </Button>
             <Button
               type="button"
@@ -231,7 +232,7 @@ export function LeadProvisionPanel(props: Props) {
               onClick={() => setMode("existing")}
               disabled={busy}
             >
-              Postojeća organizacija
+              {t("admin.pdProvision.existingOrg")}
             </Button>
           </div>
         ) : null}
@@ -240,7 +241,7 @@ export function LeadProvisionPanel(props: Props) {
           <div className="space-y-3">
             <label className="block">
               <span className="mb-1 block text-xs font-medium">
-                Organizacija
+                {t("admin.pdProvision.organization")}
               </span>
               <select
                 value={convertOrg}
@@ -248,14 +249,14 @@ export function LeadProvisionPanel(props: Props) {
                 className={inputClass}
                 disabled={busy}
               >
-                <option value="">— izaberi organizaciju —</option>
+                <option value="">{t("admin.pdProvision.pickOrg")}</option>
                 {matchingOrgs.map((o) => (
                   <option key={o.id} value={o.id}>
                     {o.name}
                     {o.type === "AGENCY"
-                      ? " (Agencija)"
+                      ? t("admin.pdProvision.agencySuffix")
                       : o.type === "INVESTOR"
-                        ? " (Investitor)"
+                        ? t("admin.pdProvision.investorSuffix")
                         : ""}
                   </option>
                 ))}
@@ -267,31 +268,28 @@ export function LeadProvisionPanel(props: Props) {
               onClick={linkExisting}
               disabled={busy || !convertOrg}
             >
-              Veži za organizaciju
+              {t("admin.pdProvision.linkOrg")}
             </Button>
           </div>
         ) : (
           <div className="space-y-4">
             {!audienceLocked ? (
               <p className="rounded-md border border-[var(--color-warning)] p-3 text-sm">
-                Publika mora biti Investitor ili Agencija pre kreiranja
-                organizacije. Postavite je u kartici Kontakt — nakon toga se
-                zaključava.
+                {t("admin.pdProvision.audienceWarn")}
               </p>
             ) : (
               <p className="text-xs text-[var(--color-foreground-muted)]">
-                Tip organizacije je zaključan prema publici:{" "}
-                <strong>
-                  {orgType === "AGENCY" ? "Agencija" : "Investitor"}
-                </strong>
-                . Vlasnik dobija ulogu {ownerRoleLabel}.
+                {t("admin.pdProvision.typeLocked", {
+                  type: t(`admin.pd.audience.${orgType}` as TranslationKey),
+                  role: ownerRoleLabel,
+                })}
               </p>
             )}
 
             <div className="grid gap-3 md:grid-cols-2">
               <label className="block">
                 <span className="mb-1 block text-xs font-medium">
-                  Naziv organizacije
+                  {t("admin.pdProvision.orgName")}
                 </span>
                 <input
                   value={orgName}
@@ -304,7 +302,7 @@ export function LeadProvisionPanel(props: Props) {
                 />
               </label>
               <label className="block">
-                <span className="mb-1 block text-xs font-medium">Slug</span>
+                <span className="mb-1 block text-xs font-medium">{t("admin.pdProvision.slug")}</span>
                 <input
                   value={slug}
                   onChange={(e) => setSlug(slugify(e.target.value))}
@@ -314,7 +312,7 @@ export function LeadProvisionPanel(props: Props) {
               </label>
               <label className="block md:col-span-2">
                 <span className="mb-1 block text-xs font-medium">
-                  Pravni naziv
+                  {t("admin.pdProvision.legalName")}
                 </span>
                 <input
                   value={legalName}
@@ -324,7 +322,7 @@ export function LeadProvisionPanel(props: Props) {
                 />
               </label>
               <label className="block">
-                <span className="mb-1 block text-xs font-medium">Grad</span>
+                <span className="mb-1 block text-xs font-medium">{t("admin.pdProvision.city")}</span>
                 <input
                   value={orgCity}
                   onChange={(e) => setOrgCity(e.target.value)}
@@ -334,7 +332,7 @@ export function LeadProvisionPanel(props: Props) {
               </label>
               <label className="block">
                 <span className="mb-1 block text-xs font-medium">
-                  Država (ISO)
+                  {t("admin.pdProvision.countryIso")}
                 </span>
                 <input
                   value={orgCountry}
@@ -348,7 +346,7 @@ export function LeadProvisionPanel(props: Props) {
               </label>
               <label className="block">
                 <span className="mb-1 block text-xs font-medium">
-                  E-mail organizacije
+                  {t("admin.pdProvision.orgEmail")}
                 </span>
                 <input
                   type="email"
@@ -359,7 +357,7 @@ export function LeadProvisionPanel(props: Props) {
                 />
               </label>
               <label className="block">
-                <span className="mb-1 block text-xs font-medium">Telefon</span>
+                <span className="mb-1 block text-xs font-medium">{t("admin.pdProvision.phone")}</span>
                 <input
                   value={orgPhone}
                   onChange={(e) => setOrgPhone(e.target.value)}
@@ -368,7 +366,7 @@ export function LeadProvisionPanel(props: Props) {
                 />
               </label>
               <label className="block md:col-span-2">
-                <span className="mb-1 block text-xs font-medium">Sajt</span>
+                <span className="mb-1 block text-xs font-medium">{t("admin.pdProvision.website")}</span>
                 <input
                   value={orgWebsite}
                   onChange={(e) => setOrgWebsite(e.target.value)}
@@ -377,7 +375,7 @@ export function LeadProvisionPanel(props: Props) {
                 />
               </label>
               <label className="block">
-                <span className="mb-1 block text-xs font-medium">Paket</span>
+                <span className="mb-1 block text-xs font-medium">{t("admin.pdProvision.plan")}</span>
                 <select
                   value={planCode}
                   onChange={(e) => setPlanCode(e.target.value)}
@@ -385,7 +383,7 @@ export function LeadProvisionPanel(props: Props) {
                   disabled={busy || !audienceLocked}
                 >
                   {plans.length === 0 ? (
-                    <option value="">— nema aktivnih planova —</option>
+                    <option value="">{t("admin.pdProvision.noPlans")}</option>
                   ) : (
                     plans.map((p) => (
                       <option key={p.code} value={p.code}>
@@ -397,7 +395,7 @@ export function LeadProvisionPanel(props: Props) {
               </label>
               <label className="block">
                 <span className="mb-1 block text-xs font-medium">
-                  Probni period (dana)
+                  {t("admin.pdProvision.trialDays")}
                 </span>
                 <input
                   type="number"
@@ -413,15 +411,14 @@ export function LeadProvisionPanel(props: Props) {
 
             <div className="rounded-md border border-[var(--color-border)] p-3">
               <h4 className="text-xs font-semibold uppercase tracking-wide text-[var(--color-foreground-muted)]">
-                Vlasnik naloga · {ownerRoleLabel}
+                {t("admin.pdProvision.ownerHeading", { role: ownerRoleLabel })}
               </h4>
               <p className="mt-1 mb-3 text-xs text-[var(--color-foreground-muted)]">
-                On se prijavljuje ovim nalogom i dalje sam dodaje članove sa
-                potrebnim pristupom.
+                {t("admin.pdProvision.ownerHint")}
               </p>
               <div className="grid gap-3 md:grid-cols-2">
                 <label className="block">
-                  <span className="mb-1 block text-xs font-medium">Ime</span>
+                  <span className="mb-1 block text-xs font-medium">{t("admin.pdProvision.ownerName")}</span>
                   <input
                     value={ownerName}
                     onChange={(e) => setOwnerName(e.target.value)}
@@ -430,7 +427,7 @@ export function LeadProvisionPanel(props: Props) {
                   />
                 </label>
                 <label className="block">
-                  <span className="mb-1 block text-xs font-medium">E-mail</span>
+                  <span className="mb-1 block text-xs font-medium">{t("admin.pdProvision.ownerEmail")}</span>
                   <input
                     type="email"
                     value={ownerEmail}
@@ -441,7 +438,7 @@ export function LeadProvisionPanel(props: Props) {
                 </label>
                 <label className="block md:col-span-2">
                   <span className="mb-1 block text-xs font-medium">
-                    Početna lozinka (min. 10 karaktera)
+                    {t("admin.pdProvision.ownerPassword")}
                   </span>
                   <input
                     type="text"
@@ -461,7 +458,7 @@ export function LeadProvisionPanel(props: Props) {
               onClick={createNew}
               disabled={busy || !audienceLocked || !planCode}
             >
-              Napravi organizaciju i vlasnika
+              {t("admin.pdProvision.createOwner")}
             </Button>
           </div>
         )}

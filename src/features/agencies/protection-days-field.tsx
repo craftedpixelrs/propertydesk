@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
 import { apiClient, ApiClientError } from "@/lib/api-client";
+import { useT } from "@/components/app/i18n-provider";
 
 export function ProtectionDaysField({
   connectionId,
@@ -13,6 +14,7 @@ export function ProtectionDaysField({
   connectionId: string;
   initialDays: number;
 }) {
+  const t = useT();
   const router = useRouter();
   const [days, setDays] = useState(String(initialDays));
   const [loading, setLoading] = useState(false);
@@ -30,7 +32,7 @@ export function ProtectionDaysField({
       setSaved(true);
       router.refresh();
     } catch (err) {
-      setError(err instanceof ApiClientError ? err.message : "Došlo je do greške.");
+      setError(err instanceof ApiClientError ? err.message : t("errors.generic"));
     } finally {
       setLoading(false);
     }
@@ -40,7 +42,7 @@ export function ProtectionDaysField({
     <div className="flex items-end gap-3">
       <div className="space-y-1">
         <label className="text-sm font-medium" htmlFor="protection-days">
-          Dana zaštite
+          {t("partners.protection.daysLabel")}
         </label>
         <input
           id="protection-days"
@@ -53,9 +55,9 @@ export function ProtectionDaysField({
         />
       </div>
       <Button onClick={save} loading={loading}>
-        Sačuvaj
+        {t("common.save")}
       </Button>
-      {saved ? <span className="text-sm text-emerald-700">Sačuvano.</span> : null}
+      {saved ? <span className="text-sm text-emerald-700">{t("toasts.saved")}</span> : null}
       {error ? <span className="text-sm text-red-600">{error}</span> : null}
     </div>
   );

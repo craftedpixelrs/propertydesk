@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
+import { useT } from "@/components/app/i18n-provider";
 import { apiClient, ApiClientError } from "@/lib/api-client";
 
 interface Props {
@@ -24,10 +25,11 @@ interface CloneResult {
 }
 
 export function CloneProjectDialog({ projectId, sourceCode, sourceName }: Props) {
+  const t = useT();
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [code, setCode] = useState(`${sourceCode}-2`);
-  const [name, setName] = useState(`${sourceName} (kopija)`);
+  const [name, setName] = useState(t("inventory.clone.copyName", { name: sourceName }));
   const [copyBuildings, setCopyBuildings] = useState(true);
   const [copyEntrances, setCopyEntrances] = useState(true);
   const [copyFloors, setCopyFloors] = useState(true);
@@ -58,7 +60,7 @@ export function CloneProjectDialog({ projectId, sourceCode, sourceName }: Props)
       setError(
         err instanceof ApiClientError
           ? err.message
-          : "Došlo je do neočekivane greške pri kloniranju.",
+          : t("inventory.clone.error"),
       );
     } finally {
       setLoading(false);
@@ -68,7 +70,7 @@ export function CloneProjectDialog({ projectId, sourceCode, sourceName }: Props)
   if (!open) {
     return (
       <Button variant="outline" onClick={() => setOpen(true)}>
-        Kloniraj projekat
+        {t("inventory.clone.action")}
       </Button>
     );
   }
@@ -77,17 +79,17 @@ export function CloneProjectDialog({ projectId, sourceCode, sourceName }: Props)
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
       <div className="w-full max-w-lg space-y-4 rounded-lg bg-white p-6 shadow-xl">
         <div>
-          <h2 className="text-lg font-semibold">Kloniraj projekat</h2>
+          <h2 className="text-lg font-semibold">{t("inventory.clone.action")}</h2>
           <p className="text-sm text-[var(--color-foreground-muted)]">
-            Kopira strukturu iz <strong>{sourceCode}</strong> u novi projekat.
-            Prodaje, rezervacije, kupci i uplate se ne kopiraju.
+            {t("inventory.clone.bodyBefore")} <strong>{sourceCode}</strong>{" "}
+            {t("inventory.clone.bodyAfter")}
           </p>
         </div>
 
         <div className="grid grid-cols-1 gap-3">
           <div className="space-y-1">
             <label className="text-sm font-medium" htmlFor="cloneCode">
-              Šifra novog projekta
+              {t("inventory.clone.newCode")}
             </label>
             <input
               id="cloneCode"
@@ -98,7 +100,7 @@ export function CloneProjectDialog({ projectId, sourceCode, sourceName }: Props)
           </div>
           <div className="space-y-1">
             <label className="text-sm font-medium" htmlFor="cloneName">
-              Naziv novog projekta
+              {t("inventory.clone.newName")}
             </label>
             <input
               id="cloneName"
@@ -111,7 +113,7 @@ export function CloneProjectDialog({ projectId, sourceCode, sourceName }: Props)
 
         <div className="space-y-2 rounded-md border border-[var(--color-border)] bg-[var(--color-surface-muted)]/40 p-3">
           <p className="text-xs font-semibold uppercase tracking-wide text-[var(--color-foreground-muted)]">
-            Šta kopirati?
+            {t("inventory.clone.whatToCopy")}
           </p>
           <label className="flex items-center gap-2 text-sm">
             <input
@@ -119,7 +121,7 @@ export function CloneProjectDialog({ projectId, sourceCode, sourceName }: Props)
               checked={copyBuildings}
               onChange={(e) => setCopyBuildings(e.target.checked)}
             />
-            <span>Objekti (zgrade)</span>
+            <span>{t("inventory.clone.buildings")}</span>
           </label>
           <label className="flex items-center gap-2 text-sm">
             <input
@@ -128,7 +130,7 @@ export function CloneProjectDialog({ projectId, sourceCode, sourceName }: Props)
               onChange={(e) => setCopyEntrances(e.target.checked)}
               disabled={!copyBuildings}
             />
-            <span className={copyBuildings ? "" : "opacity-50"}>Ulazi</span>
+            <span className={copyBuildings ? "" : "opacity-50"}>{t("structure.entrances")}</span>
           </label>
           <label className="flex items-center gap-2 text-sm">
             <input
@@ -138,7 +140,7 @@ export function CloneProjectDialog({ projectId, sourceCode, sourceName }: Props)
               disabled={!copyBuildings || !copyEntrances}
             />
             <span className={copyBuildings && copyEntrances ? "" : "opacity-50"}>
-              Spratovi
+              {t("structure.floors")}
             </span>
           </label>
           <label className="flex items-center gap-2 text-sm">
@@ -147,7 +149,7 @@ export function CloneProjectDialog({ projectId, sourceCode, sourceName }: Props)
               checked={copyUnits}
               onChange={(e) => setCopyUnits(e.target.checked)}
             />
-            <span>Jedinice (kao AVAILABLE)</span>
+            <span>{t("inventory.clone.units")}</span>
           </label>
           <label className="flex items-center gap-2 text-sm">
             <input
@@ -155,7 +157,7 @@ export function CloneProjectDialog({ projectId, sourceCode, sourceName }: Props)
               checked={copyCosts}
               onChange={(e) => setCopyCosts(e.target.checked)}
             />
-            <span>Finansijski parametri (zemljište, gradnja, marketing)</span>
+            <span>{t("inventory.clone.costs")}</span>
           </label>
         </div>
 
@@ -167,10 +169,10 @@ export function CloneProjectDialog({ projectId, sourceCode, sourceName }: Props)
 
         <div className="flex justify-end gap-2">
           <Button variant="outline" onClick={() => setOpen(false)} disabled={loading}>
-            Odustani
+            {t("inventory.discard")}
           </Button>
           <Button onClick={onSubmit} loading={loading}>
-            Kloniraj
+            {t("inventory.clone.submit")}
           </Button>
         </div>
       </div>

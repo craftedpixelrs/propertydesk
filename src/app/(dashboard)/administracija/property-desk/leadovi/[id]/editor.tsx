@@ -7,6 +7,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { apiClient, ApiClientError } from "@/lib/api-client";
+import { useT } from "@/components/app/i18n-provider";
+import type { TranslateFn, TranslationKey } from "@/lib/i18n";
 import { computeLeadScore } from "@/server/services/property-desk/lead-scoring";
 import { STAGE_TO_LEVEL } from "@/server/services/property-desk/lead-lifecycle";
 import {
@@ -31,17 +33,6 @@ type Temperature = "COLD" | "WARM" | "HOT";
 type Timeline = "WITHIN_30D" | "WITHIN_90D" | "LATER" | "UNDECIDED";
 type BudgetTier = "STARTER" | "GROWTH" | "ENTERPRISE" | "UNKNOWN";
 type ContactChannel = "PHONE" | "EMAIL" | "WHATSAPP" | "VIBER" | "OTHER";
-
-const STAGE_LABEL: Record<Stage, string> = {
-  NEW: "Novi",
-  CONTACTED: "Kontaktirano",
-  QUALIFIED: "Kvalifikovano",
-  DEMO: "Demo",
-  PROPOSAL: "Ponuda",
-  WON: "Konvertovano",
-  LOST: "Izgubljeno",
-  NURTURING: "Nurturing",
-};
 
 function handoffListHref(stage: Stage): string {
   return `/administracija/property-desk/leadovi?handoff=${stage}`;
@@ -83,13 +74,6 @@ const STAGE_ACTION_CLASS: Record<Stage, string> = {
     "border-[var(--color-border-strong)] bg-[var(--color-surface-inset)] text-[var(--color-foreground)] hover:bg-[color-mix(in_oklab,var(--color-surface-inset)_85%,black)]",
 };
 
-const LEVEL_LABEL: Record<Level, string> = {
-  SOURCING: "L1 Sourcing",
-  CLOSING: "L2 Closing",
-  OPERATIONS: "L3 Operations",
-  ARCHIVED: "Arhivirano",
-};
-
 const LEVEL_TONE: Record<
   Level,
   "neutral" | "brand" | "info" | "success" | "warning" | "danger"
@@ -98,41 +82,6 @@ const LEVEL_TONE: Record<
   CLOSING: "info",
   OPERATIONS: "success",
   ARCHIVED: "neutral",
-};
-
-const PRIORITY_LABEL: Record<Priority, string> = {
-  LOW: "Nizak",
-  NORMAL: "Normalan",
-  HIGH: "Visok",
-  URGENT: "Hitno",
-};
-
-const TEMPERATURE_LABEL: Record<Temperature, string> = {
-  COLD: "Cold",
-  WARM: "Warm",
-  HOT: "Hot",
-};
-
-const TIMELINE_LABEL: Record<Timeline, string> = {
-  WITHIN_30D: "≤ 30 dana",
-  WITHIN_90D: "30–90 dana",
-  LATER: "Kasnije",
-  UNDECIDED: "Neodređeno",
-};
-
-const BUDGET_LABEL: Record<BudgetTier, string> = {
-  STARTER: "Starter",
-  GROWTH: "Growth",
-  ENTERPRISE: "Enterprise",
-  UNKNOWN: "Nepoznato",
-};
-
-const CHANNEL_LABEL: Record<ContactChannel, string> = {
-  PHONE: "Telefon",
-  EMAIL: "Email",
-  WHATSAPP: "WhatsApp",
-  VIBER: "Viber",
-  OTHER: "Ostalo",
 };
 
 interface Props {
@@ -241,6 +190,7 @@ export function LeadDetailEditor(props: Props) {
   } = props;
 
   const router = useRouter();
+  const t = useT();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [ok, setOk] = useState<string | null>(null);
@@ -298,7 +248,7 @@ export function LeadDetailEditor(props: Props) {
   const [country, setCountry] = useState<string>(initialCountry ?? "RS");
   const [region, setRegion] = useState<string>(initialRegion ?? "");
 
-  // Kompanija / novac
+  // {t("admin.pdEditor.company")} / novac
   const [companyName, setCompanyName] = useState<string>(initialCompanyName ?? "");
   const [companyWebsite, setCompanyWebsite] = useState<string>(
     initialCompanyWebsite ?? "",
@@ -311,7 +261,7 @@ export function LeadDetailEditor(props: Props) {
     initialBudgetCurrency ?? "EUR",
   );
 
-  // Kvalifikacija
+  // {t("admin.pdEditor.qualification")}
   const [competitor, setCompetitor] = useState<string>(initialCompetitor ?? "");
   const [painPoint, setPainPoint] = useState<string>(initialPainPoint ?? "");
 
@@ -341,7 +291,7 @@ export function LeadDetailEditor(props: Props) {
       startTransition(() => router.refresh());
       return true;
     } catch (err) {
-      setError(errorMessage(err));
+      setError(errorMessage(err, t));
       return false;
     } finally {
       setBusy(false);
@@ -354,22 +304,22 @@ export function LeadDetailEditor(props: Props) {
 
   async function changeStage(next: Stage) {
     setStage(next);
-    await patch({ stage: next }, `Faza promenjena na „${STAGE_LABEL[next]}".`);
+    await patch({ stage: next }, t("admin.pdEditor.stageChanged", { stage: t(`admin.pd.stage.${next}` as TranslationKey) }));
   }
 
   async function submitReopen() {
     if (!reopenTo) {
-      setError("Odaberite ciljni stage.");
+      setError(t("admin.pdEditor.pickStage"));
       return;
     }
     if (reopenReason.trim().length < 3) {
-      setError("Razlog vraćanja je obavezan (minimum 3 znaka).");
+      setError(t("admin.pdEditor.reopenReasonRequired"));
       return;
     }
     setStage(reopenTo);
     await patch(
       { stage: reopenTo, reopenReason: reopenReason.trim() },
-      `Faza vraćena/skočila na „${STAGE_LABEL[reopenTo]}".`,
+      t("admin.pdEditor.stageReopened", { stage: t(`admin.pd.stage.${reopenTo}` as TranslationKey) }),
     );
     setShowReopen(false);
     setReopenReason("");
@@ -379,13 +329,13 @@ export function LeadDetailEditor(props: Props) {
   async function saveAssignee() {
     await patch(
       { assignedToUserId: assignedTo || null },
-      "Dodela sačuvana.",
+      t("admin.pdEditor.assigneeSaved"),
     );
   }
 
   async function claimLead() {
     setAssignedTo(currentUserId);
-    await patch({ assignedToUserId: currentUserId }, "Lead je tvoj.");
+    await patch({ assignedToUserId: currentUserId }, t("admin.pdEditor.claimed"));
   }
 
   async function saveClassification() {
@@ -398,7 +348,7 @@ export function LeadDetailEditor(props: Props) {
           ? new Date(nextFollowUpAt).toISOString()
           : null,
       },
-      "Klasifikacija sačuvana.",
+      t("admin.pdEditor.classificationSaved"),
     );
   }
 
@@ -416,7 +366,7 @@ export function LeadDetailEditor(props: Props) {
         budgetTier,
         budgetCurrency: budgetCurrency.trim() || null,
       },
-      "Podaci o kompaniji sačuvani.",
+      t("admin.pdEditor.companySaved"),
     );
   }
 
@@ -436,7 +386,7 @@ export function LeadDetailEditor(props: Props) {
         country: country.trim() || null,
         region: region.trim() || null,
       },
-      "Kontakt & odluka sačuvani.",
+      t("admin.pdEditor.contactSaved"),
     );
     if (
       saved &&
@@ -454,7 +404,7 @@ export function LeadDetailEditor(props: Props) {
         painPoint: painPoint.trim() || null,
         note: note.trim() ? note.trim() : null,
       },
-      "Kvalifikacija sačuvana.",
+      t("admin.pdEditor.qualificationSaved"),
     );
   }
 
@@ -464,7 +414,7 @@ export function LeadDetailEditor(props: Props) {
         stage: "LOST",
         lostReason: lostReason.trim() ? lostReason.trim() : null,
       },
-      "Označeno kao izgubljeno.",
+      t("admin.pdEditor.markedLost"),
     );
     setStage("LOST");
   }
@@ -478,8 +428,8 @@ export function LeadDetailEditor(props: Props) {
     }
     setOk(
       createdOwnerEmail
-        ? `Organizacija je kreirana. Vlasnik ${createdOwnerEmail} može da se prijavi i dalje dodaje članove.`
-        : "Lead je vezan za organizaciju.",
+        ? t("admin.pdEditor.orgCreated", { email: createdOwnerEmail })
+        : t("admin.pdEditor.leadLinked"),
     );
     startTransition(() => router.refresh());
   }
@@ -534,14 +484,14 @@ export function LeadDetailEditor(props: Props) {
         <CardContent className="space-y-3 p-4">
           <div className="flex flex-wrap items-center gap-2">
             <span className="text-sm text-[var(--color-foreground-muted)]">
-              Faza:
+              {t("admin.pdEditor.stage")}
             </span>
-            <Badge tone={STAGE_TONE[stage]}>{STAGE_LABEL[stage]}</Badge>
+            <Badge tone={STAGE_TONE[stage]}>{t(`admin.pd.stage.${stage}` as TranslationKey)}</Badge>
             <Badge tone={LEVEL_TONE[initialLevel]}>
-              {LEVEL_LABEL[initialLevel]}
+              {t(`admin.pd.level.${initialLevel}` as TranslationKey)}
             </Badge>
             <span className="ml-2 text-xs text-[var(--color-foreground-muted)]">
-              Score
+              {t("admin.pdEditor.score")}
             </span>
             <div className="flex items-center gap-2">
               <div className="h-2 w-24 overflow-hidden rounded-full bg-[var(--color-surface-inset)]">
@@ -553,13 +503,13 @@ export function LeadDetailEditor(props: Props) {
               <span className="text-xs font-medium tabular-nums">{liveScore}</span>
               {liveScore === 0 ? (
                 <span className="text-[11px] text-[var(--color-foreground-muted)]">
-                  raste sa fazom i kad popuniš firmu, budžet, timeline, temperaturu
+                  {t("admin.pdEditor.scoreHint")}
                 </span>
               ) : null}
             </div>
             {convertedOrgId ? (
               <span className="text-xs text-[var(--color-foreground-muted)]">
-                · konvertovan u organizaciju{" "}
+                {t("admin.pdEditor.convertedTo")}{" "}
                 <code>{convertedOrgId.slice(0, 8)}</code>
               </span>
             ) : null}
@@ -568,7 +518,7 @@ export function LeadDetailEditor(props: Props) {
           {canUpdateStage ? (
             forwardTerminal ? (
               <p className="text-xs italic text-[var(--color-foreground-muted)]">
-                Ovo je terminalno stanje — nema više forward tranzicija.
+                {t("admin.pdEditor.terminal")}
               </p>
             ) : (
               <div className="flex flex-wrap gap-2">
@@ -581,23 +531,23 @@ export function LeadDetailEditor(props: Props) {
                     className={STAGE_ACTION_CLASS[next]}
                     onClick={() => changeStage(next)}
                     disabled={busy || stage === next}
-                    title="Forward tranzicija"
+                    title={t("admin.pdEditor.forwardTitle")}
                   >
-                    → {STAGE_LABEL[next]}
+                    → {t(`admin.pd.stage.${next}` as TranslationKey)}
                   </Button>
                 ))}
               </div>
             )
           ) : (
             <p className="text-xs italic text-[var(--color-foreground-muted)]">
-              Nemate dozvolu (`pd_lead.update_stage`) za promenu faze.
+              {t("admin.pdEditor.noStagePerm")}
             </p>
           )}
 
           {!assignedTo ? (
             <div className="flex flex-wrap items-center gap-2 rounded-md border border-dashed border-[var(--color-border-strong)] bg-[var(--color-surface-inset)] px-3 py-2">
               <span className="text-sm text-[var(--color-foreground-muted)]">
-                Lead je slobodan (pool).
+                {t("admin.pdEditor.unassignedPool")}
               </span>
               <Button
                 type="button"
@@ -605,18 +555,18 @@ export function LeadDetailEditor(props: Props) {
                 onClick={claimLead}
                 disabled={busy}
               >
-                Uzmi ovaj lead
+                {t("admin.pdEditor.claim")}
               </Button>
             </div>
           ) : assignedTo === currentUserId ? (
             <p className="text-xs text-[var(--color-foreground-muted)]">
-              Dodeljen tebi.
+              {t("admin.pdEditor.assignedToYou")}
             </p>
           ) : (
             <p className="text-xs text-[var(--color-foreground-muted)]">
-              Dodeljen:{" "}
-              {teamMembers.find((m) => m.userId === assignedTo)?.name ??
-                assignedTo}
+              {t("admin.pdEditor.assignedTo", {
+                name: teamMembers.find((m) => m.userId === assignedTo)?.name ?? assignedTo,
+              })}
             </p>
           )}
 
@@ -630,28 +580,28 @@ export function LeadDetailEditor(props: Props) {
                   onClick={() => setShowReopen(true)}
                   disabled={busy}
                 >
-                  Vrati / preskoči stage…
+                  {t("admin.pdEditor.reopen")}
                 </Button>
               ) : (
                 <div className="space-y-2 rounded-md border border-[var(--color-border)] bg-[var(--color-surface-inset)] p-3">
                   <label className="block text-xs font-semibold">
-                    Ciljni stage
+                    {t("admin.pdEditor.targetStage")}
                     <select
                       value={reopenTo}
                       onChange={(e) => setReopenTo(e.target.value as Stage)}
                       className="mt-1 h-9 w-full rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] px-2 text-sm"
                       disabled={busy}
                     >
-                      <option value="">— izaberi —</option>
-                      {(Object.keys(STAGE_LABEL) as Stage[]).map((s) => (
-                        <option key={s} value={s} disabled={s === stage}>
-                          {STAGE_LABEL[s]}
+                      <option value="">{t("admin.pdEditor.pickOption")}</option>
+                      {(["NEW","CONTACTED","QUALIFIED","DEMO","PROPOSAL","WON","LOST","NURTURING"] as Stage[]).map((st) => (
+                        <option key={st} value={st} disabled={st === stage}>
+                          {t(`admin.pd.stage.${st}` as TranslationKey)}
                         </option>
                       ))}
                     </select>
                   </label>
                   <label className="block text-xs font-semibold">
-                    Razlog (obavezno, upisuje se u timeline)
+                    {t("admin.pdEditor.reopenReason")}
                     <textarea
                       value={reopenReason}
                       onChange={(e) => setReopenReason(e.target.value)}
@@ -666,7 +616,7 @@ export function LeadDetailEditor(props: Props) {
                       onClick={submitReopen}
                       disabled={busy}
                     >
-                      Potvrdi
+                      {t("common.confirm")}
                     </Button>
                     <Button
                       type="button"
@@ -679,7 +629,7 @@ export function LeadDetailEditor(props: Props) {
                       }}
                       disabled={busy}
                     >
-                      Otkaži
+                      {t("common.cancel")}
                     </Button>
                   </div>
                 </div>
@@ -693,25 +643,25 @@ export function LeadDetailEditor(props: Props) {
       {canUpdateClassification ? (
         <Card>
           <CardContent className="space-y-3 p-4">
-            <h3 className="text-sm font-semibold">Klasifikacija</h3>
+            <h3 className="text-sm font-semibold">{t("admin.pdEditor.classification")}</h3>
             <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
               <label className="block">
-                <span className="mb-1 block text-xs font-medium">Prioritet</span>
+                <span className="mb-1 block text-xs font-medium">{t("admin.pdEditor.priority")}</span>
                 <select
                   value={priority}
                   onChange={(e) => setPriority(e.target.value as Priority)}
                   className="h-9 w-full rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] px-2 text-sm"
                   disabled={busy}
                 >
-                  {(Object.keys(PRIORITY_LABEL) as Priority[]).map((p) => (
+                  {(["LOW","NORMAL","HIGH","URGENT"] as Priority[]).map((p) => (
                     <option key={p} value={p}>
-                      {PRIORITY_LABEL[p]}
+                      {t(`admin.pd.priority.${p}` as TranslationKey)}
                     </option>
                   ))}
                 </select>
               </label>
               <label className="block">
-                <span className="mb-1 block text-xs font-medium">Temperatura</span>
+                <span className="mb-1 block text-xs font-medium">{t("admin.pdEditor.temperature")}</span>
                 <select
                   value={temperature}
                   onChange={(e) =>
@@ -720,15 +670,15 @@ export function LeadDetailEditor(props: Props) {
                   className="h-9 w-full rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] px-2 text-sm"
                   disabled={busy}
                 >
-                  {(Object.keys(TEMPERATURE_LABEL) as Temperature[]).map((p) => (
+                  {(["COLD","WARM","HOT"] as Temperature[]).map((p) => (
                     <option key={p} value={p}>
-                      {TEMPERATURE_LABEL[p]}
+                      {t(`admin.pd.temperature.${p}` as TranslationKey)}
                     </option>
                   ))}
                 </select>
               </label>
               <label className="block">
-                <span className="mb-1 block text-xs font-medium">Timeline</span>
+                <span className="mb-1 block text-xs font-medium">{t("admin.pdEditor.timeline")}</span>
                 <select
                   value={timelineHorizon}
                   onChange={(e) =>
@@ -737,16 +687,16 @@ export function LeadDetailEditor(props: Props) {
                   className="h-9 w-full rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] px-2 text-sm"
                   disabled={busy}
                 >
-                  {(Object.keys(TIMELINE_LABEL) as Timeline[]).map((p) => (
+                  {(["WITHIN_30D","WITHIN_90D","LATER","UNDECIDED"] as Timeline[]).map((p) => (
                     <option key={p} value={p}>
-                      {TIMELINE_LABEL[p]}
+                      {t(`admin.pd.timeline.${p}` as TranslationKey)}
                     </option>
                   ))}
                 </select>
               </label>
               <label className="block">
                 <span className="mb-1 block text-xs font-medium">
-                  Sledeći follow-up
+                  {t("admin.pdEditor.nextFollowUp")}
                 </span>
                 <input
                   type="datetime-local"
@@ -758,7 +708,7 @@ export function LeadDetailEditor(props: Props) {
               </label>
             </div>
             <Button type="button" size="sm" onClick={saveClassification} disabled={busy}>
-              Sačuvaj klasifikaciju
+              {t("admin.pdEditor.saveClassification")}
             </Button>
           </CardContent>
         </Card>
@@ -768,10 +718,10 @@ export function LeadDetailEditor(props: Props) {
       {canUpdateDetails ? (
         <Card>
           <CardContent className="space-y-3 p-4">
-            <h3 className="text-sm font-semibold">Kompanija</h3>
+            <h3 className="text-sm font-semibold">{t("admin.pdEditor.company")}</h3>
             <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
               <label className="block">
-                <span className="mb-1 block text-xs font-medium">Naziv firme</span>
+                <span className="mb-1 block text-xs font-medium">{t("admin.pdEditor.companyName")}</span>
                 <input
                   type="text"
                   value={companyName}
@@ -781,7 +731,7 @@ export function LeadDetailEditor(props: Props) {
                 />
               </label>
               <label className="block">
-                <span className="mb-1 block text-xs font-medium">Website</span>
+                <span className="mb-1 block text-xs font-medium">{t("admin.pdEditor.website")}</span>
                 <input
                   type="text"
                   value={companyWebsite}
@@ -793,7 +743,7 @@ export function LeadDetailEditor(props: Props) {
               </label>
               <label className="block">
                 <span className="mb-1 block text-xs font-medium">
-                  Broj zaposlenih
+                  {t("admin.pdEditor.employees")}
                 </span>
                 <input
                   type="number"
@@ -805,22 +755,22 @@ export function LeadDetailEditor(props: Props) {
                 />
               </label>
               <label className="block">
-                <span className="mb-1 block text-xs font-medium">Budžet</span>
+                <span className="mb-1 block text-xs font-medium">{t("admin.pdEditor.budget")}</span>
                 <select
                   value={budgetTier}
                   onChange={(e) => setBudgetTier(e.target.value as BudgetTier)}
                   className="h-9 w-full rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] px-2 text-sm"
                   disabled={busy}
                 >
-                  {(Object.keys(BUDGET_LABEL) as BudgetTier[]).map((b) => (
+                  {(["STARTER","GROWTH","ENTERPRISE","UNKNOWN"] as BudgetTier[]).map((b) => (
                     <option key={b} value={b}>
-                      {BUDGET_LABEL[b]}
+                      {t(`admin.pd.budget.${b}` as TranslationKey)}
                     </option>
                   ))}
                 </select>
               </label>
               <label className="block">
-                <span className="mb-1 block text-xs font-medium">Valuta</span>
+                <span className="mb-1 block text-xs font-medium">{t("admin.pdEditor.currency")}</span>
                 <input
                   type="text"
                   value={budgetCurrency}
@@ -831,7 +781,7 @@ export function LeadDetailEditor(props: Props) {
               </label>
             </div>
             <Button type="button" size="sm" onClick={saveCompany} disabled={busy}>
-              Sačuvaj kompaniju
+              {t("admin.pdEditor.saveCompany")}
             </Button>
           </CardContent>
         </Card>
@@ -841,10 +791,10 @@ export function LeadDetailEditor(props: Props) {
       {canUpdateDetails ? (
         <Card>
           <CardContent className="space-y-3 p-4">
-            <h3 className="text-sm font-semibold">Kontakt & odluka</h3>
+            <h3 className="text-sm font-semibold">{t("admin.pdEditor.contact")}</h3>
             <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
               <label className="block">
-                <span className="mb-1 block text-xs font-medium">Ime</span>
+                <span className="mb-1 block text-xs font-medium">{t("common.name")}</span>
                 <input
                   type="text"
                   value={firstName}
@@ -854,7 +804,7 @@ export function LeadDetailEditor(props: Props) {
                 />
               </label>
               <label className="block">
-                <span className="mb-1 block text-xs font-medium">Prezime</span>
+                <span className="mb-1 block text-xs font-medium">{t("admin.pdEditor.lastName")}</span>
                 <input
                   type="text"
                   value={lastName}
@@ -864,7 +814,7 @@ export function LeadDetailEditor(props: Props) {
                 />
               </label>
               <label className="block">
-                <span className="mb-1 block text-xs font-medium">Telefon</span>
+                <span className="mb-1 block text-xs font-medium">{t("common.phone")}</span>
                 <input
                   type="text"
                   value={phone}
@@ -875,7 +825,7 @@ export function LeadDetailEditor(props: Props) {
               </label>
               <label className="block">
                 <span className="mb-1 block text-xs font-medium">
-                  Donosilac odluke
+                  {t("admin.pdEditor.decisionMaker")}
                 </span>
                 <input
                   type="text"
@@ -887,7 +837,7 @@ export function LeadDetailEditor(props: Props) {
               </label>
               <label className="block">
                 <span className="mb-1 block text-xs font-medium">
-                  Titula odluke
+                  {t("admin.pdEditor.decisionTitle")}
                 </span>
                 <input
                   type="text"
@@ -899,7 +849,7 @@ export function LeadDetailEditor(props: Props) {
               </label>
               <label className="block">
                 <span className="mb-1 block text-xs font-medium">
-                  Preferirani kanal
+                  {t("admin.pdEditor.preferredChannel")}
                 </span>
                 <select
                   value={preferredContact}
@@ -909,21 +859,21 @@ export function LeadDetailEditor(props: Props) {
                   className="h-9 w-full rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] px-2 text-sm"
                   disabled={busy}
                 >
-                  <option value="">— nije zadato —</option>
-                  {(Object.keys(CHANNEL_LABEL) as ContactChannel[]).map((c) => (
+                  <option value="">{t("admin.pdEditor.channelUnset")}</option>
+                  {(["PHONE","EMAIL","WHATSAPP","VIBER","OTHER"] as ContactChannel[]).map((c) => (
                     <option key={c} value={c}>
-                      {CHANNEL_LABEL[c]}
+                      {t(`admin.pd.channel.${c}` as TranslationKey)}
                     </option>
                   ))}
                 </select>
               </label>
               <label className="block">
                 <span className="mb-1 block text-xs font-medium">
-                  Termin za kontakt
+                  {t("admin.pdEditor.bestHour")}
                 </span>
                 <input
                   type="text"
-                  placeholder="npr. 09-11h radnim danima"
+                  placeholder={t("admin.pdEditor.bestHourPlaceholder")}
                   value={bestContactHour}
                   onChange={(e) => setBestContactHour(e.target.value)}
                   className="h-9 w-full rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] px-2 text-sm"
@@ -931,7 +881,7 @@ export function LeadDetailEditor(props: Props) {
                 />
               </label>
               <label className="block">
-                <span className="mb-1 block text-xs font-medium">Jezik</span>
+                <span className="mb-1 block text-xs font-medium">{t("admin.pdEditor.language")}</span>
                 <input
                   type="text"
                   value={preferredLanguage}
@@ -941,7 +891,7 @@ export function LeadDetailEditor(props: Props) {
                 />
               </label>
               <label className="block">
-                <span className="mb-1 block text-xs font-medium">Publika</span>
+                <span className="mb-1 block text-xs font-medium">{t("admin.pdEditor.audience")}</span>
                 <select
                   value={audience}
                   onChange={(e) =>
@@ -950,18 +900,18 @@ export function LeadDetailEditor(props: Props) {
                   className="h-9 w-full rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] px-2 text-sm disabled:opacity-60"
                   disabled={busy || audienceLocked}
                 >
-                  <option value="INVESTOR">Investitor</option>
-                  <option value="AGENCY">Agencija</option>
-                  <option value="OTHER">Ostalo</option>
+                  {(["INVESTOR","AGENCY","OTHER"] as const).map((v) => (
+                    <option key={v} value={v}>{t(`admin.pd.audience.${v}` as TranslationKey)}</option>
+                  ))}
                 </select>
                 <span className="mt-1 block text-[11px] text-[var(--color-foreground-muted)]">
                   {audienceLocked
-                    ? "Zaključano. Jednom postavljena publika se ne menja — od nje zavisi tip tenant organizacije."
-                    : "Kad sačuvate Investitor ili Agencija, polje se zaključava."}
+                    ? t("admin.pdEditor.audienceLocked")
+                    : t("admin.pdEditor.audienceHint")}
                 </span>
               </label>
               <label className="block">
-                <span className="mb-1 block text-xs font-medium">Država</span>
+                <span className="mb-1 block text-xs font-medium">{t("admin.pdEditor.country")}</span>
                 <input
                   type="text"
                   value={country}
@@ -971,7 +921,7 @@ export function LeadDetailEditor(props: Props) {
                 />
               </label>
               <label className="block">
-                <span className="mb-1 block text-xs font-medium">Region</span>
+                <span className="mb-1 block text-xs font-medium">{t("admin.pdEditor.region")}</span>
                 <input
                   type="text"
                   value={region}
@@ -981,7 +931,7 @@ export function LeadDetailEditor(props: Props) {
                 />
               </label>
               <label className="block">
-                <span className="mb-1 block text-xs font-medium">Grad</span>
+                <span className="mb-1 block text-xs font-medium">{t("admin.pdEditor.city")}</span>
                 <input
                   type="text"
                   value={city}
@@ -992,7 +942,7 @@ export function LeadDetailEditor(props: Props) {
               </label>
             </div>
             <Button type="button" size="sm" onClick={saveContact} disabled={busy}>
-              Sačuvaj kontakt
+              {t("admin.pdEditor.saveContact")}
             </Button>
           </CardContent>
         </Card>
@@ -1002,11 +952,11 @@ export function LeadDetailEditor(props: Props) {
       {canUpdateDetails ? (
         <Card>
           <CardContent className="space-y-3 p-4">
-            <h3 className="text-sm font-semibold">Kvalifikacija</h3>
+            <h3 className="text-sm font-semibold">{t("admin.pdEditor.qualification")}</h3>
             <div className="grid gap-3 md:grid-cols-2">
               <label className="block">
                 <span className="mb-1 block text-xs font-medium">
-                  Konkurentski proizvod
+                  {t("admin.pdEditor.competitor")}
                 </span>
                 <input
                   type="text"
@@ -1017,7 +967,7 @@ export function LeadDetailEditor(props: Props) {
                 />
               </label>
               <label className="block">
-                <span className="mb-1 block text-xs font-medium">Pain point</span>
+                <span className="mb-1 block text-xs font-medium">{t("admin.pdEditor.painPoint")}</span>
                 <input
                   type="text"
                   value={painPoint}
@@ -1028,7 +978,7 @@ export function LeadDetailEditor(props: Props) {
               </label>
             </div>
             <label className="block">
-              <span className="mb-1 block text-xs font-medium">Beleška</span>
+              <span className="mb-1 block text-xs font-medium">{t("admin.pdEditor.note")}</span>
               <textarea
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
@@ -1037,7 +987,7 @@ export function LeadDetailEditor(props: Props) {
               />
             </label>
             <Button type="button" size="sm" onClick={saveQualification} disabled={busy}>
-              Sačuvaj kvalifikaciju
+              {t("admin.pdEditor.saveQualification")}
             </Button>
           </CardContent>
         </Card>
@@ -1046,11 +996,11 @@ export function LeadDetailEditor(props: Props) {
       {/* 6. VLASNIŠTVO */}
       <Card>
         <CardContent className="space-y-3 p-4">
-          <h3 className="text-sm font-semibold">Vlasništvo</h3>
+          <h3 className="text-sm font-semibold">{t("admin.pdEditor.ownership")}</h3>
           {canReassign ? (
             <>
               <label className="block text-sm font-medium">
-                Dodeljeno članu tima
+                {t("admin.pdEditor.assignedMember")}
               </label>
               <select
                 value={assignedTo}
@@ -1058,7 +1008,7 @@ export function LeadDetailEditor(props: Props) {
                 className="h-10 w-full rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] px-3 text-sm"
                 disabled={busy}
               >
-                <option value="">— Neraspoređeno —</option>
+                <option value="">{t("admin.pdEditor.unassigned")}</option>
                 {teamMembers.map((m) => (
                   <option key={m.userId} value={m.userId}>
                     {m.name}
@@ -1066,28 +1016,26 @@ export function LeadDetailEditor(props: Props) {
                 ))}
               </select>
               <Button type="button" size="sm" onClick={saveAssignee} disabled={busy}>
-                Sačuvaj vlasnika
+                {t("admin.pdEditor.saveOwner")}
               </Button>
             </>
           ) : !assignedTo ? (
             <Button type="button" size="sm" onClick={claimLead} disabled={busy}>
-              Uzmi ovaj lead
+              {t("admin.pdEditor.claim")}
             </Button>
           ) : assignedTo === currentUserId ? (
             <p className="text-sm text-[var(--color-foreground-muted)]">
-              Lead je dodeljen tebi.
+              {t("admin.pdEditor.assignedToYouLong")}
             </p>
           ) : (
             <p className="text-sm text-[var(--color-foreground-muted)]">
-              Dodeljen:{" "}
-              {teamMembers.find((m) => m.userId === assignedTo)?.name ?? "drugom članu"}
-              . Preraspodela zahteva <code>pd_lead.reassign</code>.
+              {t("admin.pdEditor.assignedOther", {
+                name: teamMembers.find((m) => m.userId === assignedTo)?.name ?? t("admin.pdEditor.otherMember"),
+              })}
             </p>
           )}
           <p className="text-xs text-[var(--color-foreground-muted)]">
-            Kad lead pređe u sledeći level, sistem ga automatski vraća u pool
-            (neraspoređen). Bilo ko u tom levelu može da ga uzme sebi — dodela
-            drugom članu ostaje menadžerska.
+            {t("admin.pdEditor.ownershipHint")}
           </p>
         </CardContent>
       </Card>
@@ -1096,11 +1044,11 @@ export function LeadDetailEditor(props: Props) {
       {canUpdateStage && stage !== "WON" ? (
         <Card>
           <CardContent className="space-y-3 p-4">
-            <h3 className="text-sm font-semibold">Označi kao izgubljen</h3>
+            <h3 className="text-sm font-semibold">{t("admin.pdEditor.markLost")}</h3>
             <textarea
               value={lostReason}
               onChange={(e) => setLostReason(e.target.value)}
-              placeholder="Razlog gubitka (interno, ne šalje se klijentu)"
+              placeholder={t("admin.pdEditor.lostPlaceholder")}
               className="min-h-16 w-full rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] p-2 text-sm"
               disabled={busy}
             />
@@ -1111,7 +1059,7 @@ export function LeadDetailEditor(props: Props) {
               onClick={saveLostReason}
               disabled={busy}
             >
-              Označi kao izgubljen
+              {t("admin.pdEditor.markLost")}
             </Button>
           </CardContent>
         </Card>
@@ -1144,12 +1092,10 @@ export function LeadDetailEditor(props: Props) {
           <Card>
             <CardContent className="space-y-3 p-4">
               <h3 className="text-sm font-semibold">
-                Konvertuj u tenant organizaciju
+                {t("admin.pdEditor.convertTitle")}
               </h3>
               <p className="text-xs text-[var(--color-foreground-muted)]">
-                Vežite postojeću organizaciju — to prebacuje lead u L3
-                Operations. Novu organizaciju i vlasnika pravi Operations /
-                Super Admin tek na L3.
+                {t("admin.pdEditor.convertHint")}
               </p>
               <CloserLinkExisting
                 organizations={organizations}
@@ -1175,10 +1121,10 @@ function toDatetimeLocal(iso: string): string {
   )}:${pad(d.getMinutes())}`;
 }
 
-function errorMessage(err: unknown): string {
+function errorMessage(err: unknown, t: TranslateFn): string {
   if (err instanceof ApiClientError) return err.message;
   if (err instanceof Error) return err.message;
-  return "Došlo je do greške.";
+  return t("admin.genericError");
 }
 
 function CloserLinkExisting({
@@ -1196,11 +1142,12 @@ function CloserLinkExisting({
   onError: (message: string | null) => void;
   onConverted: (organizationId: string) => void;
 }) {
+  const t = useT();
   const [convertOrg, setConvertOrg] = useState("");
 
   async function convert() {
     if (!convertOrg) {
-      onError("Izaberite tenant organizaciju u koju se konvertuje lead.");
+      onError(t("admin.pdEditor.pickOrg"));
       return;
     }
     onBusy(true);
@@ -1211,7 +1158,7 @@ function CloserLinkExisting({
       });
       onConverted(convertOrg);
     } catch (err) {
-      onError(errorMessage(err));
+      onError(errorMessage(err, t));
     } finally {
       onBusy(false);
     }
@@ -1225,7 +1172,7 @@ function CloserLinkExisting({
         className="h-10 flex-1 min-w-64 rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] px-3 text-sm"
         disabled={busy}
       >
-        <option value="">— izaberi organizaciju —</option>
+        <option value="">{t("admin.pdEditor.pickOrgOption")}</option>
         {organizations.map((o) => (
           <option key={o.id} value={o.id}>
             {o.name}
@@ -1233,7 +1180,7 @@ function CloserLinkExisting({
         ))}
       </select>
       <Button type="button" onClick={convert} disabled={busy || !convertOrg}>
-        Konvertuj
+        {t("admin.pdEditor.convert")}
       </Button>
     </div>
   );

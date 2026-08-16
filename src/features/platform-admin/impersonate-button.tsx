@@ -6,6 +6,7 @@ import { UserCog } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { authClient } from "@/lib/auth-client";
+import { useT } from "@/components/app/i18n-provider";
 
 export interface ImpersonateButtonProps {
   userId: string;
@@ -29,13 +30,14 @@ export function ImpersonateButton({
   disabledReason,
 }: ImpersonateButtonProps) {
   const router = useRouter();
+  const t = useT();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   async function handleImpersonate() {
     if (busy) return;
     const confirmed = window.confirm(
-      `Ulogovaćete se kao "${userName}". Sve radnje u sledećih 60 min biće upisane u revizijski zapis pod Vašim imenom kao pokretačem. Nastaviti?`,
+      t("admin.impersonate.confirm", { name: userName }),
     );
     if (!confirmed) return;
 
@@ -44,7 +46,7 @@ export function ImpersonateButton({
     try {
       const res = await authClient.admin.impersonateUser({ userId });
       if (res?.error) {
-        setError(res.error.message ?? "Impersonacija nije uspela.");
+        setError(res.error.message ?? t("admin.impersonate.failed"));
         return;
       }
       // Force a full navigation so the new cookie is picked up cleanly.
@@ -55,7 +57,7 @@ export function ImpersonateButton({
       router.push("/dashboard");
       router.refresh();
     } catch (err) {
-      setError((err as Error)?.message ?? "Impersonacija nije uspela.");
+      setError((err as Error)?.message ?? t("admin.impersonate.failed"));
     } finally {
       setBusy(false);
     }
@@ -70,11 +72,11 @@ export function ImpersonateButton({
         onClick={handleImpersonate}
         loading={busy}
         disabled={disabled}
-        title={disabled ? disabledReason : "Uloguj se kao ovaj korisnik"}
+        title={disabled ? disabledReason : t("admin.impersonate.title")}
         className="gap-1"
       >
         <UserCog aria-hidden className="size-4" />
-        Uloguj se kao
+        {t("admin.impersonate.button")}
       </Button>
       {error ? (
         <span className="text-xs text-[var(--color-danger)]">{error}</span>

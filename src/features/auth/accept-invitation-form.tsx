@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { FormActions } from "@/components/forms/form-actions";
-import { t } from "@/lib/i18n";
+import { useI18n } from "@/components/app/i18n-provider";
 
 export interface AcceptInvitationView {
   id: string;
@@ -24,6 +24,7 @@ export function AcceptInvitationForm({
 }: {
   invitation: AcceptInvitationView;
 }) {
+  const { t, locale } = useI18n();
   const router = useRouter();
   const { data: session, isPending } = useSession();
   const [mode, setMode] = useState<"register" | "signin">("register");
@@ -39,6 +40,11 @@ export function AcceptInvitationForm({
 
   async function acceptAsCurrentUser() {
     await apiClient.post(`/public/invitations/${invitation.id}/accept`);
+    try {
+      await apiClient.patch("/me", { locale });
+    } catch {
+      // Cookie already holds the guest choice.
+    }
     router.push("/dashboard");
     router.refresh();
   }

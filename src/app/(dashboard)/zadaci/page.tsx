@@ -8,14 +8,15 @@ import { formatDateTime } from "@/lib/formatters";
 import { TaskCompleteButton } from "@/features/tasks/task-complete-button";
 import type { TaskPriority, TaskStatus } from "@prisma/client";
 import { cn } from "@/lib/utils";
+import { createT, type TranslateFn, type TranslationKey } from "@/lib/i18n";
 
 export const dynamic = "force-dynamic";
 
-const VIEWS: { key: TaskView; label: string }[] = [
-  { key: "mine", label: "Moji zadaci" },
-  { key: "today", label: "Danas" },
-  { key: "overdue", label: "Prekoračeni" },
-  { key: "upcoming", label: "Nadolazeći" },
+const VIEWS: { key: TaskView; labelKey: TranslationKey }[] = [
+  { key: "mine", labelKey: "crm.tasks.mine" },
+  { key: "today", labelKey: "common.today" },
+  { key: "overdue", labelKey: "crm.tasks.overdue" },
+  { key: "upcoming", labelKey: "crm.tasks.upcoming" },
 ];
 
 const PRIORITY_TONE: Record<TaskPriority, string> = {
@@ -25,12 +26,13 @@ const PRIORITY_TONE: Record<TaskPriority, string> = {
   URGENT: "bg-rose-100 text-rose-700",
 };
 
-const STATUS_LABELS: Record<TaskStatus, string> = {
-  OPEN: "Otvoren",
-  IN_PROGRESS: "U toku",
-  COMPLETED: "Završen",
-  CANCELED: "Otkazan",
-};
+function taskStatusLabel(status: TaskStatus, t: TranslateFn): string {
+  return t(`crm.tasks.status.${status}` as TranslationKey);
+}
+
+function taskPriorityLabel(priority: TaskPriority, t: TranslateFn): string {
+  return t(`crm.tasks.priority.${priority}` as TranslationKey);
+}
 
 interface PageProps {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
@@ -44,6 +46,7 @@ export default async function ZadaciPage({ searchParams }: PageProps) {
   const ctx = await loadUserContext();
   if (!ctx) redirect("/sign-in");
   if (!ctx.activeOrganization) redirect("/podesavanja");
+  const t = createT(ctx.user.locale);
 
   const sp = await searchParams;
   const rawView = readParam(sp.view) as TaskView | undefined;
@@ -69,9 +72,9 @@ export default async function ZadaciPage({ searchParams }: PageProps) {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold">Zadaci</h1>
+        <h1 className="text-2xl font-semibold">{t("nav.tasks")}</h1>
         <p className="text-sm text-[var(--color-foreground-muted)]">
-          Vaše obaveze i podsetnici.
+          {t("crm.tasks.subtitle")}
         </p>
       </div>
 
@@ -90,7 +93,7 @@ export default async function ZadaciPage({ searchParams }: PageProps) {
                   : "border-[var(--color-border)] hover:bg-[var(--color-surface-inset)]",
               )}
             >
-              {v.label}
+              {t(v.labelKey)}
               <span
                 className={cn(
                   "rounded-full px-1.5 text-xs tabular-nums",
@@ -109,7 +112,7 @@ export default async function ZadaciPage({ searchParams }: PageProps) {
       {items.length === 0 ? (
         <Card>
           <CardContent className="py-12 text-center text-sm text-[var(--color-foreground-muted)]">
-            Nema zadataka u ovom prikazu.
+            {t("crm.tasks.empty")}
           </CardContent>
         </Card>
       ) : (
@@ -128,7 +131,7 @@ export default async function ZadaciPage({ searchParams }: PageProps) {
                       <span
                         className={`rounded-full px-2 py-0.5 text-xs font-medium ${PRIORITY_TONE[task.priority]}`}
                       >
-                        {task.priority}
+                        {taskPriorityLabel(task.priority, t)}
                       </span>
                     </div>
                     <div className="mt-0.5 text-xs text-[var(--color-foreground-muted)]">
@@ -142,10 +145,10 @@ export default async function ZadaciPage({ searchParams }: PageProps) {
                       ) : null}
                       {task.buyer ? " · " : ""}
                       <span className={cn(overdue && "font-medium text-rose-600")}>
-                        rok {formatDateTime(task.dueAt)}
+                        {t("crm.tasks.due", { date: formatDateTime(task.dueAt) })}
                       </span>
                       {" · "}
-                      {STATUS_LABELS[task.status]}
+                      {taskStatusLabel(task.status, t)}
                     </div>
                   </div>
                   {canManage && task.status !== "COMPLETED" && task.status !== "CANCELED" ? (

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
+import { useT } from "@/components/app/i18n-provider";
 import { apiClient, ApiClientError } from "@/lib/api-client";
 
 /**
@@ -18,6 +19,7 @@ export function ReservationRequestActions(props: {
   requestId: string;
   canApprove: boolean;
 }) {
+  const t = useT();
   const router = useRouter();
   const [busy, setBusy] = useState<"confirm" | "decline" | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -25,7 +27,7 @@ export function ReservationRequestActions(props: {
   if (!props.canApprove) {
     return (
       <span className="text-xs text-[var(--color-foreground-muted)]">
-        Bez ovlašćenja
+        {t("deals.requests.noPermission")}
       </span>
     );
   }
@@ -40,14 +42,14 @@ export function ReservationRequestActions(props: {
       );
       router.refresh();
     } catch (err) {
-      setError(err instanceof ApiClientError ? err.message : "Greška.");
+      setError(err instanceof ApiClientError ? err.message : t("errors.generic"));
     } finally {
       setBusy(null);
     }
   }
 
   async function decline() {
-    const reason = window.prompt("Razlog odbijanja (opcionalno):", "");
+    const reason = window.prompt(t("deals.requests.declinePrompt"), "");
     if (reason === null) return;
     setBusy("decline");
     setError(null);
@@ -58,7 +60,7 @@ export function ReservationRequestActions(props: {
       );
       router.refresh();
     } catch (err) {
-      setError(err instanceof ApiClientError ? err.message : "Greška.");
+      setError(err instanceof ApiClientError ? err.message : t("errors.generic"));
     } finally {
       setBusy(null);
     }
@@ -74,10 +76,10 @@ export function ReservationRequestActions(props: {
           disabled={busy != null}
           onClick={decline}
         >
-          Odbij
+          {t("deals.reservationActions.reject")}
         </Button>
         <Button size="sm" loading={busy === "confirm"} disabled={busy != null} onClick={confirm}>
-          Potvrdi kaparu
+          {t("deals.requests.confirmDeposit")}
         </Button>
       </div>
       {error ? <span className="text-xs text-red-700">{error}</span> : null}

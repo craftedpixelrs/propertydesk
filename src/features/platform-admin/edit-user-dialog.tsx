@@ -16,6 +16,8 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { apiClient, ApiClientError } from "@/lib/api-client";
+import { useT } from "@/components/app/i18n-provider";
+import type { TranslationKey } from "@/lib/i18n";
 
 type TeamRole = "SETTER" | "CLOSER" | "OPERATIONS" | "MANAGER";
 type LeadScope = "OWN" | "OWN_AND_UNASSIGNED" | "TEAM" | "ALL";
@@ -36,18 +38,18 @@ export interface EditablePlatformUser {
   } | null;
 }
 
-const TEAM_ROLE_LABEL: Record<TeamRole, string> = {
-  SETTER: "Setter",
-  CLOSER: "Closer",
-  OPERATIONS: "Operations",
-  MANAGER: "Manager",
+const TEAM_ROLE_KEY: Record<TeamRole, TranslationKey> = {
+  SETTER: "admin.pd.teamRole.SETTER",
+  CLOSER: "admin.pd.teamRole.CLOSER",
+  OPERATIONS: "admin.pd.teamRole.OPERATIONS",
+  MANAGER: "admin.pd.teamRole.MANAGER",
 };
 
-const SCOPE_LABEL: Record<LeadScope, string> = {
-  OWN: "Samo moji",
-  OWN_AND_UNASSIGNED: "Moji + slobodni",
-  TEAM: "Ceo tim",
-  ALL: "Svi",
+const SCOPE_KEY: Record<LeadScope, TranslationKey> = {
+  OWN: "admin.pd.leadScope.OWN",
+  OWN_AND_UNASSIGNED: "admin.pd.leadScope.OWN_AND_UNASSIGNED",
+  TEAM: "admin.pd.leadScope.TEAM",
+  ALL: "admin.pd.leadScope.ALL",
 };
 
 const inputClass =
@@ -55,6 +57,7 @@ const inputClass =
 
 export function EditUserDialog({ user }: { user: EditablePlatformUser }) {
   const router = useRouter();
+  const t = useT();
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -115,7 +118,7 @@ export function EditUserDialog({ user }: { user: EditablePlatformUser }) {
       setError(
         err instanceof ApiClientError
           ? err.message
-          : "Izmena korisnika nije uspela.",
+          : t("admin.editUser.failed"),
       );
     } finally {
       setBusy(false);
@@ -133,20 +136,19 @@ export function EditUserDialog({ user }: { user: EditablePlatformUser }) {
       <DialogTrigger asChild>
         <Button type="button" variant="outline" size="sm" className="gap-1">
           <Pencil aria-hidden className="size-4" />
-          Uredi
+          {t("admin.editUser.trigger")}
         </Button>
       </DialogTrigger>
       <DialogContent className="max-h-[90vh] max-w-xl overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Uredi korisnika</DialogTitle>
+          <DialogTitle>{t("admin.editUser.title")}</DialogTitle>
           <DialogDescription>
-            Nalog i Property Desk tim (Sloj C). Aplikacione uloge u organizaciji
-            se i dalje menjaju unutar tenanta.
+            {t("admin.editUser.description")}
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={onSubmit} className="space-y-4">
           <div>
-            <Label htmlFor={`user-name-${user.id}`}>Ime</Label>
+            <Label htmlFor={`user-name-${user.id}`}>{t("common.name")}</Label>
             <input
               id={`user-name-${user.id}`}
               value={name}
@@ -157,7 +159,7 @@ export function EditUserDialog({ user }: { user: EditablePlatformUser }) {
             />
           </div>
           <div>
-            <Label htmlFor={`user-email-${user.id}`}>E-mail</Label>
+            <Label htmlFor={`user-email-${user.id}`}>{t("common.email")}</Label>
             <input
               id={`user-email-${user.id}`}
               type="email"
@@ -174,7 +176,7 @@ export function EditUserDialog({ user }: { user: EditablePlatformUser }) {
               checked={emailVerified}
               onChange={(e) => setEmailVerified(e.target.checked)}
             />
-            E-mail je verifikovan
+            {t("admin.editUser.emailVerified")}
           </label>
           <label className="flex items-center gap-2 text-sm">
             <input
@@ -182,7 +184,7 @@ export function EditUserDialog({ user }: { user: EditablePlatformUser }) {
               checked={platformAdmin}
               onChange={(e) => setPlatformAdmin(e.target.checked)}
             />
-            Platformski SUPER_ADMIN (Sloj A)
+            {t("admin.editUser.platformAdmin")}
           </label>
           <label className="flex items-center gap-2 text-sm">
             <input
@@ -190,17 +192,17 @@ export function EditUserDialog({ user }: { user: EditablePlatformUser }) {
               checked={banned}
               onChange={(e) => setBanned(e.target.checked)}
             />
-            Banovan nalog
+            {t("admin.editUser.banned")}
           </label>
           {banned ? (
             <div>
-              <Label htmlFor={`user-ban-${user.id}`}>Razlog bana</Label>
+              <Label htmlFor={`user-ban-${user.id}`}>{t("admin.editUser.banReason")}</Label>
               <input
                 id={`user-ban-${user.id}`}
                 value={banReason}
                 onChange={(e) => setBanReason(e.target.value)}
                 maxLength={500}
-                placeholder="Opciono"
+                placeholder={t("admin.editUser.banReasonPlaceholder")}
                 className={inputClass}
               />
             </div>
@@ -208,7 +210,7 @@ export function EditUserDialog({ user }: { user: EditablePlatformUser }) {
 
           <fieldset className="space-y-3 rounded-md border border-[var(--color-border)] p-3">
             <legend className="px-1 text-sm font-medium">
-              Property Desk tim (Sloj C)
+              {t("admin.editUser.pdLegend")}
             </legend>
             <label className="flex items-center gap-2 text-sm">
               <input
@@ -216,28 +218,28 @@ export function EditUserDialog({ user }: { user: EditablePlatformUser }) {
                 checked={pdMember}
                 onChange={(e) => setPdMember(e.target.checked)}
               />
-              Član internog tima (marketing / prodaja SaaS-a)
+              {t("admin.editUser.pdMember")}
             </label>
             {pdMember ? (
               <>
                 <div>
-                  <Label htmlFor={`user-pd-role-${user.id}`}>Uloga u timu</Label>
+                  <Label htmlFor={`user-pd-role-${user.id}`}>{t("admin.editUser.teamRole")}</Label>
                   <select
                     id={`user-pd-role-${user.id}`}
                     value={pdRole}
                     onChange={(e) => setPdRole(e.target.value as TeamRole)}
                     className={inputClass}
                   >
-                    {(Object.keys(TEAM_ROLE_LABEL) as TeamRole[]).map((role) => (
+                    {(Object.keys(TEAM_ROLE_KEY) as TeamRole[]).map((role) => (
                       <option key={role} value={role}>
-                        {TEAM_ROLE_LABEL[role]}
+                        {t(TEAM_ROLE_KEY[role])}
                       </option>
                     ))}
                   </select>
                 </div>
                 <div>
                   <Label htmlFor={`user-pd-scope-${user.id}`}>
-                    Obim lead-ova
+                    {t("admin.editUser.leadScope")}
                   </Label>
                   <select
                     id={`user-pd-scope-${user.id}`}
@@ -245,9 +247,9 @@ export function EditUserDialog({ user }: { user: EditablePlatformUser }) {
                     onChange={(e) => setPdScope(e.target.value as LeadScope)}
                     className={inputClass}
                   >
-                    {(Object.keys(SCOPE_LABEL) as LeadScope[]).map((scope) => (
+                    {(Object.keys(SCOPE_KEY) as LeadScope[]).map((scope) => (
                       <option key={scope} value={scope}>
-                        {SCOPE_LABEL[scope]}
+                        {t(SCOPE_KEY[scope])}
                       </option>
                     ))}
                   </select>
@@ -258,7 +260,7 @@ export function EditUserDialog({ user }: { user: EditablePlatformUser }) {
                     checked={pdEnabled}
                     onChange={(e) => setPdEnabled(e.target.checked)}
                   />
-                  Aktivan u timu
+                  {t("admin.editUser.activeInTeam")}
                 </label>
               </>
             ) : null}
@@ -275,10 +277,10 @@ export function EditUserDialog({ user }: { user: EditablePlatformUser }) {
               onClick={() => setOpen(false)}
               disabled={busy}
             >
-              Otkaži
+              {t("common.cancel")}
             </Button>
             <Button type="submit" loading={busy}>
-              Sačuvaj
+              {t("common.save")}
             </Button>
           </DialogFooter>
         </form>

@@ -4,12 +4,20 @@ import { useState, type ReactNode } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ApiClientError } from "@/lib/api-client";
 import { CommandPaletteProvider } from "@/components/app/command-palette";
+import { I18nProvider } from "@/components/app/i18n-provider";
+import type { Locale } from "@/lib/i18n";
 
 /**
  * Client-side providers root. Kept intentionally small so the majority of
  * the tree stays in Server Component land.
  */
-export function Providers({ children }: { children: ReactNode }) {
+export function Providers({
+  children,
+  locale,
+}: {
+  children: ReactNode;
+  locale: Locale;
+}) {
   const [queryClient] = useState(
     () =>
       new QueryClient({
@@ -41,7 +49,9 @@ export function Providers({ children }: { children: ReactNode }) {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <CommandPaletteProvider>{children}</CommandPaletteProvider>
+      <I18nProvider locale={locale}>
+        <CommandPaletteProvider>{children}</CommandPaletteProvider>
+      </I18nProvider>
     </QueryClientProvider>
   );
 }

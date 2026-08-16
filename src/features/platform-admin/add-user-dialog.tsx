@@ -17,6 +17,8 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { apiClient, ApiClientError } from "@/lib/api-client";
+import { useT } from "@/components/app/i18n-provider";
+import type { TranslationKey } from "@/lib/i18n";
 import {
   rolesForOrgType,
   type OrganizationRole,
@@ -31,31 +33,31 @@ export interface OrgOption {
   type: "INVESTOR" | "AGENCY" | null;
 }
 
-const ORG_ROLE_LABEL: Record<string, string> = {
-  INVESTOR_OWNER: "Vlasnik",
-  INVESTOR_ADMIN: "Administrator",
-  SALES_MANAGER: "Menadžer prodaje",
-  SALES_AGENT: "Agent prodaje",
-  FINANCE: "Finansije",
-  INVESTOR_VIEWER: "Pregled (samo čitanje)",
-  AGENCY_OWNER: "Vlasnik agencije",
-  AGENCY_ADMIN: "Administrator agencije",
-  AGENCY_AGENT: "Agent",
-  AGENCY_VIEWER: "Pregled (samo čitanje)",
+const ORG_ROLE_KEY: Record<string, TranslationKey> = {
+  INVESTOR_OWNER: "admin.orgRoles.INVESTOR_OWNER",
+  INVESTOR_ADMIN: "admin.orgRoles.INVESTOR_ADMIN",
+  SALES_MANAGER: "admin.orgRoles.SALES_MANAGER",
+  SALES_AGENT: "admin.orgRoles.SALES_AGENT",
+  FINANCE: "admin.orgRoles.FINANCE",
+  INVESTOR_VIEWER: "admin.orgRoles.INVESTOR_VIEWER",
+  AGENCY_OWNER: "admin.orgRoles.AGENCY_OWNER",
+  AGENCY_ADMIN: "admin.orgRoles.AGENCY_ADMIN",
+  AGENCY_AGENT: "admin.orgRoles.AGENCY_AGENT",
+  AGENCY_VIEWER: "admin.orgRoles.AGENCY_VIEWER",
 };
 
-const TEAM_ROLE_LABEL: Record<TeamRole, string> = {
-  SETTER: "Setter",
-  CLOSER: "Closer",
-  OPERATIONS: "Operations",
-  MANAGER: "Manager",
+const TEAM_ROLE_KEY: Record<TeamRole, TranslationKey> = {
+  SETTER: "admin.pd.teamRole.SETTER",
+  CLOSER: "admin.pd.teamRole.CLOSER",
+  OPERATIONS: "admin.pd.teamRole.OPERATIONS",
+  MANAGER: "admin.pd.teamRole.MANAGER",
 };
 
-const SCOPE_LABEL: Record<LeadScope, string> = {
-  OWN: "Samo moji",
-  OWN_AND_UNASSIGNED: "Moji + slobodni",
-  TEAM: "Ceo tim",
-  ALL: "Svi",
+const SCOPE_KEY: Record<LeadScope, TranslationKey> = {
+  OWN: "admin.pd.leadScope.OWN",
+  OWN_AND_UNASSIGNED: "admin.pd.leadScope.OWN_AND_UNASSIGNED",
+  TEAM: "admin.pd.leadScope.TEAM",
+  ALL: "admin.pd.leadScope.ALL",
 };
 
 const inputClass =
@@ -63,6 +65,7 @@ const inputClass =
 
 export function AddUserDialog({ organizations }: { organizations: OrgOption[] }) {
   const router = useRouter();
+  const t = useT();
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -113,7 +116,7 @@ export function AddUserDialog({ organizations }: { organizations: OrgOption[] })
     event.preventDefault();
     if (!assignOrg && !assignPd && !platformAdmin) {
       setError(
-        "Izaberite bar jedno: organizaciju, Property Desk tim, ili SUPER_ADMIN.",
+        t("admin.addUser.needOne"),
       );
       return;
     }
@@ -131,7 +134,7 @@ export function AddUserDialog({ organizations }: { organizations: OrgOption[] })
           : null,
         platformRole: platformAdmin ? "SUPER_ADMIN" : null,
       });
-      toast.success("Korisnik je dodat.");
+      toast.success(t("admin.addUser.success"));
       setOpen(false);
       reset();
       router.refresh();
@@ -139,7 +142,7 @@ export function AddUserDialog({ organizations }: { organizations: OrgOption[] })
       setError(
         err instanceof ApiClientError
           ? err.message
-          : "Dodavanje korisnika nije uspelo.",
+          : t("admin.addUser.failed"),
       );
     } finally {
       setBusy(false);
@@ -157,20 +160,19 @@ export function AddUserDialog({ organizations }: { organizations: OrgOption[] })
       <DialogTrigger asChild>
         <Button type="button" size="sm" className="gap-1">
           <UserPlus aria-hidden className="size-4" />
-          Dodaj korisnika
+          {t("admin.addUser.trigger")}
         </Button>
       </DialogTrigger>
       <DialogContent className="max-h-[90vh] max-w-xl overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Dodaj korisnika</DialogTitle>
+          <DialogTitle>{t("admin.addUser.title")}</DialogTitle>
           <DialogDescription>
-            Napravite nalog i odmah ga stavite u organizaciju investitora /
-            agencije i/ili u Property Desk tim.
+            {t("admin.addUser.description")}
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={onSubmit} className="space-y-4">
           <div>
-            <Label htmlFor="new-user-name">Ime i prezime</Label>
+            <Label htmlFor="new-user-name">{t("auth.fullName")}</Label>
             <input
               id="new-user-name"
               value={name}
@@ -181,7 +183,7 @@ export function AddUserDialog({ organizations }: { organizations: OrgOption[] })
             />
           </div>
           <div>
-            <Label htmlFor="new-user-email">E-mail</Label>
+            <Label htmlFor="new-user-email">{t("common.email")}</Label>
             <input
               id="new-user-email"
               type="email"
@@ -193,7 +195,7 @@ export function AddUserDialog({ organizations }: { organizations: OrgOption[] })
             />
           </div>
           <div>
-            <Label htmlFor="new-user-password">Lozinka (min. 10 karaktera)</Label>
+            <Label htmlFor="new-user-password">{t("admin.addUser.password")}</Label>
             <input
               id="new-user-password"
               type="password"
@@ -205,25 +207,24 @@ export function AddUserDialog({ organizations }: { organizations: OrgOption[] })
               autoComplete="new-password"
             />
             <p className="mt-1 text-xs text-[var(--color-foreground-muted)]">
-              Korisnik se odmah može prijaviti ovom lozinkom. Ako nalog već
-              postoji, lozinka se ne menja — samo se dodaje u izabrano mesto.
+              {t("admin.addUser.passwordHint")}
             </p>
           </div>
 
           <fieldset className="space-y-3 rounded-md border border-[var(--color-border)] p-3">
-            <legend className="px-1 text-sm font-medium">Gde ide</legend>
+            <legend className="px-1 text-sm font-medium">{t("admin.addUser.where")}</legend>
             <label className="flex items-center gap-2 text-sm">
               <input
                 type="checkbox"
                 checked={assignOrg}
                 onChange={(e) => setAssignOrg(e.target.checked)}
               />
-              Organizacija (investitor / agencija)
+              {t("admin.addUser.assignOrg")}
             </label>
             {assignOrg ? (
               <div className="grid gap-3 sm:grid-cols-2">
                 <div>
-                  <Label htmlFor="new-user-org">Organizacija</Label>
+                  <Label htmlFor="new-user-org">{t("billing.columns.organization")}</Label>
                   <select
                     id="new-user-org"
                     value={organizationId}
@@ -240,15 +241,15 @@ export function AddUserDialog({ organizations }: { organizations: OrgOption[] })
                     className={inputClass}
                   >
                     {organizations.length === 0 ? (
-                      <option value="">Nema organizacija</option>
+                      <option value="">{t("admin.addUser.noOrgs")}</option>
                     ) : (
                       organizations.map((org) => (
                         <option key={org.id} value={org.id}>
                           {org.name}
                           {org.type === "AGENCY"
-                            ? " (agencija)"
+                            ? t("admin.orgAgencySuffix")
                             : org.type === "INVESTOR"
-                              ? " (investitor)"
+                              ? t("admin.orgInvestorSuffix")
                               : ""}
                         </option>
                       ))
@@ -256,7 +257,7 @@ export function AddUserDialog({ organizations }: { organizations: OrgOption[] })
                   </select>
                 </div>
                 <div>
-                  <Label htmlFor="new-user-org-role">Uloga</Label>
+                  <Label htmlFor="new-user-org-role">{t("admin.addUser.role")}</Label>
                   <select
                     id="new-user-org-role"
                     value={organizationRole}
@@ -268,7 +269,7 @@ export function AddUserDialog({ organizations }: { organizations: OrgOption[] })
                   >
                     {orgRoles.map((role) => (
                       <option key={role} value={role}>
-                        {ORG_ROLE_LABEL[role] ?? role}
+                        {ORG_ROLE_KEY[role] ? t(ORG_ROLE_KEY[role]) : role}
                       </option>
                     ))}
                   </select>
@@ -282,36 +283,36 @@ export function AddUserDialog({ organizations }: { organizations: OrgOption[] })
                 checked={assignPd}
                 onChange={(e) => setAssignPd(e.target.checked)}
               />
-              Property Desk tim (interni marketing SaaS-a)
+              {t("admin.addUser.assignPd")}
             </label>
             {assignPd ? (
               <div className="grid gap-3 sm:grid-cols-2">
                 <div>
-                  <Label htmlFor="new-user-pd-role">Uloga u timu</Label>
+                  <Label htmlFor="new-user-pd-role">{t("admin.editUser.teamRole")}</Label>
                   <select
                     id="new-user-pd-role"
                     value={pdRole}
                     onChange={(e) => setPdRole(e.target.value as TeamRole)}
                     className={inputClass}
                   >
-                    {(Object.keys(TEAM_ROLE_LABEL) as TeamRole[]).map((role) => (
+                    {(Object.keys(TEAM_ROLE_KEY) as TeamRole[]).map((role) => (
                       <option key={role} value={role}>
-                        {TEAM_ROLE_LABEL[role]}
+                        {t(TEAM_ROLE_KEY[role])}
                       </option>
                     ))}
                   </select>
                 </div>
                 <div>
-                  <Label htmlFor="new-user-pd-scope">Obim lead-ova</Label>
+                  <Label htmlFor="new-user-pd-scope">{t("admin.editUser.leadScope")}</Label>
                   <select
                     id="new-user-pd-scope"
                     value={pdScope}
                     onChange={(e) => setPdScope(e.target.value as LeadScope)}
                     className={inputClass}
                   >
-                    {(Object.keys(SCOPE_LABEL) as LeadScope[]).map((scope) => (
+                    {(Object.keys(SCOPE_KEY) as LeadScope[]).map((scope) => (
                       <option key={scope} value={scope}>
-                        {SCOPE_LABEL[scope]}
+                        {t(SCOPE_KEY[scope])}
                       </option>
                     ))}
                   </select>
@@ -325,7 +326,7 @@ export function AddUserDialog({ organizations }: { organizations: OrgOption[] })
                 checked={platformAdmin}
                 onChange={(e) => setPlatformAdmin(e.target.checked)}
               />
-              Platformski SUPER_ADMIN
+              {t("admin.addUser.platformAdmin")}
             </label>
           </fieldset>
 
@@ -340,10 +341,10 @@ export function AddUserDialog({ organizations }: { organizations: OrgOption[] })
               onClick={() => setOpen(false)}
               disabled={busy}
             >
-              Otkaži
+              {t("common.cancel")}
             </Button>
             <Button type="submit" loading={busy}>
-              Dodaj
+              {t("common.add")}
             </Button>
           </DialogFooter>
         </form>

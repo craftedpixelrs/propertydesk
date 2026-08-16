@@ -10,7 +10,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { t } from "@/lib/i18n";
+import { useT } from "@/components/app/i18n-provider";
 
 export interface ConfirmDialogProps {
   open: boolean;
@@ -35,6 +35,7 @@ export function ConfirmDialog({
   loading,
   onConfirm,
 }: ConfirmDialogProps) {
+  const t = useT();
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>

@@ -9,6 +9,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { apiClient, ApiClientError } from "@/lib/api-client";
 import { formatDateTime } from "@/lib/formatters/date";
+import { useT } from "@/components/app/i18n-provider";
+import type { TranslateFn, TranslationKey } from "@/lib/i18n";
 
 /**
  * Property Desk lead list — checkbox selection + bulk action bar, plus the
@@ -16,23 +18,6 @@ import { formatDateTime } from "@/lib/formatters/date";
  * the server component; this widget renders only the selectable table body
  * and its accompanying controls.
  */
-
-const STAGE_LABEL: Record<string, string> = {
-  NEW: "Novi",
-  CONTACTED: "Kontaktirano",
-  QUALIFIED: "Kvalifikovano",
-  DEMO: "Demo",
-  PROPOSAL: "Ponuda",
-  WON: "Konvertovano",
-  LOST: "Izgubljeno",
-  NURTURING: "Nurturing",
-};
-
-const AUDIENCE_LABEL: Record<string, string> = {
-  INVESTOR: "Investitor",
-  AGENCY: "Agencija",
-  OTHER: "Ostalo",
-};
 
 const STAGE_TONE: Record<
   string,
@@ -48,13 +33,6 @@ const STAGE_TONE: Record<
   NURTURING: "neutral",
 };
 
-const LEVEL_LABEL: Record<string, string> = {
-  SOURCING: "L1",
-  CLOSING: "L2",
-  OPERATIONS: "L3",
-  ARCHIVED: "ARC",
-};
-
 const LEVEL_TONE: Record<
   string,
   "neutral" | "brand" | "info" | "success" | "warning" | "danger"
@@ -63,13 +41,6 @@ const LEVEL_TONE: Record<
   CLOSING: "info",
   OPERATIONS: "success",
   ARCHIVED: "neutral",
-};
-
-const PRIORITY_LABEL: Record<string, string> = {
-  LOW: "Niska",
-  NORMAL: "Normalna",
-  HIGH: "Visoka",
-  URGENT: "Hitno",
 };
 
 const PRIORITY_TONE: Record<
@@ -82,12 +53,6 @@ const PRIORITY_TONE: Record<
   URGENT: "danger",
 };
 
-const TEMPERATURE_LABEL: Record<string, string> = {
-  COLD: "Cold",
-  WARM: "Warm",
-  HOT: "Hot",
-};
-
 const TEMPERATURE_TONE: Record<
   string,
   "neutral" | "brand" | "info" | "success" | "warning" | "danger"
@@ -96,6 +61,20 @@ const TEMPERATURE_TONE: Record<
   WARM: "warning",
   HOT: "danger",
 };
+
+const STAGES = ["NEW","CONTACTED","QUALIFIED","DEMO","PROPOSAL","WON","LOST","NURTURING"] as const;
+const AUDIENCES = ["INVESTOR","AGENCY","OTHER"] as const;
+const BUDGETS = ["UNKNOWN","STARTER","GROWTH","ENTERPRISE"] as const;
+const TIMELINES = ["UNDECIDED","WITHIN_30D","WITHIN_90D","LATER"] as const;
+const PRIORITIES = ["LOW","NORMAL","HIGH","URGENT"] as const;
+const TEMPERATURES = ["COLD","WARM","HOT"] as const;
+
+function enumLabel(t: TranslateFn, ns: string, value: string) {
+  const key = `admin.pd.${ns}.${value}` as TranslationKey;
+  const out = t(key);
+  return out === key ? value : out;
+}
+
 
 export interface LeadRow {
   id: string;
@@ -139,6 +118,7 @@ export function LeadListView({
   currentUserId,
 }: Props) {
   const router = useRouter();
+  const t = useT();
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [showNew, setShowNew] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -179,14 +159,15 @@ export function LeadListView({
         action: payload,
       });
       setOk(
-        `Ažurirano: ${result.updated}${
-          result.skipped ? ` · Preskočeno (van scope-a): ${result.skipped}` : ""
-        }`,
+        t("admin.pdList.bulkUpdated", { updated: result.updated }) +
+          (result.skipped
+            ? t("admin.pdList.bulkSkipped", { skipped: result.skipped })
+            : ""),
       );
       setSelected(new Set());
       startTransition(() => router.refresh());
     } catch (err) {
-      setError(errorMessage(err));
+      setError(errorMessage(err, t));
     } finally {
       setBusy(false);
     }
@@ -200,10 +181,10 @@ export function LeadListView({
       await apiClient.patch(`/platform/property-desk/leads/${id}`, {
         assignedToUserId: currentUserId,
       });
-      setOk("Lead je tvoj.");
+      setOk(t("admin.pdList.claimed"));
       startTransition(() => router.refresh());
     } catch (err) {
-      setError(errorMessage(err));
+      setError(errorMessage(err, t));
     } finally {
       setBusy(false);
     }
@@ -236,7 +217,7 @@ export function LeadListView({
             onClick={() => setShowNew(true)}
             disabled={busy}
           >
-            + Novi lead
+            {t("admin.pdList.newLead")}
           </Button>
         ) : null}
         {selected.size > 0 && canBulk ? (
@@ -267,22 +248,22 @@ export function LeadListView({
                     {canBulk ? (
                       <input
                         type="checkbox"
-                        aria-label="Selektuj sve"
+                        aria-label={t("admin.pdList.selectAll")}
                         checked={allSelected}
                         onChange={(e) => toggleAll(e.target.checked)}
                       />
                     ) : null}
                   </th>
-                  <th className="px-4 py-2 text-left">Lead</th>
-                  <th className="px-4 py-2 text-left">Level</th>
-                  <th className="px-4 py-2 text-left">Faza</th>
-                  <th className="px-4 py-2 text-left">Prioritet</th>
-                  <th className="px-4 py-2 text-left">Temperatura</th>
-                  <th className="px-4 py-2 text-left">Score</th>
-                  <th className="px-4 py-2 text-left">Publika</th>
-                  <th className="px-4 py-2 text-left">Dodeljeno</th>
-                  <th className="px-4 py-2 text-left">Follow-up</th>
-                  <th className="px-4 py-2 text-left">Kreirano</th>
+                  <th className="px-4 py-2 text-left">{t("admin.pdList.colLead")}</th>
+                  <th className="px-4 py-2 text-left">{t("admin.pdList.colLevel")}</th>
+                  <th className="px-4 py-2 text-left">{t("admin.pdList.colStage")}</th>
+                  <th className="px-4 py-2 text-left">{t("admin.pdList.colPriority")}</th>
+                  <th className="px-4 py-2 text-left">{t("admin.pdList.colTemp")}</th>
+                  <th className="px-4 py-2 text-left">{t("admin.pdList.colScore")}</th>
+                  <th className="px-4 py-2 text-left">{t("admin.pdList.colAudience")}</th>
+                  <th className="px-4 py-2 text-left">{t("admin.pdList.colAssigned")}</th>
+                  <th className="px-4 py-2 text-left">{t("admin.pdList.colFollowUp")}</th>
+                  <th className="px-4 py-2 text-left">{t("admin.created")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -292,7 +273,7 @@ export function LeadListView({
                       colSpan={11}
                       className="px-4 py-6 text-center text-[var(--color-foreground-muted)]"
                     >
-                      Nema lead-ova za ove filtere.
+                      {t("admin.pdList.empty")}
                     </td>
                   </tr>
                 ) : (
@@ -313,7 +294,7 @@ export function LeadListView({
                           {canBulk ? (
                             <input
                               type="checkbox"
-                              aria-label={`Selektuj ${lead.email}`}
+                              aria-label={t("admin.pdList.selectOne", { email: lead.email })}
                               checked={isSelected}
                               onChange={(e) =>
                                 toggleOne(lead.id, e.target.checked)
@@ -341,22 +322,22 @@ export function LeadListView({
                         </td>
                         <td className="px-4 py-3">
                           <Badge tone={LEVEL_TONE[lead.level] ?? "neutral"}>
-                            {LEVEL_LABEL[lead.level] ?? lead.level}
+                            {enumLabel(t, "levelShort", lead.level)}
                           </Badge>
                         </td>
                         <td className="px-4 py-3">
                           <Badge tone={STAGE_TONE[lead.stage] ?? "neutral"}>
-                            {STAGE_LABEL[lead.stage] ?? lead.stage}
+                            {enumLabel(t, "stage", lead.stage)}
                           </Badge>
                         </td>
                         <td className="px-4 py-3">
                           <Badge tone={PRIORITY_TONE[lead.priority] ?? "neutral"}>
-                            {PRIORITY_LABEL[lead.priority] ?? lead.priority}
+                            {enumLabel(t, "priorityShort", lead.priority)}
                           </Badge>
                         </td>
                         <td className="px-4 py-3">
                           <Badge tone={TEMPERATURE_TONE[lead.temperature] ?? "neutral"}>
-                            {TEMPERATURE_LABEL[lead.temperature] ?? lead.temperature}
+                            {enumLabel(t, "temperature", lead.temperature)}
                           </Badge>
                         </td>
                         <td className="px-4 py-3">
@@ -376,7 +357,7 @@ export function LeadListView({
                         </td>
                         <td className="px-4 py-3">
                           <Badge tone="neutral">
-                            {AUDIENCE_LABEL[lead.audience] ?? lead.audience}
+                            {enumLabel(t, "audience", lead.audience)}
                           </Badge>
                         </td>
                         <td className="px-4 py-3 text-xs text-[var(--color-foreground-muted)]">
@@ -393,14 +374,14 @@ export function LeadListView({
                               }}
                               disabled={busy}
                             >
-                              Uzmi
+                              {t("admin.pdList.claim")}
                             </Button>
                           )}
                         </td>
                         <td className="px-4 py-3 text-xs text-[var(--color-foreground-muted)]">
                           {lead.nextFollowUpAt
                             ? formatDateTime(new Date(lead.nextFollowUpAt))
-                            : "—"}
+                            : t("admin.dash")}
                         </td>
                         <td className="px-4 py-3 text-xs text-[var(--color-foreground-muted)]">
                           {formatDateTime(new Date(lead.createdAt))}
@@ -459,13 +440,14 @@ function BulkBar({
   onLost,
   onClear,
 }: BulkBarProps) {
+  const t = useT();
   const [assignee, setAssignee] = useState<string>("");
   const [stage, setStage] = useState<string>("");
   const [lostOpen, setLostOpen] = useState(false);
   const [lostReason, setLostReason] = useState("");
   return (
     <div className="flex flex-wrap items-center gap-2 rounded-md border border-[var(--color-brand-200)] bg-[var(--color-brand-50)] p-2 text-sm">
-      <strong className="mr-2">{count} selektovano</strong>
+      <strong className="mr-2">{t("admin.selectedCount", { count })}</strong>
       {canReassign ? (
         <>
           <select
@@ -474,8 +456,8 @@ function BulkBar({
             className="h-8 rounded-md border border-[var(--color-border)] bg-white px-2 text-xs"
             disabled={busy}
           >
-            <option value="">— dodeli članu tima —</option>
-            <option value="__unassign__">Ukloni vlasnika</option>
+            <option value="">{t("admin.pdList.assignMember")}</option>
+            <option value="__unassign__">{t("admin.pdList.unassign")}</option>
             {teamMembers.map((m) => (
               <option key={m.userId} value={m.userId}>
                 {m.name}
@@ -491,7 +473,7 @@ function BulkBar({
               onAssign(assignee === "__unassign__" ? null : assignee || null)
             }
           >
-            Dodeli
+            {t("admin.pdList.assign")}
           </Button>
         </>
       ) : null}
@@ -503,12 +485,10 @@ function BulkBar({
             className="h-8 rounded-md border border-[var(--color-border)] bg-white px-2 text-xs"
             disabled={busy}
           >
-            <option value="">— promeni fazu —</option>
-            {Object.entries(STAGE_LABEL)
-              .filter(([v]) => v !== "LOST")
-              .map(([v, l]) => (
+            <option value="">{t("admin.pdList.changeStage")}</option>
+            {STAGES.filter((v) => v !== "LOST").map((v) => (
                 <option key={v} value={v}>
-                  {l}
+                  {enumLabel(t, "stage", v)}
                 </option>
               ))}
           </select>
@@ -520,15 +500,15 @@ function BulkBar({
             onClick={() => onStage(stage)}
             title={
               canReopen
-                ? "Bulk stage change (forward + reopen dozvoljeno)"
-                : "Bulk stage change — samo forward tranzicije; ostalo se preskače"
+                ? t("admin.pdList.bulkForwardTitle")
+                : t("admin.pdList.bulkForwardOnly")
             }
           >
-            Postavi fazu
+            {t("admin.pdList.setStage")}
           </Button>
           {!canReopen ? (
             <span className="text-xs italic text-[var(--color-foreground-muted)]">
-              (forward-only; ne-forward će biti preskočeni)
+              {t("admin.pdList.forwardOnlyHint")}
             </span>
           ) : null}
           <Button
@@ -538,7 +518,7 @@ function BulkBar({
             disabled={busy}
             onClick={() => setLostOpen(true)}
           >
-            Označi izgubljene
+            {t("admin.pdList.markLost")}
           </Button>
         </>
       ) : null}
@@ -549,7 +529,7 @@ function BulkBar({
         disabled={busy}
         onClick={onClear}
       >
-        Otkaži selekciju
+        {t("admin.pdList.clearSelection")}
       </Button>
 
       {lostOpen ? (
@@ -558,7 +538,7 @@ function BulkBar({
             type="text"
             value={lostReason}
             onChange={(e) => setLostReason(e.target.value)}
-            placeholder="Razlog gubitka (opciono)"
+            placeholder={t("admin.pdList.lostReasonPlaceholder")}
             className="h-8 flex-1 rounded-md border border-[var(--color-border)] bg-white px-2 text-xs"
           />
           <Button
@@ -572,7 +552,7 @@ function BulkBar({
               setLostOpen(false);
             }}
           >
-            Potvrdi
+            {t("common.confirm")}
           </Button>
           <Button
             type="button"
@@ -581,7 +561,7 @@ function BulkBar({
             disabled={busy}
             onClick={() => setLostOpen(false)}
           >
-            Otkaži
+            {t("common.cancel")}
           </Button>
         </div>
       ) : null}
@@ -606,6 +586,7 @@ function NewLeadDialog({
   teamMembers,
   canReassign,
 }: NewLeadDialogProps) {
+  const t = useT();
   const [email, setEmail] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -666,7 +647,7 @@ function NewLeadDialog({
         const existingId = extractExistingLeadId(e);
         if (existingId) setDuplicateId(existingId);
       } else {
-        setErr("Greška pri kreiranju lead-a.");
+        setErr(t("admin.createFailed"));
       }
     } finally {
       setBusy(false);
@@ -681,7 +662,7 @@ function NewLeadDialog({
     >
       <div className="w-full max-w-lg rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] shadow-lg">
         <div className="flex items-center justify-between border-b border-[var(--color-border)] px-4 py-3">
-          <h3 className="text-base font-semibold">Novi marketing lead</h3>
+          <h3 className="text-base font-semibold">{t("admin.pdList.newTitle")}</h3>
           <button
             type="button"
             className="text-sm text-[var(--color-foreground-muted)] hover:text-[var(--color-foreground)]"
@@ -704,14 +685,14 @@ function NewLeadDialog({
                     href={`/administracija/property-desk/leadovi/${duplicateId}`}
                     className="underline"
                   >
-                    Otvori postojeći lead →
+                    {t("admin.pdList.openExisting")}
                   </Link>
                 </>
               ) : null}
             </div>
           ) : null}
           <label className="block">
-            <span className="mb-1 block text-xs font-medium">Email *</span>
+            <span className="mb-1 block text-xs font-medium">{t("admin.pdList.emailRequired")}</span>
             <input
               type="email"
               value={email}
@@ -723,7 +704,7 @@ function NewLeadDialog({
           </label>
           <div className="grid grid-cols-2 gap-2">
             <label className="block">
-              <span className="mb-1 block text-xs font-medium">Ime</span>
+              <span className="mb-1 block text-xs font-medium">{t("common.name")}</span>
               <input
                 type="text"
                 value={firstName}
@@ -733,7 +714,7 @@ function NewLeadDialog({
               />
             </label>
             <label className="block">
-              <span className="mb-1 block text-xs font-medium">Prezime</span>
+              <span className="mb-1 block text-xs font-medium">{t("admin.pdList.lastName")}</span>
               <input
                 type="text"
                 value={lastName}
@@ -745,7 +726,7 @@ function NewLeadDialog({
           </div>
           <div className="grid grid-cols-2 gap-2">
             <label className="block">
-              <span className="mb-1 block text-xs font-medium">Telefon</span>
+              <span className="mb-1 block text-xs font-medium">{t("common.phone")}</span>
               <input
                 type="text"
                 value={phone}
@@ -755,7 +736,7 @@ function NewLeadDialog({
               />
             </label>
             <label className="block">
-              <span className="mb-1 block text-xs font-medium">Grad</span>
+              <span className="mb-1 block text-xs font-medium">{t("admin.pdEditor.city")}</span>
               <input
                 type="text"
                 value={city}
@@ -767,7 +748,7 @@ function NewLeadDialog({
           </div>
           <div className="grid grid-cols-2 gap-2">
             <label className="block">
-              <span className="mb-1 block text-xs font-medium">Publika</span>
+              <span className="mb-1 block text-xs font-medium">{t("admin.pdList.audience")}</span>
               <select
                 value={audience}
                 onChange={(e) =>
@@ -776,18 +757,18 @@ function NewLeadDialog({
                 className="h-9 w-full rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] px-2 text-sm"
                 disabled={busy}
               >
-                <option value="INVESTOR">Investitor</option>
-                <option value="AGENCY">Agencija</option>
-                <option value="OTHER">Ostalo</option>
+                {AUDIENCES.map((v) => (
+                  <option key={v} value={v}>{enumLabel(t, "audience", v)}</option>
+                ))}
               </select>
             </label>
             <label className="block">
-              <span className="mb-1 block text-xs font-medium">Izvor</span>
+              <span className="mb-1 block text-xs font-medium">{t("admin.pdList.source")}</span>
               <input
                 type="text"
                 value={source}
                 onChange={(e) => setSource(e.target.value)}
-                placeholder="npr. manual, referral, event"
+                placeholder={t("admin.pdList.sourcePlaceholder")}
                 className="h-9 w-full rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] px-2 text-sm"
                 disabled={busy}
               />
@@ -796,7 +777,7 @@ function NewLeadDialog({
           {canReassign ? (
             <label className="block">
               <span className="mb-1 block text-xs font-medium">
-                Dodeli članu tima
+                {t("admin.pdList.assignTo")}
               </span>
               <select
                 value={assigneeUserId}
@@ -804,7 +785,7 @@ function NewLeadDialog({
                 className="h-9 w-full rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] px-2 text-sm"
                 disabled={busy}
               >
-                <option value="">— dodeli meni (podrazumevano) —</option>
+                <option value="">{t("admin.pdList.assignToMe")}</option>
                 {teamMembers.map((m) => (
                   <option key={m.userId} value={m.userId}>
                     {m.name}
@@ -817,7 +798,7 @@ function NewLeadDialog({
           <div className="grid grid-cols-2 gap-2">
             <label className="block">
               <span className="mb-1 block text-xs font-medium">
-                Naziv firme
+                {t("admin.pdList.companyName")}
               </span>
               <input
                 type="text"
@@ -828,7 +809,7 @@ function NewLeadDialog({
               />
             </label>
             <label className="block">
-              <span className="mb-1 block text-xs font-medium">Website</span>
+              <span className="mb-1 block text-xs font-medium">{t("admin.pdList.website")}</span>
               <input
                 type="text"
                 value={companyWebsite}
@@ -841,7 +822,7 @@ function NewLeadDialog({
           </div>
           <div className="grid grid-cols-2 gap-2">
             <label className="block">
-              <span className="mb-1 block text-xs font-medium">Budžet</span>
+              <span className="mb-1 block text-xs font-medium">{t("admin.pdList.budget")}</span>
               <select
                 value={budgetTier}
                 onChange={(e) =>
@@ -850,14 +831,13 @@ function NewLeadDialog({
                 className="h-9 w-full rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] px-2 text-sm"
                 disabled={busy}
               >
-                <option value="UNKNOWN">Nepoznato</option>
-                <option value="STARTER">Starter</option>
-                <option value="GROWTH">Growth</option>
-                <option value="ENTERPRISE">Enterprise</option>
+                {BUDGETS.map((v) => (
+                  <option key={v} value={v}>{enumLabel(t, "budget", v)}</option>
+                ))}
               </select>
             </label>
             <label className="block">
-              <span className="mb-1 block text-xs font-medium">Timeline</span>
+              <span className="mb-1 block text-xs font-medium">{t("admin.pdList.timeline")}</span>
               <select
                 value={timelineHorizon}
                 onChange={(e) =>
@@ -866,16 +846,15 @@ function NewLeadDialog({
                 className="h-9 w-full rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] px-2 text-sm"
                 disabled={busy}
               >
-                <option value="UNDECIDED">Neodređeno</option>
-                <option value="WITHIN_30D">≤ 30 dana</option>
-                <option value="WITHIN_90D">30–90 dana</option>
-                <option value="LATER">Kasnije</option>
+                {TIMELINES.map((v) => (
+                  <option key={v} value={v}>{enumLabel(t, "timeline", v)}</option>
+                ))}
               </select>
             </label>
           </div>
           <div className="grid grid-cols-2 gap-2">
             <label className="block">
-              <span className="mb-1 block text-xs font-medium">Prioritet</span>
+              <span className="mb-1 block text-xs font-medium">{t("admin.pdList.priority")}</span>
               <select
                 value={priority}
                 onChange={(e) =>
@@ -884,15 +863,14 @@ function NewLeadDialog({
                 className="h-9 w-full rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] px-2 text-sm"
                 disabled={busy}
               >
-                <option value="LOW">Nizak</option>
-                <option value="NORMAL">Normalan</option>
-                <option value="HIGH">Visok</option>
-                <option value="URGENT">Hitno</option>
+                {PRIORITIES.map((v) => (
+                  <option key={v} value={v}>{enumLabel(t, "priority", v)}</option>
+                ))}
               </select>
             </label>
             <label className="block">
               <span className="mb-1 block text-xs font-medium">
-                Temperatura
+                {t("admin.pdList.temperature")}
               </span>
               <select
                 value={temperature}
@@ -902,15 +880,15 @@ function NewLeadDialog({
                 className="h-9 w-full rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] px-2 text-sm"
                 disabled={busy}
               >
-                <option value="COLD">Cold</option>
-                <option value="WARM">Warm</option>
-                <option value="HOT">Hot</option>
+                {TEMPERATURES.map((v) => (
+                  <option key={v} value={v}>{enumLabel(t, "temperature", v)}</option>
+                ))}
               </select>
             </label>
           </div>
 
           <label className="block">
-            <span className="mb-1 block text-xs font-medium">Beleška</span>
+            <span className="mb-1 block text-xs font-medium">{t("admin.pdList.note")}</span>
             <textarea
               value={note}
               onChange={(e) => setNote(e.target.value)}
@@ -927,7 +905,7 @@ function NewLeadDialog({
             onClick={onClose}
             disabled={busy}
           >
-            Otkaži
+            {t("common.cancel")}
           </Button>
           <Button
             type="button"
@@ -936,7 +914,7 @@ function NewLeadDialog({
             disabled={busy || !email.trim()}
             loading={busy}
           >
-            Kreiraj
+            {t("common.create")}
           </Button>
         </div>
       </div>
@@ -952,8 +930,8 @@ function extractExistingLeadId(err: ApiClientError): string | null {
   return match?.[1] ?? null;
 }
 
-function errorMessage(err: unknown): string {
+function errorMessage(err: unknown, t: TranslateFn): string {
   if (err instanceof ApiClientError) return err.message;
   if (err instanceof Error) return err.message;
-  return "Došlo je do greške.";
+  return t("admin.genericError");
 }

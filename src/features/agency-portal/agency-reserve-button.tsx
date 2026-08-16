@@ -14,6 +14,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { apiClient, ApiClientError } from "@/lib/api-client";
+import { useT } from "@/components/app/i18n-provider";
 
 interface BuyerOption {
   id: string;
@@ -23,6 +24,7 @@ interface BuyerOption {
 }
 
 export function AgencyReserveButton({ unitId }: { unitId: string }) {
+  const t = useT();
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [buyers, setBuyers] = useState<BuyerOption[]>([]);
@@ -58,7 +60,7 @@ export function AgencyReserveButton({ unitId }: { unitId: string }) {
       router.push("/moje-rezervacije");
       router.refresh();
     } catch (err) {
-      setError(err instanceof ApiClientError ? err.message : "Došlo je do greške.");
+      setError(err instanceof ApiClientError ? err.message : t("errors.generic"));
     } finally {
       setLoading(false);
     }
@@ -67,19 +69,19 @@ export function AgencyReserveButton({ unitId }: { unitId: string }) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button size="sm">Rezerviši</Button>
+        <Button size="sm">{t("partners.reserve.trigger")}</Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Kreiranje rezervacije</DialogTitle>
+          <DialogTitle>{t("partners.reserve.title")}</DialogTitle>
           <DialogDescription>
-            Izaberite kupca kojeg ste prethodno registrovali kod ovog investitora.
+            {t("partners.reserve.description")}
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-3">
           <div className="space-y-1">
             <label className="text-sm font-medium" htmlFor="buyer">
-              Kupac
+              {t("partners.buyer")}
             </label>
             <select
               id="buyer"
@@ -88,7 +90,7 @@ export function AgencyReserveButton({ unitId }: { unitId: string }) {
               className="h-11 w-full rounded-md border border-[var(--color-border)] bg-white px-3 text-sm"
               disabled={loadingBuyers}
             >
-              <option value="">Izaberite kupca</option>
+              <option value="">{t("partners.reserve.selectBuyer")}</option>
               {buyers.map((b) => (
                 <option key={b.id} value={b.id}>
                   {b.firstName} {b.lastName} · {b.phone}
@@ -98,7 +100,7 @@ export function AgencyReserveButton({ unitId }: { unitId: string }) {
           </div>
           <div className="space-y-1">
             <label className="text-sm font-medium" htmlFor="notes">
-              Napomena (opciono)
+              {t("partners.note")} ({t("common.optional")})
             </label>
             <textarea
               id="notes"
@@ -115,10 +117,10 @@ export function AgencyReserveButton({ unitId }: { unitId: string }) {
         </div>
         <DialogFooter>
           <Button variant="outline" type="button" onClick={() => setOpen(false)} disabled={loading}>
-            Otkaži
+            {t("common.cancel")}
           </Button>
           <Button onClick={submit} loading={loading} disabled={!buyerId}>
-            Kreiraj
+            {t("common.create")}
           </Button>
         </DialogFooter>
       </DialogContent>

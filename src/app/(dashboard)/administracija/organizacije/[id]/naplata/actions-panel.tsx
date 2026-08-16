@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useT } from "@/components/app/i18n-provider";
+import type { TranslateFn, TranslationKey } from "@/lib/i18n";
 
 interface Plan {
   id: string;
@@ -22,11 +24,18 @@ export interface SubscriptionActionsPanelProps {
 
 const CYCLES = ["MONTHLY", "QUARTERLY", "SEMI_ANNUAL", "ANNUAL"] as const;
 
+function cycleLabel(cycle: string, t: TranslateFn) {
+  const key = `billing.cycle.${cycle}` as TranslationKey;
+  const out = t(key);
+  return out === key ? cycle : out;
+}
+
 /**
  * Manual admin actions on an OrganizationSubscription. Every mutation
- * requires a Serbian `reason` string which is written to the audit log.
+ * requires a `reason` string which is written to the audit log.
  */
 export function SubscriptionActionsPanel(props: SubscriptionActionsPanelProps) {
+  const t = useT();
   const router = useRouter();
   const [busy, setBusy] = useState(false);
 
@@ -43,7 +52,11 @@ export function SubscriptionActionsPanel(props: SubscriptionActionsPanelProps) {
       );
       if (!res.ok) {
         const j = await res.json().catch(() => ({}));
-        alert(`Greška: ${j?.error?.message ?? res.statusText}`);
+        alert(
+          t("admin.orgBilling.errorPrefix", {
+            message: j?.error?.message ?? res.statusText,
+          }),
+        );
       } else {
         router.refresh();
       }
@@ -55,58 +68,58 @@ export function SubscriptionActionsPanel(props: SubscriptionActionsPanelProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">Akcije nad pretplatom</CardTitle>
+        <CardTitle className="text-base">{t("admin.orgBilling.actionsTitle")}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="grid gap-2 md:grid-cols-3">
           <Button
             disabled={busy || props.currentStatus === "ACTIVE"}
             onClick={() => {
-              const reason = prompt("Razlog aktivacije?");
+              const reason = prompt(t("admin.orgBilling.reasonActivate"));
               if (reason) post("activate", { reason });
             }}
           >
-            Aktiviraj
+            {t("admin.orgBilling.activate")}
           </Button>
           <Button
             disabled={busy || props.currentStatus === "SUSPENDED"}
             variant="secondary"
             onClick={() => {
-              const reason = prompt("Razlog suspenzije?");
+              const reason = prompt(t("admin.orgBilling.reasonSuspend"));
               if (reason) post("suspend", { reason });
             }}
           >
-            Suspenduj
+            {t("admin.orgBilling.suspend")}
           </Button>
           <Button
             disabled={busy || props.currentStatus === "RESTRICTED"}
             variant="secondary"
             onClick={() => {
-              const reason = prompt("Razlog restrikcije?");
+              const reason = prompt(t("admin.orgBilling.reasonRestrict"));
               if (reason) post("restrict", { reason });
             }}
           >
-            Restrikcija
+            {t("admin.orgBilling.restrict")}
           </Button>
           <Button
             disabled={busy}
             variant="secondary"
             onClick={() => {
-              const reason = prompt("Razlog reaktivacije?");
+              const reason = prompt(t("admin.orgBilling.reasonReactivate"));
               if (reason) post("reactivate", { reason });
             }}
           >
-            Reaktiviraj
+            {t("admin.orgBilling.reactivate")}
           </Button>
           <Button
             disabled={busy || props.currentStatus === "CANCELED"}
             variant="secondary"
             onClick={() => {
-              const reason = prompt("Razlog otkazivanja?");
+              const reason = prompt(t("admin.orgBilling.reasonCancel"));
               if (reason) post("cancel", { reason });
             }}
           >
-            Otkaži
+            {t("admin.orgBilling.cancel")}
           </Button>
         </div>
 
@@ -129,6 +142,7 @@ function ChangePlanForm({
   onSubmit: (action: string, body: Record<string, unknown>) => void;
   busy: boolean;
 }) {
+  const t = useT();
   const [planId, setPlanId] = useState(plans[0]?.id ?? "");
   const [reason, setReason] = useState("");
   return (
@@ -140,12 +154,12 @@ function ChangePlanForm({
       >
         {plans.map((p) => (
           <option key={p.id} value={p.id}>
-            {p.name} ({p.code}) {p.code === currentPlanCode ? "— trenutni" : ""}
+            {p.name} ({p.code}) {p.code === currentPlanCode ? t("admin.orgBilling.currentPlan") : ""}
           </option>
         ))}
       </select>
       <Input
-        placeholder="Razlog promene plana…"
+        placeholder={t("admin.orgBilling.reasonChangePlan")}
         value={reason}
         onChange={(e) => setReason(e.target.value)}
       />
@@ -153,7 +167,7 @@ function ChangePlanForm({
         disabled={busy || !reason.trim()}
         onClick={() => onSubmit("change-plan", { planId, reason: reason.trim() })}
       >
-        Promeni plan
+        {t("admin.orgBilling.changePlan")}
       </Button>
     </div>
   );
@@ -168,6 +182,7 @@ function ChangeCycleForm({
   onSubmit: (action: string, body: Record<string, unknown>) => void;
   busy: boolean;
 }) {
+  const t = useT();
   const [cycle, setCycle] = useState(currentCycle);
   const [reason, setReason] = useState("");
   return (
@@ -179,12 +194,12 @@ function ChangeCycleForm({
       >
         {CYCLES.map((c) => (
           <option key={c} value={c}>
-            {c}
+            {cycleLabel(c, t)}
           </option>
         ))}
       </select>
       <Input
-        placeholder="Razlog promene ciklusa…"
+        placeholder={t("admin.orgBilling.reasonChangeCycle")}
         value={reason}
         onChange={(e) => setReason(e.target.value)}
       />
@@ -192,7 +207,7 @@ function ChangeCycleForm({
         disabled={busy || !reason.trim() || cycle === currentCycle}
         onClick={() => onSubmit("change-cycle", { cycle, reason: reason.trim() })}
       >
-        Promeni ciklus
+        {t("admin.orgBilling.changeCycle")}
       </Button>
     </div>
   );
@@ -205,6 +220,7 @@ function ExtendTrialForm({
   onSubmit: (action: string, body: Record<string, unknown>) => void;
   busy: boolean;
 }) {
+  const t = useT();
   const [days, setDays] = useState("7");
   const [reason, setReason] = useState("");
   return (
@@ -213,12 +229,12 @@ function ExtendTrialForm({
         type="number"
         min="1"
         max="365"
-        placeholder="Broj dana"
+        placeholder={t("admin.orgBilling.daysPlaceholder")}
         value={days}
         onChange={(e) => setDays(e.target.value)}
       />
       <Input
-        placeholder="Razlog produženja trial-a…"
+        placeholder={t("admin.orgBilling.reasonExtendTrial")}
         value={reason}
         onChange={(e) => setReason(e.target.value)}
       />
@@ -228,7 +244,7 @@ function ExtendTrialForm({
           onSubmit("extend-trial", { days: Number(days), reason: reason.trim() })
         }
       >
-        Produži trial
+        {t("admin.orgBilling.extendTrial")}
       </Button>
     </div>
   );

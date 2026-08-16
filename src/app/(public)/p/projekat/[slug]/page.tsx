@@ -4,6 +4,8 @@ import { notFound } from "next/navigation";
 
 import { formatMoney } from "@/lib/formatters/money";
 import type { SupportedCurrency } from "@/lib/constants/app";
+import { createT, unitStatusLabel, unitTypeLabel } from "@/lib/i18n";
+import { resolveRequestLocale } from "@/lib/i18n/resolve-locale";
 import {
   ensureUnitShareLinkForMicrosite,
   resolvePublicProjectSite,
@@ -17,36 +19,24 @@ interface PageProps {
   params: Promise<{ slug: string }>;
 }
 
-const UNIT_TYPE_LABELS: Record<string, string> = {
-  APARTMENT: "Stan",
-  GARAGE: "Garaža",
-  PARKING_SPACE: "Parking",
-  STORAGE: "Ostava",
-  COMMERCIAL: "Lokal",
-  HOUSE: "Kuća",
-  OTHER: "Ostalo",
-};
-
-const UNIT_STATUS_LABELS: Record<string, string> = {
-  AVAILABLE: "Dostupno",
-  ON_HOLD: "Rezervisano",
-  RESERVED: "Rezervisano",
-  DEPOSIT_PAID: "Kapara uplaćena",
-};
-
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
+  const locale = await resolveRequestLocale();
+  const t = createT(locale);
   const site = await resolvePublicProjectSite(slug);
   if (!site) {
     return {
-      title: "Projekat nije dostupan",
+      title: t("marketing.public.projectUnavailable"),
       robots: { index: false, follow: false },
     };
   }
   const title = `${site.project.name}${site.project.city ? " · " + site.project.city : ""}`;
   const description =
     site.project.publicDescription?.slice(0, 200) ??
-    `${site.units.length} dostupnih jedinica u projektu ${site.project.name}.`;
+    t("marketing.public.availableUnitsMeta", {
+      count: site.units.length,
+      name: site.project.name,
+    });
   return {
     title,
     description,
@@ -67,6 +57,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function PublicProjectMicrosite({ params }: PageProps) {
   const { slug } = await params;
+  const locale = await resolveRequestLocale();
+  const t = createT(locale);
   const site = await resolvePublicProjectSite(slug);
   if (!site) return notFound();
 
@@ -162,21 +154,21 @@ export default async function PublicProjectMicrosite({ params }: PageProps) {
       <div className="mx-auto max-w-6xl px-6 py-10">
         <div className="grid gap-6 md:grid-cols-3">
           <div className="space-y-3 md:col-span-2">
-            <h2 className="text-xl font-semibold">O projektu</h2>
+            <h2 className="text-xl font-semibold">{t("marketing.public.aboutProject")}</h2>
             {site.project.publicDescription ? (
               <div className="whitespace-pre-line text-neutral-700">
                 {site.project.publicDescription}
               </div>
             ) : (
               <p className="text-neutral-500">
-                Kontaktirajte investitora za više informacija o projektu.
+                {t("marketing.public.contactInvestor")}
               </p>
             )}
           </div>
           {site.project.latitude != null && site.project.longitude != null ? (
             <div>
               <h3 className="mb-2 text-sm font-semibold uppercase tracking-wide text-neutral-500">
-                Lokacija
+                {t("marketing.public.location")}
               </h3>
               <div className="overflow-hidden rounded-lg border border-neutral-200 bg-white">
                 <ProjectMap
@@ -193,7 +185,7 @@ export default async function PublicProjectMicrosite({ params }: PageProps) {
       <div className="mx-auto max-w-6xl px-6">
         <div className="mb-4 flex items-baseline justify-between">
           <h2 className="text-2xl font-bold">
-            Dostupne jedinice
+            {t("marketing.public.availableUnits")}
             <span className="ml-2 text-base font-normal text-neutral-500">
               ({unitsWithTokens.length})
             </span>
@@ -202,7 +194,7 @@ export default async function PublicProjectMicrosite({ params }: PageProps) {
 
         {unitsWithTokens.length === 0 ? (
           <div className="rounded-lg border border-neutral-200 bg-white p-10 text-center text-neutral-500">
-            Trenutno nema slobodnih jedinica.
+            {t("marketing.public.noUnits")}
           </div>
         ) : (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -222,26 +214,34 @@ export default async function PublicProjectMicrosite({ params }: PageProps) {
                     />
                   ) : (
                     <div className="flex h-full w-full items-center justify-center text-neutral-400">
-                      Nema slike
+                      {t("marketing.public.noImage")}
                     </div>
                   )}
                   <span className="absolute right-2 top-2 rounded-full bg-white/90 px-2 py-0.5 text-xs font-medium text-neutral-700 backdrop-blur">
-                    {UNIT_STATUS_LABELS[u.status] ?? u.status}
+                    {unitStatusLabel(u.status, locale)}
                   </span>
                 </div>
                 <div className="space-y-2 p-4">
                   <div className="flex items-baseline justify-between">
                     <h3 className="text-lg font-semibold">
-                      {UNIT_TYPE_LABELS[u.type] ?? u.type} {u.code}
+                      {unitTypeLabel(u.type, locale)} {u.code}
                     </h3>
                     {u.structure ? (
                       <span className="text-sm text-neutral-500">{u.structure}</span>
                     ) : null}
                   </div>
                   <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-neutral-600">
-                    <span>{Number(u.totalArea).toFixed(2)} m²</span>
-                    {u.bedrooms != null ? <span>{u.bedrooms} sobe</span> : null}
-                    {u.bathrooms != null ? <span>{u.bathrooms} kupatila</span> : null}
+                    <span>
+                      {t("marketing.public.areaM2", {
+                        value: Number(u.totalArea).toFixed(2),
+                      })}
+                    </span>
+                    {u.bedrooms != null ? (
+                      <span>{t("marketing.public.rooms", { count: u.bedrooms })}</span>
+                    ) : null}
+                    {u.bathrooms != null ? (
+                      <span>{t("marketing.public.bathrooms", { count: u.bathrooms })}</span>
+                    ) : null}
                     {u.orientation ? <span>{u.orientation}</span> : null}
                   </div>
                   <div className="pt-2 text-lg font-semibold text-[var(--color-brand-700)]">

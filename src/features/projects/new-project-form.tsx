@@ -1,12 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { useT } from "@/components/app/i18n-provider";
 import { apiClient } from "@/lib/api-client";
 import { ApiClientError } from "@/lib/api-client";
+import { projectStatusLabel, type TranslateFn } from "@/lib/i18n";
 import { ProjectMap } from "@/features/projects/project-map-loader";
 
 interface Field {
@@ -20,95 +22,102 @@ interface Field {
   immutable?: boolean;
 }
 
-const FIELDS: Field[] = [
-  {
-    name: "code",
-    label: "Šifra projekta",
-    required: true,
-    hint: "Kratka šifra (npr. P-001). Jedinstvena po organizaciji. Ne menja se posle kreiranja.",
-    immutable: true,
-  },
-  { name: "name", label: "Naziv projekta", required: true },
-  { name: "city", label: "Grad" },
-  { name: "address", label: "Adresa" },
-  { name: "municipality", label: "Opština" },
-  { name: "postalCode", label: "Poštanski broj" },
-  {
-    name: "latitude",
-    label: "Geo. širina",
-    type: "number",
-    hint: "Decimalne stepene (npr. 44.7866). Kliknite na mapu ispod da automatski popunite.",
-  },
-  {
-    name: "longitude",
-    label: "Geo. dužina",
-    type: "number",
-    hint: "Decimalne stepene (npr. 20.4489).",
-  },
-  {
-    name: "coverImageUrl",
-    label: "URL naslovne fotografije",
-    hint: "Puni URL slike koja se prikazuje u javnoj ponudi.",
-  },
-  {
-    name: "projectStatus",
-    label: "Status",
-    type: "select",
-    options: [
-      { value: "DRAFT", label: "Radna verzija" },
-      { value: "PRE_SALES", label: "Priprema prodaje" },
-      { value: "ACTIVE_SALES", label: "Aktivna prodaja" },
-      { value: "CONSTRUCTION", label: "Izgradnja" },
-      { value: "COMPLETED", label: "Završen" },
-    ],
-  },
-  { name: "salesStartDate", label: "Datum početka prodaje", type: "date" },
-  { name: "constructionStartDate", label: "Početak izgradnje", type: "date" },
-  { name: "expectedCompletionDate", label: "Očekivani završetak", type: "date" },
-  { name: "defaultCurrency", label: "Podrazumevana valuta", hint: "EUR ili RSD" },
-  { name: "defaultVatRate", label: "PDV stopa (%)", type: "number" },
-  { name: "description", label: "Opis", type: "textarea" },
-  { name: "internalNotes", label: "Interne napomene", type: "textarea" },
-  {
-    name: "landCost",
-    label: "Trošak zemljišta",
-    type: "number",
-    hint: "Interni podatak, koristi se u panelu Marža po projektu.",
-  },
-  {
-    name: "constructionCost",
-    label: "Trošak izgradnje",
-    type: "number",
-    hint: "Materijali, radovi, angažman izvođača.",
-  },
-  {
-    name: "marketingCost",
-    label: "Trošak marketinga",
-    type: "number",
-  },
-  {
-    name: "otherCost",
-    label: "Ostali troškovi",
-    type: "number",
-  },
-  {
-    name: "budgetNote",
-    label: "Napomena uz budžet",
-    type: "textarea",
-    hint: "Interna napomena — nikad se ne prikazuje na javnoj ponudi.",
-  },
-  {
-    name: "publicMicrositeEnabled",
-    label: "Javna stranica projekta (microsite)",
-    type: "checkbox",
-    hint: "Kada je uključeno, projekat je dostupan na /p/projekat/<slug> sa listom slobodnih jedinica.",
-  },
-  {
-    name: "publicMicrositeSlug",
-    label: "Slug javne stranice",
-    hint: "Opcionalno — ako je prazno, koristi se standardni slug projekta.",
-  },
-];
+const PROJECT_STATUS_VALUES = [
+  "DRAFT",
+  "PRE_SALES",
+  "ACTIVE_SALES",
+  "CONSTRUCTION",
+  "COMPLETED",
+] as const;
+
+function buildFields(t: TranslateFn): Field[] {
+  return [
+    {
+      name: "code",
+      label: t("inventory.form.projectCode"),
+      required: true,
+      hint: t("inventory.form.projectCodeHint"),
+      immutable: true,
+    },
+    { name: "name", label: t("inventory.form.projectName"), required: true },
+    { name: "city", label: t("projects.fields.city") },
+    { name: "address", label: t("projects.fields.address") },
+    { name: "municipality", label: t("projects.fields.municipality") },
+    { name: "postalCode", label: t("projects.fields.postalCode") },
+    {
+      name: "latitude",
+      label: t("inventory.form.latitude"),
+      type: "number",
+      hint: t("inventory.form.latitudeHint"),
+    },
+    {
+      name: "longitude",
+      label: t("inventory.form.longitude"),
+      type: "number",
+      hint: t("inventory.form.longitudeHint"),
+    },
+    {
+      name: "coverImageUrl",
+      label: t("inventory.form.coverImageUrl"),
+      hint: t("inventory.form.coverImageUrlHint"),
+    },
+    {
+      name: "projectStatus",
+      label: t("common.statusLabel"),
+      type: "select",
+      options: PROJECT_STATUS_VALUES.map((value) => ({
+        value,
+        label: projectStatusLabel(value, t),
+      })),
+    },
+    { name: "salesStartDate", label: t("inventory.form.salesStartDate"), type: "date" },
+    { name: "constructionStartDate", label: t("projects.fields.constructionStartDate"), type: "date" },
+    { name: "expectedCompletionDate", label: t("inventory.projects.expectedCompletion"), type: "date" },
+    { name: "defaultCurrency", label: t("projects.fields.defaultCurrency"), hint: t("inventory.form.currencyHint") },
+    { name: "defaultVatRate", label: t("projects.fields.defaultVatRate"), type: "number" },
+    { name: "description", label: t("projects.fields.description"), type: "textarea" },
+    { name: "internalNotes", label: t("projects.fields.internalNotes"), type: "textarea" },
+    {
+      name: "landCost",
+      label: t("inventory.form.landCost"),
+      type: "number",
+      hint: t("inventory.form.landCostHint"),
+    },
+    {
+      name: "constructionCost",
+      label: t("inventory.form.constructionCost"),
+      type: "number",
+      hint: t("inventory.form.constructionCostHint"),
+    },
+    {
+      name: "marketingCost",
+      label: t("inventory.form.marketingCost"),
+      type: "number",
+    },
+    {
+      name: "otherCost",
+      label: t("inventory.form.otherCost"),
+      type: "number",
+    },
+    {
+      name: "budgetNote",
+      label: t("inventory.form.budgetNote"),
+      type: "textarea",
+      hint: t("inventory.form.budgetNoteHint"),
+    },
+    {
+      name: "publicMicrositeEnabled",
+      label: t("inventory.form.microsite"),
+      type: "checkbox",
+      hint: t("inventory.form.micrositeHint"),
+    },
+    {
+      name: "publicMicrositeSlug",
+      label: t("inventory.form.micrositeSlug"),
+      hint: t("inventory.form.micrositeSlugHint"),
+    },
+  ];
+}
 
 interface ProjectFormProps {
   mode?: "create" | "edit";
@@ -131,6 +140,8 @@ export function NewProjectForm({
   projectId,
   initialValues,
 }: ProjectFormProps = {}) {
+  const t = useT();
+  const fields = useMemo(() => buildFields(t), [t]);
   const router = useRouter();
   const [values, setValues] = useState<Record<string, string>>(
     normalizeInitial(initialValues),
@@ -152,8 +163,8 @@ export function NewProjectForm({
     try {
       const payload: Record<string, unknown> = {};
       for (const [k, v] of Object.entries(values)) {
-        if (isEdit && FIELDS.find((f) => f.name === k)?.immutable) continue;
-        const fieldDef = FIELDS.find((f) => f.name === k);
+        if (isEdit && fields.find((f) => f.name === k)?.immutable) continue;
+        const fieldDef = fields.find((f) => f.name === k);
         if (fieldDef?.type === "checkbox") {
           payload[k] = v === "true";
           continue;
@@ -194,7 +205,7 @@ export function NewProjectForm({
         setError(err.message);
         setFieldErrors(err.fieldErrors ?? {});
       } else {
-        setError("Došlo je do neočekivane greške.");
+        setError(t("common.unexpectedError"));
       }
     } finally {
       setLoading(false);
@@ -205,7 +216,7 @@ export function NewProjectForm({
     <Card>
       <CardContent className="p-4 sm:p-6">
         <form className="grid grid-cols-1 gap-4" onSubmit={onSubmit}>
-          {FIELDS.map((f) => {
+          {fields.map((f) => {
             const disabled = isEdit && f.immutable;
             if (f.type === "checkbox") {
               const checked = values[f.name] === "true";
@@ -257,7 +268,7 @@ export function NewProjectForm({
                     disabled={disabled}
                     className="h-11 w-full rounded-md border border-[var(--color-border)] bg-white px-3 text-sm disabled:bg-neutral-100 disabled:text-neutral-500"
                   >
-                    <option value="">— izaberite —</option>
+                    <option value="">{t("inventory.form.selectPlaceholder")}</option>
                     {f.options?.map((o) => (
                       <option key={o.value} value={o.value}>
                         {o.label}
@@ -287,10 +298,9 @@ export function NewProjectForm({
             );
           })}
           <div className="space-y-1">
-            <div className="text-sm font-medium">Mapa</div>
+            <div className="text-sm font-medium">{t("inventory.form.map")}</div>
             <p className="text-xs text-[var(--color-foreground-muted)]">
-              Kliknite bilo gde na mapi — postavićemo tačno tu poziciju u polja
-              „Geo. širina" i „Geo. dužina".
+              {t("inventory.form.mapHint")}
             </p>
             <ProjectMap
               latitude={
@@ -322,10 +332,10 @@ export function NewProjectForm({
               onClick={() => router.back()}
               disabled={loading}
             >
-              Odustani
+              {t("inventory.discard")}
             </Button>
             <Button type="submit" loading={loading}>
-              {isEdit ? "Sačuvaj izmene" : "Sačuvaj"}
+              {isEdit ? t("common.saveChanges") : t("common.save")}
             </Button>
           </div>
         </form>

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 
+import { useT } from "@/components/app/i18n-provider";
 import { cn } from "@/lib/utils";
 
 /**
@@ -45,6 +46,7 @@ function computeParts(targetIso: string): Parts {
 }
 
 export function Countdown({ targetIso, className }: CountdownProps) {
+  const t = useT();
   const [parts, setParts] = useState<Parts>(PLACEHOLDER);
 
   useEffect(() => {
@@ -56,10 +58,10 @@ export function Countdown({ targetIso, className }: CountdownProps) {
   }, [targetIso]);
 
   const cells: Array<{ value: string; label: string }> = [
-    { value: parts.days, label: "dana" },
-    { value: parts.hours, label: "sati" },
-    { value: parts.minutes, label: "minuta" },
-    { value: parts.seconds, label: "sekundi" },
+    { value: parts.days, label: t("marketing.countdown.days") },
+    { value: parts.hours, label: t("marketing.countdown.hours") },
+    { value: parts.minutes, label: t("marketing.countdown.minutes") },
+    { value: parts.seconds, label: t("marketing.countdown.seconds") },
   ];
 
   return (
@@ -68,7 +70,7 @@ export function Countdown({ targetIso, className }: CountdownProps) {
         "grid grid-cols-4 gap-2 sm:gap-3 text-center",
         className,
       )}
-      aria-label="Odbrojavanje do zvaničnog lansiranja PropertyDesk platforme"
+      aria-label={t("marketing.countdown.aria")}
     >
       {cells.map((c) => (
         <div

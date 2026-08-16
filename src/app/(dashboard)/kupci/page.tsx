@@ -7,6 +7,12 @@ import { PermissionGuard } from "@/components/app/permission-guard";
 import { loadUserContext } from "@/server/auth/context";
 import { listBuyers } from "@/server/services/buyers.service";
 import { formatDate } from "@/lib/formatters";
+import {
+  createT,
+  enumLabel,
+  type TranslateFn,
+  type TranslationKey,
+} from "@/lib/i18n";
 import type { BuyerEntityType, BuyerStatus } from "@prisma/client";
 
 interface KycShape {
@@ -16,35 +22,30 @@ interface KycShape {
   taxCertOk: boolean;
 }
 
-function computeKycStatus(
+function computeKycComplete(
   entityType: BuyerEntityType,
   kyc: KycShape | null | undefined,
-): { label: string; tone: string } {
-  if (!kyc) return { label: "Nepotpuno", tone: "bg-amber-100 text-amber-700" };
+): boolean {
+  if (!kyc) return false;
   const required =
     entityType === "LEGAL"
       ? [kyc.idFrontOk, kyc.idBackOk, kyc.addressProofOk, kyc.taxCertOk]
       : [kyc.idFrontOk, kyc.idBackOk, kyc.addressProofOk];
-  const allOk = required.every(Boolean);
-  return allOk
-    ? { label: "Potpuno", tone: "bg-emerald-100 text-emerald-700" }
-    : { label: "Nepotpuno", tone: "bg-amber-100 text-amber-700" };
+  return required.every(Boolean);
 }
 
-export const dynamic = "force-dynamic";
-
-const BUYER_STATUS_LABELS: Record<BuyerStatus, string> = {
-  NEW: "Novi",
-  CONTACTED: "Kontaktiran",
-  QUALIFIED: "Kvalifikovan",
-  VIEWING_SCHEDULED: "Razgledanje zakazano",
-  OFFER_SENT: "Ponuda poslata",
-  NEGOTIATION: "Pregovori",
-  RESERVATION: "Rezervacija",
-  WON: "Kupio",
-  LOST: "Izgubljen",
-  ARCHIVED: "Arhiviran",
-};
+const BUYER_STATUSES = [
+  "NEW",
+  "CONTACTED",
+  "QUALIFIED",
+  "VIEWING_SCHEDULED",
+  "OFFER_SENT",
+  "NEGOTIATION",
+  "RESERVATION",
+  "WON",
+  "LOST",
+  "ARCHIVED",
+] as const satisfies readonly BuyerStatus[];
 
 const BUYER_STATUS_TONE: Record<BuyerStatus, string> = {
   NEW: "bg-sky-100 text-sky-700",
@@ -59,6 +60,12 @@ const BUYER_STATUS_TONE: Record<BuyerStatus, string> = {
   ARCHIVED: "bg-neutral-200 text-neutral-700",
 };
 
+function buyerStatusLabel(status: BuyerStatus, t: TranslateFn): string {
+  const fromEnum = enumLabel("buyer", status, t);
+  if (fromEnum !== status) return fromEnum;
+  return t(`crm.buyerStatus.${status}` as TranslationKey);
+}
+
 interface PageProps {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }
@@ -68,10 +75,13 @@ function readParam(raw: string | string[] | undefined): string | undefined {
   return raw;
 }
 
+export const dynamic = "force-dynamic";
+
 export default async function KupciPage({ searchParams }: PageProps) {
   const ctx = await loadUserContext();
   if (!ctx) redirect("/sign-in");
   if (!ctx.activeOrganization) redirect("/podesavanja");
+  const t = createT(ctx.user.locale);
 
   const sp = await searchParams;
   const search = readParam(sp.q);
@@ -94,28 +104,28 @@ export default async function KupciPage({ searchParams }: PageProps) {
     <div className="space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold">Kupci</h1>
+          <h1 className="text-2xl font-semibold">{t("nav.customers")}</h1>
           <p className="text-sm text-[var(--color-foreground-muted)]">
-            Baza kupaca i zainteresovanih klijenata.
+            {t("crm.buyers.subtitle")}
           </p>
         </div>
         <PermissionGuard permission="lead.manage">
           <Button asChild>
-            <Link href="/kupci/novi">Novi kupac</Link>
+            <Link href="/kupci/novi">{t("crm.buyers.newBuyer")}</Link>
           </Button>
         </PermissionGuard>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-sm">Filteri</CardTitle>
+          <CardTitle className="text-sm">{t("common.filter")}</CardTitle>
         </CardHeader>
         <CardContent>
           <form method="get" className="grid grid-cols-1 gap-3 sm:grid-cols-4" action="/kupci">
             <input
               type="text"
               name="q"
-              placeholder="Pretraga po imenu, telefonu, email-u…"
+              placeholder={t("crm.buyers.searchPlaceholder")}
               defaultValue={search ?? ""}
               className="col-span-2 h-10 rounded-md border border-[var(--color-border)] bg-white px-3 text-sm"
             />
@@ -124,21 +134,19 @@ export default async function KupciPage({ searchParams }: PageProps) {
               defaultValue={status ?? ""}
               className="h-10 rounded-md border border-[var(--color-border)] bg-white px-3 text-sm"
             >
-              <option value="">Svi statusi</option>
-              {(Object.entries(BUYER_STATUS_LABELS) as [BuyerStatus, string][]).map(
-                ([value, label]) => (
-                  <option key={value} value={value}>
-                    {label}
-                  </option>
-                ),
-              )}
+              <option value="">{t("common.allStatuses")}</option>
+              {BUYER_STATUSES.map((value) => (
+                <option key={value} value={value}>
+                  {buyerStatusLabel(value, t)}
+                </option>
+              ))}
             </select>
             <div className="flex gap-2">
               <Button type="submit" size="md">
-                Primeni
+                {t("common.apply")}
               </Button>
               <Button asChild variant="outline">
-                <Link href="/kupci">Poništi</Link>
+                <Link href="/kupci">{t("common.reset")}</Link>
               </Button>
             </div>
           </form>
@@ -148,7 +156,7 @@ export default async function KupciPage({ searchParams }: PageProps) {
       {items.length === 0 ? (
         <Card>
           <CardContent className="py-12 text-center text-sm text-[var(--color-foreground-muted)]">
-            Nema kupaca koji odgovaraju izabranim filterima.
+            {t("crm.buyers.emptyFiltered")}
           </CardContent>
         </Card>
       ) : (
@@ -157,57 +165,61 @@ export default async function KupciPage({ searchParams }: PageProps) {
             <table className="min-w-full divide-y divide-[var(--color-border)] text-sm">
               <thead className="bg-[var(--color-surface-inset)] text-left text-xs uppercase tracking-wide text-[var(--color-foreground-muted)]">
                 <tr>
-                  <th className="px-4 py-3">Ime i prezime</th>
-                  <th className="px-4 py-3">Telefon</th>
-                  <th className="px-4 py-3">Status</th>
-                  <th className="px-4 py-3">Zadužen</th>
-                  <th className="px-4 py-3">KYC</th>
-                  <th className="px-4 py-3 text-right">Rezervacija</th>
-                  <th className="px-4 py-3 text-right">Kreiran</th>
+                  <th className="px-4 py-3">{t("auth.fullName")}</th>
+                  <th className="px-4 py-3">{t("common.phone")}</th>
+                  <th className="px-4 py-3">{t("common.statusLabel")}</th>
+                  <th className="px-4 py-3">{t("crm.buyers.assigned")}</th>
+                  <th className="px-4 py-3">{t("crm.buyers.kyc")}</th>
+                  <th className="px-4 py-3 text-right">{t("crm.buyers.reservationCol")}</th>
+                  <th className="px-4 py-3 text-right">{t("crm.buyers.created")}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[var(--color-border)]">
-                {items.map((b) => (
-                  <tr key={b.id} className="hover:bg-[var(--color-surface-inset)]">
-                    <td className="px-4 py-3">
-                      <Link
-                        href={`/kupci/${b.id}`}
-                        className="font-medium text-[var(--color-brand-700)] hover:underline"
-                      >
-                        {b.firstName} {b.lastName}
-                      </Link>
-                    </td>
-                    <td className="px-4 py-3 font-mono text-xs">{b.phone}</td>
-                    <td className="px-4 py-3">
-                      <span
-                        className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${BUYER_STATUS_TONE[b.status]}`}
-                      >
-                        {BUYER_STATUS_LABELS[b.status]}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-[var(--color-foreground-muted)]">
-                      {b.assignedUser?.name ?? "—"}
-                    </td>
-                    <td className="px-4 py-3">
-                      {(() => {
-                        const kyc = computeKycStatus(b.entityType, b.kycChecklist);
-                        return (
-                          <span
-                            className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${kyc.tone}`}
-                          >
-                            {kyc.label}
-                          </span>
-                        );
-                      })()}
-                    </td>
-                    <td className="px-4 py-3 text-right tabular-nums">
-                      {b._count.reservations}
-                    </td>
-                    <td className="px-4 py-3 text-right text-[var(--color-foreground-muted)]">
-                      {formatDate(b.createdAt)}
-                    </td>
-                  </tr>
-                ))}
+                {items.map((b) => {
+                  const kycComplete = computeKycComplete(b.entityType, b.kycChecklist);
+                  return (
+                    <tr key={b.id} className="hover:bg-[var(--color-surface-inset)]">
+                      <td className="px-4 py-3">
+                        <Link
+                          href={`/kupci/${b.id}`}
+                          className="font-medium text-[var(--color-brand-700)] hover:underline"
+                        >
+                          {b.firstName} {b.lastName}
+                        </Link>
+                      </td>
+                      <td className="px-4 py-3 font-mono text-xs">{b.phone}</td>
+                      <td className="px-4 py-3">
+                        <span
+                          className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${BUYER_STATUS_TONE[b.status]}`}
+                        >
+                          {buyerStatusLabel(b.status, t)}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-[var(--color-foreground-muted)]">
+                        {b.assignedUser?.name ?? "—"}
+                      </td>
+                      <td className="px-4 py-3">
+                        <span
+                          className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${
+                            kycComplete
+                              ? "bg-emerald-100 text-emerald-700"
+                              : "bg-amber-100 text-amber-700"
+                          }`}
+                        >
+                          {kycComplete
+                            ? t("crm.buyers.kycComplete")
+                            : t("crm.buyers.kycIncomplete")}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-right tabular-nums">
+                        {b._count.reservations}
+                      </td>
+                      <td className="px-4 py-3 text-right text-[var(--color-foreground-muted)]">
+                        {formatDate(b.createdAt)}
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -226,7 +238,7 @@ export default async function KupciPage({ searchParams }: PageProps) {
                     <span
                       className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${BUYER_STATUS_TONE[b.status]}`}
                     >
-                      {BUYER_STATUS_LABELS[b.status]}
+                      {buyerStatusLabel(b.status, t)}
                     </span>
                   </div>
                   <div className="flex items-center justify-between text-xs text-[var(--color-foreground-muted)]">
@@ -238,32 +250,40 @@ export default async function KupciPage({ searchParams }: PageProps) {
             ))}
           </div>
 
-          <Pagination page={page} totalPages={totalPages} />
+          <Pagination page={page} totalPages={totalPages} t={t} />
         </>
       )}
     </div>
   );
 }
 
-function Pagination({ page, totalPages }: { page: number; totalPages: number }) {
+function Pagination({
+  page,
+  totalPages,
+  t,
+}: {
+  page: number;
+  totalPages: number;
+  t: TranslateFn;
+}) {
   if (totalPages <= 1) return null;
   return (
     <div className="flex items-center justify-between text-sm">
       <span className="text-[var(--color-foreground-muted)]">
-        Strana {page} od {totalPages}
+        {t("crm.pagination.pageOf", { page, total: totalPages })}
       </span>
       <div className="flex gap-2">
         {page > 1 ? (
           <Button asChild variant="outline" size="sm">
             <Link href={{ pathname: "/kupci", query: { page: String(page - 1) } }}>
-              Prethodna
+              {t("crm.pagination.previous")}
             </Link>
           </Button>
         ) : null}
         {page < totalPages ? (
           <Button asChild variant="outline" size="sm">
             <Link href={{ pathname: "/kupci", query: { page: String(page + 1) } }}>
-              Sledeća
+              {t("crm.pagination.next")}
             </Link>
           </Button>
         ) : null}

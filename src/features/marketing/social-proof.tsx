@@ -1,24 +1,20 @@
+"use client";
+
 import { Mail, Phone, Building2, ShieldCheck } from "lucide-react";
 
-/**
- * Social proof section - pilot logos + founder + company card.
- *
- * The wording is intentionally conservative. We do NOT invent metrics
- * (X units, Y agencies, Z% conversion) until we have real data. Once
- * pilot clients are onboarded, replace each `PilotLogoSlot` with a
- * real `<Image>` element referencing `/images/landing/pilots/*.svg`.
- */
-
-const PILOT_SLOTS = [
-  "Investitor",
-  "Investitor",
-  "Agencija",
-  "Agencija",
-  "Investitor",
-  "Agencija",
-] as const;
+import { useT } from "@/components/app/i18n-provider";
 
 export function SocialProof() {
+  const t = useT();
+  const pilotSlots = [
+    t("marketing.proof.investor"),
+    t("marketing.proof.investor"),
+    t("marketing.proof.agency"),
+    t("marketing.proof.agency"),
+    t("marketing.proof.investor"),
+    t("marketing.proof.agency"),
+  ];
+
   return (
     <section
       aria-labelledby="proof-title"
@@ -27,34 +23,30 @@ export function SocialProof() {
       <div className="container-app py-16 sm:py-20">
         <div className="max-w-3xl">
           <div className="text-xs font-semibold uppercase tracking-wider text-[var(--color-brand-700)]">
-            Ko stoji iza proizvoda
+            {t("marketing.proof.eyebrow")}
           </div>
           <h2
             id="proof-title"
             className="mt-2 text-3xl font-bold tracking-tight sm:text-4xl"
           >
-            Razvijeno uz konsultacije sa investitorima i agentima
+            {t("marketing.proof.title")}
           </h2>
           <p className="mt-4 text-base leading-relaxed text-[var(--color-foreground-muted)]">
-            PropertyDesk gradimo direktno sa ljudima koji svakodnevno prodaju
-            novogradnju - investitorima koji vode više projekata paralelno i
-            agencijama koje treba da vide azurno stanje inventara u svakom
-            trenutku.
+            {t("marketing.proof.subtitle")}
           </p>
         </div>
 
         <div className="mt-10">
           <div className="mb-3 text-xs font-semibold uppercase tracking-wider text-[var(--color-foreground-subtle)]">
-            Pilot partneri
+            {t("marketing.proof.pilots")}
           </div>
           <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
-            {PILOT_SLOTS.map((label, i) => (
-              <PilotLogoSlot key={i} label={label} />
+            {pilotSlots.map((label, i) => (
+              <PilotLogoSlot key={i} label={label} slotAria={t("marketing.proof.slotAria")} yourLogo={t("marketing.proof.yourLogo")} />
             ))}
           </ul>
           <p className="mt-3 text-xs text-[var(--color-foreground-subtle)]">
-            Vaš logotip može biti ovde. Prijavite se za rani pristup i
-            postanite jedan od pilot partnera.
+            {t("marketing.proof.pilotsHint")}
           </p>
         </div>
 
@@ -67,15 +59,23 @@ export function SocialProof() {
   );
 }
 
-function PilotLogoSlot({ label }: { label: string }) {
+function PilotLogoSlot({
+  label,
+  slotAria,
+  yourLogo,
+}: {
+  label: string;
+  slotAria: string;
+  yourLogo: string;
+}) {
   return (
     <li
-      aria-label="Slot za logotip pilot partnera"
+      aria-label={slotAria}
       className="flex h-20 items-center justify-center rounded-lg border border-dashed border-[var(--color-border)] bg-[var(--color-surface-muted)] px-3"
     >
       <div className="text-center">
         <div className="text-sm font-semibold text-[var(--color-foreground-muted)]">
-          Vaš logo?
+          {yourLogo}
         </div>
         <div className="mt-0.5 text-[10px] uppercase tracking-wider text-[var(--color-foreground-subtle)]">
           {label}
@@ -86,6 +86,7 @@ function PilotLogoSlot({ label }: { label: string }) {
 }
 
 function FounderCard() {
+  const t = useT();
   return (
     <article className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-6 shadow-sm sm:p-8">
       <div className="flex flex-col gap-6 sm:flex-row sm:items-start">
@@ -97,16 +98,13 @@ function FounderCard() {
         </div>
         <div className="min-w-0">
           <div className="text-xs font-semibold uppercase tracking-wider text-[var(--color-brand-700)]">
-            Osnivač
+            {t("marketing.proof.founder")}
           </div>
           <h3 className="mt-1 text-xl font-bold text-[var(--color-foreground)]">
             Marko Banović
           </h3>
           <p className="mt-3 text-sm leading-relaxed text-[var(--color-foreground-muted)]">
-            Vodim razvoj PropertyDesk-a. Poslednjih godina sam blisko radio sa
-            investitorima i agencijama koje prodaju novogradnju - ovaj proizvod
-            je odgovor na iste probleme koje sam viđao iznova (Excel bez
-            verzija, Viber grupe za rezervacije, ručno računanje provizija).
+            {t("marketing.proof.founderBio")}
           </p>
           <ul className="mt-4 flex flex-wrap gap-x-5 gap-y-2 text-sm">
             <li>
@@ -135,6 +133,7 @@ function FounderCard() {
 }
 
 function CompanyCard() {
+  const t = useT();
   return (
     <article className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-brand-50)] p-6 shadow-sm sm:p-8">
       <div className="flex items-start gap-3">
@@ -146,7 +145,7 @@ function CompanyCard() {
         </span>
         <div>
           <div className="text-xs font-semibold uppercase tracking-wider text-[var(--color-brand-700)]">
-            Iza proizvoda
+            {t("marketing.proof.behind")}
           </div>
           <h3 className="mt-1 text-xl font-bold text-[var(--color-foreground)]">
             CraftedPixel
@@ -154,30 +153,20 @@ function CompanyCard() {
         </div>
       </div>
       <p className="mt-4 text-sm leading-relaxed text-[var(--color-foreground-muted)]">
-        PropertyDesk razvija{" "}
-        <a
-          href="https://getcraftedpixel.com"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="font-medium text-[var(--color-brand-700)] hover:underline"
-        >
-          CraftedPixel
-        </a>{" "}
-        - softverska firma iz Srbije specijalizovana za proizvode koji
-        rešavaju konkretne operativne probleme u B2B poslovanju.
+        {t("marketing.proof.companyBio")}
       </p>
       <div className="mt-5 flex flex-wrap items-center gap-3 text-xs text-[var(--color-foreground-muted)]">
         <span className="inline-flex items-center gap-1.5">
           <ShieldCheck aria-hidden className="size-4 text-[var(--color-brand-700)]" />
-          Podaci u EU regionu
+          {t("marketing.proof.dataEu")}
         </span>
         <span className="inline-flex items-center gap-1.5">
           <ShieldCheck aria-hidden className="size-4 text-[var(--color-brand-700)]" />
-          Enkripcija u tranzitu i mirovanju
+          {t("marketing.proof.encryption")}
         </span>
         <span className="inline-flex items-center gap-1.5">
           <ShieldCheck aria-hidden className="size-4 text-[var(--color-brand-700)]" />
-          Trajni audit dnevnik
+          {t("marketing.proof.audit")}
         </span>
       </div>
     </article>

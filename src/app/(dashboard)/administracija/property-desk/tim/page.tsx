@@ -6,6 +6,8 @@ import {
   listTeamMembers,
   type TeamMemberWithUser,
 } from "@/server/services/property-desk/team.service";
+import { createT } from "@/lib/i18n";
+import { resolveRequestLocale } from "@/lib/i18n/resolve-locale";
 
 import { PropertyDeskTeamManager } from "./manager";
 
@@ -20,13 +22,14 @@ export const dynamic = "force-dynamic";
  */
 export default async function PropertyDeskTeamPage() {
   const ctx = await requirePropertyDeskAccess();
+  const t = createT(await resolveRequestLocale());
   const canManage =
     ctx.isSuperAdmin || ctx.teamMember.teamRole === "MANAGER";
   if (!canManage) {
     return (
       <Card>
         <CardContent className="p-6 text-sm text-[var(--color-foreground-muted)]">
-          Nemate ovlašćenje da vidite listu Property Desk tima.
+          {t("admin.pdTeam.forbidden")}
         </CardContent>
       </Card>
     );
@@ -39,21 +42,19 @@ export default async function PropertyDeskTeamPage() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h2 className="text-lg font-semibold">Property Desk tim</h2>
+          <h2 className="text-lg font-semibold">{t("admin.pdTeam.title")}</h2>
           <p className="text-sm text-[var(--color-foreground-muted)]">
-            Interni tim za marketing i prodaju samog PropertyDesk SaaS
-            proizvoda. Ovo NIJE lista korisnika nekog tenanta — ovi članovi
-            rade na platformi. Novi nalog se pravi na{" "}
+            {t("admin.pdTeam.subtitle")}
             <a
               href="/administracija/korisnici"
               className="underline decoration-dotted hover:no-underline"
             >
-              Administracija → Korisnici
+              {t("admin.pdTeam.usersLink")}
             </a>
-            {" "}(Dodaj korisnika), pa se ovde doda u tim.
+            {t("admin.pdTeam.subtitle2")}
           </p>
         </div>
-        <Badge tone="info">Sloj C — Property Desk (internal team)</Badge>
+        <Badge tone="info">{t("admin.pdTeam.layerBadge")}</Badge>
       </div>
 
       <PropertyDeskTeamManager

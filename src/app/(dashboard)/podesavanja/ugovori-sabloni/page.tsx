@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { loadUserContext } from "@/server/auth/context";
 import { listContractTemplates } from "@/server/services/sales/contracts.service";
 import { ContractTemplatesManager } from "@/features/sales/contract-templates-manager";
+import { createT } from "@/lib/i18n";
 
 export const dynamic = "force-dynamic";
 
@@ -18,28 +19,28 @@ export default async function SaleContractTemplatesPage() {
   if (!ctx.permissions.includes("sale.manage")) {
     redirect("/podesavanja");
   }
+  const t = createT(ctx.user.locale);
 
   const rows = await listContractTemplates({
     organizationId: ctx.activeOrganization.id,
   });
 
-  const templates = rows.map((t) => ({
-    id: t.id,
-    kind: t.kind,
-    name: t.name,
-    description: t.description,
-    contentHtml: t.contentHtml,
-    isActive: t.isActive,
-    updatedAt: t.updatedAt.toISOString(),
+  const templates = rows.map((row) => ({
+    id: row.id,
+    kind: row.kind,
+    name: row.name,
+    description: row.description,
+    contentHtml: row.contentHtml,
+    isActive: row.isActive,
+    updatedAt: row.updatedAt.toISOString(),
   }));
 
   return (
     <div className="space-y-4">
       <div>
-        <h1 className="text-xl font-semibold">Šabloni ugovora</h1>
+        <h1 className="text-xl font-semibold">{t("ops.contracts.title")}</h1>
         <p className="text-sm text-[var(--color-foreground-muted)]">
-          Predugovori i ugovori sa <code>{`{{var}}`}</code> placeholder-ima —
-          generišu se u PDF na strani prodaje.
+          {t("ops.contracts.description")}
         </p>
       </div>
       <ContractTemplatesManager templates={templates} />

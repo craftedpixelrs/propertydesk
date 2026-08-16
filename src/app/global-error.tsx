@@ -1,13 +1,32 @@
 "use client";
 
 import * as Sentry from "@sentry/nextjs";
-import { useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
+
+import {
+  DEFAULT_LOCALE,
+  LOCALE_COOKIE,
+  htmlLang,
+  parseLocale,
+  t,
+  type Locale,
+} from "@/lib/i18n";
 
 /**
  * Root-level error boundary. Catches exceptions in the root layout —
  * because it replaces the entire document, it must render its own
  * `<html>` / `<body>` and cannot depend on `Providers` or i18n bootstrap.
  */
+function localeFromDocumentCookie(): Locale {
+  if (typeof document === "undefined") return DEFAULT_LOCALE;
+  const prefix = `${LOCALE_COOKIE}=`;
+  const raw = document.cookie
+    .split("; ")
+    .find((row) => row.startsWith(prefix))
+    ?.slice(prefix.length);
+  return parseLocale(raw) ?? DEFAULT_LOCALE;
+}
+
 export default function GlobalError({
   error,
   reset,
@@ -15,14 +34,32 @@ export default function GlobalError({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  const [locale, setLocale] = useState<Locale>(DEFAULT_LOCALE);
+
+  useEffect(() => {
+    setLocale(localeFromDocumentCookie());
+  }, []);
+
   useEffect(() => {
     // Forward the root-level crash to Sentry. `captureException` is a
     // no-op when the DSN is not configured.
     Sentry.captureException(error);
   }, [error]);
 
+  const copy = useMemo(
+    () => ({
+      kicker: t("pages.globalErrorKicker", undefined, locale),
+      title: t("pages.globalErrorTitle", undefined, locale),
+      body: t("pages.globalErrorBody", {
+        digest: error.digest ?? "—",
+      }, locale),
+      retry: t("common.retry", undefined, locale),
+    }),
+    [error.digest, locale],
+  );
+
   return (
-    <html lang="sr-Latn">
+    <html lang={htmlLang(locale)}>
       <body
         style={{
           margin: 0,
@@ -49,25 +86,13 @@ export default function GlobalError({
               color: "#dc2626",
             }}
           >
-            Kritična greška
+            {copy.kicker}
           </p>
           <h1 style={{ marginTop: 8, fontSize: 24, fontWeight: 600 }}>
-            Aplikacija je naišla na neočekivan problem
+            {copy.title}
           </h1>
           <p style={{ marginTop: 12, fontSize: 14, color: "#475569" }}>
-            Osvežite stranicu ili se vratite kasnije. Ako se problem ponavlja,
-            kontaktirajte podršku sa oznakom{" "}
-            <code
-              style={{
-                backgroundColor: "#e2e8f0",
-                padding: "2px 6px",
-                borderRadius: 4,
-                fontSize: 12,
-              }}
-            >
-              {error.digest ?? "N/A"}
-            </code>
-            .
+            {copy.body}
           </p>
           <div style={{ marginTop: 24 }}>
             <button
@@ -83,7 +108,7 @@ export default function GlobalError({
                 cursor: "pointer",
               }}
             >
-              Pokušaj ponovo
+              {copy.retry}
             </button>
           </div>
         </main>

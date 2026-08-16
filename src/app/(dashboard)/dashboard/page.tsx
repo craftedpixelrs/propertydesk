@@ -21,47 +21,13 @@ import { OnboardingChecklist } from "@/features/onboarding/onboarding-checklist"
 import { CashFlowCard } from "@/features/reports/cash-flow-card";
 import { formatDate, formatMoney } from "@/lib/formatters";
 import type { SupportedCurrency } from "@/lib/constants/app";
-import { t } from "@/lib/i18n";
-
-const UNIT_STATUS_LABELS: Record<string, string> = {
-  AVAILABLE: "Dostupno",
-  ON_HOLD: "Zadržano",
-  RESERVED: "Rezervisano",
-  DEPOSIT_PAID: "Kapara",
-  CONTRACTED: "Ugovoreno",
-  SOLD: "Prodato",
-  BLOCKED: "Blokirano",
-  NOT_FOR_SALE: "Nije u prodaji",
-};
+import { enumLabel, t, unitStatusLabel, type Locale } from "@/lib/i18n";
 
 export const dynamic = "force-dynamic";
 
-const RESERVATION_LABELS: Record<string, string> = {
-  REQUESTED: "Na čekanju",
-  APPROVED: "Odobrena",
-  REJECTED: "Odbijena",
-  EXPIRED: "Istekla",
-  CANCELED: "Otkazana",
-  CONVERTED: "Prodaja",
-};
-const SALE_LABELS: Record<string, string> = {
-  DRAFT: "Nacrt",
-  PRE_CONTRACT: "Predugovor",
-  CONTRACTED: "Ugovorena",
-  PAYMENT_IN_PROGRESS: "Plaćanje u toku",
-  PAID: "Plaćena",
-  HANDED_OVER: "Primopredato",
-  CANCELED: "Otkazana",
-};
-const REG_LABELS: Record<string, string> = {
-  PENDING: "Na čekanju",
-  APPROVED: "Odobrena",
-  REJECTED: "Odbijena",
-  EXPIRED: "Istekla",
-  CONVERTED: "Konvertovana",
-  CANCELED: "Otkazana",
-  CONFLICT_REVIEW: "Konflikt",
-};
+function saleStatusKey(status: string): string {
+  return status === "PRE_CONTRACT" ? "PRECONTRACT" : status;
+}
 
 export default async function DashboardPage() {
   const ctx = await loadUserContext();
@@ -84,22 +50,43 @@ export default async function DashboardPage() {
     redirect("/administracija/property-desk");
   }
 
+  const locale = ctx.user.locale;
+
   if (!ctx.activeOrganization) {
-    return <PageHeader title={t("nav.dashboard")} description={t("organization.noOrgSubtitle")} />;
+    return (
+      <PageHeader
+        title={t("nav.dashboard", undefined, locale)}
+        description={t("organization.noOrgSubtitle", undefined, locale)}
+      />
+    );
   }
 
   if (ctx.activeOrganization.type === "AGENCY") {
-    return <AgencyDashboard organizationId={ctx.activeOrganization.id} name={ctx.activeOrganization.name} />;
+    return (
+      <AgencyDashboard
+        organizationId={ctx.activeOrganization.id}
+        name={ctx.activeOrganization.name}
+        locale={locale}
+      />
+    );
   }
-  return <InvestorDashboard organizationId={ctx.activeOrganization.id} name={ctx.activeOrganization.name} />;
+  return (
+    <InvestorDashboard
+      organizationId={ctx.activeOrganization.id}
+      name={ctx.activeOrganization.name}
+      locale={locale}
+    />
+  );
 }
 
 async function InvestorDashboard({
   organizationId,
   name,
+  locale,
 }: {
   organizationId: string;
   name: string;
+  locale: Locale;
 }) {
   const [data, onboarding, cashflow] = await Promise.all([
     loadInvestorDashboard(organizationId),
@@ -111,8 +98,8 @@ async function InvestorDashboard({
   return (
     <div className="space-y-6">
       <PageHeader
-        title={t("nav.dashboard")}
-        description={`${t("organization.switcherLabel")}: ${name}`}
+        title={t("nav.dashboard", undefined, locale)}
+        description={`${t("organization.switcherLabel", undefined, locale)}: ${name}`}
       />
 
       {onboarding.visible ? (
@@ -128,23 +115,23 @@ async function InvestorDashboard({
 
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
         <StatCard
-          label={t("nav.projects")}
+          label={t("nav.projects", undefined, locale)}
           value={data.totals.projects}
           icon={<Building2 className="size-5" />}
         />
         <StatCard
-          label="Dostupno jedinica"
+          label={t("ui.dashboard.availableUnits", undefined, locale)}
           value={data.totals.unitsAvailable}
-          hint={`Od ${data.totals.unitsTotal}`}
+          hint={t("ui.dashboard.ofTotal", { total: data.totals.unitsTotal }, locale)}
           icon={<Building2 className="size-5" />}
         />
         <StatCard
-          label="Aktivne rezervacije"
+          label={t("ui.dashboard.activeReservations", undefined, locale)}
           value={data.totals.activeReservations}
           icon={<BadgeCheck className="size-5" />}
         />
         <StatCard
-          label={t("nav.sales")}
+          label={t("nav.sales", undefined, locale)}
           value={data.totals.activeSales}
           icon={<Handshake className="size-5" />}
         />
@@ -152,23 +139,23 @@ async function InvestorDashboard({
 
       <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
         <StatCard
-          label="Ukupna vrednost jedinica"
+          label={t("ui.dashboard.inventoryValue", undefined, locale)}
           value={formatMoney(data.financial.inventoryValueTotal, currency)}
-          hint="Katalog (basePrice), sve jedinice"
+          hint={t("ui.dashboard.inventoryValueHint", undefined, locale)}
           icon={<Wallet className="size-5" />}
         />
         <StatCard
-          label="Ugovoreno"
+          label={t("ui.dashboard.contracted", undefined, locale)}
           value={formatMoney(data.financial.salesContractedTotal, currency)}
           icon={<Wallet className="size-5" />}
         />
         <StatCard
-          label="Naplaćeno"
+          label={t("ui.dashboard.collected", undefined, locale)}
           value={formatMoney(data.financial.salesPaidTotal, currency)}
           icon={<Wallet className="size-5" />}
         />
         <StatCard
-          label="Preostalo"
+          label={t("ui.dashboard.outstanding", undefined, locale)}
           value={formatMoney(data.financial.salesOutstandingTotal, currency)}
           icon={<Wallet className="size-5" />}
         />
@@ -176,22 +163,22 @@ async function InvestorDashboard({
 
       <CashFlowCard
         projection={cashflow}
-        title="Cash-flow projekcija (12 meseci)"
-        description="Očekivano vs stvarno mesečno — brz uvid u dolazeće rate i naplaćenu istoriju."
+        title={t("ui.dashboard.cashFlowTitle", undefined, locale)}
+        description={t("ui.dashboard.cashFlowDescription", undefined, locale)}
       />
 
       <div className="grid gap-6 lg:grid-cols-2">
         <ChartCard
-          title="Zalihe po statusu"
-          description={`Ukupno ${data.totals.unitsTotal} jedinica.`}
+          title={t("ui.dashboard.inventoryByStatus", undefined, locale)}
+          description={t("ui.dashboard.unitsTotal", { total: data.totals.unitsTotal }, locale)}
           isEmpty={data.totals.unitsTotal === 0}
           height={260}
         >
           <StatusDonut
-            centerLabel="Ukupno"
+            centerLabel={t("ui.dashboard.total", undefined, locale)}
             data={data.inventoryByStatus.map((row) => ({
               key: row.status,
-              label: UNIT_STATUS_LABELS[row.status] ?? row.status,
+              label: unitStatusLabel(row.status, locale),
               value: row.count,
               color: unitStatusColor[row.status],
             }))}
@@ -199,15 +186,15 @@ async function InvestorDashboard({
         </ChartCard>
 
         <ChartCard
-          title="Prodaje po statusu"
-          description="Broj prodaja u trenutnom stanju."
+          title={t("ui.dashboard.salesByStatus", undefined, locale)}
+          description={t("ui.dashboard.salesByStatusHint", undefined, locale)}
           isEmpty={data.salesByStatus.reduce((a, b) => a + b.count, 0) === 0}
           height={260}
         >
           <CategoryBars
             data={data.salesByStatus.map((row) => ({
               key: row.status,
-              label: SALE_LABELS[row.status] ?? row.status,
+              label: enumLabel("sale", saleStatusKey(row.status), locale),
               value: row.count,
               color: saleStatusColor[row.status],
             }))}
@@ -218,14 +205,19 @@ async function InvestorDashboard({
       <div className="grid gap-6 lg:grid-cols-2">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-sm">Poslednje rezervacije</CardTitle>
+            <CardTitle className="text-sm">
+              {t("ui.dashboard.recentReservations", undefined, locale)}
+            </CardTitle>
             <Link href="/rezervacije" className="text-xs text-[var(--color-brand-700)] hover:underline">
-              Sve →
+              {t("ui.dashboard.viewAll", undefined, locale)}
             </Link>
           </CardHeader>
           <CardContent>
             {data.recentReservations.length === 0 ? (
-              <EmptyState title="Nema rezervacija" description="Nema stavki za prikaz." />
+              <EmptyState
+                title={t("ui.dashboard.noReservations", undefined, locale)}
+                description={t("ui.dashboard.noItems", undefined, locale)}
+              />
             ) : (
               <ul className="divide-y divide-[var(--color-border)]">
                 {data.recentReservations.map((r) => (
@@ -238,7 +230,7 @@ async function InvestorDashboard({
                     </Link>
                     <span className="text-[var(--color-foreground-muted)]">{r.buyerName}</span>
                     <span className="text-xs text-[var(--color-foreground-subtle)]">
-                      {RESERVATION_LABELS[r.status] ?? r.status}
+                      {enumLabel("reservation", r.status, locale)}
                     </span>
                     <span className="text-xs text-[var(--color-foreground-subtle)]">
                       {formatDate(r.createdAt)}
@@ -252,14 +244,19 @@ async function InvestorDashboard({
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-sm">Poslednje prodaje</CardTitle>
+            <CardTitle className="text-sm">
+              {t("ui.dashboard.recentSales", undefined, locale)}
+            </CardTitle>
             <Link href="/prodaje" className="text-xs text-[var(--color-brand-700)] hover:underline">
-              Sve →
+              {t("ui.dashboard.viewAll", undefined, locale)}
             </Link>
           </CardHeader>
           <CardContent>
             {data.recentSales.length === 0 ? (
-              <EmptyState title="Nema prodaja" description="Nema stavki za prikaz." />
+              <EmptyState
+                title={t("ui.dashboard.noSales", undefined, locale)}
+                description={t("ui.dashboard.noItems", undefined, locale)}
+              />
             ) : (
               <ul className="divide-y divide-[var(--color-border)]">
                 {data.recentSales.map((s) => (
@@ -272,7 +269,7 @@ async function InvestorDashboard({
                     </Link>
                     <span className="text-[var(--color-foreground-muted)]">{s.buyerName}</span>
                     <span className="text-xs text-[var(--color-foreground-subtle)]">
-                      {SALE_LABELS[s.status] ?? s.status}
+                      {enumLabel("sale", saleStatusKey(s.status), locale)}
                     </span>
                     <span className="text-xs font-medium">
                       {formatMoney(s.finalPrice, s.currency as SupportedCurrency)}
@@ -287,17 +284,23 @@ async function InvestorDashboard({
 
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="text-sm">Nadolazeće rate (14 dana)</CardTitle>
+          <CardTitle className="text-sm">
+            {t("ui.dashboard.upcomingInstallments", undefined, locale)}
+          </CardTitle>
           <div className="flex items-center gap-3 text-xs text-[var(--color-foreground-muted)]">
-            <span>Zadaci danas: {data.totals.tasksToday}</span>
-            <span>Prekoračeni: {data.totals.tasksOverdue}</span>
+            <span>
+              {t("ui.dashboard.tasksToday", { count: data.totals.tasksToday }, locale)}
+            </span>
+            <span>
+              {t("ui.dashboard.tasksOverdue", { count: data.totals.tasksOverdue }, locale)}
+            </span>
           </div>
         </CardHeader>
         <CardContent>
           {data.upcomingInstallments.length === 0 ? (
             <EmptyState
-              title="Nema nadolazećih rata"
-              description="U narednih 14 dana ne dospeva nijedna rata."
+              title={t("ui.dashboard.noUpcomingInstallments", undefined, locale)}
+              description={t("ui.dashboard.noUpcomingInstallmentsHint", undefined, locale)}
             />
           ) : (
             <ul className="divide-y divide-[var(--color-border)]">
@@ -331,9 +334,11 @@ async function InvestorDashboard({
 async function AgencyDashboard({
   organizationId,
   name,
+  locale,
 }: {
   organizationId: string;
   name: string;
+  locale: Locale;
 }) {
   const data = await loadAgencyDashboard(organizationId);
   const currency = data.financial.currency as SupportedCurrency;
@@ -341,28 +346,28 @@ async function AgencyDashboard({
   return (
     <div className="space-y-6">
       <PageHeader
-        title={t("nav.dashboard")}
-        description={`${t("organization.switcherLabel")}: ${name}`}
+        title={t("nav.dashboard", undefined, locale)}
+        description={`${t("organization.switcherLabel", undefined, locale)}: ${name}`}
       />
 
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
         <StatCard
-          label="Konekcije"
+          label={t("ui.dashboard.connections", undefined, locale)}
           value={data.totals.activeConnections}
           icon={<Handshake className="size-5" />}
         />
         <StatCard
-          label="Dostupni projekti"
+          label={t("ui.dashboard.accessibleProjects", undefined, locale)}
           value={data.totals.accessibleProjects}
           icon={<Store className="size-5" />}
         />
         <StatCard
-          label="Moji kupci"
+          label={t("ui.dashboard.myBuyers", undefined, locale)}
           value={data.totals.activeBuyers}
           icon={<Users className="size-5" />}
         />
         <StatCard
-          label="Provizije na čekanju"
+          label={t("ui.dashboard.pendingCommissions", undefined, locale)}
           value={data.totals.pendingCommissions}
           icon={<Wallet className="size-5" />}
         />
@@ -370,15 +375,15 @@ async function AgencyDashboard({
 
       <div className="grid gap-3 md:grid-cols-3">
         <StatCard
-          label="Izračunato"
+          label={t("ui.dashboard.commissionCalculated", undefined, locale)}
           value={formatMoney(data.financial.commissionCalculatedTotal, currency)}
         />
         <StatCard
-          label="Odobreno"
+          label={t("ui.dashboard.commissionApproved", undefined, locale)}
           value={formatMoney(data.financial.commissionApprovedTotal, currency)}
         />
         <StatCard
-          label="Isplaćeno"
+          label={t("ui.dashboard.commissionPaid", undefined, locale)}
           value={formatMoney(data.financial.commissionPaidTotal, currency)}
         />
       </div>
@@ -386,21 +391,26 @@ async function AgencyDashboard({
       <div className="grid gap-6 lg:grid-cols-2">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-sm">Poslednje prijave kupaca</CardTitle>
+            <CardTitle className="text-sm">
+              {t("ui.dashboard.recentRegistrations", undefined, locale)}
+            </CardTitle>
             <Link href="/moji-kupci" className="text-xs text-[var(--color-brand-700)] hover:underline">
-              Svi →
+              {t("ui.dashboard.viewAll", undefined, locale)}
             </Link>
           </CardHeader>
           <CardContent>
             {data.recentRegistrations.length === 0 ? (
-              <EmptyState title="Nema prijava" description="Prijavite kupca iz ponude." />
+              <EmptyState
+                title={t("ui.dashboard.noRegistrations", undefined, locale)}
+                description={t("ui.dashboard.noRegistrationsHint", undefined, locale)}
+              />
             ) : (
               <ul className="divide-y divide-[var(--color-border)]">
                 {data.recentRegistrations.map((r) => (
                   <li key={r.id} className="flex items-center justify-between py-2 text-sm">
                     <span className="font-medium">{r.buyerName}</span>
                     <span className="text-[var(--color-foreground-muted)]">{r.projectName}</span>
-                    <span className="text-xs">{REG_LABELS[r.status] ?? r.status}</span>
+                    <span className="text-xs">{enumLabel("registration", r.status, locale)}</span>
                     <span className="text-xs text-[var(--color-foreground-subtle)]">
                       {formatDate(r.createdAt)}
                     </span>
@@ -413,20 +423,25 @@ async function AgencyDashboard({
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-sm">Moje rezervacije</CardTitle>
+            <CardTitle className="text-sm">
+              {t("ui.dashboard.myReservations", undefined, locale)}
+            </CardTitle>
             <Link href="/moje-rezervacije" className="text-xs text-[var(--color-brand-700)] hover:underline">
-              Sve →
+              {t("ui.dashboard.viewAll", undefined, locale)}
             </Link>
           </CardHeader>
           <CardContent>
             {data.recentReservations.length === 0 ? (
-              <EmptyState title="Nema rezervacija" description="Nema stavki za prikaz." />
+              <EmptyState
+                title={t("ui.dashboard.noReservations", undefined, locale)}
+                description={t("ui.dashboard.noItems", undefined, locale)}
+              />
             ) : (
               <ul className="divide-y divide-[var(--color-border)]">
                 {data.recentReservations.map((r) => (
                   <li key={r.id} className="flex items-center justify-between py-2 text-sm">
                     <span className="font-medium">{r.unitCode}</span>
-                    <span className="text-xs">{RESERVATION_LABELS[r.status] ?? r.status}</span>
+                    <span className="text-xs">{enumLabel("reservation", r.status, locale)}</span>
                     <span className="text-xs text-[var(--color-foreground-subtle)]">
                       {formatDate(r.createdAt)}
                     </span>

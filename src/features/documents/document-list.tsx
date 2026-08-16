@@ -14,7 +14,9 @@ import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/app/empty-state";
+import { useT } from "@/components/app/i18n-provider";
 import { formatDate } from "@/lib/formatters";
+import type { TranslationKey } from "@/lib/i18n";
 
 /**
  * Serialisable shape passed from RSC into this client list. The parent
@@ -79,19 +81,6 @@ function iconFor(mimeType: string) {
   return FileIcon;
 }
 
-function humanSize(bytes: number): string {
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} kB`;
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-}
-
-const VISIBILITY_LABELS: Record<string, string> = {
-  INTERNAL: "Interno",
-  INVESTOR_TEAM: "Investitor",
-  AGENCY_SHARED: "Agencija",
-  BUYER_SHARED: "Kupac",
-};
-
 /**
  * Non-image variant of PhotoGallery. Renders a list with a file icon,
  * name, uploader and size, plus download / delete actions. Uploads
@@ -106,11 +95,12 @@ export function DocumentList({
   category,
   canManage,
   offerBuyerVisibility = false,
-  emptyTitle = "Nema dokumenata",
-  emptyDescription = "Otpremite ugovore, priloge i drugu dokumentaciju.",
+  emptyTitle,
+  emptyDescription,
   accept = DEFAULT_ACCEPT,
   hideUploadWhenNoPermission = false,
 }: Props) {
+  const t = useT();
   const router = useRouter();
   const inputRef = React.useRef<HTMLInputElement | null>(null);
   const [busy, setBusy] = React.useState(false);
@@ -118,6 +108,20 @@ export function DocumentList({
   const [buyerShared, setBuyerShared] = React.useState(false);
 
   const showUploadUi = canManage || !hideUploadWhenNoPermission;
+
+  function humanSize(bytes: number): string {
+    if (bytes < 1024) return t("ops.documents.sizeBytes", { n: bytes });
+    if (bytes < 1024 * 1024) {
+      return t("ops.documents.sizeKb", { n: (bytes / 1024).toFixed(1) });
+    }
+    return t("ops.documents.sizeMb", { n: (bytes / (1024 * 1024)).toFixed(1) });
+  }
+
+  function visibilityLabel(visibility: string) {
+    const key = `ops.documents.visibilityShort.${visibility}` as TranslationKey;
+    const out = t(key);
+    return out === key ? visibility : out;
+  }
 
   async function handleUpload(files: FileList | null) {
     if (!files || files.length === 0) return;
@@ -143,29 +147,29 @@ export function DocumentList({
             | { error?: { message?: string } }
             | null;
           throw new Error(
-            payload?.error?.message ?? "Otpremanje nije uspelo.",
+            payload?.error?.message ?? t("ops.documents.uploadFailed"),
           );
         }
       }
       if (inputRef.current) inputRef.current.value = "";
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Došlo je do greške.");
+      setError(err instanceof Error ? err.message : t("errors.generic"));
     } finally {
       setBusy(false);
     }
   }
 
   async function handleDelete(id: string, name: string) {
-    if (!confirm(`Obrisati dokument "${name}"?`)) return;
+    if (!confirm(t("ops.documents.deleteConfirm", { name }))) return;
     setBusy(true);
     setError(null);
     try {
       const res = await fetch(`/api/v1/documents/${id}`, { method: "DELETE" });
-      if (!res.ok) throw new Error("Brisanje nije uspelo.");
+      if (!res.ok) throw new Error(t("ops.documents.deleteFailed"));
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Došlo je do greške.");
+      setError(err instanceof Error ? err.message : t("errors.generic"));
     } finally {
       setBusy(false);
     }
@@ -189,7 +193,7 @@ export function DocumentList({
             loading={busy}
             onClick={() => inputRef.current?.click()}
           >
-            <Upload className="mr-1 size-4" /> Otpremi dokument
+            <Upload className="mr-1 size-4" /> {t("ops.documents.uploadButton")}
           </Button>
           {offerBuyerVisibility ? (
             <label className="flex items-center gap-1.5 text-xs text-[var(--color-foreground-muted)]">
@@ -198,11 +202,11 @@ export function DocumentList({
                 checked={buyerShared}
                 onChange={(e) => setBuyerShared(e.target.checked)}
               />
-              Deljivo sa kupcem
+              {t("ops.documents.shareWithBuyer")}
             </label>
           ) : null}
           <span className="ml-auto text-xs text-[var(--color-foreground-muted)]">
-            PDF, DOCX, XLSX, slike. Više fajlova odjednom.
+            {t("ops.documents.acceptHint")}
           </span>
         </div>
       ) : null}
@@ -214,7 +218,10 @@ export function DocumentList({
       ) : null}
 
       {documents.length === 0 ? (
-        <EmptyState title={emptyTitle} description={emptyDescription} />
+        <EmptyState
+          title={emptyTitle ?? t("ops.documents.emptyTitle")}
+          description={emptyDescription ?? t("ops.documents.emptyDescription")}
+        />
       ) : (
         <ul className="divide-y divide-[var(--color-border)] rounded-md border border-[var(--color-border)]">
           {documents.map((doc) => {
@@ -231,7 +238,7 @@ export function DocumentList({
                   </div>
                   <div className="text-xs text-[var(--color-foreground-muted)]">
                     {humanSize(doc.size)} ·{" "}
-                    {VISIBILITY_LABELS[doc.visibility] ?? doc.visibility}
+                    {visibilityLabel(doc.visibility)}
                     {doc.uploadedByName ? ` · ${doc.uploadedByName}` : ""} ·{" "}
                     {formatDate(doc.createdAt)}
                   </div>
@@ -241,8 +248,10 @@ export function DocumentList({
                   target="_blank"
                   rel="noopener"
                   className="rounded p-1.5 text-[var(--color-foreground-muted)] hover:bg-[var(--color-surface-inset)] hover:text-[var(--color-foreground)]"
-                  aria-label={`Preuzmi ${doc.originalFileName}`}
-                  title="Preuzmi"
+                  aria-label={t("ops.documents.downloadNamed", {
+                    name: doc.originalFileName,
+                  })}
+                  title={t("common.download")}
                 >
                   <Download className="size-4" />
                 </a>
@@ -253,8 +262,10 @@ export function DocumentList({
                       handleDelete(doc.id, doc.originalFileName)
                     }
                     className="rounded p-1.5 text-red-600 hover:bg-red-50"
-                    aria-label={`Obriši ${doc.originalFileName}`}
-                    title="Obriši"
+                    aria-label={t("ops.documents.deleteNamed", {
+                      name: doc.originalFileName,
+                    })}
+                    title={t("common.delete")}
                     disabled={busy}
                   >
                     <Trash2 className="size-4" />

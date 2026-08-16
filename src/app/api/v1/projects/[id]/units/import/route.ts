@@ -1,8 +1,11 @@
 import { z } from "zod";
+import { NextResponse } from "next/server";
 
 import { apiHandler } from "@/lib/api/handler";
 import { requirePermission } from "@/server/permissions/require";
 import {
+  buildImportTemplateCsv,
+  buildImportTemplateXlsx,
   commitRows,
   parseFile,
   validateRows,
@@ -61,6 +64,30 @@ const importBodySchema = z.discriminatedUnion("action", [
   commitSchema,
 ]);
 
+export const GET = apiHandler({ paramsSchema }, async ({ req }) => {
+  await requirePermission("inventory.import");
+  const format = req.nextUrl.searchParams.get("format") === "xlsx" ? "xlsx" : "csv";
+  if (format === "xlsx") {
+    const buffer = await buildImportTemplateXlsx();
+    return new NextResponse(new Uint8Array(buffer), {
+      headers: {
+        "content-type":
+          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        "content-disposition":
+          'attachment; filename="propertydesk-jedinice-sablon.xlsx"',
+      },
+    });
+  }
+  const csv = buildImportTemplateCsv();
+  return new NextResponse(csv, {
+    headers: {
+      "content-type": "text/csv; charset=utf-8",
+      "content-disposition":
+        'attachment; filename="propertydesk-jedinice-sablon.csv"',
+    },
+  });
+});
+
 export const POST = apiHandler(
   { paramsSchema, bodySchema: importBodySchema },
   async ({ body, params }) => {
@@ -105,6 +132,31 @@ export const POST = apiHandler(
 /**
  * @swagger
  * /api/v1/projects/{id}/units/import:
+ *   get:
+ *     tags:
+ *       - projects
+ *     summary: Preuzmi šablon za uvoz jedinica
+ *     description: |
+ *       **Auth:** `requirePermission("inventory.import")`
+ *       Vraća CSV ili XLSX sa kanonskim kolonama i primer redovima.
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: format
+ *         schema:
+ *           type: string
+ *           enum: [csv, xlsx]
+ *     responses:
+ *       "200":
+ *         description: Fajl šablona
+ *       "401":
+ *         $ref: "#/components/responses/Unauthenticated"
+ *       "403":
+ *         $ref: "#/components/responses/Forbidden"
  *   post:
  *     tags:
  *       - projects

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
+import { useT } from "@/components/app/i18n-provider";
 import { apiClient, ApiClientError } from "@/lib/api-client";
 
 interface Props {
@@ -12,6 +13,7 @@ interface Props {
 }
 
 export function PaymentRowActions({ paymentId, reversed }: Props) {
+  const t = useT();
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [showForm, setShowForm] = useState(false);
@@ -20,7 +22,7 @@ export function PaymentRowActions({ paymentId, reversed }: Props) {
 
   async function reverse() {
     if (!reason.trim()) {
-      setError("Unesite razlog storniranja.");
+      setError(t("deals.payments.reverseReasonRequired"));
       return;
     }
     setBusy(true);
@@ -31,14 +33,16 @@ export function PaymentRowActions({ paymentId, reversed }: Props) {
       setReason("");
       router.refresh();
     } catch (err) {
-      setError(err instanceof ApiClientError ? err.message : "Došlo je do greške.");
+      setError(err instanceof ApiClientError ? err.message : t("errors.generic"));
     } finally {
       setBusy(false);
     }
   }
 
   if (reversed) {
-    return <span className="text-xs text-[var(--color-foreground-muted)]">Stornirano</span>;
+    return (
+      <span className="text-xs text-[var(--color-foreground-muted)]">{t("deals.reversed")}</span>
+    );
   }
 
   return (
@@ -49,19 +53,19 @@ export function PaymentRowActions({ paymentId, reversed }: Props) {
           <input
             value={reason}
             onChange={(e) => setReason(e.target.value)}
-            placeholder="Razlog"
+            placeholder={t("deals.payments.reasonPlaceholder")}
             className="h-8 rounded-md border border-[var(--color-border)] px-2 text-xs"
           />
           <Button size="sm" variant="destructive" loading={busy} onClick={reverse}>
-            Potvrdi
+            {t("common.confirm")}
           </Button>
           <Button size="sm" variant="outline" onClick={() => setShowForm(false)}>
-            X
+            {t("common.close")}
           </Button>
         </div>
       ) : (
         <Button size="sm" variant="outline" onClick={() => setShowForm(true)}>
-          Storniraj
+          {t("deals.payments.reverse")}
         </Button>
       )}
     </div>

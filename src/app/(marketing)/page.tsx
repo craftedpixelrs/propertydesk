@@ -14,29 +14,29 @@ import { EarlyBirdBonuses } from "@/features/marketing/early-bird-bonuses";
 import { Roadmap } from "@/features/marketing/roadmap";
 import { PricingTeaser } from "@/features/marketing/pricing-teaser";
 import { LeadForm } from "@/features/marketing/lead-form";
-import { Faq } from "@/features/marketing/faq";
-import { FAQ_ITEMS } from "@/features/marketing/content";
+import { Faq, faqItems } from "@/features/marketing/faq";
+import { createT, htmlLang } from "@/lib/i18n";
+import { resolveRequestLocale } from "@/lib/i18n/resolve-locale";
 
-/**
- * Landing metadata overrides the root `title` so the home page shows the
- * full marketing headline in the browser tab and in shared previews.
- * All other tags (openGraph, twitter, robots) inherit from root layout.
- */
-export const metadata: Metadata = {
-  title: {
-    // `absolute` bypasses the root `template: "%s · PropertyDesk"` so the
-    // landing tab shows the full marketing headline without a trailing
-    // "· PropertyDesk" duplicate.
-    absolute: `${APP_NAME} - Softver za prodaju novogradnje | Investitori i agencije`,
-  },
-  description:
-    "Softver za investitore i agencije koje prodaju novogradnju: projekti, KYC kupaca, online rezervacija sa IPS QR kaparom, generator ugovora u PDF-u, planovi otplate, uplate, provizije, referral kod za agencije, javni sajt projekta, cash-flow projekcija i izveštaji. IPS QR, SEF, PDV 10%/2.5%, EUR/RSD. Lansiranje 01.09.2026 - prijave do lansiranja dobijaju 30 dana besplatno + 50% na naredna 3 meseca.",
-  alternates: {
-    canonical: "/",
-  },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const locale = await resolveRequestLocale();
+  const t = createT(locale);
+  return {
+    title: {
+      absolute: t("marketing.landing.metaHomeTitle", { name: APP_NAME }),
+    },
+    description: t("marketing.landing.metaHomeDescription"),
+    alternates: {
+      canonical: "/",
+    },
+  };
+}
 
-export default function LandingPage() {
+export default async function LandingPage() {
+  const locale = await resolveRequestLocale();
+  const t = createT(locale);
+  const faqs = faqItems(t);
+
   const orgJsonLd = {
     "@context": "https://schema.org",
     "@type": "Organization",
@@ -49,7 +49,7 @@ export default function LandingPage() {
         contactType: "customer support",
         email: "marko.banovic@craftedpixel.rs",
         telephone: "+381-65-43-63-142",
-        availableLanguage: ["Serbian"],
+        availableLanguage: locale === "en" ? ["English", "Serbian"] : ["Serbian"],
       },
     ],
   };
@@ -60,10 +60,9 @@ export default function LandingPage() {
     name: APP_NAME,
     applicationCategory: "BusinessApplication",
     operatingSystem: "Web",
-    inLanguage: "sr-Latn",
+    inLanguage: htmlLang(locale),
     url: MARKETING_URL,
-    description:
-      "Multi-tenant SaaS platforma za investitore u nekretnine i partnerske agencije. Projekti, jedinice, kupci, rezervacije, prodaje, planovi otplate, uplate, provizije, dokumenti i izveštaji - sa IPS QR i SEF integracijom.",
+    description: t("marketing.landing.softwareDescription"),
     softwareVersion: "1.0",
     datePublished: LAUNCH_DATE_ISO,
     offers: [
@@ -94,7 +93,7 @@ export default function LandingPage() {
   const faqJsonLd = {
     "@context": "https://schema.org",
     "@type": "FAQPage",
-    mainEntity: FAQ_ITEMS.map((item) => ({
+    mainEntity: faqs.map((item) => ({
       "@type": "Question",
       name: item.question,
       acceptedAnswer: {
@@ -123,7 +122,6 @@ export default function LandingPage() {
 
       <script
         type="application/ld+json"
-        // JSON-LD is inert data, not executable; safe to inline.
         dangerouslySetInnerHTML={{ __html: JSON.stringify(orgJsonLd) }}
       />
       <script

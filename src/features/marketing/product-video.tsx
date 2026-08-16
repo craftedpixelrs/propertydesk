@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { PlayCircle, Sparkles } from "lucide-react";
 
 import { PRODUCT_VIDEO_URL } from "@/lib/constants/app";
+import { useT } from "@/components/app/i18n-provider";
 
 /**
  * Extract the YouTube video id from any commonly-used URL shape:
@@ -62,6 +63,7 @@ function resolveMode(url: string): VideoMode {
  *      element with `preload="metadata"` and controls.
  */
 export function ProductVideo() {
+  const t = useT();
   const [loaded, setLoaded] = useState(false);
   const mode = useMemo<VideoMode>(() => resolveMode(PRODUCT_VIDEO_URL), []);
 
@@ -75,18 +77,16 @@ export function ProductVideo() {
         <div className="mx-auto max-w-3xl text-center">
           <div className="inline-flex items-center gap-2 rounded-full border border-[var(--color-brand-200)] bg-[var(--color-brand-50)] px-3 py-1 text-xs font-semibold uppercase tracking-wider text-[var(--color-brand-700)]">
             <Sparkles aria-hidden className="size-3.5" />
-            Video demo - 3 minuta
+            {t("marketing.video.eyebrow")}
           </div>
           <h2
             id="video-title"
             className="mt-3 text-3xl font-bold tracking-tight sm:text-4xl"
           >
-            Pogledajte kako izgleda vođenje projekta u realnom vremenu
+            {t("marketing.video.title")}
           </h2>
           <p className="mt-4 text-base leading-relaxed text-[var(--color-foreground-muted)]">
-            Od projekta i statusa jedinica, preko rezervacije i prodaje, do
-            uplate, portala partnerske agencije i izveštaja direktora - sve
-            u jednom kratkom pregledu.
+            {t("marketing.video.subtitle")}
           </p>
         </div>
 
@@ -94,7 +94,7 @@ export function ProductVideo() {
           <div
             className="relative aspect-video overflow-hidden rounded-2xl border border-[var(--color-border)] bg-neutral-950 shadow-sm"
             role="region"
-            aria-label="Video demo PropertyDesk-a"
+            aria-label={t("marketing.video.regionAria")}
           >
             {mode.kind === "youtube" ? (
               <YouTubeFacade
@@ -111,7 +111,7 @@ export function ProductVideo() {
                 muted
                 className="h-full w-full object-cover"
               >
-                Vaš pregledač ne podržava HTML5 video.
+                {t("marketing.video.unsupported")}
               </video>
             ) : (
               <VideoPlaceholder />
@@ -132,10 +132,11 @@ function YouTubeFacade({
   loaded: boolean;
   onLoad: () => void;
 }) {
+  const t = useT();
   if (loaded) {
     return (
       <iframe
-        title="Video demo PropertyDesk-a"
+        title={t("marketing.video.iframeTitle")}
         src={`https://www.youtube-nocookie.com/embed/${id}?autoplay=1&rel=0&modestbranding=1`}
         className="h-full w-full"
         loading="lazy"
@@ -149,7 +150,7 @@ function YouTubeFacade({
     <button
       type="button"
       onClick={onLoad}
-      aria-label="Pokreni video demo PropertyDesk-a"
+      aria-label={t("marketing.video.playAria")}
       className="group relative block h-full w-full cursor-pointer"
     >
       <img
@@ -171,6 +172,7 @@ function YouTubeFacade({
 }
 
 function VideoPlaceholder() {
+  const t = useT();
   return (
     <div className="absolute inset-0 flex flex-col items-center justify-center gap-5 bg-gradient-to-br from-[var(--color-brand-600)] to-[var(--color-brand-900)] px-6 text-center text-white">
       <span
@@ -180,10 +182,9 @@ function VideoPlaceholder() {
         <PlayCircle className="size-8" strokeWidth={1.5} />
       </span>
       <div className="max-w-lg">
-        <h3 className="text-xl font-semibold">Video demo stiže uskoro</h3>
+        <h3 className="text-xl font-semibold">{t("marketing.video.placeholderTitle")}</h3>
         <p className="mt-2 text-sm text-white/80">
-          Pripremamo kratak pregled proizvoda. Do tada, najbrži način da vidite
-          PropertyDesk uživo je 25-minutni personalizovan demo.
+          {t("marketing.video.placeholderBody")}
         </p>
       </div>
       <a
@@ -191,7 +192,7 @@ function VideoPlaceholder() {
         style={{ color: "#1d4ed8" }}
         className="inline-flex h-11 items-center justify-center gap-2 rounded-md bg-white px-5 text-sm font-semibold shadow-lg shadow-black/10 transition hover:bg-neutral-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-blue-900"
       >
-        Zakažite live demo
+        {t("marketing.video.bookLive")}
       </a>
     </div>
   );

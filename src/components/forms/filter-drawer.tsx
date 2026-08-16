@@ -12,7 +12,7 @@ import {
   DrawerTrigger,
 } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
-import { t } from "@/lib/i18n";
+import { useT } from "@/components/app/i18n-provider";
 
 export interface FilterDrawerProps {
   title?: string;
@@ -36,6 +36,7 @@ export function FilterDrawer({
   onApply,
   triggerLabel,
 }: FilterDrawerProps) {
+  const t = useT();
   return (
     <Drawer>
       <DrawerTrigger asChild>

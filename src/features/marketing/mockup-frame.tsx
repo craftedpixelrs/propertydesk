@@ -1,5 +1,8 @@
+"use client";
+
 import Image from "next/image";
 
+import { useT } from "@/components/app/i18n-provider";
 import { cn } from "@/lib/utils";
 
 /**
@@ -50,10 +53,12 @@ export function MockupFrame({
   alt,
   width,
   height,
-  label = "Prikaz uskoro",
+  label,
   priority,
   className,
 }: MockupFrameProps) {
+  const t = useT();
+  const resolvedLabel = label ?? t("marketing.mockup.comingSoon");
   if (variant === "mobile") {
     if (src) {
       const dims = { width: width ?? DEFAULT_MOBILE_SIZE.width, height: height ?? DEFAULT_MOBILE_SIZE.height };
@@ -67,7 +72,7 @@ export function MockupFrame({
         >
           <Image
             src={src}
-            alt={alt ?? "PropertyDesk mobilni prikaz"}
+            alt={alt ?? t("marketing.mockup.mobileAlt")}
             width={dims.width}
             height={dims.height}
             priority={priority}
@@ -80,7 +85,7 @@ export function MockupFrame({
     return (
       <div
         role="img"
-        aria-label={`Prikaz mobilnog interfejsa PropertyDesk - ${label}`}
+        aria-label={t("marketing.mockup.mobileAria", { label: resolvedLabel })}
         className={cn(
           "relative mx-auto w-[220px] sm:w-[260px]",
           "aspect-[9/19] overflow-hidden rounded-[2.25rem] border-[10px] border-[var(--color-foreground)] bg-[var(--color-surface)] shadow-2xl",
@@ -92,7 +97,7 @@ export function MockupFrame({
           <div className="space-y-2">
             <div className="mx-auto h-8 w-8 rounded-md bg-[var(--color-brand-600)]/10" />
             <div className="text-xs font-medium text-[var(--color-foreground-muted)]">
-              {label}
+              {resolvedLabel}
             </div>
           </div>
         </div>
@@ -112,7 +117,7 @@ export function MockupFrame({
       >
         <Image
           src={src}
-          alt={alt ?? "PropertyDesk kontrolna tabla"}
+            alt={alt ?? t("marketing.mockup.desktopAlt")}
           width={dims.width}
           height={dims.height}
           priority={priority}
@@ -126,7 +131,7 @@ export function MockupFrame({
   return (
     <div
       role="img"
-      aria-label={`Prikaz desktop interfejsa PropertyDesk - ${label}`}
+      aria-label={t("marketing.mockup.desktopAria", { label: resolvedLabel })}
       className={cn(
         "relative w-full max-w-2xl overflow-hidden rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] shadow-xl",
         className,
@@ -144,10 +149,10 @@ export function MockupFrame({
         <div className="space-y-3 text-center">
           <div className="mx-auto h-12 w-12 rounded-lg bg-[var(--color-brand-600)]/10" />
           <div className="text-sm font-medium text-[var(--color-foreground-muted)]">
-            {label}
+            {resolvedLabel}
           </div>
           <div className="mx-auto max-w-xs text-xs text-[var(--color-foreground-subtle)]">
-            Ovde će biti prikaz kontrolne table sa projektima, prodajama i uplatama.
+            {t("marketing.mockup.desktopHint")}
           </div>
         </div>
       </div>

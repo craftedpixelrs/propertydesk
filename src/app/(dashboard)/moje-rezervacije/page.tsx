@@ -5,18 +5,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { loadUserContext } from "@/server/auth/context";
 import { prisma } from "@/server/db/prisma";
 import { formatDate } from "@/lib/formatters";
+import { createT, enumLabel } from "@/lib/i18n";
 import type { ReservationStatus } from "@prisma/client";
 
 export const dynamic = "force-dynamic";
-
-const STATUS_LABELS: Record<ReservationStatus, string> = {
-  REQUESTED: "Traženo",
-  APPROVED: "Odobreno",
-  REJECTED: "Odbijeno",
-  EXPIRED: "Isteklo",
-  CANCELED: "Otkazano",
-  CONVERTED: "Prodato",
-};
 
 const STATUS_TONE: Record<ReservationStatus, string> = {
   REQUESTED: "bg-amber-100 text-amber-700",
@@ -33,6 +25,7 @@ export default async function MojeRezervacijePage() {
   if (!ctx.activeOrganization) redirect("/podesavanja");
   if (ctx.activeOrganization.type !== "AGENCY") redirect("/dashboard");
 
+  const t = createT(ctx.user.locale);
   const reservations = await prisma.reservation.findMany({
     where: {
       agencyOrganizationId: ctx.activeOrganization.id,
@@ -48,31 +41,33 @@ export default async function MojeRezervacijePage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold">Moje rezervacije</h1>
+        <h1 className="text-2xl font-semibold">{t("nav.myReservations")}</h1>
         <p className="text-sm text-[var(--color-foreground-muted)]">
-          Sve rezervacije koje je Vaša agencija kreirala kroz portal.
+          {t("deals.reservations.mySubtitle")}
         </p>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-sm">Ukupno: {reservations.length}</CardTitle>
+          <CardTitle className="text-sm">
+            {t("deals.reservations.totalCount", { count: reservations.length })}
+          </CardTitle>
         </CardHeader>
         <CardContent className="p-0">
           {reservations.length === 0 ? (
             <div className="py-12 text-center text-sm text-[var(--color-foreground-muted)]">
-              Nema rezervacija.
+              {t("deals.reservations.empty")}
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-[var(--color-border)] text-sm">
                 <thead className="bg-[var(--color-surface-inset)] text-left text-xs uppercase tracking-wide text-[var(--color-foreground-muted)]">
                   <tr>
-                    <th className="px-4 py-3">Jedinica</th>
-                    <th className="px-4 py-3">Projekat</th>
-                    <th className="px-4 py-3">Status</th>
-                    <th className="px-4 py-3">Važi do</th>
-                    <th className="px-4 py-3">Kreirano</th>
+                    <th className="px-4 py-3">{t("deals.unit")}</th>
+                    <th className="px-4 py-3">{t("units.columns.project")}</th>
+                    <th className="px-4 py-3">{t("common.statusLabel")}</th>
+                    <th className="px-4 py-3">{t("deals.validUntil")}</th>
+                    <th className="px-4 py-3">{t("deals.created")}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[var(--color-border)]">
@@ -91,7 +86,7 @@ export default async function MojeRezervacijePage() {
                         <span
                           className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_TONE[r.status]}`}
                         >
-                          {STATUS_LABELS[r.status]}
+                          {enumLabel("reservation", r.status, t)}
                         </span>
                       </td>
                       <td className="px-4 py-3 text-[var(--color-foreground-muted)]">

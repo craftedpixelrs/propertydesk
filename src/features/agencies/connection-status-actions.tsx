@@ -6,6 +6,7 @@ import type { AgencyConnectionStatus } from "@prisma/client";
 
 import { Button } from "@/components/ui/button";
 import { apiClient, ApiClientError } from "@/lib/api-client";
+import { useT } from "@/components/app/i18n-provider";
 
 export function ConnectionStatusActions({
   connectionId,
@@ -14,12 +15,13 @@ export function ConnectionStatusActions({
   connectionId: string;
   status: AgencyConnectionStatus;
 }) {
+  const t = useT();
   const router = useRouter();
   const [loading, setLoading] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   async function run(action: "SUSPEND" | "REACTIVATE" | "TERMINATE") {
-    if (action === "TERMINATE" && !confirm("Da li ste sigurni da želite da prekinete konekciju?")) {
+    if (action === "TERMINATE" && !confirm(t("partners.connectionActions.terminateConfirm"))) {
       return;
     }
     setError(null);
@@ -28,7 +30,7 @@ export function ConnectionStatusActions({
       await apiClient.post(`/agencies/${connectionId}/status`, { action });
       router.refresh();
     } catch (err) {
-      setError(err instanceof ApiClientError ? err.message : "Došlo je do greške.");
+      setError(err instanceof ApiClientError ? err.message : t("errors.generic"));
     } finally {
       setLoading(null);
     }
@@ -43,7 +45,7 @@ export function ConnectionStatusActions({
           onClick={() => run("SUSPEND")}
           loading={loading === "SUSPEND"}
         >
-          Suspenduj
+          {t("partners.connectionActions.suspend")}
         </Button>
       ) : null}
       {status === "SUSPENDED" ? (
@@ -52,7 +54,7 @@ export function ConnectionStatusActions({
           onClick={() => run("REACTIVATE")}
           loading={loading === "REACTIVATE"}
         >
-          Reaktiviraj
+          {t("partners.connectionActions.reactivate")}
         </Button>
       ) : null}
       {status !== "TERMINATED" ? (
@@ -63,7 +65,7 @@ export function ConnectionStatusActions({
           loading={loading === "TERMINATE"}
           className="text-red-600 hover:bg-red-50"
         >
-          Prekini
+          {t("partners.connectionActions.terminate")}
         </Button>
       ) : null}
       {error ? <span className="text-xs text-red-600">{error}</span> : null}

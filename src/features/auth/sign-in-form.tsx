@@ -8,9 +8,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { FormActions } from "@/components/forms/form-actions";
-import { t } from "@/lib/i18n";
+import { useI18n } from "@/components/app/i18n-provider";
+import { apiClient } from "@/lib/api-client";
 
 export function SignInForm() {
+  const { t, locale } = useI18n();
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -26,6 +28,11 @@ export function SignInForm() {
       if (res.error) {
         setError(res.error.message ?? t("errors.generic"));
         return;
+      }
+      try {
+        await apiClient.patch("/me", { locale });
+      } catch {
+        // Cookie already holds the guest choice.
       }
       router.push("/dashboard");
       router.refresh();

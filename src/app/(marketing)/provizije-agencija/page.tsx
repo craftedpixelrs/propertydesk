@@ -8,59 +8,51 @@ import {
   buildLandingMetadata,
   LandingJsonLd,
 } from "@/features/marketing/landing/landing-shell";
+import { createT, type TranslateFn } from "@/lib/i18n";
+import { resolveRequestLocale } from "@/lib/i18n/resolve-locale";
 
-const META = {
-  slug: "provizije-agencija",
-  title: "Automatske provizije agencija za nekretnine",
-  description:
-    "Pravila po projektu, jedinici i agenciji. Snapshot iznosa provizije u trenutku ugovora - bez kasnijih izmena i nesporazuma. Jasan tok od izračunavanja do isplate, sa portalom za svaku partnersku agenciju.",
-};
+function pairs(t: TranslateFn) {
+  return [1, 2, 3, 4].map((n) => ({
+    problem: t(`marketing.pages.commissions.p${n}` as `marketing.pages.commissions.p1`),
+    solution: t(`marketing.pages.commissions.s${n}` as `marketing.pages.commissions.s1`),
+  }));
+}
 
-export const metadata: Metadata = buildLandingMetadata(META);
+export async function generateMetadata(): Promise<Metadata> {
+  const locale = await resolveRequestLocale();
+  const t = createT(locale);
+  return buildLandingMetadata({
+    slug: "provizije-agencija",
+    title: t("marketing.pages.commissions.metaTitle"),
+    description: t("marketing.pages.commissions.metaDescription"),
+    locale,
+  });
+}
 
-const PAIRS = [
-  {
-    problem:
-      "Različiti procenti provizije po projektu, agenciji ili tipu jedinice - ručno računanje ne skalira.",
-    solution:
-      "Pravila su definisana u sistemu: po projektu, jedinici i konkretnoj agenciji. Sistem računa iznos automatski.",
-  },
-  {
-    problem:
-      "Investitor kasnije menja proviziju - agencija se buni. Sud, tužba, prekid saradnje.",
-    solution:
-      "Snapshot iznosa provizije se zaključava u trenutku ugovora. Kasnije izmene pravila ne utiču na već ugovorene prodaje.",
-  },
-  {
-    problem:
-      "Isplata kasni jer se čeka Excel od finansija, verifikacija od direktora, ponovna verifikacija od agencije.",
-    solution:
-      "Portal agencije prikazuje realan status svake stavke - ugovorena, aktivna, dospela za isplatu, isplaćena.",
-  },
-  {
-    problem:
-      "Agencija ne vidi kada je kupac uplatio - ne zna kada da očekuje proviziju.",
-    solution:
-      "Agencija vidi status uplata svojih prodaja u realnom vremenu - bez pozivanja investitora.",
-  },
-];
+export default async function Page() {
+  const locale = await resolveRequestLocale();
+  const t = createT(locale);
 
-export default function Page() {
   return (
     <>
       <PageHero
-        eyebrow="Provizije agencija"
+        eyebrow={t("marketing.pages.commissions.eyebrow")}
         icon={BadgeCheck}
-        title="Provizije koje se same računaju i same isplaćuju"
-        subtitle="Definišete pravila jednom - PropertyDesk primenjuje ih na svaku novu prodaju, čuva snapshot u trenutku ugovora i vodi agenciju kroz jasan tok od izračunavanja do isplate. Bez tabela i bez trvenja."
+        title={t("marketing.pages.commissions.title")}
+        subtitle={t("marketing.pages.commissions.subtitle")}
       />
       <ProblemSolutionGrid
-        title="4 klasična problema koja gube saradnje sa agencijama"
-        subtitle="Ako ste ikad imali neispravnu isplatu provizije ili spor sa agencijom, verovatno je uzrok bio jedan od ovih. PropertyDesk uklanja sve četiri."
-        items={PAIRS}
+        title={t("marketing.pages.commissions.gridTitle")}
+        subtitle={t("marketing.pages.commissions.gridSubtitle")}
+        items={pairs(t)}
       />
       <CtaPanel />
-      <LandingJsonLd {...META} />
+      <LandingJsonLd
+        slug="provizije-agencija"
+        title={t("marketing.pages.commissions.metaTitle")}
+        description={t("marketing.pages.commissions.metaDescription")}
+        locale={locale}
+      />
     </>
   );
 }
