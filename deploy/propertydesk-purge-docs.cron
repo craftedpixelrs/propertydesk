@@ -1,0 +1,3 @@
+SHELL=/bin/bash
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+0 4 * * * root docker exec propertydesk-app sh -c 'wget -qO- --header="x-cron-secret: $CRON_SECRET" --post-data="" http://127.0.0.1:3000/api/v1/jobs/purge-deleted-documents' >/dev/null
