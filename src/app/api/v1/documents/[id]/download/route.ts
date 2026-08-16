@@ -35,7 +35,10 @@ export const GET = apiHandler({ paramsSchema }, async ({ params }) => {
     });
   }
 
-  return { data: { url } };
+  // S3 (and other remote providers) return a time-limited signed URL.
+  // Gallery <img> and document <a href> need a real file, not JSON —
+  // redirect so the browser loads bytes from the bucket.
+  return NextResponse.redirect(url, 302);
 });
 
 /**
