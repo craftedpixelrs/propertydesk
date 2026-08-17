@@ -22,6 +22,14 @@ describe("t()", () => {
     expect(t("common.comingSoon")).toBe("Uskoro");
   });
 
+  it("covers billing lock-screen and trial-edit copy", () => {
+    expect(t("admin.newOrg.trialDaysHintExpired")).toContain("Istekao");
+    expect(t("admin.orgBilling.issueInvoice")).toBe("Izdaj fakturu sada");
+    expect(t("orgProfile.openUnpaidInvoice")).toBe("Otvori neplaćenu fakturu");
+    expect(t("ops.subscription.trialEnded")).toBe("Probni period istekao:");
+    expect(t("admin.orgBilling.issueInvoice", undefined, "en")).toBe("Issue invoice now");
+  });
+
   it("falls back to Serbian when an English key is missing", () => {
     expect(t("nav.signOut", undefined, "en")).toBe("Sign out");
   });

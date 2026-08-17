@@ -20,6 +20,7 @@ export interface SubscriptionActionsPanelProps {
   currentPlanCode: string;
   currentCycle: string;
   plans: Plan[];
+  canIssueInvoice: boolean;
 }
 
 const CYCLES = ["MONTHLY", "QUARTERLY", "SEMI_ANNUAL", "ANNUAL"] as const;
@@ -120,6 +121,17 @@ export function SubscriptionActionsPanel(props: SubscriptionActionsPanelProps) {
             }}
           >
             {t("admin.orgBilling.cancel")}
+          </Button>
+          <Button
+            disabled={busy || !props.canIssueInvoice}
+            onClick={() => post("issue-invoice", {})}
+            title={
+              props.canIssueInvoice
+                ? undefined
+                : t("admin.orgBilling.issueInvoiceDone")
+            }
+          >
+            {t("admin.orgBilling.issueInvoice")}
           </Button>
         </div>
 

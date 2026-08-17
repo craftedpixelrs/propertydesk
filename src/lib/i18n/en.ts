@@ -174,8 +174,12 @@ export const en: Dictionary = {
     savedAndReady: "Profile saved. You can use the app now.",
     restrictedTitle: "Access is restricted",
     restrictedBody:
-      "The trial or subscription has expired. The app is locked until an administrator activates a plan. You can view the subscription and contact support.",
+      "The trial or subscription has expired. The app is locked until a plan is activated or the invoice is paid. You can open the unpaid invoice and view the subscription.",
     restrictedCta: "Open subscription",
+    openUnpaidInvoice: "Open unpaid invoice",
+    unpaidInvoice: "Unpaid invoice {{number}} — due {{amount}}",
+    noUnpaidInvoice:
+      "No invoice has been issued yet. Once an administrator issues one, you will be able to open it here.",
   },
 
   validation: {

@@ -39,6 +39,12 @@ export default async function TenantInvoiceDetailPage({
 
   return (
     <section className="space-y-6">
+      <Link
+        href="/podesavanja/fakture"
+        className="text-sm text-[var(--color-brand-700)] hover:underline"
+      >
+        {t("common.back")}
+      </Link>
       <header className="flex items-start justify-between">
         <div>
           <h2 className="text-lg font-semibold">

@@ -9,6 +9,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { apiClient, ApiClientError } from "@/lib/api-client";
 import { toast } from "sonner";
 import { useT } from "@/components/app/i18n-provider";
+import { formatDate } from "@/lib/formatters/date";
 
 interface PlanOption {
   code: string;
@@ -32,7 +33,9 @@ export interface OrganizationFormValues {
   website: string;
   planCode: string;
   status: "TRIAL" | "ACTIVE" | "RESTRICTED" | "SUSPENDED" | "CLOSED";
-  trialDays: number;
+  trialDays?: number;
+  trialEndsAt?: string | null;
+  originalTrialDays?: number | null;
 }
 
 interface OrganizationFormProps {
@@ -92,7 +95,12 @@ export function NewOrganizationForm({
       website: String(fd.get("website") ?? "").trim() || null,
       planCode: String(fd.get("planCode") ?? plans[0]?.code ?? "trial"),
       status: String(fd.get("status") ?? "TRIAL") as OrganizationFormValues["status"],
-      trialDays: Number.parseInt(String(fd.get("trialDays") ?? "30"), 10) || 0,
+      trialDays: (() => {
+        const raw = String(fd.get("trialDays") ?? "").trim();
+        if (!raw) return isEdit ? null : 30;
+        const parsed = Number.parseInt(raw, 10);
+        return Number.isFinite(parsed) ? parsed : null;
+      })(),
     };
 
     const missing: Record<string, string[]> = {};
@@ -110,6 +118,8 @@ export function NewOrganizationForm({
       if (isEdit && organizationId) {
         await apiClient.patch(`/platform/organizations/${organizationId}`, payload);
         toast.success(t("admin.newOrg.updated"));
+        router.refresh();
+        return;
       } else {
         await apiClient.post("/platform/organizations", payload);
         toast.success(t("admin.newOrg.created"));
@@ -129,7 +139,15 @@ export function NewOrganizationForm({
   }
 
   return (
-    <form onSubmit={onSubmit} className="space-y-4">
+    <form
+      key={
+        isEdit
+          ? `${organizationId}-${initialValues?.trialDays ?? ""}-${initialValues?.trialEndsAt ?? ""}-${initialValues?.status ?? ""}`
+          : "create"
+      }
+      onSubmit={onSubmit}
+      className="space-y-4"
+    >
       {error ? (
         <Alert tone="danger">
           <AlertTitle>{t("admin.errorTitle")}</AlertTitle>
@@ -217,8 +235,26 @@ export function NewOrganizationForm({
             type="number"
             min={0}
             max={365}
-            defaultValue={initialValues?.trialDays ?? 30}
+            defaultValue={
+              isEdit
+                ? (initialValues?.trialDays ?? "")
+                : (initialValues?.trialDays ?? 30)
+            }
           />
+          {isEdit ? (
+            <p className="mt-1 text-xs text-[var(--color-foreground-muted)]">
+              {initialValues?.trialEndsAt
+                ? new Date(initialValues.trialEndsAt).getTime() > Date.now()
+                  ? t("admin.newOrg.trialDaysHintActive", {
+                      date: formatDate(initialValues.trialEndsAt),
+                    })
+                  : t("admin.newOrg.trialDaysHintExpired", {
+                      date: formatDate(initialValues.trialEndsAt),
+                      days: initialValues.originalTrialDays ?? initialValues.trialDays ?? 0,
+                    })
+                : t("admin.newOrg.trialDaysHintNone")}
+            </p>
+          ) : null}
           <FieldError messages={fieldErrors.trialDays} />
         </div>
         <div>

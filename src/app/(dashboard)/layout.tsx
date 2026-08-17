@@ -1,3 +1,4 @@
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
 
@@ -30,7 +31,13 @@ export default async function DashboardLayout({ children }: { children: ReactNod
     ctx.activeOrganization?.status === "RESTRICTED"
   ) {
     lockNav = true;
-    gatedChildren = (
+    const pathname = (await headers()).get("x-pathname") ?? "";
+    const billingPath =
+      pathname === "/podesavanja/pretplata" ||
+      pathname.startsWith("/podesavanja/fakture");
+    gatedChildren = billingPath ? (
+      children
+    ) : (
       <RestrictedAccessPanel organizationId={ctx.activeOrganization.id} />
     );
   } else if (!ctx.isSuperAdmin && ctx.activeOrganization?.type === "INVESTOR") {

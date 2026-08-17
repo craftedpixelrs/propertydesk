@@ -47,6 +47,12 @@ export default async function SubscriptionPage() {
 
     return (
       <div className="space-y-6">
+        <Link
+          href="/dashboard"
+          className="text-sm text-[var(--color-brand-700)] hover:underline"
+        >
+          {t("common.back")}
+        </Link>
         <Card>
           <CardHeader className="flex-row items-center justify-between">
             <div>

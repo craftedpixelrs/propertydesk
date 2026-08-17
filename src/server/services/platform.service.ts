@@ -23,6 +23,7 @@ import {
   type OrganizationRole,
 } from "@/server/permissions/roles";
 import { normalizeWebsite } from "@/server/services/organization-profile-completeness";
+import { addDays, remainingTrialDays } from "@/server/services/subscriptions/trial-days";
 
 /**
  * Platform administration service. Callers must be SUPER_ADMIN.
@@ -518,9 +519,17 @@ export async function updateOrganizationByPlatformAdmin(
   }
 
   const previousStatus = existing.profile?.status ?? "TRIAL";
-  const nextStatus: OrganizationStatus = input.status ?? previousStatus;
+  let nextStatus: OrganizationStatus = input.status ?? previousStatus;
   const website = normalizeWebsite(input.website);
   const now = new Date();
+  const currentRemaining = remainingTrialDays(existing.subscription?.trialEndsAt, now);
+  const requestedDays = input.trialDays ?? null;
+  const trialChanged =
+    requestedDays != null &&
+    (currentRemaining == null ? requestedDays > 0 : requestedDays !== currentRemaining);
+  if (trialChanged && requestedDays > 0 && (nextStatus === "RESTRICTED" || nextStatus === "TRIAL")) {
+    nextStatus = "TRIAL";
+  }
 
   const profileData = {
     type: input.type,
@@ -555,10 +564,7 @@ export async function updateOrganizationByPlatformAdmin(
       });
     }
 
-    const trialEndsAt =
-      nextStatus === "TRIAL" && input.trialDays != null
-        ? new Date(now.getTime() + input.trialDays * 24 * 60 * 60 * 1000)
-        : undefined;
+    const trialEndsAt = trialChanged && requestedDays != null ? addDays(now, requestedDays) : undefined;
 
     const subPatch: Prisma.OrganizationSubscriptionUncheckedUpdateInput = {
       ...subscriptionStatusForOrgStatus(nextStatus),
@@ -570,7 +576,13 @@ export async function updateOrganizationByPlatformAdmin(
               : {}),
           }
         : {}),
-      ...(trialEndsAt ? { trialEndsAt } : {}),
+      ...(trialEndsAt
+        ? {
+            trialEndsAt,
+            trialStartsAt: existing.subscription?.trialStartsAt ?? now,
+            ...(nextStatus === "TRIAL" ? { restrictedAt: null } : {}),
+          }
+        : {}),
     };
 
     if (existing.subscription) {
@@ -613,6 +625,7 @@ export async function updateOrganizationByPlatformAdmin(
       type: input.type,
       status: nextStatus,
       planCode: plan.code,
+      ...(trialChanged ? { trialDays: requestedDays } : {}),
     },
   });
 

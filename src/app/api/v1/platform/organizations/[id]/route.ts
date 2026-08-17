@@ -5,6 +5,7 @@ import {
   getOrganizationForPlatformAdmin,
   updateOrganizationByPlatformAdmin,
 } from "@/server/services/platform.service";
+import { remainingTrialDays } from "@/server/services/subscriptions/trial-days";
 
 const paramsSchema = z.object({ id: z.string().min(1) });
 
@@ -37,9 +38,6 @@ const updateSchema = z.object({
 
 function toFormPayload(org: Awaited<ReturnType<typeof getOrganizationForPlatformAdmin>>) {
   const trialEndsAt = org.subscription?.trialEndsAt ?? null;
-  const remainingTrialDays = trialEndsAt
-    ? Math.max(0, Math.ceil((trialEndsAt.getTime() - Date.now()) / 86_400_000))
-    : 30;
 
   return {
     id: org.id,
@@ -59,7 +57,7 @@ function toFormPayload(org: Awaited<ReturnType<typeof getOrganizationForPlatform
     website: org.profile?.website ?? "",
     planCode: org.subscription?.plan.code ?? "trial",
     status: org.profile?.status ?? "TRIAL",
-    trialDays: remainingTrialDays,
+    trialDays: remainingTrialDays(trialEndsAt),
     trialEndsAt: trialEndsAt?.toISOString() ?? null,
   };
 }

@@ -179,8 +179,12 @@ export const srLatn = {
     savedAndReady: "Profil je sačuvan. Možete da koristite aplikaciju.",
     restrictedTitle: "Pristup je ograničen",
     restrictedBody:
-      "Probni period ili pretplata su istekli. Aplikacija je zaključana dok administrator ne aktivira paket. Možete pogledati pretplatu i kontaktirati podršku.",
+      "Probni period ili pretplata su istekli. Aplikacija je zaključana dok se paket ne aktivira ili faktura ne plati. Možete otvoriti neplaćenu fakturu i pregledati pretplatu.",
     restrictedCta: "Otvori pretplatu",
+    openUnpaidInvoice: "Otvori neplaćenu fakturu",
+    unpaidInvoice: "Neplaćena faktura {{number}} — dug {{amount}}",
+    noUnpaidInvoice:
+      "Još nema izdate fakture. Kada administrator izda fakturu, ovde ćete moći da je otvorite.",
   },
 
   validation: {

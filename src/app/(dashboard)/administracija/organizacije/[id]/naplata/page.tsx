@@ -18,6 +18,7 @@ import { formatMoney } from "@/lib/formatters/money";
 import { createT, type TranslateFn, type TranslationKey } from "@/lib/i18n";
 import { resolveRequestLocale } from "@/lib/i18n/resolve-locale";
 import { SubscriptionActionsPanel } from "./actions-panel";
+import { getInvoiceIssueState } from "@/server/services/billing/invoices/generation.service";
 
 export const dynamic = "force-dynamic";
 
@@ -74,7 +75,7 @@ export default async function OrgBillingTabPage({
     revalidatePath(`/administracija/organizacije/${id}/naplata`);
   }
 
-  const [invoices, payments, plans] = await Promise.all([
+  const [invoices, payments, plans, invoiceIssue] = await Promise.all([
     prisma.invoice.findMany({
       where: { organizationId: id },
       orderBy: [{ issueDate: "desc" }, { createdAt: "desc" }],
@@ -86,6 +87,7 @@ export default async function OrgBillingTabPage({
       take: 20,
     }),
     prisma.saaSPlan.findMany({ where: { active: true }, orderBy: { sortOrder: "asc" } }),
+    getInvoiceIssueState(id),
   ]);
 
   return (
@@ -176,6 +178,7 @@ export default async function OrgBillingTabPage({
           currentPlanCode={sub.plan.code}
           currentCycle={sub.billingCycle}
           plans={plans.map((p) => ({ id: p.id, code: p.code, name: p.name }))}
+          canIssueInvoice={invoiceIssue.canIssue}
         />
       ) : null}
 

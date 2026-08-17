@@ -11,6 +11,10 @@ import { DomainError } from "@/lib/errors";
 import { Button } from "@/components/ui/button";
 import { createT } from "@/lib/i18n";
 import { resolveRequestLocale } from "@/lib/i18n/resolve-locale";
+import {
+  originalTrialDays,
+  remainingTrialDays,
+} from "@/server/services/subscriptions/trial-days";
 
 export const dynamic = "force-dynamic";
 
@@ -38,9 +42,7 @@ export default async function EditOrganizationPage({
     .map((p) => ({ code: p.code, name: p.name }));
 
   const trialEndsAt = org.subscription?.trialEndsAt ?? null;
-  const remainingTrialDays = trialEndsAt
-    ? Math.max(0, Math.ceil((trialEndsAt.getTime() - Date.now()) / 86_400_000))
-    : 30;
+  const trialStartsAt = org.subscription?.trialStartsAt ?? null;
 
   return (
     <section className="space-y-4">
@@ -75,7 +77,9 @@ export default async function EditOrganizationPage({
           website: org.profile?.website ?? "",
           planCode: currentPlanCode ?? planOptions[0]?.code ?? "trial",
           status: org.profile?.status ?? "TRIAL",
-          trialDays: remainingTrialDays,
+          trialDays: remainingTrialDays(trialEndsAt) ?? undefined,
+          trialEndsAt: trialEndsAt?.toISOString() ?? null,
+          originalTrialDays: originalTrialDays(trialStartsAt, trialEndsAt),
         }}
       />
     </section>

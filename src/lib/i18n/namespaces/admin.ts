@@ -391,6 +391,12 @@ export const adminSr = {
     website: "Sajt",
     contactEmail: "Kontakt email",
     trialDays: "Trajanje probnog perioda (dana)",
+    trialDaysHintActive:
+      "Preostalo do {{date}}. Promena broja dana pomera kraj perioda od danas.",
+    trialDaysHintExpired:
+      "Istekao {{date}}. Prvobitno {{days}} dana. Unesite nove dane da produžite od danas.",
+    trialDaysHintNone:
+      "Nema sačuvanog probnog perioda. Unesite dane da ga pokrenete.",
     create: "Kreiraj organizaciju",
     save: "Sačuvaj izmene",
   },
@@ -1383,6 +1389,8 @@ export const adminSr = {
     daysPlaceholder: "Broj dana",
     reasonExtendTrial: "Razlog produženja trial-a…",
     extendTrial: "Produži trial",
+    issueInvoice: "Izdaj fakturu sada",
+    issueInvoiceDone: "Faktura za tekući period je već izdata",
   },
 } as const;
 
@@ -1776,6 +1784,11 @@ export const adminEn: Leaves<typeof adminSr> = {
     website: "Website",
     contactEmail: "Contact email",
     trialDays: "Trial length (days)",
+    trialDaysHintActive:
+      "Remaining until {{date}}. Changing the number moves the end date from today.",
+    trialDaysHintExpired:
+      "Expired on {{date}}. Originally {{days}} days. Enter new days to extend from today.",
+    trialDaysHintNone: "No trial is stored. Enter days to start one.",
     create: "Create organization",
     save: "Save changes",
   },
@@ -2760,5 +2773,7 @@ export const adminEn: Leaves<typeof adminSr> = {
     daysPlaceholder: "Number of days",
     reasonExtendTrial: "Reason for extending the trial…",
     extendTrial: "Extend trial",
+    issueInvoice: "Issue invoice now",
+    issueInvoiceDone: "An invoice for the current period is already issued",
   },
 };

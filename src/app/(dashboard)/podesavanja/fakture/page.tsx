@@ -47,6 +47,12 @@ export default async function TenantInvoicesPage({ searchParams }: PageProps) {
 
   return (
     <section className="space-y-4">
+      <Link
+        href="/dashboard"
+        className="text-sm text-[var(--color-brand-700)] hover:underline"
+      >
+        {t("common.back")}
+      </Link>
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
           <h2 className="text-lg font-semibold">{t("ops.invoices.myInvoices", { total })}</h2>

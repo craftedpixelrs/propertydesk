@@ -285,15 +285,29 @@ export async function extendTrial(
     throw DomainErrors.badRequest("Broj dana mora biti pozitivan ceo broj.");
   }
   const sub = await loadSubscription(organizationId);
-  const base = sub.trialEndsAt ?? new Date();
+  const now = new Date();
+  const base =
+    sub.trialEndsAt && sub.trialEndsAt.getTime() > now.getTime() ? sub.trialEndsAt : now;
   const nextEnd = new Date(base.getTime() + additionalDays * 24 * 60 * 60 * 1000);
+  const unlock = nextEnd.getTime() > now.getTime();
 
-  const updated = await prisma.organizationSubscription.update({
-    where: { organizationId },
-    data: {
-      trialEndsAt: nextEnd,
-      status: sub.status === "TRIAL" ? "TRIAL" : sub.status,
-    },
+  const updated = await prisma.$transaction(async (tx) => {
+    const next = await tx.organizationSubscription.update({
+      where: { organizationId },
+      data: {
+        trialEndsAt: nextEnd,
+        trialStartsAt: sub.trialStartsAt ?? now,
+        status: unlock ? "TRIAL" : sub.status,
+        ...(unlock ? { restrictedAt: null, endsAt: null } : {}),
+      },
+    });
+    if (unlock) {
+      await tx.organizationProfile.update({
+        where: { organizationId },
+        data: { status: "TRIAL" },
+      });
+    }
+    return next;
   });
 
   await recordAudit({
