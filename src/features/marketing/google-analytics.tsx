@@ -1,25 +1,36 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import Script from "next/script";
 
+import { COOKIE_CONSENT_EVENT } from "@/lib/constants/app";
+import { readCookieConsent } from "@/features/marketing/cookie-consent";
+
 /**
- * Google Analytics 4 (gtag.js) loader for the marketing site only.
+ * Google Analytics 4 (gtag.js) for the marketing site only.
  *
- * We deliberately mount this from `(marketing)/layout.tsx` and NOT from
- * the root layout - the internal `(dashboard)` surface handles its own
- * anonymised product analytics and should not send anything to Google.
+ * Scripts load only after the visitor accepts analytics cookies.
+ * Rejected / no choice → nothing is sent to Google.
  *
- * Both scripts use `strategy="afterInteractive"` so they load after the
- * page is interactive without blocking First Contentful Paint. The
- * inline `gtag('config', ...)` call fires the first pageview
- * automatically; subsequent SPA transitions are tracked by GA4's
- * built-in `page_view` auto-events (enhanced measurement).
- *
- * The measurement ID is intentionally hardcoded rather than pulled from
- * env, because it's a public identifier and hardcoding lets the CSP
- * `script-src` allowlist stay tight.
+ * The measurement ID is hardcoded so the CSP `script-src` allowlist
+ * can stay tight (it is a public identifier).
  */
 const GA_MEASUREMENT_ID = "G-YG7MV1CG56";
 
 export function GoogleAnalytics() {
+  const [allowed, setAllowed] = useState(false);
+
+  useEffect(() => {
+    function sync() {
+      setAllowed(readCookieConsent() === "accepted");
+    }
+    sync();
+    window.addEventListener(COOKIE_CONSENT_EVENT, sync);
+    return () => window.removeEventListener(COOKIE_CONSENT_EVENT, sync);
+  }, []);
+
+  if (!allowed) return null;
+
   return (
     <>
       <Script
@@ -31,7 +42,7 @@ export function GoogleAnalytics() {
           window.dataLayer = window.dataLayer || [];
           function gtag(){dataLayer.push(arguments);}
           gtag('js', new Date());
-          gtag('config', '${GA_MEASUREMENT_ID}');
+          gtag('config', '${GA_MEASUREMENT_ID}', { anonymize_ip: true });
         `}
       </Script>
     </>

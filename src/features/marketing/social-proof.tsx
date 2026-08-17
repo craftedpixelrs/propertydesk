@@ -2,18 +2,11 @@
 
 import { Mail, Phone, Building2, ShieldCheck } from "lucide-react";
 
+import { COMPANY } from "@/lib/constants/app";
 import { useT } from "@/components/app/i18n-provider";
 
 export function SocialProof() {
   const t = useT();
-  const pilotSlots = [
-    t("marketing.proof.investor"),
-    t("marketing.proof.investor"),
-    t("marketing.proof.agency"),
-    t("marketing.proof.agency"),
-    t("marketing.proof.investor"),
-    t("marketing.proof.agency"),
-  ];
 
   return (
     <section
@@ -40,14 +33,17 @@ export function SocialProof() {
           <div className="mb-3 text-xs font-semibold uppercase tracking-wider text-[var(--color-foreground-subtle)]">
             {t("marketing.proof.pilots")}
           </div>
-          <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
-            {pilotSlots.map((label, i) => (
-              <PilotLogoSlot key={i} label={label} slotAria={t("marketing.proof.slotAria")} yourLogo={t("marketing.proof.yourLogo")} />
-            ))}
-          </ul>
-          <p className="mt-3 text-xs text-[var(--color-foreground-subtle)]">
-            {t("marketing.proof.pilotsHint")}
-          </p>
+          <div className="rounded-2xl border border-dashed border-[var(--color-border)] bg-[var(--color-surface-muted)] px-5 py-6 sm:px-8">
+            <p className="text-sm leading-relaxed text-[var(--color-foreground-muted)]">
+              {t("marketing.proof.pilotsHint")}
+            </p>
+            <a
+              href="/demo"
+              className="mt-4 inline-flex text-sm font-semibold text-[var(--color-brand-700)] hover:underline"
+            >
+              {t("marketing.proof.pilotsCta")}
+            </a>
+          </div>
         </div>
 
         <div className="mt-14 grid gap-6 lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]">
@@ -56,32 +52,6 @@ export function SocialProof() {
         </div>
       </div>
     </section>
-  );
-}
-
-function PilotLogoSlot({
-  label,
-  slotAria,
-  yourLogo,
-}: {
-  label: string;
-  slotAria: string;
-  yourLogo: string;
-}) {
-  return (
-    <li
-      aria-label={slotAria}
-      className="flex h-20 items-center justify-center rounded-lg border border-dashed border-[var(--color-border)] bg-[var(--color-surface-muted)] px-3"
-    >
-      <div className="text-center">
-        <div className="text-sm font-semibold text-[var(--color-foreground-muted)]">
-          {yourLogo}
-        </div>
-        <div className="mt-0.5 text-[10px] uppercase tracking-wider text-[var(--color-foreground-subtle)]">
-          {label}
-        </div>
-      </div>
-    </li>
   );
 }
 
@@ -109,11 +79,11 @@ function FounderCard() {
           <ul className="mt-4 flex flex-wrap gap-x-5 gap-y-2 text-sm">
             <li>
               <a
-                href="mailto:marko.banovic@craftedpixel.rs"
+                href={`mailto:${COMPANY.email}`}
                 className="inline-flex items-center gap-1.5 font-medium text-[var(--color-brand-700)] hover:underline"
               >
                 <Mail aria-hidden className="size-4" />
-                marko.banovic@craftedpixel.rs
+                {COMPANY.email}
               </a>
             </li>
             <li>

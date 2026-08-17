@@ -29,6 +29,7 @@ export function MarketingHeader() {
     { href: "/#uskoro", label: t("marketing.nav.roadmap") },
     { href: "/#cenovnik", label: t("marketing.nav.pricing") },
     { href: "/#faq", label: t("marketing.nav.faq") },
+    { href: "/pomoc", label: t("marketing.nav.help") },
   ] as const;
 
   // Close on hash-change (anchor click) so the panel doesn't sit open over

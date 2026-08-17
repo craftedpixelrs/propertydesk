@@ -27,6 +27,12 @@ export const marketingSr = {
     reservations: "Rezervacije i uplate",
     commissions: "Provizije agencija",
     bookDemo: "Zakažite demo",
+    about: "O nama",
+    help: "Pomoć",
+    privacy: "Privatnost",
+    terms: "Uslovi",
+    imprint: "Impresum",
+    company: "Kompanija",
   },
 
   header: {
@@ -45,6 +51,82 @@ export const marketingSr = {
     madeFor: "Napravljeno za srpsko tržište · sr-Latn · EUR / RSD",
     poweredBy: "Powered by",
     poweredByAria: "Powered by CraftedPixel",
+    privacy: "Privatnost",
+    terms: "Uslovi",
+    imprint: "Impresum",
+    about: "O nama",
+    help: "Pomoć",
+    cookies: "Kolačići",
+    legal: "Pravno",
+  },
+
+  cookies: {
+    title: "Kolačići na ovom sajtu",
+    body:
+      "Neophodni kolačići čuvaju jezik. Google Analytics učitavamo samo ako prihvatite. Možete promeniti izbor u bilo kom trenutku.",
+    accept: "Prihvatam",
+    reject: "Samo neophodni",
+    privacyLink: "Politika privatnosti",
+  },
+
+  legal: {
+    privacyTitle: "Politika privatnosti",
+    privacyDescription:
+      "Koje podatke PropertyDesk prikuplja na sajtu i u aplikaciji, zašto ih koristimo i koja prava imate.",
+    termsTitle: "Uslovi korišćenja",
+    termsDescription:
+      "Uslovi za demo, rani pristup, trial i pretplatu PropertyDesk-a. Bez ugovorne obaveze, otkaz u bilo kom trenutku.",
+    imprintTitle: "Impresum",
+    imprintDescription:
+      "Ko stoji iza PropertyDesk-a: operater CraftedPixel, kontakt hello@propertydesk.app.",
+  },
+
+  about: {
+    eyebrow: "O nama",
+    metaTitle: "O nama",
+    metaDescription:
+      "PropertyDesk razvija CraftedPixel. Softver za investitore i agencije koje prodaju novogradnju u Srbiji. Kontakt: hello@propertydesk.app.",
+    title: "Gradimo alat koji zamenjuje Excel i Viber u prodaji novogradnje.",
+    lead:
+      "PropertyDesk je proizvod firme CraftedPixel. Nismo strani CRM prilagođen Srbiji — sistem je od početka pravljen za lokalni tok: rezervacija, kapara, ugovor, rate, provizija.",
+    whoTitle: "Ko smo",
+    whoBody:
+      "Iza proizvoda stoji Marko Banović i CraftedPixel, softverska firma iz Srbije. Radimo sa investitorima i agencijama koje i dalje vode zalihe u Excelu i rezervacije u Viber grupama. PropertyDesk je odgovor na te iste probleme.",
+    whyTitle: "Zašto sada",
+    whyBody:
+      "Zvanično lansiranje je 01.09.2026. Do tada radimo sa malim brojem pilot partnera: demo, pa trial na Vašim podacima, pa onboarding. Ne otvaramo samostalnu registraciju pre lansiranja.",
+    contactTitle: "Kontakt",
+    contactBody:
+      "Za demo, rani pristup i pitanja o proizvodu pišite na poslovnu adresu. Odgovaramo u roku od 2 radna dana.",
+  },
+
+  help: {
+    eyebrow: "Pomoć",
+    metaTitle: "Pomoć i šta radi danas",
+    metaDescription:
+      "Šta PropertyDesk radi danas, šta dolazi posle lansiranja, i detaljan vodič za operatere.",
+    title: "Šta radi danas, a šta još nije živo",
+    lead:
+      "Pre demoa ili prijave, evo iskreno šta možete da očekujete. Detaljan vodič za svaki modul je u Help Centeru.",
+    worksTitle: "U upotrebi",
+    works1: "Projekti, jedinice, cene, uvoz iz Excel-a i PDF cenovnik.",
+    works2: "CRM kupaca sa KYC checklist-om i zaštitom kupca.",
+    works3: "Rezervacije (interna i javna sa IPS QR kaparom) i konverzija u prodaju.",
+    works4: "Plan otplate, uplate, uvoz izvoda i FIFO alokacija.",
+    works5: "HTML šabloni ugovora i predugovora u PDF-u.",
+    works6: "Provizije agencija, javni sajt projekta i izveštaji.",
+    laterTitle: "Još nije automatski",
+    laterIntro:
+      "Ovo je na roadmapu ili se radi ručno. Ne tvrdimo da je već gotovo.",
+    later1:
+      "Automatsko slanje faktura u SEF — arhitektura postoji, pravi transport još nije uključen. Do tada status pratite preko SEF portala.",
+    later2: "Editor poligona na spratu — pregled slike sprata postoji, crtanje jedinica još ne.",
+    later3: "Elektronski potpis ugovora sa pravnom snagom u Srbiji.",
+    later4: "WordPress plugin, AI asistent na sajtu i marketplace investitor–agencija.",
+    guideTitle: "Detaljan vodič",
+    guideBody:
+      "Help Center pokriva prijavu, projekte, rezervacije, KYC, agencije i česta pitanja — uključujući trenutna ograničenja.",
+    guideCta: "Otvori Help Center",
   },
 
   common: {
@@ -64,7 +146,7 @@ export const marketingSr = {
     earlyAccessBadge: "Rani pristup: 30 dana besplatno + 50% na naredna 3 meseca",
     title: "Operativni sistem za prodaju novogradnje.",
     subtitle:
-      "Jedna platforma za investitore i partnerske agencije - od projekta i zaliha, preko rezervacija i ugovora, do uplata i provizija. Sve na srpskom, sa IPS QR i SEF integracijom.",
+      "Jedna platforma za investitore i partnerske agencije - od projekta i zaliha, preko rezervacija i ugovora, do uplata i provizija. Sve na srpskom, sa IPS QR za kaparu i fakture.",
     bookDemo: "Zakažite 25-minutni demo",
     watchVideo: "Pogledajte demo od 3 minuta",
     noObligation: "Bez obaveze. Direktno iz kalendara, bez čekanja.",
@@ -200,8 +282,9 @@ export const marketingSr = {
       "PropertyDesk gradimo direktno sa ljudima koji svakodnevno prodaju novogradnju - investitorima koji vode više projekata paralelno i agencijama koje treba da vide azurno stanje inventara u svakom trenutku.",
     pilots: "Pilot partneri",
     pilotsHint:
-      "Vaš logotip može biti ovde. Prijavite se za rani pristup i postanite jedan od pilot partnera.",
-    yourLogo: "Vaš logo?",
+      "Tražimo 3–5 investitora i agencija za pilot pre 01.09.2026. Logo ide ovde kada krenemo da radimo zajedno — ne prikazujemo izmišljene reference.",
+    yourLogo: "Pilot mesto",
+    pilotsCta: "Prijavite se za pilot",
     investor: "Investitor",
     agency: "Agencija",
     slotAria: "Slot za logotip pilot partnera",
@@ -264,9 +347,9 @@ export const marketingSr = {
     qrTitle: "IPS QR za kaparu i fakture",
     qrBody:
       "Ispravan IPS QR usklađen sa NBS specifikacijom - i na SaaS fakturama i na online rezervacijama sa kaparom. Kupac plaća skeniranjem, bez prekucavanja poziva na broj.",
-    sefTitle: "Integracija sa SEF-om",
+    sefTitle: "Priprema za SEF",
     sefBody:
-      "Sistem elektronskih faktura, sa provajder-agnostičnom arhitekturom. Fakture se šalju i status prati kroz aplikaciju.",
+      "Arhitektura za Sistem elektronskih faktura je spremna. Automatsko slanje još nije uključeno — do tada status e-fakture pratite ručno preko SEF portala.",
     kycTitle: "KYC za kupce (fizička i pravna lica)",
     kycBody:
       "JMBG, broj lične karte, PIB, adresa - sa checklist-om (LK, potvrda adrese, poreska potvrda za pravna lica). Blok na prelazak u ugovor dok KYC nije potpun.",
@@ -416,7 +499,7 @@ export const marketingSr = {
     q3: "Kako izgleda demo i koliko traje?",
     a3: "Personalizovan demo traje 20-30 minuta (video poziv, direktno zakazivanje iz kalendara na sajtu, bez čekanja). Ako nakon toga odlučite da probate PropertyDesk, dobijate 30 dana besplatnog trial-a. Onboarding za tim (60 min) zakazuje se nakon aktivacije trial naloga - kroz konkretne primere iz Vašeg poslovanja.",
     q4: "Da li je platforma na srpskom jeziku?",
-    a4: "Da. Ceo interfejs, poruke, PDF izlazi i email obaveštenja su na srpskom (latinično pismo). Ugrađena je podrška za EUR i RSD, srpski format datuma, IPS QR kod na fakturama i integracija sa Sistemom elektronskih faktura (SEF).",
+    a4: "Da. Ceo interfejs, poruke, PDF izlazi i email obaveštenja su na srpskom (latinično pismo). Ugrađena je podrška za EUR i RSD, srpski format datuma i IPS QR kod na fakturama i kaparama. Automatsko slanje u SEF je u pripremi.",
     q5: "Za koga je PropertyDesk?",
     a5: "Za investitore koji prodaju novogradnju (stanove, garaže, poslovne prostore) direktno ili preko partnerskih agencija, i za same agencije koje sarađuju sa investitorima. Svaka strana dobija svoj portal sa jasno definisanim pravima.",
     q6: "Kako radi online rezervacija sa kaparom?",
@@ -469,7 +552,9 @@ export const marketingSr = {
     notePh:
       "Recite nam ukratko šta prodajete i koje su Vaše najveće prepreke trenutno.",
     consent:
-      "Saglasan/a sam da PropertyDesk koristi ove podatke isključivo radi kontaktiranja u vezi sa ranim pristupom, demoom i obukom. Podatke mogu povući u bilo kom trenutku slanjem mejla na",
+      "Saglasan/a sam da PropertyDesk koristi ove podatke isključivo radi kontaktiranja u vezi sa ranim pristupom, demoom i obukom, u skladu sa",
+    consentPrivacy: "Politikom privatnosti",
+    consentAfter: "Podatke mogu povući u bilo kom trenutku slanjem mejla na",
     submit: "Pošalji prijavu",
     afterSubmit: "Nakon slanja, kontaktiramo Vas u roku od 2 radna dana.",
     audienceRequired: "Molimo označite da li ste investitor ili agencija.",
@@ -489,13 +574,13 @@ export const marketingSr = {
     metaHomeTitle:
       "{{name}} - Softver za prodaju novogradnje | Investitori i agencije",
     metaHomeDescription:
-      "Softver za investitore i agencije koje prodaju novogradnju: projekti, KYC kupaca, online rezervacija sa IPS QR kaparom, generator ugovora u PDF-u, planovi otplate, uplate, provizije, referral kod za agencije, javni sajt projekta, cash-flow projekcija i izveštaji. IPS QR, SEF, PDV 10%/2.5%, EUR/RSD. Lansiranje 01.09.2026 - prijave do lansiranja dobijaju 30 dana besplatno + 50% na naredna 3 meseca.",
+      "Softver za investitore i agencije koje prodaju novogradnju: projekti, KYC kupaca, online rezervacija sa IPS QR kaparom, generator ugovora u PDF-u, planovi otplate, uplate, provizije, referral kod za agencije, javni sajt projekta, cash-flow projekcija i izveštaji. IPS QR, PDV 10%/2.5%, EUR/RSD. Lansiranje 01.09.2026 - prijave do lansiranja dobijaju 30 dana besplatno + 50% na naredna 3 meseca.",
     softwareDescription:
-      "Multi-tenant SaaS platforma za investitore u nekretnine i partnerske agencije. Projekti, jedinice, kupci, rezervacije, prodaje, planovi otplate, uplate, provizije, dokumenti i izveštaji - sa IPS QR i SEF integracijom.",
+      "Multi-tenant SaaS platforma za investitore u nekretnine i partnerske agencije. Projekti, jedinice, kupci, rezervacije, prodaje, planovi otplate, uplate, provizije, dokumenti i izveštaji - sa IPS QR za kaparu i fakture.",
     ogAlt: "PropertyDesk - operativni sistem za prodaju novogradnje",
     ogHeadline: "Operativni sistem za prodaju novogradnje",
     ogSub:
-      "Projekti, kupci, rezervacije, uplate i provizije agencija - sve na srpskom, sa IPS QR i SEF integracijom.",
+      "Projekti, kupci, rezervacije, uplate i provizije agencija - sve na srpskom, sa IPS QR za kaparu i fakture.",
     ogBadge: "Lansiranje 01.09.2026 · −50% prva 3 meseca",
   },
 
@@ -581,7 +666,7 @@ export const marketingSr = {
       eyebrow: "Prodaja novogradnje",
       title: "Kompletan operativni sistem za prodaju stanova u novogradnji",
       subtitle:
-        "Od projekta i cenovnika, preko rezervacija i ugovora, do uplata i provizija - PropertyDesk pokriva ceo tok prodaje novogradnje u Srbiji. Sve na srpskom, sa IPS QR i SEF integracijom.",
+        "Od projekta i cenovnika, preko rezervacija i ugovora, do uplata i provizija - PropertyDesk pokriva ceo tok prodaje novogradnje u Srbiji. Sve na srpskom, sa IPS QR za kaparu i fakture.",
       gridTitle: "Zašto Excel i Google Sheets ne rade za novogradnju",
       gridSubtitle:
         "Prodaja u fazi izgradnje ima kompleksne, vremenski razvučene tokove koje generički alati ne razumeju. PropertyDesk je pravljen za tačno taj scenario.",
@@ -590,7 +675,7 @@ export const marketingSr = {
       p2: "Predugovor, ugovor, aneksi i storniranje - svaki dokument u zasebnom folderu na disku.",
       s2: "Centralno skladište dokumenata vezano za konkretnu prodaju, sa audit tragom svake promene.",
       p3: "Različiti planovi otplate za različite kupce - lako se pogreši u ratama i valuti.",
-      s3: "Prilagođeni planovi rata sa validacijom, konverzija EUR/RSD, IPS QR kod i SEF integracija.",
+      s3: "Prilagođeni planovi rata sa validacijom, konverzija EUR/RSD i IPS QR kod za uplatu.",
       p4: "Uplate iz banke stižu na različite načine - teško ih je uparivati sa ratama.",
       s4: "Automatska FIFO alokacija na najstarije otvorene rate, ručna realokacija po potrebi.",
     },
@@ -642,11 +727,11 @@ export const marketingSr = {
     reservations: {
       metaTitle: "Rezervacije i uplate za novogradnju",
       metaDescription:
-        "Jedna aktivna rezervacija po jedinici, automatski istek, konverzija u prodaju u par klikova. Uplate se FIFO alociraju na najstarije otvorene rate uz podršku za EUR/RSD, IPS QR i SEF - bez ručnog uparivanja bankovnih izvoda.",
+        "Jedna aktivna rezervacija po jedinici, automatski istek, konverzija u prodaju u par klikova. Uplate se FIFO alociraju na najstarije otvorene rate uz podršku za EUR/RSD i IPS QR - bez ručnog uparivanja bankovnih izvoda.",
       eyebrow: "Rezervacije i uplate",
       title: "Rezervacije bez duplih zaključavanja, uplate bez ručnog uparivanja",
       subtitle:
-        "PropertyDesk štiti tok od prve rezervacije do poslednje rate - jasan status svake jedinice, automatska alokacija uplata, srpski standardi (EUR/RSD, IPS QR, SEF) iz kutije.",
+        "PropertyDesk štiti tok od prve rezervacije do poslednje rate - jasan status svake jedinice, automatska alokacija uplata, srpski standardi (EUR/RSD, IPS QR) iz kutije.",
       gridTitle: "Gde se najčešće gubi novac u prodaji novogradnje",
       gridSubtitle:
         "Rezervacije koje se zaborave, uplate koje se ne poklope, kupci koji zakasne bez podsetnika - svaki od ovih scenarija je meseca prihoda.",
@@ -658,8 +743,8 @@ export const marketingSr = {
       s3: "FIFO alokacija na otvorene rate, konverzija EUR/RSD po dnevnom kursu, uvoz bankovnih izvoda.",
       p4: "Jedna uplata se deli na više prodaja (ili jedan kupac ima više stanova) - kako to rasporediti?",
       s4: "Deljenje uplate na više prodaja, ručna realokacija, potpuna transparentnost istorije uplate.",
-      p5: "Za srpske kupce potreban je IPS QR i pošiljka SEF - a strane platforme to ne podržavaju.",
-      s5: "Ugrađen IPS QR na profakturama i integracija sa Sistemom elektronskih faktura (SEF).",
+      p5: "Za srpske kupce potreban je IPS QR - a strane platforme to ne podržavaju.",
+      s5: "Ugrađen IPS QR na profakturama i kaparama. Automatsko slanje u SEF je u pripremi — do tada status pratite preko SEF portala.",
     },
     commissions: {
       metaTitle: "Automatske provizije agencija za nekretnine",
@@ -716,13 +801,13 @@ export const marketingSr = {
   site: {
     title: "{{name}} - Operativni sistem za prodaju novogradnje",
     description:
-      "PropertyDesk je multi-tenant SaaS platforma za investitore u nekretnine i partnerske agencije. Projekti, jedinice, kupci, rezervacije, prodaje, plan otplate, uplate, provizije, dokumenti i izveštaji — sa IPS QR i SEF integracijom.",
+      "PropertyDesk je multi-tenant SaaS platforma za investitore u nekretnine i partnerske agencije. Projekti, jedinice, kupci, rezervacije, prodaje, plan otplate, uplate, provizije, dokumenti i izveštaji — sa IPS QR za kaparu i fakture.",
     ogDescription:
       "Multi-tenant platforma za investitore i partnerske agencije. Od projekta i zaliha, preko rezervacija i ugovora, do uplata i provizija.",
     twitterDescription:
-      "Multi-tenant platforma za investitore i partnerske agencije, sa IPS QR i SEF integracijom.",
+      "Multi-tenant platforma za investitore i partnerske agencije, sa IPS QR za kaparu i fakture.",
     keywords:
-      "PropertyDesk,softver za investitore u nekretnine,CRM za nekretnine,prodaja novogradnje,upravljanje projektima nekretnina,rezervacije stanova,plan otplate,provizije agencija,IPS QR,SEF,sistem elektronskih faktura,e-fakture,Srbija",
+      "PropertyDesk,softver za investitore u nekretnine,CRM za nekretnine,prodaja novogradnje,upravljanje projektima nekretnina,rezervacije stanova,plan otplate,provizije agencija,IPS QR,Srbija",
   },
 } as const;
 
@@ -752,6 +837,12 @@ export const marketingEn: Leaves<typeof marketingSr> = {
     reservations: "Reservations and payments",
     commissions: "Agency commissions",
     bookDemo: "Book a demo",
+    about: "About",
+    help: "Help",
+    privacy: "Privacy",
+    terms: "Terms",
+    imprint: "Legal notice",
+    company: "Company",
   },
 
   header: {
@@ -770,6 +861,82 @@ export const marketingEn: Leaves<typeof marketingSr> = {
     madeFor: "Built for the Serbian market · sr-Latn · EUR / RSD",
     poweredBy: "Powered by",
     poweredByAria: "Powered by CraftedPixel",
+    privacy: "Privacy",
+    terms: "Terms",
+    imprint: "Legal notice",
+    about: "About",
+    help: "Help",
+    cookies: "Cookies",
+    legal: "Legal",
+  },
+
+  cookies: {
+    title: "Cookies on this site",
+    body:
+      "Necessary cookies store your language. We load Google Analytics only if you accept. You can change this at any time.",
+    accept: "Accept",
+    reject: "Necessary only",
+    privacyLink: "Privacy policy",
+  },
+
+  legal: {
+    privacyTitle: "Privacy policy",
+    privacyDescription:
+      "What PropertyDesk collects on the site and in the app, why we use it, and what rights you have.",
+    termsTitle: "Terms of use",
+    termsDescription:
+      "Terms for the demo, early access, trial and PropertyDesk subscription. No lock-in — cancel at any time.",
+    imprintTitle: "Legal notice",
+    imprintDescription:
+      "Who stands behind PropertyDesk: operator CraftedPixel, contact hello@propertydesk.app.",
+  },
+
+  about: {
+    eyebrow: "About",
+    metaTitle: "About us",
+    metaDescription:
+      "PropertyDesk is built by CraftedPixel. Software for investors and agencies selling new builds in Serbia. Contact: hello@propertydesk.app.",
+    title: "We are building the tool that replaces Excel and Viber in new-build sales.",
+    lead:
+      "PropertyDesk is a CraftedPixel product. We are not a foreign CRM adapted for Serbia — the system was built from the start for the local flow: reservation, deposit, contract, installments, commission.",
+    whoTitle: "Who we are",
+    whoBody:
+      "Behind the product are Marko Banović and CraftedPixel, a software company in Serbia. We work with investors and agencies that still run inventory in Excel and reservations in Viber groups. PropertyDesk is the answer to those same problems.",
+    whyTitle: "Why now",
+    whyBody:
+      "Official launch is 01.09.2026. Until then we work with a small number of pilot partners: demo, then a trial on your data, then onboarding. We do not open self-serve sign-up before launch.",
+    contactTitle: "Contact",
+    contactBody:
+      "For demo, early access and product questions write to the business address. We reply within 2 business days.",
+  },
+
+  help: {
+    eyebrow: "Help",
+    metaTitle: "Help and what works today",
+    metaDescription:
+      "What PropertyDesk does today, what comes after launch, and a detailed operator guide.",
+    title: "What works today, and what is not live yet",
+    lead:
+      "Before a demo or an application, here is an honest picture of what to expect. The detailed guide for every module is in the Help Center.",
+    worksTitle: "In use",
+    works1: "Projects, units, prices, Excel import and a PDF price list.",
+    works2: "Buyer CRM with a KYC checklist and buyer protection.",
+    works3: "Reservations (internal and public with an IPS QR deposit) and conversion to a sale.",
+    works4: "Payment plans, payments, bank-statement import and FIFO allocation.",
+    works5: "HTML templates for contracts and pre-contracts as PDF.",
+    works6: "Agency commissions, a public project site and reports.",
+    laterTitle: "Not automatic yet",
+    laterIntro:
+      "These are on the roadmap or done manually. We do not claim they are finished.",
+    later1:
+      "Automatic invoice submission to SEF — the architecture exists, the real transport is not enabled. Until then you track status via the SEF portal.",
+    later2: "Floor-plan polygon editor — the floor image viewer exists, drawing units does not.",
+    later3: "Electronic contract signing with legal effect in Serbia.",
+    later4: "WordPress plugin, on-site AI assistant and an investor–agency marketplace.",
+    guideTitle: "Detailed guide",
+    guideBody:
+      "The Help Center covers sign-in, projects, reservations, KYC, agencies and FAQ — including current limitations.",
+    guideCta: "Open Help Center",
   },
 
   common: {
@@ -789,7 +956,7 @@ export const marketingEn: Leaves<typeof marketingSr> = {
     earlyAccessBadge: "Early access: 30 days free + 50% off the next 3 months",
     title: "The operating system for new-build sales.",
     subtitle:
-      "One platform for investors and partner agencies — from projects and inventory, through reservations and contracts, to payments and commissions. Built for Serbia, with IPS QR and SEF.",
+      "One platform for investors and partner agencies — from projects and inventory, through reservations and contracts, to payments and commissions. Built for Serbia, with IPS QR for deposits and invoices.",
     bookDemo: "Book a 25-minute demo",
     watchVideo: "Watch the 3-minute demo",
     noObligation: "No obligation. Book straight from the calendar, no waiting.",
@@ -925,8 +1092,9 @@ export const marketingEn: Leaves<typeof marketingSr> = {
       "We build PropertyDesk with people who sell new builds every day — investors running several projects at once and agencies that need live inventory at all times.",
     pilots: "Pilot partners",
     pilotsHint:
-      "Your logo can be here. Apply for early access and become a pilot partner.",
-    yourLogo: "Your logo?",
+      "We are looking for 3–5 investors and agencies as pilots before 01.09.2026. A logo goes here when we start working together — we do not show invented references.",
+    yourLogo: "Pilot slot",
+    pilotsCta: "Apply for a pilot",
     investor: "Investor",
     agency: "Agency",
     slotAria: "Pilot partner logo slot",
@@ -988,9 +1156,9 @@ export const marketingEn: Leaves<typeof marketingSr> = {
     qrTitle: "IPS QR for deposits and invoices",
     qrBody:
       "A valid IPS QR aligned with the NBS specification — on SaaS invoices and on online reservations with a deposit. The buyer pays by scanning, with no manual payment reference.",
-    sefTitle: "SEF integration",
+    sefTitle: "SEF in preparation",
     sefBody:
-      "The electronic invoicing system, with a provider-agnostic architecture. Invoices are sent and status is tracked in the app.",
+      "The architecture for Serbia’s electronic invoicing system is ready. Automatic submission is not enabled yet — until then you track e-invoice status manually via the SEF portal.",
     kycTitle: "KYC for buyers (individuals and companies)",
     kycBody:
       "National ID, ID card number, company number, address — with a checklist (ID, proof of address, tax certificate for companies). Contract is blocked until KYC is complete.",
@@ -1137,7 +1305,7 @@ export const marketingEn: Leaves<typeof marketingSr> = {
     q3: "What does the demo look like and how long is it?",
     a3: "A personalised demo lasts 20–30 minutes (video call, booked directly from the site calendar, no waiting). If you then decide to try PropertyDesk, you get a 30-day free trial. Team onboarding (60 min) is scheduled after the trial account is activated — using concrete examples from your business.",
     q4: "Is the platform in Serbian?",
-    a4: "Yes. The full interface, messages, PDF output and email notifications are in Serbian (Latin script). EUR and RSD, Serbian date format, IPS QR on invoices and SEF (electronic invoicing) are built in.",
+    a4: "Yes. The full interface, messages, PDF output and email notifications are in Serbian (Latin script). EUR and RSD, Serbian date format and IPS QR on invoices and deposits are built in. Automatic SEF submission is in preparation.",
     q5: "Who is PropertyDesk for?",
     a5: "For investors selling new builds (apartments, garages, commercial space) directly or through partner agencies, and for the agencies that work with those investors. Each side gets its own portal with clearly defined rights.",
     q6: "How does online reservation with a deposit work?",
@@ -1189,7 +1357,9 @@ export const marketingEn: Leaves<typeof marketingSr> = {
     note: "Note",
     notePh: "Tell us briefly what you sell and what your biggest blockers are right now.",
     consent:
-      "I agree that PropertyDesk may use this data only to contact me about early access, the demo and training. I can withdraw my data at any time by emailing",
+      "I agree that PropertyDesk may use this data only to contact me about early access, the demo and training, in line with the",
+    consentPrivacy: "Privacy policy",
+    consentAfter: "I can withdraw my data at any time by emailing",
     submit: "Send application",
     afterSubmit: "After you send this, we contact you within 2 business days.",
     audienceRequired: "Please indicate whether you are an investor or an agency.",
@@ -1208,13 +1378,13 @@ export const marketingEn: Leaves<typeof marketingSr> = {
     home: "Home",
     metaHomeTitle: "{{name}} - Software for new-build sales | Investors and agencies",
     metaHomeDescription:
-      "Software for investors and agencies selling new builds: projects, buyer KYC, online reservation with IPS QR deposit, PDF contract generator, payment plans, payments, commissions, agency referral codes, public project site, cash-flow projection and reports. IPS QR, SEF, VAT 10%/2.5%, EUR/RSD. Launch 01.09.2026 — applications before launch get 30 days free + 50% off the next 3 months.",
+      "Software for investors and agencies selling new builds: projects, buyer KYC, online reservation with IPS QR deposit, PDF contract generator, payment plans, payments, commissions, agency referral codes, public project site, cash-flow projection and reports. IPS QR, VAT 10%/2.5%, EUR/RSD. Launch 01.09.2026 — applications before launch get 30 days free + 50% off the next 3 months.",
     softwareDescription:
-      "A multi-tenant SaaS platform for real-estate investors and partner agencies. Projects, units, buyers, reservations, sales, payment plans, payments, commissions, documents and reports — with IPS QR and SEF.",
+      "A multi-tenant SaaS platform for real-estate investors and partner agencies. Projects, units, buyers, reservations, sales, payment plans, payments, commissions, documents and reports — with IPS QR for deposits and invoices.",
     ogAlt: "PropertyDesk - the operating system for new-build sales",
     ogHeadline: "The operating system for new-build sales",
     ogSub:
-      "Projects, buyers, reservations, payments and agency commissions — built for Serbia, with IPS QR and SEF.",
+      "Projects, buyers, reservations, payments and agency commissions — built for Serbia, with IPS QR for deposits and invoices.",
     ogBadge: "Launch 01.09.2026 · −50% first 3 months",
   },
 
@@ -1299,7 +1469,7 @@ export const marketingEn: Leaves<typeof marketingSr> = {
       eyebrow: "New-build sales",
       title: "A complete operating system for selling new-build apartments",
       subtitle:
-        "From the project and price list, through reservations and contracts, to payments and commissions — PropertyDesk covers the full new-build sales flow in Serbia. Built for Serbia, with IPS QR and SEF.",
+        "From the project and price list, through reservations and contracts, to payments and commissions — PropertyDesk covers the full new-build sales flow in Serbia. Built for Serbia, with IPS QR for deposits and invoices.",
       gridTitle: "Why Excel and Google Sheets fail for new builds",
       gridSubtitle:
         "Sales during construction have complex, long-running flows that generic tools do not understand. PropertyDesk is built for exactly that scenario.",
@@ -1308,7 +1478,7 @@ export const marketingEn: Leaves<typeof marketingSr> = {
       p2: "Pre-contract, contract, annexes and cancellation — each document in a separate folder on disk.",
       s2: "A central document store tied to the specific sale, with an audit trail of every change.",
       p3: "Different payment plans for different buyers — easy to get installments and currency wrong.",
-      s3: "Custom installment plans with validation, EUR/RSD conversion, IPS QR and SEF integration.",
+      s3: "Custom installment plans with validation, EUR/RSD conversion and IPS QR for payment.",
       p4: "Bank payments arrive in different ways — matching them to installments is hard.",
       s4: "Automatic FIFO allocation to the oldest open installments, with manual reallocation when needed.",
     },
@@ -1360,11 +1530,11 @@ export const marketingEn: Leaves<typeof marketingSr> = {
     reservations: {
       metaTitle: "Reservations and payments for new builds",
       metaDescription:
-        "One active reservation per unit, automatic expiry, conversion to a sale in a few clicks. Payments are FIFO-allocated to the oldest open installments with EUR/RSD, IPS QR and SEF — no manual bank-statement matching.",
+        "One active reservation per unit, automatic expiry, conversion to a sale in a few clicks. Payments are FIFO-allocated to the oldest open installments with EUR/RSD and IPS QR — no manual bank-statement matching.",
       eyebrow: "Reservations and payments",
       title: "Reservations without double locks, payments without manual matching",
       subtitle:
-        "PropertyDesk protects the flow from the first reservation to the last installment — a clear status for every unit, automatic payment allocation, Serbian standards (EUR/RSD, IPS QR, SEF) out of the box.",
+        "PropertyDesk protects the flow from the first reservation to the last installment — a clear status for every unit, automatic payment allocation, Serbian standards (EUR/RSD, IPS QR) out of the box.",
       gridTitle: "Where money is most often lost in new-build sales",
       gridSubtitle:
         "Forgotten reservations, unmatched payments, late buyers with no reminder — each of these scenarios is a month of revenue.",
@@ -1376,8 +1546,8 @@ export const marketingEn: Leaves<typeof marketingSr> = {
       s3: "FIFO allocation to open installments, EUR/RSD conversion at the daily rate, bank-statement import.",
       p4: "One payment is split across several sales (or one buyer has several apartments) — how do you allocate it?",
       s4: "Split a payment across sales, manual reallocation, full payment-history transparency.",
-      p5: "Serbian buyers need IPS QR and SEF delivery — and foreign platforms do not support that.",
-      s5: "Built-in IPS QR on proformas and integration with the electronic invoicing system (SEF).",
+      p5: "Serbian buyers need IPS QR — and foreign platforms do not support that.",
+      s5: "Built-in IPS QR on proformas and deposits. Automatic SEF submission is in preparation — until then you track status via the SEF portal.",
     },
     commissions: {
       metaTitle: "Automatic real-estate agency commissions",
@@ -1434,11 +1604,11 @@ export const marketingEn: Leaves<typeof marketingSr> = {
   site: {
     title: "{{name}} - Operating system for new-build sales",
     description:
-      "PropertyDesk is a multi-tenant SaaS platform for real-estate developers and partner agencies. Projects, units, buyers, reservations, sales, payment plans, payments, commissions, documents and reports — with IPS QR and e-invoice integration.",
+      "PropertyDesk is a multi-tenant SaaS platform for real-estate developers and partner agencies. Projects, units, buyers, reservations, sales, payment plans, payments, commissions, documents and reports — with IPS QR for deposits and invoices.",
     ogDescription:
       "Multi-tenant platform for developers and partner agencies. From project and inventory, through reservations and contracts, to payments and commissions.",
     twitterDescription:
-      "Multi-tenant platform for developers and partner agencies, with IPS QR and e-invoice integration.",
+      "Multi-tenant platform for developers and partner agencies, with IPS QR for deposits and invoices.",
     keywords:
       "PropertyDesk,software for real-estate developers,real-estate CRM,new-build sales,property project management,apartment reservations,payment plan,agency commissions,IPS QR,e-invoices,Serbia",
   },

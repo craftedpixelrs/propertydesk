@@ -39,6 +39,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "weekly" as const,
       priority: r.slug === "demo" ? 0.9 : 0.8,
     })),
+    ...["o-nama", "pomoc", "privatnost", "uslovi", "impresum"].map((slug) => ({
+      url: `${MARKETING_URL}/${slug}`,
+      lastModified: now,
+      changeFrequency: "monthly" as const,
+      priority: 0.5,
+    })),
     ...anchors.map((anchor) => ({
       url: `${MARKETING_URL}/#${anchor}`,
       lastModified: now,

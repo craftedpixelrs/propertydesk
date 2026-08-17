@@ -1,15 +1,12 @@
 import Image from "next/image";
 import Link from "next/link";
 
-import { APP_NAME, LANDING_IMAGES } from "@/lib/constants/app";
+import { APP_NAME, COMPANY, LANDING_IMAGES } from "@/lib/constants/app";
 import { LANDING_ROUTES } from "@/features/marketing/landing/landing-shell";
+import { CookieSettingsButton } from "@/features/marketing/cookie-banner";
 import { createT } from "@/lib/i18n";
 import { resolveRequestLocale } from "@/lib/i18n/resolve-locale";
 
-// Solutions column: 6 of the 8 topic pages (skip /demo which lives in
-// the Contact column, and /prodaja-novogradnje which duplicates the
-// homepage message). Order deliberately mixes audience-type pages and
-// problem-type pages for balanced anchor-text signal.
 const SOLUTION_LINKS = LANDING_ROUTES.filter(
   (r) => r.slug !== "demo" && r.slug !== "prodaja-novogradnje",
 ).slice(0, 6);
@@ -43,7 +40,7 @@ export async function MarketingFooter() {
           <ul className="mt-3 space-y-2 text-sm">
             <li>
               <a
-                href="#mogucnosti"
+                href="/#mogucnosti"
                 className="text-[var(--color-foreground-muted)] hover:text-[var(--color-foreground)]"
               >
                 {t("marketing.nav.features")}
@@ -51,23 +48,7 @@ export async function MarketingFooter() {
             </li>
             <li>
               <a
-                href="#za-koga"
-                className="text-[var(--color-foreground-muted)] hover:text-[var(--color-foreground)]"
-              >
-                {t("marketing.nav.personas")}
-              </a>
-            </li>
-            <li>
-              <a
-                href="#uskoro"
-                className="text-[var(--color-foreground-muted)] hover:text-[var(--color-foreground)]"
-              >
-                {t("marketing.nav.roadmapLong")}
-              </a>
-            </li>
-            <li>
-              <a
-                href="#cenovnik"
+                href="/#cenovnik"
                 className="text-[var(--color-foreground-muted)] hover:text-[var(--color-foreground)]"
               >
                 {t("marketing.nav.pricing")}
@@ -75,11 +56,19 @@ export async function MarketingFooter() {
             </li>
             <li>
               <a
-                href="#faq"
+                href="/#faq"
                 className="text-[var(--color-foreground-muted)] hover:text-[var(--color-foreground)]"
               >
                 {t("marketing.nav.faqLong")}
               </a>
+            </li>
+            <li>
+              <Link
+                href="/pomoc"
+                className="text-[var(--color-foreground-muted)] hover:text-[var(--color-foreground)]"
+              >
+                {t("marketing.footer.help")}
+              </Link>
             </li>
           </ul>
         </div>
@@ -108,19 +97,27 @@ export async function MarketingFooter() {
           </div>
           <ul className="mt-3 space-y-2 text-sm">
             <li>
-              <a
-                href="mailto:marko.banovic@craftedpixel.rs"
+              <Link
+                href="/o-nama"
                 className="text-[var(--color-foreground-muted)] hover:text-[var(--color-foreground)]"
               >
-                marko.banovic@craftedpixel.rs
+                {t("marketing.footer.about")}
+              </Link>
+            </li>
+            <li>
+              <a
+                href={`mailto:${COMPANY.email}`}
+                className="text-[var(--color-foreground-muted)] hover:text-[var(--color-foreground)]"
+              >
+                {COMPANY.email}
               </a>
             </li>
             <li>
               <a
-                href="tel:+381654363142"
+                href={`tel:${COMPANY.phoneTel}`}
                 className="text-[var(--color-foreground-muted)] hover:text-[var(--color-foreground)]"
               >
-                +381 65 43 63 142
+                {COMPANY.phoneDisplay}
               </a>
             </li>
             <li>
@@ -158,9 +155,28 @@ export async function MarketingFooter() {
             © {year} {APP_NAME}. {t("marketing.footer.rights")}
           </div>
           <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+            <Link
+              href="/privatnost"
+              className="text-[var(--color-foreground-muted)] hover:text-[var(--color-foreground)]"
+            >
+              {t("marketing.footer.privacy")}
+            </Link>
+            <Link
+              href="/uslovi"
+              className="text-[var(--color-foreground-muted)] hover:text-[var(--color-foreground)]"
+            >
+              {t("marketing.footer.terms")}
+            </Link>
+            <Link
+              href="/impresum"
+              className="text-[var(--color-foreground-muted)] hover:text-[var(--color-foreground)]"
+            >
+              {t("marketing.footer.imprint")}
+            </Link>
+            <CookieSettingsButton />
             <span>{t("marketing.footer.madeFor")}</span>
             <a
-              href="https://getcraftedpixel.com"
+              href={COMPANY.operatorUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-1.5 text-[var(--color-foreground-muted)] transition-colors hover:text-[var(--color-foreground)]"

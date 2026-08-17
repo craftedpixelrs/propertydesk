@@ -74,6 +74,31 @@ export const LAUNCH_DATE_ISO = "2026-09-01";
 export const LAUNCH_DATE_LABEL = "01.09.2026.";
 
 /**
+ * Public contact + operator identity for the marketing site, JSON-LD,
+ * legal pages and the lead-form consent line. Keep these in one place
+ * so a mailbox or phone change is a single diff.
+ *
+ * Registry identifiers (PIB, MB, street address) are intentionally
+ * omitted until the invoicing entity is registered — inventing them
+ * on the impressum would be worse than leaving them blank.
+ */
+export const COMPANY = {
+  productName: "PropertyDesk",
+  operatorName: "CraftedPixel",
+  operatorUrl: "https://getcraftedpixel.com",
+  email: "hello@propertydesk.app",
+  phoneDisplay: "+381 65 43 63 142",
+  phoneTel: "+381654363142",
+  country: "RS",
+} as const;
+
+/** localStorage key for marketing-site cookie / analytics consent. */
+export const COOKIE_CONSENT_KEY = "pd_cookie_consent";
+export const COOKIE_CONSENT_EVENT = "pd-cookie-consent";
+export const COOKIE_SETTINGS_EVENT = "pd-cookie-settings";
+export type CookieConsent = "accepted" | "rejected";
+
+/**
  * Landing-page visual assets.
  *
  * Drop the files under [public/images/landing/](../../../public/images/landing)

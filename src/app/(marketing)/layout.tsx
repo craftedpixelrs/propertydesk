@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 
+import { CookieBanner } from "@/features/marketing/cookie-banner";
 import { GoogleAnalytics } from "@/features/marketing/google-analytics";
 import { MarketingHeader } from "@/features/marketing/marketing-header";
 import { MarketingFooter } from "@/features/marketing/marketing-footer";
@@ -26,6 +27,7 @@ export default function MarketingLayout({ children }: { children: ReactNode }) {
         {children}
       </main>
       <MarketingFooter />
+      <CookieBanner />
       <GoogleAnalytics />
     </div>
   );

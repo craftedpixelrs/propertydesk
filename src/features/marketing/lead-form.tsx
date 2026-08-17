@@ -6,6 +6,7 @@ import { AlertCircle, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useT } from "@/components/app/i18n-provider";
+import { COMPANY } from "@/lib/constants/app";
 import { cn } from "@/lib/utils";
 
 /**
@@ -436,10 +437,17 @@ export function LeadForm() {
                   <span>
                     {t("marketing.lead.consent")}{" "}
                     <a
-                      href="mailto:marko.banovic@craftedpixel.rs"
+                      href="/privatnost"
                       className="underline hover:text-[var(--color-brand-700)]"
                     >
-                      marko.banovic@craftedpixel.rs
+                      {t("marketing.lead.consentPrivacy")}
+                    </a>
+                    . {t("marketing.lead.consentAfter")}{" "}
+                    <a
+                      href={`mailto:${COMPANY.email}`}
+                      className="underline hover:text-[var(--color-brand-700)]"
+                    >
+                      {COMPANY.email}
                     </a>
                     .
                   </span>

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 
-import { APP_NAME, MARKETING_URL, LAUNCH_DATE_ISO } from "@/lib/constants/app";
+import { APP_NAME, COMPANY, MARKETING_URL, LAUNCH_DATE_ISO } from "@/lib/constants/app";
 import { Hero } from "@/features/marketing/hero";
 import { ProductVideo } from "@/features/marketing/product-video";
 import { OfferBanner } from "@/features/marketing/offer-banner";
@@ -48,8 +48,8 @@ export default async function LandingPage() {
       {
         "@type": "ContactPoint",
         contactType: "customer support",
-        email: "marko.banovic@craftedpixel.rs",
-        telephone: "+381-65-43-63-142",
+        email: COMPANY.email,
+        telephone: COMPANY.phoneTel,
         availableLanguage: locale === "en" ? ["English", "Serbian"] : ["Serbian"],
       },
     ],
