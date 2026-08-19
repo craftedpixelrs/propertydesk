@@ -1,54 +1,16 @@
 import type { MetadataRoute } from "next";
+import { headers } from "next/headers";
 
-import { MARKETING_URL } from "@/lib/constants/app";
-import { LANDING_ROUTES } from "@/features/marketing/landing/landing-shell";
+import { hostFromHeaders } from "@/lib/seo/hosts";
+import { buildSitemapEntries } from "@/lib/seo/policy";
 
 /**
- * Marketing sitemap.
+ * Sitemap is advertised only on the marketing apex. App hosts return an
+ * empty list so `my.` / `demo.` / `staging.` never advertise URLs.
  *
- * Includes the root landing plus the eight topic landing pages
- * (za-investitore, za-agencije, prodaja-novogradnje, ...). Anchor
- * sections on the root page are also listed for internal SEO
- * discoverability. App routes live behind auth on `my.propertydesk.app`
- * and are explicitly disallowed by [robots.ts](robots.ts).
+ * Hash anchors (`/#faq`) are omitted — they are not valid sitemap
+ * entries and Google ignores or warns on them.
  */
-export default function sitemap(): MetadataRoute.Sitemap {
-  const now = new Date();
-  const anchors = [
-    "mogucnosti",
-    "za-koga",
-    "zakazivanje",
-    "rana-ponuda",
-    "cenovnik",
-    "uskoro",
-    "faq",
-    "prijava",
-  ];
-
-  return [
-    {
-      url: `${MARKETING_URL}/`,
-      lastModified: now,
-      changeFrequency: "weekly",
-      priority: 1,
-    },
-    ...LANDING_ROUTES.map((r) => ({
-      url: `${MARKETING_URL}/${r.slug}`,
-      lastModified: now,
-      changeFrequency: "weekly" as const,
-      priority: r.slug === "demo" ? 0.9 : 0.8,
-    })),
-    ...["o-nama", "pomoc", "privatnost", "uslovi", "impresum"].map((slug) => ({
-      url: `${MARKETING_URL}/${slug}`,
-      lastModified: now,
-      changeFrequency: "monthly" as const,
-      priority: 0.5,
-    })),
-    ...anchors.map((anchor) => ({
-      url: `${MARKETING_URL}/#${anchor}`,
-      lastModified: now,
-      changeFrequency: "monthly" as const,
-      priority: 0.6,
-    })),
-  ];
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  return buildSitemapEntries(hostFromHeaders(await headers()), new Date());
 }

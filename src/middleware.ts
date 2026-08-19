@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
+import { isAppHost, NOINDEX_ROBOTS_TAG } from "@/lib/seo/hosts";
+
 /**
  * App-wide middleware.
  *
@@ -14,12 +16,6 @@ import { NextRequest, NextResponse } from "next/server";
  *      serve the landing — only the authenticated app (+ public `/p/`).
  *   3) Everything else passes through.
  */
-
-const APP_SUBDOMAINS = new Set([
-  "my.propertydesk.app",
-  "demo.propertydesk.app",
-  "staging.propertydesk.app",
-]);
 
 // Reserved marketing slugs that must only live on the apex domain.
 const MARKETING_ONLY_PATHS = new Set([
@@ -84,6 +80,11 @@ function applyReferralCookie(
   return response;
 }
 
+function applyNoIndex(response: NextResponse): NextResponse {
+  response.headers.set("X-Robots-Tag", NOINDEX_ROBOTS_TAG);
+  return response;
+}
+
 function passThrough(request: NextRequest): NextResponse {
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set("x-pathname", request.nextUrl.pathname);
@@ -94,28 +95,32 @@ export function middleware(request: NextRequest) {
   const host = resolveHost(request);
   const { pathname, search } = request.nextUrl;
 
-  const isAppSubdomain = APP_SUBDOMAINS.has(host);
+  const isAppSubdomain = isAppHost(host);
   if (!isAppSubdomain) return applyReferralCookie(request, passThrough(request));
 
   if (pathname === "/" || pathname === "") {
     const signIn = request.nextUrl.clone();
     signIn.pathname = "/sign-in";
     signIn.search = search;
-    return applyReferralCookie(request, NextResponse.redirect(signIn, 308));
+    return applyNoIndex(
+      applyReferralCookie(request, NextResponse.redirect(signIn, 308)),
+    );
   }
 
   const firstSegment = pathname.split("/", 2)[1] ?? "";
   if (MARKETING_ONLY_PATHS.has(firstSegment)) {
-    return applyReferralCookie(
-      request,
-      NextResponse.redirect(
-        new URL(`https://propertydesk.app${pathname}${search}`),
-        308,
+    return applyNoIndex(
+      applyReferralCookie(
+        request,
+        NextResponse.redirect(
+          new URL(`https://propertydesk.app${pathname}${search}`),
+          308,
+        ),
       ),
     );
   }
 
-  return applyReferralCookie(request, passThrough(request));
+  return applyNoIndex(applyReferralCookie(request, passThrough(request)));
 }
 
 export const config = {

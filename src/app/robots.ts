@@ -1,39 +1,16 @@
 import type { MetadataRoute } from "next";
+import { headers } from "next/headers";
 
-import { MARKETING_URL } from "@/lib/constants/app";
+import { hostFromHeaders } from "@/lib/seo/hosts";
+import { buildRobotsPolicy } from "@/lib/seo/policy";
 
 /**
- * Robots policy for the marketing site (propertydesk.app).
+ * Host-aware robots.txt.
  *
- * The apex domain hosts the public landing page and is indexable. All
- * app-only surfaces (`/dashboard`, `/administracija`, auth flows, API,
- * etc.) live on `my.propertydesk.app` in production, but we still
- * disallow them here in case the same deployment ever serves both.
+ * `propertydesk.app` is the only origin that advertises a sitemap.
+ * `my.`, `demo.`, `staging.`, and localhost stay out of the index via
+ * HTML robots + `X-Robots-Tag` (see `docs/environments.md`).
  */
-export default function robots(): MetadataRoute.Robots {
-  return {
-    rules: [
-      {
-        userAgent: "*",
-        allow: "/",
-        disallow: [
-          "/api/",
-          "/dashboard",
-          "/dashboard/",
-          "/administracija",
-          "/administracija/",
-          "/podesavanja",
-          "/podesavanja/",
-          "/sign-in",
-          "/forgot-password",
-          "/reset-password",
-          "/verify-email",
-          "/accept-invitation",
-          "/obavestenja",
-        ],
-      },
-    ],
-    sitemap: `${MARKETING_URL}/sitemap.xml`,
-    host: MARKETING_URL,
-  };
+export default async function robots(): Promise<MetadataRoute.Robots> {
+  return buildRobotsPolicy(hostFromHeaders(await headers()));
 }

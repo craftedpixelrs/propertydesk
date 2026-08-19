@@ -1,5 +1,6 @@
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+import type { Metadata } from "next";
 import type { ReactNode } from "react";
 
 import { loadUserContext } from "@/server/auth/context";
@@ -16,6 +17,10 @@ import { OrganizationSetupWait } from "@/features/settings/organization-setup-wa
 import { OrganizationProfileForm } from "@/features/settings/organization-profile-form";
 import { RestrictedAccessPanel } from "@/features/settings/restricted-access-panel";
 import { loadOrganizationBranding } from "@/server/services/organization-logo.service";
+
+export const metadata: Metadata = {
+  robots: { index: false, follow: false, nocache: true },
+};
 
 export default async function DashboardLayout({ children }: { children: ReactNode }) {
   const ctx = await loadUserContext();

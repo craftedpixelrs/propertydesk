@@ -30,13 +30,14 @@ export function buildLandingMetadata({
   return {
     title: { absolute: `${title} | ${APP_NAME}` },
     description,
-    alternates: { canonical: `/${slug}` },
+    alternates: { canonical: url },
     openGraph: {
       title: `${title} | ${APP_NAME}`,
       description,
       url,
       type: "website",
       locale: locale === "en" ? "en_GB" : "sr_Latn",
+      siteName: APP_NAME,
     },
     twitter: {
       card: "summary_large_image",

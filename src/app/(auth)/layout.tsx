@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { type ReactNode } from "react";
 import { Building2, ShieldCheck, Sparkles, TrendingUp } from "lucide-react";
 
@@ -16,6 +17,10 @@ import { resolveRequestLocale } from "@/lib/i18n/resolve-locale";
  * collapses to a compact top logo strip so the form remains reachable
  * without scrolling.
  */
+export const metadata: Metadata = {
+  robots: { index: false, follow: false, nocache: true },
+};
+
 export default async function AuthLayout({ children }: { children: ReactNode }) {
   const locale = await resolveRequestLocale();
 

@@ -27,7 +27,19 @@ export async function generateMetadata(): Promise<Metadata> {
     },
     description: t("marketing.landing.metaHomeDescription"),
     alternates: {
-      canonical: "/",
+      canonical: MARKETING_URL,
+    },
+    openGraph: {
+      title: t("marketing.landing.metaHomeTitle", { name: APP_NAME }),
+      description: t("marketing.landing.metaHomeDescription"),
+      url: MARKETING_URL,
+      type: "website",
+      siteName: APP_NAME,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: t("marketing.landing.metaHomeTitle", { name: APP_NAME }),
+      description: t("marketing.landing.metaHomeDescription"),
     },
   };
 }

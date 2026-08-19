@@ -1,10 +1,11 @@
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 
-import { APP_NAME, APP_LOCALE, APP_URL } from "@/lib/constants/app";
 import { Providers } from "@/components/app/providers";
+import { APP_LOCALE, APP_NAME, MARKETING_URL } from "@/lib/constants/app";
 import { htmlLang, t, type Locale } from "@/lib/i18n";
 import { resolveRequestLocale } from "@/lib/i18n/resolve-locale";
+import { NOINDEX_ROBOTS } from "@/lib/seo/policy";
 import "./globals.css";
 
 /**
@@ -30,7 +31,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const title = t("marketing.site.title", { name: APP_NAME }, locale);
   const description = t("marketing.site.description", undefined, locale);
   return {
-    metadataBase: new URL(APP_URL),
+    metadataBase: new URL(MARKETING_URL),
     title: {
       default: title,
       template: `%s · ${APP_NAME}`,
@@ -50,13 +51,9 @@ export async function generateMetadata(): Promise<Metadata> {
     authors: [{ name: APP_NAME }],
     creator: APP_NAME,
     publisher: APP_NAME,
-    alternates: {
-      canonical: "/",
-    },
     openGraph: {
       type: "website",
       locale: ogLocale(locale),
-      url: APP_URL,
       siteName: APP_NAME,
       title,
       description: t("marketing.site.ogDescription", undefined, locale),
@@ -66,16 +63,9 @@ export async function generateMetadata(): Promise<Metadata> {
       title,
       description: t("marketing.site.twitterDescription", undefined, locale),
     },
-    robots: {
-      index: true,
-      follow: true,
-      googleBot: {
-        index: true,
-        follow: true,
-        "max-image-preview": "large",
-        "max-snippet": -1,
-      },
-    },
+    // Default: do not index. Marketing layout opts back in on the apex
+    // only. App hosts (my. / demo. / staging.) stay noindex.
+    robots: NOINDEX_ROBOTS,
   };
 }
 

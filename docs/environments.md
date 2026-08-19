@@ -18,6 +18,22 @@ Hosts, databases, and how you work locally. Mail:
 marketing slugs 308 to `propertydesk.app`. Public share links `/p/…`
 stay on the app host (needed for the demo).
 
+## Indexing (Google)
+
+Only `https://propertydesk.app` is allowed to be indexed.
+
+| Host | robots.txt | sitemap | HTML / `X-Robots-Tag` |
+|------|------------|---------|------------------------|
+| `propertydesk.app` | allow marketing + sitemap | apex URLs only | `index, follow` |
+| `my.` / `demo.` / `staging.` | allow crawl, no sitemap | empty | `noindex, nofollow, noarchive` |
+
+App hosts stay crawlable on purpose: a blanket `Disallow: /` would
+hide the `noindex` tag and can leave already-indexed `my.` URLs in
+Google. They are never listed in the sitemap.
+
+Canonicals and Open Graph URLs always use `https://propertydesk.app`,
+never `my.`. Hash links (`/#faq`) are not in the sitemap.
+
 Staging reuses demo's `DATABASE_URL` and the `app_demo_storage` volume
 so a feature you try on `staging.` sees the same tenants and uploads.
 Cookies are host-scoped, so a session on `demo.` does not carry to
@@ -120,5 +136,6 @@ before a client walkthrough; put the new image on staging first.
 
 - [`development.md`](./development.md)
 - [`email.md`](./email.md)
+- [`../src/app/robots.ts`](../src/app/robots.ts) / [`../src/app/sitemap.ts`](../src/app/sitemap.ts)
 - [`deploy/vps.md`](./deploy/vps.md)
 - [`deploy/github-actions.md`](./deploy/github-actions.md)

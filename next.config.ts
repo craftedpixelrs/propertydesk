@@ -108,12 +108,26 @@ const nextConfig: NextConfig = {
     return config;
   },
   async headers() {
+    const noIndexHosts = [
+      "my.propertydesk.app",
+      "demo.propertydesk.app",
+      "staging.propertydesk.app",
+    ];
     return [
       {
-        // Match every route including static assets.
         source: "/:path*",
         headers: securityHeaders,
       },
+      ...noIndexHosts.map((host) => ({
+        source: "/:path*",
+        has: [{ type: "host" as const, value: host }],
+        headers: [
+          {
+            key: "X-Robots-Tag",
+            value: "noindex, nofollow, noarchive",
+          },
+        ],
+      })),
     ];
   },
 };
