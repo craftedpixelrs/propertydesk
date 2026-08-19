@@ -28,8 +28,8 @@ export default async function AuthLayout({ children }: { children: ReactNode }) 
     <main className="grid min-h-dvh grid-cols-1 bg-[var(--color-surface-muted)] lg:grid-cols-2">
       <BrandingPanel locale={locale} />
 
-      <section className="flex min-h-dvh flex-col justify-center px-4 py-10 sm:px-6 safe-top safe-bottom">
-        <div className="mx-auto w-full max-w-md">
+      <section className="flex min-h-dvh flex-col justify-center overflow-y-auto px-4 py-10 sm:px-6 safe-top safe-bottom">
+        <div className="mx-auto w-full max-w-lg">
           <div className="mb-6 flex items-center justify-center gap-2 lg:hidden">
             <span className="inline-flex size-9 items-center justify-center rounded-lg bg-[var(--color-brand-600)] text-white shadow-sm">
               <Building2 className="size-5" aria-hidden />

@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
+import { headers } from "next/headers";
 import Link from "next/link";
 
 import { SignInForm } from "@/features/auth/sign-in-form";
 import { t } from "@/lib/i18n";
 import { resolveRequestLocale } from "@/lib/i18n/resolve-locale";
+import { hostFromHeaders, isDemoHost } from "@/lib/seo/hosts";
 
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await resolveRequestLocale();
@@ -12,6 +14,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function SignInPage() {
   const locale = await resolveRequestLocale();
+  const showDemoAccounts = isDemoHost(hostFromHeaders(await headers()));
 
   return (
     <div>
@@ -24,19 +27,22 @@ export default async function SignInPage() {
         </p>
       </div>
 
-      <SignInForm />
-
-      <div className="mt-6 flex items-center justify-between text-sm">
-        <Link
-          href="/forgot-password"
-          className="font-medium text-[var(--color-brand-700)] hover:text-[var(--color-brand-800)] hover:underline"
-        >
-          {t("auth.forgotPassword", undefined, locale)}
-        </Link>
-        <span className="text-xs text-[var(--color-foreground-subtle)]">
-          {t("auth.inviteOnly", undefined, locale)}
-        </span>
-      </div>
+      <SignInForm
+        showDemoAccounts={showDemoAccounts}
+        afterForm={
+          <div className="mt-6 flex items-center justify-between text-sm">
+            <Link
+              href="/forgot-password"
+              className="font-medium text-[var(--color-brand-700)] hover:text-[var(--color-brand-800)] hover:underline"
+            >
+              {t("auth.forgotPassword", undefined, locale)}
+            </Link>
+            <span className="text-xs text-[var(--color-foreground-subtle)]">
+              {t("auth.inviteOnly", undefined, locale)}
+            </span>
+          </div>
+        }
+      />
     </div>
   );
 }

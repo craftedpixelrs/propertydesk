@@ -159,6 +159,15 @@ export const en: Dictionary = {
     brandingFeature2: "Secure document sharing with buyers and agencies",
     brandingFeature3: "Automatic reports for developers and management",
     inviteOnly: "Invite-only access",
+    demoAccountsTitle: "Try-the-app accounts",
+    demoAccountsHint:
+      "Pick an account to fill the form. Shared password for all: {{password}}",
+    demoAccountsOrg: "Organization",
+    demoAccountsRole: "Role",
+    demoAccountsEmail: "Email",
+    demoAccountsUse: "Use",
+    demoAccountsInvestor: "Gradnja Plus",
+    demoAccountsAgency: "Top Nekretnine",
     accountDeactivated: "Your account is deactivated. Contact an administrator.",
     organizationSuspended:
       "Your organization is currently suspended. Contact support.",

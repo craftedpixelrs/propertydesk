@@ -17,6 +17,8 @@ export const APP_HOSTS = new Set([
   "staging.propertydesk.app",
 ]);
 
+export const DEMO_HOST = "demo.propertydesk.app";
+
 export const NOINDEX_ROBOTS_TAG = "noindex, nofollow, noarchive";
 
 export function normalizeHost(host: string): string {
@@ -29,6 +31,10 @@ export function isMarketingHost(host: string): boolean {
 
 export function isAppHost(host: string): boolean {
   return APP_HOSTS.has(normalizeHost(host));
+}
+
+export function isDemoHost(host: string): boolean {
+  return normalizeHost(host) === DEMO_HOST;
 }
 
 export function hostFromHeaders(headers: Headers): string {

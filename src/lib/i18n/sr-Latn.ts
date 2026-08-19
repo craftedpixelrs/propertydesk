@@ -164,6 +164,15 @@ export const srLatn = {
     brandingFeature2: "Sigurna razmena dokumenata sa kupcima i agencijama",
     brandingFeature3: "Automatski izveštaji za investitore i menadžment",
     inviteOnly: "Pristup po pozivu",
+    demoAccountsTitle: "Probni nalozi",
+    demoAccountsHint:
+      "Izaberite nalog da popunite prijavu. Ista lozinka za sve: {{password}}",
+    demoAccountsOrg: "Organizacija",
+    demoAccountsRole: "Uloga",
+    demoAccountsEmail: "Email",
+    demoAccountsUse: "Popuni",
+    demoAccountsInvestor: "Gradnja Plus",
+    demoAccountsAgency: "Top Nekretnine",
     accountDeactivated: "Vaš nalog je deaktiviran. Kontaktirajte administratora.",
     organizationSuspended:
       "Vaša organizacija je trenutno suspendovana. Kontaktirajte podršku.",
