@@ -8,19 +8,23 @@ Hosts, databases, and how you work locally. Mail:
 
 | Host | Container | Database | Seed |
 |------|-----------|----------|------|
-| `propertydesk.app` | `app` | production Supabase | — (marketing only) |
-| `my.propertydesk.app` | `app` | **new** production Supabase | `pnpm db:seed:platform` (plans + super-admin) |
-| `demo.propertydesk.app` | `app-demo` | **current** seeded Supabase | full seed + optional `db:seed:demo` |
-| `staging.propertydesk.app` | `app-staging` (compose profile `staging`) | third Supabase | your choice |
+| `propertydesk.app` | `app` | production Supabase | marketing only |
+| `my.propertydesk.app` | `app` | production Supabase | app only (`/` → sign-in) |
+| `demo.propertydesk.app` | `app-demo` | seeded demo Supabase | app only — no landing |
+| `staging.propertydesk.app` | `app-staging` | third Supabase (not created yet) | app only — no landing |
 | `localhost:3000` | `pnpm dev` | staging or a personal DB — **never** `my.` | full seed as needed |
 
 Each app host has its own `.env` file, Postgres, and Docker volume.
 Cookies are host-scoped. One GHCR image; auth client uses the current
 origin so `demo.` does not send users to `my.`.
 
-`app-staging` is **not** started by default (1 GB RAM). Enable with
-`.env.staging` + `docker compose --profile staging up -d app-staging`.
-Until then `https://staging.propertydesk.app` is 502.
+`demo.` and `staging.` never render marketing pages — middleware
+sends those slugs to the apex. They are sign-in + dashboard + `/p/…`.
+
+`app-staging` stays down until a **third** Supabase project exists
+(`.env.staging` + `docker compose --profile staging up -d app-staging`).
+Until then `https://staging.propertydesk.app` is 502. Do not point
+staging at the `my.` or `demo` database.
 
 ## VPS files
 
