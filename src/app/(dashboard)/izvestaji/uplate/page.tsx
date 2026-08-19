@@ -44,6 +44,8 @@ export default async function PaymentsReportPage({ searchParams }: PageProps) {
       organizationId: ctx.organization.organizationId,
       projectId: filters.projectId ?? null,
       months: 12,
+      from: filters.from,
+      to: filters.to,
     }),
   ]);
   const currency = report.totals.currency as SupportedCurrency;
@@ -86,8 +88,16 @@ export default async function PaymentsReportPage({ searchParams }: PageProps) {
 
       <CashFlowCard
         projection={cashflow}
-        title={t("ops.reports.cashFlowTitle")}
-        description={t("ops.reports.cashFlowDesc")}
+        title={
+          parsed.from || parsed.to
+            ? t("ops.reports.cashFlowPeriodTitle")
+            : t("ops.reports.cashFlowTitle")
+        }
+        description={
+          parsed.from || parsed.to
+            ? t("ops.reports.cashFlowPeriodDesc")
+            : t("ops.reports.cashFlowDesc")
+        }
       />
 
 

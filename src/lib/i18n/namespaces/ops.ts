@@ -166,9 +166,13 @@ export const opsSr = {
     cashFlowTitle: "Cash-flow projekcija (12 meseci)",
     cashFlowDesc:
       "Očekivane naplate po planovima plaćanja i stvarni prilivi iz uplata — sve u jednoj slici.",
+    cashFlowPeriodTitle: "Nadolazeće uplate u periodu",
+    cashFlowPeriodDesc:
+      "Očekivane rate po dospeću i stvarni prilivi za izabrane datume.",
     cashFlowDefaultTitle: "Cash-flow projekcija",
     cashFlowEmpty: "Nema aktivnih planova plaćanja u traženom periodu.",
     monthlyFlow: "Mesečni tok ({{currency}})",
+    dailyFlow: "Dnevni tok ({{currency}})",
     expected: "Očekivano",
     received: "Naplaćeno",
     overduePast: "U dospeću (prošlo)",
@@ -257,6 +261,21 @@ export const opsSr = {
     trialUntil: "Probni period do:",
     planCode: "Oznaka plana:",
     noSubscription: "Nema aktivne pretplate.",
+    logoTitle: "Logo kompanije",
+    logoHint:
+      "PNG, JPG ili WebP, do 2 MB. Logo se koristi na ponudama i javnim stranicama.",
+    logoWhiteLabelHint:
+      "Na Growth i Scale paketu ovaj logo zamenjuje PropertyDesk u aplikaciji (white-label).",
+    logoStarterHint:
+      "Zamena logoa aplikacije (white-label) dostupna je na Growth i Scale paketu.",
+    logoUpload: "Otpremi logo",
+    logoChange: "Zameni logo",
+    logoRemove: "Ukloni logo",
+    logoUploaded: "Logo je otpremljen.",
+    logoRemoved: "Logo je uklonjen.",
+    logoMustBeImage: "Logo mora biti PNG, JPG ili WebP.",
+    logoTooBig: "Logo je prevelik (maksimalno 2 MB).",
+    logoUploadFailed: "Otpremanje logoa nije uspelo.",
   },
 
   members: {
@@ -553,9 +572,13 @@ export const opsEn: Leaves<typeof opsSr> = {
     cashFlowTitle: "Cash-flow projection (12 months)",
     cashFlowDesc:
       "Expected collections from payment plans and actual inflows from payments — in one view.",
+    cashFlowPeriodTitle: "Upcoming payments in the period",
+    cashFlowPeriodDesc:
+      "Expected installments by due date and actual inflows for the selected dates.",
     cashFlowDefaultTitle: "Cash-flow projection",
     cashFlowEmpty: "No active payment plans in the selected period.",
     monthlyFlow: "Monthly flow ({{currency}})",
+    dailyFlow: "Daily flow ({{currency}})",
     expected: "Expected",
     received: "Collected",
     overduePast: "Overdue (past)",
@@ -644,6 +667,21 @@ export const opsEn: Leaves<typeof opsSr> = {
     trialUntil: "Trial ends:",
     planCode: "Plan code:",
     noSubscription: "No active subscription.",
+    logoTitle: "Company logo",
+    logoHint:
+      "PNG, JPG or WebP, up to 2 MB. Used on offers and public pages.",
+    logoWhiteLabelHint:
+      "On Growth and Scale this logo replaces PropertyDesk in the app (white-label).",
+    logoStarterHint:
+      "Replacing the app logo (white-label) is available on Growth and Scale.",
+    logoUpload: "Upload logo",
+    logoChange: "Replace logo",
+    logoRemove: "Remove logo",
+    logoUploaded: "Logo uploaded.",
+    logoRemoved: "Logo removed.",
+    logoMustBeImage: "Logo must be PNG, JPG or WebP.",
+    logoTooBig: "Logo is too large (2 MB maximum).",
+    logoUploadFailed: "Could not upload the logo.",
   },
 
   members: {

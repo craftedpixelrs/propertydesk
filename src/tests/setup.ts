@@ -21,6 +21,7 @@ process.env.NEXT_PUBLIC_APP_TIMEZONE ??= "Europe/Belgrade";
 process.env.EMAIL_PROVIDER ??= "console";
 process.env.EMAIL_FROM_NAME ??= "PropertyDesk";
 process.env.EMAIL_FROM_ADDRESS ??= "noreply@propertydesk.test";
+process.env.EMAIL_REPLY_TO ??= "hello@propertydesk.test";
 process.env.STORAGE_PROVIDER ??= "local";
 process.env.STORAGE_LOCAL_DIR ??= "./storage";
 process.env.CRON_SECRET ??= "test-cron-secret-that-is-long-enough-for-tests";

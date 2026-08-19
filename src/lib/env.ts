@@ -44,6 +44,8 @@ const serverSchema = z.object({
   EMAIL_PROVIDER: z.enum(["resend", "smtp", "console"]).default("console"),
   EMAIL_FROM_NAME: z.string().min(1).default("PropertyDesk"),
   EMAIL_FROM_ADDRESS: z.string().email().default("noreply@propertydesk.app"),
+  /** Human inbox (Google Workspace). Replies to transactional mail go here. */
+  EMAIL_REPLY_TO: z.string().email().default("hello@propertydesk.app"),
   RESEND_API_KEY: optionalString,
 
   SMTP_HOST: optionalString,

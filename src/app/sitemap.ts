@@ -15,7 +15,6 @@ import { LANDING_ROUTES } from "@/features/marketing/landing/landing-shell";
 export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date();
   const anchors = [
-    "video",
     "mogucnosti",
     "za-koga",
     "zakazivanje",

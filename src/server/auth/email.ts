@@ -9,6 +9,9 @@ import { APP_NAME } from "@/lib/constants/app";
  *   - `smtp`               — plain SMTP via nodemailer-compatible fields
  *   - `resend`             — sends via the Resend HTTPS API
  *
+ * Production: Resend sends as `noreply@propertydesk.app`. Replies go to
+ * `hello@propertydesk.app` (Google Workspace). No extra Workspace seat.
+ *
  * The rest of the codebase should call `sendEmail(...)` and remain oblivious
  * to which provider is in use. If SMTP is selected but `SMTP_HOST` is not
  * configured, the adapter safely falls back to `console` (never silently
@@ -51,6 +54,7 @@ async function sendViaResend(msg: EmailMessage, from: string): Promise<void> {
     body: JSON.stringify({
       from,
       to: msg.to,
+      reply_to: serverEnv.EMAIL_REPLY_TO,
       subject: msg.subject,
       text: msg.text,
       html: msg.html,
@@ -100,6 +104,7 @@ async function sendViaSmtp(msg: EmailMessage, from: string): Promise<void> {
       sendMail: (opts: {
         from: string;
         to: string;
+        replyTo?: string;
         subject: string;
         text: string;
         html?: string;
@@ -109,6 +114,7 @@ async function sendViaSmtp(msg: EmailMessage, from: string): Promise<void> {
     await transport.sendMail({
       from,
       to: msg.to,
+      replyTo: serverEnv.EMAIL_REPLY_TO,
       subject: msg.subject,
       text: msg.text,
       html: msg.html,

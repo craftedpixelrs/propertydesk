@@ -15,6 +15,7 @@ import { UserContextProvider } from "@/components/app/user-context";
 import { OrganizationSetupWait } from "@/features/settings/organization-setup-wait";
 import { OrganizationProfileForm } from "@/features/settings/organization-profile-form";
 import { RestrictedAccessPanel } from "@/features/settings/restricted-access-panel";
+import { loadOrganizationBranding } from "@/server/services/organization-logo.service";
 
 export default async function DashboardLayout({ children }: { children: ReactNode }) {
   const ctx = await loadUserContext();
@@ -81,11 +82,16 @@ export default async function DashboardLayout({ children }: { children: ReactNod
     }
   }
 
+  const branding = ctx.activeOrganization
+    ? await loadOrganizationBranding(ctx.activeOrganization.id)
+    : null;
+
   const navProps = {
     organizationType: ctx.activeOrganization?.type ?? null,
     permissions: ctx.permissions,
     isSuperAdmin: ctx.isSuperAdmin,
     hasPropertyDeskAccess,
+    branding,
   };
 
   return (
@@ -101,7 +107,7 @@ export default async function DashboardLayout({ children }: { children: ReactNod
       <div className="flex min-h-dvh w-full flex-col md:flex-row">
         <SidebarNav {...navProps} lockNav={lockNav} />
         <div className="flex min-w-0 flex-1 flex-col">
-          <MobileHeader lockNav={lockNav} />
+          <MobileHeader lockNav={lockNav} branding={branding} />
           {ctx.session.impersonatedBy ? (
             <ImpersonationBanner
               userName={ctx.user.name}

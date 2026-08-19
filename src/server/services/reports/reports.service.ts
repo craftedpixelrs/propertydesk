@@ -55,12 +55,24 @@ export interface InventoryReport {
 }
 
 export async function buildInventoryReport(filters: ReportFilters): Promise<InventoryReport> {
+  const asOf = filters.to;
   const where: Prisma.UnitWhereInput = {
     organizationId: filters.organizationId,
     archivedAt: null,
     ...(filters.projectId ? { projectId: filters.projectId } : {}),
+    ...(asOf ? { createdAt: { lte: asOf } } : {}),
   };
 
+  if (!asOf) {
+    return buildCurrentInventoryReport(filters, where);
+  }
+  return buildInventoryReportAsOf(filters, where, asOf);
+}
+
+async function buildCurrentInventoryReport(
+  filters: ReportFilters,
+  where: Prisma.UnitWhereInput,
+): Promise<InventoryReport> {
   const [rows, detail, projectsRaw] = await Promise.all([
     prisma.unit.groupBy({
       by: ["projectId", "status", "currency"],
@@ -90,7 +102,6 @@ export async function buildInventoryReport(filters: ReportFilters): Promise<Inve
   ]);
 
   const projectNames = new Map(projectsRaw.map((p) => [p.id, p.name] as const));
-
   const reportRows: InventoryReportRow[] = rows.map((row) => ({
     projectId: row.projectId,
     projectName: projectNames.get(row.projectId) ?? "—",
@@ -101,6 +112,109 @@ export async function buildInventoryReport(filters: ReportFilters): Promise<Inve
     currency: row.currency,
   }));
 
+  return finishInventoryReport(filters, reportRows, detail.map((u) => ({
+    id: u.id,
+    projectName: u.project.name,
+    code: u.code,
+    status: u.status,
+    area: toDecimal(u.totalArea).toString(),
+    price: toDecimal(u.finalPrice ?? u.basePrice).toString(),
+    currency: u.currency,
+  })));
+}
+
+async function buildInventoryReportAsOf(
+  filters: ReportFilters,
+  where: Prisma.UnitWhereInput,
+  asOf: Date,
+): Promise<InventoryReport> {
+  const [units, history] = await Promise.all([
+    prisma.unit.findMany({
+      where,
+      orderBy: [{ project: { name: "asc" } }, { code: "asc" }],
+      select: {
+        id: true,
+        code: true,
+        status: true,
+        totalArea: true,
+        basePrice: true,
+        finalPrice: true,
+        currency: true,
+        projectId: true,
+        project: { select: { name: true } },
+      },
+    }),
+    prisma.unitStatusHistory.findMany({
+      where: {
+        organizationId: filters.organizationId,
+        ...(filters.projectId ? { unit: { projectId: filters.projectId } } : {}),
+      },
+      orderBy: { changedAt: "asc" },
+      select: {
+        unitId: true,
+        previousStatus: true,
+        newStatus: true,
+        changedAt: true,
+      },
+    }),
+  ]);
+
+  const historyByUnit = new Map<string, typeof history>();
+  for (const event of history) {
+    const list = historyByUnit.get(event.unitId) ?? [];
+    list.push(event);
+    historyByUnit.set(event.unitId, list);
+  }
+
+  function statusAt(unitId: string, current: UnitStatus): UnitStatus {
+    const events = historyByUnit.get(unitId);
+    if (!events?.length) return current;
+    const before = events.filter((event) => event.changedAt <= asOf);
+    if (before.length) return before[before.length - 1]!.newStatus;
+    return events[0]!.previousStatus;
+  }
+
+  const buckets = new Map<string, InventoryReportRow>();
+  const detail = units.map((unit) => {
+    const status = statusAt(unit.id, unit.status);
+    const area = toDecimal(unit.totalArea);
+    const price = toDecimal(unit.finalPrice ?? unit.basePrice);
+    const key = `${unit.projectId}|${status}|${unit.currency}`;
+    const existing = buckets.get(key);
+    if (existing) {
+      existing.count += 1;
+      existing.areaTotal = toDecimal(existing.areaTotal).plus(area).toString();
+      existing.priceTotal = toDecimal(existing.priceTotal).plus(price).toString();
+    } else {
+      buckets.set(key, {
+        projectId: unit.projectId,
+        projectName: unit.project.name,
+        status,
+        count: 1,
+        areaTotal: area.toString(),
+        priceTotal: price.toString(),
+        currency: unit.currency,
+      });
+    }
+    return {
+      id: unit.id,
+      projectName: unit.project.name,
+      code: unit.code,
+      status,
+      area: area.toString(),
+      price: price.toString(),
+      currency: unit.currency,
+    };
+  });
+
+  return finishInventoryReport(filters, Array.from(buckets.values()), detail.slice(0, 500));
+}
+
+function finishInventoryReport(
+  filters: ReportFilters,
+  reportRows: InventoryReportRow[],
+  detail: InventoryReport["detail"],
+): InventoryReport {
   const totalUnits = reportRows.reduce((s, r) => s + r.count, 0);
   const totalArea = sumMoney(reportRows.map((r) => r.areaTotal));
   const totalPrice = sumMoney(reportRows.map((r) => r.priceTotal));
@@ -115,15 +229,7 @@ export async function buildInventoryReport(filters: ReportFilters): Promise<Inve
       currency,
     },
     rows: reportRows,
-    detail: detail.map((u) => ({
-      id: u.id,
-      projectName: u.project.name,
-      code: u.code,
-      status: u.status,
-      area: toDecimal(u.totalArea).toString(),
-      price: toDecimal(u.finalPrice ?? u.basePrice).toString(),
-      currency: u.currency,
-    })),
+    detail,
   };
 }
 

@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 
 import { APP_NAME, COMPANY, MARKETING_URL, LAUNCH_DATE_ISO } from "@/lib/constants/app";
 import { Hero } from "@/features/marketing/hero";
-import { ProductVideo } from "@/features/marketing/product-video";
 import { OfferBanner } from "@/features/marketing/offer-banner";
 import { FeatureGrid } from "@/features/marketing/feature-grid";
 import { SocialProof } from "@/features/marketing/social-proof";
@@ -107,7 +106,6 @@ export default async function LandingPage() {
   return (
     <>
       <Hero />
-      <ProductVideo />
       <OfferBanner />
       <FeatureGrid />
       <SocialProof />

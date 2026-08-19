@@ -14,7 +14,7 @@ interface PageHeroProps {
   icon?: LucideIcon;
   /** Primary CTA - defaults to demo booking on the /demo page. */
   primaryCta?: { label: string; href: string };
-  /** Secondary CTA - defaults to jumping to the product video on `/`. */
+  /** Optional secondary CTA. Omitted when there is no promo video. */
   secondaryCta?: { label: string; href: string };
   /** Optional footnote rendered below the CTAs. */
   footnote?: string;
@@ -40,10 +40,7 @@ export async function PageHero({
     label: t("marketing.common.bookDemo"),
     href: "/demo#zakazivanje",
   };
-  const resolvedSecondary = secondaryCta ?? {
-    label: t("marketing.common.watchVideo"),
-    href: "/#video",
-  };
+  const resolvedSecondary = secondaryCta;
   const resolvedFootnote = footnote ?? t("marketing.common.noObligation");
 
   return (
@@ -83,12 +80,14 @@ export async function PageHero({
                 <ArrowRight aria-hidden className="size-4" />
               </a>
             </Button>
-            <Button asChild size="lg" variant="outline" className="w-full gap-2 sm:w-auto">
-              <a href={resolvedSecondary.href}>
-                <PlayCircle aria-hidden className="size-4" />
-                {resolvedSecondary.label}
-              </a>
-            </Button>
+            {resolvedSecondary ? (
+              <Button asChild size="lg" variant="outline" className="w-full gap-2 sm:w-auto">
+                <a href={resolvedSecondary.href}>
+                  <PlayCircle aria-hidden className="size-4" />
+                  {resolvedSecondary.label}
+                </a>
+              </Button>
+            ) : null}
           </div>
 
           {resolvedFootnote ? (

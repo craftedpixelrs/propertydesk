@@ -18,6 +18,7 @@ import {
   type Column,
 } from "@/server/services/reports/exporters";
 import { ApiError } from "@/lib/api/errors";
+import { toReportFilters } from "@/features/reports/report-filter-params";
 
 /**
  * Streaming report export endpoint. Query parameters:
@@ -37,11 +38,12 @@ export const GET = apiHandler({}, async ({ searchParams }): Promise<Response> =>
     throw new ApiError("BAD_REQUEST", "Format izveštaja mora biti csv ili xlsx.");
   }
 
-  const from = parseDate(searchParams.get("from"));
-  const to = parseDate(searchParams.get("to"));
-  const projectId = searchParams.get("projectId") ?? undefined;
-
-  const filters = { organizationId, projectId, from, to };
+  const filters = toReportFilters({
+    organizationId,
+    projectId: searchParams.get("projectId") || undefined,
+    from: searchParams.get("from") || undefined,
+    to: searchParams.get("to") || undefined,
+  });
 
   let filename: string;
   let columns: Column<Record<string, unknown>>[];
@@ -146,12 +148,6 @@ export const GET = apiHandler({}, async ({ searchParams }): Promise<Response> =>
   const xlsx = await rowsToXlsx(report, columns, rows);
   return new NextResponse(new Uint8Array(xlsx), { headers: xlsxResponseHeaders(filename) });
 });
-
-function parseDate(v: string | null): Date | undefined {
-  if (!v) return undefined;
-  const d = new Date(v);
-  return Number.isNaN(d.getTime()) ? undefined : d;
-}
 
 function today(): string {
   return new Date().toISOString().slice(0, 10);

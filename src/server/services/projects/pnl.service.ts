@@ -92,7 +92,7 @@ export async function computeProjectPnl(input: {
     prisma.commission.groupBy({
       by: ["currency"],
       where: {
-        organizationId: input.organizationId,
+        investorOrganizationId: input.organizationId,
         sale: {
           projectId: { in: ids },
           status: ACCOUNTABLE_SALE_STATUSES,
@@ -110,7 +110,7 @@ export async function computeProjectPnl(input: {
   const perProjectCommissions = await prisma.commission.groupBy({
     by: ["saleId"],
     where: {
-      organizationId: input.organizationId,
+      investorOrganizationId: input.organizationId,
       sale: {
         projectId: { in: ids },
         status: ACCOUNTABLE_SALE_STATUSES,

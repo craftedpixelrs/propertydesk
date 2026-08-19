@@ -60,7 +60,12 @@ export function CashFlowCard(props: {
                   currency={currency as SupportedCurrency}
                 />
                 <ChartCard
-                  title={t("ops.reports.monthlyFlow", { currency })}
+                  title={t(
+                    projection.grain === "day"
+                      ? "ops.reports.dailyFlow"
+                      : "ops.reports.monthlyFlow",
+                    { currency },
+                  )}
                   isEmpty={currencyBuckets.length === 0}
                   height={280}
                 >

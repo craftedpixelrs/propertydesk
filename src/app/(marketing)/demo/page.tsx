@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { CalendarCheck2 } from "lucide-react";
 
 import { BookingEmbed } from "@/features/marketing/booking-embed";
-import { ProductVideo } from "@/features/marketing/product-video";
 import { PageHero } from "@/features/marketing/landing/page-hero";
 import {
   buildLandingMetadata,
@@ -40,10 +39,6 @@ export default async function Page() {
         title={t("marketing.pages.demo.title")}
         subtitle={t("marketing.pages.demo.subtitle")}
         primaryCta={{ label: t("marketing.pages.demo.scrollCalendar"), href: "#zakazivanje" }}
-        secondaryCta={{
-          label: t("marketing.common.watchVideo"),
-          href: "#video",
-        }}
         footnote={t("marketing.pages.demo.footnote")}
       />
       <BookingEmbed
@@ -51,7 +46,6 @@ export default async function Page() {
         title={t("marketing.pages.demo.bookingTitle")}
         subtitle={t("marketing.pages.demo.bookingSubtitle")}
       />
-      <ProductVideo />
       <LandingJsonLd {...meta} />
     </>
   );

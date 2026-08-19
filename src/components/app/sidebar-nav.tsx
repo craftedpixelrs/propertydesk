@@ -6,9 +6,9 @@ import { LogOut } from "lucide-react";
 import { useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
-import { APP_NAME } from "@/lib/constants/app";
 import { useT } from "@/components/app/i18n-provider";
 import { LanguageSwitcher } from "@/components/app/language-switcher";
+import { OrgBrandMark, type OrgBranding } from "@/components/app/org-brand-mark";
 import { cn } from "@/lib/utils";
 import { filterNavigation, navigation } from "@/components/app/navigation";
 import type { PermissionString } from "@/server/permissions/access-control";
@@ -22,6 +22,7 @@ export interface SidebarNavProps {
   isSuperAdmin: boolean;
   hasPropertyDeskAccess: boolean;
   lockNav?: boolean;
+  branding?: OrgBranding | null;
 }
 
 /**
@@ -36,6 +37,7 @@ export function SidebarNav({
   isSuperAdmin,
   hasPropertyDeskAccess,
   lockNav = false,
+  branding = null,
 }: SidebarNavProps) {
   const pathname = usePathname();
   const router = useRouter();
@@ -62,8 +64,8 @@ export function SidebarNav({
       className="hidden md:flex md:w-64 md:shrink-0 md:flex-col border-r border-[var(--color-border)] bg-[var(--color-surface)]"
       aria-label={t("a11y.primaryNavigation")}
     >
-      <div className="flex h-14 items-center justify-between border-b border-[var(--color-border)] px-4 font-semibold text-[var(--color-foreground)]">
-        <span>{APP_NAME}</span>
+      <div className="flex h-14 items-center justify-between gap-2 border-b border-[var(--color-border)] px-4 font-semibold text-[var(--color-foreground)]">
+        <OrgBrandMark branding={branding} />
         {/* Sidebar is narrow (~256px). Anchor the popover to the *right side*
          * of the bell so it expands into the main content area instead of
          * off-screen to the left. */}

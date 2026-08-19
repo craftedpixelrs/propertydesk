@@ -52,7 +52,7 @@ export default async function InventoryReportPage({ searchParams }: PageProps) {
   ]);
 
   const currency = report.totals.currency as SupportedCurrency;
-  const hrefs = exportHrefs("inventory", { projectId: parsed.projectId });
+  const hrefs = exportHrefs("inventory", parsed);
 
   return (
     <div className="space-y-6">
@@ -65,6 +65,8 @@ export default async function InventoryReportPage({ searchParams }: PageProps) {
         action="/izvestaji/zalihe"
         projects={projects}
         selectedProjectId={parsed.projectId}
+        from={parsed.from}
+        to={parsed.to}
         exportCsvHref={hrefs.csv}
         exportXlsxHref={hrefs.xlsx}
       />

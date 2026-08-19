@@ -326,7 +326,7 @@ async function main() {
     maxUnits: 1000,
     maxMembers: 30,
     maxAgencyConnections: 25,
-    features: { impersonation: false, agencySharing: true },
+    features: { impersonation: false, agencySharing: true, whiteLabel: true },
     sortOrder: 2,
   });
 
@@ -338,7 +338,7 @@ async function main() {
     maxUnits: null,
     maxMembers: null,
     maxAgencyConnections: null,
-    features: { impersonation: true, agencySharing: true },
+    features: { impersonation: true, agencySharing: true, whiteLabel: true },
     sortOrder: 3,
   });
 

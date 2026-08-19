@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { useRef, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import type { OrganizationProfile } from "@prisma/client";
 import { Button } from "@/components/ui/button";
@@ -15,13 +15,17 @@ import { PermissionGuard } from "@/components/app/permission-guard";
 import { formatDate } from "@/lib/formatters/date";
 import { toast } from "sonner";
 import type { QuotaSnapshot } from "@/server/services/quotas.service";
-import { Building2, Users, Package, Handshake } from "lucide-react";
+import { Building2, Handshake, ImagePlus, Package, Users } from "lucide-react";
 import { useT } from "@/components/app/i18n-provider";
 import type { TranslationKey } from "@/lib/i18n";
+import { planAllowsWhiteLabel, withLogoCacheBust } from "@/lib/billing/white-label";
 import {
   isInvestorProfileComplete,
   normalizeWebsite,
 } from "@/server/services/organization-profile-completeness";
+
+const LOGO_ACCEPT = "image/png,image/jpeg,image/webp";
+const MAX_LOGO_BYTES = 2 * 1024 * 1024;
 
 interface OrganizationProfileFormProps {
   organization: { id: string; name: string; slug: string | null };
@@ -175,6 +179,19 @@ export function OrganizationProfileForm({
               {t("ops.org.noSubscription")}
             </p>
           )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>{t("ops.org.logoTitle")}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <OrganizationLogoField
+            logoUrl={profile?.logoUrl ?? null}
+            updatedAt={profile?.updatedAt ?? null}
+            planCode={subscription?.plan.code ?? null}
+          />
         </CardContent>
       </Card>
 
@@ -339,6 +356,136 @@ export function OrganizationProfileForm({
           </div>
         </PermissionGuard>
       </form>
+    </div>
+  );
+}
+
+function OrganizationLogoField({
+  logoUrl,
+  updatedAt,
+  planCode,
+}: {
+  logoUrl: string | null;
+  updatedAt: Date | null;
+  planCode: string | null;
+}) {
+  const t = useT();
+  const router = useRouter();
+  const inputRef = useRef<HTMLInputElement | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const preview = withLogoCacheBust(logoUrl, updatedAt);
+  const whiteLabel = planAllowsWhiteLabel(planCode);
+
+  async function handleFiles(files: FileList | null) {
+    const file = files?.[0];
+    if (!file) return;
+    if (!["image/png", "image/jpeg", "image/webp"].includes(file.type)) {
+      setError(t("ops.org.logoMustBeImage"));
+      return;
+    }
+    if (file.size > MAX_LOGO_BYTES) {
+      setError(t("ops.org.logoTooBig"));
+      return;
+    }
+    setBusy(true);
+    setError(null);
+    try {
+      const form = new FormData();
+      form.append("file", file);
+      const res = await fetch("/api/v1/organization/logo", {
+        method: "POST",
+        body: form,
+        credentials: "include",
+      });
+      const payload = (await res.json().catch(() => null)) as
+        | { error?: { message?: string } }
+        | null;
+      if (!res.ok) {
+        throw new Error(payload?.error?.message ?? t("ops.org.logoUploadFailed"));
+      }
+      if (inputRef.current) inputRef.current.value = "";
+      toast.success(t("ops.org.logoUploaded"));
+      router.refresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : t("ops.org.logoUploadFailed"));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function handleRemove() {
+    setBusy(true);
+    setError(null);
+    try {
+      await apiClient.delete("/organization/logo");
+      toast.success(t("ops.org.logoRemoved"));
+      router.refresh();
+    } catch (err) {
+      setError(
+        err instanceof ApiClientError ? err.message : t("common.unexpectedError"),
+      );
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className="space-y-3">
+      <p className="text-sm text-[var(--color-foreground-muted)]">
+        {t("ops.org.logoHint")}{" "}
+        {whiteLabel ? t("ops.org.logoWhiteLabelHint") : t("ops.org.logoStarterHint")}
+      </p>
+      <div className="flex flex-wrap items-center gap-4">
+        <div className="flex size-20 items-center justify-center overflow-hidden rounded-md border border-[var(--color-border)] bg-[var(--color-surface-inset)]">
+          {preview ? (
+            <img
+              src={preview}
+              alt=""
+              className="max-h-full max-w-full object-contain"
+            />
+          ) : (
+            <ImagePlus
+              aria-hidden
+              className="size-6 text-[var(--color-foreground-muted)]"
+            />
+          )}
+        </div>
+        <PermissionGuard permission="organization.manage">
+          <div className="flex flex-wrap items-center gap-2">
+            <input
+              ref={inputRef}
+              type="file"
+              accept={LOGO_ACCEPT}
+              className="hidden"
+              onChange={(e) => handleFiles(e.target.files)}
+            />
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              loading={busy}
+              onClick={() => inputRef.current?.click()}
+            >
+              {preview ? t("ops.org.logoChange") : t("ops.org.logoUpload")}
+            </Button>
+            {preview ? (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                disabled={busy}
+                onClick={handleRemove}
+              >
+                {t("ops.org.logoRemove")}
+              </Button>
+            ) : null}
+          </div>
+        </PermissionGuard>
+      </div>
+      {error ? (
+        <p className="text-sm text-[var(--color-danger)]">{error}</p>
+      ) : null}
     </div>
   );
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { Rocket, ArrowRight, PlayCircle } from "lucide-react";
+import { Rocket, ArrowRight } from "lucide-react";
 
 import {
   LANDING_IMAGES,
@@ -19,7 +19,6 @@ import { useT } from "@/components/app/i18n-provider";
  * The CTA hierarchy targets fast-moving B2B qualified visitors:
  *   - Primary   → `#zakazivanje` (Google Calendar Appointment embed on the
  *                 same page + on the dedicated `/demo` route)
- *   - Secondary → `#video` (3-minute product overview)
  *
  * Login is intentionally NOT in the hero - it lives in the top-right
  * header only, and is disabled until 01.09.2026 anyway.
@@ -67,12 +66,6 @@ export function Hero() {
               <a href="#zakazivanje">
                 {t("marketing.hero.bookDemo")}
                 <ArrowRight aria-hidden className="size-4" />
-              </a>
-            </Button>
-            <Button asChild size="lg" variant="outline" className="w-full gap-2 sm:w-auto">
-              <a href="#video">
-                <PlayCircle aria-hidden className="size-4" />
-                {t("marketing.hero.watchVideo")}
               </a>
             </Button>
           </div>
