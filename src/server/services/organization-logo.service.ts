@@ -133,6 +133,7 @@ export async function resolveOrganizationLogo(organizationId: string): Promise<{
       entityType: "Organization",
       entityId: organizationId,
       mimeType: { startsWith: "image/" },
+      deletedAt: null,
     },
     orderBy: { createdAt: "desc" },
     select: {
@@ -142,6 +143,13 @@ export async function resolveOrganizationLogo(organizationId: string): Promise<{
     },
   });
   if (!doc) return null;
+
+  // Same path as document download / share images: S3 gets a signed URL,
+  // local storage streams bytes through this route.
+  const url = await storage().getSignedUrl(doc.storageKey, 300);
+  if (!url.startsWith("local:")) {
+    return { redirectUrl: url };
+  }
 
   const buffer = await storage().read(doc.storageKey);
   return {
