@@ -54,10 +54,16 @@ export async function uploadOrganizationLogo(input: {
     throw DomainErrors.notFound("Profil organizacije");
   }
 
-  await prisma.organizationProfile.update({
-    where: { organizationId: input.organizationId },
-    data: { logoUrl },
-  });
+  await prisma.$transaction([
+    prisma.organizationProfile.update({
+      where: { organizationId: input.organizationId },
+      data: { logoUrl },
+    }),
+    prisma.organization.update({
+      where: { id: input.organizationId },
+      data: { logo: logoUrl },
+    }),
+  ]);
 
   await recordAudit({
     action: "organization.updated",
@@ -84,10 +90,16 @@ export async function removeOrganizationLogo(input: {
     throw DomainErrors.notFound("Profil organizacije");
   }
 
-  await prisma.organizationProfile.update({
-    where: { organizationId: input.organizationId },
-    data: { logoUrl: null },
-  });
+  await prisma.$transaction([
+    prisma.organizationProfile.update({
+      where: { organizationId: input.organizationId },
+      data: { logoUrl: null },
+    }),
+    prisma.organization.update({
+      where: { id: input.organizationId },
+      data: { logo: null },
+    }),
+  ]);
 
   await recordAudit({
     action: "organization.updated",
@@ -148,6 +160,7 @@ export async function loadOrganizationBranding(organizationId: string): Promise<
     where: { id: organizationId },
     select: {
       name: true,
+      logo: true,
       profile: { select: { displayName: true, logoUrl: true, updatedAt: true } },
       subscription: {
         select: {
@@ -160,7 +173,10 @@ export async function loadOrganizationBranding(organizationId: string): Promise<
   const plan = org?.subscription?.plan;
   return {
     name: org?.profile?.displayName || org?.name || "",
-    logoUrl: withLogoCacheBust(org?.profile?.logoUrl, org?.profile?.updatedAt),
+    logoUrl: withLogoCacheBust(
+      org?.profile?.logoUrl || org?.logo,
+      org?.profile?.updatedAt,
+    ),
     whiteLabel: planAllowsWhiteLabel(plan?.code, plan?.features),
   };
 }

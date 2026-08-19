@@ -18,6 +18,8 @@ import { OrganizationProfileForm } from "@/features/settings/organization-profil
 import { RestrictedAccessPanel } from "@/features/settings/restricted-access-panel";
 import { loadOrganizationBranding } from "@/server/services/organization-logo.service";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   robots: { index: false, follow: false, nocache: true },
 };

@@ -22,6 +22,7 @@ export function OrgBrandMark({
     <span className="flex min-w-0 items-center gap-2">
       {/* Public org logo is a same-origin API stream; next/image is not needed. */}
       <img
+        key={branding!.logoUrl!}
         src={branding!.logoUrl!}
         alt={branding!.name || APP_NAME}
         className={

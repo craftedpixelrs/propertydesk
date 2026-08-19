@@ -22,7 +22,8 @@ Staging i demo dele **istu bazu i fajlove**. Sesije su odvojene po hostu.
 |--------|--------|---------|------|------------|
 | SEO: indeks samo `propertydesk.app` | urađeno ranije | da | da | da |
 | Demo login tabela (bez super-admina) | urađeno ranije | ne (samo `demo.`) | da | ne |
-| `/izvestaji/prodaje` — P&L je zvao nepostojeće `commission.paidAmount` | **sada** | čeka ovaj deploy | čeka odluku | čeka odluku |
+| `/izvestaji/prodaje` — P&L je zvao nepostojeće `commission.paidAmount` | urađeno | da | čeka odluku | čeka odluku |
+| Logo kompanije ne menja sidebar (white-label Growth/Scale) | **sada** | čeka ovaj deploy | čeka odluku | čeka odluku |
 
 Kad se pojavi sledeći bug, dodaj red ovde. Ne otvaraj novi train dok
 ovaj ne završimo ili ga svesno zatvorimo.
@@ -47,7 +48,9 @@ koji drži pin za demo/produkciju.
 ```
 
 Provera: `https://staging.propertydesk.app/izvestaji/prodaje` kao
-`vlasnik@gradnjaplus.test`.
+`vlasnik@gradnjaplus.test`. Posle ovog deploya: otpremi logo na
+`/podesavanja/organizacija` i proveri da sidebar više nije PropertyDesk
+(Gradnja Plus je na Growth).
 
 ### 2. Demo (walkthrough)
 

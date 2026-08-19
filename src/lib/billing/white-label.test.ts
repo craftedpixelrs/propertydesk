@@ -14,9 +14,13 @@ describe("planAllowsWhiteLabel", () => {
     expect(planAllowsWhiteLabel(null)).toBe(false);
   });
 
-  it("honors an explicit features.whiteLabel flag", () => {
+  it("keeps Growth and Scale white-label even if features.whiteLabel is false", () => {
+    expect(planAllowsWhiteLabel("growth", { whiteLabel: false })).toBe(true);
+    expect(planAllowsWhiteLabel("scale", { whiteLabel: false })).toBe(true);
+  });
+
+  it("allows an explicit features.whiteLabel flag on other plans", () => {
     expect(planAllowsWhiteLabel("starter", { whiteLabel: true })).toBe(true);
-    expect(planAllowsWhiteLabel("growth", { whiteLabel: false })).toBe(false);
   });
 });
 

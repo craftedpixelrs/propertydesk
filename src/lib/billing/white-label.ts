@@ -2,13 +2,14 @@ export function planAllowsWhiteLabel(
   planCode: string | null | undefined,
   features?: unknown,
 ): boolean {
-  if (features && typeof features === "object" && !Array.isArray(features)) {
-    const flag = (features as Record<string, unknown>).whiteLabel;
-    if (flag === true) return true;
-    if (flag === false) return false;
-  }
   const code = (planCode ?? "").trim().toLowerCase();
-  return code === "growth" || code === "scale";
+  // Product rule: Growth and Scale are always white-label. A stale
+  // `features.whiteLabel: false` on those plans must not keep PropertyDesk chrome.
+  if (code === "growth" || code === "scale") return true;
+  if (features && typeof features === "object" && !Array.isArray(features)) {
+    return (features as Record<string, unknown>).whiteLabel === true;
+  }
+  return false;
 }
 
 export function withLogoCacheBust(

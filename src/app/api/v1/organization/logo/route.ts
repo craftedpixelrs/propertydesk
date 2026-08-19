@@ -1,3 +1,5 @@
+import { revalidatePath } from "next/cache";
+
 import { apiHandler } from "@/lib/api/handler";
 import { DomainErrors } from "@/lib/errors";
 import { requirePermission } from "@/server/permissions/require";
@@ -5,6 +7,10 @@ import {
   removeOrganizationLogo,
   uploadOrganizationLogo,
 } from "@/server/services/organization-logo.service";
+
+function refreshAppChrome() {
+  revalidatePath("/", "layout");
+}
 
 export const POST = apiHandler({}, async ({ req }) => {
   const ctx = await requirePermission("organization.manage");
@@ -24,6 +30,7 @@ export const POST = apiHandler({}, async ({ req }) => {
     buffer: Buffer.from(await file.arrayBuffer()),
   });
 
+  refreshAppChrome();
   return { data: result, status: 201 };
 });
 
@@ -33,6 +40,7 @@ export const DELETE = apiHandler({}, async () => {
     organizationId: ctx.organization.organizationId,
     actorUserId: ctx.session.user.id,
   });
+  refreshAppChrome();
   return { data: { logoUrl: null } };
 });
 

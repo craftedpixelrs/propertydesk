@@ -190,6 +190,17 @@ async function ensureTenant(spec: TenantSpec) {
         trialEndsAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
       },
     });
+  } else {
+    await prisma.organizationSubscription.upsert({
+      where: { organizationId: org.id },
+      create: {
+        organizationId: org.id,
+        planId: plan.id,
+        status: "TRIAL",
+        trialEndsAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+      },
+      update: { planId: plan.id },
+    });
   }
 
   for (const memberSpec of spec.members) {
@@ -332,7 +343,7 @@ async function main() {
     sortOrder: 1,
   });
 
-  await upsertPlan("growth", {
+  const growth = await upsertPlan("growth", {
     name: "Growth",
     description: "Za profesionalne investitore u ekspanziji.",
     monthlyPrice: 149,
@@ -378,7 +389,7 @@ async function main() {
     displayName: "Gradnja Plus",
     city: "Beograd",
     type: "INVESTOR",
-    planCode: starter.code,
+    planCode: growth.code,
     members: [
       {
         email: "vlasnik@gradnjaplus.test",
