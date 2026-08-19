@@ -65,28 +65,28 @@ export function BottomNav({
             key={item.key}
             href={item.href}
             className={cn(
-              "flex flex-1 flex-col items-center gap-0.5 px-2 py-2 min-h-14 text-xs",
+              "flex min-w-0 flex-1 flex-col items-center gap-0.5 px-1 py-2 min-h-14 text-xs",
               active
                 ? "text-[var(--color-brand-700)]"
                 : "text-[var(--color-foreground-muted)]",
             )}
           >
-            <Icon aria-hidden className="size-5" />
-            <span>{t(item.labelKey)}</span>
+            <Icon aria-hidden className="size-5 shrink-0" />
+            <span className="w-full text-center leading-tight">{t(item.labelKey)}</span>
           </Link>
         );
       })}
       <Link
         href="/more"
         className={cn(
-          "flex flex-1 flex-col items-center gap-0.5 px-2 py-2 min-h-14 text-xs",
+          "flex min-w-0 flex-1 flex-col items-center gap-0.5 px-1 py-2 min-h-14 text-xs",
           pathname === "/more" || pathname.startsWith("/more/")
             ? "text-[var(--color-brand-700)]"
             : "text-[var(--color-foreground-muted)]",
         )}
       >
-        <MoreIcon aria-hidden className="size-5" />
-        <span>{t("nav.more")}</span>
+        <MoreIcon aria-hidden className="size-5 shrink-0" />
+        <span className="w-full text-center leading-tight">{t("nav.more")}</span>
       </Link>
     </nav>
   );
