@@ -2,9 +2,11 @@
 
 ## Engine
 
-Postgres 16. Managed via **Neon** in production (with the neonless
-`pg` adapter), **Supabase** on the current VPS deployment, and via
-Docker Compose (`postgres:16-alpine`) in dev.
+Postgres 16 via the `pg` adapter. The live VPS uses **Supabase**
+(pooled `DATABASE_URL` + direct `DIRECT_URL`). Local can be the same
+project, a second Supabase project, or Docker Postgres — see
+[`environments.md`](./environments.md). Neon is supported as any other
+Postgres URL; it is not the current production host.
 
 ## Schema Source
 

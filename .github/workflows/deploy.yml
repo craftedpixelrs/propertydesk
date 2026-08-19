@@ -138,11 +138,26 @@ jobs:
           echo "IMAGE=$IMAGE_REF" >> .env.deploy.tmp
           mv .env.deploy.tmp .env.deploy
 
+          echo "==> Syncing compose / Caddyfile from origin/main"
+          if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+            git fetch --depth=1 origin main
+            git reset --hard origin/main
+          fi
+
           echo "==> Pulling new image"
           IMAGE="$IMAGE_REF" docker compose --env-file .env --env-file .env.deploy pull app
+          if [ -f .env.demo ]; then
+            IMAGE="$IMAGE_REF" docker compose --env-file .env --env-file .env.deploy pull app-demo
+          fi
 
           echo "==> Rolling out (no-build, uses pulled image)"
-          IMAGE="$IMAGE_REF" docker compose --env-file .env --env-file .env.deploy up -d --no-build --remove-orphans app
+          if [ -f .env.demo ]; then
+            IMAGE="$IMAGE_REF" docker compose --env-file .env --env-file .env.deploy \
+              up -d --no-build --remove-orphans app app-demo caddy
+          else
+            IMAGE="$IMAGE_REF" docker compose --env-file .env --env-file .env.deploy \
+              up -d --no-build --remove-orphans app
+          fi
 
           echo "==> Waiting for healthcheck"
           for i in \$(seq 1 30); do
@@ -155,8 +170,11 @@ jobs:
             sleep 5
           done
 
-          echo "==> Running migrations (idempotent)"
+          echo "==> Running migrations (idempotent, per database)"
           docker compose --env-file .env --env-file .env.deploy exec -T app npx prisma migrate deploy
+          if [ -f .env.demo ]; then
+            docker compose --env-file .env --env-file .env.deploy exec -T app-demo npx prisma migrate deploy
+          fi
 
           echo "==> Pruning old images"
           docker image prune -f --filter "until=168h" >/dev/null 2>&1 || true

@@ -5,8 +5,10 @@
 PropertyDesk is a multi-tenant SaaS platform for real-estate investors and
 their partner agencies. The application is a single Next.js 16 (App Router)
 codebase serving both the browser UI and the versioned REST API at
-`/api/v1`. Postgres (Neon in production, Docker Compose in dev) is the
-single source of truth. All money is stored as `Decimal(14,2)`.
+`/api/v1`. Postgres (Supabase on the current VPS; local via
+`DATABASE_URL`) is the single source of truth. Hosts and the planned
+env split: [`environments.md`](./environments.md). All money is stored
+as `Decimal(14,2)`.
 
 ```mermaid
 flowchart LR
@@ -22,7 +24,7 @@ flowchart LR
   Prisma --> Postgres["Neon / Supabase / self-hosted Postgres"]
   Service --> Audit["recordAudit()"]
   Service --> Storage["StorageProvider (Local / S3)"]
-  Service --> Email["EmailProvider (console / SMTP / Resend)"]
+  Service --> Email["Email (console / SMTP / Resend — docs/email.md)"]
   Service --> Notify["Notification service"]
   Service --> Monitor["Monitoring (Sentry + SystemHealthCheck)"]
   Service --> Pdf["PDF pipeline (react-pdf: contracts / offers / invoices)"]

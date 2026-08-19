@@ -9,7 +9,7 @@ izveštavanje i PDF generisanje — sve u srpskom jeziku (`sr-Latn`).
 
 - **Next.js 16** (App Router, RSC, standalone build)
 - **TypeScript 7**
-- **Prisma 7 + Postgres 16** (Neon u produkciji, Compose lokalno)
+- **Prisma 7 + Postgres 16** (Supabase na VPS-u; lokal preko `DATABASE_URL`)
 - **Better Auth** (email + password, sesije, impersonation)
 - **Tailwind 4 + shadcn primitives**
 - **TanStack Query** (klijentski cache, po-org ključevi)
@@ -19,20 +19,23 @@ izveštavanje i PDF generisanje — sve u srpskom jeziku (`sr-Latn`).
 
 ## Brzi start
 
+Lokalni `.env` gleda u **demo** (ili ličnu) bazu, nikad u `my.`
+produkciju. Hostovi: [`docs/environments.md`](./docs/environments.md).
+
 ```bash
 pnpm install
 cp .env.example .env.local  # popuni tajne, uključujući SEED_SUPER_ADMIN_*
 pnpm prisma generate
 pnpm prisma migrate deploy
-pnpm prisma db seed
+pnpm db:seed                # demo tenant-i; za prazan prod: pnpm db:seed:platform
 pnpm dev
 ```
 
 Sign in na `http://localhost:3000/sign-in` sa `SEED_SUPER_ADMIN_EMAIL`
-/ `SEED_SUPER_ADMIN_PASSWORD`, ili demo nalozima:
+/ `SEED_SUPER_ADMIN_PASSWORD`, ili seed nalozima:
 
-- `investor@propertydesk.test` — investitor
-- `agency@propertydesk.test` — agencija
+- `vlasnik@gradnjaplus.test` — investitor (lozinka `PropertyDesk!2026`)
+- `vlasnik@topnekretnine.test` — agencija (ista lozinka)
 
 ## Dokumentacija
 
@@ -48,8 +51,11 @@ Ceo operator + developer runbook je u [`docs/`](./docs/):
 - [`database.md`](./docs/database.md)
 - [`permissions.md`](./docs/permissions.md)
 - [`api.md`](./docs/api.md)
+- [`environments.md`](./docs/environments.md) — local / `my.` / planirani `demo.` i `staging.`
+- [`email.md`](./docs/email.md) — Google Workspace (`hello@`) + Resend (`noreply@`)
 - [`development.md`](./docs/development.md)
 - [`deployment.md`](./docs/deployment.md)
+- [`deploy/vps.md`](./docs/deploy/vps.md) — droplet, Caddy, VPS `.env`
 - [`testing.md`](./docs/testing.md)
 - [`business-rules.md`](./docs/business-rules.md)
 - [`import-format.md`](./docs/import-format.md)

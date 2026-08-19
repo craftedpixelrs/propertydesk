@@ -103,8 +103,8 @@ Two templates fire on `POST /public/share/:token/reserve`:
    contains a deep link back to the share page + inline IPS QR image
    (`cid:` attachment referencing the stored PNG).
 
-Both are queued through the standard `EmailProvider` (see
-[`docs/security.md#email`](./security.md#email)).
+Both are queued through `sendEmail` (see
+[`docs/email.md`](./email.md)).
 
 ## IPS QR generation
 

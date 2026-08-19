@@ -43,6 +43,8 @@ Sadržaj:
 - Node.js 22+, pnpm 10+
 - PostgreSQL 15+ (lokalno ili preko Supabase-a)
 - `.env` fajl podešen: `DATABASE_URL`, `BETTER_AUTH_SECRET`, `BILLING_SECRET_KEY`, `CRON_SECRET`
+- Lokalno ostavi `EMAIL_PROVIDER=console` — mail ide u terminal, ne na prave adrese. `my.` šalje preko Resend-a (`noreply@`, Reply-To `hello@`); `demo.` je `console`. Vidi [`email.md`](./email.md) i [`environments.md`](./environments.md).
+- Javni app hostovi: `https://my.propertydesk.app` (prazna produkcija), `https://demo.propertydesk.app` (ovaj seed). Lokal ostaje `http://localhost:3000`.
 
 ### 1.2. Pokretanje aplikacije
 
@@ -57,12 +59,13 @@ pnpm dev                   # startuje na http://localhost:3000
 
 | Uloga | Email | Lozinka |
 | --- | --- | --- |
-| Platformski super-admin | `admin@propertydesk.test` | `PropertyDesk!2026` |
-| Investor — vlasnik | `investor-owner@propertydesk.test` | `PropertyDesk!2026` |
-| Investor — prodavac | `sales-agent@propertydesk.test` | `PropertyDesk!2026` |
-| Investor — finansije | `finance@propertydesk.test` | `PropertyDesk!2026` |
-| Agencija — vlasnik | `agency-owner@propertydesk.test` | `PropertyDesk!2026` |
-| Agencija — agent | `agent@propertydesk.test` | `PropertyDesk!2026` |
+| Platformski super-admin | `admin@propertydesk.test` (ili `SEED_SUPER_ADMIN_EMAIL`) | `PropertyDesk!2026` |
+| Investor — vlasnik | `vlasnik@gradnjaplus.test` | `PropertyDesk!2026` |
+| Investor — prodaja | `prodaja@gradnjaplus.test` | `PropertyDesk!2026` |
+| Investor — agent | `agent@gradnjaplus.test` | `PropertyDesk!2026` |
+| Investor — finansije | `finansije@gradnjaplus.test` | `PropertyDesk!2026` |
+| Agencija — vlasnik | `vlasnik@topnekretnine.test` | `PropertyDesk!2026` |
+| Agencija — agent | `agent@topnekretnine.test` | `PropertyDesk!2026` |
 
 Detalji nalozima su vidljivi kao super-admin u `/administracija/organizacije`.
 
@@ -1264,8 +1267,10 @@ agenciji u izveštajima.
 **Agencija (`/moji-investitori/{connectionId}` → *Referral kartica*):**
 
 - Prikaz koda + QR PNG + copy dugme.
-- Link forma: `demo.propertydesk.app/p/projekat/[slug]?ref=<kod>` ili
-  `demo.propertydesk.app/p/[token]?ref=<kod>`.
+- Link forma (trenutno na `my.`; `demo.` je planiran host — vidi
+  [`environments.md`](./environments.md)):
+  `https://my.propertydesk.app/p/projekat/[slug]?ref=<kod>` ili
+  `https://my.propertydesk.app/p/[token]?ref=<kod>`.
 - **Rotiraj** dugme — generiše nov kod (invalidira stari).
   Ograničeno na 6 rotacija / sat / konekcija.
 

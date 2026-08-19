@@ -19,6 +19,8 @@ test-results
 
 # env
 .env
+.env.demo
+.env.staging
 .env*.local
 .env.development
 .env.production

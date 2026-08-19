@@ -98,9 +98,14 @@ empty for real AWS S3):
 
 ## Email
 
-Providers: `console` (dev), `smtp` (self-hosted), `resend` (managed).
-Templates never render raw user HTML. Notification links point at the
-canonical `NEXT_PUBLIC_APP_URL`.
+Full runbook (Workspace inbox vs Resend sending, env vars, smoke
+test): [`docs/email.md`](./email.md).
+
+- Providers: `console` (local), `smtp`, `resend` (production).
+- Production From: `noreply@propertydesk.app`. Reply-To:
+  `hello@propertydesk.app` (Google Workspace — **do not** change MX).
+- Templates never render raw user HTML. Notification links use
+  `NEXT_PUBLIC_APP_URL`.
 
 ## Logging & monitoring
 

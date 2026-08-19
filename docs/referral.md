@@ -31,6 +31,10 @@ The following public URLs honour a `ref` query parameter:
 - `/p/projekat/[slug]` — public microsite (see
   [`docs/microsite.md`](./microsite.md)).
 
+Absolute origin today is `https://my.propertydesk.app` (the app
+subdomain). A dedicated `demo.` host is planned — see
+[`environments.md`](./environments.md).
+
 On any of these, `?ref=<code>`:
 
 1. Sets a cookie `PD_REFERRAL=<code>`, `Path=/`, `SameSite=Lax`,

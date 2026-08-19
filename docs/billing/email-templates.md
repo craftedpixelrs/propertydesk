@@ -1,5 +1,8 @@
 # Email templates
 
+Provider, DNS, and env (`noreply@` / `hello@` / Resend) are in
+[`docs/email.md`](../email.md). This page is only the **billing copy**.
+
 The billing module ships **14 email templates** covering the subscription
 and invoice lifecycles plus payment reminders. This document explains how
 they are structured, how the preview and test-send flows work, and how to

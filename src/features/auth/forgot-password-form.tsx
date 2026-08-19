@@ -8,7 +8,6 @@ import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { FormActions } from "@/components/forms/form-actions";
 import { useT } from "@/components/app/i18n-provider";
-import { publicEnv } from "@/lib/env";
 
 export function ForgotPasswordForm() {
   const t = useT();
@@ -23,7 +22,7 @@ export function ForgotPasswordForm() {
       // Intentionally ignore success/error to avoid account-existence leak.
       await authClient.requestPasswordReset({
         email,
-        redirectTo: `${publicEnv.NEXT_PUBLIC_APP_URL}/reset-password`,
+        redirectTo: `${window.location.origin}/reset-password`,
       });
     } catch {
       // Same: never reveal whether a lookup failed.

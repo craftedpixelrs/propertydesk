@@ -3,30 +3,22 @@ import { NextRequest, NextResponse } from "next/server";
 /**
  * App-wide middleware.
  *
- * The Docker container serves TWO public origins from the same Next.js
- * app behind Caddy:
- *   * `propertydesk.app` (apex) - public marketing landing + topic pages
- *   * `my.propertydesk.app`      - authenticated SaaS product
+ * Caddy terminates TLS and forwards by host. Marketing lives only on
+ * the apex. Authenticated app hosts (`my.`, `demo.`, `staging.`) share
+ * this code but each runs in its own container / database — see
+ * `docs/environments.md`.
  *
- * The `(marketing)` and `(dashboard)` route groups both mount at `/`,
- * so we need a small host-aware nudge:
- *
- *   1) `my.propertydesk.app/`
- *      → 308 redirect to `/sign-in`.
- *      Visitors landing on the app subdomain must first authenticate;
- *      the marketing landing lives on the apex domain and should not
- *      be reachable via `my.` (it would double-index).
- *
- *   2) Marketing-only paths on `my.propertydesk.app`
- *      (`/za-investitore`, `/za-agencije`, `/prodaja-novogradnje`,
- *       `/crm-za-investitore`, `/alternative-excelu`,
- *       `/rezervacije-i-uplate`, `/provizije-agencija`, `/demo`)
- *      → 308 redirect to `https://propertydesk.app/<same-path>` so we
- *      never split SEO signal across two hostnames.
- *
- *   3) Everything else (auth flows, API, dashboard, etc.) passes
- *      through untouched.
+ *   1) App subdomain `/` → 308 `/sign-in`.
+ *   2) Marketing-only paths on an app host → 308 to
+ *      `https://propertydesk.app/<path>` (keep SEO on the apex).
+ *   3) Everything else passes through.
  */
+
+const APP_SUBDOMAINS = new Set([
+  "my.propertydesk.app",
+  "demo.propertydesk.app",
+  "staging.propertydesk.app",
+]);
 
 // Reserved marketing slugs that must only live on the apex domain.
 const MARKETING_ONLY_PATHS = new Set([
@@ -45,10 +37,10 @@ function resolveHost(request: NextRequest): string {
   // reflect the *internal* origin (localhost:3000) when the app runs
   // inside Docker.
   const forwarded = request.headers.get("x-forwarded-host");
-  if (forwarded) return forwarded.toLowerCase();
+  if (forwarded) return forwarded.split(":")[0]!.toLowerCase();
   const host = request.headers.get("host");
-  if (host) return host.toLowerCase();
-  return request.nextUrl.host.toLowerCase();
+  if (host) return host.split(":")[0]!.toLowerCase();
+  return request.nextUrl.host.split(":")[0]!.toLowerCase();
 }
 
 /**
@@ -96,7 +88,7 @@ export function middleware(request: NextRequest) {
   const host = resolveHost(request);
   const { pathname, search } = request.nextUrl;
 
-  const isAppSubdomain = host === "my.propertydesk.app";
+  const isAppSubdomain = APP_SUBDOMAINS.has(host);
   if (!isAppSubdomain) return applyReferralCookie(request, passThrough(request));
 
   if (pathname === "/" || pathname === "") {

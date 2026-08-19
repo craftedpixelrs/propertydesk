@@ -26,6 +26,7 @@ update the corresponding doc in the same pull request.
 
 See also:
 
+- [../email.md](../email.md) — Resend + Workspace (`noreply@` / `hello@`).
 - [../cron-jobs.md](../cron-jobs.md) — non-billing cron jobs.
 - [../permissions.md](../permissions.md) — RBAC matrix.
 - [../database.md](../database.md) — Prisma schema conventions.

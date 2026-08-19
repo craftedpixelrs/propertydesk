@@ -1,11 +1,12 @@
 # PropertyDesk reverse proxy — Caddy v2.
 #
-# Two vhosts:
-#   propertydesk.app     → marketing landing (same Next app, apex)
-#   my.propertydesk.app  → authenticated dashboard (same Next app, subdomain)
+#   propertydesk.app      → marketing (prod container)
+#   my.propertydesk.app   → real product (prod container, new empty DB)
+#   demo.propertydesk.app → client demo (app-demo, seeded DB)
+#   staging.propertydesk.app → internal preview (app-staging; 502 if down)
 #
-# Same app serves both — the Next codebase chooses landing vs dashboard
-# based on the route, not the host. Caddy just forwards.
+# Each app host is a separate Next.js container + .env + database.
+# See docs/environments.md.
 #
 # TLS: automatic via Let's Encrypt HTTP-01. For Cloudflare-proxied hosts
 # (propertydesk.app) the DNS record must be in "DNS only" (grey cloud) at
@@ -47,6 +48,38 @@ my.propertydesk.app {
 	encode zstd gzip
 
 	reverse_proxy app:3000 {
+		header_up X-Real-IP {remote_host}
+		header_up X-Forwarded-For {remote_host}
+		header_up X-Forwarded-Proto {scheme}
+		header_up X-Forwarded-Host {host}
+	}
+
+	log {
+		output stdout
+		format console
+	}
+}
+
+demo.propertydesk.app {
+	encode zstd gzip
+
+	reverse_proxy app-demo:3000 {
+		header_up X-Real-IP {remote_host}
+		header_up X-Forwarded-For {remote_host}
+		header_up X-Forwarded-Proto {scheme}
+		header_up X-Forwarded-Host {host}
+	}
+
+	log {
+		output stdout
+		format console
+	}
+}
+
+staging.propertydesk.app {
+	encode zstd gzip
+
+	reverse_proxy app-staging:3000 {
 		header_up X-Real-IP {remote_host}
 		header_up X-Forwarded-For {remote_host}
 		header_up X-Forwarded-Proto {scheme}

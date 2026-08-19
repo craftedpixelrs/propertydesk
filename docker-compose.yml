@@ -1,33 +1,22 @@
-# PropertyDesk production stack (single-host, non-swarm).
+# PropertyDesk multi-host stack (single VPS, non-swarm).
 #
-# Services:
-#   - app   : Next.js 16 standalone, listening on :3000 inside the network.
-#   - caddy : reverse proxy + automatic HTTPS (Let's Encrypt) for both
-#             propertydesk.app (marketing landing) and my.propertydesk.app
-#             (authenticated app).
+#   app         → propertydesk.app + my.propertydesk.app  (real product)
+#   app-demo    → demo.propertydesk.app                   (seeded demo DB)
+#   app-staging → staging.propertydesk.app                (profile: staging)
+#   caddy       → TLS + reverse proxy
 #
-# Data:
-#   - caddy_data / caddy_config → certificates + ACME account (must persist).
-#   - app_storage → local file storage when STORAGE_PROVIDER=local.
+# Same GHCR image for every app container. Per-host origin, database and
+# storage come from the env file. See docs/environments.md.
 #
-# All env comes from the sibling `.env` file (never committed).
+# Start staging only when `.env.staging` exists and the droplet has RAM:
+#   docker compose --profile staging up -d app-staging
 
 services:
   app:
-    # `image:` is required for the fast-deploy flow (build off-host on
-    # a beefy machine, push to GHCR, VPS just `docker compose pull`).
-    # When the tag is not present in the registry, `docker compose
-    # --build` falls back to the local `build:` block below.
-    #
-    # `IMAGE` defaults to the legacy local tag so `docker compose up
-    # --build` on the VPS keeps working exactly as before if the fast
-    # flow is not configured.
     image: ${IMAGE:-propertydesk-app:latest}
     build:
       context: .
       dockerfile: Dockerfile
-      # NEXT_PUBLIC_* are baked into the client bundle at build time.
-      # Compose passes them from the .env file below.
       args:
         NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL}
         NEXT_PUBLIC_APP_NAME: ${NEXT_PUBLIC_APP_NAME}
@@ -51,6 +40,53 @@ services:
       - "3000"
     volumes:
       - app_storage:/app/storage
+    networks:
+      - web
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:3000/api/health || exit 1"]
+      interval: 30s
+      timeout: 5s
+      start_period: 40s
+      retries: 3
+
+  app-demo:
+    image: ${IMAGE:-propertydesk-app:latest}
+    container_name: propertydesk-app-demo
+    restart: unless-stopped
+    env_file:
+      - .env.demo
+    environment:
+      NODE_ENV: production
+      HOSTNAME: 0.0.0.0
+      PORT: "3000"
+    expose:
+      - "3000"
+    volumes:
+      - app_demo_storage:/app/storage
+    networks:
+      - web
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:3000/api/health || exit 1"]
+      interval: 30s
+      timeout: 5s
+      start_period: 40s
+      retries: 3
+
+  app-staging:
+    profiles: ["staging"]
+    image: ${IMAGE:-propertydesk-app:latest}
+    container_name: propertydesk-app-staging
+    restart: unless-stopped
+    env_file:
+      - .env.staging
+    environment:
+      NODE_ENV: production
+      HOSTNAME: 0.0.0.0
+      PORT: "3000"
+    expose:
+      - "3000"
+    volumes:
+      - app_staging_storage:/app/storage
     networks:
       - web
     healthcheck:
@@ -85,3 +121,5 @@ volumes:
   caddy_data:
   caddy_config:
   app_storage:
+  app_demo_storage:
+  app_staging_storage:

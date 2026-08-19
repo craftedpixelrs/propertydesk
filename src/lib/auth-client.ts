@@ -1,7 +1,6 @@
 import { createAuthClient } from "better-auth/react";
 import { adminClient, organizationClient } from "better-auth/client/plugins";
 
-import { publicEnv } from "@/lib/env";
 import { ac } from "@/server/permissions/access-control";
 import { organizationRoles, platformRoles } from "@/server/permissions/roles";
 
@@ -13,7 +12,8 @@ import { organizationRoles, platformRoles } from "@/server/permissions/roles";
  * client.
  */
 export const authClient = createAuthClient({
-  baseURL: publicEnv.NEXT_PUBLIC_APP_URL,
+  // Same-origin so one Docker image works on my. / demo. / staging.
+  // Better Auth falls back to `window.location.origin` when unset.
   plugins: [
     organizationClient({
       ac,

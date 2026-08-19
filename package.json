@@ -20,6 +20,7 @@
     "db:push": "prisma db push",
     "db:studio": "prisma studio",
     "db:seed": "tsx prisma/seed.ts",
+    "db:seed:platform": "tsx prisma/seed.ts --platform",
     "db:seed:demo": "tsx prisma/demo-seed.ts",
     "auth:generate": "better-auth generate --output prisma/schema.prisma --config src/server/auth/auth.ts",
     "docs:swagger": "node --experimental-strip-types scripts/generate-swagger-docs.ts",

@@ -207,4 +207,4 @@
 Domain events emit notifications through the service layer. The service
 layer never calls React directly. Users see them in the header bell +
 `/obavestenja`; email is dispatched via the configured provider (see
-[`docs/security.md`](./security.md#email)).
+[`docs/email.md`](./email.md)).

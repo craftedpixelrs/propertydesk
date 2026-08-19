@@ -4,6 +4,10 @@ DigitalOcean droplet, Ubuntu 24.04 LTS, 1 vCPU / 1 GB RAM / 33 GB disk,
 Frankfurt region. Everything runs in Docker: Next.js 16 standalone
 behind a Caddy reverse proxy. Postgres stays on Supabase.
 
+Hosts, shared-DB warning, and the planned `demo.` / `staging.` split:
+[`docs/environments.md`](../environments.md). Mail:
+[`docs/email.md`](../email.md).
+
 ## One-time provisioning
 
 Wipes any previous stack (nginx, PM2, certbot, system Node), keeps a
@@ -84,21 +88,37 @@ IP). This works today because:
 
 `www.propertydesk.app` is 301-redirected to the apex by Caddy.
 
-## Environment file
+## Environment files
 
-Server-side `/opt/propertydesk/.env` (never committed) — copied from
-`deploy/env.production.template` on first deploy. Rotate secrets with a
-`docker compose restart app` after editing.
+Never committed. Shape: [`deploy/env.app.template`](../../deploy/env.app.template).
+Full map: [`docs/environments.md`](../environments.md).
 
-Key entries in production:
+| File | Container | Hosts |
+|------|-----------|--------|
+| `/opt/propertydesk/.env` | `app` | `propertydesk.app` + `my.propertydesk.app` |
+| `/opt/propertydesk/.env.demo` | `app-demo` | `demo.propertydesk.app` |
+| `/opt/propertydesk/.env.staging` | `app-staging` | `staging.propertydesk.app` (opt-in) |
+
+After editing an env file, recreate **that** container
+(`docker compose up -d --no-build --force-recreate app`).
+
+Key entries on **production** (`.env`):
 
 - `NODE_ENV=production`
 - `BETTER_AUTH_URL=https://my.propertydesk.app`
 - `NEXT_PUBLIC_APP_URL=https://my.propertydesk.app`
-- `EMAIL_PROVIDER=console` (switch to `smtp` / `resend` in production —
-  templates are ready).
-- `DATABASE_URL` / `DIRECT_URL` — reuses Supabase Postgres, so migrations
-  and existing sessions carry over from local dev.
+- `EMAIL_PROVIDER=resend` — From `noreply@propertydesk.app`, Reply-To
+  `hello@propertydesk.app`. See [`docs/email.md`](../email.md).
+- `DATABASE_URL` / `DIRECT_URL` — **new** production Supabase
+  (`aws-1-eu-west-1` pooler). Platform seed only (plans + one
+  super-admin). Not the demo project.
+
+Key entries on **demo** (`.env.demo`):
+
+- `BETTER_AUTH_URL` / `NEXT_PUBLIC_APP_URL` =
+  `https://demo.propertydesk.app`
+- Same `DATABASE_URL` as the former single-stack project (Gradnja Plus)
+- `EMAIL_PROVIDER=console` unless a live walkthrough needs Resend
 
 ## Build gotchas (baked into the Dockerfile)
 
@@ -157,12 +177,15 @@ build. To run it by hand:
 
 ```bash
 cd /opt/propertydesk
-docker compose exec app node_modules/.bin/prisma migrate deploy
+docker compose --env-file .env --env-file .env.deploy exec app \
+  npx prisma migrate deploy
+docker compose --env-file .env --env-file .env.deploy exec app-demo \
+  npx prisma migrate deploy
 ```
 
-The production database is the same Supabase project used in local dev,
-so migrations can equally be applied from a workstation with
-`pnpm exec prisma migrate deploy`.
+Each command hits **that container's** database. Never run
+`migrate reset` against `my.` or the shared demo project from a
+laptop.
 
 If a migration was applied by hand (e.g. the SQL was pasted into the
 Supabase console), `migrate deploy` fails with `P3018` / `already
@@ -178,10 +201,18 @@ hook that reads `member.findFirst` fails, and sign-in returns 401.
 
 ## Seeding (fresh Supabase project only)
 
+`prisma/seed.ts` creates SaaS plans, a super-admin, **and** the demo
+tenants (`gradnja-plus`, `top-nekretnine`). Refuse to run it on a
+real-customer database. `NODE_ENV=production` blocks seed unless
+`ALLOW_SEED_IN_PRODUCTION=true`.
+
 ```bash
 cd /opt/propertydesk
 docker compose exec app node_modules/.bin/tsx prisma/seed.ts
 ```
+
+Planned: a platform-only seed (plans + super-admin) for `my.`. See
+[`docs/environments.md`](../environments.md).
 
 ## Rollback
 

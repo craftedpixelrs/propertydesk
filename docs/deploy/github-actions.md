@@ -22,9 +22,20 @@ cd /opt/propertydesk
 
 ### 2. Postavi `.env` na VPS-u
 
-Kopiraj sadržaj `.env.example` i popuni sve tajne vrednosti (Postgres, `BETTER_AUTH_SECRET`, Loops API, itd.).
+Kopiraj sadržaj `.env.example` i popuni sve tajne vrednosti (Postgres, `BETTER_AUTH_SECRET`, Loops API, itd.). Hostovi i planirani split: [`docs/environments.md`](../environments.md).
 
-Bitni novi ključevi:
+Mail na VPS-u (ne u git):
+
+```bash
+EMAIL_PROVIDER=resend
+EMAIL_FROM_ADDRESS=noreply@propertydesk.app
+EMAIL_REPLY_TO=hello@propertydesk.app
+RESEND_API_KEY=re_…
+```
+
+Detalji: [`docs/email.md`](../email.md).
+
+Ostali javni ključevi:
 
 ```bash
 NEXT_PUBLIC_GOOGLE_APPOINTMENT_URL=https://calendar.app.google/MvRGU5Kajmpawhnd6
@@ -81,6 +92,16 @@ Sada svaki `git push origin main` automatski:
 3. SSH → VPS pull image → restart.
 
 Praćenje: `https://github.com/craftedpixelrs/propertydesk/actions`.
+
+Ako job **Deploy** padne na *Configure SSH* (`SSH_HOST` /
+`SSH_PRIVATE_KEY` prazni), `build-and-push` je i dalje uspeo. Ručno
+na VPS-u:
+
+```bash
+cd /opt/propertydesk
+docker compose --env-file .env --env-file .env.deploy pull app
+docker compose --env-file .env --env-file .env.deploy up -d --no-build --remove-orphans app
+```
 
 ## Rollback
 

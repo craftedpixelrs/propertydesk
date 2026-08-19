@@ -1,20 +1,24 @@
 /**
- * PropertyDesk development seed.
+ * PropertyDesk seed.
  *
- * Creates:
+ * Always creates:
  *   - Standard SaaSPlan rows (trial / starter / growth / scale)
- *   - A SUPER_ADMIN user driven by env vars
- *   - One demo investor organization + owner + team members
- *   - One demo agency organization + owner + agents
- *   - AgencyConnection linking the two
+ *   - A SUPER_ADMIN user driven by `SEED_SUPER_ADMIN_EMAIL` /
+ *     `SEED_SUPER_ADMIN_PASSWORD`
+ *   - Global billing settings row (empty company profile is filled later
+ *     in `/administracija`)
  *
- * Passwords for demo users are all the same:
- *   `PropertyDesk!2026`
- * Change them (or delete the demo tenants) before shipping to production.
+ * `SEED_MODE=full` (default) also creates demo tenants:
+ *   - Investor org `gradnja-plus` + team
+ *   - Agency org `top-nekretnine` + team
+ *   - AgencyConnection between them
+ *   - Placeholder billing company profile + bank accounts
  *
- * We call the Better Auth HTTP layer through `auth.api.signUpEmail(...)` for
- * user creation so passwords use Better Auth's hash pipeline. That's the
- * only safe way to bootstrap credentials outside the sign-up UI.
+ * Production / `my.` must use platform-only:
+ *   `pnpm db:seed:platform`
+ *   or `SEED_MODE=platform tsx prisma/seed.ts`
+ *
+ * Demo users share `PropertyDesk!2026` unless overridden.
  */
 
 import "dotenv/config";
@@ -34,6 +38,10 @@ const SUPER_ADMIN_EMAIL =
   process.env.SEED_SUPER_ADMIN_EMAIL ?? "admin@propertydesk.test";
 const SUPER_ADMIN_PASSWORD =
   process.env.SEED_SUPER_ADMIN_PASSWORD ?? DEFAULT_PASSWORD;
+const SEED_MODE =
+  process.argv.includes("--platform") || process.env.SEED_MODE === "platform"
+    ? "platform"
+    : "full";
 
 async function upsertPlan(
   code: string,
@@ -209,17 +217,23 @@ async function ensureTenant(spec: TenantSpec) {
 }
 
 /**
- * Seed the billing subsystem: global settings row, company profile, two
- * bank accounts (RSD + EUR), and email templates. Guarded against production
- * accidents by refusing to run when NODE_ENV=production unless the caller
- * sets `ALLOW_SEED_IN_PRODUCTION=true`.
+ * Billing bootstrap.
+ *
+ * Platform mode only ensures the singleton settings row so the admin UI
+ * can open. Demo mode also drops in a placeholder company profile + bank
+ * accounts — never run that on the real `my.` database.
  */
-async function seedBilling(): Promise<void> {
+async function seedBilling(mode: "platform" | "full"): Promise<void> {
   const global = await prisma.globalBillingSettings.findFirst({ where: { active: true } });
   if (!global) {
     await prisma.globalBillingSettings.create({
       data: { id: createId(), active: true },
     });
+  }
+
+  if (mode === "platform") {
+    console.log("Billing: global settings only (platform seed).");
+    return;
   }
 
   const profile = await prisma.companyBillingProfile.findFirst({ where: { active: true } });
@@ -292,7 +306,7 @@ async function main() {
     process.exit(1);
   }
 
-  console.log("PropertyDesk seed: begin");
+  console.log(`PropertyDesk seed: begin (mode=${SEED_MODE})`);
 
   await upsertPlan("trial", {
     name: "Probni plan",
@@ -349,6 +363,13 @@ async function main() {
     platformRole: "SUPER_ADMIN",
     emailVerified: true,
   });
+
+  if (SEED_MODE === "platform") {
+    await seedBilling("platform");
+    console.log("PropertyDesk seed: done (platform — plans + super-admin only)");
+    console.log(`  SUPER_ADMIN: ${SUPER_ADMIN_EMAIL}`);
+    return;
+  }
 
   const investorOrg = await ensureTenant({
     slug: "gradnja-plus",
@@ -432,7 +453,7 @@ async function main() {
     }
   }
 
-  await seedBilling();
+  await seedBilling("full");
 
   console.log("PropertyDesk seed: done");
   console.log("");

@@ -44,7 +44,12 @@ Every one must exit 0.
 - [ ] `BETTER_AUTH_SECRET`, `CRON_SECRET`, `IMPERSONATION_SECRET`
       are set and ≥ 32 chars.
 - [ ] `NEXT_PUBLIC_APP_URL` and `BETTER_AUTH_URL` match the deploy
-      hostname exactly.
+      hostname exactly (`https://my.propertydesk.app` today). See
+      [`environments.md`](./environments.md).
+- [ ] Production mail: `EMAIL_PROVIDER=resend`,
+      `EMAIL_FROM_ADDRESS=noreply@propertydesk.app`,
+      `EMAIL_REPLY_TO=hello@propertydesk.app`, `RESEND_API_KEY` set.
+      See [`email.md`](./email.md).
 - [ ] `SENTRY_DSN` + `NEXT_PUBLIC_SENTRY_DSN` present, or Sentry is
       explicitly disabled for this environment (dev usually has both
       unset). See [`docs/monitoring.md`](./monitoring.md).
@@ -67,8 +72,10 @@ Every one must exit 0.
 - [ ] Trigger `POST /api/v1/jobs/purge-deleted-documents` with the
       cron secret → 200 (idempotent when nothing is 45 days old).
 - [ ] Recent audit log rows appear in `/administracija/audit-log`.
-- [ ] Send a test email (invite a fake member to a demo org) — arrives
-      via the configured provider.
+- [ ] Send a test email (forgot-password to an inbox you control, or
+      billing template *Send test*) — From is `noreply@propertydesk.app`,
+      Reply-To is `hello@propertydesk.app`. Logs must not show
+      `[email:console]`.
 - [ ] Trigger a client error on any page (e.g. `throw` in devtools
       inside a Server Action) → appears in Sentry within 1 minute.
 - [ ] Open a public share link and reservation form (`/p/[token]`):

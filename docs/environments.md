@@ -1,0 +1,123 @@
+# Environments
+
+Hosts, databases, and how you work locally. Mail:
+[`email.md`](./email.md). Env shape:
+[`deploy/env.app.template`](../deploy/env.app.template).
+
+## Hosts
+
+| Host | Container | Database | Seed |
+|------|-----------|----------|------|
+| `propertydesk.app` | `app` | production Supabase | — (marketing only) |
+| `my.propertydesk.app` | `app` | **new** production Supabase | `pnpm db:seed:platform` (plans + super-admin) |
+| `demo.propertydesk.app` | `app-demo` | **current** seeded Supabase | full seed + optional `db:seed:demo` |
+| `staging.propertydesk.app` | `app-staging` (compose profile `staging`) | third Supabase | your choice |
+| `localhost:3000` | `pnpm dev` | staging or a personal DB — **never** `my.` | full seed as needed |
+
+Each app host has its own `.env` file, Postgres, and Docker volume.
+Cookies are host-scoped. One GHCR image; auth client uses the current
+origin so `demo.` does not send users to `my.`.
+
+`app-staging` is **not** started by default (1 GB RAM). Enable with
+`.env.staging` + `docker compose --profile staging up -d app-staging`.
+Until then `https://staging.propertydesk.app` is 502.
+
+## VPS files
+
+| File | Used by |
+|------|---------|
+| `/opt/propertydesk/.env` | `app` (`my.` + apex) |
+| `/opt/propertydesk/.env.demo` | `app-demo` |
+| `/opt/propertydesk/.env.staging` | `app-staging` (optional) |
+| `/opt/propertydesk/.env.deploy` | `IMAGE=ghcr.io/…@sha256:…` |
+
+Never commit filled env files.
+
+## Production database (done)
+
+`my.` uses a **new** Supabase project. Direct `db.<ref>.supabase.co`
+does not resolve over IPv4 from typical networks — use the **shared
+pooler** in the project's region (`aws-1-eu-west-1` for the current
+prod project):
+
+- `DATABASE_URL` — pooler **6543** (transaction), user
+  `postgres.<project-ref>`
+- `DIRECT_URL` — pooler **5432** (session), same user
+- Append `?sslmode=require&uselibpqcompat=true`
+
+Bootstrapped with `prisma migrate deploy` (22 migrations) and
+`pnpm db:seed:platform`: four plans + one `SUPER_ADMIN`
+(`marko.banovic@craftedpixel.rs`). No demo tenants.
+
+To rebuild another empty project, copy gitignored
+`.env.production.local` and run:
+
+```powershell
+node --env-file=.env.production.local ./node_modules/prisma/build/index.js migrate deploy
+node --env-file=.env.production.local ./node_modules/tsx/dist/cli.mjs prisma/seed.ts --platform
+```
+
+Do not paste connection strings into chat. Do not run full `db:seed`
+on this database.
+
+## VPS cutover
+
+1. Cloudflare: `demo` and `staging` A (or CNAME) → same as `my.`
+   (orange cloud is OK if `my.` already works that way).
+2. On the VPS, **before** starting `app-demo`:
+
+   ```bash
+   cd /opt/propertydesk
+   cp .env .env.demo
+   ```
+
+   Edit `.env.demo`: set `BETTER_AUTH_URL` and `NEXT_PUBLIC_APP_URL` to
+   `https://demo.propertydesk.app`. Leave `DATABASE_URL` as the **old**
+   (seeded) project. Set `EMAIL_PROVIDER=console` unless you need live
+   mail during a walkthrough.
+
+3. Replace `.env` with the **new** production project URLs,
+   `BETTER_AUTH_URL=https://my.propertydesk.app`, Resend key, and the
+   same `SEED_SUPER_ADMIN_*` you used in `.env.production.local`.
+   Generate a **new** `BETTER_AUTH_SECRET` for production (do not reuse
+   the demo secret).
+
+4. Reload:
+
+   ```bash
+   docker compose --env-file .env --env-file .env.deploy \
+     up -d --no-build --remove-orphans app app-demo caddy
+   docker compose exec app npx prisma migrate deploy
+   docker compose exec app-demo npx prisma migrate deploy
+   ```
+
+5. Check `https://my.propertydesk.app/sign-in` (empty product,
+   super-admin only) and `https://demo.propertydesk.app/sign-in`
+   (Gradnja Plus).
+
+## Local
+
+Keep `BETTER_AUTH_URL` / `NEXT_PUBLIC_APP_URL` as `http://localhost:3000`.
+Point `DATABASE_URL` at **demo or staging**, never at `my.`.
+
+```bash
+pnpm db:seed              # full demo tenants
+pnpm db:seed:platform     # plans + admin only
+pnpm db:seed:demo         # rich inventory on top of full seed
+```
+
+`NODE_ENV=production` blocks seed unless `ALLOW_SEED_IN_PRODUCTION=true`.
+
+## Deploy
+
+Push to `main` builds one image and rolls out `app` + `app-demo` when
+`.env.demo` exists. Staging is manual (`--profile staging`). Pinning
+demo to an older digest is still recommended before a client session;
+that is an operator choice, not a separate pipeline yet.
+
+## Related
+
+- [`development.md`](./development.md)
+- [`email.md`](./email.md)
+- [`deploy/vps.md`](./deploy/vps.md)
+- [`deploy/github-actions.md`](./deploy/github-actions.md)

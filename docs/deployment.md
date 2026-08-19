@@ -2,10 +2,19 @@
 
 ## Environments
 
-- **Local**: Docker Compose, Postgres in a container, hot reload.
-- **Neon**: hosted Postgres for cloud/managed deployments.
-- **Self-hosted VPS**: single node running Docker + nginx reverse proxy
-  in front of the containerized app.
+Current live stack and the planned `my.` / `demo.` / `staging.` split:
+[`docs/environments.md`](./environments.md). Mail:
+[`docs/email.md`](./email.md).
+
+Today:
+
+- **Local**: `pnpm dev` on `http://localhost:3000`. Postgres is
+  whatever `DATABASE_URL` says (often the same Supabase project as the
+  VPS — do not `migrate reset`).
+- **VPS**: one Caddy + one Next.js container. `propertydesk.app`
+  (marketing) and `my.propertydesk.app` (app) share that container.
+  Postgres is Supabase (not in Compose). See
+  [`docs/deploy/vps.md`](./deploy/vps.md).
 
 ## Deployment targets
 
@@ -52,7 +61,7 @@ The critical vars (see [`src/lib/env.ts`](../src/lib/env.ts)):
 | `BETTER_AUTH_SECRET` | ≥ 32 chars, rotated with care (invalidates sessions). |
 | `BETTER_AUTH_URL` | Fully-qualified HTTPS origin. |
 | `NEXT_PUBLIC_APP_URL` | Same as above, exposed to the browser. |
-| `EMAIL_PROVIDER` | `smtp` in prod. Set `SMTP_*` correctly. |
+| `EMAIL_PROVIDER` | `resend` in prod (`EMAIL_FROM_ADDRESS=noreply@propertydesk.app`, `EMAIL_REPLY_TO=hello@propertydesk.app`, `RESEND_API_KEY`). Local: `console`. See [`email.md`](./email.md). |
 | `STORAGE_PROVIDER` | `s3` in prod. Set `STORAGE_BUCKET`, `STORAGE_REGION`, `STORAGE_ACCESS_KEY`, `STORAGE_SECRET_KEY`. Leave `STORAGE_ENDPOINT` empty for AWS S3. |
 | `CRON_SECRET` | ≥ 32 chars, injected into every cron platform. |
 | `SENTRY_DSN` | Optional. Enables monitoring facade forwarding. |
@@ -88,6 +97,7 @@ See [`docs/backup.md`](./backup.md).
 
 1. `curl -f https://<host>/api/v1/health` returns `200`.
 2. `curl -f https://<host>/api/v1/ready` returns `200` with `db:"ok"`.
-3. Sign in with the demo user and verify the dashboard loads.
+3. Sign in (production: super-admin; local/demo seed:
+   `vlasnik@gradnjaplus.test`) and verify the dashboard loads.
 4. Trigger `POST /api/v1/jobs/expire-reservations` with `x-cron-secret`
    and confirm 200 + no errors in logs.
