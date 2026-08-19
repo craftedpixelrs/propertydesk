@@ -5,14 +5,16 @@ popravljamo, pa tek onda dižemo demo i produkciju.
 
 ## Pravilo
 
-Sve što radimo prvo ide na **staging**. Demo i produkcija se ne diraju
-dok eksplicitno ne odlučimo da promoviramo ovaj train.
+Radimo za **staging train**. Kod se commituje / gura, image se
+bilduje na GHCR. **Nijedan host se ne redeplojuje** dok eksplicitno
+ne kažemo koji.
 
 | Host | Kada se dira |
 |------|----------------|
-| `staging.propertydesk.app` | Uvek prvi. Svaki bugfix / polish. |
-| `demo.propertydesk.app` | Samo kada kažemo „idi na demo“. Stabilan walkthrough za klijente. |
+| `staging.propertydesk.app` | Samo kada kažemo „idi na staging“. |
+| `demo.propertydesk.app` | Samo kada kažemo „idi na demo“. |
 | `my.propertydesk.app` + `propertydesk.app` | Samo kada kažemo „idi na produkciju“. |
+| demo + produkcija | Samo kada kažemo „idi na oba“ (demo i produkcija). |
 
 Staging i demo dele **istu bazu i fajlove**. Sesije su odvojene po hostu.
 
@@ -26,7 +28,7 @@ Staging i demo dele **istu bazu i fajlove**. Sesije su odvojene po hostu.
 | Logo kompanije ne menja sidebar (white-label Growth/Scale) | urađeno | da | čeka odluku | čeka odluku |
 | Logo u sidebaru 429 / ne učitava se — služi se sa S3 kao ostali dokumenti | urađeno | da | čeka odluku | čeka odluku |
 | White-label sidebar: samo logo, bez naziva organizacije pored | urađeno | da | čeka odluku | čeka odluku |
-| Mobile bottom nav: „Kontrolna tabla“ nije centrirana | **sada** | čeka ovaj deploy | čeka odluku | čeka odluku |
+| Mobile bottom nav: „Kontrolna tabla“ nije centrirana | urađeno | da | čeka odluku | čeka odluku |
 
 Kad se pojavi sledeći bug, dodaj red ovde. Ne otvaraj novi train dok
 ovaj ne završimo ili ga svesno zatvorimo.
@@ -37,7 +39,7 @@ Image je već na GHCR (`ghcr.io/craftedpixelrs/propertydesk:latest` +
 sha). GHA deploy job i dalje puca na SSH — promocija je ručni pull na
 VPS-u.
 
-### 1. Staging (default, posle svakog pusha na `main`)
+### 1. Staging (samo kada kažemo „idi na staging“)
 
 Sa lokala (PowerShell). **Samo** `app-staging`. Ne diraj `.env.deploy`
 koji drži pin za demo/produkciju.
