@@ -19,21 +19,17 @@ export function OrgBrandMark({
   }
 
   return (
-    <span className="flex min-w-0 items-center gap-2">
-      {/* Public org logo is a same-origin API stream; next/image is not needed. */}
+    <span className="flex min-w-0 items-center">
       <img
         key={branding!.logoUrl!}
         src={branding!.logoUrl!}
         alt={branding!.name || APP_NAME}
         className={
           compact
-            ? "h-7 w-auto max-w-[88px] object-contain"
-            : "h-8 w-auto max-w-[112px] object-contain"
+            ? "h-7 w-auto max-w-[140px] object-contain"
+            : "h-8 w-auto max-w-[168px] object-contain"
         }
       />
-      {branding!.name ? (
-        <span className="truncate text-sm font-semibold">{branding!.name}</span>
-      ) : null}
     </span>
   );
 }

@@ -24,7 +24,8 @@ Staging i demo dele **istu bazu i fajlove**. Sesije su odvojene po hostu.
 | Demo login tabela (bez super-admina) | urađeno ranije | ne (samo `demo.`) | da | ne |
 | `/izvestaji/prodaje` — P&L je zvao nepostojeće `commission.paidAmount` | urađeno | da | čeka odluku | čeka odluku |
 | Logo kompanije ne menja sidebar (white-label Growth/Scale) | urađeno | da | čeka odluku | čeka odluku |
-| Logo u sidebaru 429 / ne učitava se — služi se sa S3 kao ostali dokumenti | **sada** | čeka ovaj deploy | čeka odluku | čeka odluku |
+| Logo u sidebaru 429 / ne učitava se — služi se sa S3 kao ostali dokumenti | urađeno | da | čeka odluku | čeka odluku |
+| White-label sidebar: samo logo, bez naziva organizacije pored | **sada** | čeka ovaj deploy | čeka odluku | čeka odluku |
 
 Kad se pojavi sledeći bug, dodaj red ovde. Ne otvaraj novi train dok
 ovaj ne završimo ili ga svesno zatvorimo.
