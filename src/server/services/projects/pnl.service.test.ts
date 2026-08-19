@@ -35,9 +35,14 @@ describe("computeProjectPnl", () => {
 
     expect(prismaMock.commission.groupBy).toHaveBeenCalled();
     for (const call of prismaMock.commission.groupBy.mock.calls) {
-      const where = (call[0] as { where: Record<string, unknown> }).where;
-      expect(where.organizationId).toBeUndefined();
-      expect(where.investorOrganizationId).toBe("org-1");
+      const arg = call[0] as {
+        where: Record<string, unknown>;
+        _sum: Record<string, unknown>;
+      };
+      expect(arg.where.organizationId).toBeUndefined();
+      expect(arg.where.investorOrganizationId).toBe("org-1");
+      expect(arg._sum.paidAmount).toBeUndefined();
+      expect(arg._sum.calculatedAmount).toBe(true);
     }
   });
 });

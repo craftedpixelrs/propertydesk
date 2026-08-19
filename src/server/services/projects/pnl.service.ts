@@ -11,7 +11,9 @@ import { toDecimal } from "@/lib/formatters/money";
  * Prihod = SUM(sale.finalPrice) filtered
  *   `status IN CONTRACTED, PAYMENT_IN_PROGRESS, PAID, HANDED_OVER`.
  * Trošak = SUM(project.landCost, constructionCost, marketingCost,
- *           otherCost) + SUM(commission.paidAmount / commission.calculatedAmount).
+ *           otherCost) + SUM(commission.adjustedAmount ?? calculatedAmount).
+ * Commission has no `paidAmount` column — paid is `status = PAID` /
+ * `paidAt`. P&L uses the recognized amount, not a fictional field.
  * Neto  = Prihod − Trošak.
  *
  * Sve troškovne stavke su opcione — ako investitor još nije uneo
@@ -78,7 +80,7 @@ export async function computeProjectPnl(input: {
 
   const ids = projects.map((p) => p.id);
 
-  const [salesAgg, commissionAgg] = await Promise.all([
+  const [salesAgg, perProjectCommissions] = await Promise.all([
     prisma.sale.groupBy({
       by: ["projectId", "currency"],
       where: {
@@ -89,8 +91,10 @@ export async function computeProjectPnl(input: {
       _sum: { finalPrice: true },
       _count: { _all: true },
     }),
+    // One Commission row per sale (`saleId` is unique). Sum only real
+    // Decimal columns — there is no `paidAmount` on this model.
     prisma.commission.groupBy({
-      by: ["currency"],
+      by: ["saleId"],
       where: {
         investorOrganizationId: input.organizationId,
         sale: {
@@ -98,26 +102,9 @@ export async function computeProjectPnl(input: {
           status: ACCOUNTABLE_SALE_STATUSES,
         },
       },
-      _sum: {
-        calculatedAmount: true,
-        paidAmount: true,
-      },
+      _sum: { calculatedAmount: true, adjustedAmount: true },
     }),
   ]);
-
-  // Per-project commission via a per-project group-by (Prisma doesn't
-  // support two-level nested groupBy in one call).
-  const perProjectCommissions = await prisma.commission.groupBy({
-    by: ["saleId"],
-    where: {
-      investorOrganizationId: input.organizationId,
-      sale: {
-        projectId: { in: ids },
-        status: ACCOUNTABLE_SALE_STATUSES,
-      },
-    },
-    _sum: { calculatedAmount: true, paidAmount: true },
-  });
   const commissionSalesRel = await prisma.sale.findMany({
     where: {
       organizationId: input.organizationId,
@@ -130,13 +117,12 @@ export async function computeProjectPnl(input: {
   for (const row of perProjectCommissions) {
     const projectId = saleToProject.get(row.saleId);
     if (!projectId) continue;
-    const paid = row._sum.paidAmount
-      ? toDecimal(row._sum.paidAmount)
-      : toDecimal(0);
-    const calc = row._sum.calculatedAmount
+    const calculated = row._sum.calculatedAmount
       ? toDecimal(row._sum.calculatedAmount)
       : toDecimal(0);
-    const value = paid.gt(0) ? paid : calc;
+    const value = row._sum.adjustedAmount
+      ? toDecimal(row._sum.adjustedAmount)
+      : calculated;
     const existing = commissionByProject.get(projectId);
     commissionByProject.set(
       projectId,
@@ -222,10 +208,6 @@ export async function computeProjectPnl(input: {
       costTotal: agg.cost.toString(),
       netMargin: agg.revenue.sub(agg.cost).toString(),
     }));
-
-  // Silence the "unused" warning on the group-by we ran to keep the
-  // fallback aggregate available for future dashboards.
-  void commissionAgg;
 
   return { rows, summaries };
 }

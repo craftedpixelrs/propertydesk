@@ -128,9 +128,12 @@ pnpm db:seed:demo         # rich inventory on top of full seed
 
 ## Deploy
 
-Push to `main` builds one image and rolls out `app` + `app-demo` +
-`app-staging` when those env files exist. Pin demo to an older digest
-before a client walkthrough; put the new image on staging first.
+Until we start selling, work is **fix bugs v.1**:
+[`releases/fix-bugs-v1.md`](./releases/fix-bugs-v1.md).
+
+Push to `main` only builds the image. Roll out **staging first**. Demo
+and production wait for an explicit promote. Do not recreate `app` or
+`app-demo` while testing on `staging.`.
 
 ## Related
 

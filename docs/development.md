@@ -15,6 +15,8 @@ required vars crash the process.
 
 Hosts and which database to use:
 [`environments.md`](./environments.md).
+Until we sell: **staging first**, then promote — see
+[`releases/fix-bugs-v1.md`](./releases/fix-bugs-v1.md).
 
 | You work on | `DATABASE_URL` points at | Auth URL |
 |-------------|--------------------------|----------|
