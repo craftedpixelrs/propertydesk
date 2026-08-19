@@ -149,15 +149,16 @@ jobs:
           if [ -f .env.demo ]; then
             IMAGE="$IMAGE_REF" docker compose --env-file .env --env-file .env.deploy pull app-demo
           fi
+          if [ -f .env.staging ]; then
+            IMAGE="$IMAGE_REF" docker compose --env-file .env --env-file .env.deploy pull app-staging
+          fi
 
           echo "==> Rolling out (no-build, uses pulled image)"
-          if [ -f .env.demo ]; then
-            IMAGE="$IMAGE_REF" docker compose --env-file .env --env-file .env.deploy \
-              up -d --no-build --remove-orphans app app-demo caddy
-          else
-            IMAGE="$IMAGE_REF" docker compose --env-file .env --env-file .env.deploy \
-              up -d --no-build --remove-orphans app
-          fi
+          UP_SERVICES="app caddy"
+          if [ -f .env.demo ]; then UP_SERVICES="$UP_SERVICES app-demo"; fi
+          if [ -f .env.staging ]; then UP_SERVICES="$UP_SERVICES app-staging"; fi
+          IMAGE="$IMAGE_REF" docker compose --env-file .env --env-file .env.deploy \
+            up -d --no-build --remove-orphans $UP_SERVICES
 
           echo "==> Waiting for healthcheck"
           for i in \$(seq 1 30); do

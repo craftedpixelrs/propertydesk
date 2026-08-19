@@ -6,25 +6,23 @@ Hosts, databases, and how you work locally. Mail:
 
 ## Hosts
 
-| Host | Container | Database | Seed |
-|------|-----------|----------|------|
-| `propertydesk.app` | `app` | production Supabase | marketing only |
-| `my.propertydesk.app` | `app` | production Supabase | app only (`/` → sign-in) |
-| `demo.propertydesk.app` | `app-demo` | seeded demo Supabase | app only — no landing |
-| `staging.propertydesk.app` | `app-staging` | third Supabase (not created yet) | app only — no landing |
-| `localhost:3000` | `pnpm dev` | staging or a personal DB — **never** `my.` | full seed as needed |
+| Host | Container | Database | What it serves |
+|------|-----------|----------|----------------|
+| `propertydesk.app` | `app` | production (unused for landing) | Marketing only |
+| `my.propertydesk.app` | `app` | **new** production Supabase | App only (plans + super-admin) |
+| `demo.propertydesk.app` | `app-demo` | seeded demo Supabase | App only (stable walkthrough) |
+| `staging.propertydesk.app` | `app-staging` | **same DB + files as demo** | App only (WIP preview) |
+| `localhost:3000` | `pnpm dev` | demo DB — **never** `my.` | App + marketing on one origin |
 
-Each app host has its own `.env` file, Postgres, and Docker volume.
-Cookies are host-scoped. One GHCR image; auth client uses the current
-origin so `demo.` does not send users to `my.`.
+`demo.` and `staging.` never serve the landing. `/` goes to `/sign-in`;
+marketing slugs 308 to `propertydesk.app`. Public share links `/p/…`
+stay on the app host (needed for the demo).
 
-`demo.` and `staging.` never render marketing pages — middleware
-sends those slugs to the apex. They are sign-in + dashboard + `/p/…`.
-
-`app-staging` stays down until a **third** Supabase project exists
-(`.env.staging` + `docker compose --profile staging up -d app-staging`).
-Until then `https://staging.propertydesk.app` is 502. Do not point
-staging at the `my.` or `demo` database.
+Staging reuses demo's `DATABASE_URL` and the `app_demo_storage` volume
+so a feature you try on `staging.` sees the same tenants and uploads.
+Cookies are host-scoped, so a session on `demo.` does not carry to
+`staging.`. Deploy WIP images to `app-staging`; leave `app-demo` on a
+known-good digest during a client session.
 
 ## VPS files
 
@@ -32,7 +30,7 @@ staging at the `my.` or `demo` database.
 |------|---------|
 | `/opt/propertydesk/.env` | `app` (`my.` + apex) |
 | `/opt/propertydesk/.env.demo` | `app-demo` |
-| `/opt/propertydesk/.env.staging` | `app-staging` (optional) |
+| `/opt/propertydesk/.env.staging` | `app-staging` (same DB URLs as `.env.demo`, host `staging.`) |
 | `/opt/propertydesk/.env.deploy` | `IMAGE=ghcr.io/…@sha256:…` |
 
 Never commit filled env files.
@@ -114,10 +112,9 @@ pnpm db:seed:demo         # rich inventory on top of full seed
 
 ## Deploy
 
-Push to `main` builds one image and rolls out `app` + `app-demo` when
-`.env.demo` exists. Staging is manual (`--profile staging`). Pinning
-demo to an older digest is still recommended before a client session;
-that is an operator choice, not a separate pipeline yet.
+Push to `main` builds one image and rolls out `app` + `app-demo` +
+`app-staging` when those env files exist. Pin demo to an older digest
+before a client walkthrough; put the new image on staging first.
 
 ## Related
 

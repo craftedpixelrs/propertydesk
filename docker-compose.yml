@@ -2,14 +2,13 @@
 #
 #   app         → propertydesk.app + my.propertydesk.app  (real product)
 #   app-demo    → demo.propertydesk.app                   (seeded demo DB)
-#   app-staging → staging.propertydesk.app                (profile: staging)
+#   app-staging → staging.propertydesk.app (same DB + files as demo)
 #   caddy       → TLS + reverse proxy
 #
-# Same GHCR image for every app container. Per-host origin, database and
-# storage come from the env file. See docs/environments.md.
-#
-# Start staging only when `.env.staging` exists and the droplet has RAM:
-#   docker compose --profile staging up -d app-staging
+# Same GHCR image for every app container. Per-host origin comes from
+# the env file. demo and staging share DATABASE_URL and the demo
+# storage volume so WIP on staging. sees the same tenants as demo.
+# See docs/environments.md.
 
 services:
   app:
@@ -73,7 +72,6 @@ services:
       retries: 3
 
   app-staging:
-    profiles: ["staging"]
     image: ${IMAGE:-propertydesk-app:latest}
     container_name: propertydesk-app-staging
     restart: unless-stopped
@@ -86,7 +84,7 @@ services:
     expose:
       - "3000"
     volumes:
-      - app_staging_storage:/app/storage
+      - app_demo_storage:/app/storage
     networks:
       - web
     healthcheck:
@@ -122,4 +120,3 @@ volumes:
   caddy_config:
   app_storage:
   app_demo_storage:
-  app_staging_storage:

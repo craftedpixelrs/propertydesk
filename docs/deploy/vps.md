@@ -4,9 +4,9 @@ DigitalOcean droplet, Ubuntu 24.04 LTS, 1 vCPU / 1 GB RAM / 33 GB disk,
 Frankfurt region. Everything runs in Docker: Next.js 16 standalone
 behind a Caddy reverse proxy. Postgres stays on Supabase.
 
-Hosts, shared-DB warning, and the planned `demo.` / `staging.` split:
+Hosts and the `my.` / `demo.` / `staging.` split:
 [`docs/environments.md`](../environments.md). Mail:
-[`docs/email.md`](../email.md).
+[`docs/email.md`](../email.md). Staging shares the demo database.
 
 ## One-time provisioning
 
@@ -97,7 +97,7 @@ Full map: [`docs/environments.md`](../environments.md).
 |------|-----------|--------|
 | `/opt/propertydesk/.env` | `app` | `propertydesk.app` + `my.propertydesk.app` |
 | `/opt/propertydesk/.env.demo` | `app-demo` | `demo.propertydesk.app` |
-| `/opt/propertydesk/.env.staging` | `app-staging` | `staging.propertydesk.app` (opt-in) |
+| `/opt/propertydesk/.env.staging` | `app-staging` | `staging.propertydesk.app` (same DB as demo) |
 
 After editing an env file, recreate **that** container
 (`docker compose up -d --no-build --force-recreate app`).

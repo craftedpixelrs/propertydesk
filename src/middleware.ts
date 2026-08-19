@@ -9,10 +9,10 @@ import { NextRequest, NextResponse } from "next/server";
  * `docs/environments.md`.
  *
  *   1) App subdomain `/` → 308 `/sign-in`.
- *   2) Every marketing page on an app host → 308 to
+ *   2) Marketing-only paths on an app host → 308 to
  *      `https://propertydesk.app/<path>`. `demo.` and `staging.` never
- *      serve the landing — only the authenticated app + `/p/…` shares.
- *   3) Everything else (dashboard, auth, public unit shares) passes.
+ *      serve the landing — only the authenticated app (+ public `/p/`).
+ *   3) Everything else passes through.
  */
 
 const APP_SUBDOMAINS = new Set([
@@ -21,7 +21,7 @@ const APP_SUBDOMAINS = new Set([
   "staging.propertydesk.app",
 ]);
 
-/** First path segment of every `(marketing)` page. Apex-only. */
+// Reserved marketing slugs that must only live on the apex domain.
 const MARKETING_ONLY_PATHS = new Set([
   "za-investitore",
   "za-agencije",

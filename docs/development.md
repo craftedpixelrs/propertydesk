@@ -18,8 +18,8 @@ Hosts and which database to use:
 
 | You work on | `DATABASE_URL` points at | Auth URL |
 |-------------|--------------------------|----------|
-| Daily local | **demo** (or a personal) Supabase | `http://localhost:3000` |
-| Feature preview | staging Supabase (when it exists) | `http://localhost:3000` |
+| Daily local | **demo / staging** Supabase (same project) | `http://localhost:3000` |
+| Preview on VPS | same demo DB, host `staging.` | `https://staging.propertydesk.app` |
 | Real customers | never from the laptop | `https://my.propertydesk.app` |
 
 Mail (console locally, Resend on `my.`):
