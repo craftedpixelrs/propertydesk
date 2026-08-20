@@ -68,11 +68,16 @@ export async function processOverdueSubscriptions(options: {
         ? { organizationId: { in: options.organizationIds } }
         : {}),
     },
+    include: { organization: { select: { profile: { select: { type: true } } } } },
   });
   summary.subscriptionsConsidered = subs.length;
 
   for (const sub of subs) {
     try {
+      if (sub.organization.profile?.type === "AGENCY") {
+        summary.skipped++;
+        continue;
+      }
       const settings = await resolveBillingSettings(sub.organizationId);
       if (!settings.billingEnabled || !settings.automation.overdue) {
         summary.skipped++;

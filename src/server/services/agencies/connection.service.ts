@@ -51,6 +51,15 @@ async function loadInvitationForAgency(
   return conn;
 }
 
+export async function activatePendingAgencyConnections(
+  agencyOrganizationId: string,
+) {
+  await prisma.agencyConnection.updateMany({
+    where: { agencyOrganizationId, status: "INVITED" },
+    data: { status: "ACTIVE", acceptedAt: new Date() },
+  });
+}
+
 export async function acceptInvitation(input: {
   agencyOrganizationId: string;
   actorUserId: string;

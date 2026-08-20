@@ -1,6 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const prismaMock = vi.hoisted(() => ({
+  organization: {
+    findUnique: vi.fn(),
+  },
+  saaSPlan: {
+    findUnique: vi.fn(),
+  },
   organizationSubscription: {
     findMany: vi.fn(),
     update: vi.fn(),
@@ -22,6 +28,7 @@ vi.mock("@/server/logger", () => ({
 import {
   expireEndedSubscriptions,
   expiryReasonForSubscription,
+  syncExpiredAccess,
 } from "./expire.service";
 
 beforeEach(() => {
@@ -31,6 +38,7 @@ beforeEach(() => {
   );
   prismaMock.organizationSubscription.update.mockResolvedValue({});
   prismaMock.organizationProfile.updateMany.mockResolvedValue({ count: 1 });
+  prismaMock.saaSPlan.findUnique.mockResolvedValue(null);
 });
 
 const now = new Date("2026-08-16T12:00:00.000Z");
@@ -119,6 +127,62 @@ describe("expireEndedSubscriptions", () => {
       expect.objectContaining({
         where: { organizationId: "org-1" },
         data: { status: "RESTRICTED" },
+      }),
+    );
+  });
+
+  it("skips agency partner orgs", async () => {
+    prismaMock.organizationSubscription.findMany.mockResolvedValue([
+      {
+        id: "sub-agency",
+        organizationId: "org-agency",
+        status: "TRIAL",
+        trialEndsAt: new Date("2026-08-01T00:00:00.000Z"),
+        endsAt: null,
+        currentPeriodEnd: null,
+        organization: { profile: { type: "AGENCY" } },
+      },
+    ]);
+
+    const result = await expireEndedSubscriptions({ now });
+    expect(result.processed).toBe(0);
+    expect(prismaMock.organizationSubscription.update).not.toHaveBeenCalled();
+  });
+});
+
+describe("syncExpiredAccess", () => {
+  it("heals a restricted agency back to ACTIVE without locking", async () => {
+    prismaMock.organization.findUnique.mockResolvedValue({
+      profile: { status: "RESTRICTED", type: "AGENCY" },
+      subscription: {
+        id: "sub-agency",
+        status: "EXPIRED",
+        trialEndsAt: new Date("2026-08-01T00:00:00.000Z"),
+        endsAt: null,
+        currentPeriodEnd: null,
+        plan: { id: "plan-starter", code: "starter" },
+      },
+    });
+    prismaMock.saaSPlan.findUnique.mockResolvedValue({
+      id: "plan-partner",
+      code: "partner",
+    });
+
+    await expect(syncExpiredAccess("org-agency", now)).resolves.toBe("ACTIVE");
+    expect(prismaMock.organizationProfile.updateMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({ organizationId: "org-agency" }),
+        data: { status: "ACTIVE" },
+      }),
+    );
+    expect(prismaMock.organizationSubscription.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { organizationId: "org-agency" },
+        data: expect.objectContaining({
+          status: "ACTIVE",
+          trialEndsAt: null,
+          planId: "plan-partner",
+        }),
       }),
     );
   });

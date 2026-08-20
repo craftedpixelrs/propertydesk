@@ -64,8 +64,15 @@ prod project):
 - Append `?sslmode=require&uselibpqcompat=true`
 
 Bootstrapped with `prisma migrate deploy` (22 migrations) and
-`pnpm db:seed:platform`: four plans + one `SUPER_ADMIN`
-(`marko.banovic@craftedpixel.rs`). No demo tenants.
+`pnpm db:seed:platform`: paid investor plans + hidden `partner` plan
++ one `SUPER_ADMIN` (`marko.banovic@craftedpixel.rs`). No demo tenants.
+
+The `partner` row is **data**, not a schema migration. Both the demo
+DB (shared by `demo.` / `staging.`) and `my.` already have it via
+`scripts/apply-agency-partner-data.cjs` (PrismaPg adapter; do not call
+`new PrismaClient()` without an adapter inside the image). Idempotent.
+SQL twin: `scripts/apply-agency-partner-data.sql`. Do not run
+`prisma migrate deploy` for this change.
 
 To rebuild another empty project, copy gitignored
 `.env.production.local` and run:

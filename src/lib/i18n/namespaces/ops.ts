@@ -247,6 +247,7 @@ export const opsSr = {
     members: "Korisnici",
     agencies: "Agencije",
     agencyConnections: "Agencijske konekcije",
+    investors: "Povezani investitori",
   },
 
   org: {
@@ -263,17 +264,22 @@ export const opsSr = {
     noSubscription: "Nema aktivne pretplate.",
     logoTitle: "Logo kompanije",
     logoHint:
-      "PNG, JPG ili WebP, do 2 MB. Logo se koristi na ponudama i javnim stranicama.",
+      "PNG, JPG, WebP ili SVG, do 2 MB. Logo se koristi na ponudama i javnim stranicama.",
     logoWhiteLabelHint:
       "Na Growth i Scale paketu ovaj logo zamenjuje PropertyDesk u aplikaciji (white-label).",
     logoStarterHint:
       "Zamena logoa aplikacije (white-label) dostupna je na Growth i Scale paketu.",
+    logoAgencyHint:
+      "Logo agencije se prikazuje u njenom portalu. Nije vezan za pretplatu.",
+    agencyPartnerTitle: "Partner nalog",
+    agencyPartnerHint:
+      "Agencija nema paket ni fakture. Projekte, rezervacije i provizije vidi tek kad je investitor pozove.",
     logoUpload: "Otpremi logo",
     logoChange: "Zameni logo",
     logoRemove: "Ukloni logo",
     logoUploaded: "Logo je otpremljen.",
     logoRemoved: "Logo je uklonjen.",
-    logoMustBeImage: "Logo mora biti PNG, JPG ili WebP.",
+    logoMustBeImage: "Logo mora biti PNG, JPG, WebP ili SVG.",
     logoTooBig: "Logo je prevelik (maksimalno 2 MB).",
     logoUploadFailed: "Otpremanje logoa nije uspelo.",
   },
@@ -653,6 +659,7 @@ export const opsEn: Leaves<typeof opsSr> = {
     members: "Users",
     agencies: "Agencies",
     agencyConnections: "Agency connections",
+    investors: "Connected investors",
   },
 
   org: {
@@ -669,17 +676,22 @@ export const opsEn: Leaves<typeof opsSr> = {
     noSubscription: "No active subscription.",
     logoTitle: "Company logo",
     logoHint:
-      "PNG, JPG or WebP, up to 2 MB. Used on offers and public pages.",
+      "PNG, JPG, WebP, or SVG, up to 2 MB. Used on offers and public pages.",
     logoWhiteLabelHint:
       "On Growth and Scale this logo replaces PropertyDesk in the app (white-label).",
     logoStarterHint:
       "Replacing the app logo (white-label) is available on Growth and Scale.",
+    logoAgencyHint:
+      "The agency logo appears in its portal. It is not tied to a subscription.",
+    agencyPartnerTitle: "Partner account",
+    agencyPartnerHint:
+      "The agency has no plan or invoices. It sees projects, reservations, and commissions only after an investor invites it.",
     logoUpload: "Upload logo",
     logoChange: "Replace logo",
     logoRemove: "Remove logo",
     logoUploaded: "Logo uploaded.",
     logoRemoved: "Logo removed.",
-    logoMustBeImage: "Logo must be PNG, JPG or WebP.",
+    logoMustBeImage: "Logo must be PNG, JPG, WebP, or SVG.",
     logoTooBig: "Logo is too large (2 MB maximum).",
     logoUploadFailed: "Could not upload the logo.",
   },

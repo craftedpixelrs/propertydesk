@@ -92,7 +92,8 @@ Nakon prijave si na **Kontrolnoj tabli** (`/dashboard`). Levi sidebar sadrži sv
 
 ### 2.2. Preporučena polja
 
-- **Grad, Adresa, Opština, Poštanski broj** — za IPS QR na fakturama i kupoprodajnim ugovorima
+- **Grad, Adresa, Opština, Poštanski broj** — predlog iz baze mesta Srbije (`SuggestInput`). Izbor popunjava PTT i koordinate. Za IPS QR i ugovore.
+- **Naslovna slika (cover)** — otprema na S3; vidi se na javnom sajtu projekta
 - **Status** — `DRAFT` (rad u toku), `PRE_SALES` (priprema), `ACTIVE_SALES` (aktivna prodaja), `CONSTRUCTION` (izgradnja), `COMPLETED` (završen)
 - **Datum početka prodaje** — koristi se u izveštajima o dužini prodajnog ciklusa
 - **Datum početka izgradnje**, **Očekivani završetak** — prikazuju se kupcu
@@ -189,7 +190,7 @@ Dve opcije: ručno i CSV/XLSX uvoz.
 
 `/projekti/{id}/uvoz` — wizard u 3 koraka:
 
-1. **Preuzmi šablon** — sistem daje CSV/XLSX sa svim kolonama.
+1. **Preuzmi šablon** — CSV/XLSX sa kolonama na **jeziku aplikacije** (sr/en). Kanonska polja ostaju ista; mapiranje radi i sa lokalizovanim headerima.
 2. **Popuni i uploaduj** — sistem parsuje fajl (podržava `,`, `;`, `\t`, kao i XLSX preko `exceljs`).
 3. **Preview + potvrda** — pokazuje šta će biti kreirano / ažurirano / preskočeno + eventualne greške po redu.
 
@@ -468,12 +469,23 @@ Detalj uplate → **"Storniraj"**:
 
 ### 8.1. Poziv agencije (od strane investora)
 
-**`/administracija/agencije/nova`** — investor (ili super-admin) šalje pozivnicu agenciji:
+**`/agencije`** — investitor šalje poziv **emailom** (naziv opciono).
+Ne mora da zna da li agencija već ima nalog. Nema javne
+self-registracije. Agencija je besplatan partner nalog (`partner`),
+bez pretplate i bez isteka paketa.
 
-- Naziv, PIB, email vlasnika
-- Sistem šalje email sa link-om za registraciju
-- Kada agencija prihvati, kreira se **konekcija** `AgencyConnection` u statusu `AKTIVNA`
-- Investor bira koja provizijska pravila važe za tu agenciju (v. 8.4)
+- **Novi email:** sistem pravi partner org i šalje link za
+  registraciju. Vlasnik unosi ime + lozinku **i** profil agencije
+  (pravni naziv, adresa, grad, telefon). Tek tada se pending
+  konekcija aktivira.
+- **Postojeća agencija:** email „Investitor X vas poziva“ →
+  `/agencija/konekcije` → **Prihvati poziv**. Kasniji pozivi ostaju
+  `INVITED` dok se ne prihvate.
+- Posle Prihvati, investitor deli projekte (`AgencyProjectAccess`) i
+  bira provizijska pravila (v. 8.4).
+- Super-admin može da napravi agenciju iz Administracija →
+  Organizacije (uvek plan `partner`, ACTIVE, bez trial-a) ili da je
+  stavi u `SUSPENDED` / `CLOSED`.
 
 ### 8.2. Agencija registruje interesenta
 
@@ -488,7 +500,7 @@ Agent se uloguje → **Sidebar → Moji kupci** → **"Registruj interesenta"** 
 
 ### 8.3. Investor odobrava/odbija
 
-**`/administracija/agencije/registracije`** — svi zahtevi:
+**`/agencije/registracije`** — svi zahtevi:
 
 - Klik na zahtev → detalj → **"Odobri"** ili **"Odbij"** (uz razlog)
 - Odobreni prelazi u `APPROVED` sa važenjem **60 dana** (podešava se globalno)
@@ -741,8 +753,9 @@ omotača (`chart-card`, `status-donut`, `trend-line`, `funnel-bars`).
 ### 12.1. Organizacija (`/podesavanja/organizacija`)
 
 - Naziv, PIB, adresa, kontakt (koristi se na fakturama)
-- Logo — upload PNG za PDF ugovore
+- Logo — PNG/JPEG/WebP ili **sanitizovani SVG** (S3, javni stream sa CSP)
 - Bankarski računi
+- Agencija: isti ekran je **obavezan prvi setup** posle pozivnice (pravni naziv, adresa, grad, telefon). Bez toga portal ostaje zaključan.
 
 ### 12.2. Korisnici (`/podesavanja/korisnici`)
 
@@ -753,11 +766,12 @@ omotača (`chart-card`, `status-donut`, `trend-line`, `funnel-bars`).
 
 ### 12.3. Pretplata (`/podesavanja/pretplata`)
 
-- Trenutni plan (Basic / Pro / Enterprise)
+- Samo **investitor**. Agencija (partner) **nema** ovaj meni — nema pretplate, trial-a ni SaaS fakture.
+- Trenutni plan (Starter / Growth / Scale)
 - Datum sledeće naplate
 - Cikl (mesečno / kvartalno / godišnje)
 - **Skoro fakture** (tabela zadnjih 5)
-- **"Ažuriraj karticu"** / **"Otkazi plan"**
+- Promena plana ide preko platform admina (Naplata organizacije)
 
 ### 12.4. Fakture (`/podesavanja/fakture`)
 
@@ -801,6 +815,7 @@ Koristi se za support, debugging, i verifikaciju bug-ova.
 - Šifra plana je zaključana posle kreiranja (istorijske reference).
 - Cena po ciklusu (mesečno / kvartalno / polugodišnje / godišnje) — prazne vrednosti se autopopunjavaju kao `N × mesečna`.
 - Jednokratna naknada za onboarding, valuta, kvote (projekti/jedinice/članovi/agencije), probni period, `active`/`publiclyAvailable`/`recommended` flag-ovi.
+- Skriveni plan `partner` (0 €, nije na cenovniku) je **obavezan** za svaku `AGENCY` org. Ne arhivirajte ga. Ne dodeljujte ga investitoru.
 - Trajno brisanje je moguće samo dok plan nema referencu (pretplata / faktura). U suprotnom se koristi **Arhiviraj**.
 - Detaljno u [`docs/roles-and-plans.md`](./roles-and-plans.md#2-uređivanje-saas-planova).
 
@@ -839,11 +854,11 @@ Cron-ovi se pokreću preko `/api/v1/cron/run/{name}` sa `CRON_SECRET` u header-u
 | `expire-reservations` | Dnevno 08:00 | Aktivne rezervacije čiji `expiresAt < now` → `ISTEKLA` |
 | `reservation-reminders` | Dnevno 09:00 | Email podsetnik kupcima kojima rezervacija ističe za 2 dana |
 | `overdue-installments` | Dnevno 09:00 | Rate koje su dospele → `KAŠNJENJE` + email podsetnici |
-| `notify-trials-expiring` | Dnevno 10:00 | Tenanti čiji trial ističe za 3 dana → email + notifikacija |
-| `billing.generate-invoices` | Dnevno 09:00 | Generiše SaaS fakture za sve pretplate |
+| `notify-trials-expiring` | Dnevno 10:00 | **Investitor** tenanti čiji trial ističe za 3 dana. Agencije se preskaču. |
+| `billing.generate-invoices` | Dnevno 09:00 | Generiše SaaS fakture za investitor pretplate. **Preskače `AGENCY`.** |
 | `billing.send-invoices` | Dnevno 09:15 | Šalje izdatane fakture kupcima (email + IPS QR PDF) |
 | `billing.reminders` | Dnevno 09:30 | Podsetnike za neplaćene fakture |
-| `billing.overdue` | Dnevno 09:45 | Pretplate: `PAYMENT_DUE` → `PAST_DUE` → `RESTRICTED` → `SUSPENDED` |
+| `billing.overdue` | Dnevno 09:45 | Investitor pretplate: `PAYMENT_DUE` → `PAST_DUE` → `RESTRICTED` → `SUSPENDED`. **Preskače `AGENCY`.** |
 | `billing.extend-subscriptions` | Dnevno 10:00 | Produžava period pretplate nakon plaćene fakture |
 | `billing.sync-sef` | Dnevno 10:15 | Šalje / retry-uje neuspele SEF submisije |
 | `billing.match-payments` | Dnevno 10:30 | Rematch neresolvani transakcija bankarskih izvoda |

@@ -5,6 +5,27 @@ follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Changed — Fix bugs v.1 (agency partner + project geo/cover)
+
+- Agencies are free partner accounts (`saas_plan.code = partner`): no
+  Starter/Growth/Scale, no trial lock, no SaaS invoice, no expiry
+  restriction. Access comes from the investor invite. Admin may still
+  set `SUSPENDED` / `CLOSED`. Expire, invoice, and overdue jobs skip
+  `AGENCY` and heal leftover trial/RESTRICTED agency rows.
+- Investor invites an agency by **email** (name optional) on
+  `/agencije`. Unknown email creates a partner org + owner invitation;
+  existing agency gets a connection invite and must **Prihvati** on
+  `/agencija/konekcije`. First-time owners fill the agency profile
+  (displayName, legalName, address, city, phone) before the portal
+  unlocks; later invites stay `INVITED` until Accept.
+- Company logo accepts sanitized SVG (same S3 path as other documents).
+- Project form: city / address / municipality suggest + auto postal
+  code and coordinates (`GET /api/v1/geo/suggest`, `GET /api/v1/geo/geocode`).
+- Project cover image uploads to S3 and is served on the public microsite.
+- Date inputs follow the UI locale (`dd.mm.yyyy` / `mm/dd/yyyy`).
+- Unit-import template headers follow the UI locale (sr / en).
+- Buyer comments require `lead.read` (not the removed `buyer.read`).
+
 ### Added — Phase 7 (Security, performance, accessibility, docs)
 
 - Global security headers (`CSP`, `HSTS` in production, `X-Frame-Options`,

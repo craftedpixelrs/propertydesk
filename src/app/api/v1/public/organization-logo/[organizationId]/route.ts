@@ -24,13 +24,21 @@ export const GET = apiHandler({ paramsSchema }, async ({ req, params }) => {
     return NextResponse.redirect(resolved.redirectUrl, 302);
   }
 
+  const headers: Record<string, string> = {
+    "content-type": resolved.mimeType,
+    "content-disposition": `inline; filename="${encodeURIComponent(resolved.fileName)}"`,
+    "cache-control": "public, max-age=300",
+    "x-content-type-options": "nosniff",
+  };
+  if (resolved.mimeType === "image/svg+xml") {
+    headers["content-type"] = "image/svg+xml; charset=utf-8";
+    headers["content-security-policy"] =
+      "default-src 'none'; style-src 'unsafe-inline'; img-src data:; sandbox";
+  }
+
   return new NextResponse(new Uint8Array(resolved.buffer), {
     status: 200,
-    headers: {
-      "content-type": resolved.mimeType,
-      "content-disposition": `inline; filename="${encodeURIComponent(resolved.fileName)}"`,
-      "cache-control": "public, max-age=300",
-    },
+    headers,
   });
 });
 

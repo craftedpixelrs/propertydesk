@@ -17,6 +17,8 @@ export interface AcceptInvitationView {
   organizationName: string;
   role: string;
   status: string;
+  requiresAgencyProfile?: boolean;
+  investorName?: string | null;
 }
 
 export function AcceptInvitationForm({
@@ -31,15 +33,37 @@ export function AcceptInvitationForm({
   const [name, setName] = useState("");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
+  const [agencyDisplayName, setAgencyDisplayName] = useState(
+    invitation.organizationName,
+  );
+  const [agencyLegalName, setAgencyLegalName] = useState("");
+  const [agencyAddress, setAgencyAddress] = useState("");
+  const [agencyCity, setAgencyCity] = useState("");
+  const [agencyPhone, setAgencyPhone] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const needsAgencyProfile = Boolean(invitation.requiresAgencyProfile);
 
   const sessionEmail = session?.user.email?.trim().toLowerCase() ?? null;
   const inviteEmail = invitation.email.trim().toLowerCase();
   const emailMatches = Boolean(sessionEmail && sessionEmail === inviteEmail);
 
+  function agencyProfilePayload() {
+    if (!needsAgencyProfile) return undefined;
+    return {
+      displayName: agencyDisplayName.trim(),
+      legalName: agencyLegalName.trim(),
+      address: agencyAddress.trim(),
+      city: agencyCity.trim(),
+      phone: agencyPhone.trim(),
+      email: invitation.email,
+    };
+  }
+
   async function acceptAsCurrentUser() {
-    await apiClient.post(`/public/invitations/${invitation.id}/accept`);
+    await apiClient.post(`/public/invitations/${invitation.id}/accept`, {
+      agencyProfile: agencyProfilePayload(),
+    });
     try {
       await apiClient.patch("/me", { locale });
     } catch {
@@ -90,6 +114,7 @@ export function AcceptInvitationForm({
       await apiClient.post(`/public/invitations/${invitation.id}/register`, {
         name,
         password,
+        agencyProfile: agencyProfilePayload(),
       });
       const res = await authClient.signIn.email({
         email: invitation.email,
@@ -133,6 +158,60 @@ export function AcceptInvitationForm({
     }
   }
 
+  function AgencyFields() {
+    if (!needsAgencyProfile) return null;
+    return (
+      <div className="space-y-3 rounded-md border border-[var(--color-border)] p-3">
+        <p className="text-sm font-medium">{t("auth.invitationAgencyFields")}</p>
+        <div>
+          <Label htmlFor="agency-displayName">{t("ops.org.displayName")}</Label>
+          <Input
+            id="agency-displayName"
+            required
+            value={agencyDisplayName}
+            onChange={(e) => setAgencyDisplayName(e.target.value)}
+          />
+        </div>
+        <div>
+          <Label htmlFor="agency-legalName">{t("ops.org.legalName")}</Label>
+          <Input
+            id="agency-legalName"
+            required
+            value={agencyLegalName}
+            onChange={(e) => setAgencyLegalName(e.target.value)}
+          />
+        </div>
+        <div>
+          <Label htmlFor="agency-address">{t("projects.fields.address")}</Label>
+          <Input
+            id="agency-address"
+            required
+            value={agencyAddress}
+            onChange={(e) => setAgencyAddress(e.target.value)}
+          />
+        </div>
+        <div>
+          <Label htmlFor="agency-city">{t("projects.fields.city")}</Label>
+          <Input
+            id="agency-city"
+            required
+            value={agencyCity}
+            onChange={(e) => setAgencyCity(e.target.value)}
+          />
+        </div>
+        <div>
+          <Label htmlFor="agency-phone">{t("common.phone")}</Label>
+          <Input
+            id="agency-phone"
+            required
+            value={agencyPhone}
+            onChange={(e) => setAgencyPhone(e.target.value)}
+          />
+        </div>
+      </div>
+    );
+  }
+
   if (isPending) {
     return (
       <p className="text-sm text-[var(--color-foreground-muted)]">
@@ -144,7 +223,9 @@ export function AcceptInvitationForm({
   return (
     <div className="space-y-4">
       <p className="text-sm text-[var(--color-foreground-muted)]">
-        {t("auth.invitationOrg", { name: invitation.organizationName })}
+        {needsAgencyProfile
+          ? t("auth.invitationAgencyOrg")
+          : t("auth.invitationOrg", { name: invitation.organizationName })}
       </p>
 
       {error ? (
@@ -154,11 +235,14 @@ export function AcceptInvitationForm({
       ) : null}
 
       {emailMatches ? (
-        <FormActions>
-          <Button onClick={() => void handleAccept()} loading={submitting}>
-            {t("auth.acceptInvitation")}
-          </Button>
-        </FormActions>
+        <div className="space-y-4">
+          {needsAgencyProfile ? <AgencyFields /> : null}
+          <FormActions>
+            <Button onClick={() => void handleAccept()} loading={submitting}>
+              {t("auth.acceptInvitation")}
+            </Button>
+          </FormActions>
+        </div>
       ) : sessionEmail ? (
         <div className="space-y-3">
           <Alert tone="danger">
@@ -227,6 +311,7 @@ export function AcceptInvitationForm({
               onChange={(e) => setConfirm(e.target.value)}
             />
           </div>
+          <AgencyFields />
           <FormActions>
             <Button type="submit" loading={submitting} className="w-full sm:w-auto">
               {t("auth.invitationCreateAccount")}

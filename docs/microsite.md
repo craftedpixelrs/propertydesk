@@ -38,8 +38,11 @@ CRM.
 
 ## Sections rendered
 
-1. **Hero** — project name, city, cover image (`Project.coverImageUrl`),
-   sales-start date, expected completion, ProjectStatus badge.
+1. **Hero** — project name, city, cover image (`Project.coverImageUrl`,
+   uploaded on the project form to S3 and served at
+   `/api/v1/public/project-cover/:documentId`), sales-start date,
+   expected completion, ProjectStatus badge. City / address come from
+   the Serbia suggest + geocode fields on the project form.
 2. **Available units** — grid of `Unit`s (see filter below) with
    photos (cover from Documents), type, area, price (if
    `publishPricesOnMicrosite = true` — currently derived from

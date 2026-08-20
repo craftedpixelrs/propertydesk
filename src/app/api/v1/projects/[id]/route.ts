@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import { apiHandler } from "@/lib/api/handler";
+import { isStoredCoverImageUrl } from "@/lib/geo/cover-image";
 import { requirePermission } from "@/server/permissions/require";
 import {
   archiveProject,
@@ -22,7 +23,12 @@ const patchSchema = z
     postalCode: z.string().max(20).optional(),
     latitude: z.number().min(-90).max(90).nullable().optional(),
     longitude: z.number().min(-180).max(180).nullable().optional(),
-    coverImageUrl: z.string().url().max(500).nullable().optional(),
+    coverImageUrl: z
+      .string()
+      .max(500)
+      .refine((value) => value === "" || isStoredCoverImageUrl(value))
+      .nullable()
+      .optional(),
     projectStatus: z
       .enum([
         "DRAFT",

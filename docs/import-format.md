@@ -13,6 +13,12 @@
 
 ## Column mapping
 
+The downloadable CSV/XLSX template uses **localized headers** that
+follow the UI language (`sr` or `en`). The map step still binds those
+headers to the same canonical fields below. Switching the app language
+and re-downloading the template is enough — you do not need English
+column names in the file.
+
 The import wizard has a **map** step where headers can be linked to
 fields. The canonical field names are:
 

@@ -69,6 +69,8 @@ Use your own inbox as the recipient. Do not point local at production
 | Provider switch + Resend/SMTP send | [`src/server/auth/email.ts`](../src/server/auth/email.ts) |
 | From header helper | `emailFromHeader()` in [`src/lib/env.ts`](../src/lib/env.ts) |
 | Auth templates (reset, verify, invite) | same `email.ts` file |
+| Agency partner invite (new email) | `agencyPartnerInvitationEmail()` in `email.ts` |
+| Agency connection invite (existing) | `agencyConnectionInvitationEmail()` in `email.ts` — link `/agencija/konekcije` |
 | Domain event templates (sr-Latn) | [`src/server/email/templates.ts`](../src/server/email/templates.ts) |
 | Billing templates | [`src/server/services/billing/emails/`](../src/server/services/billing/emails/) |
 | Env schema | `EMAIL_*`, `RESEND_API_KEY`, `SMTP_*` in `src/lib/env.ts` |

@@ -9,11 +9,18 @@ import {
   listConnections,
 } from "@/server/services/agencies/agencies.service";
 
-const inviteSchema = z.object({
-  agencyOrganizationId: z.string().min(1),
-  defaultProtectionDays: z.number().int().min(0).max(365).optional(),
-  notes: z.string().max(2000).optional(),
-});
+const inviteSchema = z
+  .object({
+    email: z.string().trim().email().optional(),
+    agencyName: z.string().trim().min(2).max(200).optional(),
+    agencyOrganizationId: z.string().min(1).optional(),
+    defaultProtectionDays: z.number().int().min(0).max(365).optional(),
+    notes: z.string().max(2000).optional(),
+  })
+  .refine((body) => Boolean(body.email) || Boolean(body.agencyOrganizationId), {
+    message: "Unesite email agencije.",
+    path: ["email"],
+  });
 
 const STATUSES = ["INVITED", "ACTIVE", "SUSPENDED", "REJECTED", "TERMINATED"] as const;
 
@@ -47,6 +54,8 @@ export const POST = apiHandler({ bodySchema: inviteSchema }, async ({ body }) =>
   const connection = await inviteAgency({
     investorOrganizationId: ctx.organization.organizationId,
     actorUserId: ctx.session.user.id,
+    email: body.email,
+    agencyName: body.agencyName,
     agencyOrganizationId: body.agencyOrganizationId,
     defaultProtectionDays: body.defaultProtectionDays,
     notes: body.notes ?? null,

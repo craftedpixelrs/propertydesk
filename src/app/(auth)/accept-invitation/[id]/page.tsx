@@ -31,7 +31,11 @@ export default async function AcceptInvitationPage({
           ? invitation?.status === "expired"
             ? t("auth.invitationExpired", undefined, locale)
             : t("auth.invitationUnavailable", undefined, locale)
-          : t("auth.invitationSubtitle", undefined, locale)}
+          : invitation?.requiresAgencyProfile
+            ? t("auth.invitationAgencySubtitle", {
+                investor: invitation.investorName ?? invitation.organizationName,
+              }, locale)
+            : t("auth.invitationSubtitle", undefined, locale)}
       </p>
       {invitation && invitation.status === "pending" ? (
         <div className="mt-5">
@@ -42,6 +46,8 @@ export default async function AcceptInvitationPage({
               organizationName: invitation.organizationName,
               role: invitation.role,
               status: invitation.status,
+              requiresAgencyProfile: invitation.requiresAgencyProfile,
+              investorName: invitation.investorName,
             }}
           />
         </div>

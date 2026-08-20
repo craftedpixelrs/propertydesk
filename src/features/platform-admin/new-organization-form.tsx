@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { AGENCY_PARTNER_PLAN_CODE } from "@/lib/billing/agency-partner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -70,6 +71,18 @@ export function NewOrganizationForm({
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({});
+  const [orgType, setOrgType] = useState<"INVESTOR" | "AGENCY">(
+    initialValues?.type ?? "INVESTOR",
+  );
+  const isAgency = orgType === "AGENCY";
+  const investorPlans = plans.filter((p) => p.code !== AGENCY_PARTNER_PLAN_CODE);
+  const [agencyStatus, setAgencyStatus] = useState<
+    "ACTIVE" | "SUSPENDED" | "CLOSED"
+  >(
+    initialValues?.status === "SUSPENDED" || initialValues?.status === "CLOSED"
+      ? initialValues.status
+      : "ACTIVE",
+  );
 
   async function onSubmit(evt: React.FormEvent<HTMLFormElement>) {
     evt.preventDefault();
@@ -81,7 +94,7 @@ export function NewOrganizationForm({
     const payload = {
       name: String(fd.get("name") ?? "").trim(),
       slug: String(fd.get("slug") ?? "").trim(),
-      type: String(fd.get("type") ?? "INVESTOR") as "INVESTOR" | "AGENCY",
+      type: orgType,
       legalName: String(fd.get("legalName") ?? "").trim(),
       displayName: String(fd.get("displayName") ?? "").trim(),
       city: String(fd.get("city") ?? "").trim() || null,
@@ -93,14 +106,20 @@ export function NewOrganizationForm({
       email: String(fd.get("email") ?? "").trim() || null,
       phone: String(fd.get("phone") ?? "").trim() || null,
       website: String(fd.get("website") ?? "").trim() || null,
-      planCode: String(fd.get("planCode") ?? plans[0]?.code ?? "trial"),
-      status: String(fd.get("status") ?? "TRIAL") as OrganizationFormValues["status"],
-      trialDays: (() => {
-        const raw = String(fd.get("trialDays") ?? "").trim();
-        if (!raw) return isEdit ? null : 30;
-        const parsed = Number.parseInt(raw, 10);
-        return Number.isFinite(parsed) ? parsed : null;
-      })(),
+      planCode: isAgency
+        ? AGENCY_PARTNER_PLAN_CODE
+        : String(fd.get("planCode") ?? investorPlans[0]?.code ?? "trial"),
+      status: isAgency
+        ? agencyStatus
+        : (String(fd.get("status") ?? "TRIAL") as OrganizationFormValues["status"]),
+      trialDays: isAgency
+        ? 0
+        : (() => {
+            const raw = String(fd.get("trialDays") ?? "").trim();
+            if (!raw) return isEdit ? null : 30;
+            const parsed = Number.parseInt(raw, 10);
+            return Number.isFinite(parsed) ? parsed : null;
+          })(),
     };
 
     const missing: Record<string, string[]> = {};
@@ -185,7 +204,11 @@ export function NewOrganizationForm({
             id="type"
             name="type"
             required
-            defaultValue={initialValues?.type ?? "INVESTOR"}
+            value={orgType}
+            disabled={isEdit && initialValues?.type === "AGENCY"}
+            onChange={(event) =>
+              setOrgType(event.target.value as "INVESTOR" | "AGENCY")
+            }
             className="mt-1 h-11 w-full rounded-md border border-[var(--color-border-strong)] bg-[var(--color-surface)] px-3 text-sm"
           >
             <option value="INVESTOR">{t("organization.types.investor")}</option>
@@ -193,6 +216,30 @@ export function NewOrganizationForm({
           </select>
           <FieldError messages={fieldErrors.type} />
         </div>
+        {isAgency ? (
+          <>
+          <div className="sm:col-span-2 rounded-md border border-[var(--color-border)] bg-[var(--color-surface-inset)] px-3 py-2 text-sm text-[var(--color-foreground-muted)]">
+            {t("admin.newOrg.agencyPartnerNote")}
+          </div>
+          <div>
+            <Label htmlFor="status">{t("common.statusLabel")}</Label>
+            <select
+              id="status"
+              name="status"
+              value={agencyStatus}
+              onChange={(event) =>
+                setAgencyStatus(event.target.value as "ACTIVE" | "SUSPENDED" | "CLOSED")
+              }
+              className="mt-1 h-11 w-full rounded-md border border-[var(--color-border-strong)] bg-[var(--color-surface)] px-3 text-sm"
+            >
+              <option value="ACTIVE">{t("status.active")}</option>
+              <option value="SUSPENDED">{t("status.suspended")}</option>
+              <option value="CLOSED">{t("status.closed")}</option>
+            </select>
+          </div>
+          </>
+        ) : (
+          <>
         <div>
           <Label htmlFor="status">{t("common.statusLabel")}</Label>
           <select
@@ -216,10 +263,10 @@ export function NewOrganizationForm({
             id="planCode"
             name="planCode"
             required
-            defaultValue={initialValues?.planCode ?? plans[0]?.code}
+            defaultValue={initialValues?.planCode ?? investorPlans[0]?.code}
             className="mt-1 h-11 w-full rounded-md border border-[var(--color-border-strong)] bg-[var(--color-surface)] px-3 text-sm"
           >
-            {plans.map((p) => (
+            {investorPlans.map((p) => (
               <option key={p.code} value={p.code}>
                 {p.name}
               </option>
@@ -257,6 +304,8 @@ export function NewOrganizationForm({
           ) : null}
           <FieldError messages={fieldErrors.trialDays} />
         </div>
+          </>
+        )}
         <div>
           <Label htmlFor="displayName">{t("admin.newOrg.displayName")}</Label>
           <Input

@@ -138,7 +138,12 @@ export async function getActiveOrganization(
     | null;
 
   const sub = membership.organization.subscription;
-  if (sub && expiryReasonForSubscription(sub, new Date())) {
+  if (membership.organization.profile?.type === "AGENCY") {
+    const synced = await syncExpiredAccess(membership.organizationId).catch(
+      () => status,
+    );
+    status = synced ?? status;
+  } else if (sub && expiryReasonForSubscription(sub, new Date())) {
     const synced = await syncExpiredAccess(membership.organizationId).catch(
       () => "RESTRICTED" as const,
     );

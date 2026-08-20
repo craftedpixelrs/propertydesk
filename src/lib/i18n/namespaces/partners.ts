@@ -122,8 +122,10 @@ export const partnersSr = {
     trigger: "Pozovi agenciju",
     title: "Pozivanje agencije",
     description:
-      "Unesite ID organizacije agencije. Agencija dobija poziv na svom portalu.",
-    orgId: "ID organizacije agencije",
+      "Unesite email. Ako agencija već ima nalog, stići će im poziv da prihvate. Ako nemaju, otvoriće nalog i uneti svoje podatke. Ne morate znati da li već postoje.",
+    email: "Email agencije",
+    agencyName: "Naziv agencije (opciono)",
+    agencyNamePlaceholder: "npr. Top Nekretnine",
     protectionDays: "Podrazumevana zaštita kupca (dana)",
   },
 
@@ -324,8 +326,10 @@ export const partnersEn: Leaves<typeof partnersSr> = {
     trigger: "Invite agency",
     title: "Invite an agency",
     description:
-      "Enter the agency organization ID. The agency receives the invitation on their portal.",
-    orgId: "Agency organization ID",
+      "Enter their email. If the agency already has an account, they get an invite to accept. If not, they create an account and enter their details. You do not need to know whether they already exist.",
+    email: "Agency email",
+    agencyName: "Agency name (optional)",
+    agencyNamePlaceholder: "e.g. Top Nekretnine",
     protectionDays: "Default buyer protection (days)",
   },
 

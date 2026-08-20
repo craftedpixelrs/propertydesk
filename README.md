@@ -41,8 +41,10 @@ Sign in na `http://localhost:3000/sign-in` sa `SEED_SUPER_ADMIN_EMAIL`
 
 Ceo operator + developer runbook je u [`docs/`](./docs/):
 
+- **[`releases/fix-bugs-v1.md`](./docs/releases/fix-bugs-v1.md)** — trenutni train (šta je urađeno, šta čeka deploy)
 - **[`demo-tok.md`](./docs/demo-tok.md)** — sveobuhvatni operator demo (od projekta do provizije)
 - **[`funkcionalnosti.md`](./docs/funkcionalnosti.md)** — kompaktan katalog svih funkcionalnosti (feature cheat-sheet)
+- **Help Center** — [`public/help-center.html`](./public/help-center.html) (živi na `/help-center.html`); izvorna kopija [`docs/help-center.html`](./docs/help-center.html)
 - **[`prezentacija-funkcionalnosti.html`](./docs/prezentacija-funkcionalnosti.html)** — slide deck (otvori u browseru, F = fullscreen, ←/→ navigacija)
 - **[`demo-snimanje.md`](./docs/demo-snimanje.md)** — scenario za snimanje video demoa (10-min investitor + 4-min agencija + 6 mikro-videa)
 - [`ciljne-grupe.md`](./docs/ciljne-grupe.md) — GTM / ciljne grupe

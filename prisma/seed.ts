@@ -54,6 +54,7 @@ async function upsertPlan(
     maxMembers: number | null;
     maxAgencyConnections: number | null;
     features?: Record<string, unknown>;
+    publiclyAvailable?: boolean;
     sortOrder: number;
   },
 ) {
@@ -72,6 +73,7 @@ async function upsertPlan(
       maxAgencyConnections: data.maxAgencyConnections,
       features: (data.features ?? {}) as Prisma.InputJsonValue,
       active: true,
+      publiclyAvailable: data.publiclyAvailable ?? true,
       sortOrder: data.sortOrder,
     },
   });
@@ -165,6 +167,13 @@ async function ensureTenant(spec: TenantSpec) {
   });
   if (!plan) throw new Error(`Plan ${spec.planCode} missing`);
 
+  const isAgency = spec.type === "AGENCY";
+  const orgStatus = isAgency ? "ACTIVE" : "TRIAL";
+  const subStatus = isAgency ? "ACTIVE" : "TRIAL";
+  const trialEndsAt = isAgency
+    ? null
+    : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+
   let org = await prisma.organization.findUnique({ where: { slug: spec.slug } });
   if (!org) {
     const orgId = createId();
@@ -179,27 +188,34 @@ async function ensureTenant(spec: TenantSpec) {
         displayName: spec.displayName,
         city: spec.city,
         country: "RS",
-        status: "TRIAL",
+        status: orgStatus,
       },
     });
     await prisma.organizationSubscription.create({
       data: {
         organizationId: org.id,
         planId: plan.id,
-        status: "TRIAL",
-        trialEndsAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+        status: subStatus,
+        trialEndsAt,
       },
     });
   } else {
+    await prisma.organizationProfile.update({
+      where: { organizationId: org.id },
+      data: { type: spec.type, ...(isAgency ? { status: "ACTIVE" } : {}) },
+    });
     await prisma.organizationSubscription.upsert({
       where: { organizationId: org.id },
       create: {
         organizationId: org.id,
         planId: plan.id,
-        status: "TRIAL",
-        trialEndsAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+        status: subStatus,
+        trialEndsAt,
       },
-      update: { planId: plan.id },
+      update: {
+        planId: plan.id,
+        ...(isAgency ? { status: "ACTIVE" as const, trialEndsAt: null } : {}),
+      },
     });
   }
 
@@ -367,6 +383,19 @@ async function main() {
     sortOrder: 3,
   });
 
+  const partner = await upsertPlan("partner", {
+    name: "Partner",
+    description: "Besplatan portal agencije. Pristup ide preko poziva investitora, bez pretplate.",
+    monthlyPrice: 0,
+    maxActiveProjects: 0,
+    maxUnits: 0,
+    maxMembers: 25,
+    maxAgencyConnections: null,
+    features: { audience: "agency", agencySharing: true, whiteLabel: false },
+    publiclyAvailable: false,
+    sortOrder: 20,
+  });
+
   await ensureUser({
     email: SUPER_ADMIN_EMAIL,
     name: "PropertyDesk Admin",
@@ -422,7 +451,7 @@ async function main() {
     displayName: "Top Nekretnine",
     city: "Novi Sad",
     type: "AGENCY",
-    planCode: starter.code,
+    planCode: partner.code,
     members: [
       {
         email: "vlasnik@topnekretnine.test",

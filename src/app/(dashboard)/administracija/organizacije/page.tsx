@@ -178,7 +178,11 @@ export default async function PlatformOrganizationsPage({
                           t("admin.dash")
                         )}
                       </td>
-                      <td className="px-4 py-2">{row.planName ?? t("admin.dash")}</td>
+                      <td className="px-4 py-2">
+                        {row.type === "AGENCY"
+                          ? t("ops.org.agencyPartnerTitle")
+                          : (row.planName ?? t("admin.dash"))}
+                      </td>
                       <td className="px-4 py-2 text-right tabular-nums">
                         {row.memberCount}
                       </td>

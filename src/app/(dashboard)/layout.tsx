@@ -5,6 +5,7 @@ import type { ReactNode } from "react";
 
 import { loadUserContext } from "@/server/auth/context";
 import {
+  isAgencyOrgSetupComplete,
   isInvestorOrgSetupComplete,
   loadOrganizationProfile,
 } from "@/server/services/organization-admin.service";
@@ -36,7 +37,8 @@ export default async function DashboardLayout({ children }: { children: ReactNod
 
   if (
     !ctx.isSuperAdmin &&
-    ctx.activeOrganization?.status === "RESTRICTED"
+    ctx.activeOrganization?.status === "RESTRICTED" &&
+    ctx.activeOrganization.type !== "AGENCY"
   ) {
     lockNav = true;
     const pathname = (await headers()).get("x-pathname") ?? "";
@@ -48,8 +50,15 @@ export default async function DashboardLayout({ children }: { children: ReactNod
     ) : (
       <RestrictedAccessPanel organizationId={ctx.activeOrganization.id} />
     );
-  } else if (!ctx.isSuperAdmin && ctx.activeOrganization?.type === "INVESTOR") {
-    const setupDone = await isInvestorOrgSetupComplete(ctx.activeOrganization.id);
+  } else if (
+    !ctx.isSuperAdmin &&
+    (ctx.activeOrganization?.type === "INVESTOR" ||
+      ctx.activeOrganization?.type === "AGENCY")
+  ) {
+    const setupDone =
+      ctx.activeOrganization.type === "INVESTOR"
+        ? await isInvestorOrgSetupComplete(ctx.activeOrganization.id)
+        : await isAgencyOrgSetupComplete(ctx.activeOrganization.id);
     if (!setupDone) {
       lockNav = true;
       const canFill = ctx.permissions.includes("organization.manage");
@@ -81,7 +90,7 @@ export default async function DashboardLayout({ children }: { children: ReactNod
                   : null
               }
               quota={quota}
-              orgType="INVESTOR"
+              orgType={ctx.activeOrganization.type}
             />
           </div>
         );

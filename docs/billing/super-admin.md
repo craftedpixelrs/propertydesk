@@ -25,6 +25,12 @@ Per-tenant billing operations live on
 `/administracija/organizacije/{id}/naplata` — the "Naplata" tab on the
 org detail page.
 
+**Agencies are not billed.** An `AGENCY` org is on the hidden
+`partner` plan (0 €). Naplata shows a partner note only — do not
+change plan, issue an invoice, or restrict by trial expiry. Use
+`SUSPENDED` / `CLOSED` if you must lock the account. Invoice and
+overdue jobs skip agencies.
+
 ## Common tasks
 
 ### "The cron didn't run — help"

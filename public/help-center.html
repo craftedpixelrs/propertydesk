@@ -554,8 +554,8 @@
       <button type="button" class="cat-card" data-jump="#agencija">
         <div class="icon">6</div>
         <strong>Agencije</strong>
-        <p>Portal, referral, lifecycle provizija.</p>
-        <span class="count">3 članka</span>
+        <p>Poziv emailom, partner nalog, portal, referral, provizija.</p>
+        <span class="count">4 članka</span>
       </button>
       <button type="button" class="cat-card" data-jump="#dashboard">
         <div class="icon">7</div>
@@ -573,7 +573,7 @@
         <div class="icon">?</div>
         <strong>FAQ</strong>
         <p>Česta pitanja, greške i praktični saveti.</p>
-        <span class="count">18 pitanja</span>
+        <span class="count">21 pitanje</span>
       </button>
     </div>
 
@@ -632,6 +632,7 @@
           <a href="#fakture" data-nav-for="fakture">SaaS fakture</a>
 
           <h4>Agencije</h4>
+          <a href="#poziv-agencije" data-nav-for="poziv-agencije">Poziv agencije</a>
           <a href="#agencija" data-nav-for="agencija">Agencijski portal</a>
           <a href="#referral" data-nav-for="referral">Referral kod</a>
           <a href="#provizije" data-nav-for="provizije">Provizije</a>
@@ -689,8 +690,9 @@
             </li>
             <li>
               <strong>Prvi projekat</strong>
-              <code>/projekti/novi</code> — obavezna su šifra i naziv. Ostalo
-              (grad, valuta EUR/RSD, status prodaje) možete dopuniti kasnije.
+              <code>/projekti/novi</code> — obavezna su šifra i naziv. Grad,
+              adresu i opštinu birate iz predloga (automatski PTT i mapa).
+              Naslovnu sliku možete odmah otpremiti.
             </li>
             <li>
               <strong>Pozovite člana tima</strong>
@@ -715,6 +717,19 @@
             Na <code>/dashboard</code> i <code>/prvi-koraci</code> vidite panel
             „Prvi koraci“ sa napretkom. Možete ga privremeno sakriti; u
             podešavanjima se može vratiti.
+          </div>
+          <div class="callout">
+            <strong>Agencija — prvi nalog</strong>
+            Ako ste došli preko poziva investitora, posle registracije sistem
+            traži profil agencije pre portala. Kasniji pozivi drugih investitora
+            su samo <em>Prihvati</em> na <code>/agencija/konekcije</code>.
+            Agencija nema pretplatu.
+          </div>
+          <div class="callout">
+            <strong>Format datuma</strong>
+            Polja datuma prate jezik aplikacije: srpski
+            <code>dd.mm.yyyy</code>, engleski <code>mm/dd/yyyy</code>.
+            Promena jezika pretvara već unete datume.
           </div>
           <div class="callout warn">
             <strong>Šta ako zaboravim lozinku?</strong>
@@ -957,9 +972,10 @@
             </li>
             <li>
               <strong>Preporučena polja</strong>
-              Grad, adresa, opština, valuta (<code>EUR</code>/<code>RSD</code>),
+              Grad, adresa i opština — kucajte i izaberite predlog; PTT i
+              koordinate se popunjavaju same. Valuta (<code>EUR</code>/<code>RSD</code>),
               status (<code>DRAFT</code>, <code>PRE_SALES</code>,
-              <code>ACTIVE_SALES</code>…), datumi prodaje/gradnje.
+              <code>ACTIVE_SALES</code>…), datumi prodaje/gradnje, naslovna slika.
             </li>
             <li>
               <strong>Snimite</strong>
@@ -1027,8 +1043,9 @@
           <ol class="steps">
             <li>
               <strong>Preuzmite šablon</strong>
-              Na prvom koraku wizard-a skinite CSV/XLSX sa kanonskim kolonama
-              da izbegnete greške mapiranja.
+              Na prvom koraku wizard-a skinite CSV/XLSX. Zaglavlja kolona su
+              na <strong>jeziku aplikacije</strong> (srpski ili engleski).
+              Mapiranje i dalje veže na ista kanonska polja.
             </li>
             <li>
               <strong>Popunite podatke</strong>
@@ -1253,8 +1270,9 @@
             </li>
             <li>
               <strong>Cover projekta (microsite)</strong>
-              U <code>/projekti/{id}/izmena</code> polje cover / hero slika za
-              javni sajt projekta.
+              Na novom projektu ili u <code>/projekti/{id}/izmena</code> otpremite
+              naslovnu sliku — ide na S3 i na javni sajt projekta (ne samo
+              galerijska <code>isCover</code> oznaka).
             </li>
           </ol>
           <div class="callout warn">
@@ -1998,6 +2016,66 @@
           </div>
         </article>
 
+        <article
+          class="article"
+          id="poziv-agencije"
+          data-audience="investitor"
+          data-tags="agencija poziv invite email partner konekcija prihvati profil"
+        >
+          <div class="meta">
+            <span class="chip brand">Agencije</span>
+            <span class="chip">Investitor</span>
+            <span class="chip">~ 4 min</span>
+          </div>
+          <h2>Poziv agencije emailom</h2>
+          <p class="path">Putanja: <code>/agencije</code></p>
+          <p>
+            Agencija je <strong>besplatan partner nalog</strong> — nema Starter/Growth/Scale,
+            nema trial, nema SaaS fakturu i nema istek paketa. Pristup vašem inventaru
+            dobija tek kad prihvati poziv i kad joj dodelite projekat.
+            Nema javne self-registracije.
+          </p>
+          <ol class="steps">
+            <li>
+              <strong>Otvorite Agencije</strong>
+              Sidebar → Agencije, ili <code>/agencije</code>.
+            </li>
+            <li>
+              <strong>Unesite email</strong>
+              Obavezno je samo email. Naziv je opcion. Ne morate da znate da li
+              agencija već ima nalog — sistem to rešava.
+            </li>
+            <li>
+              <strong>Novi email</strong>
+              Sistem pravi partner nalog i šalje link. Vlasnik registruje ime +
+              lozinku <em>i</em> popunjava profil agencije (pravni naziv, adresa,
+              grad, telefon). Tek tada se konekcija aktivira.
+            </li>
+            <li>
+              <strong>Postojeća agencija</strong>
+              Dobija email „Investitor X vas poziva“ →
+              <code>/agencija/konekcije</code> → <em>Prihvati poziv</em>.
+              Kasniji pozivi ostaju na čekanju dok se ne prihvate.
+            </li>
+            <li>
+              <strong>Dodeli projekte</strong>
+              Na detalju konekcije označite koje projekte agencija vidi
+              i podesite provizijska pravila.
+            </li>
+          </ol>
+          <div class="callout">
+            <strong>Kvota</strong>
+            Broj agencija ograničava <em>vaš</em> investitor plan
+            (<code>maxAgencyConnections</code>), ne partner nalog.
+          </div>
+          <div class="callout warn">
+            <strong>Šta ako agencija kaže da je zaključana?</strong>
+            Prvi nalog mora da popuni profil. Ako je admin stavio
+            <code>SUSPENDED</code> / <code>CLOSED</code>, to nije pretplata —
+            javite se podršci.
+          </div>
+        </article>
+
         <!-- 22 -->
         <article
           class="article"
@@ -2016,8 +2094,12 @@
           <ol class="steps">
             <li>
               <strong>Prihvatite pozivnicu investitora</strong>
-              Email link → registracija / prijava → kreira se
-              <code>AgencyConnection</code> u statusu aktivna.
+              <em>Prvi nalog:</em> email link → registracija (ime + lozinka) →
+              obavezno popunite profil agencije (pravni naziv, adresa, grad,
+              telefon). Tek tada se konekcija aktivira i portal se otključa.
+              <em>Već imate nalog:</em> prijava →
+              <code>/agencija/konekcije</code> → <em>Prihvati poziv</em>.
+              Nema pretplate ni isteka paketa — agencija je partner nalog.
             </li>
             <li>
               <strong>Pregledajte Ponudu</strong>
@@ -2233,7 +2315,8 @@
             </li>
             <li>
               <strong>Otpremite logo i izaberite boju brenda</strong>
-              Logo (PNG/SVG, preporučeno kvadratno) ide u PDF ugovor, share link i email.
+              Logo (PNG/JPEG/WebP ili vektorski SVG — sistem ga sanitizuje) ide u
+              PDF ugovor, sidebar (Growth/Scale white-label), share link i email.
               Boja brenda boji dugmad i akcente na javnim stranicama koje vidi kupac.
             </li>
             <li>
@@ -2404,8 +2487,9 @@
           <h2>Pretplata, plan i otkazivanje</h2>
           <p class="path">Putanja: <code>/podesavanja/pretplata</code></p>
           <p>
-            PropertyDesk se naplaćuje mesečno po planu. Ovde pratite trenutni paket,
-            istoriju faktura i možete otkazati pretplatu jednim klikom.
+            PropertyDesk se naplaćuje mesečno po planu <strong>samo za investitore</strong>.
+            Agencija je partner nalog — meni Pretplata / Fakture se ne prikazuje,
+            nema trial-a i nema SaaS fakture.
           </p>
 
           <h3>Kako se koristi</h3>
@@ -2985,6 +3069,8 @@
           <p>
             Beležite internu komunikaciju uz kupca ili prodaju. Pomenite kolegu sa
             <code>@</code> da odmah dobije obaveštenje — bez slanja emaila u CC svima.
+            Komentar na kupcu zahteva dozvolu <code>lead.read</code> (ista kao CRM
+            pregled), ne staru <code>buyer.read</code>.
           </p>
 
           <h3>Gde možete komentarisati</h3>
@@ -3599,6 +3685,27 @@
             Pregled svih poznatih ograničenja, plana i datuma:
             <a href="#ogranicenja">Ograničenja i plan</a>. Isti okvir stoji
             i na dnu članka tog feature-a (osnova, KYC, ugovor, izvod, fakture…).
+          </p>
+
+          <h3>19. Kako pozivam agenciju? Trebam li njen ID?</h3>
+          <p>
+            Ne. Na <code>/agencije</code> unesite <strong>email</strong> (naziv
+            opciono). Novi email pravi partner nalog; postojeća agencija samo
+            prihvata poziv. Detalj: <a href="#poziv-agencije">Poziv agencije</a>.
+          </p>
+
+          <h3>20. Zašto agencija nema Pretplatu / Fakture?</h3>
+          <p>
+            Namerno. Agencija je besplatan partner — nema trial, nema paket i
+            nema SaaS fakturu. Pristup ide preko vašeg poziva. Admin može samo
+            da suspenduje ili zatvori nalog, ne da je „istekne“.
+          </p>
+
+          <h3>21. Datum u formi je „pogrešan“ posle promene jezika?</h3>
+          <p>
+            Polja datuma prate jezik: sr <code>dd.mm.yyyy</code>, en
+            <code>mm/dd/yyyy</code>. Vrednost u bazi ostaje ista; menja se samo
+            prikaz. Šablon uvoza jedinica takođe skida header-e na trenutnom jeziku.
           </p>
 
           <div class="callout">

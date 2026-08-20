@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import { apiHandler } from "@/lib/api/handler";
+import { isStoredCoverImageUrl } from "@/lib/geo/cover-image";
 import { paginate } from "@/lib/api/query";
 import { requirePermission } from "@/server/permissions/require";
 import {
@@ -20,7 +21,11 @@ const createSchema = z
     postalCode: z.string().max(20).optional(),
     latitude: z.number().min(-90).max(90).optional(),
     longitude: z.number().min(-180).max(180).optional(),
-    coverImageUrl: z.string().url().max(500).optional(),
+    coverImageUrl: z
+      .string()
+      .max(500)
+      .refine(isStoredCoverImageUrl)
+      .optional(),
     projectStatus: z
       .enum([
         "DRAFT",

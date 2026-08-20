@@ -1,6 +1,6 @@
 /**
  * Investor organization profile must be fully filled before the tenant
- * can use the product. Agency orgs are not gated by this checklist.
+ * can use the product. Agency orgs have a shorter first-invite checklist.
  */
 
 export const INVESTOR_REQUIRED_PROFILE_FIELDS = [
@@ -63,6 +63,31 @@ export function isInvestorProfileComplete(
   profile: InvestorProfileFields | null | undefined,
 ): boolean {
   return missingInvestorProfileFields(profile).length === 0;
+}
+
+export const AGENCY_REQUIRED_PROFILE_FIELDS = [
+  "displayName",
+  "legalName",
+  "address",
+  "city",
+  "phone",
+  "email",
+] as const;
+
+export type AgencyRequiredProfileField =
+  (typeof AGENCY_REQUIRED_PROFILE_FIELDS)[number];
+
+export function missingAgencyProfileFields(
+  profile: InvestorProfileFields | null | undefined,
+): AgencyRequiredProfileField[] {
+  if (!profile) return [...AGENCY_REQUIRED_PROFILE_FIELDS];
+  return AGENCY_REQUIRED_PROFILE_FIELDS.filter((field) => !filled(profile[field]));
+}
+
+export function isAgencyProfileComplete(
+  profile: InvestorProfileFields | null | undefined,
+): boolean {
+  return missingAgencyProfileFields(profile).length === 0;
 }
 
 /** Accept `example.rs` by prefixing https:// so the URL check can run. */

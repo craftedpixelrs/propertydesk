@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { requirePermission } from "@/server/permissions/require";
 import { listInvoices } from "@/server/services/billing/invoices/service";
 import { Card, CardContent } from "@/components/ui/card";
@@ -28,6 +29,9 @@ interface PageProps {
 
 export default async function TenantInvoicesPage({ searchParams }: PageProps) {
   const ctx = await requirePermission("billing.invoice.read");
+  if (ctx.organization.organizationType === "AGENCY") {
+    redirect("/podesavanja/organizacija");
+  }
   const t = createT(await resolveRequestLocale());
   const sp = await searchParams;
   const page = Number.parseInt(sp.page ?? "1", 10) || 1;

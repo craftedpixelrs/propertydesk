@@ -2,10 +2,22 @@ import "server-only";
 import { randomBytes } from "node:crypto";
 import type { AgencyConnectionStatus, AgencyProjectAccessStatus, Prisma } from "@prisma/client";
 
+import { createId } from "@paralleldrive/cuid2";
+
 import { prisma } from "@/server/db/prisma";
 import { DomainErrors } from "@/lib/errors";
 import { recordAudit } from "@/server/audit/audit";
 import { assertQuota } from "@/server/services/quotas.service";
+import { AGENCY_PARTNER_PLAN_CODE } from "@/lib/billing/agency-partner";
+import { agencyNameFromEmail, slugifyAgencyName } from "@/lib/agencies/name";
+import { createOrganizationByPlatformAdmin } from "@/server/services/platform.service";
+import { inviteMember } from "@/server/services/organization-admin.service";
+import {
+  agencyConnectionInvitationEmail,
+  agencyPartnerInvitationEmail,
+  sendEmail,
+} from "@/server/auth/email";
+import { serverEnv } from "@/lib/env";
 
 /**
  * C2 — Generate a short, URL-safe referral code for an agency connection.
@@ -58,9 +70,54 @@ async function ensureUniqueReferralCode(): Promise<string> {
 export interface InviteAgencyInput {
   investorOrganizationId: string;
   actorUserId: string;
-  agencyOrganizationId: string;
+  agencyOrganizationId?: string;
+  email?: string;
+  agencyName?: string;
   defaultProtectionDays?: number;
   notes?: string | null;
+}
+
+async function uniqueAgencySlug(base: string): Promise<string> {
+  const root = slugifyAgencyName(base);
+  for (let attempt = 0; attempt < 8; attempt += 1) {
+    const slug =
+      attempt === 0
+        ? root
+        : `${root}-${generateReferralCode().slice(0, 4).toLowerCase()}`;
+    const clash = await prisma.organization.findUnique({
+      where: { slug },
+      select: { id: true },
+    });
+    if (!clash) return slug;
+  }
+  return `${root}-${createId().slice(0, 8)}`;
+}
+
+async function findAgencyOrganizationIdByEmail(
+  email: string,
+): Promise<string | null> {
+  const profile = await prisma.organizationProfile.findFirst({
+    where: { type: "AGENCY", email: { equals: email, mode: "insensitive" } },
+    select: { organizationId: true },
+  });
+  if (profile) return profile.organizationId;
+
+  const user = await prisma.user.findFirst({
+    where: { email: { equals: email, mode: "insensitive" } },
+    select: { id: true },
+  });
+  if (!user) return null;
+
+  const membership = await prisma.member.findFirst({
+    where: {
+      userId: user.id,
+      role: { in: ["AGENCY_OWNER", "AGENCY_ADMIN"] },
+      organization: { profile: { is: { type: "AGENCY" } } },
+    },
+    select: { organizationId: true },
+    orderBy: { createdAt: "asc" },
+  });
+  return membership?.organizationId ?? null;
 }
 
 export interface ListConnectionsInput {
@@ -122,27 +179,63 @@ async function loadConnectionOwnedBy(
 // -----------------------------------------------------------------------------
 
 export async function inviteAgency(input: InviteAgencyInput) {
-  if (input.investorOrganizationId === input.agencyOrganizationId) {
+  const email = input.email?.trim().toLowerCase() || null;
+  let agencyOrganizationId = input.agencyOrganizationId?.trim() || "";
+  if (!agencyOrganizationId && !email) {
+    throw DomainErrors.validation("Unesite email agencije.", {
+      email: ["Unesite email agencije."],
+    });
+  }
+
+  const investor = await prisma.organization.findUnique({
+    where: { id: input.investorOrganizationId },
+    include: { profile: true },
+  });
+  if (!investor) throw DomainErrors.notFound("Organizacija");
+  if (investor.profile?.type !== "INVESTOR") {
+    throw DomainErrors.forbidden("Samo investitor može pozivati agencije.");
+  }
+
+  await assertQuota(input.investorOrganizationId, "agencies");
+
+  let createdNewAgency = false;
+  if (!agencyOrganizationId && email) {
+    agencyOrganizationId =
+      (await findAgencyOrganizationIdByEmail(email)) ?? "";
+    if (!agencyOrganizationId) {
+      const name = (
+        input.agencyName?.trim() || agencyNameFromEmail(email)
+      ).slice(0, 120);
+      const createdOrg = await createOrganizationByPlatformAdmin(
+        {
+          name,
+          slug: await uniqueAgencySlug(name),
+          type: "AGENCY",
+          legalName: name,
+          displayName: name,
+          email,
+          planCode: AGENCY_PARTNER_PLAN_CODE,
+          status: "ACTIVE",
+          trialDays: 0,
+        },
+        input.actorUserId,
+      );
+      agencyOrganizationId = createdOrg.org.id;
+      createdNewAgency = true;
+    }
+  }
+
+  if (input.investorOrganizationId === agencyOrganizationId) {
     throw DomainErrors.badRequest(
       "Organizacija ne može uspostaviti konekciju sa samom sobom.",
     );
   }
 
-  // Both orgs must exist and be of the expected type.
-  const [investor, agency] = await Promise.all([
-    prisma.organization.findUnique({
-      where: { id: input.investorOrganizationId },
-      include: { profile: true },
-    }),
-    prisma.organization.findUnique({
-      where: { id: input.agencyOrganizationId },
-      include: { profile: true },
-    }),
-  ]);
-  if (!investor || !agency) throw DomainErrors.notFound("Organizacija");
-  if (investor.profile?.type !== "INVESTOR") {
-    throw DomainErrors.forbidden("Samo investitor može pozivati agencije.");
-  }
+  const agency = await prisma.organization.findUnique({
+    where: { id: agencyOrganizationId },
+    include: { profile: true },
+  });
+  if (!agency) throw DomainErrors.notFound("Organizacija");
   if (agency.profile?.type !== "AGENCY") {
     throw DomainErrors.badRequest("Pozvana organizacija nije agencija.");
   }
@@ -150,7 +243,7 @@ export async function inviteAgency(input: InviteAgencyInput) {
   const existing = await prisma.agencyConnection.findFirst({
     where: {
       investorOrganizationId: input.investorOrganizationId,
-      agencyOrganizationId: input.agencyOrganizationId,
+      agencyOrganizationId,
     },
   });
   if (existing && existing.status !== "REJECTED" && existing.status !== "TERMINATED") {
@@ -159,20 +252,18 @@ export async function inviteAgency(input: InviteAgencyInput) {
     );
   }
 
-  await assertQuota(input.investorOrganizationId, "agencies");
-
   const referralCode = await ensureUniqueReferralCode();
 
   const created = await prisma.agencyConnection.upsert({
     where: {
       investorOrganizationId_agencyOrganizationId: {
         investorOrganizationId: input.investorOrganizationId,
-        agencyOrganizationId: input.agencyOrganizationId,
+        agencyOrganizationId,
       },
     },
     create: {
       investorOrganizationId: input.investorOrganizationId,
-      agencyOrganizationId: input.agencyOrganizationId,
+      agencyOrganizationId,
       invitedByUserId: input.actorUserId,
       defaultProtectionDays: input.defaultProtectionDays ?? 30,
       notes: input.notes ?? null,
@@ -199,8 +290,36 @@ export async function inviteAgency(input: InviteAgencyInput) {
     entityId: created.id,
     organizationId: input.investorOrganizationId,
     actorUserId: input.actorUserId,
-    newValues: { agencyOrganizationId: input.agencyOrganizationId },
+    newValues: {
+      agencyOrganizationId,
+      email,
+      createdNewAgency,
+    },
   });
+
+  const investorName =
+    investor.profile?.displayName?.trim() || investor.name;
+  const notifyEmail = email ?? agency.profile?.email?.trim().toLowerCase() ?? null;
+  const appUrl = serverEnv.BETTER_AUTH_URL.replace(/\/$/, "");
+
+  if (createdNewAgency && notifyEmail) {
+    await inviteMember({
+      organizationId: agencyOrganizationId,
+      email: notifyEmail,
+      role: "AGENCY_OWNER",
+      actorUserId: input.actorUserId,
+      buildEmail: (url) =>
+        agencyPartnerInvitationEmail(investorName, agency.name, url),
+    });
+  } else if (notifyEmail) {
+    await sendEmail({
+      ...agencyConnectionInvitationEmail(
+        investorName,
+        `${appUrl}/agencija/konekcije`,
+      ),
+      to: notifyEmail,
+    });
+  }
 
   return created;
 }

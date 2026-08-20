@@ -22,6 +22,28 @@ export default async function SubscriptionPage() {
     const { organization, quota } = await loadOrganizationProfile(
       org.organizationId,
     );
+    if (organization.profile?.type === "AGENCY") {
+      return (
+        <div className="space-y-6">
+          <Link
+            href="/dashboard"
+            className="text-sm text-[var(--color-brand-700)] hover:underline"
+          >
+            {t("common.back")}
+          </Link>
+          <Card>
+            <CardHeader>
+              <CardTitle>{t("ops.org.agencyPartnerTitle")}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-[var(--color-foreground-muted)]">
+                {t("ops.org.agencyPartnerHint")}
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+      );
+    }
     const subscription = organization.subscription;
 
     const recentInvoices = await prisma.invoice.findMany({

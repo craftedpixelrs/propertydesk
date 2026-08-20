@@ -84,9 +84,28 @@ active organization. The dominant endpoints:
 
 ### Agencies (investor-side)
 
-- `GET/POST /agencies/connections`, `POST /agencies/connections/:id/{invite,revoke}`
+- `GET/POST /agencies/connections` — create invite with `email` +
+  optional `agencyName` (or `agencyOrganizationId`). New email creates
+  a partner org + owner invitation; existing agency gets a connection
+  in `INVITED`.
+- `POST /agencies/connections/:id/{invite,revoke}`
 - `POST /agencies/connections/:id/project-access`
 - `POST /agencies/connections/:id/protection-days`
+
+### Geo (project form)
+
+- `GET /geo/suggest?q=` — city / municipality / address (Serbia).
+- `GET /geo/geocode?q=` — postal code + lat/lng for a picked place.
+
+### Public assets
+
+- `GET /public/organization-logo/:organizationId` — tenant logo
+  (PNG/JPEG/WebP/SVG, CSP on SVG).
+- `GET /public/project-cover/:documentId` — project cover from S3.
+
+### Project cover
+
+- `POST /projects/cover` — upload cover image to S3.
 
 ### Agency portal
 

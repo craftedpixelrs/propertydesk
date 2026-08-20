@@ -20,12 +20,25 @@ import { useT } from "@/components/app/i18n-provider";
 import type { TranslationKey } from "@/lib/i18n";
 import { planAllowsWhiteLabel, withLogoCacheBust } from "@/lib/billing/white-label";
 import {
+  isAgencyProfileComplete,
   isInvestorProfileComplete,
   normalizeWebsite,
 } from "@/server/services/organization-profile-completeness";
 
-const LOGO_ACCEPT = "image/png,image/jpeg,image/webp";
+const LOGO_ACCEPT = "image/png,image/jpeg,image/webp,image/svg+xml,.svg";
 const MAX_LOGO_BYTES = 2 * 1024 * 1024;
+const LOGO_MIME = new Set([
+  "image/png",
+  "image/jpeg",
+  "image/webp",
+  "image/svg+xml",
+  "image/svg",
+]);
+
+function isAllowedLogoFile(file: File): boolean {
+  if (LOGO_MIME.has(file.type)) return true;
+  return file.name.toLowerCase().endsWith(".svg");
+}
 
 interface OrganizationProfileFormProps {
   organization: { id: string; name: string; slug: string | null };
@@ -73,8 +86,11 @@ export function OrganizationProfileForm({
   const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({});
   const investorRequired = orgType === "INVESTOR";
+  const agencyRequired = orgType === "AGENCY";
+  const firmRequired = investorRequired || agencyRequired;
   const setupIncomplete =
-    investorRequired && !isInvestorProfileComplete(profile);
+    (investorRequired && !isInvestorProfileComplete(profile)) ||
+    (agencyRequired && !isAgencyProfileComplete(profile));
 
   function subscriptionStatusLabel(status: string) {
     const key = `billing.subscriptionStatus.${status}` as TranslationKey;
@@ -126,29 +142,56 @@ export function OrganizationProfileForm({
 
   return (
     <div className="space-y-6">
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard
-          label={t("ops.quota.activeProjects")}
-          value={`${quota.usage.projects}${quota.limits.projects != null ? " / " + quota.limits.projects : ""}`}
-          icon={<Building2 className="size-5" />}
-        />
-        <StatCard
-          label={t("ops.quota.units")}
-          value={`${quota.usage.units}${quota.limits.units != null ? " / " + quota.limits.units : ""}`}
-          icon={<Package className="size-5" />}
-        />
-        <StatCard
-          label={t("ops.quota.members")}
-          value={`${quota.usage.members}${quota.limits.members != null ? " / " + quota.limits.members : ""}`}
-          icon={<Users className="size-5" />}
-        />
-        <StatCard
-          label={t("ops.quota.agencies")}
-          value={`${quota.usage.agencies}${quota.limits.agencies != null ? " / " + quota.limits.agencies : ""}`}
-          icon={<Handshake className="size-5" />}
-        />
-      </div>
+      {orgType === "AGENCY" ? (
+        <div className="grid gap-3 sm:grid-cols-2">
+          <StatCard
+            label={t("ops.quota.members")}
+            value={`${quota.usage.members}`}
+            icon={<Users className="size-5" />}
+          />
+          <StatCard
+            label={t("ops.quota.investors")}
+            value={`${quota.usage.agencies}`}
+            icon={<Handshake className="size-5" />}
+          />
+        </div>
+      ) : (
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <StatCard
+            label={t("ops.quota.activeProjects")}
+            value={`${quota.usage.projects}${quota.limits.projects != null ? " / " + quota.limits.projects : ""}`}
+            icon={<Building2 className="size-5" />}
+          />
+          <StatCard
+            label={t("ops.quota.units")}
+            value={`${quota.usage.units}${quota.limits.units != null ? " / " + quota.limits.units : ""}`}
+            icon={<Package className="size-5" />}
+          />
+          <StatCard
+            label={t("ops.quota.members")}
+            value={`${quota.usage.members}${quota.limits.members != null ? " / " + quota.limits.members : ""}`}
+            icon={<Users className="size-5" />}
+          />
+          <StatCard
+            label={t("ops.quota.agencies")}
+            value={`${quota.usage.agencies}${quota.limits.agencies != null ? " / " + quota.limits.agencies : ""}`}
+            icon={<Handshake className="size-5" />}
+          />
+        </div>
+      )}
 
+      {orgType === "AGENCY" ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>{t("ops.org.agencyPartnerTitle")}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-[var(--color-foreground-muted)]">
+              {t("ops.org.agencyPartnerHint")}
+            </p>
+          </CardContent>
+        </Card>
+      ) : (
       <Card>
         <CardHeader className="flex-row items-center justify-between">
           <CardTitle>{t("ops.settings.subscription")}</CardTitle>
@@ -181,6 +224,7 @@ export function OrganizationProfileForm({
           )}
         </CardContent>
       </Card>
+      )}
 
       <Card>
         <CardHeader>
@@ -191,6 +235,7 @@ export function OrganizationProfileForm({
             logoUrl={profile?.logoUrl ?? null}
             updatedAt={profile?.updatedAt ?? null}
             planCode={subscription?.plan.code ?? null}
+            orgType={orgType}
           />
         </CardContent>
       </Card>
@@ -198,8 +243,16 @@ export function OrganizationProfileForm({
       <form onSubmit={onSubmit} className="space-y-4">
         {setupIncomplete ? (
           <Alert tone="warning">
-            <AlertTitle>{t("orgProfile.setupBanner")}</AlertTitle>
-            <AlertDescription>{t("orgProfile.requiredHint")}</AlertDescription>
+            <AlertTitle>
+              {agencyRequired
+                ? t("orgProfile.agencySetupBanner")
+                : t("orgProfile.setupBanner")}
+            </AlertTitle>
+            <AlertDescription>
+              {agencyRequired
+                ? t("orgProfile.agencyRequiredHint")
+                : t("orgProfile.requiredHint")}
+            </AlertDescription>
           </Alert>
         ) : null}
 
@@ -216,7 +269,7 @@ export function OrganizationProfileForm({
           </CardHeader>
           <CardContent className="grid gap-4 sm:grid-cols-2">
             <div>
-              <FieldLabel htmlFor="displayName" required={investorRequired}>
+              <FieldLabel htmlFor="displayName" required={firmRequired}>
                 {t("ops.org.displayName")}
               </FieldLabel>
               <Input
@@ -227,7 +280,7 @@ export function OrganizationProfileForm({
               />
             </div>
             <div>
-              <FieldLabel htmlFor="legalName" required={investorRequired}>
+              <FieldLabel htmlFor="legalName" required={firmRequired}>
                 {t("ops.org.legalName")}
               </FieldLabel>
               <Input
@@ -260,25 +313,25 @@ export function OrganizationProfileForm({
               />
             </div>
             <div className="sm:col-span-2">
-              <FieldLabel htmlFor="address" required={investorRequired}>
+              <FieldLabel htmlFor="address" required={firmRequired}>
                 {t("projects.fields.address")}
               </FieldLabel>
               <Input
                 id="address"
                 name="address"
                 defaultValue={profile?.address ?? ""}
-                required={investorRequired}
+                required={firmRequired}
               />
             </div>
             <div>
-              <FieldLabel htmlFor="city" required={investorRequired}>
+              <FieldLabel htmlFor="city" required={firmRequired}>
                 {t("projects.fields.city")}
               </FieldLabel>
               <Input
                 id="city"
                 name="city"
                 defaultValue={profile?.city ?? ""}
-                required={investorRequired}
+                required={firmRequired}
               />
             </div>
             <div>
@@ -293,18 +346,18 @@ export function OrganizationProfileForm({
               />
             </div>
             <div>
-              <FieldLabel htmlFor="phone" required={investorRequired}>
+              <FieldLabel htmlFor="phone" required={firmRequired}>
                 {t("common.phone")}
               </FieldLabel>
               <Input
                 id="phone"
                 name="phone"
                 defaultValue={profile?.phone ?? ""}
-                required={investorRequired}
+                required={firmRequired}
               />
             </div>
             <div>
-              <FieldLabel htmlFor="email" required={investorRequired}>
+              <FieldLabel htmlFor="email" required={firmRequired}>
                 {t("common.email")}
               </FieldLabel>
               <Input
@@ -312,7 +365,7 @@ export function OrganizationProfileForm({
                 name="email"
                 type="email"
                 defaultValue={profile?.email ?? ""}
-                required={investorRequired}
+                required={firmRequired}
               />
             </div>
             <div className="sm:col-span-2">
@@ -364,10 +417,12 @@ function OrganizationLogoField({
   logoUrl,
   updatedAt,
   planCode,
+  orgType,
 }: {
   logoUrl: string | null;
   updatedAt: Date | null;
   planCode: string | null;
+  orgType: "INVESTOR" | "AGENCY" | null;
 }) {
   const t = useT();
   const router = useRouter();
@@ -380,7 +435,7 @@ function OrganizationLogoField({
   async function handleFiles(files: FileList | null) {
     const file = files?.[0];
     if (!file) return;
-    if (!["image/png", "image/jpeg", "image/webp"].includes(file.type)) {
+    if (!isAllowedLogoFile(file)) {
       setError(t("ops.org.logoMustBeImage"));
       return;
     }
@@ -434,7 +489,11 @@ function OrganizationLogoField({
     <div className="space-y-3">
       <p className="text-sm text-[var(--color-foreground-muted)]">
         {t("ops.org.logoHint")}{" "}
-        {whiteLabel ? t("ops.org.logoWhiteLabelHint") : t("ops.org.logoStarterHint")}
+        {orgType === "AGENCY"
+          ? t("ops.org.logoAgencyHint")
+          : whiteLabel
+            ? t("ops.org.logoWhiteLabelHint")
+            : t("ops.org.logoStarterHint")}
       </p>
       <div className="flex flex-wrap items-center gap-4">
         <div className="flex size-20 items-center justify-center overflow-hidden rounded-md border border-[var(--color-border)] bg-[var(--color-surface-inset)]">

@@ -9,12 +9,29 @@ const paramsSchema = z.object({
   id: z.string().min(1).max(64),
 });
 
+const bodySchema = z
+  .object({
+    agencyProfile: z
+      .object({
+        displayName: z.string().min(2).max(200),
+        legalName: z.string().min(2).max(200),
+        address: z.string().min(2).max(300),
+        city: z.string().min(2).max(120),
+        phone: z.string().min(5).max(40),
+        email: z.string().email().optional(),
+      })
+      .optional(),
+  })
+  .optional();
+
 /**
  * POST /api/v1/public/invitations/[id]/accept
  *
  * Logged-in user whose email matches the invitation joins the org.
  */
-export const POST = apiHandler({ paramsSchema }, async ({ req, params }) => {
+export const POST = apiHandler(
+  { paramsSchema, bodySchema },
+  async ({ req, params, body }) => {
   enforceRateLimit({
     req,
     scope: "public.invitation.accept",
@@ -27,6 +44,7 @@ export const POST = apiHandler({ paramsSchema }, async ({ req, params }) => {
     invitationId: params.id,
     userId: session.user.id,
     userEmail: session.user.email,
+    agencyProfile: body?.agencyProfile,
   });
   return { data: { ok: true } };
 });

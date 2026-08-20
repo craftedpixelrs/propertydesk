@@ -43,9 +43,25 @@ persists those terminal states:
   past → subscription `RESTRICTED`, org `RESTRICTED`
 
 Access is also enforced on the next login even if the cron has not run yet
-(`getActiveOrganization` calls `syncExpiredAccess`). A RESTRICTED org can
-only see the lock screen + billing; writes are denied by `requirePermission`.
+(`getActiveOrganization` calls `syncExpiredAccess`). A RESTRICTED **investor**
+org can only see the lock screen + billing; writes are denied by
+`requirePermission`.
 ```
+
+## Agencies are not billed
+
+`AGENCY` organizations use the hidden `partner` plan. They never enter
+this lifecycle:
+
+- `expire-subscriptions` and `syncExpiredAccess` **skip** agencies.
+  Leftover `TRIAL` / `RESTRICTED` agency rows are healed to `ACTIVE` +
+  `partner` (except `SUSPENDED` / `CLOSED`).
+- Invoice generation and the overdue job skip `AGENCY`.
+- Agency + `RESTRICTED` does **not** get the billing allowlist /
+  RestrictedAccessPanel. Do not lock an agency with trial expiry;
+  use `SUSPENDED` / `CLOSED`.
+- Settings → Pretplata / Fakture are hidden for agencies. Admin Naplata
+  shows a partner note only.
 
 ## Monotonic advance
 

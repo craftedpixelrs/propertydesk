@@ -272,6 +272,7 @@ export const ALLOWED_DOCUMENT_MIME_TYPES = new Set<string>([
   "image/png",
   "image/jpeg",
   "image/webp",
+  "image/svg+xml",
   "image/heic",
   "application/msword",
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document",

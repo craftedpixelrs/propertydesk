@@ -44,6 +44,8 @@ export default async function SettingsLayout({ children }: { children: ReactNode
         >
           {t("ops.settings.members")}
         </Link>
+        {ctx.activeOrganization.type === "AGENCY" ? null : (
+          <>
         <Link
           className="rounded-md border border-[var(--color-border)] px-3 py-1.5 text-sm hover:bg-[var(--color-surface-inset)]"
           href="/podesavanja/pretplata"
@@ -56,6 +58,8 @@ export default async function SettingsLayout({ children }: { children: ReactNode
         >
           {t("ops.settings.invoices")}
         </Link>
+          </>
+        )}
         <Link
           className="rounded-md border border-[var(--color-border)] px-3 py-1.5 text-sm hover:bg-[var(--color-surface-inset)]"
           href="/podesavanja/planovi-placanja"

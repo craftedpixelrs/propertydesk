@@ -59,8 +59,13 @@ The dev server listens on `http://localhost:3000`. Sign in with
 - `vlasnik@topnekretnine.test` — agency owner
 
 Production (`my.`) is a **different** database. It was bootstrapped with
-`pnpm db:seed:platform` (plans + one super-admin only). Do not run
-full `db:seed` there.
+`pnpm db:seed:platform` (investor plans + hidden `partner` + one
+super-admin only). Do not run full `db:seed` there.
+
+Existing databases that predate the partner plan: run
+`scripts/apply-agency-partner-data.cjs` against that DB (needs
+`DATABASE_URL` / `DIRECT_URL` and Prisma's `pg` adapter). No schema
+migration.
 
 ## Common scripts
 
@@ -96,6 +101,8 @@ src/
   components/          Shared UI (app-wide) primitives
   features/            Feature-specific UI (per domain)
   lib/                 Framework-agnostic utils (env, i18n, formatters, query keys, api client)
+    geo/               Serbia city/municipality suggest + geocode
+    images/            SVG sanitize for org logos
   server/
     auth/              Better Auth + email provider (`auth/email.ts`)
     audit/             Append-only audit sink

@@ -153,6 +153,10 @@ export const srLatn = {
     invitationHaveAccount: "Već imate nalog? Prijavite se",
     invitationNewAccount: "Nemate nalog? Napravite ga ovde",
     invitationSignInAccept: "Prijavi se i prihvati poziv",
+    invitationAgencySubtitle:
+      "{{investor}} Vas poziva kao agencijskog partnera. Napravite nalog i unesite podatke agencije.",
+    invitationAgencyOrg: "Poziv za partner portal agencije.",
+    invitationAgencyFields: "Podaci agencije",
     acceptInvitation: "Prihvati poziv",
     signedOutTitle: "Uspešna odjava",
     signedOutSubtitle: "Bezbedno ste se odjavili. Vidimo se ponovo.",
@@ -185,6 +189,10 @@ export const srLatn = {
     setupWaitBody:
       "Vlasnik treba da popuni podatke firme (PIB, matični broj, adresa, kontakt i veb). Do tada aplikacija nije dostupna. Kontaktirajte vlasnika da završi podešavanja.",
     requiredHint: "Sva polja su obavezna za investitorske organizacije.",
+    agencySetupBanner:
+      "Unesite podatke agencije da biste prihvatili poziv i otvorili portal.",
+    agencyRequiredHint:
+      "Obavezno: naziv, pravni naziv, adresa, grad, telefon i email.",
     savedAndReady: "Profil je sačuvan. Možete da koristite aplikaciju.",
     restrictedTitle: "Pristup je ograničen",
     restrictedBody:

@@ -148,6 +148,10 @@ export const en: Dictionary = {
     invitationHaveAccount: "Already have an account? Sign in",
     invitationNewAccount: "No account? Create one here",
     invitationSignInAccept: "Sign in and accept invitation",
+    invitationAgencySubtitle:
+      "{{investor}} is inviting you as an agency partner. Create an account and enter the agency details.",
+    invitationAgencyOrg: "Invitation to the agency partner portal.",
+    invitationAgencyFields: "Agency details",
     acceptInvitation: "Accept invitation",
     signedOutTitle: "Signed out",
     signedOutSubtitle: "You have been signed out securely. See you soon.",
@@ -180,6 +184,10 @@ export const en: Dictionary = {
     setupWaitBody:
       "The owner needs to complete company details (tax ID, registration number, address, contact and website). The app stays locked until then. Ask the owner to finish setup.",
     requiredHint: "All fields are required for developer organizations.",
+    agencySetupBanner:
+      "Enter the agency details to accept the invite and open the portal.",
+    agencyRequiredHint:
+      "Required: name, legal name, address, city, phone, and email.",
     savedAndReady: "Profile saved. You can use the app now.",
     restrictedTitle: "Access is restricted",
     restrictedBody:

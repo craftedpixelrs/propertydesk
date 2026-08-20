@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { requirePermission } from "@/server/permissions/require";
 import { getInvoiceWithItems } from "@/server/services/billing/invoices/service";
 import { prisma } from "@/server/db/prisma";
@@ -20,6 +20,9 @@ export default async function TenantInvoiceDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const ctx = await requirePermission("billing.invoice.read");
+  if (ctx.organization.organizationType === "AGENCY") {
+    redirect("/podesavanja/organizacija");
+  }
   const t = createT(await resolveRequestLocale());
   const { id } = await params;
   const invoice = await getInvoiceWithItems(id);

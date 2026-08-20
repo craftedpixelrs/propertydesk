@@ -13,7 +13,14 @@ the shared `Document` model with `sortOrder` / `isCover`.
 
 Key components:
 
-- `new-project-form.tsx` — create/edit form with coordinate picker.
+- `new-project-form.tsx` — create/edit form. City, address, and
+  municipality use [`location-fields.tsx`](./location-fields.tsx)
+  (`SuggestInput` → `GET /api/v1/geo/suggest`). Picking a place
+  fills postal code and lat/lng via `GET /api/v1/geo/geocode`
+  ([`src/lib/geo/serbia.ts`](../../lib/geo/serbia.ts)).
+- `cover-image-field.tsx` — cover upload to S3
+  (`POST /api/v1/projects/cover`). Public preview:
+  `GET /api/v1/public/project-cover/[documentId]`.
 - `project-map.tsx` — Leaflet + OSM map, dynamically imported with
   `ssr: false` because Leaflet touches `window`.
 - `structure-manager.tsx` — Building/Entrance/Floor CRUD. Each floor

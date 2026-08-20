@@ -56,6 +56,7 @@ export default async function OrgBillingTabPage({
   });
   if (!org) notFound();
 
+  const isAgency = org.profile?.type === "AGENCY";
   const sub = org.subscription ?? null;
   const summary = sub ? await getSubscriptionSummary(id) : null;
   const settings = await resolveBillingSettings(id);
@@ -92,6 +93,14 @@ export default async function OrgBillingTabPage({
 
   return (
     <section className="space-y-6">
+      {isAgency ? (
+        <Card>
+          <CardContent className="p-4 text-sm text-[var(--color-foreground-muted)]">
+            {t("admin.orgBilling.agencyPartnerNote")}
+          </CardContent>
+        </Card>
+      ) : null}
+
       <header>
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h2 className="text-lg font-semibold">{t("admin.orgBilling.title", { name: org.name })}</h2>
@@ -117,6 +126,7 @@ export default async function OrgBillingTabPage({
         </p>
       </header>
 
+      {isAgency ? null : (
       <Card>
         <CardHeader>
           <CardTitle className="text-base">{t("admin.orgBilling.subscription")}</CardTitle>
@@ -354,6 +364,7 @@ export default async function OrgBillingTabPage({
           )}
         </CardContent>
       </Card>
+      )}
     </section>
   );
 }

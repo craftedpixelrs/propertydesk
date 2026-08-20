@@ -378,7 +378,8 @@ Napomene:
   uzima isključivo iz zaključane publike.
 - Na L3 (WON / OPERATIONS) Super Admin i Operations mogu iz detalja
   lead-a da **naprave novu organizaciju + vlasnika** (`INVESTOR_OWNER`
-  ili `AGENCY_OWNER`) sa izabranim SaaS paketom, ili da vežu postojeći
+  ili `AGENCY_OWNER`). Investor bira plaćeni SaaS paket; **agencija
+  uvek dobija `partner`** (besplatno, bez trial-a). Ili vežu postojeći
   tenant. Vlasnik dalje dodaje članove iz svog naloga. Closer sme samo
   da veže postojeću org. (što prebacuje lead u L3).
 - Bulk operacije (`pd_lead.bulk`) automatski preskaču sve lead-ove van
@@ -550,6 +551,24 @@ Ovo je **preporučeni način uklanjanja plana**.
   interni „custom enterprise" planovi).
 - `recommended=true` — dodaje se „preporučeno" oznaka u prikazu za javne
   planove.
+
+### Plan `partner` (agencije)
+
+Agencije **nisu** plaćeni tenanti. Seed i
+`scripts/apply-agency-partner-data.cjs` drže red `saas_plan.code =
+partner`:
+
+- cena 0 €, `publiclyAvailable=false`, `audience=agency`
+- nije na javnoj cenovnoj stranici; ne dodeljujte ga investitoru
+- svaka nova `AGENCY` org dobija ovaj plan, status `ACTIVE`, bez trial-a
+- `expire-subscriptions`, izdavanje SaaS faktura i overdue job
+  **preskaču** `AGENCY`; leftover trial/RESTRICTED se healu-je u
+  ACTIVE + partner (osim `SUSPENDED` / `CLOSED`)
+- `changeSubscriptionPlan` odbija agencije
+- kvota `maxAgencyConnections` važi na **investitorovom** planu, ne
+  na partner nalogu
+
+Ne arhivirajte `partner` dok postoje agencije.
 
 ---
 

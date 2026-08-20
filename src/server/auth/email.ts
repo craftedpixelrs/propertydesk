@@ -177,3 +177,38 @@ export function invitationEmail(orgName: string, url: string): EmailMessage {
     ].join("\n"),
   };
 }
+
+export function agencyPartnerInvitationEmail(
+  investorName: string,
+  agencyName: string,
+  url: string,
+): EmailMessage {
+  return {
+    to: "",
+    subject: `${APP_NAME}: ${investorName} Vas poziva kao agencijskog partnera`,
+    text: [
+      `${investorName} Vas je pozvao da sarađujete na platformi ${APP_NAME} kao agencija "${agencyName}".`,
+      ``,
+      `Otvorite link, napravite nalog i odmah vidite projekte koje Vam investitor dodeli:`,
+      ``,
+      url,
+    ].join("\n"),
+  };
+}
+
+export function agencyConnectionInvitationEmail(
+  investorName: string,
+  url: string,
+): EmailMessage {
+  return {
+    to: "",
+    subject: `${APP_NAME}: Novi poziv za saradnju od ${investorName}`,
+    text: [
+      `${investorName} Vas je pozvao da povežete agenciju na platformi ${APP_NAME}.`,
+      ``,
+      `Prijavite se i prihvatite poziv na stranici konekcija:`,
+      ``,
+      url,
+    ].join("\n"),
+  };
+}

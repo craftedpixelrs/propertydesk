@@ -4,6 +4,7 @@ import type { OrganizationStatus, SubscriptionStatus } from "@prisma/client";
 import { prisma } from "@/server/db/prisma";
 import { recordAudit } from "@/server/audit/audit";
 import { logger } from "@/server/logger";
+import { AGENCY_PARTNER_PLAN_CODE } from "@/lib/billing/agency-partner";
 
 export type ExpiryReason = "trial" | "period";
 
@@ -106,7 +107,7 @@ export async function syncExpiredAccess(
   const org = await prisma.organization.findUnique({
     where: { id: organizationId },
     select: {
-      profile: { select: { status: true } },
+      profile: { select: { status: true, type: true } },
       subscription: {
         select: {
           id: true,
@@ -114,6 +115,7 @@ export async function syncExpiredAccess(
           trialEndsAt: true,
           endsAt: true,
           currentPeriodEnd: true,
+          plan: { select: { id: true, code: true } },
         },
       },
     },
@@ -122,6 +124,53 @@ export async function syncExpiredAccess(
 
   const sub = org.subscription;
   if (!sub) return org.profile?.status ?? null;
+  if (org.profile?.type === "AGENCY") {
+    const current = org.profile.status ?? null;
+    if (current === "SUSPENDED" || current === "CLOSED") return current;
+
+    const leftoverBilling =
+      current === "RESTRICTED" ||
+      current === "TRIAL" ||
+      sub.status === "TRIAL" ||
+      sub.status === "RESTRICTED" ||
+      sub.status === "EXPIRED" ||
+      sub.status === "PAYMENT_DUE" ||
+      sub.status === "PAST_DUE" ||
+      Boolean(sub.trialEndsAt) ||
+      sub.plan?.code !== AGENCY_PARTNER_PLAN_CODE;
+
+    if (leftoverBilling) {
+      const partner = await prisma.saaSPlan.findUnique({
+        where: { code: AGENCY_PARTNER_PLAN_CODE },
+      });
+      await prisma.organizationProfile.updateMany({
+        where: {
+          organizationId,
+          status: { notIn: ["SUSPENDED", "CLOSED"] },
+        },
+        data: { status: "ACTIVE" },
+      });
+      await prisma.organizationSubscription.update({
+        where: { organizationId },
+        data: {
+          status: "ACTIVE",
+          trialEndsAt: null,
+          ...(partner
+            ? {
+                planId: partner.id,
+                price: 0,
+                customPrice: false,
+                autoRenew: false,
+                nextBillingDate: null,
+              }
+            : {}),
+        },
+      });
+      return "ACTIVE";
+    }
+
+    return current;
+  }
 
   const reason = expiryReasonForSubscription(sub, now);
   if (!reason) return org.profile?.status ?? null;
@@ -164,6 +213,7 @@ export async function expireEndedSubscriptions(input: {
       trialEndsAt: true,
       endsAt: true,
       currentPeriodEnd: true,
+      organization: { select: { profile: { select: { type: true } } } },
     },
     take: 500,
   });
@@ -172,6 +222,7 @@ export async function expireEndedSubscriptions(input: {
   let errors = 0;
 
   for (const sub of subs) {
+    if (sub.organization?.profile?.type === "AGENCY") continue;
     const reason = expiryReasonForSubscription(sub, now);
     if (!reason) continue;
     try {

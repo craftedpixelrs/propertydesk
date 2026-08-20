@@ -12,7 +12,7 @@ update the corresponding doc in the same pull request.
 | Settings resolution (global + per-org) | [settings.md](./settings.md) |
 | Cron jobs, manual runs, feature toggles | [automation.md](./automation.md) |
 | Invoice lifecycle (draft → issued → paid → canceled) | [invoice-lifecycle.md](./invoice-lifecycle.md) |
-| Subscription lifecycle (trial → active → past_due → suspended) | [subscription-lifecycle.md](./subscription-lifecycle.md) |
+| Subscription lifecycle (trial → active → past_due → suspended). Agencies (`partner`) are skipped. | [subscription-lifecycle.md](./subscription-lifecycle.md) |
 | Payment allocation math (FIFO, reversal, methods) | [payments.md](./payments.md) |
 | Manually recording, splitting, and reversing payments | [manual-payments.md](./manual-payments.md) |
 | Bank statement import + auto-matching | [bank-statement-import.md](./bank-statement-import.md) |

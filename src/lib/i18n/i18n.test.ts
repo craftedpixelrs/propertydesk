@@ -27,6 +27,7 @@ describe("t()", () => {
     expect(t("admin.orgBilling.issueInvoice")).toBe("Izdaj fakturu sada");
     expect(t("orgProfile.openUnpaidInvoice")).toBe("Otvori neplaćenu fakturu");
     expect(t("ops.subscription.trialEnded")).toBe("Probni period istekao:");
+    expect(t("auth.invitationAgencyFields")).toBe("Podaci agencije");
     expect(t("admin.orgBilling.issueInvoice", undefined, "en")).toBe("Issue invoice now");
   });
 

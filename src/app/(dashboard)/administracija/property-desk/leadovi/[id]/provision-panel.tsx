@@ -159,7 +159,7 @@ export function LeadProvisionPanel(props: Props) {
       onError(t("admin.pdProvision.passwordMin"));
       return;
     }
-    if (!planCode) {
+    if (orgType !== "AGENCY" && !planCode) {
       onError(t("admin.pdProvision.pickPlan"));
       return;
     }
@@ -181,8 +181,8 @@ export function LeadProvisionPanel(props: Props) {
           email: orgEmail.trim() || null,
           phone: orgPhone.trim() || null,
           website: orgWebsite.trim() || null,
-          planCode,
-          trialDays: Number.parseInt(trialDays, 10) || 30,
+          planCode: orgType === "AGENCY" ? "partner" : planCode,
+          trialDays: orgType === "AGENCY" ? 0 : Number.parseInt(trialDays, 10) || 30,
           owner: {
             name: ownerName.trim(),
             email: ownerEmail.trim(),
@@ -374,6 +374,12 @@ export function LeadProvisionPanel(props: Props) {
                   disabled={busy || !audienceLocked}
                 />
               </label>
+              {orgType === "AGENCY" ? (
+                <p className="md:col-span-2 text-sm text-[var(--color-foreground-muted)]">
+                  {t("admin.pdProvision.agencyPartnerNote")}
+                </p>
+              ) : (
+                <>
               <label className="block">
                 <span className="mb-1 block text-xs font-medium">{t("admin.pdProvision.plan")}</span>
                 <select
@@ -385,7 +391,7 @@ export function LeadProvisionPanel(props: Props) {
                   {plans.length === 0 ? (
                     <option value="">{t("admin.pdProvision.noPlans")}</option>
                   ) : (
-                    plans.map((p) => (
+                    plans.filter((p) => p.code !== "partner").map((p) => (
                       <option key={p.code} value={p.code}>
                         {p.name}
                       </option>
@@ -407,6 +413,8 @@ export function LeadProvisionPanel(props: Props) {
                   disabled={busy || !audienceLocked}
                 />
               </label>
+                </>
+              )}
             </div>
 
             <div className="rounded-md border border-[var(--color-border)] p-3">
@@ -456,7 +464,7 @@ export function LeadProvisionPanel(props: Props) {
               type="button"
               size="sm"
               onClick={createNew}
-              disabled={busy || !audienceLocked || !planCode}
+              disabled={busy || !audienceLocked || (orgType !== "AGENCY" && !planCode)}
             >
               {t("admin.pdProvision.createOwner")}
             </Button>

@@ -5,10 +5,20 @@ import { DomainErrors } from "@/lib/errors";
 import { planAllowsWhiteLabel, withLogoCacheBust } from "@/lib/billing/white-label";
 import { recordAudit } from "@/server/audit/audit";
 import { uploadDocument } from "@/server/services/documents.service";
+import { isSvgFile, sanitizeSvg } from "@/lib/images/svg";
 import { storage } from "@/server/storage";
 
-const LOGO_MIME = new Set(["image/png", "image/jpeg", "image/webp"]);
+const LOGO_MIME = new Set([
+  "image/png",
+  "image/jpeg",
+  "image/webp",
+  "image/svg+xml",
+]);
 const MAX_LOGO_BYTES = 2 * 1024 * 1024;
+
+function resolveLogoMime(fileName: string, mimeType: string): string {
+  return isSvgFile(fileName, mimeType) ? "image/svg+xml" : mimeType;
+}
 
 export function organizationLogoPublicPath(organizationId: string): string {
   return `/api/v1/public/organization-logo/${organizationId}`;
@@ -23,14 +33,24 @@ export async function uploadOrganizationLogo(input: {
   mimeType: string;
   buffer: Buffer;
 }) {
-  if (!LOGO_MIME.has(input.mimeType)) {
-    throw DomainErrors.badRequest("Logo mora biti PNG, JPG ili WebP.");
+  const mimeType = resolveLogoMime(input.fileName, input.mimeType);
+  if (!LOGO_MIME.has(mimeType)) {
+    throw DomainErrors.badRequest("Logo mora biti PNG, JPG, WebP ili SVG.");
   }
   if (!input.buffer.byteLength) {
     throw DomainErrors.badRequest("Datoteka je prazna.");
   }
   if (input.buffer.byteLength > MAX_LOGO_BYTES) {
     throw DomainErrors.badRequest("Logo je prevelik (maksimalno 2 MB).");
+  }
+
+  let buffer = input.buffer;
+  if (mimeType === "image/svg+xml") {
+    try {
+      buffer = sanitizeSvg(buffer);
+    } catch {
+      throw DomainErrors.badRequest("Neispravan SVG fajl.");
+    }
   }
 
   const doc = await uploadDocument({
@@ -41,8 +61,8 @@ export async function uploadOrganizationLogo(input: {
     entityId: input.organizationId,
     visibility: "INVESTOR_TEAM",
     fileName: input.fileName,
-    mimeType: input.mimeType,
-    buffer: input.buffer,
+    mimeType,
+    buffer,
   });
 
   const logoUrl = organizationLogoPublicPath(input.organizationId);
@@ -144,17 +164,19 @@ export async function resolveOrganizationLogo(organizationId: string): Promise<{
   });
   if (!doc) return null;
 
-  // Same path as document download / share images: S3 gets a signed URL,
-  // local storage streams bytes through this route.
+  // Raster logos on S3 use a signed redirect. SVG is always streamed
+  // through this route so we can set CSP and avoid executing scripts
+  // if someone opens the URL as a document.
+  const isSvg = isSvgFile(doc.originalFileName, doc.mimeType);
   const url = await storage().getSignedUrl(doc.storageKey, 300);
-  if (!url.startsWith("local:")) {
+  if (!isSvg && !url.startsWith("local:")) {
     return { redirectUrl: url };
   }
 
   const buffer = await storage().read(doc.storageKey);
   return {
     buffer,
-    mimeType: doc.mimeType,
+    mimeType: isSvg ? "image/svg+xml" : doc.mimeType,
     fileName: doc.originalFileName,
   };
 }

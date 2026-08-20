@@ -86,6 +86,10 @@ export async function generateDueSubscriptionInvoices(
 
   for (const sub of candidates) {
     try {
+      if (sub.organization.profile?.type === "AGENCY") {
+        summary.skipped++;
+        continue;
+      }
       const settings = await resolveBillingSettings(sub.organizationId);
       if (!settings.billingEnabled || !settings.automation.generateInvoices) {
         summary.skipped++;

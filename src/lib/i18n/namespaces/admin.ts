@@ -397,6 +397,8 @@ export const adminSr = {
       "Istekao {{date}}. Prvobitno {{days}} dana. Unesite nove dane da produžite od danas.",
     trialDaysHintNone:
       "Nema sačuvanog probnog perioda. Unesite dane da ga pokrenete.",
+    agencyPartnerNote:
+      "Agencija nema pretplatu. Besplatan je partner portal — vidi projekte tek kad je investitor pozove.",
     create: "Kreiraj organizaciju",
     save: "Sačuvaj izmene",
   },
@@ -1321,6 +1323,8 @@ export const adminSr = {
     plan: "Paket",
     noPlans: "— nema aktivnih planova —",
     trialDays: "Probni period (dana)",
+    agencyPartnerNote:
+      "Agencija se kreira bez paketa i bez trial-a. Pristup investitorovim projektima ide samo preko poziva.",
     ownerAgency: "Vlasnik agencije",
     ownerInvestor: "Vlasnik (investitor)",
     ownerHeading: "Vlasnik naloga · {{role}}",
@@ -1341,6 +1345,8 @@ export const adminSr = {
     subscription: "Pretplata",
     noSubscription:
       "Ova organizacija još uvek nema pretplatu. Kreirajte je iz sekcije „Organizacije → Nova“.",
+    agencyPartnerNote:
+      "Agencija je partner nalog: nema pretplate, faktura ni isteka paketa. Pristup projektima daje investitor pozivom. Suspendujete je samo ako treba da se ugasi nalog.",
     plan: "Plan",
     cycle: "Ciklus",
     price: "Cena",
@@ -1789,6 +1795,8 @@ export const adminEn: Leaves<typeof adminSr> = {
     trialDaysHintExpired:
       "Expired on {{date}}. Originally {{days}} days. Enter new days to extend from today.",
     trialDaysHintNone: "No trial is stored. Enter days to start one.",
+    agencyPartnerNote:
+      "Agencies have no subscription. This is a free partner portal — they see projects only after an investor invites them.",
     create: "Create organization",
     save: "Save changes",
   },
@@ -2705,6 +2713,8 @@ export const adminEn: Leaves<typeof adminSr> = {
     plan: "Plan",
     noPlans: "— no active plans —",
     trialDays: "Trial period (days)",
+    agencyPartnerNote:
+      "The agency is created without a plan or trial. Access to an investor’s projects comes only from an invite.",
     ownerAgency: "Agency owner",
     ownerInvestor: "Owner (investor)",
     ownerHeading: "Account owner · {{role}}",
@@ -2725,6 +2735,8 @@ export const adminEn: Leaves<typeof adminSr> = {
     subscription: "Subscription",
     noSubscription:
       "This organization does not have a subscription yet. Create one from “Organizations → New”.",
+    agencyPartnerNote:
+      "This agency is a partner account: no subscription, invoices, or plan expiry. An investor grants project access by invite. Suspend the account only to shut it down.",
     plan: "Plan",
     cycle: "Cycle",
     price: "Price",

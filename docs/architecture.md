@@ -3,7 +3,9 @@
 ## 1. Overview
 
 PropertyDesk is a multi-tenant SaaS platform for real-estate investors and
-their partner agencies. The application is a single Next.js 16 (App Router)
+their partner agencies. Investors pay for a plan. Agencies are **free
+partner accounts** (`saas_plan.code = partner`) — access comes from an
+investor email invite, not a subscription. The application is a single Next.js 16 (App Router)
 codebase serving both the browser UI and the versioned REST API at
 `/api/v1`. Postgres (Supabase on the current VPS; local via
 `DATABASE_URL`) is the single source of truth. Hosts and the planned

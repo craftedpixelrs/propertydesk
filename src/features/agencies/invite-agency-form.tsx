@@ -20,7 +20,8 @@ export function InviteAgencyForm() {
   const t = useT();
   const router = useRouter();
   const [open, setOpen] = useState(false);
-  const [agencyOrganizationId, setAgencyOrganizationId] = useState("");
+  const [email, setEmail] = useState("");
+  const [agencyName, setAgencyName] = useState("");
   const [defaultProtectionDays, setDefaultProtectionDays] = useState("30");
   const [notes, setNotes] = useState("");
   const [loading, setLoading] = useState(false);
@@ -32,12 +33,14 @@ export function InviteAgencyForm() {
     setLoading(true);
     try {
       await apiClient.post("/agencies", {
-        agencyOrganizationId,
+        email,
+        agencyName: agencyName.trim() || undefined,
         defaultProtectionDays: Number(defaultProtectionDays) || 30,
         notes: notes || undefined,
       });
       setOpen(false);
-      setAgencyOrganizationId("");
+      setEmail("");
+      setAgencyName("");
       setNotes("");
       router.refresh();
     } catch (err) {
@@ -61,14 +64,28 @@ export function InviteAgencyForm() {
         </DialogHeader>
         <form onSubmit={onSubmit} className="space-y-3">
           <div className="space-y-1">
-            <label className="text-sm font-medium" htmlFor="agencyOrganizationId">
-              {t("partners.inviteForm.orgId")}
+            <label className="text-sm font-medium" htmlFor="agencyEmail">
+              {t("partners.inviteForm.email")}
             </label>
             <input
-              id="agencyOrganizationId"
-              value={agencyOrganizationId}
-              onChange={(e) => setAgencyOrganizationId(e.target.value)}
+              id="agencyEmail"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               required
+              autoComplete="email"
+              className="h-11 w-full rounded-md border border-[var(--color-border)] bg-white px-3 text-sm"
+            />
+          </div>
+          <div className="space-y-1">
+            <label className="text-sm font-medium" htmlFor="agencyName">
+              {t("partners.inviteForm.agencyName")}
+            </label>
+            <input
+              id="agencyName"
+              value={agencyName}
+              onChange={(e) => setAgencyName(e.target.value)}
+              placeholder={t("partners.inviteForm.agencyNamePlaceholder")}
               className="h-11 w-full rounded-md border border-[var(--color-border)] bg-white px-3 text-sm"
             />
           </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { Card, CardContent } from "@/components/ui/card";
@@ -10,6 +10,17 @@ import { apiClient } from "@/lib/api-client";
 import { ApiClientError } from "@/lib/api-client";
 import { projectStatusLabel, type TranslateFn } from "@/lib/i18n";
 import { ProjectMap } from "@/features/projects/project-map-loader";
+import { CoverImageField } from "@/features/projects/cover-image-field";
+import { LocationFields } from "@/features/projects/location-fields";
+
+const LOCATION_FIELD_NAMES = new Set([
+  "city",
+  "address",
+  "municipality",
+  "postalCode",
+  "latitude",
+  "longitude",
+]);
 
 interface Field {
   name: string;
@@ -149,6 +160,7 @@ export function NewProjectForm({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({});
+  const coordsLockRef = useRef(false);
 
   const isEdit = mode === "edit";
 
@@ -232,6 +244,29 @@ export function NewProjectForm({
       <CardContent className="p-4 sm:p-6">
         <form className="grid grid-cols-1 gap-4" onSubmit={onSubmit}>
           {fields.map((f) => {
+            if (LOCATION_FIELD_NAMES.has(f.name)) {
+              if (f.name !== "city") return null;
+              return (
+                <LocationFields
+                  key="location"
+                  values={values}
+                  setValue={setValue}
+                  fieldErrors={fieldErrors}
+                  coordsLockRef={coordsLockRef}
+                />
+              );
+            }
+            if (f.name === "coverImageUrl") {
+              return (
+                <CoverImageField
+                  key="cover"
+                  value={values.coverImageUrl ?? ""}
+                  projectId={projectId}
+                  onChange={(url) => setValue("coverImageUrl", url)}
+                  error={fieldErrors.coverImageUrl}
+                />
+              );
+            }
             const disabled = isEdit && f.immutable;
             if (f.type === "checkbox") {
               const checked = values[f.name] === "true";
@@ -329,6 +364,7 @@ export function NewProjectForm({
                   : null
               }
               onPick={({ latitude, longitude }) => {
+                coordsLockRef.current = true;
                 setValue("latitude", latitude.toFixed(6));
                 setValue("longitude", longitude.toFixed(6));
               }}

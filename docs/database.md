@@ -16,7 +16,7 @@ Migrations live under `prisma/migrations/`. Domain models:
 | Domain | Models |
 |--------|--------|
 | **Auth (Better Auth core)** | `User`, `Session`, `Account`, `Verification`, `Organization`, `Member`, `Invitation` |
-| **Tenant profile / billing** | `OrganizationProfile`, `SaaSPlan`, `OrganizationSubscription` |
+| **Tenant profile / billing** | `OrganizationProfile`, `SaaSPlan` (investor SKUs + hidden `partner` for agencies), `OrganizationSubscription` |
 | **Platform** | `AuditLog`, `Notification`, `SystemHealthCheck` |
 | **Inventory** | `Project`, `Building`, `Entrance`, `Floor`, `Unit`, `UnitPriceHistory`, `UnitStatusHistory` |
 | **CRM** | `Buyer`, `BuyerKycChecklist`, `BuyerInterest`, `Activity`, `Task`, `LeadSource` |
@@ -29,6 +29,10 @@ Migrations live under `prisma/migrations/`. Domain models:
 | **Sharing** | `ShareLink` — opaque public-share tokens for `/p/[token]` pages |
 | **Collaboration** | `Comment` — threaded comments + `@mentions` on Buyer/Sale |
 | **Floor plans** | `FloorPlanArea` — SVG polygons overlaying `Floor.floorPlanUrl` |
+
+`SaaSPlan.code = partner` is a **row**, not a migration. Seed and
+`scripts/apply-agency-partner-data.cjs` upsert it. Agency orgs point
+their subscription at that plan. Do not add a Prisma migration for it.
 
 ## Money & Money-Like Columns
 

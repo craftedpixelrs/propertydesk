@@ -11,14 +11,20 @@ import {
   type OrganizationRole,
 } from "@/server/permissions/roles";
 import { loadQuotaSnapshot } from "@/server/services/quotas.service";
-import { invitationEmail, sendEmail } from "@/server/auth/email";
+import {
+  invitationEmail,
+  sendEmail,
+  type EmailMessage,
+} from "@/server/auth/email";
 import { serverEnv } from "@/lib/env";
 import {
   INVESTOR_PROFILE_FIELD_LABEL,
+  isAgencyProfileComplete,
   isInvestorProfileComplete,
   missingInvestorProfileFields,
   normalizeWebsite,
 } from "@/server/services/organization-profile-completeness";
+import { activatePendingAgencyConnections } from "@/server/services/agencies/connection.service";
 
 /**
  * Tenant-side organization administration (owners/admins operate here).
@@ -154,6 +160,14 @@ export async function updateOrganizationProfile(
     });
   }
 
+  if (
+    previous.type === "AGENCY" &&
+    !isAgencyProfileComplete(previous) &&
+    isAgencyProfileComplete(updated)
+  ) {
+    await activatePendingAgencyConnections(organizationId);
+  }
+
   return updated;
 }
 
@@ -178,6 +192,25 @@ export async function isInvestorOrgSetupComplete(
   });
   if (!profile || profile.type !== "INVESTOR") return true;
   return isInvestorProfileComplete(profile);
+}
+
+export async function isAgencyOrgSetupComplete(
+  organizationId: string,
+): Promise<boolean> {
+  const profile = await prisma.organizationProfile.findUnique({
+    where: { organizationId },
+    select: {
+      type: true,
+      displayName: true,
+      legalName: true,
+      address: true,
+      city: true,
+      phone: true,
+      email: true,
+    },
+  });
+  if (!profile || profile.type !== "AGENCY") return true;
+  return isAgencyProfileComplete(profile);
 }
 
 // -----------------------------------------------------------------------------
@@ -342,6 +375,7 @@ export async function inviteMember(input: {
   email: string;
   role: OrganizationRole;
   actorUserId: string;
+  buildEmail?: (url: string) => EmailMessage;
 }): Promise<void> {
   const email = input.email.trim().toLowerCase();
   if (!email) {
@@ -422,7 +456,7 @@ export async function inviteMember(input: {
   }
 
   const url = `${serverEnv.BETTER_AUTH_URL.replace(/\/$/, "")}/accept-invitation/${invitationId}`;
-  const msg = invitationEmail(org.name, url);
+  const msg = input.buildEmail?.(url) ?? invitationEmail(org.name, url);
   await sendEmail({ ...msg, to: email });
 
   await recordAudit({
@@ -448,6 +482,15 @@ export async function listPendingInvitations(organizationId: string) {
   });
 }
 
+export interface AgencyInviteProfileInput {
+  displayName: string;
+  legalName: string;
+  address: string;
+  city: string;
+  phone: string;
+  email?: string;
+}
+
 export interface PublicInvitation {
   id: string;
   email: string;
@@ -455,6 +498,9 @@ export interface PublicInvitation {
   role: string;
   status: string;
   expiresAt: Date;
+  organizationType: "INVESTOR" | "AGENCY" | null;
+  requiresAgencyProfile: boolean;
+  investorName: string | null;
 }
 
 export async function getPublicInvitation(
@@ -462,19 +508,57 @@ export async function getPublicInvitation(
 ): Promise<PublicInvitation | null> {
   const invitation = await prisma.invitation.findUnique({
     where: { id },
-    include: { organization: { select: { name: true } } },
+    include: {
+      organization: {
+        select: {
+          id: true,
+          name: true,
+          profile: { select: { type: true, displayName: true, legalName: true, address: true, city: true, phone: true, email: true } },
+        },
+      },
+    },
   });
   if (!invitation) return null;
   const expired = invitation.expiresAt <= new Date();
   const status =
     invitation.status === "pending" && expired ? "expired" : invitation.status;
+  const organizationType = invitation.organization.profile?.type ?? null;
+  const requiresAgencyProfile =
+    invitation.role === "AGENCY_OWNER" &&
+    !isAgencyProfileComplete(invitation.organization.profile);
+
+  let investorName: string | null = null;
+  if (organizationType === "AGENCY") {
+    const pending = await prisma.agencyConnection.findFirst({
+      where: {
+        agencyOrganizationId: invitation.organization.id,
+        status: "INVITED",
+      },
+      orderBy: { invitedAt: "desc" },
+      select: {
+        investor: {
+          select: { name: true, profile: { select: { displayName: true } } },
+        },
+      },
+    });
+    investorName =
+      pending?.investor.profile?.displayName?.trim() ||
+      pending?.investor.name ||
+      null;
+  }
+
   return {
     id: invitation.id,
     email: invitation.email,
-    organizationName: invitation.organization.name,
+    organizationName:
+      invitation.organization.profile?.displayName?.trim() ||
+      invitation.organization.name,
     role: invitation.role ?? "",
     status,
     expiresAt: invitation.expiresAt,
+    organizationType,
+    requiresAgencyProfile,
+    investorName,
   };
 }
 
@@ -552,10 +636,51 @@ async function joinOrganizationFromInvitation(input: {
   });
 }
 
+async function applyAgencyInviteProfile(
+  organizationId: string,
+  profile: AgencyInviteProfileInput,
+) {
+  const displayName = profile.displayName.trim();
+  const legalName = profile.legalName.trim();
+  const address = profile.address.trim();
+  const city = profile.city.trim();
+  const phone = profile.phone.trim();
+  const email = (profile.email ?? "").trim();
+  if (!displayName || !legalName || !address || !city || !phone) {
+    throw DomainErrors.validation("Popunite podatke o agenciji.");
+  }
+  await prisma.organizationProfile.update({
+    where: { organizationId },
+    data: {
+      displayName,
+      legalName,
+      address,
+      city,
+      phone,
+      ...(email ? { email } : {}),
+    },
+  });
+  await prisma.organization.update({
+    where: { id: organizationId },
+    data: { name: displayName },
+  });
+}
+
+async function maybeActivateFirstAgencyInvite(organizationId: string) {
+  const [complete, memberCount] = await Promise.all([
+    isAgencyOrgSetupComplete(organizationId),
+    prisma.member.count({ where: { organizationId } }),
+  ]);
+  if (complete && memberCount <= 1) {
+    await activatePendingAgencyConnections(organizationId);
+  }
+}
+
 export async function acceptPendingInvitation(input: {
   invitationId: string;
   userId: string;
   userEmail: string;
+  agencyProfile?: AgencyInviteProfileInput;
 }): Promise<void> {
   const invitation = await loadPendingInvitation(input.invitationId);
   const sessionEmail = input.userEmail.trim().toLowerCase();
@@ -576,12 +701,23 @@ export async function acceptPendingInvitation(input: {
     );
   }
 
+  if (input.agencyProfile && invitation.role === "AGENCY_OWNER") {
+    await applyAgencyInviteProfile(
+      invitation.organizationId,
+      input.agencyProfile,
+    );
+  }
+
   await joinOrganizationFromInvitation({
     invitationId: invitation.id,
     organizationId: invitation.organizationId,
     userId: input.userId,
     role: invitation.role,
   });
+
+  if (invitation.role === "AGENCY_OWNER") {
+    await maybeActivateFirstAgencyInvite(invitation.organizationId);
+  }
 }
 
 async function hashCredentialPassword(password: string): Promise<string> {
@@ -600,6 +736,7 @@ export async function registerFromInvitation(input: {
   invitationId: string;
   name: string;
   password: string;
+  agencyProfile?: AgencyInviteProfileInput;
 }): Promise<{ email: string }> {
   const name = input.name.trim();
   const password = input.password;
@@ -651,6 +788,13 @@ export async function registerFromInvitation(input: {
       password: hashed,
     },
   });
+
+  if (input.agencyProfile && invitation.role === "AGENCY_OWNER") {
+    await applyAgencyInviteProfile(
+      invitation.organizationId,
+      input.agencyProfile,
+    );
+  }
 
   await recordAudit({
     action: "organization.invitee_registered",

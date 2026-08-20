@@ -1,6 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { headers } from "next/headers";
 import { notFound } from "next/navigation";
+
+import { absoluteCoverImageUrl } from "@/lib/geo/cover-image";
+import { hostFromHeaders } from "@/lib/seo/hosts";
 
 import { formatMoney } from "@/lib/formatters/money";
 import type { SupportedCurrency } from "@/lib/constants/app";
@@ -37,20 +41,27 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       count: site.units.length,
       name: site.project.name,
     });
+  const host = hostFromHeaders(await headers());
+  const cover = site.project.coverImageUrl
+    ? absoluteCoverImageUrl(
+        site.project.coverImageUrl,
+        host ? `https://${host}` : "",
+      )
+    : undefined;
   return {
     title,
     description,
     openGraph: {
       title,
       description,
-      images: site.project.coverImageUrl ? [{ url: site.project.coverImageUrl }] : undefined,
+      images: cover ? [{ url: cover }] : undefined,
       type: "website",
     },
     twitter: {
       card: "summary_large_image",
       title,
       description,
-      images: site.project.coverImageUrl ? [site.project.coverImageUrl] : undefined,
+      images: cover ? [cover] : undefined,
     },
   };
 }

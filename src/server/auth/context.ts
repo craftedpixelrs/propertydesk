@@ -129,7 +129,11 @@ export async function loadUserContext(): Promise<UserContext | null> {
     superAdmin,
     pdTeam?.enabled ? pdTeam.teamRole : null,
   );
-  if (!superAdmin && activeOrg?.organizationStatus === "RESTRICTED") {
+  if (
+    !superAdmin &&
+    activeOrg?.organizationStatus === "RESTRICTED" &&
+    activeOrg.organizationType !== "AGENCY"
+  ) {
     const allowlist = await getRestrictedModeAllowlist();
     permissions = filterPermissionsForRestrictedMode(permissions, allowlist);
   }

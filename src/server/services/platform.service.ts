@@ -22,6 +22,10 @@ import {
   rolesForOrgType,
   type OrganizationRole,
 } from "@/server/permissions/roles";
+import {
+  AGENCY_PARTNER_PLAN_CODE,
+  applyAgencyOrgDefaults,
+} from "@/lib/billing/agency-partner";
 import { normalizeWebsite } from "@/server/services/organization-profile-completeness";
 import { addDays, remainingTrialDays } from "@/server/services/subscriptions/trial-days";
 
@@ -63,6 +67,29 @@ export interface SaaSPlanInput {
 export async function listSaaSPlans() {
   return prisma.saaSPlan.findMany({
     orderBy: [{ sortOrder: "asc" }, { monthlyPrice: "asc" }],
+  });
+}
+
+async function ensurePartnerPlan() {
+  return prisma.saaSPlan.upsert({
+    where: { code: AGENCY_PARTNER_PLAN_CODE },
+    update: { active: true },
+    create: {
+      code: AGENCY_PARTNER_PLAN_CODE,
+      name: "Partner",
+      description:
+        "Besplatan portal agencije. Pristup ide preko poziva investitora, bez pretplate.",
+      monthlyPrice: 0,
+      currency: "EUR",
+      maxActiveProjects: 0,
+      maxUnits: 0,
+      maxMembers: 25,
+      maxAgencyConnections: null,
+      features: { audience: "agency", agencySharing: true, whiteLabel: false },
+      active: true,
+      publiclyAvailable: false,
+      sortOrder: 20,
+    },
   });
 }
 
@@ -383,18 +410,26 @@ export async function createOrganizationByPlatformAdmin(
     );
   }
 
-  const plan = await prisma.saaSPlan.findUnique({
-    where: { code: input.planCode },
-  });
+  const billing = applyAgencyOrgDefaults(input);
+  const plan =
+    billing.type === "AGENCY"
+      ? await ensurePartnerPlan()
+      : await prisma.saaSPlan.findUnique({
+          where: { code: billing.planCode },
+        });
   if (!plan || !plan.active) {
     throw DomainErrors.notFound("Plan");
   }
 
   const now = new Date();
-  const trialDays = input.trialDays ?? 30;
-  const initialStatus: OrganizationStatus = input.status ?? "TRIAL";
+  const trialDays = billing.trialDays ?? 30;
+  const initialStatus: OrganizationStatus = billing.status ?? "TRIAL";
   const subscriptionStatus: SubscriptionStatus =
-    initialStatus === "TRIAL" ? "TRIAL" : "ACTIVE";
+    billing.type === "AGENCY"
+      ? "ACTIVE"
+      : initialStatus === "TRIAL"
+        ? "TRIAL"
+        : "ACTIVE";
 
   const result = await prisma.$transaction(async (tx) => {
     const orgId = createId();
@@ -409,7 +444,7 @@ export async function createOrganizationByPlatformAdmin(
     const profile = await tx.organizationProfile.create({
       data: {
         organizationId: org.id,
-        type: input.type,
+        type: billing.type,
         legalName: input.legalName,
         displayName: input.displayName,
         registrationNumber: input.registrationNumber ?? null,
@@ -431,9 +466,9 @@ export async function createOrganizationByPlatformAdmin(
         planId: plan.id,
         status: subscriptionStatus,
         trialEndsAt:
-          subscriptionStatus === "TRIAL"
-            ? new Date(now.getTime() + trialDays * 24 * 60 * 60 * 1000)
-            : null,
+          billing.type === "AGENCY" || subscriptionStatus !== "TRIAL"
+            ? null
+            : new Date(now.getTime() + trialDays * 24 * 60 * 60 * 1000),
       },
     });
 
@@ -449,7 +484,7 @@ export async function createOrganizationByPlatformAdmin(
     newValues: {
       name: result.org.name,
       slug: result.org.slug,
-      type: input.type,
+      type: billing.type,
       status: initialStatus,
       planCode: plan.code,
     },
@@ -509,9 +544,20 @@ export async function updateOrganizationByPlatformAdmin(
     }
   }
 
-  const plan = await prisma.saaSPlan.findUnique({
-    where: { code: input.planCode },
+  const effectiveType =
+    existing.profile?.type === "AGENCY" || input.type === "AGENCY"
+      ? "AGENCY"
+      : input.type;
+  const billing = applyAgencyOrgDefaults({
+    ...input,
+    type: effectiveType,
   });
+  const plan =
+    billing.type === "AGENCY"
+      ? await ensurePartnerPlan()
+      : await prisma.saaSPlan.findUnique({
+          where: { code: billing.planCode },
+        });
   const currentPlanId = existing.subscription?.planId ?? null;
   if (!plan) throw DomainErrors.notFound("Plan");
   if (!plan.active && plan.id !== currentPlanId) {
@@ -519,20 +565,24 @@ export async function updateOrganizationByPlatformAdmin(
   }
 
   const previousStatus = existing.profile?.status ?? "TRIAL";
-  let nextStatus: OrganizationStatus = input.status ?? previousStatus;
+  let nextStatus: OrganizationStatus = billing.status ?? input.status ?? previousStatus;
   const website = normalizeWebsite(input.website);
   const now = new Date();
   const currentRemaining = remainingTrialDays(existing.subscription?.trialEndsAt, now);
-  const requestedDays = input.trialDays ?? null;
+  const requestedDays = billing.type === "AGENCY" ? 0 : (input.trialDays ?? null);
   const trialChanged =
+    billing.type !== "AGENCY" &&
     requestedDays != null &&
     (currentRemaining == null ? requestedDays > 0 : requestedDays !== currentRemaining);
   if (trialChanged && requestedDays > 0 && (nextStatus === "RESTRICTED" || nextStatus === "TRIAL")) {
     nextStatus = "TRIAL";
   }
+  if (billing.type === "AGENCY" && nextStatus === "TRIAL") {
+    nextStatus = "ACTIVE";
+  }
 
   const profileData = {
-    type: input.type,
+    type: billing.type,
     legalName: input.legalName,
     displayName: input.displayName,
     registrationNumber: input.registrationNumber ?? null,
@@ -564,10 +614,17 @@ export async function updateOrganizationByPlatformAdmin(
       });
     }
 
-    const trialEndsAt = trialChanged && requestedDays != null ? addDays(now, requestedDays) : undefined;
+    const trialEndsAt =
+      billing.type === "AGENCY"
+        ? null
+        : trialChanged && requestedDays != null
+          ? addDays(now, requestedDays)
+          : undefined;
 
     const subPatch: Prisma.OrganizationSubscriptionUncheckedUpdateInput = {
-      ...subscriptionStatusForOrgStatus(nextStatus),
+      ...subscriptionStatusForOrgStatus(
+        billing.type === "AGENCY" && nextStatus === "TRIAL" ? "ACTIVE" : nextStatus,
+      ),
       ...(plan.id !== currentPlanId
         ? {
             planId: plan.id,
@@ -576,13 +633,22 @@ export async function updateOrganizationByPlatformAdmin(
               : {}),
           }
         : {}),
-      ...(trialEndsAt
+      ...(billing.type === "AGENCY"
         ? {
-            trialEndsAt,
-            trialStartsAt: existing.subscription?.trialStartsAt ?? now,
-            ...(nextStatus === "TRIAL" ? { restrictedAt: null } : {}),
+            trialEndsAt: null,
+            trialStartsAt: null,
+            autoRenew: false,
+            nextBillingDate: null,
+            price: 0,
+            customPrice: false,
           }
-        : {}),
+        : trialEndsAt
+          ? {
+              trialEndsAt,
+              trialStartsAt: existing.subscription?.trialStartsAt ?? now,
+              ...(nextStatus === "TRIAL" ? { restrictedAt: null } : {}),
+            }
+          : {}),
     };
 
     if (existing.subscription) {
@@ -622,7 +688,7 @@ export async function updateOrganizationByPlatformAdmin(
     newValues: {
       name: input.name,
       slug: input.slug,
-      type: input.type,
+      type: billing.type,
       status: nextStatus,
       planCode: plan.code,
       ...(trialChanged ? { trialDays: requestedDays } : {}),

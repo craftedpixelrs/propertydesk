@@ -99,8 +99,20 @@ Verzija: **v1** · Datum lansiranja: **01.09.2026.**
 
 ## 6. Agencijski portal
 
-- **Pozivnica agencije** od investora (email link → registracija →
-  `AgencyConnection` sa `ACTIVE` statusom).
+- Agencija je **besplatan partner nalog** (`saas_plan.code = partner`):
+  nema Starter/Growth/Scale, nema trial lock, nema SaaS fakturu, nema
+  istek paketa. Pristup inventaru ide isključivo preko poziva
+  investitora. Nema javne self-registracije. Admin može
+  `SUSPENDED` / `CLOSED`.
+- **Poziv po emailu** (`/agencije`) — investitor unosi email (naziv
+  opciono). Ne mora da zna da li agencija već ima nalog.
+  - Novi email: partner org + `agencyPartnerInvitationEmail` →
+    registracija (ime + lozinka) **i** popunjavanje profila agencije
+    (displayName, legalName, adresa, grad, telefon). Prvi setup
+    aktivira pending konekcije.
+  - Postojeća agencija: `agencyConnectionInvitationEmail` →
+    `/agencija/konekcije` → **Prihvati poziv**. Kasniji pozivi ostaju
+    `INVITED` dok se ne prihvate.
 - **Access control po projektu i jedinici**: agencija vidi samo
   projekte za koje ima `AgencyProjectAccess`; per-unit override može
   sakriti dodatne.
@@ -122,7 +134,10 @@ Verzija: **v1** · Datum lansiranja: **01.09.2026.**
   `PAYMENT`, `AGENCY`, `COMMISSION`, `INVOICE`, **`KYC`** (Faza 8).
 - Vidljivost: `INTERNAL` / `AGENCY` — agencijski dokument mora imati
   i `AGENCY` visibility **i** projekat na koji agencija ima pristup.
-- MIME allowlist: PDF, JPEG, PNG, DOCX, XLSX. Max 20 MB.
+- MIME allowlist dokumenata: PDF, JPEG, PNG, DOCX, XLSX. Max 20 MB.
+- Logo organizacije: PNG/JPEG/WebP **i sanitizovani SVG**
+  (`src/lib/images/svg.ts`). Javni stream ima CSP. SVG nije dozvoljen
+  kao običan dokument u galeriji.
 - Signed URL download (5 min lifetime). S3 download ruta radi
   302 na signed URL (galerija / `<a href>`).
 - Brisanje u UI-ju je soft-delete: red nestaje iz app-a, fajl ostaje
@@ -165,6 +180,13 @@ Verzija: **v1** · Datum lansiranja: **01.09.2026.**
 - **Onboarding wizard** — pri prvom logovanju vlasnika investitor
   organizacije, kroz 5 koraka (org profil, prvi projekat, pozivanje
   člana, prva jedinica, prvi kupac).
+- **Agencija, prvi nalog** — posle pozivnice vlasnik mora da popuni
+  profil agencije pre portala. Kasniji pozivi drugih investitora su
+  samo Prihvati na `/agencija/konekcije`.
+- **Lokacija projekta** — predlog grada/adrese/opštine (Srbija) +
+  automatski PTT i koordinate. Naslovna slika ide na S3.
+- **Datumi u formama** — `DateInput` prati jezik UI-ja (`dd.mm.yyyy`
+  / `mm/dd/yyyy`). Headeri šablona uvoza jedinica isto prate jezik.
 - **Public share linkovi** (`/p/[token]`) — 192-bit token, opciono
   sakrivanje cena, opciono expiry, opozivanje trenutno.
 - **Javna ponuda jedinice** — brand, foto galerija, floor plan,

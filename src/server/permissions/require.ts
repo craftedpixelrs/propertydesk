@@ -12,7 +12,10 @@ import {
 } from "@/server/permissions/roles";
 import { type PermissionString } from "@/server/permissions/access-control";
 import { checkPermissionForRole } from "@/server/services/permissions/role-overrides.service";
-import { isInvestorOrgSetupComplete } from "@/server/services/organization-admin.service";
+import {
+  isAgencyOrgSetupComplete,
+  isInvestorOrgSetupComplete,
+} from "@/server/services/organization-admin.service";
 import { getRestrictedModeAllowlist } from "@/server/permissions/restricted-mode";
 
 /**
@@ -81,7 +84,11 @@ export async function requirePermission(
 
   // Enforce RESTRICTED mode: block anything not on the explicit allowlist.
   // SUPER_ADMIN is exempt so support can act on the tenant while it's frozen.
-  if (org.organizationStatus === "RESTRICTED" && !superAdmin) {
+  if (
+    org.organizationStatus === "RESTRICTED" &&
+    !superAdmin &&
+    org.organizationType !== "AGENCY"
+  ) {
     const allowlist = await getRestrictedModeAllowlist();
     if (!allowlist.has(permission)) {
       throw new AuthError(
@@ -105,6 +112,20 @@ export async function requirePermission(
       throw new AuthError(
         "FORBIDDEN",
         "Organizacija još nije podešena. Vlasnik mora da popuni podatke firme pre korišćenja aplikacije.",
+      );
+    }
+  }
+
+  if (
+    org.organizationType === "AGENCY" &&
+    permission !== "organization.read" &&
+    permission !== "organization.manage"
+  ) {
+    const setupDone = await isAgencyOrgSetupComplete(org.organizationId);
+    if (!setupDone) {
+      throw new AuthError(
+        "FORBIDDEN",
+        "Prvo popunite podatke agencije da biste koristili portal.",
       );
     }
   }

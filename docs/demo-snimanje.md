@@ -378,11 +378,13 @@ progres bar prodaje popunjen 10%.
 
 ### 8:00–9:00 · Agencije i referral kod
 
-**Klik:** Sidebar → **Agencije** → dropdown investitora → *Sve
-konekcije*.
+**Klik:** Sidebar → **Agencije** (`/agencije`). Forma poziva: samo
+email (naziv opciono). Lista konekcija ispod.
 
 **Voice-over:**
-> "Ovde vidim sve agencije koje sarađuju sa mnom. Za svaku konekciju
+> "Agenciju pozivam emailom — ne moram da znam da li već ima nalog.
+> To je besplatan partner, bez pretplate. Ovde vidim sve agencije
+> koje sarađuju sa mnom. Za svaku konekciju
 > mogu da definišem provizijsko pravilo — fiksno ili procentualno —
 > po projektu, po tipu jedinice, po pragu prodaje. Sistem sam bira
 > najspecifičnije pravilo."

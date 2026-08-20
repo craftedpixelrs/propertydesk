@@ -12,6 +12,10 @@
 | `billing.sync-sef` | daily 10:15 | `electronicInvoiceEnabled` | Retry failed SEF submissions. |
 | `billing.match-payments` | daily 10:30 | (always on when statement present) | Re-run the 5-signal matcher on pending bank statement lines. |
 
+`generate-invoices` and `overdue` **skip `AGENCY`** organizations
+(partner plan, no SaaS invoice). See
+[subscription-lifecycle.md](./subscription-lifecycle.md#agencies-are-not-billed).
+
 Cron is set up externally (Vercel Cron, GitHub Actions, or your CI) and
 POSTs to `/api/v1/cron/run/{name}` with the shared secret `CRON_SECRET`.
 

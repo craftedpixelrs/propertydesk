@@ -169,6 +169,15 @@ export async function changeSubscriptionPlan(
   assertReason(reason, "promena plana");
   const sub = await loadSubscription(organizationId);
   if (sub.planId === newPlanId) return sub;
+  const orgType = await prisma.organizationProfile.findUnique({
+    where: { organizationId },
+    select: { type: true },
+  });
+  if (orgType?.type === "AGENCY") {
+    throw DomainErrors.badRequest(
+      "Agencija nema pretplatu. Pristup ide preko poziva investitora.",
+    );
+  }
 
   const nextPlan = await prisma.saaSPlan.findUnique({ where: { id: newPlanId } });
   if (!nextPlan) throw DomainErrors.notFound("Plan");

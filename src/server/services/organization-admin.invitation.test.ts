@@ -20,6 +20,17 @@ const prismaMock = vi.hoisted(() => ({
   session: {
     updateMany: vi.fn(),
   },
+  organizationProfile: {
+    findUnique: vi.fn(),
+    update: vi.fn(),
+  },
+  organization: {
+    update: vi.fn(),
+  },
+  agencyConnection: {
+    findFirst: vi.fn(),
+    updateMany: vi.fn(),
+  },
 }));
 
 const loadQuotaSnapshot = vi.hoisted(() => vi.fn());

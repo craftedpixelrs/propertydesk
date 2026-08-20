@@ -8,9 +8,19 @@ const paramsSchema = z.object({
   id: z.string().min(1).max(64),
 });
 
+const agencyProfileSchema = z.object({
+  displayName: z.string().min(2).max(200),
+  legalName: z.string().min(2).max(200),
+  address: z.string().min(2).max(300),
+  city: z.string().min(2).max(120),
+  phone: z.string().min(5).max(40),
+  email: z.string().email().optional(),
+});
+
 const bodySchema = z.object({
   name: z.string().min(2).max(120),
   password: z.string().min(10).max(128),
+  agencyProfile: agencyProfileSchema.optional(),
 });
 
 /**
@@ -33,6 +43,7 @@ export const POST = apiHandler(
       invitationId: params.id,
       name: body.name,
       password: body.password,
+      agencyProfile: body.agencyProfile,
     });
     return { data: result, status: 201 };
   },
