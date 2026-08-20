@@ -127,6 +127,7 @@ export default async function OrgBillingTabPage({
       </header>
 
       {isAgency ? null : (
+      <>
       <Card>
         <CardHeader>
           <CardTitle className="text-base">{t("admin.orgBilling.subscription")}</CardTitle>
@@ -364,6 +365,7 @@ export default async function OrgBillingTabPage({
           )}
         </CardContent>
       </Card>
+      </>
       )}
     </section>
   );

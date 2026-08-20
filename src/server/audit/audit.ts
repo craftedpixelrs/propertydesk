@@ -27,6 +27,7 @@ export type AuditAction =
   | "organization.reactivated"
   | "organization.closed"
   | "organization.member_invited"
+  | "organization.invitee_registered"
   | "organization.member_joined"
   | "organization.member_role_updated"
   | "organization.member_removed"
