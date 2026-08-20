@@ -10,7 +10,6 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { apiClient, ApiClientError } from "@/lib/api-client";
 import { toast } from "sonner";
 import { useT } from "@/components/app/i18n-provider";
-import { formatDate } from "@/lib/formatters/date";
 
 interface PlanOption {
   code: string;
@@ -75,7 +74,10 @@ export function NewOrganizationForm({
     initialValues?.type ?? "INVESTOR",
   );
   const isAgency = orgType === "AGENCY";
-  const investorPlans = plans.filter((p) => p.code !== AGENCY_PARTNER_PLAN_CODE);
+  const defaultInvestorPlan =
+    plans.find((p) => p.code === "starter")?.code ??
+    plans.find((p) => p.code !== "trial" && p.code !== AGENCY_PARTNER_PLAN_CODE)?.code ??
+    "starter";
   const [agencyStatus, setAgencyStatus] = useState<
     "ACTIVE" | "SUSPENDED" | "CLOSED"
   >(
@@ -108,18 +110,13 @@ export function NewOrganizationForm({
       website: String(fd.get("website") ?? "").trim() || null,
       planCode: isAgency
         ? AGENCY_PARTNER_PLAN_CODE
-        : String(fd.get("planCode") ?? investorPlans[0]?.code ?? "trial"),
+        : isEdit
+          ? (initialValues?.planCode ?? defaultInvestorPlan)
+          : defaultInvestorPlan,
       status: isAgency
         ? agencyStatus
         : (String(fd.get("status") ?? "TRIAL") as OrganizationFormValues["status"]),
-      trialDays: isAgency
-        ? 0
-        : (() => {
-            const raw = String(fd.get("trialDays") ?? "").trim();
-            if (!raw) return isEdit ? null : 30;
-            const parsed = Number.parseInt(raw, 10);
-            return Number.isFinite(parsed) ? parsed : null;
-          })(),
+      trialDays: isAgency ? 0 : isEdit ? null : 30,
     };
 
     const missing: Record<string, string[]> = {};
@@ -256,53 +253,9 @@ export function NewOrganizationForm({
             <option value="CLOSED">{t("status.closed")}</option>
           </select>
           <FieldError messages={fieldErrors.status} />
-        </div>
-        <div>
-          <Label htmlFor="planCode">{t("admin.newOrg.plan")}</Label>
-          <select
-            id="planCode"
-            name="planCode"
-            required
-            defaultValue={initialValues?.planCode ?? investorPlans[0]?.code}
-            className="mt-1 h-11 w-full rounded-md border border-[var(--color-border-strong)] bg-[var(--color-surface)] px-3 text-sm"
-          >
-            {investorPlans.map((p) => (
-              <option key={p.code} value={p.code}>
-                {p.name}
-              </option>
-            ))}
-          </select>
-          <FieldError messages={fieldErrors.planCode} />
-        </div>
-        <div>
-          <Label htmlFor="trialDays">{t("admin.newOrg.trialDays")}</Label>
-          <Input
-            id="trialDays"
-            name="trialDays"
-            type="number"
-            min={0}
-            max={365}
-            defaultValue={
-              isEdit
-                ? (initialValues?.trialDays ?? "")
-                : (initialValues?.trialDays ?? 30)
-            }
-          />
-          {isEdit ? (
-            <p className="mt-1 text-xs text-[var(--color-foreground-muted)]">
-              {initialValues?.trialEndsAt
-                ? new Date(initialValues.trialEndsAt).getTime() > Date.now()
-                  ? t("admin.newOrg.trialDaysHintActive", {
-                      date: formatDate(initialValues.trialEndsAt),
-                    })
-                  : t("admin.newOrg.trialDaysHintExpired", {
-                      date: formatDate(initialValues.trialEndsAt),
-                      days: initialValues.originalTrialDays ?? initialValues.trialDays ?? 0,
-                    })
-                : t("admin.newOrg.trialDaysHintNone")}
-            </p>
-          ) : null}
-          <FieldError messages={fieldErrors.trialDays} />
+          <p className="mt-1 text-xs text-[var(--color-foreground-muted)]">
+            {t("admin.newOrg.billingOnNaplata")}
+          </p>
         </div>
           </>
         )}

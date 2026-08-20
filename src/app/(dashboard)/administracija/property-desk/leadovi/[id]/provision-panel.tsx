@@ -391,7 +391,7 @@ export function LeadProvisionPanel(props: Props) {
                   {plans.length === 0 ? (
                     <option value="">{t("admin.pdProvision.noPlans")}</option>
                   ) : (
-                    plans.filter((p) => p.code !== "partner").map((p) => (
+                    plans.filter((p) => p.code !== "partner" && p.code !== "trial").map((p) => (
                       <option key={p.code} value={p.code}>
                         {p.name}
                       </option>
