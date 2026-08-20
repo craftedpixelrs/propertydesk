@@ -32,12 +32,12 @@ Staging i demo dele **istu bazu i fajlove**. Sesije su odvojene po hostu.
 | Date input: sr `dd.mm.yyyy`, en `mm/dd/yyyy`, konverzija pri promeni jezika | urađeno | da | čeka odluku | čeka odluku |
 | Uvoz jedinica: headeri šablona na jeziku aplikacije (sr/en) | urađeno | da | čeka odluku | čeka odluku |
 | Vlasnik ne može da komentariše kupca — API je tražio nepostojeće `buyer.read` | urađeno | da | čeka odluku | čeka odluku |
-| Logo kompanije: dozvoli SVG (vektor, sanitizacija) | **sada** | čeka tvoj deploy | čeka odluku | čeka odluku |
-| Projekat: predlog grada/adrese/opštine + auto PTT/koordinate | **sada** | čeka tvoj deploy | čeka odluku | čeka odluku |
-| Projekat: naslovna slika na S3 + javni preview | **sada** | čeka tvoj deploy | čeka odluku | čeka odluku |
-| Agencija: free partner, bez pretplate / isteka paketa | **sada** | čeka tvoj deploy | čeka odluku | čeka odluku |
-| Poziv agencije: email umesto org ID (pravi partner nalog ako ne postoji) | **sada** | čeka tvoj deploy | čeka odluku | čeka odluku |
-| Poziv agencije: prvi put profil (ime, PIB adresa…), postojeća = samo Prihvati | **sada** | čeka tvoj deploy | čeka odluku | čeka odluku |
+| Logo kompanije: dozvoli SVG (vektor, sanitizacija) | urađeno | da | čeka odluku | čeka odluku |
+| Projekat: predlog grada/adrese/opštine + auto PTT/koordinate | urađeno | da | čeka odluku | čeka odluku |
+| Projekat: naslovna slika na S3 + javni preview | urađeno | da | čeka odluku | čeka odluku |
+| Agencija: free partner, bez pretplate / isteka paketa | urađeno | da | čeka odluku | čeka odluku |
+| Poziv agencije: email umesto org ID (pravi partner nalog ako ne postoji) | urađeno | da | čeka odluku | čeka odluku |
+| Poziv agencije: prvi put profil (ime, PIB adresa…), postojeća = samo Prihvati | urađeno | da | čeka odluku | čeka odluku |
 
 **Baza (podaci, ne migracija):** plan `partner` je upsert-ovan na demo/staging i na `my.` (`scripts/apply-agency-partner-data.cjs`). Nema nove Prisma migracije. Top Nekretnine na demo bazi je ACTIVE + partner. Na `my.` još nema agencija.
 
