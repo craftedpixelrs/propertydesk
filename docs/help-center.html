@@ -674,6 +674,15 @@
           </p>
 
           <h3>Prijava</h3>
+          <div class="callout warn">
+            <strong>Pogrešna lozinka</strong>
+            Posle 3 pogrešna pokušaja nalog se zaključava 30 minuta, zatim
+            1h, 6h, 12h, 24h. Posle toga sledi suspenzija dok
+            super-admin ne odblokira nalog u
+            <code>/administracija/korisnici</code> (dugme
+            <em>Odblokiraj prijavu</em>) ili SQL-om na tabeli
+            <code>user</code>.
+          </div>
           <ol class="steps">
             <li>
               <strong>Otvorite aplikaciju</strong>

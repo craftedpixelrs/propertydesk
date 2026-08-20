@@ -109,6 +109,20 @@ export const auth = betterAuth({
             impersonatedBy?: string | null;
             activeOrganizationId?: string | null;
           };
+          if (!s.impersonatedBy) {
+            const lock = await prisma.user.findUnique({
+              where: { id: s.userId },
+              select: { loginLockLevel: true, loginLockedUntil: true },
+            });
+            if (
+              lock &&
+              (lock.loginLockLevel >= 6 ||
+                (lock.loginLockedUntil &&
+                  lock.loginLockedUntil.getTime() > Date.now()))
+            ) {
+              throw new Error("LOGIN_LOCKED");
+            }
+          }
           if (s.activeOrganizationId) return;
           const member = await prisma.member.findFirst({
             where: { userId: s.userId },

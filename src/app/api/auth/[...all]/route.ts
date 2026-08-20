@@ -1,7 +1,62 @@
+import { NextResponse } from "next/server";
 import { toNextJsHandler } from "better-auth/next-js";
 import { auth } from "@/server/auth/auth";
+import {
+  assertCanSignIn,
+  localeFromRequest,
+  loginFailedRemainingMessage,
+  loginLockHttpPayload,
+  recordFailedSignIn,
+  recordSuccessfulSignIn,
+} from "@/server/auth/login-lockout";
 
-export const { GET, POST } = toNextJsHandler(auth);
+const handler = toNextJsHandler(auth);
+
+export const GET = handler.GET;
+
+export async function POST(request: Request) {
+  const path = new URL(request.url).pathname;
+  if (!path.endsWith("/sign-in/email")) {
+    return handler.POST(request);
+  }
+
+  let email = "";
+  try {
+    const body = (await request.clone().json()) as { email?: unknown };
+    if (typeof body.email === "string") email = body.email;
+  } catch {
+    return handler.POST(request);
+  }
+
+  const locale = localeFromRequest(request);
+  const blocked = await assertCanSignIn(email);
+  if (!blocked.ok) {
+    const payload = loginLockHttpPayload(locale, blocked);
+    return NextResponse.json(payload.body, { status: payload.status });
+  }
+
+  const response = await handler.POST(request);
+  if (response.ok) {
+    await recordSuccessfulSignIn(email);
+    return response;
+  }
+
+  if (response.status === 401 || response.status === 400) {
+    const outcome = await recordFailedSignIn(email);
+    if (!outcome.decision.ok) {
+      const payload = loginLockHttpPayload(locale, outcome.decision);
+      return NextResponse.json(payload.body, { status: payload.status });
+    }
+    if (outcome.found && outcome.remaining < 3) {
+      return NextResponse.json(
+        { message: loginFailedRemainingMessage(locale, outcome.remaining) },
+        { status: response.status },
+      );
+    }
+  }
+
+  return response;
+}
 
 /**
  * @swagger
@@ -81,6 +136,10 @@ export const { GET, POST } = toNextJsHandler(auth);
  *       SameSite=Lax) i user objekat. `requireEmailVerification: true`
  *       znači da se ne može ući dok email nije potvrđen.
  *
+ *       Tri pogrešne lozinke zaključavaju nalog: 30 min, pa 1h, 6h, 12h,
+ *       24h, zatim suspenzija dok SUPER_ADMIN ne odblokira
+ *       (`/administracija/korisnici` ili SQL na `user.loginLockLevel`).
+ *
  *       **Swagger Try it out:** Authorize ne može da setuje HttpOnly cookie.
  *       Pozovi ovaj endpoint iz Swaggera na istom originu — browser će sam
  *       sačuvati Set-Cookie i koristiti ga za sledeće pozive.
@@ -122,6 +181,8 @@ export const { GET, POST } = toNextJsHandler(auth);
  *         description: Pogrešan email ili lozinka (namerno generično).
  *       "401":
  *         description: Nalog nije pronađen ili lozinka ne odgovara (Better Auth).
+ *       "403":
+ *         description: Nalog je zaključan ili suspendovan zbog pogrešnih prijava.
  *       "422":
  *         description: Ulaz nije validan (npr. prekratka lozinka, loš email format).
  *         content:

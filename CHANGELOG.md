@@ -5,6 +5,18 @@ follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Fixed — Address suggestions
+
+- Street autocomplete no longer sends house number + “Srbija” to Photon
+  (that returned zero hits). Search uses the street + city bbox, matches
+  Cyrillic city labels, and keeps Latin street names the user typed.
+
+### Added — Login lockout
+
+- Three failed sign-ins lock the account: 30 minutes, then 1h, 6h, 12h,
+  24h, then suspension until a SUPER_ADMIN unlocks it
+  (`/administracija/korisnici` or SQL on `user.login*`).
+
 ### Added — Page guides
 
 - Every sidebar (and settings) page has a short walkthrough: what the

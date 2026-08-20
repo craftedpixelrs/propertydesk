@@ -8,6 +8,7 @@ describe("t()", () => {
     expect(t("nav.reservations")).toBe("Rezervacije");
     expect(t("common.save")).toBe("Sačuvaj");
     expect(t("guides.chrome.open")).toBe("Kako se koristi");
+    expect(t("auth.loginSuspended")).toContain("suspendovan");
   });
 
   it("returns English when locale is en", () => {
@@ -16,6 +17,7 @@ describe("t()", () => {
     expect(t("common.save", undefined, "en")).toBe("Save");
     expect(t("language.label", undefined, "en")).toBe("Language");
     expect(t("guides.chrome.open", undefined, "en")).toBe("How this page works");
+    expect(t("auth.loginSuspended", undefined, "en")).toContain("suspended");
   });
 
   it("uses Serbian diacritics correctly", () => {

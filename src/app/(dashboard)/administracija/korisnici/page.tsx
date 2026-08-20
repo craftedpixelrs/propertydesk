@@ -10,6 +10,8 @@ import { formatDate } from "@/lib/formatters/date";
 import { requireSuperAdmin } from "@/server/permissions/require";
 import { ImpersonateButton } from "@/features/platform-admin/impersonate-button";
 import { EditUserDialog } from "@/features/platform-admin/edit-user-dialog";
+import { UnlockLoginButton } from "@/features/platform-admin/unlock-login-button";
+import { isLoginCurrentlyLocked } from "@/server/auth/login-lockout";
 import { AddUserDialog } from "@/features/platform-admin/add-user-dialog";
 import { UsersFilterBar } from "@/features/platform-admin/users-filter-bar";
 import {
@@ -88,7 +90,9 @@ export default async function PlatformUsersPage({ searchParams }: PageProps) {
   const status =
     params.status === "verified" ||
     params.status === "unverified" ||
-    params.status === "banned"
+    params.status === "banned" ||
+    params.status === "login_locked" ||
+    params.status === "login_suspended"
       ? params.status
       : undefined;
   const platform =
@@ -302,6 +306,7 @@ export default async function PlatformUsersPage({ searchParams }: PageProps) {
                           )}
                         </td>
                         <td className="px-4 py-2 align-top">
+                          <div className="flex flex-col gap-1">
                           {u.banned ? (
                             <Badge tone="danger">{t("admin.usersPage.banned")}</Badge>
                           ) : u.emailVerified ? (
@@ -309,6 +314,25 @@ export default async function PlatformUsersPage({ searchParams }: PageProps) {
                           ) : (
                             <Badge tone="warning">{t("admin.usersPage.unverified")}</Badge>
                           )}
+                          {u.loginLockLevel >= 6 ? (
+                            <Badge tone="danger">{t("admin.usersPage.loginSuspended")}</Badge>
+                          ) : isLoginCurrentlyLocked(
+                              u.loginLockLevel,
+                              u.loginLockedUntil,
+                            ) ? (
+                            <Badge tone="warning">
+                              {t("admin.usersPage.loginLocked", {
+                                level: u.loginLockLevel,
+                              })}
+                            </Badge>
+                          ) : u.loginLockLevel > 0 ? (
+                            <Badge tone="warning">
+                              {t("admin.usersPage.loginLockLadder", {
+                                level: u.loginLockLevel,
+                              })}
+                            </Badge>
+                          ) : null}
+                          </div>
                         </td>
                         <td className="px-4 py-2 text-xs align-top">
                           {formatDate(u.createdAt)}
@@ -327,6 +351,14 @@ export default async function PlatformUsersPage({ searchParams }: PageProps) {
                                 propertyDeskTeam: u.propertyDeskTeam,
                               }}
                             />
+                            {u.loginLockLevel > 0 ||
+                            u.loginFailedAttempts > 0 ||
+                            u.loginLockedUntil ? (
+                              <UnlockLoginButton
+                                userId={u.id}
+                                userName={u.name}
+                              />
+                            ) : null}
                             <ImpersonateButton
                               userId={u.id}
                               userName={u.name}

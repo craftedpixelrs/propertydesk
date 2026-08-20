@@ -20,6 +20,9 @@ export type AuditAction =
   | "auth.password_reset_complete"
   | "auth.email_verified"
   | "auth.account_deactivated"
+  | "auth.account_locked"
+  | "auth.account_suspended"
+  | "auth.account_unlocked"
   // Organizations & tenancy
   | "organization.created"
   | "organization.updated"

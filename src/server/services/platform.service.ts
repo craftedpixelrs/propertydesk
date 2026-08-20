@@ -818,6 +818,9 @@ export interface PlatformUserRow {
   emailVerified: boolean;
   banned: boolean;
   banReason: string | null;
+  loginFailedAttempts: number;
+  loginLockLevel: number;
+  loginLockedUntil: Date | null;
   createdAt: Date;
   memberships: Array<{
     organizationId: string;
@@ -828,7 +831,12 @@ export interface PlatformUserRow {
   propertyDeskTeam: PlatformUserPropertyDeskTeam | null;
 }
 
-export type PlatformUserStatusFilter = "verified" | "unverified" | "banned";
+export type PlatformUserStatusFilter =
+  | "verified"
+  | "unverified"
+  | "banned"
+  | "login_locked"
+  | "login_suspended";
 export type PlatformUserLayerFilter = "SUPER_ADMIN" | "user";
 
 export interface ListPlatformUsersInput {
@@ -891,7 +899,16 @@ export function buildPlatformUserListWhere(
   const statusFilter: Prisma.UserWhereInput =
     input.status === "banned"
       ? { banned: true }
-      : input.status === "verified"
+      : input.status === "login_suspended"
+        ? { loginLockLevel: 6 }
+        : input.status === "login_locked"
+          ? {
+              OR: [
+                { loginLockLevel: 6 },
+                { loginLockedUntil: { gt: new Date() } },
+              ],
+            }
+          : input.status === "verified"
         ? { emailVerified: true, banned: { not: true } }
         : input.status === "unverified"
           ? { emailVerified: false, banned: { not: true } }
@@ -954,6 +971,9 @@ export async function listAllUsers(
     emailVerified: u.emailVerified,
     banned: Boolean((u as { banned?: boolean | null }).banned),
     banReason: (u as { banReason?: string | null }).banReason ?? null,
+    loginFailedAttempts: u.loginFailedAttempts,
+    loginLockLevel: u.loginLockLevel,
+    loginLockedUntil: u.loginLockedUntil,
     createdAt: u.createdAt,
     memberships: u.memberships.map((m) => ({
       organizationId: m.organizationId,
@@ -980,6 +1000,8 @@ export interface UpdatePlatformUserInput {
   emailVerified?: boolean;
   banned?: boolean;
   banReason?: string | null;
+  /** Clears failed-login lock / suspension at any level. */
+  unlockLogin?: boolean;
   /** `SUPER_ADMIN` to grant platform access; `null` to revoke it. */
   platformRole?: "SUPER_ADMIN" | null;
   propertyDeskTeam?: {
@@ -1072,6 +1094,10 @@ export async function updatePlatformUser(
   }
   if (input.platformRole !== undefined) {
     data.role = input.platformRole;
+  }
+  if (input.unlockLogin === true) {
+    const { unlockLoginByAdmin } = await import("@/server/auth/login-lockout");
+    await unlockLoginByAdmin(userId, actorUserId);
   }
 
   const previousSnapshot = {
@@ -1201,6 +1227,9 @@ export async function updatePlatformUser(
     emailVerified: reloaded.emailVerified,
     banned: Boolean(reloaded.banned),
     banReason: reloaded.banReason ?? null,
+    loginFailedAttempts: reloaded.loginFailedAttempts,
+    loginLockLevel: reloaded.loginLockLevel,
+    loginLockedUntil: reloaded.loginLockedUntil,
     createdAt: reloaded.createdAt,
     memberships: reloaded.memberships.map((m) => ({
       organizationId: m.organizationId,
@@ -1434,6 +1463,9 @@ export async function createPlatformUser(
     emailVerified: reloaded.emailVerified,
     banned: Boolean(reloaded.banned),
     banReason: reloaded.banReason ?? null,
+    loginFailedAttempts: reloaded.loginFailedAttempts,
+    loginLockLevel: reloaded.loginLockLevel,
+    loginLockedUntil: reloaded.loginLockedUntil,
     createdAt: reloaded.createdAt,
     memberships: reloaded.memberships.map((m) => ({
       organizationId: m.organizationId,

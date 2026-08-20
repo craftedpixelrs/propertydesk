@@ -30,7 +30,10 @@
 
 Better Auth mounts at `/api/auth/*`. Frontend uses the client in
 [`src/lib/api-client/*`](../src/lib/api-client/). Auth endpoints are
-rate-limited by Better Auth's built-in limiter.
+rate-limited by Better Auth's built-in limiter. `POST /api/auth/sign-in/email`
+also applies progressive lockout (3 failures → 30m / 1h / 6h / 12h /
+24h / suspend). SUPER_ADMIN unlocks via
+`PATCH /api/v1/platform/users/:id` `{ unlockLogin: true }`.
 
 ## Domain
 

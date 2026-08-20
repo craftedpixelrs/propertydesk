@@ -59,5 +59,8 @@ describe("buildPlatformUserListWhere", () => {
     expect(buildPlatformUserListWhere({ platform: "SUPER_ADMIN" })).toEqual({
       role: "SUPER_ADMIN",
     });
+    expect(buildPlatformUserListWhere({ status: "login_suspended" })).toEqual({
+      loginLockLevel: 6,
+    });
   });
 });

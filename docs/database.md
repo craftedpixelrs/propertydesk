@@ -15,7 +15,7 @@ Migrations live under `prisma/migrations/`. Domain models:
 
 | Domain | Models |
 |--------|--------|
-| **Auth (Better Auth core)** | `User`, `Session`, `Account`, `Verification`, `Organization`, `Member`, `Invitation` |
+| **Auth (Better Auth core)** | `User` (+ `loginFailedAttempts` / `loginLockLevel` / `loginLockedUntil`), `Session`, `Account`, `Verification`, `Organization`, `Member`, `Invitation` |
 | **Tenant profile / billing** | `OrganizationProfile`, `SaaSPlan` (investor SKUs + hidden `partner` for agencies), `OrganizationSubscription` |
 | **Platform** | `AuditLog`, `Notification`, `SystemHealthCheck` |
 | **Inventory** | `Project`, `Building`, `Entrance`, `Floor`, `Unit`, `UnitPriceHistory`, `UnitStatusHistory` |
@@ -142,6 +142,24 @@ never has to fall back to sequential scans. Faza 8 added:
 - `sale_contract_template (organizationId, kind, isActive)`.
 - `payment_plan_template (organizationId, projectId)`.
 - `system_health_check (kind, runAt)` — recent-first health lookups.
+
+## Login lockout (`User`)
+
+Three wrong passwords escalate the lock: 30 minutes → 1 hour → 6 hours →
+12 hours → 24 hours → **suspended** (`loginLockLevel = 6`) until a
+SUPER_ADMIN unlocks the account in `/administracija/korisnici` or via
+SQL:
+
+```sql
+UPDATE "user"
+SET "loginFailedAttempts" = 0,
+    "loginLockLevel" = 0,
+    "loginLockedUntil" = NULL
+WHERE email = 'user@example.com';
+```
+
+A successful sign-in also clears the ladder. Timed locks do not
+increment while `loginLockedUntil` is still in the future.
 
 ## Migrations
 

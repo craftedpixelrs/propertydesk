@@ -1,6 +1,13 @@
 import "server-only";
 
 import {
+  cityBbox,
+  cityNameMatches,
+  formatStreetAddress,
+  preferTypedStreetLabel,
+  splitStreetAndNumber,
+} from "@/lib/geo/address-query";
+import {
   findSerbiaCity,
   postalCodeForMunicipality,
   suggestSerbiaPlaces,
@@ -25,11 +32,14 @@ const USER_AGENT = "PropertyDesk/1.0 (geo@propertydesk.app)";
 type PhotonFeature = {
   geometry?: { coordinates?: [number, number] };
   properties?: {
+    osm_id?: number | string;
+    osm_id?: number | string;
     name?: string;
     street?: string;
     housenumber?: string;
     city?: string;
     district?: string;
+    locality?: string;
     county?: string;
     postcode?: string;
     country?: string;
@@ -49,9 +59,8 @@ function placeToSuggestion(place: SerbiaPlace): GeoSuggestion {
   };
 }
 
-function photonAddressLabel(props: NonNullable<PhotonFeature["properties"]>): string {
-  const street = [props.housenumber, props.street].filter(Boolean).join(" ").trim();
-  return street || props.name?.trim() || "";
+function photonStreetName(props: NonNullable<PhotonFeature["properties"]>): string {
+  return (props.street ?? props.name ?? "").trim();
 }
 
 function isSerbia(props: NonNullable<PhotonFeature["properties"]>): boolean {
@@ -68,6 +77,48 @@ export function suggestLocalPlaces(
   return suggestSerbiaPlaces(kind, query, city).map(placeToSuggestion);
 }
 
+async function fetchStreetFeatures(
+  street: string,
+  cityName: string,
+): Promise<PhotonFeature[]> {
+  const cityPlace = findSerbiaCity(cityName);
+  const seen = new Set<string>();
+  const out: PhotonFeature[] = [];
+
+  const variants: URLSearchParams[] = [
+    new URLSearchParams({
+      q: street,
+      limit: "8",
+      lang: "en",
+      layer: "street",
+    }),
+    new URLSearchParams({
+      q: `${street}, ${cityName}`,
+      limit: "8",
+      lang: "en",
+      layer: "street",
+    }),
+  ];
+
+  for (const params of variants) {
+    if (cityPlace) {
+      params.set("lat", String(cityPlace.lat));
+      params.set("lon", String(cityPlace.lng));
+      params.set("bbox", cityBbox(cityPlace.lat, cityPlace.lng));
+    }
+    for (const feature of await fetchPhoton(params)) {
+      const props = feature.properties ?? {};
+      const key = `${props.osm_id ?? ""}:${photonStreetName(props)}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      out.push(feature);
+    }
+    if (out.length >= 8) break;
+  }
+
+  return out;
+}
+
 export async function suggestAddresses(
   query: string,
   city: string,
@@ -76,30 +127,13 @@ export async function suggestAddresses(
   const cityName = city.trim();
   if (q.length < 2 || !cityName) return [];
 
-  const cityPlace = findSerbiaCity(cityName);
-  const params = new URLSearchParams({
-    q: `${q}, ${cityName}, Srbija`,
-    limit: "8",
-    lang: "default",
-  });
-  if (cityPlace) {
-    params.set("lat", String(cityPlace.lat));
-    params.set("lon", String(cityPlace.lng));
-  }
+  const { street, house } = splitStreetAndNumber(q);
+  const search = street.length >= 2 ? street : q;
+  const features = await fetchStreetFeatures(search, cityName);
 
-  const features = await fetchPhoton(params);
-  const cityNorm = cityName.toLowerCase();
   return features
-    .map((feature) => toAddressSuggestion(feature, cityName))
-    .filter((row): row is GeoSuggestion => {
-      if (!row?.address) return false;
-      const featureCity = (row.city || "").toLowerCase();
-      return (
-        featureCity.includes(cityNorm) ||
-        cityNorm.includes(featureCity) ||
-        featureCity.length === 0
-      );
-    })
+    .map((feature) => toAddressSuggestion(feature, cityName, search, house))
+    .filter((row): row is GeoSuggestion => Boolean(row?.address))
     .slice(0, 8);
 }
 
@@ -107,21 +141,8 @@ export async function geocodeAddress(
   address: string,
   city: string,
 ): Promise<GeoSuggestion | null> {
-  const q = address.trim();
-  const cityName = city.trim();
-  if (!q || !cityName) return null;
-  const cityPlace = findSerbiaCity(cityName);
-  const params = new URLSearchParams({
-    q: `${q}, ${cityName}, Srbija`,
-    limit: "1",
-    lang: "default",
-  });
-  if (cityPlace) {
-    params.set("lat", String(cityPlace.lat));
-    params.set("lon", String(cityPlace.lng));
-  }
-  const features = await fetchPhoton(params);
-  return features[0] ? toAddressSuggestion(features[0], cityName) : null;
+  const items = await suggestAddresses(address, city);
+  return items[0] ?? null;
 }
 
 export function lookupPostalCode(municipality: string, city?: string): string | null {
@@ -150,16 +171,33 @@ async function fetchPhoton(params: URLSearchParams): Promise<PhotonFeature[]> {
 function toAddressSuggestion(
   feature: PhotonFeature,
   fallbackCity: string,
+  typedStreet?: string,
+  house?: string | null,
 ): GeoSuggestion | null {
   const props = feature.properties ?? {};
   if (!isSerbia(props)) return null;
-  const label = photonAddressLabel(props);
+  if (
+    !cityNameMatches(fallbackCity, [
+      props.city,
+      props.district,
+      props.locality,
+    ])
+  ) {
+    return null;
+  }
+  const osmStreet = photonStreetName(props);
+  const street = preferTypedStreetLabel(osmStreet, typedStreet ?? osmStreet);
+  const label = formatStreetAddress(street, house ?? props.housenumber ?? null);
   if (!label) return null;
   const [lng, lat] = feature.geometry?.coordinates ?? [];
   return {
     label,
-    city: props.city?.trim() || fallbackCity,
-    municipality: props.district?.trim() || props.county?.trim() || null,
+    city: fallbackCity,
+    municipality:
+      props.district?.trim() ||
+      props.locality?.trim() ||
+      props.county?.trim() ||
+      null,
     address: label,
     postalCode: props.postcode?.trim() || null,
     latitude: typeof lat === "number" ? lat : null,

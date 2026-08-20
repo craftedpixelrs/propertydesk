@@ -172,6 +172,9 @@ export const adminSr = {
     banned: "Banovan",
     verified: "Verifikovan",
     unverified: "Neverifikovan",
+    loginSuspended: "Prijava suspendovana",
+    loginLocked: "Prijava zaključana (nivo {{level}})",
+    loginLockLadder: "Lock nivo {{level}} (istekao)",
   },
 
   usersFilter: {
@@ -191,6 +194,8 @@ export const adminSr = {
     verified: "Verifikovan",
     unverified: "Neverifikovan",
     banned: "Banovan",
+    loginLocked: "Zaključana prijava",
+    loginSuspended: "Suspendovana prijava",
     platformAria: "Platformska uloga",
     allPlatform: "Svi — platforma",
     regularUser: "Običan korisnik",
@@ -285,6 +290,13 @@ export const adminSr = {
     leadScope: "Obim lead-ova",
     activeInTeam: "Aktivan u timu",
     failed: "Izmena korisnika nije uspela.",
+  },
+
+  unlockLogin: {
+    trigger: "Odblokiraj prijavu",
+    confirm:
+      "Odblokirati prijavu za {{name}}? Briše se lock, suspenzija i brojač pogrešnih pokušaja.",
+    failed: "Odblokada prijave nije uspela.",
   },
 
   addUser: {
@@ -1572,6 +1584,9 @@ export const adminEn: Leaves<typeof adminSr> = {
     banned: "Banned",
     verified: "Verified",
     unverified: "Unverified",
+    loginSuspended: "Sign-in suspended",
+    loginLocked: "Sign-in locked (level {{level}})",
+    loginLockLadder: "Lock level {{level}} (expired)",
   },
 
   usersFilter: {
@@ -1591,6 +1606,8 @@ export const adminEn: Leaves<typeof adminSr> = {
     verified: "Verified",
     unverified: "Unverified",
     banned: "Banned",
+    loginLocked: "Locked sign-in",
+    loginSuspended: "Suspended sign-in",
     platformAria: "Platform role",
     allPlatform: "All — platform",
     regularUser: "Regular user",
@@ -1685,6 +1702,13 @@ export const adminEn: Leaves<typeof adminSr> = {
     leadScope: "Lead scope",
     activeInTeam: "Active on the team",
     failed: "Could not update the user.",
+  },
+
+  unlockLogin: {
+    trigger: "Unlock sign-in",
+    confirm:
+      "Unlock sign-in for {{name}}? This clears the lock, suspension, and failed-attempt counter.",
+    failed: "Could not unlock sign-in.",
   },
 
   addUser: {

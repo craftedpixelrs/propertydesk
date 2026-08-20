@@ -182,6 +182,19 @@ export const srLatn = {
     accountDeactivated: "Vaš nalog je deaktiviran. Kontaktirajte administratora.",
     organizationSuspended:
       "Vaša organizacija je trenutno suspendovana. Kontaktirajte podršku.",
+    loginFailedRemaining:
+      "Pogrešan email ili lozinka. Preostalo pokušaja pre zaključavanja: {{remaining}}.",
+    loginLocked:
+      "Nalog je zaključan zbog pogrešnih prijava ({{duration}}). Pokušajte ponovo {{until}}.",
+    loginSuspended:
+      "Nalog je suspendovan zbog previše neuspešnih prijava. Super-admin mora da odblokira nalog.",
+    loginLockDuration: {
+      l1: "30 minuta",
+      l2: "1 sat",
+      l3: "6 sati",
+      l4: "12 sati",
+      l5: "24 sata",
+    },
   },
 
   orgProfile: {

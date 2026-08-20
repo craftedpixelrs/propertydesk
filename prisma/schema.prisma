@@ -46,6 +46,12 @@ model User {
   // Per-user UI language (`sr-Latn` | `en`). Independent of org / invoices.
   locale String @default("sr-Latn")
 
+  // Progressive login lockout: 3 failed passwords escalate
+  // 30m → 1h → 6h → 12h → 24h → suspended until SUPER_ADMIN unlock.
+  loginFailedAttempts Int       @default(0)
+  loginLockLevel      Int       @default(0)
+  loginLockedUntil    DateTime?
+
   accounts         Account[]
   sessions         Session[]
   memberships      Member[]
@@ -107,6 +113,7 @@ model User {
   marketingLeadTasksCompleted  MarketingLeadTask[]          @relation("MarketingLeadTaskCompleter")
 
   @@index([email])
+  @@index([loginLockLevel])
   @@map("user")
 }
 

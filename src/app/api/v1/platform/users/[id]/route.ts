@@ -12,6 +12,7 @@ const patchBody = z.object({
   emailVerified: z.boolean().optional(),
   banned: z.boolean().optional(),
   banReason: z.string().trim().max(500).nullable().optional(),
+  unlockLogin: z.boolean().optional(),
   platformRole: z.enum(["SUPER_ADMIN"]).nullable().optional(),
   propertyDeskTeam: z
     .object({
@@ -50,7 +51,8 @@ export const PATCH = apiHandler(
  *     description: |
  *       **Auth:** `requireSuperAdmin() — platform SUPER_ADMIN`
  *
- *       Menja nalog (ime, e-mail, verifikacija, ban, platformska uloga) i
+ *       Menja nalog (ime, e-mail, verifikacija, ban, odblokada prijave,
+ *       platformska uloga) i
  *       opciono članstvo u Property Desk internom timu (Sloj C). Aplikacione
  *       uloge unutar tenanta (Sloj B) se ne menjaju ovde.
  *     parameters:

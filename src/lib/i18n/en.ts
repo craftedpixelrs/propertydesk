@@ -177,6 +177,19 @@ export const en: Dictionary = {
     accountDeactivated: "Your account is deactivated. Contact an administrator.",
     organizationSuspended:
       "Your organization is currently suspended. Contact support.",
+    loginFailedRemaining:
+      "Wrong email or password. Attempts left before lock: {{remaining}}.",
+    loginLocked:
+      "This account is locked after failed sign-ins ({{duration}}). Try again {{until}}.",
+    loginSuspended:
+      "This account is suspended after too many failed sign-ins. A super-admin must unlock it.",
+    loginLockDuration: {
+      l1: "30 minutes",
+      l2: "1 hour",
+      l3: "6 hours",
+      l4: "12 hours",
+      l5: "24 hours",
+    },
   },
 
   orgProfile: {

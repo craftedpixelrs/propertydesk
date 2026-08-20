@@ -265,6 +265,9 @@ Verzija: **v1** · Datum lansiranja: **01.09.2026.**
 ## 16. Sigurnost
 
 - Rate limiting na sve `/public/*` rute + login + sensitive actions.
+- **Lock prijave** — 3 pogrešne lozinke: 30 min → 1h → 6h → 12h →
+  24h → suspenzija dok SUPER_ADMIN ne odblokira
+  (`/administracija/korisnici` ili SQL na `user.login*`).
 - CSRF preko Better Auth + `SameSite=Lax` cookies.
 - Passwordless magic link (dozvoljeno je i lozinkama).
 - Encrypted at rest (Postgres AES) + TLS in transit.

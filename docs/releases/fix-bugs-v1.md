@@ -38,10 +38,15 @@ Staging i demo dele **istu bazu i fajlove**. Sesije su odvojene po hostu.
 | Agencija: free partner, bez pretplate / isteka paketa | urađeno | da | čeka odluku | čeka odluku |
 | Poziv agencije: email umesto org ID (pravi partner nalog ako ne postoji) | urađeno | da | čeka odluku | čeka odluku |
 | Poziv agencije: prvi put profil (ime, PIB adresa…), postojeća = samo Prihvati | urađeno | da | čeka odluku | čeka odluku |
-| Agencija: sva polja sem sajta obavezna na registraciji i posle prijave | **sada** | čeka tvoj deploy | čeka odluku | čeka odluku |
-| Vodič po stranici (sidebar): čemu služi, Previous/Next, sr/en | **sada** | čeka tvoj deploy | čeka odluku | čeka odluku |
+| Agencija: sva polja sem sajta obavezna na registraciji i posle prijave | urađeno | da | čeka odluku | čeka odluku |
+| Vodič po stranici (sidebar): čemu služi, Previous/Next, sr/en | urađeno | da | čeka odluku | čeka odluku |
+| Lock prijave: 3× greška → 30m / 1h / 6h / 12h / 24h / suspenzija | **sada** | čeka tvoj deploy + migracija | čeka odluku | čeka odluku |
 
-**Baza (podaci, ne migracija):** plan `partner` je upsert-ovan na demo/staging i na `my.` (`scripts/apply-agency-partner-data.cjs`). Nema nove Prisma migracije. Top Nekretnine na demo bazi je ACTIVE + partner. Na `my.` još nema agencija.
+**Baza:** plan `partner` je upsert (nije migracija). **Nova migracija**
+`20260820140000_user_login_lockout` — `loginFailedAttempts`,
+`loginLockLevel`, `loginLockedUntil` na `user`. Pri deployu staginga:
+`npx prisma migrate deploy` u `app-staging`. Top Nekretnine na demo
+bazi je ACTIVE + partner. Na `my.` još nema agencija.
 
 Kad se pojavi sledeći bug, dodaj red ovde. Ne otvaraj novi train dok
 ovaj ne završimo ili ga svesno zatvorimo.

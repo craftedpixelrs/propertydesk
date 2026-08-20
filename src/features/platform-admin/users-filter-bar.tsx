@@ -178,6 +178,8 @@ export function UsersFilterBar({
         <option value="verified">{t("admin.usersFilter.verified")}</option>
         <option value="unverified">{t("admin.usersFilter.unverified")}</option>
         <option value="banned">{t("admin.usersFilter.banned")}</option>
+        <option value="login_locked">{t("admin.usersFilter.loginLocked")}</option>
+        <option value="login_suspended">{t("admin.usersFilter.loginSuspended")}</option>
       </select>
       <select
         value={values.platform}
