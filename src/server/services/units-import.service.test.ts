@@ -83,10 +83,15 @@ describe("validateRows", () => {
 });
 
 describe("import template", () => {
-  it("emits canonical headers and sample rows that pass validation", () => {
-    const csv = buildImportTemplateCsv();
-    expect(csv.startsWith("\uFEFF")).toBe(true);
-    expect(csv).toContain(UNIT_IMPORT_TEMPLATE_COLUMNS.join(","));
+  it("emits localized headers and sample rows that pass validation", () => {
+    const csvSr = buildImportTemplateCsv("sr-Latn");
+    expect(csvSr.startsWith("\uFEFF")).toBe(true);
+    expect(csvSr).toContain("Šifra,Tip,Status");
+    expect(csvSr).toContain("Ukupna površina");
+
+    const csvEn = buildImportTemplateCsv("en");
+    expect(csvEn).toContain("Code,Type,Status");
+    expect(csvEn).toContain("Total area");
 
     const identityMap: HeaderMap = Object.fromEntries(
       UNIT_IMPORT_TEMPLATE_COLUMNS.map((col) => [col, col]),

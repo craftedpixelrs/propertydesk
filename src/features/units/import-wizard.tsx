@@ -5,9 +5,10 @@ import { useRouter } from "next/navigation";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { useT } from "@/components/app/i18n-provider";
+import { useI18n, useT } from "@/components/app/i18n-provider";
 import { apiClient, ApiClientError } from "@/lib/api-client";
 import type { TranslateFn } from "@/lib/i18n";
+import { guessImportField } from "@/lib/inventory/unit-import-columns";
 
 type Step = "upload" | "map" | "preview" | "done";
 
@@ -48,58 +49,13 @@ function importFields(t: TranslateFn): { value: string; label: string }[] {
   ];
 }
 
-const AUTO_MAP: Record<string, string> = {
-  code: "code",
-  "šifra": "code",
-  sifra: "code",
-  type: "type",
-  tip: "type",
-  status: "status",
-  buildingcode: "buildingCode",
-  building_code: "buildingCode",
-  objekat: "buildingCode",
-  entrancecode: "entranceCode",
-  ulaz: "entranceCode",
-  floorlabel: "floorLabel",
-  sprat: "floorLabel",
-  totalarea: "totalArea",
-  ukupna: "totalArea",
-  povrsina: "totalArea",
-  površina: "totalArea",
-  internalarea: "internalArea",
-  neto: "internalArea",
-  terracearea: "terraceArea",
-  terasa: "terraceArea",
-  gardenarea: "gardenArea",
-  basta: "gardenArea",
-  bašta: "gardenArea",
-  baseprice: "basePrice",
-  cena: "basePrice",
-  finalprice: "finalPrice",
-  currency: "currency",
-  valuta: "currency",
-  vatrate: "vatRate",
-  pdv: "vatRate",
-  bedrooms: "bedrooms",
-  spavace: "bedrooms",
-  bathrooms: "bathrooms",
-  kupatila: "bathrooms",
-  orientation: "orientation",
-  orijentacija: "orientation",
-  publicdescription: "publicDescription",
-  javnideskripcija: "publicDescription",
-  internalnotes: "internalNotes",
-  napomena: "internalNotes",
-  externalreference: "externalReference",
-};
-
 function autoMap(header: string): string | null {
-  const key = header.toLowerCase().replace(/[^a-z0-9]/g, "");
-  return AUTO_MAP[key] ?? null;
+  return guessImportField(header);
 }
 
 export function ImportWizard({ projectId }: { projectId: string }) {
   const t = useT();
+  const { locale } = useI18n();
   const fields = useMemo(() => importFields(t), [t]);
   const router = useRouter();
   const [step, setStep] = useState<Step>("upload");
@@ -212,16 +168,24 @@ export function ImportWizard({ projectId }: { projectId: string }) {
               <div className="mt-3 flex flex-wrap gap-2">
                 <Button variant="outline" size="sm" asChild>
                   <a
-                    href={`/api/v1/projects/${projectId}/units/import?format=csv`}
-                    download="propertydesk-jedinice-sablon.csv"
+                    href={`/api/v1/projects/${projectId}/units/import?format=csv&locale=${locale}`}
+                    download={
+                      locale === "en"
+                        ? "propertydesk-units-template.csv"
+                        : "propertydesk-jedinice-sablon.csv"
+                    }
                   >
                     {t("inventory.import.downloadCsv")}
                   </a>
                 </Button>
                 <Button variant="outline" size="sm" asChild>
                   <a
-                    href={`/api/v1/projects/${projectId}/units/import?format=xlsx`}
-                    download="propertydesk-jedinice-sablon.xlsx"
+                    href={`/api/v1/projects/${projectId}/units/import?format=xlsx&locale=${locale}`}
+                    download={
+                      locale === "en"
+                        ? "propertydesk-units-template.xlsx"
+                        : "propertydesk-jedinice-sablon.xlsx"
+                    }
                   >
                     {t("inventory.import.downloadXlsx")}
                   </a>

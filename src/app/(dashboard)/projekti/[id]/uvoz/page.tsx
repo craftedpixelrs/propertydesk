@@ -5,6 +5,11 @@ import { getProjectById } from "@/server/services/projects.service";
 import { isDomainError } from "@/lib/errors";
 import { createT } from "@/lib/i18n";
 import { ImportWizard } from "@/features/units/import-wizard";
+import {
+  REQUIRED_IMPORT_FIELDS,
+  UNIT_IMPORT_TEMPLATE_COLUMNS,
+  unitImportHeaderKey,
+} from "@/lib/inventory/unit-import-columns";
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -35,13 +40,23 @@ export default async function ImportPage({ params }: Props) {
         </div>
         <h1 className="text-2xl font-semibold">{t("import.title")}</h1>
         <p className="text-sm text-[var(--color-foreground-muted)]">
-          {t("inventory.import.requiredLead")} <code>code</code>, <code>type</code>,{" "}
-          <code>totalArea</code>, <code>basePrice</code> {t("inventory.import.areRequired")}{" "}
-          <code>buildingCode</code>, <code>entranceCode</code>, <code>floorLabel</code>,{" "}
-          <code>status</code>, <code>finalPrice</code>, <code>currency</code>,{" "}
-          <code>vatRate</code>, <code>bedrooms</code>, <code>bathrooms</code>,{" "}
-          <code>orientation</code>, <code>publicDescription</code>,{" "}
-          <code>internalNotes</code>, <code>externalReference</code>.
+          {t("inventory.import.requiredLead")}{" "}
+          {REQUIRED_IMPORT_FIELDS.map((field, i) => (
+            <span key={field}>
+              {i > 0 ? ", " : null}
+              <code>{t(unitImportHeaderKey(field))}</code>
+            </span>
+          ))}{" "}
+          {t("inventory.import.areRequired")}{" "}
+          {UNIT_IMPORT_TEMPLATE_COLUMNS.filter(
+            (field) => !REQUIRED_IMPORT_FIELDS.includes(field),
+          ).map((field, i) => (
+            <span key={field}>
+              {i > 0 ? ", " : null}
+              <code>{t(unitImportHeaderKey(field))}</code>
+            </span>
+          ))}
+          .
         </p>
       </div>
       <ImportWizard projectId={project.id} />

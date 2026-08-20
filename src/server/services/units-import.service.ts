@@ -8,6 +8,19 @@ import { prisma } from "@/server/db/prisma";
 import { DomainErrors } from "@/lib/errors";
 import { recordAudit } from "@/server/audit/audit";
 import { assertQuota } from "@/server/services/quotas.service";
+import { DEFAULT_LOCALE, type Locale } from "@/lib/i18n";
+import {
+  REQUIRED_IMPORT_FIELDS,
+  UNIT_IMPORT_TEMPLATE_COLUMNS,
+  unitImportHeader,
+  type UnitImportField,
+} from "@/lib/inventory/unit-import-columns";
+
+export {
+  REQUIRED_IMPORT_FIELDS as REQUIRED_FIELDS,
+  UNIT_IMPORT_TEMPLATE_COLUMNS,
+  type UnitImportField,
+};
 
 /**
  * Units import & export.
@@ -29,62 +42,9 @@ import { assertQuota } from "@/server/services/quotas.service";
 // Header mapping
 // -----------------------------------------------------------------------------
 
-export type UnitImportField =
-  | "code"
-  | "type"
-  | "status"
-  | "buildingCode"
-  | "entranceCode"
-  | "floorLabel"
-  | "totalArea"
-  | "internalArea"
-  | "terraceArea"
-  | "gardenArea"
-  | "basePrice"
-  | "finalPrice"
-  | "currency"
-  | "vatRate"
-  | "bedrooms"
-  | "bathrooms"
-  | "orientation"
-  | "publicDescription"
-  | "internalNotes"
-  | "externalReference";
-
 export interface HeaderMap {
   [column: string]: UnitImportField | null;
 }
-
-export const REQUIRED_FIELDS: UnitImportField[] = [
-  "code",
-  "type",
-  "totalArea",
-  "basePrice",
-];
-
-/** Canonical column order for the downloadable import template. */
-export const UNIT_IMPORT_TEMPLATE_COLUMNS: UnitImportField[] = [
-  "code",
-  "type",
-  "status",
-  "buildingCode",
-  "entranceCode",
-  "floorLabel",
-  "totalArea",
-  "internalArea",
-  "terraceArea",
-  "gardenArea",
-  "basePrice",
-  "finalPrice",
-  "currency",
-  "vatRate",
-  "bedrooms",
-  "bathrooms",
-  "orientation",
-  "publicDescription",
-  "internalNotes",
-  "externalReference",
-];
 
 export const UNIT_IMPORT_TEMPLATE_SAMPLE: Record<UnitImportField, string>[] = [
   {
@@ -133,8 +93,10 @@ export const UNIT_IMPORT_TEMPLATE_SAMPLE: Record<UnitImportField, string>[] = [
   },
 ];
 
-export function buildImportTemplateCsv(): string {
-  const header = UNIT_IMPORT_TEMPLATE_COLUMNS.join(",");
+export function buildImportTemplateCsv(locale: Locale = DEFAULT_LOCALE): string {
+  const header = UNIT_IMPORT_TEMPLATE_COLUMNS.map((col) =>
+    csvEscape(unitImportHeader(col, locale)),
+  ).join(",");
   const lines = UNIT_IMPORT_TEMPLATE_SAMPLE.map((row) =>
     UNIT_IMPORT_TEMPLATE_COLUMNS.map((col) => csvEscape(row[col] ?? "")).join(
       ",",
@@ -143,14 +105,19 @@ export function buildImportTemplateCsv(): string {
   return `\uFEFF${[header, ...lines].join("\r\n")}\r\n`;
 }
 
-export async function buildImportTemplateXlsx(): Promise<Buffer> {
+export async function buildImportTemplateXlsx(
+  locale: Locale = DEFAULT_LOCALE,
+): Promise<Buffer> {
   const wb = new ExcelJS.Workbook();
-  const ws = wb.addWorksheet("Jedinice");
-  ws.columns = UNIT_IMPORT_TEMPLATE_COLUMNS.map((key) => ({
-    header: key,
-    key,
-    width: Math.max(14, key.length + 2),
-  }));
+  const ws = wb.addWorksheet(locale === "en" ? "Units" : "Jedinice");
+  ws.columns = UNIT_IMPORT_TEMPLATE_COLUMNS.map((key) => {
+    const header = unitImportHeader(key, locale);
+    return {
+      header,
+      key,
+      width: Math.max(14, header.length + 2),
+    };
+  });
   for (const row of UNIT_IMPORT_TEMPLATE_SAMPLE) {
     ws.addRow(row);
   }

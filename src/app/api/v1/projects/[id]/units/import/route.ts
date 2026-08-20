@@ -2,6 +2,7 @@ import { z } from "zod";
 import { NextResponse } from "next/server";
 
 import { apiHandler } from "@/lib/api/handler";
+import { localeFromRequest, parseLocale } from "@/lib/i18n";
 import { requirePermission } from "@/server/permissions/require";
 import {
   buildImportTemplateCsv,
@@ -66,24 +67,28 @@ const importBodySchema = z.discriminatedUnion("action", [
 
 export const GET = apiHandler({ paramsSchema }, async ({ req }) => {
   await requirePermission("inventory.import");
+  const locale =
+    parseLocale(req.nextUrl.searchParams.get("locale")) ?? localeFromRequest(req);
   const format = req.nextUrl.searchParams.get("format") === "xlsx" ? "xlsx" : "csv";
+  const filename =
+    locale === "en"
+      ? `propertydesk-units-template.${format}`
+      : `propertydesk-jedinice-sablon.${format}`;
   if (format === "xlsx") {
-    const buffer = await buildImportTemplateXlsx();
+    const buffer = await buildImportTemplateXlsx(locale);
     return new NextResponse(new Uint8Array(buffer), {
       headers: {
         "content-type":
           "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        "content-disposition":
-          'attachment; filename="propertydesk-jedinice-sablon.xlsx"',
+        "content-disposition": `attachment; filename="${filename}"`,
       },
     });
   }
-  const csv = buildImportTemplateCsv();
+  const csv = buildImportTemplateCsv(locale);
   return new NextResponse(csv, {
     headers: {
       "content-type": "text/csv; charset=utf-8",
-      "content-disposition":
-        'attachment; filename="propertydesk-jedinice-sablon.csv"',
+      "content-disposition": `attachment; filename="${filename}"`,
     },
   });
 });

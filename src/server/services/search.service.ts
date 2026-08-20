@@ -89,7 +89,7 @@ export async function runGlobalSearch(input: {
         }).catch(() => ({ items: [] }))
       : empty();
   const buyersP =
-    organizationId && perms.has("buyer.read")
+    organizationId && perms.has("lead.read")
       ? listBuyers({
           organizationId,
           page: 1,

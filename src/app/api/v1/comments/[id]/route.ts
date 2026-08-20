@@ -7,13 +7,13 @@ import { deleteComment } from "@/server/services/comments/comments.service";
 const paramsSchema = z.object({ id: z.string().min(1).max(64) });
 
 /**
- * Deleting a comment requires either `buyer.read` or `sale.read` — the
+ * Deleting a comment requires either `lead.read` or `sale.read` — the
  * service itself enforces authorship, so requiring the more restrictive
  * `.write` variants here would just prevent authors from cleaning up
  * their own typos.
  */
 export const DELETE = apiHandler({ paramsSchema }, async ({ params }) => {
-  const ctx = await requirePermission("buyer.read").catch(() =>
+  const ctx = await requirePermission("lead.read").catch(() =>
     requirePermission("sale.read"),
   );
   await deleteComment({
@@ -33,7 +33,7 @@ export const DELETE = apiHandler({ paramsSchema }, async ({ params }) => {
  *       - comments
  *     summary: Delete comments
  *     description: |
- *       **Auth:** `requirePermission("buyer.read") + requirePermission("sale.read")`
+ *       **Auth:** `requirePermission("lead.read") + requirePermission("sale.read")`
  *     parameters:
  *       - in: path
  *         name: id

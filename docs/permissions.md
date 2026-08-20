@@ -65,6 +65,7 @@ avoids granting-drift.
 
 | Feature | Endpoint | Permission required |
 |---------|----------|---------------------|
+| Buyer comments | `/comments` (`entityType=Buyer`) | `lead.read` |
 | Buyer KYC read | `GET /buyers/:id/kyc` | `lead.read` |
 | Buyer KYC update | `PATCH /buyers/:id/kyc` | `lead.manage` |
 | Sale contract templates CRUD | `/sale-contract-templates/*` | `sale.manage` |

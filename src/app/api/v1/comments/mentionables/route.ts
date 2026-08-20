@@ -6,12 +6,12 @@ import { listMembers } from "@/server/services/organization-admin.service";
  * Returns the list of users the current caller can mention in comments.
  *
  * Scoped to the caller's active organization and filtered to active
- * (non-deactivated) members. `buyer.read` is used as the gate because
+ * (non-deactivated) members. `lead.read` is used as the gate because
  * every commenter must be able to view either a buyer or a sale, and
- * `buyer.read` is granted to every role that can see either.
+ * `lead.read` is granted to every role that can see buyers.
  */
 export const GET = apiHandler({}, async () => {
-  const ctx = await requirePermission("buyer.read").catch(() =>
+  const ctx = await requirePermission("lead.read").catch(() =>
     requirePermission("sale.read"),
   );
   const members = await listMembers(ctx.organization.organizationId);
@@ -33,7 +33,7 @@ export const GET = apiHandler({}, async () => {
  *       - comments
  *     summary: List / read comments
  *     description: |
- *       **Auth:** `requirePermission("buyer.read") + requirePermission("sale.read")`
+ *       **Auth:** `requirePermission("lead.read") + requirePermission("sale.read")`
  *     responses:
  *       "200":
  *         description: |

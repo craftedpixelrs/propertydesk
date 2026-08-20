@@ -113,6 +113,40 @@ describe("runGlobalSearch", () => {
     expect(listOrgsMock).not.toHaveBeenCalled();
   });
 
+  it("searches buyers when the caller has lead.read", async () => {
+    listBuyersMock.mockResolvedValue({
+      items: [
+        {
+          id: "b1",
+          firstName: "Ana",
+          lastName: "Ilić",
+          email: "ana@example.com",
+          phone: null,
+        } as never,
+      ],
+      total: 1,
+    });
+
+    const hits = await runGlobalSearch({
+      caller: caller({
+        activeOrganization: { id: "org-1" },
+        permissions: ["lead.read"],
+      }),
+      q: "ana",
+    });
+
+    expect(listBuyersMock).toHaveBeenCalledWith(
+      expect.objectContaining({ organizationId: "org-1", search: "ana" }),
+    );
+    expect(hits).toEqual([
+      expect.objectContaining({
+        entity: "buyer",
+        title: "Ana Ilić",
+        href: "/kupci/b1",
+      }),
+    ]);
+  });
+
   it("searches tenant inventory when the org and permissions are present", async () => {
     listProjectsMock.mockResolvedValue({
       items: [

@@ -29,7 +29,9 @@ Staging i demo dele **istu bazu i fajlove**. Sesije su odvojene po hostu.
 | Logo u sidebaru 429 / ne učitava se — služi se sa S3 kao ostali dokumenti | urađeno | da | čeka odluku | čeka odluku |
 | White-label sidebar: samo logo, bez naziva organizacije pored | urađeno | da | čeka odluku | čeka odluku |
 | Mobile bottom nav: „Kontrolna tabla“ nije centrirana | urađeno | da | čeka odluku | čeka odluku |
-| Date input: sr `dd.mm.yyyy`, en `mm/dd/yyyy`, konverzija pri promeni jezika | **sada** | čeka tvoj deploy | čeka odluku | čeka odluku |
+| Date input: sr `dd.mm.yyyy`, en `mm/dd/yyyy`, konverzija pri promeni jezika | urađeno | čeka tvoj deploy | čeka odluku | čeka odluku |
+| Uvoz jedinica: headeri šablona na jeziku aplikacije (sr/en) | urađeno | čeka tvoj deploy | čeka odluku | čeka odluku |
+| Vlasnik ne može da komentariše kupca — API je tražio nepostojeće `buyer.read` | **sada** | čeka tvoj deploy | čeka odluku | čeka odluku |
 
 Kad se pojavi sledeći bug, dodaj red ovde. Ne otvaraj novi train dok
 ovaj ne završimo ili ga svesno zatvorimo.

@@ -51,7 +51,7 @@ function detectAuth(handler: string, relPath: string, fullSrc: string): MethodAu
     return {
       kind: "permission",
       label:
-        'requirePermission(permissionForEntity(...)) — Buyer→"buyer.read", Sale→"sale.read"',
+        'requirePermission(permissionForEntity(...)) — Buyer→"lead.read", Sale→"sale.read"',
     };
   }
 

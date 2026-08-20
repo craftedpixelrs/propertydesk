@@ -12,7 +12,10 @@ import type { PermissionString } from "@/server/permissions/access-control";
 const entityTypeSchema = z.enum(["Buyer", "Sale"]);
 
 function permissionForEntity(entityType: "Buyer" | "Sale"): PermissionString {
-  return entityType === "Buyer" ? "buyer.read" : "sale.read";
+  // Buyers are gated by `lead.*` everywhere else (list/get/KYC/tasks).
+  // `buyer.read` is not a permission in the matrix — requiring it 403s
+  // every role, including INVESTOR_OWNER.
+  return entityType === "Buyer" ? "lead.read" : "sale.read";
 }
 
 export const GET = apiHandler({}, async ({ req }) => {
@@ -62,7 +65,7 @@ export const POST = apiHandler(
  *       - comments
  *     summary: List / read comments
  *     description: |
- *       **Auth:** `requirePermission(permissionForEntity(...)) — Buyer→"buyer.read", Sale→"sale.read"`
+ *       **Auth:** `requirePermission(permissionForEntity(...)) — Buyer→"lead.read", Sale→"sale.read"`
  *     responses:
  *       "200":
  *         description: |
@@ -76,7 +79,7 @@ export const POST = apiHandler(
  *       - comments
  *     summary: Create comments
  *     description: |
- *       **Auth:** `requirePermission(permissionForEntity(...)) — Buyer→"buyer.read", Sale→"sale.read"`
+ *       **Auth:** `requirePermission(permissionForEntity(...)) — Buyer→"lead.read", Sale→"sale.read"`
  *     requestBody:
  *       required: true
  *       content:
