@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { DateTimeInput } from "@/components/ui/date-input";
 import { Card, CardContent } from "@/components/ui/card";
 import { apiClient, ApiClientError } from "@/lib/api-client";
 import { normalizePhone } from "@/lib/normalize";
@@ -196,11 +197,10 @@ export function BuyerQuickActions({
               placeholder={t("crm.actions.taskTitlePlaceholder")}
               className="h-10 w-full rounded-md border border-[var(--color-border)] px-3 text-sm"
             />
-            <input
-              type="datetime-local"
+            <DateTimeInput
               value={taskDue}
-              onChange={(e) => setTaskDue(e.target.value)}
-              className="h-10 w-full rounded-md border border-[var(--color-border)] px-3 text-sm"
+              onChange={setTaskDue}
+              className="h-10"
             />
             <div className="flex justify-end">
               <Button
@@ -225,11 +225,10 @@ export function BuyerQuickActions({
 
         {panel === "viewing" ? (
           <div className="space-y-2 rounded-md border border-[var(--color-border)] p-3">
-            <input
-              type="datetime-local"
+            <DateTimeInput
               value={viewingWhen}
-              onChange={(e) => setViewingWhen(e.target.value)}
-              className="h-10 w-full rounded-md border border-[var(--color-border)] px-3 text-sm"
+              onChange={setViewingWhen}
+              className="h-10"
             />
             <input
               value={viewingNote}

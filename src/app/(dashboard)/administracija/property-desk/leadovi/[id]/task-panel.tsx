@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { Badge } from "@/components/ui/badge";
+import { DateTimeInput } from "@/components/ui/date-input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { apiClient, ApiClientError } from "@/lib/api-client";
@@ -117,11 +118,10 @@ export function LeadTaskPanel({
                 className="h-9 flex-1 min-w-64 rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] px-2 text-sm"
                 disabled={busy === "create"}
               />
-              <input
-                type="datetime-local"
+              <DateTimeInput
                 value={dueAt}
-                onChange={(e) => setDueAt(e.target.value)}
-                className="h-9 rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] px-2 text-sm"
+                onChange={setDueAt}
+                className="h-9 min-w-48"
                 disabled={busy === "create"}
               />
               {canAssign ? (

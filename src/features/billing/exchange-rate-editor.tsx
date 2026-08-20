@@ -4,11 +4,12 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
+import { DateInput } from "@/components/ui/date-input";
 import { Input } from "@/components/ui/input";
 import { apiClient, ApiClientError } from "@/lib/api-client";
+import { formatDate } from "@/lib/formatters/date";
 import { formatMoney } from "@/lib/formatters/money";
 import { useI18n } from "@/components/app/i18n-provider";
-import { intlLocale, type Locale } from "@/lib/i18n";
 
 /**
  * A single row in the rate list as it comes back from the API. `rate` is
@@ -38,15 +39,6 @@ function todayIsoDate(): string {
   return `${y}-${m}-${day}`;
 }
 
-function formatDate(iso: string, locale: Locale): string {
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return iso;
-  return d.toLocaleDateString(intlLocale(locale), {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-  });
-}
 
 export function ExchangeRateEditor({ initialRates }: Props) {
   const router = useRouter();
@@ -128,10 +120,9 @@ export function ExchangeRateEditor({ initialRates }: Props) {
             <span className="text-xs text-[var(--color-foreground-muted)]">
               {t("admin.exchangeRates.effectiveDate")}
             </span>
-            <Input
-              type="date"
+            <DateInput
               value={effectiveDate}
-              onChange={(e) => setEffectiveDate(e.target.value)}
+              onChange={setEffectiveDate}
               required
             />
           </label>
@@ -210,7 +201,7 @@ export function ExchangeRateEditor({ initialRates }: Props) {
                   key={r.id}
                   className="border-t border-[var(--color-border)]"
                 >
-                  <td className="px-3 py-1.5">{formatDate(r.effectiveDate, locale)}</td>
+                  <td className="px-3 py-1.5">{formatDate(r.effectiveDate, undefined, locale)}</td>
                   <td className="px-3 py-1.5 font-mono">
                     1 {r.baseCurrency} = {formatMoney(r.rate, "RSD", { withSymbol: false, decimals: 4 })} {r.quoteCurrency}
                   </td>

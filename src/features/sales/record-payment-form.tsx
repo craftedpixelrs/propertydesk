@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
+import { DateInput } from "@/components/ui/date-input";
 import { useT } from "@/components/app/i18n-provider";
 import { apiClient, ApiClientError } from "@/lib/api-client";
 import type { TranslateFn } from "@/lib/i18n";
@@ -112,11 +113,10 @@ export function RecordPaymentForm({ saleId, currency, installments }: Props) {
           <label className="block text-xs text-[var(--color-foreground-muted)]">
             {t("common.date")}
           </label>
-          <input
-            type="date"
+          <DateInput
             value={paymentDate}
-            onChange={(e) => setPaymentDate(e.target.value)}
-            className="h-10 w-full rounded-md border border-[var(--color-border)] px-3 text-sm"
+            onChange={setPaymentDate}
+            className="h-10"
           />
         </div>
         <div>

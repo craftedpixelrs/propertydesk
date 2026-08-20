@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { DateTimeInput } from "@/components/ui/date-input";
 import { Badge } from "@/components/ui/badge";
 import { apiClient, ApiClientError } from "@/lib/api-client";
 import { useT } from "@/components/app/i18n-provider";
@@ -698,11 +699,10 @@ export function LeadDetailEditor(props: Props) {
                 <span className="mb-1 block text-xs font-medium">
                   {t("admin.pdEditor.nextFollowUp")}
                 </span>
-                <input
-                  type="datetime-local"
+                <DateTimeInput
                   value={nextFollowUpAt}
-                  onChange={(e) => setNextFollowUpAt(e.target.value)}
-                  className="h-9 w-full rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] px-2 text-sm"
+                  onChange={setNextFollowUpAt}
+                  className="h-9"
                   disabled={busy}
                 />
               </label>

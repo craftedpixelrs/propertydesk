@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
+import { DateInput } from "@/components/ui/date-input";
 import { useT } from "@/components/app/i18n-provider";
 import { apiClient, ApiClientError } from "@/lib/api-client";
 
@@ -321,21 +322,16 @@ export function PaymentPlanForm({ saleId, currency, finalPrice, projectId }: Pro
                     className="h-10 rounded-md border border-[var(--color-border)] px-3 text-sm"
                     placeholder={t("deals.plan.amountPlaceholder", { currency })}
                   />
-                  <input
-                    type="date"
+                  <DateInput
                     value={row.dueDate}
-                    onChange={(e) =>
+                    onChange={(dueDate) =>
                       setManualRows((rs) =>
-                        rs.map((r, i) =>
-                          i === idx ? { ...r, dueDate: e.target.value } : r,
-                        ),
+                        rs.map((r, i) => (i === idx ? { ...r, dueDate } : r)),
                       )
                     }
                     className={
-                      "h-10 rounded-md border px-3 text-sm " +
-                      (row.dueDate
-                        ? "border-[var(--color-border)]"
-                        : "border-amber-300 bg-amber-50")
+                      "h-10 " +
+                      (row.dueDate ? "" : "border-amber-300 bg-amber-50")
                     }
                   />
                   <Button
@@ -379,11 +375,10 @@ export function PaymentPlanForm({ saleId, currency, finalPrice, projectId }: Pro
             <label className="block text-xs text-[var(--color-foreground-muted)]">
               {t("deals.plan.firstDue")}
             </label>
-            <input
-              type="date"
+            <DateInput
               value={equalFirstDue}
-              onChange={(e) => setEqualFirstDue(e.target.value)}
-              className="h-10 w-full rounded-md border border-[var(--color-border)] px-3 text-sm"
+              onChange={setEqualFirstDue}
+              className="h-10"
             />
           </div>
           <p className="sm:col-span-2 text-xs text-[var(--color-foreground-muted)]">
@@ -415,15 +410,14 @@ export function PaymentPlanForm({ saleId, currency, finalPrice, projectId }: Pro
                 className="h-10 rounded-md border border-[var(--color-border)] px-3 text-sm"
                 placeholder="%"
               />
-              <input
-                type="date"
+              <DateInput
                 value={row.dueDate}
-                onChange={(e) =>
+                onChange={(dueDate) =>
                   setPctRows((rs) =>
-                    rs.map((r, i) => (i === idx ? { ...r, dueDate: e.target.value } : r)),
+                    rs.map((r, i) => (i === idx ? { ...r, dueDate } : r)),
                   )
                 }
-                className="h-10 rounded-md border border-[var(--color-border)] px-3 text-sm"
+                className="h-10"
               />
               <Button
                 size="sm"
@@ -481,15 +475,14 @@ export function PaymentPlanForm({ saleId, currency, finalPrice, projectId }: Pro
                 className="h-10 rounded-md border border-[var(--color-border)] px-3 text-sm"
                 placeholder={t("deals.plan.amountPlaceholder", { currency })}
               />
-              <input
-                type="date"
+              <DateInput
                 value={row.dueDate}
-                onChange={(e) =>
+                onChange={(dueDate) =>
                   setManualRows((rs) =>
-                    rs.map((r, i) => (i === idx ? { ...r, dueDate: e.target.value } : r)),
+                    rs.map((r, i) => (i === idx ? { ...r, dueDate } : r)),
                   )
                 }
-                className="h-10 rounded-md border border-[var(--color-border)] px-3 text-sm"
+                className="h-10"
               />
               <Button
                 size="sm"

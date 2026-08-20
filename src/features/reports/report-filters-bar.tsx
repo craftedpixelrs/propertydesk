@@ -4,7 +4,7 @@ import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
-import { Input } from "@/components/ui/input";
+import { DateInput } from "@/components/ui/date-input";
 import { Button } from "@/components/ui/button";
 import { useT } from "@/components/app/i18n-provider";
 import { cn } from "@/lib/utils";
@@ -79,26 +79,24 @@ export function ReportFiltersBar(props: {
       ) : null}
       <label className="flex flex-col gap-1 text-xs">
         <span className="text-[var(--color-foreground-muted)]">{t("common.from")}</span>
-        <Input
-          type="date"
+        <DateInput
           name="from"
           value={from}
-          onChange={(e) => {
-            setFrom(e.target.value);
-            apply({ from: e.target.value });
+          onChange={(next) => {
+            setFrom(next);
+            apply({ from: next });
           }}
           className="w-40"
         />
       </label>
       <label className="flex flex-col gap-1 text-xs">
         <span className="text-[var(--color-foreground-muted)]">{t("common.to")}</span>
-        <Input
-          type="date"
+        <DateInput
           name="to"
           value={to}
-          onChange={(e) => {
-            setTo(e.target.value);
-            apply({ to: e.target.value });
+          onChange={(next) => {
+            setTo(next);
+            apply({ to: next });
           }}
           className="w-40"
         />

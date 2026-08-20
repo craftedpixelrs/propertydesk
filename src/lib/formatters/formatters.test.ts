@@ -1,6 +1,13 @@
 import { describe, expect, it } from "vitest";
 import { formatMoney, sumMoney, toDecimal } from "./money";
-import { formatDate, formatDateTime } from "./date";
+import {
+  formatDate,
+  formatDateTime,
+  formatDateInputValue,
+  parseDateInputValue,
+  formatDateTimeInputValue,
+  parseDateTimeInputValue,
+} from "./date";
 import { formatInteger, formatNumber } from "./number";
 
 describe("money formatter", () => {
@@ -38,6 +45,39 @@ describe("date formatter", () => {
     const d = new Date("2026-06-15T09:07:00Z");
     // June is CEST (+02); 09:07Z -> 11:07 local.
     expect(formatDateTime(d)).toBe("15.06.2026. 11:07");
+  });
+
+  it("formats English display as MM/dd/yyyy", () => {
+    const d = new Date("2026-01-31T22:15:00Z");
+    expect(formatDate(d, undefined, "en")).toBe("01/31/2026");
+  });
+
+  it("converts the same ISO date between input locales", () => {
+    expect(formatDateInputValue("2026-08-20", "sr-Latn")).toBe("20.08.2026");
+    expect(formatDateInputValue("2026-08-20", "en")).toBe("08/20/2026");
+    expect(parseDateInputValue("20.08.2026", "sr-Latn")).toBe("2026-08-20");
+    expect(parseDateInputValue("08/20/2026", "en")).toBe("2026-08-20");
+    expect(parseDateInputValue("2026-08-20", "en")).toBe("2026-08-20");
+  });
+
+  it("reads 01/02/2026 as February in Serbian and January in English", () => {
+    expect(parseDateInputValue("01.02.2026", "sr-Latn")).toBe("2026-02-01");
+    expect(parseDateInputValue("01/02/2026", "en")).toBe("2026-01-02");
+  });
+
+  it("parses datetime input in both locales", () => {
+    expect(formatDateTimeInputValue("2026-08-20T14:30", "sr-Latn")).toBe(
+      "20.08.2026 14:30",
+    );
+    expect(formatDateTimeInputValue("2026-08-20T14:30", "en")).toBe(
+      "08/20/2026 14:30",
+    );
+    expect(parseDateTimeInputValue("20.08.2026 14:30", "sr-Latn")).toBe(
+      "2026-08-20T14:30",
+    );
+    expect(parseDateTimeInputValue("08/20/2026 14:30", "en")).toBe(
+      "2026-08-20T14:30",
+    );
   });
 });
 

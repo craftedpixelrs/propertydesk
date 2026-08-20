@@ -5,6 +5,7 @@ import { Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
+import { DateInput } from "@/components/ui/date-input";
 import { useT } from "@/components/app/i18n-provider";
 import { apiClient, ApiClientError } from "@/lib/api-client";
 
@@ -135,11 +136,10 @@ export function AddInstallmentButton({ saleId, currency }: Props) {
                 <label className="block text-xs text-[var(--color-foreground-muted)]">
                   {t("deals.plan.dueDateLabel")}
                 </label>
-                <input
-                  type="date"
+                <DateInput
                   value={dueDate}
-                  onChange={(e) => setDueDate(e.target.value)}
-                  className="h-10 w-full rounded-md border border-[var(--color-border)] px-3 text-sm"
+                  onChange={setDueDate}
+                  className="h-10"
                 />
               </div>
               <div>
