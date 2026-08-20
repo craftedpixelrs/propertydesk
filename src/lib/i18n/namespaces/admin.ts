@@ -399,7 +399,6 @@ export const adminSr = {
       "Nema sačuvanog probnog perioda. Unesite dane da ga pokrenete.",
     agencyPartnerNote:
       "Agencija nema pretplatu. Besplatan je partner portal — vidi projekte tek kad je investitor pozove.",
-    billingOnNaplata: "Plan i probni period menjate na kartici Naplata.",
     create: "Kreiraj organizaciju",
     save: "Sačuvaj izmene",
   },
@@ -1798,7 +1797,6 @@ export const adminEn: Leaves<typeof adminSr> = {
     trialDaysHintNone: "No trial is stored. Enter days to start one.",
     agencyPartnerNote:
       "Agencies have no subscription. This is a free partner portal — they see projects only after an investor invites them.",
-    billingOnNaplata: "Change the plan and trial on the Billing tab.",
     create: "Create organization",
     save: "Save changes",
   },

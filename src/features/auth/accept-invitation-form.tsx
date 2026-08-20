@@ -37,8 +37,11 @@ export function AcceptInvitationForm({
     invitation.organizationName,
   );
   const [agencyLegalName, setAgencyLegalName] = useState("");
+  const [agencyTaxNumber, setAgencyTaxNumber] = useState("");
+  const [agencyRegistrationNumber, setAgencyRegistrationNumber] = useState("");
   const [agencyAddress, setAgencyAddress] = useState("");
   const [agencyCity, setAgencyCity] = useState("");
+  const [agencyPostalCode, setAgencyPostalCode] = useState("");
   const [agencyPhone, setAgencyPhone] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -53,8 +56,11 @@ export function AcceptInvitationForm({
     return {
       displayName: agencyDisplayName.trim(),
       legalName: agencyLegalName.trim(),
+      taxNumber: agencyTaxNumber.trim(),
+      registrationNumber: agencyRegistrationNumber.trim(),
       address: agencyAddress.trim(),
       city: agencyCity.trim(),
+      postalCode: agencyPostalCode.trim(),
       phone: agencyPhone.trim(),
       email: invitation.email,
     };
@@ -163,6 +169,9 @@ export function AcceptInvitationForm({
     return (
       <div className="space-y-3 rounded-md border border-[var(--color-border)] p-3">
         <p className="text-sm font-medium">{t("auth.invitationAgencyFields")}</p>
+        <p className="text-xs text-[var(--color-foreground-muted)]">
+          {t("auth.invitationAgencyHint")}
+        </p>
         <div>
           <Label htmlFor="agency-displayName">{t("ops.org.displayName")}</Label>
           <Input
@@ -182,6 +191,26 @@ export function AcceptInvitationForm({
           />
         </div>
         <div>
+          <Label htmlFor="agency-taxNumber">{t("ops.org.taxNumber")}</Label>
+          <Input
+            id="agency-taxNumber"
+            required
+            value={agencyTaxNumber}
+            onChange={(e) => setAgencyTaxNumber(e.target.value)}
+          />
+        </div>
+        <div>
+          <Label htmlFor="agency-registrationNumber">
+            {t("ops.org.registrationNumber")}
+          </Label>
+          <Input
+            id="agency-registrationNumber"
+            required
+            value={agencyRegistrationNumber}
+            onChange={(e) => setAgencyRegistrationNumber(e.target.value)}
+          />
+        </div>
+        <div>
           <Label htmlFor="agency-address">{t("projects.fields.address")}</Label>
           <Input
             id="agency-address"
@@ -197,6 +226,15 @@ export function AcceptInvitationForm({
             required
             value={agencyCity}
             onChange={(e) => setAgencyCity(e.target.value)}
+          />
+        </div>
+        <div>
+          <Label htmlFor="agency-postalCode">{t("projects.fields.postalCode")}</Label>
+          <Input
+            id="agency-postalCode"
+            required
+            value={agencyPostalCode}
+            onChange={(e) => setAgencyPostalCode(e.target.value)}
           />
         </div>
         <div>
@@ -353,6 +391,7 @@ export function AcceptInvitationForm({
               onChange={(e) => setPassword(e.target.value)}
             />
           </div>
+          <AgencyFields />
           <FormActions>
             <Button type="submit" loading={submitting} className="w-full sm:w-auto">
               {t("auth.invitationSignInAccept")}

@@ -291,25 +291,25 @@ export function OrganizationProfileForm({
               />
             </div>
             <div>
-              <FieldLabel htmlFor="taxNumber" required={investorRequired}>
+              <FieldLabel htmlFor="taxNumber" required={firmRequired}>
                 {t("ops.org.taxNumber")}
               </FieldLabel>
               <Input
                 id="taxNumber"
                 name="taxNumber"
                 defaultValue={profile?.taxNumber ?? ""}
-                required={investorRequired}
+                required={firmRequired}
               />
             </div>
             <div>
-              <FieldLabel htmlFor="registrationNumber" required={investorRequired}>
+              <FieldLabel htmlFor="registrationNumber" required={firmRequired}>
                 {t("ops.org.registrationNumber")}
               </FieldLabel>
               <Input
                 id="registrationNumber"
                 name="registrationNumber"
                 defaultValue={profile?.registrationNumber ?? ""}
-                required={investorRequired}
+                required={firmRequired}
               />
             </div>
             <div className="sm:col-span-2">
@@ -335,14 +335,14 @@ export function OrganizationProfileForm({
               />
             </div>
             <div>
-              <FieldLabel htmlFor="postalCode" required={investorRequired}>
+              <FieldLabel htmlFor="postalCode" required={firmRequired}>
                 {t("projects.fields.postalCode")}
               </FieldLabel>
               <Input
                 id="postalCode"
                 name="postalCode"
                 defaultValue={profile?.postalCode ?? ""}
-                required={investorRequired}
+                required={firmRequired}
               />
             </div>
             <div>

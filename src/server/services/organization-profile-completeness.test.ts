@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  isAgencyProfileComplete,
   isInvestorProfileComplete,
+  missingAgencyProfileFields,
   missingInvestorProfileFields,
   normalizeWebsite,
 } from "./organization-profile-completeness";
@@ -39,6 +41,23 @@ describe("investor profile completeness", () => {
         phone: "",
       }),
     ).toEqual(["taxNumber", "phone", "website"]);
+  });
+});
+
+describe("agency profile completeness", () => {
+  it("requires every field except website", () => {
+    expect(isAgencyProfileComplete(complete)).toBe(true);
+    expect(missingAgencyProfileFields({ ...complete, website: null })).toEqual(
+      [],
+    );
+    expect(
+      missingAgencyProfileFields({
+        ...complete,
+        taxNumber: "",
+        postalCode: null,
+        website: null,
+      }),
+    ).toEqual(["taxNumber", "postalCode"]);
   });
 });
 

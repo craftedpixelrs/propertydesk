@@ -5,6 +5,13 @@ follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added — Page guides
+
+- Every sidebar (and settings) page has a short walkthrough: what the
+  page is for, how to use it, Previous / Next / Finish. First visit
+  opens it once; **How this page works** reopens it anytime. Serbian
+  and English.
+
 ### Changed — Fix bugs v.1 (agency partner + project geo/cover)
 
 - Agencies are free partner accounts (`saas_plan.code = partner`): no
@@ -12,6 +19,8 @@ follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   restriction. Access comes from the investor invite. Admin may still
   set `SUSPENDED` / `CLOSED`. Expire, invoice, and overdue jobs skip
   `AGENCY` and heal leftover trial/RESTRICTED agency rows.
+- Agency portal stays locked until every profile field except website
+  is filled (registration and every later sign-in).
 - Investor invites an agency by **email** (name optional) on
   `/agencije`. Unknown email creates a partner org + owner invitation;
   existing agency gets a connection invite and must **Prihvati** on

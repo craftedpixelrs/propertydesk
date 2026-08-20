@@ -1,6 +1,6 @@
 /**
  * Investor organization profile must be fully filled before the tenant
- * can use the product. Agency orgs have a shorter first-invite checklist.
+ * can use the product. Agencies use the same checklist except website.
  */
 
 export const INVESTOR_REQUIRED_PROFILE_FIELDS = [
@@ -68,8 +68,11 @@ export function isInvestorProfileComplete(
 export const AGENCY_REQUIRED_PROFILE_FIELDS = [
   "displayName",
   "legalName",
+  "taxNumber",
+  "registrationNumber",
   "address",
   "city",
+  "postalCode",
   "phone",
   "email",
 ] as const;

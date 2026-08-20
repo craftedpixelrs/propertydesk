@@ -15,8 +15,11 @@ const bodySchema = z
       .object({
         displayName: z.string().min(2).max(200),
         legalName: z.string().min(2).max(200),
+        taxNumber: z.string().min(2).max(32),
+        registrationNumber: z.string().min(2).max(32),
         address: z.string().min(2).max(300),
         city: z.string().min(2).max(120),
+        postalCode: z.string().min(3).max(16),
         phone: z.string().min(5).max(40),
         email: z.string().email().optional(),
       })

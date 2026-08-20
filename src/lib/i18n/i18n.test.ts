@@ -7,6 +7,7 @@ describe("t()", () => {
     expect(t("nav.projects")).toBe("Projekti");
     expect(t("nav.reservations")).toBe("Rezervacije");
     expect(t("common.save")).toBe("Sačuvaj");
+    expect(t("guides.chrome.open")).toBe("Kako se koristi");
   });
 
   it("returns English when locale is en", () => {
@@ -14,6 +15,7 @@ describe("t()", () => {
     expect(t("nav.projects", undefined, "en")).toBe("Projects");
     expect(t("common.save", undefined, "en")).toBe("Save");
     expect(t("language.label", undefined, "en")).toBe("Language");
+    expect(t("guides.chrome.open", undefined, "en")).toBe("How this page works");
   });
 
   it("uses Serbian diacritics correctly", () => {
@@ -27,7 +29,9 @@ describe("t()", () => {
     expect(t("admin.orgBilling.issueInvoice")).toBe("Izdaj fakturu sada");
     expect(t("orgProfile.openUnpaidInvoice")).toBe("Otvori neplaćenu fakturu");
     expect(t("ops.subscription.trialEnded")).toBe("Probni period istekao:");
-    expect(t("auth.invitationAgencyFields")).toBe("Podaci agencije");
+    expect(t("auth.invitationAgencyFields")).toBe(
+      "Podaci agencije (sva polja sem sajta)",
+    );
     expect(t("admin.orgBilling.issueInvoice", undefined, "en")).toBe("Issue invoice now");
   });
 

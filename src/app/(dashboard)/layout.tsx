@@ -18,6 +18,7 @@ import { OrganizationSetupWait } from "@/features/settings/organization-setup-wa
 import { OrganizationProfileForm } from "@/features/settings/organization-profile-form";
 import { RestrictedAccessPanel } from "@/features/settings/restricted-access-panel";
 import { loadOrganizationBranding } from "@/server/services/organization-logo.service";
+import { PageGuide } from "@/features/guides/page-guide";
 
 export const dynamic = "force-dynamic";
 
@@ -137,6 +138,7 @@ export default async function DashboardLayout({ children }: { children: ReactNod
           </main>
         </div>
         {lockNav ? null : <BottomNav {...navProps} />}
+        {lockNav ? null : <PageGuide />}
       </div>
     </UserContextProvider>
   );

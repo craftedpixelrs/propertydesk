@@ -125,7 +125,7 @@ export async function requirePermission(
     if (!setupDone) {
       throw new AuthError(
         "FORBIDDEN",
-        "Prvo popunite podatke agencije da biste koristili portal.",
+        "Prvo popunite sva obavezna polja agencije (sve sem sajta) da biste koristili portal.",
       );
     }
   }

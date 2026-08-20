@@ -476,7 +476,7 @@ bez pretplate i bez isteka paketa.
 
 - **Novi email:** sistem pravi partner org i šalje link za
   registraciju. Vlasnik unosi ime + lozinku **i** profil agencije
-  (pravni naziv, adresa, grad, telefon). Tek tada se pending
+  (sva polja sem sajta). Tek tada se pending
   konekcija aktivira.
 - **Postojeća agencija:** email „Investitor X vas poziva“ →
   `/agencija/konekcije` → **Prihvati poziv**. Kasniji pozivi ostaju
@@ -755,7 +755,7 @@ omotača (`chart-card`, `status-donut`, `trend-line`, `funnel-bars`).
 - Naziv, PIB, adresa, kontakt (koristi se na fakturama)
 - Logo — PNG/JPEG/WebP ili **sanitizovani SVG** (S3, javni stream sa CSP)
 - Bankarski računi
-- Agencija: isti ekran je **obavezan prvi setup** posle pozivnice (pravni naziv, adresa, grad, telefon). Bez toga portal ostaje zaključan.
+- Agencija: isti ekran je **obavezan** na registraciji i posle svake prijave dok se ne popune sva polja sem sajta. Bez toga portal ostaje zaključan.
 
 ### 12.2. Korisnici (`/podesavanja/korisnici`)
 

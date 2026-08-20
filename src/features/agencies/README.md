@@ -25,8 +25,10 @@ Service: `inviteAgency` in
 Lookup is by profile email or `AGENCY_OWNER` / `AGENCY_ADMIN`
 membership. `agencyOrganizationId` still works on the API.
 
-Profile gate: `isAgencyProfileComplete` / `isAgencyOrgSetupComplete`
-(displayName, legalName, address, city, phone, email). Layout and
+Profile gate: `isAgencyProfileComplete` / `isAgencyOrgSetupComplete`.
+Every field is required except website (displayName, legalName,
+taxNumber, registrationNumber, address, city, postalCode, phone,
+email). Registration and sign-in collect those fields; layout and
 `requirePermission` lock the portal until the profile is complete.
 
 Helpers: [`src/lib/agencies/name.ts`](../../lib/agencies/name.ts)

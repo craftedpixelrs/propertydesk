@@ -9,6 +9,7 @@ import { opsEn } from "./namespaces/ops";
 import { pagesEn } from "./namespaces/pages";
 import { partnersEn } from "./namespaces/partners";
 import { uiEn } from "./namespaces/ui";
+import { guidesEn } from "./namespaces/guides";
 
 /**
  * English UI copy. Must keep the same key tree as `srLatn`.
@@ -149,9 +150,10 @@ export const en: Dictionary = {
     invitationNewAccount: "No account? Create one here",
     invitationSignInAccept: "Sign in and accept invitation",
     invitationAgencySubtitle:
-      "{{investor}} is inviting you as an agency partner. Create an account and enter the agency details.",
-    invitationAgencyOrg: "Invitation to the agency partner portal.",
-    invitationAgencyFields: "Agency details",
+      "{{investor}} is inviting you as an agency partner. Create an account and fill in every agency field (website is optional).",
+    invitationAgencyOrg: "Invitation to the agency partner portal. Fill in every field except the website.",
+    invitationAgencyFields: "Agency details (all fields except website)",
+    invitationAgencyHint: "Without a complete profile the portal stays locked after sign-in.",
     acceptInvitation: "Accept invitation",
     signedOutTitle: "Signed out",
     signedOutSubtitle: "You have been signed out securely. See you soon.",
@@ -185,9 +187,9 @@ export const en: Dictionary = {
       "The owner needs to complete company details (tax ID, registration number, address, contact and website). The app stays locked until then. Ask the owner to finish setup.",
     requiredHint: "All fields are required for developer organizations.",
     agencySetupBanner:
-      "Enter the agency details to accept the invite and open the portal.",
+      "Fill in every agency field except the website. Until then the portal stays locked after registration and after every sign-in.",
     agencyRequiredHint:
-      "Required: name, legal name, address, city, phone, and email.",
+      "Every field is required except the website (name, tax ID, registration number, address, contact).",
     savedAndReady: "Profile saved. You can use the app now.",
     restrictedTitle: "Access is restricted",
     restrictedBody:
@@ -653,4 +655,5 @@ export const en: Dictionary = {
   ops: opsEn,
   admin: adminEn,
   marketing: marketingEn,
+  guides: guidesEn,
 };

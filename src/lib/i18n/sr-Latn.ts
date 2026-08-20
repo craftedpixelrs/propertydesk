@@ -8,6 +8,7 @@ import { opsSr } from "./namespaces/ops";
 import { pagesSr } from "./namespaces/pages";
 import { partnersSr } from "./namespaces/partners";
 import { uiSr } from "./namespaces/ui";
+import { guidesSr } from "./namespaces/guides";
 
 /**
  * Serbian (Latin script) translations.
@@ -154,9 +155,10 @@ export const srLatn = {
     invitationNewAccount: "Nemate nalog? Napravite ga ovde",
     invitationSignInAccept: "Prijavi se i prihvati poziv",
     invitationAgencySubtitle:
-      "{{investor}} Vas poziva kao agencijskog partnera. Napravite nalog i unesite podatke agencije.",
-    invitationAgencyOrg: "Poziv za partner portal agencije.",
-    invitationAgencyFields: "Podaci agencije",
+      "{{investor}} Vas poziva kao agencijskog partnera. Napravite nalog i popunite sva polja agencije (sajt nije obavezan).",
+    invitationAgencyOrg: "Poziv za partner portal agencije. Popunite sva polja osim sajta.",
+    invitationAgencyFields: "Podaci agencije (sva polja sem sajta)",
+    invitationAgencyHint: "Bez kompletnog profila portal ostaje zaključan i posle prijave.",
     acceptInvitation: "Prihvati poziv",
     signedOutTitle: "Uspešna odjava",
     signedOutSubtitle: "Bezbedno ste se odjavili. Vidimo se ponovo.",
@@ -190,9 +192,9 @@ export const srLatn = {
       "Vlasnik treba da popuni podatke firme (PIB, matični broj, adresa, kontakt i veb). Do tada aplikacija nije dostupna. Kontaktirajte vlasnika da završi podešavanja.",
     requiredHint: "Sva polja su obavezna za investitorske organizacije.",
     agencySetupBanner:
-      "Unesite podatke agencije da biste prihvatili poziv i otvorili portal.",
+      "Popunite sva polja agencije osim sajta. Bez toga portal ostaje zaključan posle registracije i posle svake prijave.",
     agencyRequiredHint:
-      "Obavezno: naziv, pravni naziv, adresa, grad, telefon i email.",
+      "Sva polja su obavezna sem sajta (naziv, PIB, matični broj, adresa, kontakt).",
     savedAndReady: "Profil je sačuvan. Možete da koristite aplikaciju.",
     restrictedTitle: "Pristup je ograničen",
     restrictedBody:
@@ -656,6 +658,7 @@ export const srLatn = {
   ops: opsSr,
   admin: adminSr,
   marketing: marketingSr,
+  guides: guidesSr,
 } as const;
 
 type DeepStringify<T> = T extends string

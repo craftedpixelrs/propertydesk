@@ -108,7 +108,7 @@ Verzija: **v1** · Datum lansiranja: **01.09.2026.**
   opciono). Ne mora da zna da li agencija već ima nalog.
   - Novi email: partner org + `agencyPartnerInvitationEmail` →
     registracija (ime + lozinka) **i** popunjavanje profila agencije
-    (displayName, legalName, adresa, grad, telefon). Prvi setup
+    (sva polja sem sajta: naziv, PIB, MB, adresa, kontakt). Prvi setup
     aktivira pending konekcije.
   - Postojeća agencija: `agencyConnectionInvitationEmail` →
     `/agencija/konekcije` → **Prihvati poziv**. Kasniji pozivi ostaju
@@ -180,6 +180,10 @@ Verzija: **v1** · Datum lansiranja: **01.09.2026.**
 - **Onboarding wizard** — pri prvom logovanju vlasnika investitor
   organizacije, kroz 5 koraka (org profil, prvi projekat, pozivanje
   člana, prva jedinica, prvi kupac).
+- **Vodič stranice** — na svakoj stavci sidebara (i karticama
+  podešavanja) kratak wizard: čemu služi, kako se koristi,
+  Previous/Next. Prva poseta otvara jednom; dugme „Kako se koristi“
+  vraća vodič. sr / en.
 - **Agencija, prvi nalog** — posle pozivnice vlasnik mora da popuni
   profil agencije pre portala. Kasniji pozivi drugih investitora su
   samo Prihvati na `/agencija/konekcije`.
@@ -274,6 +278,7 @@ Verzija: **v1** · Datum lansiranja: **01.09.2026.**
 
 - **PWA** — instalabilna na mobilni telefon (Add to Home Screen).
 - Bottom nav bar na < 768px, hamburger za dodatne stavke.
+- Vodič stranice (floating „Kako se koristi“) iznad bottom nav-a.
 - Swipe akcije na listama (Rezerviši / Označi kao završen).
 - Fixed "+" dugme za najčešće akcije (Nova rezervacija / Nova
   uplata / Novi kupac).

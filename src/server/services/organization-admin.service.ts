@@ -203,8 +203,11 @@ export async function isAgencyOrgSetupComplete(
       type: true,
       displayName: true,
       legalName: true,
+      taxNumber: true,
+      registrationNumber: true,
       address: true,
       city: true,
+      postalCode: true,
       phone: true,
       email: true,
     },
@@ -485,8 +488,11 @@ export async function listPendingInvitations(organizationId: string) {
 export interface AgencyInviteProfileInput {
   displayName: string;
   legalName: string;
+  taxNumber: string;
+  registrationNumber: string;
   address: string;
   city: string;
+  postalCode: string;
   phone: string;
   email?: string;
 }
@@ -513,7 +519,20 @@ export async function getPublicInvitation(
         select: {
           id: true,
           name: true,
-          profile: { select: { type: true, displayName: true, legalName: true, address: true, city: true, phone: true, email: true } },
+          profile: {
+            select: {
+              type: true,
+              displayName: true,
+              legalName: true,
+              taxNumber: true,
+              registrationNumber: true,
+              address: true,
+              city: true,
+              postalCode: true,
+              phone: true,
+              email: true,
+            },
+          },
         },
       },
     },
@@ -640,30 +659,55 @@ async function applyAgencyInviteProfile(
   organizationId: string,
   profile: AgencyInviteProfileInput,
 ) {
-  const displayName = profile.displayName.trim();
-  const legalName = profile.legalName.trim();
-  const address = profile.address.trim();
-  const city = profile.city.trim();
-  const phone = profile.phone.trim();
-  const email = (profile.email ?? "").trim();
-  if (!displayName || !legalName || !address || !city || !phone) {
-    throw DomainErrors.validation("Popunite podatke o agenciji.");
+  const next = {
+    displayName: profile.displayName.trim(),
+    legalName: profile.legalName.trim(),
+    taxNumber: profile.taxNumber.trim(),
+    registrationNumber: profile.registrationNumber.trim(),
+    address: profile.address.trim(),
+    city: profile.city.trim(),
+    postalCode: profile.postalCode.trim(),
+    phone: profile.phone.trim(),
+    email: (profile.email ?? "").trim(),
+  };
+  if (!isAgencyProfileComplete(next)) {
+    throw DomainErrors.validation(
+      "Popunite sva obavezna polja agencije (sve sem sajta).",
+    );
   }
   await prisma.organizationProfile.update({
     where: { organizationId },
     data: {
-      displayName,
-      legalName,
-      address,
-      city,
-      phone,
-      ...(email ? { email } : {}),
+      displayName: next.displayName,
+      legalName: next.legalName,
+      taxNumber: next.taxNumber,
+      registrationNumber: next.registrationNumber,
+      address: next.address,
+      city: next.city,
+      postalCode: next.postalCode,
+      phone: next.phone,
+      ...(next.email ? { email: next.email } : {}),
     },
   });
   await prisma.organization.update({
     where: { id: organizationId },
-    data: { name: displayName },
+    data: { name: next.displayName },
   });
+}
+
+async function requireCompleteAgencyInviteProfile(
+  organizationId: string,
+  role: string,
+  agencyProfile: AgencyInviteProfileInput | undefined,
+) {
+  if (role !== "AGENCY_OWNER") return;
+  if (await isAgencyOrgSetupComplete(organizationId)) return;
+  if (!agencyProfile) {
+    throw DomainErrors.validation(
+      "Popunite sva obavezna polja agencije (sve sem sajta).",
+    );
+  }
+  await applyAgencyInviteProfile(organizationId, agencyProfile);
 }
 
 async function maybeActivateFirstAgencyInvite(organizationId: string) {
@@ -701,12 +745,11 @@ export async function acceptPendingInvitation(input: {
     );
   }
 
-  if (input.agencyProfile && invitation.role === "AGENCY_OWNER") {
-    await applyAgencyInviteProfile(
-      invitation.organizationId,
-      input.agencyProfile,
-    );
-  }
+  await requireCompleteAgencyInviteProfile(
+    invitation.organizationId,
+    invitation.role,
+    input.agencyProfile,
+  );
 
   await joinOrganizationFromInvitation({
     invitationId: invitation.id,
@@ -769,6 +812,14 @@ export async function registerFromInvitation(input: {
     );
   }
 
+  if (invitation.role === "AGENCY_OWNER") {
+    await requireCompleteAgencyInviteProfile(
+      invitation.organizationId,
+      invitation.role,
+      input.agencyProfile,
+    );
+  }
+
   const hashed = await hashCredentialPassword(password);
   const userId = createId();
   await prisma.user.create({
@@ -788,13 +839,6 @@ export async function registerFromInvitation(input: {
       password: hashed,
     },
   });
-
-  if (input.agencyProfile && invitation.role === "AGENCY_OWNER") {
-    await applyAgencyInviteProfile(
-      invitation.organizationId,
-      input.agencyProfile,
-    );
-  }
 
   await recordAudit({
     action: "organization.invitee_registered",
