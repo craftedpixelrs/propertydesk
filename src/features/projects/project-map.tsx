@@ -53,45 +53,89 @@ export function ProjectMap({
   const center: [number, number] = hasCoords
     ? [latitude, longitude]
     : DEFAULT_CENTER;
+  const hostRef = React.useRef<HTMLDivElement>(null);
+  const [mounted, setMounted] = React.useState(false);
+
+  // Leaflet measures the container on create. In a sliding drawer the
+  // map is often off-screen or mid-animation, so wait until it is
+  // actually visible before mounting.
+  React.useEffect(() => {
+    const el = hostRef.current;
+    if (!el) return;
+    const show = () => setMounted(true);
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((entry) => entry.isIntersecting)) show();
+      },
+      { threshold: 0.2 },
+    );
+    io.observe(el);
+    const fallback = window.setTimeout(show, 800);
+    return () => {
+      io.disconnect();
+      window.clearTimeout(fallback);
+    };
+  }, []);
 
   return (
     <div
+      ref={hostRef}
       className={className}
       style={{ height: heightPx, width: "100%", overflow: "hidden", borderRadius: 8 }}
     >
-      <MapContainer
-        center={center}
-        zoom={hasCoords ? zoom : 12}
-        style={{ height: "100%", width: "100%" }}
-        scrollWheelZoom={false}
-      >
-        <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          url="https://tile.openstreetmap.org/{z}/{y}/{x}.png"
-        />
-        {hasCoords ? <Marker position={[latitude, longitude]} /> : null}
-        <InvalidateSize />
-        <RecenterOnChange coords={hasCoords ? [latitude, longitude] : null} />
-        {onPick ? <ClickHandler onPick={onPick} /> : null}
-      </MapContainer>
+      {mounted ? (
+        <MapContainer
+          center={center}
+          zoom={hasCoords ? zoom : 12}
+          style={{ height: "100%", width: "100%" }}
+          scrollWheelZoom={false}
+        >
+          <TileLayer
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
+          />
+          {hasCoords ? <Marker position={[latitude, longitude]} /> : null}
+          <SyncView
+            latitude={latitude}
+            longitude={longitude}
+            focusZoom={zoom}
+          />
+          {onPick ? <ClickHandler onPick={onPick} /> : null}
+        </MapContainer>
+      ) : null}
     </div>
   );
 }
 
-function InvalidateSize() {
+function SyncView({
+  latitude,
+  longitude,
+  focusZoom,
+}: {
+  latitude: number | null;
+  longitude: number | null;
+  focusZoom: number;
+}) {
   const map = useMap();
-  React.useEffect(() => {
-    const id = window.setTimeout(() => map.invalidateSize(), 280);
-    return () => window.clearTimeout(id);
-  }, [map]);
-  return null;
-}
 
-function RecenterOnChange({ coords }: { coords: [number, number] | null }) {
-  const map = useMap();
   React.useEffect(() => {
-    if (coords) map.setView(coords, map.getZoom());
-  }, [coords, map]);
+    const fixSize = () => map.invalidateSize({ animate: false });
+    const el = map.getContainer();
+    const ro = new ResizeObserver(fixSize);
+    ro.observe(el);
+    const ticks = [0, 80, 250, 500].map((ms) => window.setTimeout(fixSize, ms));
+    return () => {
+      ro.disconnect();
+      ticks.forEach((id) => window.clearTimeout(id));
+    };
+  }, [map]);
+
+  React.useEffect(() => {
+    if (latitude == null || longitude == null) return;
+    map.invalidateSize({ animate: false });
+    map.setView([latitude, longitude], focusZoom, { animate: false });
+  }, [map, latitude, longitude, focusZoom]);
+
   return null;
 }
 

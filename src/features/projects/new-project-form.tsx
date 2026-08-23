@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { DateInput } from "@/components/ui/date-input";
 import { FormActions } from "@/components/forms/form-actions";
 import { useT } from "@/components/app/i18n-provider";
 import { apiClient } from "@/lib/api-client";
@@ -13,6 +14,7 @@ import { projectStatusLabel, type TranslateFn } from "@/lib/i18n";
 import { ProjectMap } from "@/features/projects/project-map-loader";
 import { CoverImageField } from "@/features/projects/cover-image-field";
 import { LocationFields } from "@/features/projects/location-fields";
+import { DEFAULT_CURRENCY, SUPPORTED_CURRENCIES } from "@/lib/constants/app";
 
 const LOCATION_FIELD_NAMES = new Set([
   "city",
@@ -85,7 +87,12 @@ function buildFields(t: TranslateFn): Field[] {
     { name: "salesStartDate", label: t("inventory.form.salesStartDate"), type: "date" },
     { name: "constructionStartDate", label: t("projects.fields.constructionStartDate"), type: "date" },
     { name: "expectedCompletionDate", label: t("inventory.projects.expectedCompletion"), type: "date" },
-    { name: "defaultCurrency", label: t("projects.fields.defaultCurrency"), hint: t("inventory.form.currencyHint") },
+    {
+      name: "defaultCurrency",
+      label: t("projects.fields.defaultCurrency"),
+      type: "select",
+      options: SUPPORTED_CURRENCIES.map((value) => ({ value, label: value })),
+    },
     { name: "defaultVatRate", label: t("projects.fields.defaultVatRate"), type: "number" },
     { name: "description", label: t("projects.fields.description"), type: "textarea" },
     { name: "internalNotes", label: t("projects.fields.internalNotes"), type: "textarea" },
@@ -160,9 +167,10 @@ export function NewProjectForm({
   const t = useT();
   const fields = useMemo(() => buildFields(t), [t]);
   const router = useRouter();
-  const [values, setValues] = useState<Record<string, string>>(
-    normalizeInitial(initialValues),
-  );
+  const [values, setValues] = useState<Record<string, string>>({
+    defaultCurrency: DEFAULT_CURRENCY,
+    ...normalizeInitial(initialValues),
+  });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({});
@@ -329,6 +337,15 @@ export function NewProjectForm({
                       </option>
                     ))}
                   </select>
+                ) : f.type === "date" ? (
+                  <DateInput
+                    id={f.name}
+                    name={f.name}
+                    value={values[f.name] ?? ""}
+                    onChange={(iso) => setValue(f.name, iso)}
+                    disabled={disabled}
+                    className="h-11"
+                  />
                 ) : (
                   <input
                     id={f.name}
