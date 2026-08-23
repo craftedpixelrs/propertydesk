@@ -131,6 +131,18 @@ export const LANDING_IMAGES = {
   } as const,
 } as const;
 
+/**
+ * Imagery for the unauthenticated split-screen (sign-in, invite, reset).
+ * The hero is a full-bleed photo; the layout applies a light overlay on top.
+ */
+export const AUTH_IMAGES = {
+  hero: {
+    src: "/images/auth/hero.jpg",
+    width: 1024,
+    height: 1536,
+  } as const,
+} as const;
+
 export const SUPPORTED_CURRENCIES = ["EUR", "RSD"] as const;
 export type SupportedCurrency = (typeof SUPPORTED_CURRENCIES)[number];
 

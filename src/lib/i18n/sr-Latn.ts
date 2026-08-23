@@ -21,7 +21,7 @@ import { guidesSr } from "./namespaces/guides";
 
 export const srLatn = {
   common: {
-    appTagline: "Operativni sistem za investitore u nekretnine",
+    appTagline: "Operativni sistem za investitore u nekretninama",
     loading: "Učitavanje...",
     saving: "Snimanje...",
     save: "Sačuvaj",
@@ -163,12 +163,12 @@ export const srLatn = {
     signedOutTitle: "Uspešna odjava",
     signedOutSubtitle: "Bezbedno ste se odjavili. Vidimo se ponovo.",
     weakPasswordHint: "Minimalno 10 znakova.",
-    brandingTitle: "Operativni sistem za investitore u nekretnine",
+    brandingTitle: "Operativni sistem za investitore u nekretninama",
     brandingSubtitle:
-      "Vodite prodaju stanova od prve rezervacije do primopredaje — bez Excel tabela i izgubljenih dokumenata.",
-    brandingFeature1: "Prodaje, rezervacije i uplate na jednom mestu",
+      "Vodite prodaju stanova od prve rezervacije do primopredaje, bez Excel tabela i izgubljenih dokumenata.",
+    brandingFeature1: "Prodaja, rezervacije i uplate na jednom mestu",
     brandingFeature2: "Sigurna razmena dokumenata sa kupcima i agencijama",
-    brandingFeature3: "Automatski izveštaji za investitore i menadžment",
+    brandingFeature3: "Automatski izveštaji za investitore i rukovodstvo",
     inviteOnly: "Pristup po pozivu",
     demoAccountsTitle: "Probni nalozi",
     demoAccountsHint:

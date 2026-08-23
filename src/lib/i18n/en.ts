@@ -160,10 +160,10 @@ export const en: Dictionary = {
     weakPasswordHint: "At least 10 characters.",
     brandingTitle: "Operating system for real-estate developers",
     brandingSubtitle:
-      "Run apartment sales from the first reservation to handover — without spreadsheets and lost documents.",
+      "Run apartment sales from the first reservation to handover, without spreadsheets and lost documents.",
     brandingFeature1: "Sales, reservations and payments in one place",
     brandingFeature2: "Secure document sharing with buyers and agencies",
-    brandingFeature3: "Automatic reports for developers and management",
+    brandingFeature3: "Automatic reports for developers and leadership",
     inviteOnly: "Invite-only access",
     demoAccountsTitle: "Try-the-app accounts",
     demoAccountsHint:
