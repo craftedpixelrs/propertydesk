@@ -4,20 +4,13 @@ import { redirect } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { PermissionGuard } from "@/components/app/permission-guard";
+import { NewProjectDrawer } from "@/features/projects/new-project-drawer";
+import { ProjectsFilterBar } from "@/features/projects/projects-filter-bar";
 import { loadUserContext } from "@/server/auth/context";
 import { listProjects } from "@/server/services/projects.service";
 import { formatDate } from "@/lib/formatters";
 import { createT, projectStatusLabel, type TranslateFn } from "@/lib/i18n";
 import type { ProjectStatus } from "@prisma/client";
-
-const PROJECT_STATUSES: ProjectStatus[] = [
-  "DRAFT",
-  "PRE_SALES",
-  "ACTIVE_SALES",
-  "CONSTRUCTION",
-  "COMPLETED",
-  "ARCHIVED",
-];
 
 const PROJECT_STATUS_TONE: Record<ProjectStatus, string> = {
   DRAFT: "bg-slate-100 text-slate-700",
@@ -73,9 +66,9 @@ export default async function ProjektiPage({ searchParams }: PageProps) {
           </p>
         </div>
         <PermissionGuard permission="project.create">
-          <Button asChild>
-            <Link href="/projekti/novi">{t("projects.newProject")}</Link>
-          </Button>
+          <NewProjectDrawer>
+            <Button type="button">{t("projects.newProject")}</Button>
+          </NewProjectDrawer>
         </PermissionGuard>
       </div>
 
@@ -84,39 +77,9 @@ export default async function ProjektiPage({ searchParams }: PageProps) {
           <CardTitle className="text-sm">{t("common.filter")}</CardTitle>
         </CardHeader>
         <CardContent>
-          <form
-            method="get"
-            className="grid grid-cols-1 gap-3 sm:grid-cols-4"
-            action="/projekti"
-          >
-            <input
-              type="text"
-              name="q"
-              placeholder={t("inventory.projects.searchPlaceholder")}
-              defaultValue={search ?? ""}
-              className="col-span-2 h-10 rounded-md border border-[var(--color-border)] bg-white px-3 text-sm"
-            />
-            <select
-              name="status"
-              defaultValue={status ?? ""}
-              className="h-10 rounded-md border border-[var(--color-border)] bg-white px-3 text-sm"
-            >
-              <option value="">{t("common.allStatuses")}</option>
-              {PROJECT_STATUSES.map((value) => (
-                <option key={value} value={value}>
-                  {projectStatusLabel(value, t)}
-                </option>
-              ))}
-            </select>
-            <div className="flex gap-2">
-              <Button type="submit" size="md">
-                {t("common.apply")}
-              </Button>
-              <Button asChild variant="outline">
-                <Link href="/projekti">{t("common.reset")}</Link>
-              </Button>
-            </div>
-          </form>
+          <ProjectsFilterBar
+            values={{ q: search ?? "", status: status ?? "" }}
+          />
         </CardContent>
       </Card>
 
@@ -130,9 +93,9 @@ export default async function ProjektiPage({ searchParams }: PageProps) {
                 <p>{t("inventory.projects.emptyOrg")}</p>
                 <PermissionGuard permission="project.create">
                   <div className="flex justify-center pt-2">
-                    <Button asChild>
-                      <Link href="/projekti/novi">{t("inventory.projects.createFirst")}</Link>
-                    </Button>
+                    <NewProjectDrawer>
+                      <Button type="button">{t("inventory.projects.createFirst")}</Button>
+                    </NewProjectDrawer>
                   </div>
                 </PermissionGuard>
               </>
@@ -225,7 +188,15 @@ export default async function ProjektiPage({ searchParams }: PageProps) {
             ))}
           </div>
 
-          <Pagination page={page} totalPages={totalPages} t={t} />
+          <Pagination
+            page={page}
+            totalPages={totalPages}
+            t={t}
+            query={{
+              ...(search ? { q: search } : {}),
+              ...(status ? { status } : {}),
+            }}
+          />
         </>
       )}
     </div>
@@ -236,10 +207,12 @@ function Pagination({
   page,
   totalPages,
   t,
+  query,
 }: {
   page: number;
   totalPages: number;
   t: TranslateFn;
+  query: Record<string, string>;
 }) {
   if (totalPages <= 1) return null;
   return (
@@ -253,7 +226,7 @@ function Pagination({
             <Link
               href={{
                 pathname: "/projekti",
-                query: { page: String(page - 1) },
+                query: { ...query, page: String(page - 1) },
               }}
             >
               {t("inventory.pagination.prev")}
@@ -265,7 +238,7 @@ function Pagination({
             <Link
               href={{
                 pathname: "/projekti",
-                query: { page: String(page + 1) },
+                query: { ...query, page: String(page + 1) },
               }}
             >
               {t("inventory.pagination.next")}

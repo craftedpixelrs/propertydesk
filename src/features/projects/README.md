@@ -13,6 +13,9 @@ the shared `Document` model with `sortOrder` / `isCover`.
 
 Key components:
 
+- `new-project-drawer.tsx` — create flow as a right-side panel
+  (full-screen on mobile). `/projekti/novi` stays as a deep-link page.
+- `projects-filter-bar.tsx` — live search/status filters (URL + RSC).
 - `new-project-form.tsx` — create/edit form. City, address, and
   municipality use [`location-fields.tsx`](./location-fields.tsx)
   (`SuggestInput` → `GET /api/v1/geo/suggest`). Picking a place

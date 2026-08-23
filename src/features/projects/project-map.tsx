@@ -70,11 +70,21 @@ export function ProjectMap({
           url="https://tile.openstreetmap.org/{z}/{y}/{x}.png"
         />
         {hasCoords ? <Marker position={[latitude, longitude]} /> : null}
+        <InvalidateSize />
         <RecenterOnChange coords={hasCoords ? [latitude, longitude] : null} />
         {onPick ? <ClickHandler onPick={onPick} /> : null}
       </MapContainer>
     </div>
   );
+}
+
+function InvalidateSize() {
+  const map = useMap();
+  React.useEffect(() => {
+    const id = window.setTimeout(() => map.invalidateSize(), 280);
+    return () => window.clearTimeout(id);
+  }, [map]);
+  return null;
 }
 
 function RecenterOnChange({ coords }: { coords: [number, number] | null }) {

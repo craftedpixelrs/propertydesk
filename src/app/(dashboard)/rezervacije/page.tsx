@@ -10,6 +10,7 @@ import {
 } from "@/server/services/reservations.service";
 import { formatDate } from "@/lib/formatters";
 import { ReservationsBoard } from "@/features/board/reservations-board";
+import { StatusFilterBar } from "@/components/forms/status-filter-bar";
 import { createT, enumLabel, type TranslateFn } from "@/lib/i18n";
 import type { ReservationStatus } from "@prisma/client";
 
@@ -179,26 +180,14 @@ async function ListView({
           <CardTitle className="text-sm">{t("common.filter")}</CardTitle>
         </CardHeader>
         <CardContent>
-          <form method="get" className="flex flex-wrap gap-2" action="/rezervacije">
-            <select
-              name="status"
-              defaultValue={status ?? ""}
-              className="h-10 rounded-md border border-[var(--color-border)] bg-white px-3 text-sm"
-            >
-              <option value="">{t("common.allStatuses")}</option>
-              {RESERVATION_STATUSES.map((value) => (
-                <option key={value} value={value}>
-                  {enumLabel("reservation", value, t)}
-                </option>
-              ))}
-            </select>
-            <Button type="submit" size="md">
-              {t("common.apply")}
-            </Button>
-            <Button asChild variant="outline">
-              <Link href="/rezervacije">{t("common.reset")}</Link>
-            </Button>
-          </form>
+          <StatusFilterBar
+            path="/rezervacije"
+            status={status ?? ""}
+            options={RESERVATION_STATUSES.map((value) => ({
+              value,
+              label: enumLabel("reservation", value, t),
+            }))}
+          />
         </CardContent>
       </Card>
 

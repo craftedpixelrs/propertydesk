@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { FormActions } from "@/components/forms/form-actions";
 import { useT } from "@/components/app/i18n-provider";
 import { apiClient } from "@/lib/api-client";
 import { ApiClientError } from "@/lib/api-client";
@@ -134,6 +135,9 @@ interface ProjectFormProps {
   mode?: "create" | "edit";
   projectId?: string;
   initialValues?: Record<string, string>;
+  /** Skip the page Card chrome when the form sits inside a drawer. */
+  variant?: "page" | "embedded";
+  onCancel?: () => void;
 }
 
 function normalizeInitial(values?: Record<string, string>): Record<string, string> {
@@ -150,6 +154,8 @@ export function NewProjectForm({
   mode = "create",
   projectId,
   initialValues,
+  variant = "page",
+  onCancel,
 }: ProjectFormProps = {}) {
   const t = useT();
   const fields = useMemo(() => buildFields(t), [t]);
@@ -239,9 +245,7 @@ export function NewProjectForm({
     }
   }
 
-  return (
-    <Card>
-      <CardContent className="p-4 sm:p-6">
+  const form = (
         <form className="grid grid-cols-1 gap-4" onSubmit={onSubmit}>
           {fields.map((f) => {
             if (LOCATION_FIELD_NAMES.has(f.name)) {
@@ -376,11 +380,11 @@ export function NewProjectForm({
               {error}
             </div>
           ) : null}
-          <div className="flex justify-end gap-2 pt-2">
+          <FormActions sticky={variant === "embedded"}>
             <Button
               variant="outline"
               type="button"
-              onClick={() => router.back()}
+              onClick={() => (onCancel ? onCancel() : router.back())}
               disabled={loading}
             >
               {t("inventory.discard")}
@@ -388,9 +392,15 @@ export function NewProjectForm({
             <Button type="submit" loading={loading}>
               {isEdit ? t("common.saveChanges") : t("common.save")}
             </Button>
-          </div>
+          </FormActions>
         </form>
-      </CardContent>
+  );
+
+  if (variant === "embedded") return form;
+
+  return (
+    <Card>
+      <CardContent className="p-4 sm:p-6">{form}</CardContent>
     </Card>
   );
 }

@@ -88,13 +88,14 @@ export function ProjectAccessManager({
     }
   }
 
-  async function togglePricing(accessId: string, next: boolean) {
+  async function patchAccess(
+    accessId: string,
+    patch: { canViewPrices?: boolean; canRequestReservations?: boolean },
+  ) {
     setPendingAccessId(accessId);
     setError(null);
     try {
-      await apiClient.patch(`/agencies/${connectionId}/project-access/${accessId}`, {
-        canViewPrices: next,
-      });
+      await apiClient.patch(`/agencies/${connectionId}/project-access/${accessId}`, patch);
       router.refresh();
     } catch (err) {
       setError(err instanceof ApiClientError ? err.message : t("errors.generic"));
@@ -206,13 +207,27 @@ export function ProjectAccessManager({
                             type="checkbox"
                             checked={a.canViewPrices}
                             disabled={pendingAccessId === a.id}
-                            onChange={(e) => togglePricing(a.id, e.target.checked)}
+                            onChange={(e) =>
+                              patchAccess(a.id, { canViewPrices: e.target.checked })
+                            }
                           />
                           {t("partners.access.showPrices")}
                         </label>
                       </td>
-                      <td className="px-4 py-3 text-xs">
-                        {a.canRequestReservations ? t("common.yes") : t("common.no")}
+                      <td className="px-4 py-3">
+                        <label className="inline-flex cursor-pointer items-center gap-2 text-xs">
+                          <input
+                            type="checkbox"
+                            checked={a.canRequestReservations}
+                            disabled={pendingAccessId === a.id}
+                            onChange={(e) =>
+                              patchAccess(a.id, {
+                                canRequestReservations: e.target.checked,
+                              })
+                            }
+                          />
+                          {t("partners.access.allowReservations")}
+                        </label>
                       </td>
                       <td className="px-4 py-3 text-right">
                         <Button

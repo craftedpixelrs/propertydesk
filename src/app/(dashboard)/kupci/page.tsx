@@ -4,6 +4,8 @@ import { redirect } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { PermissionGuard } from "@/components/app/permission-guard";
+import { BuyersFilterBar } from "@/features/buyers/buyers-filter-bar";
+import { NewBuyerDrawer } from "@/features/buyers/new-buyer-drawer";
 import { loadUserContext } from "@/server/auth/context";
 import { listBuyers } from "@/server/services/buyers.service";
 import { formatDate } from "@/lib/formatters";
@@ -33,19 +35,6 @@ function computeKycComplete(
       : [kyc.idFrontOk, kyc.idBackOk, kyc.addressProofOk];
   return required.every(Boolean);
 }
-
-const BUYER_STATUSES = [
-  "NEW",
-  "CONTACTED",
-  "QUALIFIED",
-  "VIEWING_SCHEDULED",
-  "OFFER_SENT",
-  "NEGOTIATION",
-  "RESERVATION",
-  "WON",
-  "LOST",
-  "ARCHIVED",
-] as const satisfies readonly BuyerStatus[];
 
 const BUYER_STATUS_TONE: Record<BuyerStatus, string> = {
   NEW: "bg-sky-100 text-sky-700",
@@ -110,9 +99,9 @@ export default async function KupciPage({ searchParams }: PageProps) {
           </p>
         </div>
         <PermissionGuard permission="lead.manage">
-          <Button asChild>
-            <Link href="/kupci/novi">{t("crm.buyers.newBuyer")}</Link>
-          </Button>
+          <NewBuyerDrawer>
+            <Button type="button">{t("crm.buyers.newBuyer")}</Button>
+          </NewBuyerDrawer>
         </PermissionGuard>
       </div>
 
@@ -121,35 +110,7 @@ export default async function KupciPage({ searchParams }: PageProps) {
           <CardTitle className="text-sm">{t("common.filter")}</CardTitle>
         </CardHeader>
         <CardContent>
-          <form method="get" className="grid grid-cols-1 gap-3 sm:grid-cols-4" action="/kupci">
-            <input
-              type="text"
-              name="q"
-              placeholder={t("crm.buyers.searchPlaceholder")}
-              defaultValue={search ?? ""}
-              className="col-span-2 h-10 rounded-md border border-[var(--color-border)] bg-white px-3 text-sm"
-            />
-            <select
-              name="status"
-              defaultValue={status ?? ""}
-              className="h-10 rounded-md border border-[var(--color-border)] bg-white px-3 text-sm"
-            >
-              <option value="">{t("common.allStatuses")}</option>
-              {BUYER_STATUSES.map((value) => (
-                <option key={value} value={value}>
-                  {buyerStatusLabel(value, t)}
-                </option>
-              ))}
-            </select>
-            <div className="flex gap-2">
-              <Button type="submit" size="md">
-                {t("common.apply")}
-              </Button>
-              <Button asChild variant="outline">
-                <Link href="/kupci">{t("common.reset")}</Link>
-              </Button>
-            </div>
-          </form>
+          <BuyersFilterBar values={{ q: search ?? "", status: status ?? "" }} />
         </CardContent>
       </Card>
 
@@ -250,7 +211,15 @@ export default async function KupciPage({ searchParams }: PageProps) {
             ))}
           </div>
 
-          <Pagination page={page} totalPages={totalPages} t={t} />
+          <Pagination
+            page={page}
+            totalPages={totalPages}
+            t={t}
+            query={{
+              ...(search ? { q: search } : {}),
+              ...(status ? { status } : {}),
+            }}
+          />
         </>
       )}
     </div>
@@ -261,10 +230,12 @@ function Pagination({
   page,
   totalPages,
   t,
+  query,
 }: {
   page: number;
   totalPages: number;
   t: TranslateFn;
+  query: Record<string, string>;
 }) {
   if (totalPages <= 1) return null;
   return (
@@ -275,14 +246,14 @@ function Pagination({
       <div className="flex gap-2">
         {page > 1 ? (
           <Button asChild variant="outline" size="sm">
-            <Link href={{ pathname: "/kupci", query: { page: String(page - 1) } }}>
+            <Link href={{ pathname: "/kupci", query: { ...query, page: String(page - 1) } }}>
               {t("crm.pagination.previous")}
             </Link>
           </Button>
         ) : null}
         {page < totalPages ? (
           <Button asChild variant="outline" size="sm">
-            <Link href={{ pathname: "/kupci", query: { page: String(page + 1) } }}>
+            <Link href={{ pathname: "/kupci", query: { ...query, page: String(page + 1) } }}>
               {t("crm.pagination.next")}
             </Link>
           </Button>

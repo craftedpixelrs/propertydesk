@@ -4,6 +4,7 @@ import { requirePermission } from "@/server/permissions/require";
 import { listInvoices } from "@/server/services/billing/invoices/service";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { StatusFilterBar } from "@/components/forms/status-filter-bar";
 import { formatDate } from "@/lib/formatters/date";
 import { formatMoney } from "@/lib/formatters/money";
 import type { InvoiceStatus } from "@prisma/client";
@@ -64,24 +65,14 @@ export default async function TenantInvoicesPage({ searchParams }: PageProps) {
             {t("ops.invoices.subtitle")}
           </p>
         </div>
-        <form className="flex items-center gap-2" action="/podesavanja/fakture">
-          <select
-            name="status"
-            defaultValue={sp.status ?? ""}
-            className="h-9 rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] px-3 text-sm"
-          >
-            <option value="">{t("common.allStatuses")}</option>
-            {INVOICE_STATUSES.map((s) => (
-              <option key={s} value={s}>{invoiceStatusLabel(s)}</option>
-            ))}
-          </select>
-          <button
-            type="submit"
-            className="h-9 rounded-md border border-[var(--color-border)] px-3 text-sm hover:bg-[var(--color-surface-hover)]"
-          >
-            {t("common.apply")}
-          </button>
-        </form>
+        <StatusFilterBar
+          path="/podesavanja/fakture"
+          status={status ?? ""}
+          options={INVOICE_STATUSES.map((s) => ({
+            value: s,
+            label: invoiceStatusLabel(s),
+          }))}
+        />
       </div>
 
       <Card>

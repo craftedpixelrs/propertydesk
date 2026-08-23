@@ -3,6 +3,7 @@ import { requireSuperAdmin } from "@/server/permissions/require";
 import { listInvoices } from "@/server/services/billing/invoices/service";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { StatusFilterBar } from "@/components/forms/status-filter-bar";
 import { formatDate } from "@/lib/formatters/date";
 import { formatMoney } from "@/lib/formatters/money";
 import type { InvoiceStatus } from "@prisma/client";
@@ -49,26 +50,14 @@ export default async function BillingInvoicesPage({ searchParams }: PageProps) {
     <section className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h2 className="text-lg font-semibold">{t("admin.invoices.title", { total })}</h2>
-        <form className="flex items-center gap-2" action="/administracija/naplata/fakture">
-          <select
-            name="status"
-            defaultValue={sp.status ?? ""}
-            className="h-9 rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] px-3 text-sm"
-          >
-            <option value="">{t("common.allStatuses")}</option>
-            {INVOICE_STATUSES.map((s) => (
-              <option key={s} value={s}>
-                {t(`billing.invoiceStatus.${s}` as TranslationKey)}
-              </option>
-            ))}
-          </select>
-          <button
-            type="submit"
-            className="h-9 rounded-md border border-[var(--color-border)] px-3 text-sm hover:bg-[var(--color-surface-hover)]"
-          >
-            {t("common.apply")}
-          </button>
-        </form>
+        <StatusFilterBar
+          path="/administracija/naplata/fakture"
+          status={status ?? ""}
+          options={INVOICE_STATUSES.map((s) => ({
+            value: s,
+            label: t(`billing.invoiceStatus.${s}` as TranslationKey),
+          }))}
+        />
       </div>
 
       <Card>

@@ -4,33 +4,13 @@ import { redirect } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { PermissionGuard } from "@/components/app/permission-guard";
+import { UnitsFilterBar } from "@/features/units/units-filter-bar";
 import { loadUserContext } from "@/server/auth/context";
 import { listUnits } from "@/server/services/units.service";
 import { listProjects } from "@/server/services/projects.service";
 import { formatMoney } from "@/lib/formatters";
 import { createT, unitStatusLabel, unitTypeLabel } from "@/lib/i18n";
 import type { UnitStatus, UnitType } from "@prisma/client";
-
-const UNIT_STATUSES: UnitStatus[] = [
-  "AVAILABLE",
-  "ON_HOLD",
-  "RESERVED",
-  "DEPOSIT_PAID",
-  "CONTRACTED",
-  "SOLD",
-  "BLOCKED",
-  "NOT_FOR_SALE",
-];
-
-const UNIT_TYPES: UnitType[] = [
-  "APARTMENT",
-  "GARAGE",
-  "PARKING_SPACE",
-  "STORAGE",
-  "COMMERCIAL",
-  "HOUSE",
-  "OTHER",
-];
 
 const UNIT_STATUS_TONE: Record<UnitStatus, string> = {
   AVAILABLE: "bg-emerald-100 text-emerald-700",
@@ -90,6 +70,12 @@ export default async function UnitsPage({ searchParams }: PageProps) {
   ]);
 
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
+  const listQuery = {
+    ...(search ? { q: search } : {}),
+    ...(projectId ? { projectId } : {}),
+    ...(first(sp.status) ? { status: first(sp.status)! } : {}),
+    ...(first(sp.type) ? { type: first(sp.type)! } : {}),
+  };
 
   return (
     <div className="space-y-6">
@@ -116,63 +102,15 @@ export default async function UnitsPage({ searchParams }: PageProps) {
           <CardTitle className="text-sm">{t("common.filter")}</CardTitle>
         </CardHeader>
         <CardContent>
-          <form
-            method="get"
-            action="/jedinice"
-            className="grid grid-cols-1 gap-3 sm:grid-cols-4"
-          >
-            <input
-              type="text"
-              name="q"
-              placeholder={t("inventory.units.searchPlaceholder")}
-              defaultValue={search ?? ""}
-              className="col-span-2 h-10 rounded-md border border-[var(--color-border)] bg-white px-3 text-sm"
-            />
-            <select
-              name="projectId"
-              defaultValue={projectId ?? ""}
-              className="h-10 rounded-md border border-[var(--color-border)] bg-white px-3 text-sm"
-            >
-              <option value="">{t("common.allProjects")}</option>
-              {projectsList.items.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.name}
-                </option>
-              ))}
-            </select>
-            <select
-              name="status"
-              defaultValue={first(sp.status) ?? ""}
-              className="h-10 rounded-md border border-[var(--color-border)] bg-white px-3 text-sm"
-            >
-              <option value="">{t("common.allStatuses")}</option>
-              {UNIT_STATUSES.map((value) => (
-                <option key={value} value={value}>
-                  {unitStatusLabel(value, t)}
-                </option>
-              ))}
-            </select>
-            <select
-              name="type"
-              defaultValue={first(sp.type) ?? ""}
-              className="h-10 rounded-md border border-[var(--color-border)] bg-white px-3 text-sm"
-            >
-              <option value="">{t("inventory.units.allTypes")}</option>
-              {UNIT_TYPES.map((value) => (
-                <option key={value} value={value}>
-                  {unitTypeLabel(value, t)}
-                </option>
-              ))}
-            </select>
-            <div className="flex gap-2">
-              <Button type="submit" size="md">
-                {t("common.apply")}
-              </Button>
-              <Button asChild variant="outline">
-                <Link href="/jedinice">{t("common.reset")}</Link>
-              </Button>
-            </div>
-          </form>
+          <UnitsFilterBar
+            values={{
+              q: search ?? "",
+              projectId: projectId ?? "",
+              status: first(sp.status) ?? "",
+              type: first(sp.type) ?? "",
+            }}
+            projects={projectsList.items.map((p) => ({ id: p.id, name: p.name }))}
+          />
         </CardContent>
       </Card>
 
@@ -283,7 +221,7 @@ export default async function UnitsPage({ searchParams }: PageProps) {
                     <Link
                       href={{
                         pathname: "/jedinice",
-                        query: { ...sp, page: String(page - 1) },
+                        query: { ...listQuery, page: String(page - 1) },
                       }}
                     >
                       {t("inventory.pagination.prev")}
@@ -295,7 +233,7 @@ export default async function UnitsPage({ searchParams }: PageProps) {
                     <Link
                       href={{
                         pathname: "/jedinice",
-                        query: { ...sp, page: String(page + 1) },
+                        query: { ...listQuery, page: String(page + 1) },
                       }}
                     >
                       {t("inventory.pagination.next")}

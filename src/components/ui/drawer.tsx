@@ -28,21 +28,32 @@ export const DrawerOverlay = React.forwardRef<
 ));
 DrawerOverlay.displayName = "DrawerOverlay";
 
+type DrawerContentProps = React.ComponentPropsWithoutRef<
+  typeof DrawerPrimitive.Content
+> & {
+  /** Bottom sheet (default) or a right-side panel. Pair `right` with `direction="right"` on `Drawer`. */
+  side?: "bottom" | "right";
+};
+
 export const DrawerContent = React.forwardRef<
   React.ComponentRef<typeof DrawerPrimitive.Content>,
-  React.ComponentPropsWithoutRef<typeof DrawerPrimitive.Content>
->(({ className, children, ...props }, ref) => (
+  DrawerContentProps
+>(({ className, children, side = "bottom", ...props }, ref) => (
   <DrawerPortal>
     <DrawerOverlay />
     <DrawerPrimitive.Content
       ref={ref}
       className={cn(
-        "fixed inset-x-0 bottom-0 z-50 mt-24 flex h-auto flex-col rounded-t-xl border border-[var(--color-border)] bg-[var(--color-surface)] safe-bottom",
+        side === "right"
+          ? "fixed inset-y-0 right-0 z-50 flex h-full w-full min-h-0 flex-col overflow-hidden border-l border-[var(--color-border)] bg-[var(--color-surface)] outline-none sm:max-w-xl md:max-w-2xl"
+          : "fixed inset-x-0 bottom-0 z-50 mt-24 flex h-auto flex-col rounded-t-xl border border-[var(--color-border)] bg-[var(--color-surface)] safe-bottom",
         className,
       )}
       {...props}
     >
-      <div className="mx-auto mt-3 mb-2 h-1 w-10 rounded-full bg-[var(--color-border-strong)]" />
+      {side === "bottom" ? (
+        <div className="mx-auto mt-3 mb-2 h-1 w-10 rounded-full bg-[var(--color-border-strong)]" />
+      ) : null}
       {children}
     </DrawerPrimitive.Content>
   </DrawerPortal>

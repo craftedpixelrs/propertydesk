@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { FormActions } from "@/components/forms/form-actions";
 import { apiClient, ApiClientError } from "@/lib/api-client";
 import { useT } from "@/components/app/i18n-provider";
 
@@ -22,12 +23,16 @@ interface BuyerFormProps {
   mode?: "create" | "edit";
   buyerId?: string;
   initialValues?: Record<string, string>;
+  variant?: "page" | "embedded";
+  onCancel?: () => void;
 }
 
 export function NewBuyerForm({
   mode = "create",
   buyerId,
   initialValues,
+  variant = "page",
+  onCancel,
 }: BuyerFormProps = {}) {
   const t = useT();
   const router = useRouter();
@@ -128,9 +133,8 @@ export function NewBuyerForm({
     }
   }
 
-  return (
-    <Card>
-      <CardContent className="p-4 sm:p-6">
+  const form = (
+    <>
         {duplicates.length > 0 ? (
           <div className="mb-4 rounded-md border border-amber-300 bg-amber-50 p-3 text-sm">
             <p className="font-medium text-amber-800">{t("crm.form.duplicatesTitle")}</p>
@@ -344,16 +348,28 @@ export function NewBuyerForm({
             </div>
           ) : null}
 
-          <div className="flex justify-end gap-2 pt-2 sm:col-span-2">
-            <Button variant="outline" type="button" onClick={() => router.back()} disabled={loading}>
+          <FormActions sticky={variant === "embedded"} className="sm:col-span-2">
+            <Button
+              variant="outline"
+              type="button"
+              onClick={() => (onCancel ? onCancel() : router.back())}
+              disabled={loading}
+            >
               {t("common.cancel")}
             </Button>
             <Button type="submit" loading={loading}>
               {isEdit ? t("common.saveChanges") : t("common.save")}
             </Button>
-          </div>
+          </FormActions>
         </form>
-      </CardContent>
+    </>
+  );
+
+  if (variant === "embedded") return form;
+
+  return (
+    <Card>
+      <CardContent className="p-4 sm:p-6">{form}</CardContent>
     </Card>
   );
 }

@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import type { AgencyBuyerRegistrationStatus } from "@prisma/client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { StatusFilterBar } from "@/components/forms/status-filter-bar";
 import { loadUserContext } from "@/server/auth/context";
 import { listRegistrationsForInvestor } from "@/server/services/agencies/registrations.service";
 import { formatDate } from "@/lib/formatters";
@@ -79,30 +79,14 @@ export default async function RegistracijePage({ searchParams }: PageProps) {
           <CardTitle className="text-sm">{t("common.filter")}</CardTitle>
         </CardHeader>
         <CardContent>
-          <form method="get" action="/agencije/registracije" className="flex flex-wrap items-end gap-3">
-            <div className="space-y-1">
-              <label className="text-sm font-medium" htmlFor="status">
-                {t("common.statusLabel")}
-              </label>
-              <select
-                id="status"
-                name="status"
-                defaultValue={status ?? ""}
-                className="h-10 rounded-md border border-[var(--color-border)] bg-white px-3 text-sm"
-              >
-                <option value="">{t("common.allStatuses")}</option>
-                {REGISTRATION_STATUSES.map((value) => (
-                  <option key={value} value={value}>
-                    {enumLabel("registration", value, t)}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <Button type="submit">{t("common.apply")}</Button>
-            <Button asChild variant="outline">
-              <Link href="/agencije/registracije">{t("common.reset")}</Link>
-            </Button>
-          </form>
+          <StatusFilterBar
+            path="/agencije/registracije"
+            status={status ?? ""}
+            options={REGISTRATION_STATUSES.map((value) => ({
+              value,
+              label: enumLabel("registration", value, t),
+            }))}
+          />
         </CardContent>
       </Card>
 

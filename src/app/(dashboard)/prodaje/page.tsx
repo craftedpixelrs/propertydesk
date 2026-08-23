@@ -9,6 +9,7 @@ import { listSales, listSalesBoard } from "@/server/services/sales/sales.service
 import { formatDate, formatMoney } from "@/lib/formatters";
 import type { SupportedCurrency } from "@/lib/constants/app";
 import { SalesBoard } from "@/features/board/sales-board";
+import { StatusFilterBar } from "@/components/forms/status-filter-bar";
 import { createT, enumLabel, type TranslateFn } from "@/lib/i18n";
 
 export const dynamic = "force-dynamic";
@@ -173,26 +174,14 @@ async function ListView({
           <CardTitle className="text-sm">{t("common.filter")}</CardTitle>
         </CardHeader>
         <CardContent>
-          <form method="get" action="/prodaje" className="flex flex-wrap gap-2">
-            <select
-              name="status"
-              defaultValue={status ?? ""}
-              className="h-10 rounded-md border border-[var(--color-border)] bg-white px-3 text-sm"
-            >
-              <option value="">{t("common.allStatuses")}</option>
-              {SALE_STATUSES.map((value) => (
-                <option key={value} value={value}>
-                  {saleStatusLabel(value, t)}
-                </option>
-              ))}
-            </select>
-            <Button type="submit" size="md">
-              {t("common.apply")}
-            </Button>
-            <Button asChild variant="outline">
-              <Link href="/prodaje">{t("common.reset")}</Link>
-            </Button>
-          </form>
+          <StatusFilterBar
+            path="/prodaje"
+            status={status ?? ""}
+            options={SALE_STATUSES.map((value) => ({
+              value,
+              label: saleStatusLabel(value, t),
+            }))}
+          />
         </CardContent>
       </Card>
 

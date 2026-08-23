@@ -10,6 +10,10 @@ export const crmSr = {
     newSubtitle:
       "Dodajte novog kupca u bazu. Sistem će Vas upozoriti na moguće duplikate.",
     searchPlaceholder: "Pretraga po imenu, telefonu, email-u…",
+    searchAria: "Pretraga kupaca po imenu, telefonu ili email-u",
+    statusAria: "Filter po statusu kupca",
+    resetFilters: "Poništi filtere",
+    updating: "Ažuriranje…",
     emptyFiltered: "Nema kupaca koji odgovaraju izabranim filterima.",
     assigned: "Zadužen",
     created: "Kreiran",
@@ -217,6 +221,10 @@ export const crmEn: Leaves<typeof crmSr> = {
     newSubtitle:
       "Add a new buyer to the directory. The system will warn you about possible duplicates.",
     searchPlaceholder: "Search by name, phone, email…",
+    searchAria: "Search buyers by name, phone, or email",
+    statusAria: "Filter by buyer status",
+    resetFilters: "Clear filters",
+    updating: "Updating…",
     emptyFiltered: "No buyers match the selected filters.",
     assigned: "Assigned",
     created: "Created",
