@@ -5,6 +5,7 @@ import Link from "next/link";
 import { loadUserContext } from "@/server/auth/context";
 import { PageHeader } from "@/components/app/page-header";
 import { createT } from "@/lib/i18n";
+import type { PermissionString } from "@/server/permissions/access-control";
 
 /**
  * Tenant-side settings layout. Requires an active organization.
@@ -21,6 +22,9 @@ export default async function SettingsLayout({ children }: { children: ReactNode
     redirect("/dashboard");
   }
   const t = createT(ctx.user.locale);
+  const isInvestor = ctx.activeOrganization.type === "INVESTOR";
+  const can = (perm: PermissionString) =>
+    ctx.isSuperAdmin || ctx.permissions.includes(perm);
 
   return (
     <div className="space-y-6">
@@ -38,40 +42,46 @@ export default async function SettingsLayout({ children }: { children: ReactNode
         >
           {t("ops.settings.organization")}
         </Link>
-        <Link
-          className="rounded-md border border-[var(--color-border)] px-3 py-1.5 text-sm hover:bg-[var(--color-surface-inset)]"
-          href="/podesavanja/korisnici"
-        >
-          {t("ops.settings.members")}
-        </Link>
-        {ctx.activeOrganization.type === "AGENCY" ? null : (
-          <>
-        <Link
-          className="rounded-md border border-[var(--color-border)] px-3 py-1.5 text-sm hover:bg-[var(--color-surface-inset)]"
-          href="/podesavanja/pretplata"
-        >
-          {t("ops.settings.subscription")}
-        </Link>
-        <Link
-          className="rounded-md border border-[var(--color-border)] px-3 py-1.5 text-sm hover:bg-[var(--color-surface-inset)]"
-          href="/podesavanja/fakture"
-        >
-          {t("ops.settings.invoices")}
-        </Link>
-          </>
-        )}
-        <Link
-          className="rounded-md border border-[var(--color-border)] px-3 py-1.5 text-sm hover:bg-[var(--color-surface-inset)]"
-          href="/podesavanja/planovi-placanja"
-        >
-          {t("nav.paymentPlans")}
-        </Link>
-        <Link
-          className="rounded-md border border-[var(--color-border)] px-3 py-1.5 text-sm hover:bg-[var(--color-surface-inset)]"
-          href="/podesavanja/ugovori-sabloni"
-        >
-          {t("ops.settings.contracts")}
-        </Link>
+        {can("organization.members:manage") ? (
+          <Link
+            className="rounded-md border border-[var(--color-border)] px-3 py-1.5 text-sm hover:bg-[var(--color-surface-inset)]"
+            href="/podesavanja/korisnici"
+          >
+            {t("ops.settings.members")}
+          </Link>
+        ) : null}
+        {isInvestor ? (
+          <Link
+            className="rounded-md border border-[var(--color-border)] px-3 py-1.5 text-sm hover:bg-[var(--color-surface-inset)]"
+            href="/podesavanja/pretplata"
+          >
+            {t("ops.settings.subscription")}
+          </Link>
+        ) : null}
+        {isInvestor && can("billing.invoice.read") ? (
+          <Link
+            className="rounded-md border border-[var(--color-border)] px-3 py-1.5 text-sm hover:bg-[var(--color-surface-inset)]"
+            href="/podesavanja/fakture"
+          >
+            {t("ops.settings.invoices")}
+          </Link>
+        ) : null}
+        {isInvestor && can("payment.manage") ? (
+          <Link
+            className="rounded-md border border-[var(--color-border)] px-3 py-1.5 text-sm hover:bg-[var(--color-surface-inset)]"
+            href="/podesavanja/planovi-placanja"
+          >
+            {t("nav.paymentPlans")}
+          </Link>
+        ) : null}
+        {isInvestor && can("sale.manage") ? (
+          <Link
+            className="rounded-md border border-[var(--color-border)] px-3 py-1.5 text-sm hover:bg-[var(--color-surface-inset)]"
+            href="/podesavanja/ugovori-sabloni"
+          >
+            {t("ops.settings.contracts")}
+          </Link>
+        ) : null}
       </nav>
       {children}
     </div>

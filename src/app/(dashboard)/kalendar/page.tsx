@@ -1,7 +1,6 @@
-import { redirect } from "next/navigation";
 import { endOfMonth, startOfMonth } from "date-fns";
 
-import { loadUserContext } from "@/server/auth/context";
+import { loadUserContext, requireTenantPage } from "@/server/auth/context";
 import { loadCalendarEvents } from "@/server/services/calendar/calendar.service";
 import { MonthGrid } from "@/features/calendar/month-grid";
 import { createT } from "@/lib/i18n";
@@ -18,8 +17,7 @@ function readParam(raw: string | string[] | undefined): string | undefined {
 
 export default async function KalendarPage({ searchParams }: PageProps) {
   const ctx = await loadUserContext();
-  if (!ctx) redirect("/sign-in");
-  if (!ctx.activeOrganization) redirect("/podesavanja");
+  requireTenantPage(ctx, { permission: "reservation.read", orgType: "INVESTOR" });
 
   const t = createT(ctx.user.locale);
   const sp = await searchParams;

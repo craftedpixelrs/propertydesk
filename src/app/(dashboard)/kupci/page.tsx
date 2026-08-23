@@ -1,12 +1,11 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { PermissionGuard } from "@/components/app/permission-guard";
 import { BuyersFilterBar } from "@/features/buyers/buyers-filter-bar";
 import { NewBuyerDrawer } from "@/features/buyers/new-buyer-drawer";
-import { loadUserContext } from "@/server/auth/context";
+import { loadUserContext, requireTenantPage } from "@/server/auth/context";
 import { listBuyers } from "@/server/services/buyers.service";
 import { formatDate } from "@/lib/formatters";
 import {
@@ -68,8 +67,7 @@ export const dynamic = "force-dynamic";
 
 export default async function KupciPage({ searchParams }: PageProps) {
   const ctx = await loadUserContext();
-  if (!ctx) redirect("/sign-in");
-  if (!ctx.activeOrganization) redirect("/podesavanja");
+  requireTenantPage(ctx, { permission: "lead.read", orgType: "INVESTOR" });
   const t = createT(ctx.user.locale);
 
   const sp = await searchParams;

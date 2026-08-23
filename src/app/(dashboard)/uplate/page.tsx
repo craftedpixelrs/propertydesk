@@ -1,9 +1,8 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { loadUserContext } from "@/server/auth/context";
+import { loadUserContext, requireTenantPage } from "@/server/auth/context";
 import { listPayments } from "@/server/services/sales/payments.service";
 import { formatDate, formatMoney } from "@/lib/formatters";
 import type { SupportedCurrency } from "@/lib/constants/app";
@@ -40,8 +39,7 @@ function readParam(raw: string | string[] | undefined): string | undefined {
 
 export default async function UplatePage({ searchParams }: PageProps) {
   const ctx = await loadUserContext();
-  if (!ctx) redirect("/sign-in");
-  if (!ctx.activeOrganization) redirect("/podesavanja");
+  requireTenantPage(ctx, { permission: "payment.read", orgType: "INVESTOR" });
 
   const t = createT(ctx.user.locale);
   const sp = await searchParams;

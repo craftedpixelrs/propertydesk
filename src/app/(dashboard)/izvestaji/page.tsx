@@ -62,6 +62,9 @@ export default async function ReportsIndexPage() {
   const ctx = await loadUserContext();
   if (!ctx) redirect("/sign-in");
   if (!ctx.activeOrganization) redirect("/dashboard");
+  if (!ctx.isSuperAdmin && !ctx.permissions.includes("report.read")) {
+    redirect("/dashboard");
+  }
   const t = createT(ctx.user.locale);
   const isInvestor = ctx.activeOrganization.type === "INVESTOR";
   const items = isInvestor

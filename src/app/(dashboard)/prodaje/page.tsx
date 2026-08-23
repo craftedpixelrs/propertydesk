@@ -1,10 +1,9 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import type { SaleStatus } from "@prisma/client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { loadUserContext } from "@/server/auth/context";
+import { loadUserContext, requireTenantPage } from "@/server/auth/context";
 import { listSales, listSalesBoard } from "@/server/services/sales/sales.service";
 import { formatDate, formatMoney } from "@/lib/formatters";
 import type { SupportedCurrency } from "@/lib/constants/app";
@@ -48,8 +47,7 @@ function readParam(raw: string | string[] | undefined): string | undefined {
 
 export default async function ProdajePage({ searchParams }: PageProps) {
   const ctx = await loadUserContext();
-  if (!ctx) redirect("/sign-in");
-  if (!ctx.activeOrganization) redirect("/podesavanja");
+  requireTenantPage(ctx, { permission: "sale.read", orgType: "INVESTOR" });
 
   const t = createT(ctx.user.locale);
   const sp = await searchParams;

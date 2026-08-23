@@ -1,12 +1,11 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { PermissionGuard } from "@/components/app/permission-guard";
 import { NewProjectDrawer } from "@/features/projects/new-project-drawer";
 import { ProjectsFilterBar } from "@/features/projects/projects-filter-bar";
-import { loadUserContext } from "@/server/auth/context";
+import { loadUserContext, requireTenantPage } from "@/server/auth/context";
 import { listProjects } from "@/server/services/projects.service";
 import { formatDate } from "@/lib/formatters";
 import { createT, projectStatusLabel, type TranslateFn } from "@/lib/i18n";
@@ -34,8 +33,7 @@ function readParam(
 
 export default async function ProjektiPage({ searchParams }: PageProps) {
   const ctx = await loadUserContext();
-  if (!ctx) redirect("/sign-in");
-  if (!ctx.activeOrganization) redirect("/podesavanja");
+  requireTenantPage(ctx, { permission: "project.read", orgType: "INVESTOR" });
 
   const t = createT(ctx.user.locale);
   const sp = await searchParams;

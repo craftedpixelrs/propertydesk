@@ -89,6 +89,7 @@ export const navigation: NavItem[] = [
     href: "/projekti",
     icon: Building2,
     permission: "project.read",
+    orgTypes: ["INVESTOR"],
   },
   {
     key: "inventory",
@@ -96,6 +97,7 @@ export const navigation: NavItem[] = [
     href: "/jedinice",
     icon: LayoutGrid,
     permission: "inventory.read",
+    orgTypes: ["INVESTOR"],
   },
   {
     key: "customers",
@@ -103,6 +105,7 @@ export const navigation: NavItem[] = [
     href: "/kupci",
     icon: Contact,
     permission: "lead.read",
+    orgTypes: ["INVESTOR"],
   },
   {
     key: "tasks",
@@ -110,6 +113,7 @@ export const navigation: NavItem[] = [
     href: "/zadaci",
     icon: ClipboardCheck,
     permission: "lead.read",
+    orgTypes: ["INVESTOR"],
   },
   {
     key: "reservations",
@@ -117,6 +121,7 @@ export const navigation: NavItem[] = [
     href: "/rezervacije",
     icon: BadgeCheck,
     permission: "reservation.read",
+    orgTypes: ["INVESTOR"],
   },
   {
     key: "calendar",
@@ -124,6 +129,7 @@ export const navigation: NavItem[] = [
     href: "/kalendar",
     icon: CalendarDays,
     permission: "reservation.read",
+    orgTypes: ["INVESTOR"],
   },
   {
     key: "sales",
@@ -294,13 +300,19 @@ export function filterNavigation(
     if (item.key === "dashboard" && (ctx.isSuperAdmin || pdOnlyUser)) {
       return false;
     }
+    if (item.key === "settings" && !ctx.organizationType) {
+      return false;
+    }
     if (superAdminWithoutOrg && !PLATFORM_ONLY_SAFE_KEYS.has(item.key)) {
       return false;
     }
     if (pdOnlyUser && !PD_ONLY_SAFE_KEYS.has(item.key)) {
       return false;
     }
-    if (item.orgTypes && ctx.organizationType && !item.orgTypes.includes(ctx.organizationType)) {
+    if (
+      item.orgTypes &&
+      (!ctx.organizationType || !item.orgTypes.includes(ctx.organizationType))
+    ) {
       return false;
     }
     if (item.permission && !ctx.hasPermission(item.permission)) return false;
@@ -315,8 +327,11 @@ export function filterNavigation(
 export const MOBILE_BOTTOM_NAV_KEYS = [
   "dashboard",
   "projects",
+  "offer",
   "customers",
+  "my-buyers",
   "reservations",
+  "my-reservations",
 ] as const;
 
 export const MoreIcon = Grid3x3;

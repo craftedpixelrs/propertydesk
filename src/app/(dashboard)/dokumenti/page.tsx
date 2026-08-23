@@ -1,8 +1,7 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { loadUserContext } from "@/server/auth/context";
+import { loadUserContext, requireTenantPage } from "@/server/auth/context";
 import { prisma } from "@/server/db/prisma";
 import { formatDate } from "@/lib/formatters";
 import { DocumentUploader } from "@/features/documents/document-uploader";
@@ -12,8 +11,7 @@ export const dynamic = "force-dynamic";
 
 export default async function DokumentiPage() {
   const ctx = await loadUserContext();
-  if (!ctx) redirect("/sign-in");
-  if (!ctx.activeOrganization) redirect("/podesavanja");
+  requireTenantPage(ctx, { permission: "document.read" });
   const t = createT(ctx.user.locale);
 
   const docs = await prisma.document.findMany({

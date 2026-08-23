@@ -137,6 +137,7 @@ describe("sidebar navigation matrix", () => {
     expect(keys).toContain("offer");
     expect(keys).toContain("my-buyers");
     expect(keys).toContain("connections");
+    expect(keys).not.toContain("projects");
     expect(keys).not.toContain("sales");
     expect(keys).not.toContain("payments");
     expect(keys).not.toContain("agencies");
@@ -266,12 +267,6 @@ describe("sidebar navigation matrix", () => {
       expect(keys.sort()).toEqual(
         [
           "dashboard",
-          "projects",
-          "inventory",
-          "customers",
-          "tasks",
-          "reservations",
-          "calendar",
           "offer",
           "my-buyers",
           "my-reservations",
@@ -283,6 +278,12 @@ describe("sidebar navigation matrix", () => {
           "settings",
         ].sort(),
       );
+      expect(keys).not.toContain("projects");
+      expect(keys).not.toContain("inventory");
+      expect(keys).not.toContain("customers");
+      expect(keys).not.toContain("tasks");
+      expect(keys).not.toContain("reservations");
+      expect(keys).not.toContain("calendar");
     });
 
     it("AGENCY_ADMIN sees the same core agency items", () => {
@@ -312,6 +313,12 @@ describe("sidebar navigation matrix", () => {
       // "Agenti" (members management) requires organization.members:manage.
       expect(keys).not.toContain("agents");
       expect(keys).not.toContain("reports");
+      expect(keys).not.toContain("projects");
+      expect(keys).not.toContain("inventory");
+      expect(keys).not.toContain("customers");
+      expect(keys).not.toContain("reservations");
+      expect(keys).not.toContain("calendar");
+      expect(keys).not.toContain("tasks");
     });
 
     it("AGENCY_VIEWER is read-only — no customer registration, no members management", () => {
@@ -327,6 +334,19 @@ describe("sidebar navigation matrix", () => {
       expect(keys).not.toContain("agents");
       expect(keys).not.toContain("my-buyers");
     });
+  });
+
+  it("typed nav items stay hidden when there is no active organization", () => {
+    const keys = keysFor({
+      organizationType: null,
+      permissions: computeOrgPermissions("AGENCY_AGENT"),
+      isSuperAdmin: false,
+    });
+    expect(keys).not.toContain("projects");
+    expect(keys).not.toContain("offer");
+    expect(keys).not.toContain("sales");
+    expect(keys).not.toContain("settings");
+    expect(keys).toContain("dashboard");
   });
 
   it("no role ever sees platform-admin unless SUPER_ADMIN", () => {
@@ -359,6 +379,12 @@ describe("sidebar navigation matrix", () => {
       expect(keys).not.toContain("agencies");
       expect(keys).not.toContain("agency-registrations");
       expect(keys).not.toContain("commissions");
+      expect(keys).not.toContain("projects");
+      expect(keys).not.toContain("inventory");
+      expect(keys).not.toContain("customers");
+      expect(keys).not.toContain("tasks");
+      expect(keys).not.toContain("reservations");
+      expect(keys).not.toContain("calendar");
     }
   });
 

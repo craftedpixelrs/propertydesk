@@ -1,4 +1,5 @@
 import "server-only";
+import { redirect } from "next/navigation";
 import type { PropertyDeskLeadScope, PropertyDeskTeamRole } from "@prisma/client";
 import type { OrganizationRole } from "@/server/permissions/roles";
 import { organizationRoles } from "@/server/permissions/roles";
@@ -98,6 +99,34 @@ async function computePermissions(
     }
   }
   return allowed;
+}
+
+/**
+ * Shared gate for dashboard pages. Missing session → sign-in. Wrong org
+ * type or permission → home, so a hidden sidebar link cannot loop the
+ * current screen.
+ */
+export function requireTenantPage(
+  ctx: UserContext | null,
+  opts: {
+    permission?: PermissionString;
+    orgType?: "INVESTOR" | "AGENCY";
+  } = {},
+): asserts ctx is UserContext & {
+  activeOrganization: NonNullable<UserContext["activeOrganization"]>;
+} {
+  if (!ctx) redirect("/sign-in");
+  if (!ctx.activeOrganization) redirect("/dashboard");
+  if (opts.orgType && ctx.activeOrganization.type !== opts.orgType) {
+    redirect("/dashboard");
+  }
+  if (
+    opts.permission &&
+    !ctx.isSuperAdmin &&
+    !ctx.permissions.includes(opts.permission)
+  ) {
+    redirect("/dashboard");
+  }
 }
 
 export async function loadUserContext(): Promise<UserContext | null> {

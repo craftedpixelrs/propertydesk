@@ -16,7 +16,10 @@ export default async function SaleContractTemplatesPage() {
   const ctx = await loadUserContext();
   if (!ctx) redirect("/sign-in");
   if (!ctx.activeOrganization) redirect("/podesavanja");
-  if (!ctx.permissions.includes("sale.manage")) {
+  if (
+    ctx.activeOrganization.type !== "INVESTOR" ||
+    !ctx.permissions.includes("sale.manage")
+  ) {
     redirect("/podesavanja");
   }
   const t = createT(ctx.user.locale);
