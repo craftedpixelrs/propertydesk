@@ -395,8 +395,9 @@ email (naziv opciono). Lista konekcija ispod.
 > "Ovo je feature koji agencije zaista vole. Svaka agencija dobija
 > svoj **referral kod** — 8 slova, unique, plus QR kod za marketing.
 > Kad kupac dođe preko ovog link-a ili skenira ovaj QR na oglasu,
-> cookie se postavlja na 90 dana. Bilo koja rezervacija koju kupac
-> pošalje se automatski atribuira agenciji."
+> otvara javni katalog — bez prijave. Cookie `pd_ref` traje 30 dana.
+> Bilo koja rezervacija koju kupac pošalje se automatski atribuira
+> agenciji."
 
 **Kadar:** 5s na kod + QR sliku.
 
@@ -510,16 +511,16 @@ liste, kapara *300 EUR*.
 
 ### 2:00–2:45 · Referral kod
 
-**Klik:** Sidebar → **Moji investitori** → prva konekcija → kartica
-**Referral kod**.
+**Klik:** Sidebar → **Ponuda** → kartica referral koda (npr. Gradnja
+Plus).
 
 **Voice-over:**
 > "Ovo je moj kod za tog investitora. Kopiram link — ovako izgleda:
-> `demo.propertydesk.app/p/projekat/sunny-hills?ref=A1B2C3D4`.
-> Šaljem ga u WhatsApp grupu, u Instagram story, u LinkedIn post.
-> Svaki kupac koji klikne dobija cookie 90 dana. Kad rezerviše,
-> automatski se atribuira meni — čak i ako meni pošalje mejl tek za
-> mesec dana."
+> `demo.propertydesk.app/p/r/PRV2WS4Q`.
+> Šaljem ga u WhatsApp, Instagram story, LinkedIn.
+> Kupac otvara katalog projekata, bez prijave. Cookie traje 30 dana.
+> Kad rezerviše, atribuira se meni — čak i ako se javi tek za
+> nekoliko nedelja."
 
 **Kadar:** 5s na QR PNG i copy-link dugme.
 
@@ -577,7 +578,7 @@ Kratki spotovi za LinkedIn / Instagram Reels / Facebook. Svaki je
 ### C3. Referral kod za agencije (60s)
 
 - 0:00 — "Agencija pita: 'Da li ste dobili onog kupca?'"
-- 0:10 — Prikaz **referral kartice** — link + QR.
+- 0:10 — Prikaz **Ponuda** → referral kartica (`/p/r/<kod>` + QR).
 - 0:20 — Kopira link, cut na WhatsApp — poruka klijentu.
 - 0:35 — Cut na `/izvestaji/agencije` sa kolonom "Preko referral-a".
 - 0:50 — "Sistem se seća. Vi ne morate."

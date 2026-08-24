@@ -59,9 +59,9 @@ export const guidesSr = {
     ["Zaštita i KYC", "Agencijski kupac može imati buyer protection. Tab KYC je checklist + skenovi — to ne ide agenciji."],
   ]),
   tasks: page("Zadaci", [
-    ["Čemu služi", "Vaši zadaci: Danas, Prekoračeni, Nadolazeći. Sistem i sam pravi zadatke (ističe rezervacija, dospela rata)."],
-    ["Kako da radite", "Otvorite zadatak, uradite posao na povezanom entitetu, pa označite završenim. Filteri ostaju u URL-u."],
-    ["Dodela", "Možete dodeliti kolegi ako imate pravo. Prioritet pomaže da se jutro ne raspline."],
+    ["Čemu služi", "Vaši zadaci: Moji, Danas, Prekoračeni, Nadolazeći, Završeni. Vlasnik i admin vide i Tim — sve otvorene zadatke kolega, ko je zadužen i šta kasni."],
+    ["Kako da dodate", "Novi zadatak gore desno: naslov i rok su obavezni. Kupac je opcion. Sa kartice kupca i dalje možete dodati zadatak vezan za njega."],
+    ["Dodela", "Vlasnik/admin bira kolegu u formi — kolega dobija notifikaciju i email. Agent vidi svoje zadatke i označava Završi."],
   ]),
   reservations: page("Rezervacije", [
     ["Čemu služi", "Drži jedinicu za kupca na ograničeno vreme. Aktivna rezervacija je jedinstvena po stanu — drugi dobija konflikt."],
@@ -113,14 +113,19 @@ export const guidesSr = {
     ["Share", "Link filterisanog izveštaja šaljete kolegi. Prava i dalje važe — agent ne vidi tuđe kupce."],
   ]),
   settings: page("Podešavanja", [
-    ["Čemu služi", "Profil firme, tim, šabloni ugovora i planovi otplate. Investitor vidi i pretplatu i SaaS fakture."],
-    ["Kartice gore", "Organizacija, korisnici, pa ostalo. Agencija nema Pretplatu/Fakture — partner je besplatan."],
+    ["Čemu služi", "Moj nalog (ime, email, lozinka), profil firme, tim, šabloni. Investitor vidi i pretplatu i SaaS fakture."],
+    ["Kartice gore", "Prvo Moj nalog, pa Organizacija i ostalo. Agencija nema Pretplatu/Fakture — partner je besplatan."],
     ["Vodič", "Svaka kartica ima svoj vodič. Kliknite „Kako se koristi“ na toj stranici."],
   ]),
   settingsOrg: page("Organizacija", [
     ["Čemu služi", "Pravni identitet i brend: PIB, adresa, logo, boja. Ide u PDF, share link i email."],
     ["Obavezna polja", "Investitor: sva polja. Agencija: sva sem sajta. Bez toga aplikacija ostaje zaključana."],
     ["Logo", "PNG, JPEG, WebP ili SVG (sanitizovan). Na Growth/Scale white-label sidebar pokazuje samo logo."],
+  ]),
+  settingsAccount: page("Moj nalog", [
+    ["Čemu služi", "Vaše ime, email, lozinka i jezik. To nije profil firme — firmu menjate na kartici Organizacija."],
+    ["Email i lozinka", "Promena emaila traži potvrdu na staroj adresi. Nova lozinka: trenutna + nova (min. 10). Ostale sesije se odjavljuju."],
+    ["Gde je", "Podešavanja → Moj nalog, ili link u dnu sidebar-a. Svaki član tima menja samo svoj nalog."],
   ]),
   settingsMembers: page("Tim", [
     ["Čemu služi", "Pozivnice i uloge. Uloga određuje meni i dugmad."],
@@ -228,9 +233,9 @@ export const guidesEn: Leaves<typeof guidesSr> = {
     ["Protection and KYC", "Agency buyers can have buyer protection. The KYC tab is a checklist plus scans — agencies never see it."],
   ]),
   tasks: page("Tasks", [
-    ["What it is", "Your work: Today, Overdue, Upcoming. The system also creates tasks (reservation expiring, installment due)."],
-    ["How to work", "Open the task, do the work on the linked record, then mark it done. Filters stay in the URL."],
-    ["Assignment", "Assign a colleague if you have permission. Priority keeps the morning focused."],
+    ["What it is", "Your work: Mine, Today, Overdue, Upcoming, Completed. Owners and admins also see Team — every open teammate task, who is assigned, and what is late."],
+    ["How to add", "New task at the top right: title and due date are required. A buyer is optional. You can still add a buyer-linked task from the buyer card."],
+    ["Assignment", "Owner/admin pick a teammate in the form — they get an in-app notification and email. Agents see their own tasks and tap Complete."],
   ]),
   reservations: page("Reservations", [
     ["What it is", "Holds a unit for a buyer for a limited time. Only one active reservation per unit — the second request conflicts."],
@@ -282,14 +287,19 @@ export const guidesEn: Leaves<typeof guidesSr> = {
     ["Share", "Send the filtered link. Permissions still apply — an agent never sees another agent’s buyers."],
   ]),
   settings: page("Settings", [
-    ["What it is", "Company profile, team, contract templates, and payment-plan templates. Investors also see subscription and SaaS invoices."],
-    ["Tabs", "Organization, members, then the rest. Agencies have no Subscription/Invoices — the partner account is free."],
+    ["What it is", "My account (name, email, password), company profile, team, templates. Investors also see subscription and SaaS invoices."],
+    ["Tabs", "My account first, then Organization and the rest. Agencies have no Subscription/Invoices — the partner account is free."],
     ["Guides", "Each tab has its own guide. Click “How this page works” there."],
   ]),
   settingsOrg: page("Organization", [
     ["What it is", "Legal identity and brand: tax ID, address, logo, color. Used in PDFs, share links, and email."],
     ["Required fields", "Investor: every field. Agency: every field except the website. The app stays locked until then."],
     ["Logo", "PNG, JPEG, WebP, or sanitized SVG. On Growth/Scale white-label the sidebar shows the logo only."],
+  ]),
+  settingsAccount: page("My account", [
+    ["What it is", "Your name, email, password, and language. This is not the company profile — that lives on the Organization tab."],
+    ["Email and password", "An email change needs a confirmation on the old address. New password: current + new (min. 10). Other sessions are signed out."],
+    ["Where", "Settings → My account, or the link at the bottom of the sidebar. Each teammate edits only their own account."],
   ]),
   settingsMembers: page("Team", [
     ["What it is", "Invites and roles. The role decides the menu and buttons."],

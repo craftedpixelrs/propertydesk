@@ -570,6 +570,26 @@ partner`:
 
 Ne arhivirajte `partner` dok postoje agencije.
 
+### Šta koja rola vidi (sidebar i podešavanja)
+
+Sidebar se reže po **tipu organizacije** i dozvoli — vidi
+[`permissions.md`](./permissions.md#navigation-and-settings-tabs).
+Agencijske role imaju `project.read` u `roles.ts`, ali **ne** vide
+`/projekti` / `/jedinice` / `/kupci` itd.; to je investitorski CRM.
+Direktan URL ide na `/dashboard`.
+
+| Rola | Sidebar (pored Table i Podešavanja) | Podešavanja |
+|---|---|---|
+| INVESTOR_OWNER | ceo investitorski CRM + Prijave kupaca + Izveštaji | Org, Korisnici, Pretplata, Fakture, Planovi, Ugovori |
+| INVESTOR_ADMIN | isto | Org, Korisnici, Pretplata, Fakture, Planovi, Ugovori |
+| SALES_MANAGER | bez Prijava kupaca | Org, Pretplata, Ugovori |
+| SALES_AGENT | bez Prijava i Izveštaja | Org, Pretplata |
+| FINANCE | bez Kupaca, Zadataka, Agencija | Org, Pretplata, Fakture, Planovi |
+| INVESTOR_VIEWER | čitanje, bez Prijava | Org, Pretplata |
+| AGENCY_OWNER / ADMIN | Ponuda, Moji kupci, Zadaci (Tim), rezervacije, provizije, Agenti, Konekcije, Dokumenti, Izveštaji | Org, Korisnici |
+| AGENCY_AGENT | isto bez Agenata, Izveštaja i taba Tim | Org |
+| AGENCY_VIEWER | bez Mojih kupaca; Zadaci samo čitanje | Org |
+
 ---
 
 ## 3. Audit trag

@@ -1,22 +1,30 @@
 import Link from "next/link";
 
 import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { loadUserContext, requireTenantPage } from "@/server/auth/context";
 import { getTaskViewCounts, listTasks, type TaskView } from "@/server/services/tasks.service";
 import { formatDateTime } from "@/lib/formatters";
 import { TaskCompleteButton } from "@/features/tasks/task-complete-button";
+import { NewTaskDrawer } from "@/features/tasks/new-task-drawer";
 import type { TaskPriority, TaskStatus } from "@prisma/client";
 import { cn } from "@/lib/utils";
 import { createT, type TranslateFn, type TranslationKey } from "@/lib/i18n";
 
 export const dynamic = "force-dynamic";
 
-const VIEWS: { key: TaskView; labelKey: TranslationKey }[] = [
+const BASE_VIEWS: { key: TaskView; labelKey: TranslationKey }[] = [
   { key: "mine", labelKey: "crm.tasks.mine" },
   { key: "today", labelKey: "common.today" },
   { key: "overdue", labelKey: "crm.tasks.overdue" },
   { key: "upcoming", labelKey: "crm.tasks.upcoming" },
+  { key: "completed", labelKey: "crm.tasks.completed" },
 ];
+
+const TEAM_VIEW: { key: TaskView; labelKey: TranslationKey } = {
+  key: "team",
+  labelKey: "crm.tasks.team",
+};
 
 const PRIORITY_TONE: Record<TaskPriority, string> = {
   LOW: "bg-slate-100 text-slate-700",
@@ -43,13 +51,17 @@ function readParam(raw: string | string[] | undefined): string | undefined {
 
 export default async function ZadaciPage({ searchParams }: PageProps) {
   const ctx = await loadUserContext();
-  requireTenantPage(ctx, { permission: "lead.read", orgType: "INVESTOR" });
+  requireTenantPage(ctx, { permission: "lead.read" });
   const t = createT(ctx.user.locale);
+
+  const canSeeTeam =
+    ctx.isSuperAdmin || ctx.permissions.includes("organization.members:manage");
+  const views = canSeeTeam ? [...BASE_VIEWS, TEAM_VIEW] : BASE_VIEWS;
 
   const sp = await searchParams;
   const rawView = readParam(sp.view) as TaskView | undefined;
   const view: TaskView =
-    rawView && VIEWS.some((v) => v.key === rawView) ? rawView : "mine";
+    rawView && views.some((v) => v.key === rawView) ? rawView : "mine";
 
   const [{ items }, counts] = await Promise.all([
     listTasks({
@@ -58,6 +70,7 @@ export default async function ZadaciPage({ searchParams }: PageProps) {
       view,
       page: 1,
       pageSize: 100,
+      includeTeam: canSeeTeam,
     }),
     getTaskViewCounts({
       organizationId: ctx.activeOrganization.id,
@@ -65,19 +78,30 @@ export default async function ZadaciPage({ searchParams }: PageProps) {
     }),
   ]);
 
-  const canManage = ctx.permissions.includes("lead.manage");
+  const canManage = ctx.isSuperAdmin || ctx.permissions.includes("lead.manage");
+  const isAgency = ctx.activeOrganization.type === "AGENCY";
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold">{t("nav.tasks")}</h1>
-        <p className="text-sm text-[var(--color-foreground-muted)]">
-          {t("crm.tasks.subtitle")}
-        </p>
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-semibold">{t("nav.tasks")}</h1>
+          <p className="text-sm text-[var(--color-foreground-muted)]">
+            {view === "team" ? t("crm.tasks.teamHint") : t("crm.tasks.subtitle")}
+          </p>
+        </div>
+        {canManage ? (
+          <NewTaskDrawer
+            canAssign={canSeeTeam}
+            currentUserId={ctx.user.id}
+          >
+            <Button type="button">{t("crm.tasks.newTask")}</Button>
+          </NewTaskDrawer>
+        ) : null}
       </div>
 
       <div className="flex flex-wrap gap-2">
-        {VIEWS.map((v) => {
+        {views.map((v) => {
           const active = v.key === view;
           const count = counts[v.key as keyof typeof counts];
           return (
@@ -120,6 +144,9 @@ export default async function ZadaciPage({ searchParams }: PageProps) {
               task.status !== "COMPLETED" &&
               task.status !== "CANCELED" &&
               new Date(task.dueAt) < new Date();
+            const buyerName = task.buyer
+              ? `${task.buyer.firstName} ${task.buyer.lastName}`
+              : null;
             return (
               <Card key={task.id}>
                 <CardContent className="flex flex-wrap items-center justify-between gap-3 py-3">
@@ -133,21 +160,45 @@ export default async function ZadaciPage({ searchParams }: PageProps) {
                       </span>
                     </div>
                     <div className="mt-0.5 text-xs text-[var(--color-foreground-muted)]">
-                      {task.buyer ? (
+                      <span>
+                        {t("crm.tasks.assignedTo", {
+                          name: task.assignedUser.name,
+                        })}
+                      </span>
+                      {" · "}
+                      {buyerName && !isAgency ? (
                         <Link
-                          href={`/kupci/${task.buyer.id}`}
+                          href={`/kupci/${task.buyer!.id}`}
                           className="text-[var(--color-brand-700)] hover:underline"
                         >
-                          {task.buyer.firstName} {task.buyer.lastName}
+                          {buyerName}
                         </Link>
                       ) : null}
-                      {task.buyer ? " · " : ""}
+                      {buyerName && isAgency ? <span>{buyerName}</span> : null}
+                      {!buyerName ? <span>{t("crm.tasks.noBuyer")}</span> : null}
+                      {" · "}
                       <span className={cn(overdue && "font-medium text-rose-600")}>
                         {t("crm.tasks.due", { date: formatDateTime(task.dueAt) })}
                       </span>
-                      {" · "}
-                      {taskStatusLabel(task.status, t)}
+                      {task.status === "COMPLETED" && task.completedAt ? (
+                        <>
+                          {" · "}
+                          {t("crm.tasks.completedOn", {
+                            date: formatDateTime(task.completedAt),
+                          })}
+                        </>
+                      ) : (
+                        <>
+                          {" · "}
+                          {taskStatusLabel(task.status, t)}
+                        </>
+                      )}
                     </div>
+                    {task.description ? (
+                      <p className="mt-1 line-clamp-2 text-xs text-[var(--color-foreground-muted)]">
+                        {task.description}
+                      </p>
+                    ) : null}
                   </div>
                   {canManage && task.status !== "COMPLETED" && task.status !== "CANCELED" ? (
                     <TaskCompleteButton taskId={task.id} />

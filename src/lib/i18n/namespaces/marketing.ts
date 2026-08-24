@@ -796,6 +796,11 @@ export const marketingSr = {
     footerPrivate:
       "Ova ponuda je privatna. Iznos i dostupnost mogu se promeniti bez najave.",
     emDash: "—",
+    referralCatalogTitle: "Ponuda projekata",
+    referralCatalogVia: "Preporuka agencije {{agency}}",
+    referralCatalogEmpty: "Trenutno nema javnih projekata za ovaj link.",
+    referralUnavailable: "Ovaj referral link više nije važeći.",
+    viewProject: "Pogledaj jedinice →",
   },
 
   site: {
@@ -1599,6 +1604,11 @@ export const marketingEn: Leaves<typeof marketingSr> = {
     footerPrivate:
       "This offer is private. Price and availability may change without notice.",
     emDash: "—",
+    referralCatalogTitle: "Project offer",
+    referralCatalogVia: "Recommended by {{agency}}",
+    referralCatalogEmpty: "There are no public projects for this link right now.",
+    referralUnavailable: "This referral link is no longer valid.",
+    viewProject: "View units →",
   },
 
   site: {

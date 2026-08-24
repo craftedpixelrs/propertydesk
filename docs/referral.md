@@ -2,10 +2,9 @@
 
 Every `AgencyConnection` — the join row that links an agency
 organisation to an investor organisation — can carry an 8-character
-`referralCode`. The code turns any public URL into a trackable link:
+`referralCode`. The code turns a public URL into a trackable link:
 who did the visitor come from, which sale should the agency get
-attributed on. This is the entry-level version of a marketplace —
-attribution before formal buyer registration.
+attributed on.
 
 ## Data model
 
@@ -18,100 +17,111 @@ attribution before formal buyer registration.
   don't store it separately (the join `sale → reservation` is enough
   for reporting).
 
-The code is generated lazily on first "Rotate" action; there's no
-default. This keeps the report attribution clean — a NULL code means
-"connection has not adopted the referral flow yet", not "attribution
-lost".
+The code is generated lazily when the agency first opens **Ponuda**
+(backfill) or taps **Generiši novi kod**. A NULL code means the
+connection has not adopted the referral flow yet.
 
-## URLs
+## Buyer URL (do not send them to `/`)
 
-The following public URLs honour a `ref` query parameter:
+The agency **Kopiraj link** / QR on `/ponuda` encodes:
+
+```
+https://<app-host>/p/r/<code>
+```
+
+Examples: `https://demo.propertydesk.app/p/r/PRV2WS4Q`.
+
+`/` on `demo.`, `staging.` and `my.` always redirects to `/sign-in`.
+That is for staff, not buyers. The catalog route is public.
+
+`/p/r/<code>` (`resolveReferralCatalog`):
+
+1. Resolves an **ACTIVE** connection with that code. Unknown, rotated
+   or inactive codes 404.
+2. Middleware writes the `pd_ref` cookie from the path segment.
+3. Lists projects the agency may sell (ACTIVE `AgencyProjectAccess`
+   in window, not archived).
+4. One project → 302 to `/p/projekat/<slug>?ref=<code>`.
+5. Several projects → a public catalog; each card goes to the
+   microsite with `?ref=<code>`.
+
+A project that is **not** `publicMicrositeEnabled` still opens for a
+visitor who carries this code (cookie or `?ref=`), as long as the
+agency has access. Guessing the slug without a valid code still 404s.
+
+These URLs also honour `?ref=<code>` (cookie + form):
 
 - `/p/[token]` — unit share links.
 - `/p/projekat/[slug]` — public microsite (see
   [`docs/microsite.md`](./microsite.md)).
 
-Absolute origin today is `https://my.propertydesk.app` (the app
-subdomain). A dedicated `demo.` host is planned — see
-[`environments.md`](./environments.md).
+App hosts: `demo.propertydesk.app`, `staging.propertydesk.app`,
+`my.propertydesk.app`. See [`environments.md`](./environments.md).
 
-On any of these, `?ref=<code>`:
+## Cookie
 
-1. Sets a cookie `PD_REFERRAL=<code>`, `Path=/`, `SameSite=Lax`,
-   `Max-Age=7776000` (90 days), no `Secure` flag in dev.
-2. Is passed through to the reservation form as a hidden input.
-3. Overwrites any previously stored referral (last-touch attribution).
+On `?ref=<code>` **or** `/p/r/<code>`, middleware
+(`src/middleware.ts`, helpers in `src/lib/referral.ts`) sets:
+
+- name: `pd_ref` (not `PD_REFERRAL`)
+- `Path=/`, `SameSite=Lax`, `Max-Age=2592000` (30 days)
+- not HttpOnly — the reservation form reads `document.cookie`
+- `Secure` on HTTPS
+- last-touch: a new code overwrites the previous one
+
+The public reservation form sends the code from `?ref=` or `pd_ref`
+to `POST /public/share/:token/reserve`.
 
 ## Attribution
 
-When `POST /public/share/:token/reserve` receives a referral code
-(query, cookie, or form field), the service:
+When that POST receives a referral code (query, cookie, or body):
 
 1. Looks up an `AgencyConnection` with the same code and matching
    `investorOrganizationId = share.link.organizationId`. This second
    condition prevents cross-investor code stuffing.
 2. If found → stores the code on the `ReservationRequest` row and
-   attributes the request to the agency in the investor UI ("Zahtev
-   preko referral-a — Agencija X").
-3. If not found → still stores the raw code but flags the row as
-   `referralOrphan = true` in the DTO (not stored on the row) so the
-   UI can show "nepoznat referral kod".
+   attributes the request to the agency.
+3. If not found → still stores the raw code; the DTO may flag
+   `referralOrphan` (not a DB column).
 
-Any resulting `Reservation` (from `confirmReservationRequest`)
-inherits `referralCode`. Sales inherit it via the reservation FK,
-which is what the `/izvestaji/agencije` report uses.
+`confirmReservationRequest` copies `referralCode` onto the
+`Reservation`. `/izvestaji/agencije` aggregates via that join.
 
 ## UI
 
-Agency side — `/agencija/profil` and each connection row on
-`/agencija/investitori`:
+Agency — **Ponuda** (`/ponuda`), one card per investor connection:
 
-- "Vaš referral kod" — displayed as a chip with copy-to-clipboard.
-- "Rotiraj" — generates a fresh code (invalidates the old one). The
-  UI warns that any previously shared link will stop attributing.
-- QR PNG — right-side helper that renders a 200×200 QR encoding the
-  referral URL for the currently selected investor + project (or the
-  investor's microsite when no project is selected).
+- Code + QR + copy. The copied URL is `/p/r/<code>`, not the login
+  page.
+- **Generiši novi kod** invalidates the old URL immediately.
+- Body copy: the buyer opens a public catalog, without signing in.
 
-Investor side — `/izvestaji/agencije`:
+Investor — `/izvestaji/agencije`:
 
-- New column: **Preko referral-a** — count of reservation requests +
-  count of confirmed reservations attributed via `referralCode`.
-- Detail drawer: revenue by referral code — sums `Sale.finalPrice`
-  where the underlying reservation carries the code.
+- Column **Preko referral-a** — reservation requests + confirmed
+  reservations attributed via `referralCode`.
+- Revenue by code where the underlying reservation carries it.
 
 ## API
 
-- `POST /api/v1/agency/referral/rotate` — generates a new code on
-  the caller's connection to a specified investor.
+- `POST /api/v1/agency/referral/rotate`
 
   ```json
-  {
-    "investorOrganizationId": "clr…"
-  }
+  { "connectionId": "clr…" }
   ```
 
-  Requires `agency.read` (any agency member with connection access
-  can rotate their own code — it's the connection's, not the agent's).
+  Requires `agency.read` on the caller's own connection.
 
 ## Security / abuse
 
 - Rate limit: 6 rotates / hour / agency-connection. Excess returns
   `429 RATE_LIMITED`.
-- Codes are unique globally, but the connection lookup also matches
-  on `investorOrganizationId` — a leaked code that "somebody else"
-  posts to a share link they got hold of can't cause cross-tenant
-  attribution.
-- Cookies are `SameSite=Lax` so a CSRF POST from another site can't
-  set the attribution on behalf of the visitor.
+- Codes are unique globally; lookup also matches
+  `investorOrganizationId`.
+- Cookies are `SameSite=Lax`.
 
 ## Testing
 
-`src/server/services/agencies/referral.service.test.ts` covers:
-
-- Rotate: generates unique code, invalidates the old one, rate
-  limit.
-- Attribution: code from query, cookie, form body — precedence.
-- Orphan code: recorded on the row, not attributed to any agency.
-- Cross-investor mismatch: same code, wrong investor → not
-  attributed.
+- `src/lib/referral.test.ts` — sanitize, `?ref=` vs `/p/r/<code>`.
+- `src/server/services/agencies/referral-catalog.service.test.ts` —
+  catalog + microsite unlock.

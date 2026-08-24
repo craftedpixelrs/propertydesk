@@ -81,6 +81,21 @@ describe("permission matrix", () => {
     }
   });
 
+  it("investor admin and finance can read tenant invoices", () => {
+    const readers = ["INVESTOR_ADMIN", "FINANCE"] as const;
+    for (const key of readers) {
+      const role = (organizationRoles as Record<string, unknown>)[key] as {
+        authorize: (req: Record<string, string[]>) => { success: boolean };
+      };
+      expect(role.authorize({ billing: ["invoice.read"] }).success).toBe(true);
+      expect(role.authorize({ billing: ["subscription.read"] }).success).toBe(true);
+    }
+    const sales = (organizationRoles as Record<string, unknown>).SALES_AGENT as {
+      authorize: (req: Record<string, string[]>) => { success: boolean };
+    };
+    expect(sales.authorize({ billing: ["invoice.read"] }).success).toBe(false);
+  });
+
   it("roles that manage members can create Better Auth invitations", () => {
     const canInvite = [
       "INVESTOR_OWNER",

@@ -80,7 +80,7 @@ export const inventorySr = {
     subtitle: "Projekti za koje Vaša agencija ima aktivan pristup.",
     referralTitle: "Vaši referral kodovi",
     referralBody:
-      "Delite link ili QR kod sa potencijalnim kupcima. Sve rezervacije preko referral linka automatski se atribuiraju Vašoj agenciji.",
+      "Delite link ili QR kod sa kupcima. Otvaraju javni katalog projekata, bez prijave. Rezervacije preko tog linka pripisuju se Vašoj agenciji.",
     empty:
       "Za sada nemate aktivan pristup nijednom projektu. Kontaktirajte investitora.",
     viewUnits: "Pogledaj jedinice →",
@@ -96,6 +96,10 @@ export const inventorySr = {
     unitCount: "Ukupno {{total}} jedinica.",
     noUnits: "Nema dostupnih jedinica.",
     unitList: "Lista jedinica",
+    openDetails: "Detalji",
+    photos: "Fotografije",
+    noPhotos: "Investitor nije podelio fotografije sa agencijom.",
+    openFloorPlan: "Otvori osnovu",
   },
   form: {
     projectCode: "Šifra projekta",
@@ -367,7 +371,7 @@ export const inventoryEn: Leaves<typeof inventorySr> = {
     subtitle: "Projects your agency currently has access to.",
     referralTitle: "Your referral codes",
     referralBody:
-      "Share the link or QR code with potential buyers. Reservations made through the referral link are automatically attributed to your agency.",
+      "Share the link or QR code with buyers. They open a public project catalog, without signing in. Reservations through that link are attributed to your agency.",
     empty:
       "You do not have active access to any project yet. Contact the investor.",
     viewUnits: "View units →",
@@ -383,6 +387,10 @@ export const inventoryEn: Leaves<typeof inventorySr> = {
     unitCount: "{{total}} units in total.",
     noUnits: "No units available.",
     unitList: "Unit list",
+    openDetails: "Details",
+    photos: "Photos",
+    noPhotos: "The investor has not shared photos with the agency.",
+    openFloorPlan: "Open floor plan",
   },
   form: {
     projectCode: "Project code",

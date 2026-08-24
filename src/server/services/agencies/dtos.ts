@@ -51,6 +51,9 @@ export interface AgencyUnitDto {
   hasGarden: boolean;
   publicDescription: string | null;
   floorPlanUrl: string | null;
+  building: string | null;
+  entrance: string | null;
+  floor: string | null;
   price: {
     base: string;
     final: string | null;
@@ -83,8 +86,15 @@ export function toAgencyProjectDto(project: Project): AgencyProjectDto {
  * floor plan URL. Callers must pass both flags from the connection's
  * `AgencyProjectAccess`.
  */
+type AgencyUnitSource = Unit & {
+  project: { id: string; name: string; code: string };
+  building?: { name: string; code: string } | null;
+  entrance?: { name: string; code: string } | null;
+  floor?: { label: string; number: number | null } | null;
+};
+
 export function toAgencyUnitDto(
-  unit: Unit & { project: { id: string; name: string; code: string } },
+  unit: AgencyUnitSource,
   flags: { canViewPrices: boolean; canViewFloorPlans: boolean },
 ): AgencyUnitDto {
   return {
@@ -105,6 +115,11 @@ export function toAgencyUnitDto(
     hasGarden: unit.hasGarden,
     publicDescription: unit.publicDescription,
     floorPlanUrl: flags.canViewFloorPlans ? unit.floorPlanUrl : null,
+    building: unit.building?.name ?? unit.building?.code ?? null,
+    entrance: unit.entrance?.name ?? unit.entrance?.code ?? null,
+    floor:
+      unit.floor?.label ??
+      (unit.floor?.number != null ? String(unit.floor.number) : null),
     price: flags.canViewPrices
       ? {
           base: unit.basePrice.toString(),

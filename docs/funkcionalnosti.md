@@ -121,12 +121,14 @@ Verzija: **v1** · Datum lansiranja: **01.09.2026.**
   → connection default → project default; snapshot na momentu
   ugovora (immutable).
 - **Referral kod** (Faza 8) — 8-char unique kod po konekciji, QR PNG
-  + copy link, cookie 90 dana, atribucija u
-  `/izvestaji/agencije`.
+  + copy. Link je `/p/r/<kod>` (javni katalog, bez prijave). Cookie
+  `pd_ref` 30 dana. Atribucija u `/izvestaji/agencije`.
 - Lifecycle provizije: `PENDING → APPROVED → READY_FOR_PAYOUT →
   PAID` (ili `CANCELED`).
 - **Agency portal** — sopstveni sidebar: **Ponuda**, **Moji kupci**,
-  **Moje rezervacije**, **Moje provizije**.
+  **Zadaci**, **Moje rezervacije**, **Moje provizije**, **Agenti**
+  (owner/admin), **Konekcije**. Investitorski CRM (`/projekti`,
+  `/jedinice`, `/kupci`, `/rezervacije`, `/kalendar`) agencija ne vidi.
 
 ## 7. Dokumenti
 
@@ -203,10 +205,11 @@ Verzija: **v1** · Datum lansiranja: **01.09.2026.**
 - Email + in-app — kategorija se određuje po događaju.
 - Per-user opt-out po kategoriji + "ne šalji van radnog vremena".
 - **Komentari sa @mentions** na kupca i prodaju; soft-delete.
-- **Zadaci** — Danas / Prekoračeni / Nadolazeći / Završeni;
-  prioritet, dodela, veza sa entitetom.
-- **Auto-generisani zadaci** — rezervacija ističe za 2 dana,
-  rata dospela, ugovor za potpisivanje, depozit vraćen.
+- **Zadaci** — Moji / Danas / Prekoračeni / Nadolazeći / Završeni;
+  vlasnik i admin vide **Tim**. Prioritet, dodela kolegi, kupac opcion.
+  Kreiranje: `/zadaci` → Novi zadatak, ili brza akcija na kartici kupca.
+- Auto-generisani zadaci (rezervacija ističe, rata dospela) **nisu**
+  u kodu — samo ručno kreiranje.
 
 ## 12. SaaS naplata (za investitorske plate)
 
@@ -337,8 +340,8 @@ CRM aplikacije":
    sekundarno tržište, propagacija u PDF ugovor.
 10. **Public microsite projekta** — brendirani javni sajt na
     `/p/projekat/[slug]`.
-11. **Referral kod za agencije** — jedinstveni link + QR, cookie 90
-    dana, atribucija u izveštaju.
+11. **Referral kod za agencije** — `/p/r/<kod>` (katalog, ne login),
+    QR, cookie `pd_ref` 30 dana, atribucija u izveštaju.
 12. **@sentry/nextjs integracija** — client/server/edge sa PII
     scrubbing i source-map upload-om.
 13. **Automatski backup verifier** — nedeljno + email alerti nakon 2

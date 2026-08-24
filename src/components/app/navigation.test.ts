@@ -269,6 +269,7 @@ describe("sidebar navigation matrix", () => {
           "dashboard",
           "offer",
           "my-buyers",
+          "agency-tasks",
           "my-reservations",
           "my-commissions",
           "agents",
@@ -281,7 +282,6 @@ describe("sidebar navigation matrix", () => {
       expect(keys).not.toContain("projects");
       expect(keys).not.toContain("inventory");
       expect(keys).not.toContain("customers");
-      expect(keys).not.toContain("tasks");
       expect(keys).not.toContain("reservations");
       expect(keys).not.toContain("calendar");
     });
@@ -305,6 +305,7 @@ describe("sidebar navigation matrix", () => {
       });
       expect(keys).toContain("offer");
       expect(keys).toContain("my-buyers");
+      expect(keys).toContain("agency-tasks");
       expect(keys).toContain("my-reservations");
       expect(keys).toContain("my-commissions");
       // Connections is informational read — AGENT sees the list; accept/reject
@@ -318,7 +319,6 @@ describe("sidebar navigation matrix", () => {
       expect(keys).not.toContain("customers");
       expect(keys).not.toContain("reservations");
       expect(keys).not.toContain("calendar");
-      expect(keys).not.toContain("tasks");
     });
 
     it("AGENCY_VIEWER is read-only — no customer registration, no members management", () => {
@@ -331,6 +331,7 @@ describe("sidebar navigation matrix", () => {
       expect(keys).toContain("connections");
       expect(keys).toContain("my-reservations");
       expect(keys).toContain("my-commissions");
+      expect(keys).toContain("agency-tasks");
       expect(keys).not.toContain("agents");
       expect(keys).not.toContain("my-buyers");
     });
@@ -382,7 +383,6 @@ describe("sidebar navigation matrix", () => {
       expect(keys).not.toContain("projects");
       expect(keys).not.toContain("inventory");
       expect(keys).not.toContain("customers");
-      expect(keys).not.toContain("tasks");
       expect(keys).not.toContain("reservations");
       expect(keys).not.toContain("calendar");
     }
@@ -401,6 +401,7 @@ describe("sidebar navigation matrix", () => {
       expect(keys).not.toContain("my-commissions");
       expect(keys).not.toContain("agents");
       expect(keys).not.toContain("connections");
+      expect(keys).not.toContain("agency-tasks");
     }
   });
 });

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { requirePermission } from "@/server/permissions/require";
+import { loadUserContext } from "@/server/auth/context";
 import { listInvoices } from "@/server/services/billing/invoices/service";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -29,9 +29,14 @@ interface PageProps {
 }
 
 export default async function TenantInvoicesPage({ searchParams }: PageProps) {
-  const ctx = await requirePermission("billing.invoice.read");
-  if (ctx.organization.organizationType === "AGENCY") {
-    redirect("/podesavanja/organizacija");
+  const ctx = await loadUserContext();
+  if (!ctx) redirect("/sign-in");
+  if (!ctx.activeOrganization) redirect("/podesavanja");
+  if (
+    ctx.activeOrganization.type !== "INVESTOR" ||
+    (!ctx.isSuperAdmin && !ctx.permissions.includes("billing.invoice.read"))
+  ) {
+    redirect("/podesavanja");
   }
   const t = createT(await resolveRequestLocale());
   const sp = await searchParams;
@@ -40,7 +45,7 @@ export default async function TenantInvoicesPage({ searchParams }: PageProps) {
   const { items, total } = await listInvoices({
     page,
     pageSize: 50,
-    organizationId: ctx.organization.organizationId,
+    organizationId: ctx.activeOrganization.id,
     status,
   });
 

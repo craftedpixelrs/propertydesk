@@ -18,6 +18,7 @@ describe("resolvePageGuide", () => {
 
   it("maps settings tabs separately", () => {
     expect(resolvePageGuide("/podesavanja/organizacija")?.key).toBe("settingsOrg");
+    expect(resolvePageGuide("/podesavanja/profil")?.key).toBe("settingsAccount");
     expect(resolvePageGuide("/podesavanja")?.key).toBe("settings");
   });
 

@@ -173,7 +173,7 @@ export const partnersSr = {
     code: "Referral kod:",
     qrAlt: "QR kod za {{code}}",
     shareHint:
-      "Delite ovaj link ili QR kod. Svaka rezervacija koja stigne preko njega automatski se atribuira Vašoj agenciji.",
+      "Kupac otvara javni katalog projekata, bez prijave. Svaka rezervacija preko ovog linka pripisuje se Vašoj agenciji.",
     copyLink: "Kopiraj link",
     copied: "Kopirano!",
     rotate: "Generiši novi kod",
@@ -378,7 +378,7 @@ export const partnersEn: Leaves<typeof partnersSr> = {
     code: "Referral code:",
     qrAlt: "QR code for {{code}}",
     shareHint:
-      "Share this link or QR code. Every reservation that arrives through it is automatically attributed to your agency.",
+      "The buyer opens a public project catalog, without signing in. Every reservation through this link is attributed to your agency.",
     copyLink: "Copy link",
     copied: "Copied!",
     rotate: "Generate new code",

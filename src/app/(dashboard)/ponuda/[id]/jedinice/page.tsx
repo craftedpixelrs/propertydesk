@@ -85,7 +85,14 @@ export default async function JedinicePage({ params, searchParams }: PageProps) 
                 <tbody className="divide-y divide-[var(--color-border)]">
                   {items.map((u) => (
                     <tr key={u.id}>
-                      <td className="px-4 py-3 font-mono text-xs">{u.code}</td>
+                      <td className="px-4 py-3 font-mono text-xs">
+                        <Link
+                          href={`/ponuda/${id}/jedinice/${u.id}`}
+                          className="text-[var(--color-brand-700)] hover:underline"
+                        >
+                          {u.code}
+                        </Link>
+                      </td>
                       <td className="px-4 py-3">
                         {unitTypeLabel(u.type, t)}
                         {u.structure ? ` (${u.structure})` : ""}
@@ -100,9 +107,17 @@ export default async function JedinicePage({ params, searchParams }: PageProps) 
                         <span className="text-xs">{unitStatusLabel(u.status, t)}</span>
                       </td>
                       <td className="px-4 py-3 text-right">
-                        {u.status === "AVAILABLE" && detail.access.canRequestReservations ? (
-                          <AgencyReserveButton unitId={u.id} />
-                        ) : null}
+                        <div className="flex flex-wrap items-center justify-end gap-2">
+                          <Link
+                            href={`/ponuda/${id}/jedinice/${u.id}`}
+                            className="text-xs text-[var(--color-brand-700)] hover:underline"
+                          >
+                            {t("inventory.offer.openDetails")}
+                          </Link>
+                          {u.status === "AVAILABLE" && detail.access.canRequestReservations ? (
+                            <AgencyReserveButton unitId={u.id} />
+                          ) : null}
+                        </div>
                       </td>
                     </tr>
                   ))}

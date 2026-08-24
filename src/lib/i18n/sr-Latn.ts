@@ -116,6 +116,7 @@ export const srLatn = {
     documents: "Dokumenti",
     reports: "Izveštaji",
     settings: "Podešavanja",
+    account: "Moj nalog",
     signOut: "Odjavi se",
     more: "Više",
     home: "Početna",

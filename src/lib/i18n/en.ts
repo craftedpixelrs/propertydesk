@@ -111,6 +111,7 @@ export const en: Dictionary = {
     documents: "Documents",
     reports: "Reports",
     settings: "Settings",
+    account: "My account",
     signOut: "Sign out",
     more: "More",
     home: "Home",

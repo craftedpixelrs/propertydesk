@@ -98,6 +98,6 @@ flowchart LR
 | CSV/XLSX unit import | `/projekti/[id]/uvoz` (3-step wizard) | `POST /projects/:id/import` | `projects/import-units.service.ts` | temporary in-memory parse |
 | Project clone | `/projekti/[id]` dropdown → `CloneProjectDialog` | `POST /projects/:id/clone` | `projects/clone.service.ts` | Structure only, no sales/payments carried over |
 | Public microsite | Marketing-style route `/p/projekat/[slug]` | `GET /public/projects/:slug` (via `resolvePublicProjectSite`) | `projects/microsite.service.ts` | `Project.publicMicrositeEnabled/Slug` |
-| Agency referral | Agency profile card + `/ponuda` + `/izvestaji/agencije` referral column | `POST /agency/referral/rotate` | `agencies/referral.service.ts` | `AgencyConnection.referralCode` + cookie `PD_REFERRAL` |
+| Agency referral | `/ponuda` cards + public `/p/r/<code>` catalog + `/izvestaji/agencije` | `POST /agency/referral/rotate` | `agencies.service.ts`, `referral-catalog.service.ts` | `AgencyConnection.referralCode` + cookie `pd_ref` (30d) |
 | Sentry monitoring | Sentry SaaS (client/server/edge) | Instrumented via `src/instrumentation.ts` + `next.config.ts` `withSentryConfig` | `server/monitoring/index.ts` facade | Uses `SENTRY_DSN`, `NEXT_PUBLIC_SENTRY_DSN` env vars |
 | Backup verifier | `/administracija/monitoring` | `POST /platform/monitoring/backup-verify` + weekly cron | `monitoring/backup-verify.service.ts` | `SystemHealthCheck` rows + email alerts |

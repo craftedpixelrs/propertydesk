@@ -25,8 +25,8 @@ Key columns:
 - `ipsReference` — 12-digit numeric *poziv na broj* with Mod-97
   check digit.
 - `ipsQrPngPath` — storage key of the pre-generated deposit QR PNG.
-- `referralCode` — mirrored from the `?ref=<code>` query param (see
-  [`docs/referral.md`](./referral.md)).
+- `referralCode` — from `?ref=<code>`, `/p/r/<code>`, or the
+  `pd_ref` cookie (see [`docs/referral.md`](./referral.md)).
 - `expiresAt` — request TTL (default 48h).
 
 Concurrency guards:

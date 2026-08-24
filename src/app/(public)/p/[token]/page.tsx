@@ -86,16 +86,18 @@ function OfferView({
   return (
     <main className="min-h-dvh bg-[var(--color-surface-muted)] text-[var(--color-foreground)]">
       <header className="border-b border-[var(--color-border)] bg-[var(--color-surface)]">
-        <div className="mx-auto flex max-w-5xl items-center gap-3 px-4 py-3 sm:px-6">
+        <div className="mx-auto flex max-w-5xl items-center gap-4 px-4 py-4 sm:px-6">
           {offer.organization.logoUrl ? (
             /* eslint-disable-next-line @next/next/no-img-element */
             <img
               src={offer.organization.logoUrl}
               alt={offer.organization.name}
-              className="h-8 w-auto"
+              className="h-10 w-auto max-h-12 max-w-[200px] shrink-0 object-contain object-left sm:h-12 sm:max-w-[240px]"
             />
           ) : null}
-          <div className="text-sm font-semibold">{offer.organization.name}</div>
+          <div className="min-w-0 truncate text-sm font-semibold">
+            {offer.organization.name}
+          </div>
         </div>
       </header>
 

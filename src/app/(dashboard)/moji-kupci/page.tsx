@@ -3,6 +3,8 @@ import { redirect } from "next/navigation";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { PermissionGuard } from "@/components/app/permission-guard";
+import { NewBuyerDrawer } from "@/features/buyers/new-buyer-drawer";
 import { loadUserContext } from "@/server/auth/context";
 import { listBuyers } from "@/server/services/buyers.service";
 import { formatDate } from "@/lib/formatters";
@@ -33,9 +35,11 @@ export default async function MojiKupciPage() {
             {t("crm.buyers.mySubtitle")}
           </p>
         </div>
-        <Button asChild>
-          <Link href="/kupci/novi">{t("crm.buyers.newBuyer")}</Link>
-        </Button>
+        <PermissionGuard permission="lead.manage">
+          <NewBuyerDrawer>
+            <Button type="button">{t("crm.buyers.newBuyer")}</Button>
+          </NewBuyerDrawer>
+        </PermissionGuard>
       </div>
 
       <Card>

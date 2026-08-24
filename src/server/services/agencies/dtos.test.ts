@@ -116,4 +116,19 @@ describe("agency DTOs", () => {
     const dto = toAgencyUnitDto(unitRow, { canViewPrices: true, canViewFloorPlans: false });
     expect(dto.floorPlanUrl).toBeNull();
   });
+
+  it("maps building, entrance and floor for the agency sheet", () => {
+    const dto = toAgencyUnitDto(
+      {
+        ...unitRow,
+        building: { name: "Lamela A", code: "A" },
+        entrance: { name: "Ulaz A1", code: "A1" },
+        floor: { label: "4", number: 4 },
+      },
+      { canViewPrices: true, canViewFloorPlans: true },
+    );
+    expect(dto.building).toBe("Lamela A");
+    expect(dto.entrance).toBe("Ulaz A1");
+    expect(dto.floor).toBe("4");
+  });
 });

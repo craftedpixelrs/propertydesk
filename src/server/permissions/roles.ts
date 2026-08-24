@@ -47,6 +47,7 @@ export const INVESTOR_ADMIN = ac.newRole({
   document: ["read", "manage"],
   report: ["read"],
   audit: ["read"],
+  billing: ["read", "subscription.read", "invoice.read", "payment.read"],
   invitation: ["create", "cancel"],
   member: ["create", "update", "delete"],
 });
@@ -90,6 +91,7 @@ export const FINANCE = ac.newRole({
   commission: ["read", "manage"],
   document: ["read"],
   report: ["read"],
+  billing: ["read", "subscription.read", "invoice.read", "payment.read"],
 });
 
 export const INVESTOR_VIEWER = ac.newRole({

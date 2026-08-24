@@ -119,7 +119,12 @@ export function NewBuyerForm({
         if (values.budgetMax) payload.budgetMax = Number(values.budgetMax);
 
         const buyer = await apiClient.post<{ id: string }>("/buyers", payload);
-        router.push(`/kupci/${buyer.id}`);
+        if (variant === "embedded") {
+          onCancel?.();
+          router.refresh();
+        } else {
+          router.push(`/kupci/${buyer.id}`);
+        }
       }
     } catch (err) {
       if (err instanceof ApiClientError) {

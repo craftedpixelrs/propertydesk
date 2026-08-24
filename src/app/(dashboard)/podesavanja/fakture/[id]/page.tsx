@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { requirePermission } from "@/server/permissions/require";
+import { loadUserContext } from "@/server/auth/context";
 import { getInvoiceWithItems } from "@/server/services/billing/invoices/service";
 import { prisma } from "@/server/db/prisma";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,7 +8,6 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { formatDate } from "@/lib/formatters/date";
 import { formatMoney } from "@/lib/formatters/money";
-import { ApiError } from "@/lib/api/errors";
 import { createT, type TranslationKey } from "@/lib/i18n";
 import { resolveRequestLocale } from "@/lib/i18n/resolve-locale";
 
@@ -19,16 +18,21 @@ export default async function TenantInvoiceDetailPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const ctx = await requirePermission("billing.invoice.read");
-  if (ctx.organization.organizationType === "AGENCY") {
-    redirect("/podesavanja/organizacija");
+  const ctx = await loadUserContext();
+  if (!ctx) redirect("/sign-in");
+  if (!ctx.activeOrganization) redirect("/podesavanja");
+  if (
+    ctx.activeOrganization.type !== "INVESTOR" ||
+    (!ctx.isSuperAdmin && !ctx.permissions.includes("billing.invoice.read"))
+  ) {
+    redirect("/podesavanja");
   }
   const t = createT(await resolveRequestLocale());
   const { id } = await params;
   const invoice = await getInvoiceWithItems(id);
   if (!invoice) notFound();
-  if (invoice.organizationId !== ctx.organization.organizationId) {
-    throw new ApiError("FORBIDDEN", t("ops.invoices.wrongOrg"));
+  if (invoice.organizationId !== ctx.activeOrganization.id) {
+    notFound();
   }
 
   const allocations = await prisma.paymentAllocation.findMany({

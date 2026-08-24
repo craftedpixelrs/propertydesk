@@ -2479,8 +2479,8 @@ pnpm prisma migrate deploy</code></pre>
         <section id="referral">
           <h2>Referral cookie atribucija <a class="anchor" href="#referral">#</a></h2>
           <p>
-            Middleware (<code>src/middleware.ts</code>) čita <code>?ref=</code> i
-            setuje cookie.
+            Middleware (<code>src/middleware.ts</code>) čita <code>?ref=</code>
+            ili path <code>/p/r/&lt;code&gt;</code> i setuje cookie.
           </p>
           <div class="table-wrap">
             <table>
@@ -2496,8 +2496,9 @@ pnpm prisma migrate deploy</code></pre>
           </div>
           <div class="callout warn">
             <strong>Doc drift</strong>
-            Stariji docs kažu <code>PD_REFERRAL</code> / 90 dana — pogrešno.
-            Veruj <code>pd_ref</code> / 30d iz middleware-a.
+            Cookie je <code>pd_ref</code> / 30 dana. Buyer URL je
+            <code>/p/r/&lt;code&gt;</code> (ne <code>/</code> / sign-in).
+            Vidi <code>docs/referral.md</code>.
           </div>
           <p>
             Pri kreiranju online reservation request-a, service čita cookie i
@@ -2519,7 +2520,10 @@ pnpm prisma migrate deploy</code></pre>
               (<code>resolvePublicProjectSite</code>) — ne u
               nepostojećem <code>microsite.service.ts</code>.</li>
             <li>Lista jedinica, galerija, CTA ka rezervaciji / kontaktu.</li>
-            <li><code>?ref=</code> na microsite-u aktivira isti referral cookie tok.</li>
+            <li><code>/p/r/&lt;code&gt;</code> je javni katalog; <code>?ref=</code>
+              na microsite-u i dalje setuje isti <code>pd_ref</code> cookie.</li>
+            <li>Referral kod može da otvori neobjavljen projekat ako agencija
+              ima aktivan pristup.</li>
           </ul>
         </section>
 

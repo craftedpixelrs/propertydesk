@@ -49,6 +49,42 @@ which the `apiHandler` converts to a Serbian `403 FORBIDDEN` envelope.
 For UI, `<PermissionGuard permission="…">` renders children only when
 the current user context grants the permission.
 
+## Navigation and settings tabs
+
+Sidebar items in
+[`src/components/app/navigation.ts`](../src/components/app/navigation.ts)
+are filtered by **org type and permission**. Investor CRM
+(`/projekti`, `/jedinice`, `/kupci`, `/rezervacije`,
+`/kalendar`, `/prodaje`, `/uplate`, `/agencije`, `/provizije`) is
+`orgTypes: ["INVESTOR"]`. `/zadaci` is `lead.read` for **both**
+investor and agency (agency nav key `agency-tasks`). Agency portal
+(`/ponuda`, `/moji-kupci`, `/moje-rezervacije`, `/moje-provizije`,
+`/agencija/agenti`, `/agencija/konekcije`) is `orgTypes: ["AGENCY"]`.
+Items with `orgTypes` are hidden when there is no active org.
+Owner/admin (`organization.members:manage`) see the **Tim** tab on
+`/zadaci` and can assign a task to another member.
+
+Those investor list pages also call `requireTenantPage` in
+[`src/server/auth/context.ts`](../src/server/auth/context.ts): no
+session → `/sign-in`; wrong org type or missing permission →
+`/dashboard` (not a refresh loop on the same URL).
+
+Settings tabs (`/podesavanja/layout.tsx`):
+
+| Tab | Who sees it |
+|-----|-------------|
+| Moj nalog | Any signed-in user (`/podesavanja/profil`) |
+| Organizacija | Any member of the active org |
+| Korisnici | `organization.members:manage` |
+| Pretplata | Investor org only |
+| Fakture | Investor + `billing.invoice.read` (owner, admin, finance) |
+| Planovi plaćanja | Investor + `payment.manage` |
+| Ugovori | Investor + `sale.manage` |
+
+Agency members therefore see Organizacija, plus Korisnici only for
+owner/admin. Finance sees Planovi, not Ugovori or Korisnici. Tests:
+`src/components/app/navigation.test.ts`.
+
 ## Cross-tenant guarantees
 
 - Agency members can never call investor-manage permissions and vice

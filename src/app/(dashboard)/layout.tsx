@@ -45,6 +45,7 @@ export default async function DashboardLayout({ children }: { children: ReactNod
     const pathname = (await headers()).get("x-pathname") ?? "";
     const billingPath =
       pathname === "/podesavanja/pretplata" ||
+      pathname === "/podesavanja/profil" ||
       pathname.startsWith("/podesavanja/fakture");
     gatedChildren = billingPath ? (
       children

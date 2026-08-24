@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { apiClient, ApiClientError } from "@/lib/api-client";
 import { useT } from "@/components/app/i18n-provider";
+import { publicReferralPath } from "@/lib/referral";
 
 interface ReferralCardData {
   connectionId: string;
@@ -78,7 +79,7 @@ function ReferralCard({
   onRotate: () => void;
 }) {
   const t = useT();
-  const url = `${baseUrl}?ref=${encodeURIComponent(card.referralCode)}`;
+  const url = `${baseUrl}${publicReferralPath(card.referralCode)}`;
   const qrSrc = useMemo(
     () =>
       `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(url)}`,

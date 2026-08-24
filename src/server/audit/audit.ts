@@ -23,6 +23,9 @@ export type AuditAction =
   | "auth.account_locked"
   | "auth.account_suspended"
   | "auth.account_unlocked"
+  | "auth.profile_updated"
+  | "auth.password_changed"
+  | "auth.email_change_requested"
   // Organizations & tenancy
   | "organization.created"
   | "organization.updated"

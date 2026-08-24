@@ -158,10 +158,11 @@
 - Commission rules follow the strict precedence chain in
   [`src/server/services/commissions/rules.ts`](../src/server/services/commissions/rules.ts).
 - **Referral code** (Faza 8.3 C2): every `AgencyConnection` can
-  generate a unique 8-char `referralCode`. Public share and microsite
-  URLs accept `?ref=<code>`, which sets a `PD_REFERRAL` cookie
-  (90-day lifetime). Any reservation request submitted while the
-  cookie is set is stamped with `referralCode`, and the resulting
+  generate a unique 8-char `referralCode`. The agency share URL is
+  `/p/r/<code>` (public catalog, not `/` / sign-in). That path and
+  `?ref=<code>` on `/p/[token]` or `/p/projekat/[slug]` set a
+  `pd_ref` cookie (30 days). Any reservation request submitted while
+  the cookie is set is stamped with `referralCode`, and the resulting
   Reservation and Sale inherit the same code. `/izvestaji/agencije`
   aggregates revenue by referral code so the investor sees the value
   each agency drives even before a formal registration. See

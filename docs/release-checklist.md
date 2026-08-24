@@ -81,9 +81,9 @@ Every one must exit 0.
 - [ ] Open a public share link and reservation form (`/p/[token]`):
       submitting the form returns the deposit IPS QR image inline and
       the row shows up in `/rezervacije/zahtevi`.
-- [ ] Open the public microsite of a demo project
-      (`/p/projekat/[slug]`): unit list renders, `?ref=<code>` sets a
-      `PD_REFERRAL` cookie and stamps the next reservation request.
+- [ ] Open the agency referral URL (`/p/r/<code>`): catalog or
+      project, **no sign-in**. Cookie `pd_ref` is set. A later
+      reservation on `/p/[token]` carries the code.
 
 ## Communication
 

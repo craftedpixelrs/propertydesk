@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LogOut } from "lucide-react";
+import { CircleUser, LogOut } from "lucide-react";
 import { useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
@@ -109,6 +109,19 @@ export function SidebarNav({
       {lockNav ? <div className="flex-1" /> : null}
       <div className="border-t border-[var(--color-border)] p-2 space-y-1">
         <LanguageSwitcher className="px-3 py-1" compact />
+        <Link
+          href="/podesavanja/profil"
+          className={cn(
+            "flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm",
+            pathname === "/podesavanja/profil" ||
+              pathname.startsWith("/podesavanja/profil/")
+              ? "bg-[var(--color-brand-50)] text-[var(--color-brand-700)]"
+              : "text-[var(--color-foreground-muted)] hover:bg-[var(--color-surface-inset)]",
+          )}
+        >
+          <CircleUser aria-hidden className="size-4" />
+          {t("nav.account")}
+        </Link>
         <button
           type="button"
           onClick={handleSignOut}

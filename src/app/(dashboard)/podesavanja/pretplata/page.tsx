@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { requireSessionAndOrg } from "@/server/auth/session";
+import { loadUserContext } from "@/server/auth/context";
 import { loadOrganizationProfile } from "@/server/services/organization-admin.service";
 import { prisma } from "@/server/db/prisma";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -17,10 +17,14 @@ export const dynamic = "force-dynamic";
 
 export default async function SubscriptionPage() {
   try {
-    const { org } = await requireSessionAndOrg();
+    const ctx = await loadUserContext();
+    if (!ctx) redirect("/sign-in");
+    if (!ctx.activeOrganization) redirect("/dashboard");
+    const canReadInvoices =
+      ctx.isSuperAdmin || ctx.permissions.includes("billing.invoice.read");
     const t = createT(await resolveRequestLocale());
     const { organization, quota } = await loadOrganizationProfile(
-      org.organizationId,
+      ctx.activeOrganization.id,
     );
     if (organization.profile?.type === "AGENCY") {
       return (
@@ -48,7 +52,7 @@ export default async function SubscriptionPage() {
 
     const recentInvoices = await prisma.invoice.findMany({
       where: {
-        organizationId: org.organizationId,
+        organizationId: ctx.activeOrganization.id,
         status: { in: ["ISSUED", "SENT", "PARTIALLY_PAID", "OVERDUE", "PAID"] },
       },
       orderBy: [{ issueDate: "desc" }, { createdAt: "desc" }],
@@ -161,12 +165,14 @@ export default async function SubscriptionPage() {
         <Card>
           <CardHeader className="flex-row items-center justify-between">
             <CardTitle className="text-base">{t("ops.subscription.recentInvoices")}</CardTitle>
-            <Link
-              href="/podesavanja/fakture"
-              className="text-sm text-[var(--color-brand-700)] hover:underline"
-            >
-              {t("ops.subscription.allInvoices")}
-            </Link>
+            {canReadInvoices ? (
+              <Link
+                href="/podesavanja/fakture"
+                className="text-sm text-[var(--color-brand-700)] hover:underline"
+              >
+                {t("ops.subscription.allInvoices")}
+              </Link>
+            ) : null}
           </CardHeader>
           <CardContent className="p-0">
             {recentInvoices.length === 0 ? (
@@ -198,12 +204,16 @@ export default async function SubscriptionPage() {
                   {recentInvoices.map((inv) => (
                     <tr key={inv.id} className="border-b border-[var(--color-border)] last:border-b-0">
                       <td className="px-3 py-2 font-mono text-xs">
-                        <Link
-                          href={`/podesavanja/fakture/${inv.id}`}
-                          className="text-[var(--color-brand-700)] hover:underline"
-                        >
-                          {inv.invoiceNumber ?? "—"}
-                        </Link>
+                        {canReadInvoices ? (
+                          <Link
+                            href={`/podesavanja/fakture/${inv.id}`}
+                            className="text-[var(--color-brand-700)] hover:underline"
+                          >
+                            {inv.invoiceNumber ?? "—"}
+                          </Link>
+                        ) : (
+                          (inv.invoiceNumber ?? "—")
+                        )}
                       </td>
                       <td className="px-3 py-2 text-xs">
                         {inv.issueDate ? formatDate(inv.issueDate) : "—"}

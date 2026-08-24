@@ -23,14 +23,12 @@ manage a separate "public catalogue" toggle.
 
 ## Route
 
-- `/p/projekat/[slug]` — server-rendered marketing shell. Data is
+- `/p/projekat/[slug]` — server-rendered public shell. Data is
   resolved by
-  [`resolvePublicProjectSite(slug)`](../src/server/services/projects/microsite.service.ts)
-  and cached with `revalidateTag('microsite:<slug>')` so a project
-  edit invalidates the page immediately.
-- 404 when `publicMicrositeEnabled = false` or the slug does not
-  match. The 404 page reuses the marketing shell so branding stays
-  consistent.
+  [`resolvePublicProjectSite`](../src/server/services/sharing/share-links.service.ts).
+- 404 when the slug does not match, the project is archived, or
+  `publicMicrositeEnabled = false` **and** the visitor has no valid
+  agency referral for that project (see below).
 
 The microsite intentionally lives under the marketing site tree, not
 the app dashboard shell. It should look like a landing page, not a
@@ -80,33 +78,38 @@ project>`. This keeps the page usable without operator setup.
 
 ## Referral integration
 
-The microsite honours `?ref=<code>`. When present:
+Agency **Ponuda** copies `/p/r/<code>` (public catalog, no login).
+That page links here with `?ref=<code>`. See
+[`docs/referral.md`](./referral.md).
 
-- The `PD_REFERRAL` cookie is written (90 days, `SameSite=Lax`).
-- The value flows into `ReservationRequest.referralCode` on
-  submission (see [`docs/referral.md`](./referral.md)).
-- The "Kontakt" section shows a subtle "Prosleđeno preko:
-  <AgencyName>" badge when the agency behind the code has an active
-  connection to the investor. This is what makes the referral link
-  worth marketing for the agency.
+On this page:
+
+- `?ref=<code>` or cookie `pd_ref` (30 days, `SameSite=Lax`) unlocks
+  the microsite even when `publicMicrositeEnabled` is off, if the
+  code belongs to an ACTIVE connection with ACTIVE project access.
+- Unit tiles keep `?ref=` on `/p/<token>` so the reservation form
+  stamps `ReservationRequest.referralCode`.
 
 ## Access control
 
 - No authentication.
 - Rate limit: 60 GET / minute / IP through the shared
   `publicSurfaceLimiter`.
-- Bot detection is intentionally *off* — we want SEO.
+- Bot detection is intentionally *off* on a published microsite.
+  `/p/r/<code>` and unpublished slugs opened only via referral stay
+  `noindex`.
 
 ## Testing
 
 Manual smoke:
 
-1. Enable the microsite on a demo project.
-2. `curl -I https://<host>/p/projekat/<slug>` → 200.
-3. Visit `/p/projekat/<slug>?ref=<code>` — check the cookie.
+1. Enable the microsite on a demo project, or use an agency referral
+   code that has access to the project.
+2. `curl -I https://<host>/p/projekat/<slug>` → 200 when published.
+3. Visit `/p/r/<code>` — catalog or redirect, no sign-in. Cookie
+   `pd_ref` is set.
 4. Submit the reservation form — verify
    `ReservationRequest.referralCode` matches.
 
-Automated: `src/server/services/projects/microsite.service.test.ts`
-covers slug resolution, visibility filter, and the auto-creation of
-share links.
+Automated: `src/server/services/agencies/referral-catalog.service.test.ts`
+covers catalog resolution and referral unlock.

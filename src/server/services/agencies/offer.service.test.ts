@@ -11,14 +11,16 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const prismaMock = vi.hoisted(() => ({
   agencyProjectAccess: { findMany: vi.fn(), findFirst: vi.fn() },
   project: { findFirst: vi.fn() },
-  agencyUnitAccessOverride: { findMany: vi.fn() },
-  unit: { count: vi.fn(), findMany: vi.fn() },
+  agencyUnitAccessOverride: { findMany: vi.fn(), findUnique: vi.fn() },
+  unit: { count: vi.fn(), findMany: vi.fn(), findFirst: vi.fn() },
+  document: { findMany: vi.fn() },
 }));
 
 vi.mock("@/server/db/prisma", () => ({ prisma: prismaMock }));
 
 import {
   getOfferProject,
+  getOfferUnit,
   listOfferProjects,
   listOfferUnits,
 } from "./offer.service";
@@ -62,6 +64,35 @@ describe("offer.service — cross-tenant access", () => {
       projectId: "proj-1",
     });
     expect(result).toBeNull();
+  });
+
+  it("returns null from getOfferUnit when the unit is hidden by override", async () => {
+    prismaMock.agencyProjectAccess.findFirst.mockResolvedValueOnce({
+      id: "a-1",
+      agencyConnectionId: "c-1",
+      canViewPrices: true,
+      canViewFloorPlans: true,
+      canRequestReservations: true,
+      showOnlyAgencyVisibleUnits: true,
+      accessStartsAt: null,
+      accessEndsAt: null,
+      agencyConnection: { investorOrganizationId: "inv-1" },
+    });
+    prismaMock.unit.findFirst.mockResolvedValueOnce({
+      id: "u-1",
+      isVisibleToAgencies: true,
+      project: { id: "proj-1", name: "P", code: "P" },
+    });
+    prismaMock.agencyUnitAccessOverride.findUnique.mockResolvedValueOnce({
+      visible: false,
+    });
+    await expect(
+      getOfferUnit({
+        agencyOrganizationId: "agency-1",
+        projectId: "proj-1",
+        unitId: "u-1",
+      }),
+    ).resolves.toBeNull();
   });
 
   it("returns empty units list when access does not exist", async () => {

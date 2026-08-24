@@ -164,6 +164,28 @@ export function verificationEmail(url: string): EmailMessage {
   };
 }
 
+export function changeEmailConfirmationEmail(
+  url: string,
+  newEmail: string,
+): EmailMessage {
+  return {
+    to: "",
+    subject: `${APP_NAME}: Potvrda nove email adrese`,
+    text: [
+      `Poštovani,`,
+      ``,
+      `Zatražena je promena email adrese Vašeg ${APP_NAME} naloga na:`,
+      newEmail,
+      ``,
+      `Ako ste to Vi, potvrdite klikom na link:`,
+      ``,
+      url,
+      ``,
+      `Ako niste Vi zatražili promenu, ignorišite ovu poruku — stara adresa ostaje.`,
+    ].join("\n"),
+  };
+}
+
 export function invitationEmail(orgName: string, url: string): EmailMessage {
   return {
     to: "",

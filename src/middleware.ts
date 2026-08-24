@@ -1,5 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 
+import {
+  REFERRAL_COOKIE,
+  REFERRAL_COOKIE_MAX_AGE,
+  referralCodeFromUrl,
+} from "@/lib/referral";
 import { isAppHost, NOINDEX_ROBOTS_TAG } from "@/lib/seo/hosts";
 
 /**
@@ -48,9 +53,9 @@ function resolveHost(request: NextRequest): string {
 /**
  * C2 — Referral cookie handler.
  *
- * On any request that carries a `?ref=CODE` query, we persist the code
- * to a 30-day `pd_ref` cookie. This makes referral attribution robust
- * when a visitor:
+ * On any request that carries a `?ref=CODE` query or lands on
+ * `/p/r/CODE`, we persist the code to a 30-day `pd_ref` cookie. This
+ * makes referral attribution robust when a visitor:
  *   - lands on a marketing page first, then browses to `/p/<token>`,
  *   - opens a public share link in a mobile browser and only later
  *     submits the reservation form,
@@ -66,13 +71,14 @@ function applyReferralCookie(
   request: NextRequest,
   response: NextResponse,
 ): NextResponse {
-  const raw = request.nextUrl.searchParams.get("ref");
-  if (!raw) return response;
-  const clean = raw.trim().replace(/[^A-Z0-9a-z_-]/g, "").slice(0, 32);
+  const clean = referralCodeFromUrl(
+    request.nextUrl.pathname,
+    request.nextUrl.searchParams.get("ref"),
+  );
   if (!clean) return response;
-  response.cookies.set("pd_ref", clean, {
+  response.cookies.set(REFERRAL_COOKIE, clean, {
     path: "/",
-    maxAge: 60 * 60 * 24 * 30, // 30 days
+    maxAge: REFERRAL_COOKIE_MAX_AGE,
     sameSite: "lax",
     // NOT httpOnly — the reservation form (Client Component) needs it.
     secure: request.nextUrl.protocol === "https:",

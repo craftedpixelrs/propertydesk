@@ -197,7 +197,12 @@ export async function listOfferUnits(input: ListOfferUnitsInput): Promise<{
       orderBy: [{ sortOrder: "asc" }, { code: "asc" }],
       skip: (input.page - 1) * input.pageSize,
       take: input.pageSize,
-      include: { project: { select: { id: true, name: true, code: true } } },
+      include: {
+        project: { select: { id: true, name: true, code: true } },
+        building: { select: { name: true, code: true } },
+        entrance: { select: { name: true, code: true } },
+        floor: { select: { label: true, number: true } },
+      },
     }),
   ]);
 
@@ -208,6 +213,89 @@ export async function listOfferUnits(input: ListOfferUnitsInput): Promise<{
     }),
   );
   return { items, total };
+}
+
+const AGENCY_PHOTO_VISIBILITY = ["AGENCY_SHARED", "BUYER_SHARED"] as const;
+
+export interface AgencyUnitPhoto {
+  id: string;
+  fileName: string;
+}
+
+export async function getOfferUnit(input: {
+  agencyOrganizationId: string;
+  projectId: string;
+  unitId: string;
+}): Promise<{
+  unit: AgencyUnitDto;
+  access: AccessContext;
+  photos: AgencyUnitPhoto[];
+} | null> {
+  const access = await loadAccessForAgencyProject({
+    agencyOrganizationId: input.agencyOrganizationId,
+    projectId: input.projectId,
+  });
+  if (!access) return null;
+
+  const unit = await prisma.unit.findFirst({
+    where: {
+      id: input.unitId,
+      projectId: input.projectId,
+      organizationId: access.investorOrganizationId,
+      archivedAt: null,
+    },
+    include: {
+      project: { select: { id: true, name: true, code: true } },
+      building: { select: { name: true, code: true } },
+      entrance: { select: { name: true, code: true } },
+      floor: { select: { label: true, number: true } },
+    },
+  });
+  if (!unit) return null;
+  if (!(await isUnitVisibleToAgency(access, unit))) return null;
+
+  const photos = await prisma.document.findMany({
+    where: {
+      organizationId: access.investorOrganizationId,
+      entityType: "Unit",
+      entityId: unit.id,
+      deletedAt: null,
+      mimeType: { startsWith: "image/" },
+      visibility: { in: [...AGENCY_PHOTO_VISIBILITY] },
+    },
+    orderBy: [{ isCover: "desc" }, { sortOrder: "asc" }, { createdAt: "desc" }],
+    take: 24,
+    select: { id: true, originalFileName: true },
+  });
+
+  return {
+    unit: toAgencyUnitDto(unit, {
+      canViewPrices: access.canViewPrices,
+      canViewFloorPlans: access.canViewFloorPlans,
+    }),
+    access,
+    photos: photos.map((p) => ({ id: p.id, fileName: p.originalFileName })),
+  };
+}
+
+async function isUnitVisibleToAgency(
+  access: AccessContext,
+  unit: { id: string; isVisibleToAgencies: boolean },
+): Promise<boolean> {
+  const override = await prisma.agencyUnitAccessOverride.findUnique({
+    where: {
+      agencyConnectionId_unitId: {
+        agencyConnectionId: access.connectionId,
+        unitId: unit.id,
+      },
+    },
+    select: { visible: true },
+  });
+  if (override?.visible === false) return false;
+  if (access.showOnlyAgencyVisibleUnits && !unit.isVisibleToAgencies && override?.visible !== true) {
+    return false;
+  }
+  return true;
 }
 
 // -----------------------------------------------------------------------------
@@ -256,19 +344,7 @@ export async function createAgencyReservation(input: CreateAgencyReservationInpu
     );
   }
 
-  // Enforce per-unit override + agency-visibility contract.
-  const override = await prisma.agencyUnitAccessOverride.findUnique({
-    where: {
-      agencyConnectionId_unitId: {
-        agencyConnectionId: access.connectionId,
-        unitId: unit.id,
-      },
-    },
-  });
-  if (override?.visible === false) {
-    throw DomainErrors.notFound("Jedinica");
-  }
-  if (access.showOnlyAgencyVisibleUnits && !unit.isVisibleToAgencies && override?.visible !== true) {
+  if (!(await isUnitVisibleToAgency(access, unit))) {
     throw DomainErrors.notFound("Jedinica");
   }
 

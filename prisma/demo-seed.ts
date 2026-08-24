@@ -708,6 +708,8 @@ async function seedProjectsAndUnits(
         defaultCurrency: "EUR",
         defaultVatRate: spec.defaultVatRate,
         isActive: true,
+        publicMicrositeEnabled: spec.visibleToAgencies,
+        publicMicrositeSlug: spec.visibleToAgencies ? spec.slug : null,
         createdByUserId: users.owner,
       },
     });

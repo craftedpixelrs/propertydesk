@@ -5,6 +5,7 @@ import type { Prisma } from "@prisma/client";
 import { prisma } from "@/server/db/prisma";
 import { DomainErrors } from "@/lib/errors";
 import { recordAudit } from "@/server/audit/audit";
+import { referralUnlocksProject } from "@/server/services/agencies/referral-catalog.service";
 
 /**
  * Share-link service — creates opaque public tokens for the `/p/[token]`
@@ -497,12 +498,12 @@ export interface PublicProjectSite {
  */
 export async function resolvePublicProjectSite(
   slug: string,
+  opts?: { referralCode?: string | null },
 ): Promise<PublicProjectSite | null> {
   if (!slug || slug.length > 128) return null;
   const project = await prisma.project.findFirst({
     where: {
       archivedAt: null,
-      publicMicrositeEnabled: true,
       OR: [{ publicMicrositeSlug: slug }, { slug }],
     },
     select: {
@@ -510,6 +511,7 @@ export async function resolvePublicProjectSite(
       name: true,
       slug: true,
       publicMicrositeSlug: true,
+      publicMicrositeEnabled: true,
       address: true,
       city: true,
       coverImageUrl: true,
@@ -520,6 +522,14 @@ export async function resolvePublicProjectSite(
     },
   });
   if (!project) return null;
+  if (!project.publicMicrositeEnabled) {
+    const unlocked = await referralUnlocksProject({
+      referralCode: opts?.referralCode,
+      projectId: project.id,
+      investorOrganizationId: project.organizationId,
+    });
+    if (!unlocked) return null;
+  }
 
   const [orgProfile, units] = await Promise.all([
     prisma.organizationProfile.findUnique({

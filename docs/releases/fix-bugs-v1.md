@@ -40,7 +40,12 @@ Staging i demo dele **istu bazu i fajlove**. Sesije su odvojene po hostu.
 | Poziv agencije: prvi put profil (ime, PIB adresa…), postojeća = samo Prihvati | urađeno | da | čeka odluku | čeka odluku |
 | Agencija: sva polja sem sajta obavezna na registraciji i posle prijave | urađeno | da | čeka odluku | čeka odluku |
 | Vodič po stranici (sidebar): čemu služi, Previous/Next, sr/en | urađeno | da | čeka odluku | čeka odluku |
-| Lock prijave: 3× greška → 30m / 1h / 6h / 12h / 24h / suspenzija | **sada** | čeka tvoj deploy + migracija | čeka odluku | čeka odluku |
+| Lock prijave: 3× greška → 30m / 1h / 6h / 12h / 24h / suspenzija | urađeno | da (+ migracija) | čeka odluku | čeka odluku |
+| Predlozi adresa za izabrani grad (Photon upit / ćirilica) | urađeno | da | čeka odluku | čeka odluku |
+| Liste: filter uživo, create u draweru, checkbox rezervacija za agenciju | urađeno | da | da | ne |
+| Projekat: DateInput, valuta EUR/RSD, mapa `{z}/{x}/{y}` | urađeno | da | da | ne |
+| Sidebar/tabovi po roli — agencija ne vidi investitorski CRM; mrtav URL → `/dashboard` | urađeno | da | da | ne |
+| Referral: `/p/r/<kod>` javni katalog (ne login); cookie `pd_ref` 30 dana | urađeno u kodu | ne | ne | ne |
 
 **Baza:** plan `partner` je upsert (nije migracija). **Nova migracija**
 `20260820140000_user_login_lockout` — `loginFailedAttempts`,

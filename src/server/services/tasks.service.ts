@@ -10,17 +10,30 @@ import { taskAssignedEmail } from "@/server/email/templates";
 /**
  * Tasks service.
  *
- * Supports the four canonical views surfaced in the UI:
- *   - `mine`     — everything assigned to the current user (open/in-progress)
- *   - `today`    — assigned to the user and due today
- *   - `overdue`  — assigned to the user, due in the past, not done
- *   - `upcoming` — assigned to the user, due within the next 7 days
+ * Views:
+ *   - `mine`      — assigned to the current user (open/in-progress)
+ *   - `today`     — assigned to the user and due today
+ *   - `overdue`   — assigned to the user, due in the past, not done
+ *   - `upcoming`  — assigned to the user, due within the next 7 days
+ *   - `completed` — assigned to the user, status COMPLETED
+ *   - `team`      — every open task in the org (owner/admin only)
+ *   - `all`       — org-wide, optional status filter
+ *
+ * `team` / `all` require `includeTeam`. Without it they fall back to the
+ * caller's own open tasks so a crafted `?view=team` cannot leak the roster.
  *
  * On creation (or reassignment) the assignee gets an in-app notification and,
  * if we can resolve their email, an email.
  */
 
-export type TaskView = "mine" | "today" | "overdue" | "upcoming" | "all";
+export type TaskView =
+  | "mine"
+  | "today"
+  | "overdue"
+  | "upcoming"
+  | "completed"
+  | "team"
+  | "all";
 
 export interface ListTasksInput {
   organizationId: string;
@@ -30,6 +43,7 @@ export interface ListTasksInput {
   pageSize: number;
   status?: TaskStatus[];
   buyerId?: string;
+  includeTeam?: boolean;
 }
 
 const OPEN_STATUSES: TaskStatus[] = ["OPEN", "IN_PROGRESS"];
@@ -46,7 +60,7 @@ function endOfToday(): Date {
   return d;
 }
 
-function buildViewWhere(input: ListTasksInput): Prisma.TaskWhereInput {
+export function buildTaskViewWhere(input: ListTasksInput): Prisma.TaskWhereInput {
   const base: Prisma.TaskWhereInput = {
     organizationId: input.organizationId,
     ...(input.buyerId ? { buyerId: input.buyerId } : {}),
@@ -84,8 +98,33 @@ function buildViewWhere(input: ListTasksInput): Prisma.TaskWhereInput {
         dueAt: { gt: endOfToday(), lte: in7 },
       };
     }
+    case "completed":
+      return {
+        ...base,
+        assignedUserId: input.currentUserId,
+        status: "COMPLETED",
+      };
+    case "team":
+      if (!input.includeTeam) {
+        return {
+          ...base,
+          assignedUserId: input.currentUserId,
+          status: { in: OPEN_STATUSES },
+        };
+      }
+      return {
+        ...base,
+        status: { in: OPEN_STATUSES },
+      };
     case "all":
     default:
+      if (!input.includeTeam) {
+        return {
+          ...base,
+          assignedUserId: input.currentUserId,
+          status: { in: input.status ?? OPEN_STATUSES },
+        };
+      }
       return {
         ...base,
         ...(input.status?.length ? { status: { in: input.status } } : {}),
@@ -94,12 +133,15 @@ function buildViewWhere(input: ListTasksInput): Prisma.TaskWhereInput {
 }
 
 export async function listTasks(input: ListTasksInput) {
-  const where = buildViewWhere(input);
+  const where = buildTaskViewWhere(input);
   const [total, rows] = await Promise.all([
     prisma.task.count({ where }),
     prisma.task.findMany({
       where,
-      orderBy: [{ dueAt: "asc" }],
+      orderBy:
+        input.view === "completed"
+          ? [{ completedAt: "desc" }]
+          : [{ dueAt: "asc" }],
       skip: (input.page - 1) * input.pageSize,
       take: input.pageSize,
       include: {
@@ -111,18 +153,23 @@ export async function listTasks(input: ListTasksInput) {
   return { items: rows, total };
 }
 
-/** Counts for the view tab badges (mine/today/overdue/upcoming). */
+/** Counts for the view tab badges. */
 export async function getTaskViewCounts(input: {
   organizationId: string;
   currentUserId: string;
 }) {
-  const [today, overdue, upcoming, mine] = await Promise.all([
-    prisma.task.count({ where: buildViewWhere({ ...input, view: "today", page: 1, pageSize: 1 }) }),
-    prisma.task.count({ where: buildViewWhere({ ...input, view: "overdue", page: 1, pageSize: 1 }) }),
-    prisma.task.count({ where: buildViewWhere({ ...input, view: "upcoming", page: 1, pageSize: 1 }) }),
-    prisma.task.count({ where: buildViewWhere({ ...input, view: "mine", page: 1, pageSize: 1 }) }),
+  const base = { ...input, page: 1, pageSize: 1 };
+  const [today, overdue, upcoming, mine, completed, team] = await Promise.all([
+    prisma.task.count({ where: buildTaskViewWhere({ ...base, view: "today" }) }),
+    prisma.task.count({ where: buildTaskViewWhere({ ...base, view: "overdue" }) }),
+    prisma.task.count({ where: buildTaskViewWhere({ ...base, view: "upcoming" }) }),
+    prisma.task.count({ where: buildTaskViewWhere({ ...base, view: "mine" }) }),
+    prisma.task.count({ where: buildTaskViewWhere({ ...base, view: "completed" }) }),
+    prisma.task.count({
+      where: buildTaskViewWhere({ ...base, view: "team", includeTeam: true }),
+    }),
   ]);
-  return { mine, today, overdue, upcoming };
+  return { mine, today, overdue, upcoming, completed, team };
 }
 
 export interface CreateTaskInput {

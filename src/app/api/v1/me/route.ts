@@ -18,9 +18,14 @@ import {
  * Used by the web dashboard shell to render navigation appropriate to
  * the caller's org type and permission set.
  */
-const patchBodySchema = z.object({
-  locale: z.enum(["sr-Latn", "en"]),
-});
+const patchBodySchema = z
+  .object({
+    locale: z.enum(["sr-Latn", "en"]).optional(),
+    name: z.string().min(2).max(80).optional(),
+  })
+  .refine((body) => body.locale !== undefined || body.name !== undefined, {
+    message: "Potrebno je bar jedno polje.",
+  });
 
 export const GET = apiHandler({}, async () => {
   const session = await requireSession();
@@ -57,18 +62,26 @@ export const GET = apiHandler({}, async () => {
 
 export const PATCH = apiHandler({ bodySchema: patchBodySchema }, async ({ body }) => {
   const session = await requireSession();
-  const locale = body.locale;
-  await prisma.user.update({
-    where: { id: session.user.id },
-    data: { locale },
-  });
-  const jar = await cookies();
-  jar.set(LOCALE_COOKIE, locale, {
-    path: "/",
-    maxAge: LOCALE_COOKIE_MAX_AGE,
-    sameSite: "lax",
-  });
-  return { data: { locale } };
+  const data: { locale?: string; name?: string } = {};
+  if (body.locale) {
+    await prisma.user.update({
+      where: { id: session.user.id },
+      data: { locale: body.locale },
+    });
+    const jar = await cookies();
+    jar.set(LOCALE_COOKIE, body.locale, {
+      path: "/",
+      maxAge: LOCALE_COOKIE_MAX_AGE,
+      sameSite: "lax",
+    });
+    data.locale = body.locale;
+  }
+  if (body.name !== undefined) {
+    const { updateOwnName } = await import("@/server/services/account.service");
+    const updated = await updateOwnName({ session, name: body.name });
+    data.name = updated.name;
+  }
+  return { data };
 });
 
 /**
@@ -79,7 +92,7 @@ export const PATCH = apiHandler({ bodySchema: patchBodySchema }, async ({ body }
  *       - me
  *     summary: Update current user preferences
  *     description: |
- *       **Auth:** sesija. Trenutno samo `locale` (`sr-Latn` | `en`).
+ *       **Auth:** sesija. `locale` i/ili `name`.
  *     responses:
  *       "200":
  *         description: OK

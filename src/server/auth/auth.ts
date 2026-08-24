@@ -10,6 +10,7 @@ import {
   sendEmail,
   verificationEmail,
   invitationEmail,
+  changeEmailConfirmationEmail,
 } from "@/server/auth/email";
 import { ac } from "@/server/permissions/access-control";
 import {
@@ -53,6 +54,16 @@ export const auth = betterAuth({
     sendResetPassword: async ({ user, url }) => {
       const msg = passwordResetEmail(url);
       await sendEmail({ ...msg, to: user.email });
+    },
+  },
+
+  user: {
+    changeEmail: {
+      enabled: true,
+      sendChangeEmailConfirmation: async ({ user, newEmail, url }) => {
+        const msg = changeEmailConfirmationEmail(url, newEmail);
+        await sendEmail({ ...msg, to: user.email });
+      },
     },
   },
 

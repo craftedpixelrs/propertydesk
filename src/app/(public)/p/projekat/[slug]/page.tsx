@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { headers } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { notFound } from "next/navigation";
 
 import { absoluteCoverImageUrl } from "@/lib/geo/cover-image";
+import { REFERRAL_COOKIE, sanitizeReferralCode } from "@/lib/referral";
 import { hostFromHeaders } from "@/lib/seo/hosts";
 
 import { formatMoney } from "@/lib/formatters/money";
@@ -21,13 +22,25 @@ export const dynamic = "force-dynamic";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }
 
-export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+async function readReferralCode(
+  searchParams: Record<string, string | string[] | undefined>,
+): Promise<string | null> {
+  const raw = searchParams.ref;
+  const fromQuery = sanitizeReferralCode(Array.isArray(raw) ? raw[0] : raw);
+  if (fromQuery) return fromQuery;
+  const jar = await cookies();
+  return sanitizeReferralCode(jar.get(REFERRAL_COOKIE)?.value);
+}
+
+export async function generateMetadata({ params, searchParams }: PageProps): Promise<Metadata> {
   const { slug } = await params;
   const locale = await resolveRequestLocale();
   const t = createT(locale);
-  const site = await resolvePublicProjectSite(slug);
+  const referralCode = await readReferralCode(await searchParams);
+  const site = await resolvePublicProjectSite(slug, { referralCode });
   if (!site) {
     return {
       title: t("marketing.public.projectUnavailable"),
@@ -66,11 +79,12 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   };
 }
 
-export default async function PublicProjectMicrosite({ params }: PageProps) {
+export default async function PublicProjectMicrosite({ params, searchParams }: PageProps) {
   const { slug } = await params;
   const locale = await resolveRequestLocale();
   const t = createT(locale);
-  const site = await resolvePublicProjectSite(slug);
+  const referralCode = await readReferralCode(await searchParams);
+  const site = await resolvePublicProjectSite(slug, { referralCode });
   if (!site) return notFound();
 
   const project = await prisma.project.findUnique({
@@ -95,21 +109,23 @@ export default async function PublicProjectMicrosite({ params }: PageProps) {
   return (
     <main className="min-h-screen bg-neutral-50 pb-16">
       <header className="border-b border-neutral-200 bg-white">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-          <div className="flex items-center gap-3">
+        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-6 py-5">
+          <div className="flex min-w-0 items-center gap-4 sm:gap-5">
             {site.organization.logoUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={site.organization.logoUrl}
                 alt={site.organization.name}
-                className="h-10 w-10 rounded-md object-contain"
+                className="h-12 w-auto max-h-16 max-w-[200px] shrink-0 object-contain object-left sm:h-16 sm:max-w-[280px]"
               />
             ) : null}
-            <div>
-              <div className="text-xs uppercase tracking-wide text-neutral-500">
+            <div className="min-w-0">
+              <div className="truncate text-xs uppercase tracking-wide text-neutral-500">
                 {site.organization.name}
               </div>
-              <div className="text-lg font-semibold">{site.project.name}</div>
+              <div className="truncate text-lg font-semibold leading-tight sm:text-xl">
+                {site.project.name}
+              </div>
             </div>
           </div>
           <div className="flex gap-3 text-sm">
@@ -212,7 +228,11 @@ export default async function PublicProjectMicrosite({ params }: PageProps) {
             {unitsWithTokens.map((u) => (
               <Link
                 key={u.id}
-                href={`/p/${u.shareToken}`}
+                href={
+                  referralCode
+                    ? `/p/${u.shareToken}?ref=${encodeURIComponent(referralCode)}`
+                    : `/p/${u.shareToken}`
+                }
                 className="group overflow-hidden rounded-lg border border-neutral-200 bg-white transition hover:border-[var(--color-brand-500)] hover:shadow-md"
               >
                 <div className="relative h-40 w-full bg-neutral-100">

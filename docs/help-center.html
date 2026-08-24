@@ -2176,7 +2176,7 @@
           </div>
           <h2>Referral kod + QR + rotacija</h2>
           <p class="path">
-            Agencija: <code>/agencija/profil</code> ·
+            Agencija: <code>/ponuda</code> ·
             Investitor: <code>/izvestaji/agencije</code>
           </p>
           <ol class="steps">
@@ -2186,18 +2186,19 @@
               Kod se kreira lenjo pri prvoj akciji Rotiraj / aktivaciji.
             </li>
             <li>
-              <strong>Podelite link sa <code>?ref=</code></strong>
-              <code>/p/[token]?ref=VAS_KOD</code> ili
-              <code>/p/projekat/[slug]?ref=VAS_KOD</code>.
+              <strong>Podelite <code>/p/r/VAS_KOD</code></strong>
+              Kupac otvara javni katalog, bez prijave. I dalje važi
+              <code>?ref=</code> na <code>/p/[token]</code> i
+              <code>/p/projekat/[slug]</code>.
             </li>
             <li>
-              <strong>Cookie 90 dana</strong>
-              Poseta postavlja <code>PD_REFERRAL</code> (last-touch). Forma
+              <strong>Cookie 30 dana</strong>
+              Poseta postavlja <code>pd_ref</code> (last-touch). Forma
               online rezervacije prosleđuje kod u zahtev.
             </li>
             <li>
               <strong>QR PNG</strong>
-              Skener vodi na referral URL za izabranog investitora / projekat.
+              Skener vodi na <code>/p/r/VAS_KOD</code> za tog investitora.
             </li>
             <li>
               <strong>Rotacija</strong>
@@ -3004,75 +3005,51 @@
             <span class="chip">Zajedničko</span>
             <span class="chip">~ 3 min</span>
           </div>
-          <h2>Zadaci — Danas / Nadolazeći / Prekoračeni</h2>
-          <p class="path">Putanja: <code>/zadaci</code> · widget na <code>/dashboard</code></p>
+          <h2>Zadaci — Moji / Tim / Završeni</h2>
+          <p class="path">Putanja: <code>/zadaci</code> · investitor i agencija</p>
           <p>
-            Zadaci vam pomažu da ništa ne propustite — deo se kreira automatski iz
-            poslovnih događaja, deo ručno dodelite sebi ili kolegi.
+            Zadaci su ručni podsetnici. Kupac nije obavezan — vlasnik može da
+            dodeli interni zadatak kolegi. Vlasnik i admin vide tab
+            <em>Tim</em> (ko je zadužen, šta kasni).
           </p>
 
-          <h3>Tri prikaza</h3>
+          <h3>Prikazi</h3>
           <ul>
-            <li><strong>Danas</strong> — zadaci sa rokom danas ili ranije nezavršeni.</li>
+            <li><strong>Moji zadaci</strong> — otvoreni zadaci dodeljeni vama.</li>
+            <li><strong>Danas</strong> — vaš rok je danas.</li>
+            <li><strong>Prekoračeni</strong> — rok prošao, nije završen (crvena oznaka).</li>
             <li><strong>Nadolazeći</strong> — rok u narednih 7 dana.</li>
-            <li><strong>Prekoračeni</strong> — rok prošao, status nije završen (crvena oznaka).</li>
+            <li><strong>Završeni</strong> — vaši završeni zadaci.</li>
+            <li><strong>Tim</strong> — vlasnik i admin: svi otvoreni zadaci organizacije.</li>
           </ul>
 
-          <h3>Auto-generisani zadaci</h3>
-          <ol class="steps">
-            <li>
-              <strong>Rezervacija ističe za 2 dana</strong>
-              Sistem kreira podsetnik da kontaktirate kupca ili produžite rezervaciju.
-            </li>
-            <li>
-              <strong>Rata dospela</strong>
-              Kad rata na planu otplate prođe datum dospeća bez uplate, zadatak ide
-              finansijama ili dodeljenom agentu prodaje.
-            </li>
-            <li>
-              <strong>Ugovor čeka potpisivanje</strong>
-              Prodaja u statusu „Ugovor generisan“ bez oznake potpisano — podsetnik
-              agentu da prati kupca.
-            </li>
-          </ol>
-
-          <h3>Ručno kreiranje i dodela</h3>
+          <h3>Kako se dodaje zadatak</h3>
           <ol class="steps">
             <li>
               <strong>Novi zadatak</strong>
-              <code>/zadaci</code> → <em>Novi zadatak</em> ili sa detalja kupca/prodaje.
+              <code>/zadaci</code> → <em>Novi zadatak</em>. Naslov i rok su obavezni.
+              Kupca ostavite praznog za interni zadatak.
             </li>
             <li>
-              <strong>Dodelite kolegi</strong>
-              Izaberite člana tima — dobija in-app notifikaciju i email (ako je uključen).
+              <strong>Dodela kolegi</strong>
+              Vlasnik ili admin bira člana tima. Kolega dobija in-app notifikaciju i email.
+              Agent bez te dozvole kreira zadatak sebi.
             </li>
             <li>
-              <strong>Postavite prioritet</strong>
-              Niska / srednja / visoka — utiče na sortiranje u listi Danas.
-            </li>
-            <li>
-              <strong>Povežite sa entitetom</strong>
-              Opciono vežite za kupca, prodaju ili rezervaciju — klik na zadatak otvara taj zapis.
+              <strong>Sa kartice kupca</strong>
+              Na detalju kupca → <em>Zadatak</em> — uvek vezan za tog kupca, dodeljen vama.
             </li>
           </ol>
 
           <div class="callout success">
-            <strong>Dashboard widget</strong>
-            Na kontrolnoj tabli vidite broj zadataka za danas — klik vodi direktno na
-            filtriranu listu bez pretrage.
+            <strong>Završi</strong>
+            Dugme <em>Završi</em> zatvara zadatak. Lista Završeni ostaje kao arhiva.
           </div>
           <div class="callout warn">
-            <strong>Pažnja</strong>
-            Završavanje auto-generisanog zadatka ne rešava osnovni problem — npr.
-            zatvaranje „rata dospela“ bez uplate kreira novi zadatak sledećeg dana.
+            <strong>Šta još nije u aplikaciji</strong>
+            Sistem trenutno ne pravi sam zadatke (ističe rezervacija, dospela rata).
+            To je backlog, ne trenutna funkcija.
           </div>
-
-          <h3>Šta ako…</h3>
-          <p>
-            Previše auto-zadataka za istu prodaju? Proverite da li je plan otplate
-            ažuran i da li su uplate pravilno alocirane — pogrešan plan generiše
-            lažne podsetnike za rate.
-          </p>
         </article>
 
         <!-- 36 -->
@@ -3260,7 +3237,7 @@
             </li>
             <li>
               <strong>Postavite novu lozinku</strong>
-              Minimum 8 karaktera; preporučeno kombinovati slova, brojeve i simbol.
+              Minimum 10 karaktera; preporučeno kombinovati slova, brojeve i simbol.
             </li>
             <li>
               <strong>Prijavite se</strong>
@@ -3280,7 +3257,7 @@
             </li>
             <li>
               <strong>Sačuvajte</strong>
-              Ostale sesije ostaju aktivne — odjavite ih ručno ako je potrebno.
+              Ostale sesije se odjavljuju. Na ovom uređaju ostajete prijavljeni.
             </li>
           </ol>
 

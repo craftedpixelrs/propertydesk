@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { LanguageSwitcher } from "@/components/app/language-switcher";
 import { PageHeader } from "@/components/app/page-header";
@@ -21,8 +22,14 @@ export default async function MorePage() {
           ctx.isSuperAdmin || Boolean(ctx.propertyDeskTeam?.enabled)
         }
       />
-      <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-4">
+      <div className="space-y-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-4">
         <LanguageSwitcher />
+        <Link
+          href="/podesavanja/profil"
+          className="inline-flex text-sm text-[var(--color-brand-700)] hover:underline"
+        >
+          {t("nav.account", undefined, locale)}
+        </Link>
       </div>
     </div>
   );

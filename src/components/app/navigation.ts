@@ -180,6 +180,14 @@ export const navigation: NavItem[] = [
     orgTypes: ["AGENCY"],
   },
   {
+    key: "agency-tasks",
+    labelKey: "nav.tasks",
+    href: "/zadaci",
+    icon: ClipboardCheck,
+    permission: "lead.read",
+    orgTypes: ["AGENCY"],
+  },
+  {
     key: "my-reservations",
     labelKey: "nav.myReservations",
     href: "/moje-rezervacije",

@@ -3,6 +3,7 @@ import { z } from "zod";
 import { apiHandler } from "@/lib/api/handler";
 import { paginate } from "@/lib/api/query";
 import { requirePermission } from "@/server/permissions/require";
+import { checkPermissionForRole } from "@/server/services/permissions/role-overrides.service";
 import {
   createTask,
   getTaskViewCounts,
@@ -10,7 +11,15 @@ import {
   type TaskView,
 } from "@/server/services/tasks.service";
 
-const TASK_VIEWS = ["mine", "today", "overdue", "upcoming", "all"] as const;
+const TASK_VIEWS = [
+  "mine",
+  "today",
+  "overdue",
+  "upcoming",
+  "completed",
+  "team",
+  "all",
+] as const;
 const TASK_STATUSES = ["OPEN", "IN_PROGRESS", "COMPLETED", "CANCELED"] as const;
 
 const createSchema = z.object({
@@ -32,6 +41,12 @@ function parseView(raw: string | null): TaskView {
 export const GET = apiHandler({}, async ({ query, searchParams }) => {
   const ctx = await requirePermission("lead.read");
   const view = parseView(searchParams.get("view"));
+  const includeTeam =
+    ctx.isSuperAdmin ||
+    (await checkPermissionForRole(
+      ctx.organization.organizationRole,
+      "organization.members:manage",
+    ));
   const [{ items, total }, counts] = await Promise.all([
     listTasks({
       organizationId: ctx.organization.organizationId,
@@ -40,6 +55,7 @@ export const GET = apiHandler({}, async ({ query, searchParams }) => {
       page: query.page,
       pageSize: query.pageSize,
       buyerId: searchParams.get("buyerId") ?? undefined,
+      includeTeam,
     }),
     getTaskViewCounts({
       organizationId: ctx.organization.organizationId,
@@ -52,6 +68,9 @@ export const GET = apiHandler({}, async ({ query, searchParams }) => {
 
 export const POST = apiHandler({ bodySchema: createSchema }, async ({ body }) => {
   const ctx = await requirePermission("lead.manage");
+  if (body.assignedUserId && body.assignedUserId !== ctx.session.user.id) {
+    await requirePermission("organization.members:manage");
+  }
   const task = await createTask({
     organizationId: ctx.organization.organizationId,
     actorUserId: ctx.session.user.id,

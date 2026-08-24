@@ -233,12 +233,36 @@ export const opsSr = {
 
   settings: {
     orgName: "Organizacija: {{name}}",
+    noOrg: "Vaš nalog",
     sectionsAria: "Sekcije podešavanja",
+    account: "Moj nalog",
     organization: "Organizacija",
     members: "Korisnici",
     subscription: "Pretplata",
     invoices: "Fakture",
     contracts: "Ugovori",
+  },
+
+  account: {
+    subtitle: "Ime, email, lozinka i jezik — važi za Vas, ne za firmu.",
+    nameTitle: "Ime i prezime",
+    nameSaved: "Ime je sačuvano.",
+    emailTitle: "Email",
+    emailHint:
+      "Na trenutnu adresu šaljemo link za potvrdu. Nova adresa važi tek posle klika.",
+    emailPending: "Proverite inbox na {{email}} i potvrdite promenu.",
+    emailSame: "To je već Vaša trenutna adresa.",
+    verified: "Potvrđen",
+    unverified: "Nije potvrđen",
+    passwordTitle: "Lozinka",
+    currentPassword: "Trenutna lozinka",
+    newPassword: "Nova lozinka",
+    confirmNewPassword: "Potvrdite novu lozinku",
+    passwordSaved: "Lozinka je promenjena. Ostale sesije su odjavljene.",
+    wrongPassword: "Trenutna lozinka nije tačna.",
+    languageTitle: "Jezik aplikacije",
+    impersonationBlocked: "Ne možete menjati nalog dok ste u impersonaciji.",
+    emailChanged: "Email adresa je ažurirana.",
   },
 
   quota: {
@@ -645,12 +669,36 @@ export const opsEn: Leaves<typeof opsSr> = {
 
   settings: {
     orgName: "Organization: {{name}}",
+    noOrg: "Your account",
     sectionsAria: "Settings sections",
+    account: "My account",
     organization: "Organization",
     members: "Users",
     subscription: "Subscription",
     invoices: "Invoices",
     contracts: "Contracts",
+  },
+
+  account: {
+    subtitle: "Name, email, password, and language — yours, not the company’s.",
+    nameTitle: "Full name",
+    nameSaved: "Name saved.",
+    emailTitle: "Email",
+    emailHint:
+      "We send a confirmation link to your current address. The new one applies only after you click it.",
+    emailPending: "Check the inbox at {{email}} and confirm the change.",
+    emailSame: "That is already your current address.",
+    verified: "Verified",
+    unverified: "Not verified",
+    passwordTitle: "Password",
+    currentPassword: "Current password",
+    newPassword: "New password",
+    confirmNewPassword: "Confirm new password",
+    passwordSaved: "Password changed. Other sessions were signed out.",
+    wrongPassword: "The current password is incorrect.",
+    languageTitle: "App language",
+    impersonationBlocked: "You cannot change the account while impersonating.",
+    emailChanged: "Email address updated.",
   },
 
   quota: {

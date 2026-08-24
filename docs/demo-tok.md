@@ -75,7 +75,8 @@ Nakon prijave si na **Kontrolnoj tabli** (`/dashboard`). Levi sidebar sadrži sv
 
 - **Zvono** — nepročitane notifikacije
 - **Prekidač organizacije** — ako imaš pristup u više tenant-a (super-admin ili invited user)
-- **Profil** → Odjava, Podešavanja profila
+- **Moj nalog** (dno sidebar-a ili `/podesavanja/profil`) — ime, email, lozinka, jezik
+- **Odjava**
 
 ---
 
@@ -545,16 +546,20 @@ Agencija svoje provizije vidi u **Moje provizije** (`/moje-provizije`).
 
 ### 8.7. Ponuda za agenciju
 
-**Sidebar → Ponuda** (`/ponuda`) — vidljivo samo agentima.
+**Sidebar → Ponuda** (`/ponuda`) — samo `AGENCY` role.
 
-- Agent vidi listu projekata za koje ima pristup (dodeljuje investor)
-- Klik na projekat (`/ponuda/{id}`) → svi detalji + tabela jedinica (`/ponuda/{id}/jedinice`)
-- Samo **DOSTUPNE** jedinice su prikazane (rezervisane su skrivene)
-- Ako investor sakrije cene za tog agenta — vidi samo šifru + osnovne info
+- Gore: referral kartica po investitoru (kod, QR, **Kopiraj link**).
+  Link je `https://<host>/p/r/<kod>` — kupac vidi katalog, **ne**
+  prijavu. Vidi [`referral.md`](./referral.md).
+- Dole: projekti za koje agencija ima aktivan pristup.
+- Klik na projekat (`/ponuda/{id}`) → detalj + jedinice
+  (`/ponuda/{id}/jedinice`). Kod ili **Detalji** otvara stan
+  (`/ponuda/{id}/jedinice/{unitId}`) — karakteristike, lokacija,
+  javni opis, osnova i fotografije koje je investitor podelio.
+- Ako investor sakrije cene — agent vidi šifru + osnovne info.
 
-Iz ponude agent direktno može:
-- **"Rezerviši"** — kreira rezervaciju vezanu za tog agenta (agent → kupac → rezervacija; kupca možeš odabrati iz svojih ili kreirati novog)
-- **"Pošalji kupcu"** — generiše link koji kupac otvori (koristi se za email)
+Iz liste jedinica agent može **"Rezerviši"** za svog kupca (ako je
+investitor dozvolio rezervacije na tom projektu).
 
 ---
 
@@ -562,28 +567,23 @@ Iz ponude agent direktno može:
 
 ### 9.1. Zadaci
 
-**Sidebar → Zadaci** (`/zadaci`) — tabovi:
+**Sidebar → Zadaci** (`/zadaci`) — investitor i agencija. Tabovi:
 
-- **Danas** — sve što ističe danas
-- **Prekoračeni** — dospelo, nije završeno
-- **Nadolazeći** — sledećih 7 dana
-- **Završeni** — arhiva
+- **Moji zadaci** — otvoreni zadaci dodeljeni tebi
+- **Danas** — tvoj rok je danas
+- **Prekoračeni** — tvoj rok je prošao, nije završeno
+- **Nadolazeći** — tvoj rok u narednih 7 dana
+- **Završeni** — tvoji završeni zadaci
+- **Tim** — samo vlasnik i admin: svi otvoreni zadaci organizacije, ko je zadužen, šta kasni
 
-Svaki zadatak ima:
-- Naslov + opis
-- Vezan entitet (kupac / rezervacija / prodaja / jedinica)
-- Rok
-- Dodeljena osoba
-- Prioritet (`NIZAK`, `SREDNJI`, `VISOK`, `URGENTAN`)
+**Kako se zadatak dodaje (danas u kodu):**
 
-**Automatski kreirani zadaci:**
+1. `/zadaci` → **Novi zadatak** (naslov + rok obavezni; kupac opcion; vlasnik/admin bira kolegu)
+2. Kartica kupca (`/kupci/{id}` ili brze akcije) → **Zadatak** — uvek vezan za tog kupca, dodeljen tebi
 
-- Rezervacija ističe za 2 dana → "Kontaktiraj kupca"
-- Rata dospela → "Naplati ratu X"
-- Ugovor treba potpisati (7 dana od konverzije) → "Prati potpisivanje"
-- Depozit vraćen → nova akcija za finansije
+Kupac **nije** obavezan. Dodeljena osoba dobija in-app notifikaciju i email (osim ako dodeliš sebi).
 
-Sve ovo se generiše iz `/administracija/podesavanja/zadaci` (podesivi pravilnici).
+Svaki zadatak ima naslov, opcion opis, opcionog kupca, rok, prioritet i `assignedUser`. Veza na rezervaciju/prodaju i auto-generisanje iz cron-a **nisu** implementirani — ostaju u backlogu, ne u UI.
 
 ### 9.2. Notifikacije
 
@@ -750,6 +750,17 @@ omotača (`chart-card`, `status-donut`, `trend-line`, `funnel-bars`).
 
 **Sidebar → Podešavanja** (`/podesavanja`) — dostupno svim ulogama sa različitim prikazima.
 
+### 12.0. Moj nalog (`/podesavanja/profil`)
+
+Svaki ulogovani korisnik (uključujući agenta i super-admina bez aktivne org):
+
+- Ime
+- Email — potvrda stiže na **staru** adresu; nova važi posle klika
+- Lozinka — trenutna + nova (min. 10). Ostale sesije se odjavljuju
+- Jezik aplikacije
+
+Nije profil firme. Impersonacija blokira promenu emaila i lozinke.
+
 ### 12.1. Organizacija (`/podesavanja/organizacija`)
 
 - Naziv, PIB, adresa, kontakt (koristi se na fakturama)
@@ -775,6 +786,7 @@ omotača (`chart-card`, `status-donut`, `trend-line`, `funnel-bars`).
 
 ### 12.4. Fakture (`/podesavanja/fakture`)
 
+- Owner, admin i finansije. Ostali sa Pretplate ne idu na ovaj URL.
 - Sve tvoje fakture (za tvoj SaaS plan)
 - Klik za PDF download
 - Detalj (`/podesavanja/fakture/{id}`) — stavke + IPS QR + status uplate
@@ -1267,46 +1279,40 @@ sa listom dostupnih jedinica.
 4. Kontakt sekcija: naziv firme + email iz `OrganizationProfile`.
 5. Footer: pravni disclaimer-i (ZOO, GDPR).
 
-**Referral kod:** `?ref=A1B2C3D4` postavlja cookie `PD_REFERRAL`
-(90 dana). Kupac koji rezerviše preko forme automatski se atribuira
+**Referral kod:** `/p/r/<kod>` ili `?ref=` postavlja cookie `pd_ref`
+(30 dana). Kupac koji rezerviše preko forme automatski se atribuira
 agenciji.
 
 Detalji u [`microsite.md`](./microsite.md).
 
 ### 19.9 Referral kod za agencije
 
-**Ukratko:** svaka agencijska konekcija dobija svoj 8-znak kod;
-kupci koji dođu preko `?ref=<kod>` link-a se automatski atribuiraju
-agenciji u izveštajima.
+**Ukratko:** svaka agencijska konekcija dobija 8-znak kod. Agencija
+sa **Ponude** kopira `/p/r/<kod>`. Kupac otvara javni katalog, bez
+prijave. Rezervacija se atribuira agenciji u izveštajima.
 
-**Agencija (`/moji-investitori/{connectionId}` → *Referral kartica*):**
+**Agencija (`/ponuda` → kartica investitora):**
 
-- Prikaz koda + QR PNG + copy dugme.
-- Link forma (trenutno na `my.`; `demo.` je planiran host — vidi
-  [`environments.md`](./environments.md)):
-  `https://my.propertydesk.app/p/projekat/[slug]?ref=<kod>` ili
-  `https://my.propertydesk.app/p/[token]?ref=<kod>`.
-- **Rotiraj** dugme — generiše nov kod (invalidira stari).
-  Ograničeno na 6 rotacija / sat / konekcija.
+- Kod + QR PNG + **Kopiraj link** →
+  `https://demo.propertydesk.app/p/r/<kod>` (isti path na
+  `staging.` / `my.`).
+- **Generiši novi kod** invalidira stari. Max 6 rotacija / sat /
+  konekcija.
 
 **Investitor (`/izvestaji/agencije`):**
 
-- Nova kolona **Preko referral-a**: broj zahteva + broj konverzija u
-  ugovor + revenue.
-- Drawer detalja: revenue po kodu.
+- Kolona **Preko referral-a**: broj zahteva + konverzije + revenue.
 
 **Kako se atribuira:**
 
-1. Kupac klikne link sa `?ref=A1B2C3D4` → cookie `PD_REFERRAL` se
-   postavi na 90 dana.
-2. Kupac submit-uje reservation-request formu → server upisuje
-   `referralCode` na `ReservationRequest`.
-3. Investitor potvrdi → `Reservation.referralCode` je populated.
-4. Ugovor se generiše → `Sale` nasleđuje kod preko reservation FK.
+1. Kupac otvori `/p/r/<kod>` → cookie `pd_ref` 30 dana.
+2. Izabere projekat / jedinicu, pošalje rezervaciju →
+   `ReservationRequest.referralCode`.
+3. Investitor potvrdi → `Reservation.referralCode`.
+4. `Sale` nasleđuje kod preko reservation FK.
 
-**Sigurnost:** kod je unique globalno, ali server dodatno match-uje
-na `investorOrganizationId` — leak-ovan kod ne može biti atribuiran
-u pogrešnom tenant-u.
+**Sigurnost:** kod je unique globalno; server dodatno match-uje
+`investorOrganizationId`.
 
 Detalji u [`referral.md`](./referral.md).
 
