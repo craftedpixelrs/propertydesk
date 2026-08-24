@@ -2068,6 +2068,21 @@ async function main(): Promise<void> {
   };
   const orgIds: OrgIds = { investorId, agencyId, connectionId };
 
+  await prisma.organizationProfile.update({
+    where: { organizationId: investorId },
+    data: {
+      paymentAccountNumber: "265000000000123456",
+      paymentBankName: "Banca Intesa",
+    },
+  });
+  await prisma.organizationProfile.update({
+    where: { organizationId: agencyId },
+    data: {
+      paymentAccountNumber: "160000000000654321",
+      paymentBankName: "OTP banka",
+    },
+  });
+
   // Idempotency: skip if investor already has projects.
   const projectCount = await prisma.project.count({
     where: { organizationId: investorId },

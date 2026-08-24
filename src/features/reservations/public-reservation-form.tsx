@@ -41,6 +41,12 @@ export function PublicReservationForm(props: {
     ipsReference: string;
     ipsQrAvailable: boolean;
     expiresAt: string;
+    payment?: {
+      kind: "investor" | "agency";
+      recipientName: string;
+      accountNumber: string | null;
+      bankName: string | null;
+    };
   } | null>(null);
 
   async function submit(e: React.FormEvent) {
@@ -80,6 +86,12 @@ export function PublicReservationForm(props: {
           ipsReference: string;
           ipsQrAvailable: boolean;
           expiresAt: string;
+          payment?: {
+            kind: "investor" | "agency";
+            recipientName: string;
+            accountNumber: string | null;
+            bankName: string | null;
+          };
         };
         error?: { message?: string };
       };
@@ -107,6 +119,40 @@ export function PublicReservationForm(props: {
           </code>
           . {t("deals.public.submittedTail")}
         </p>
+        {result.payment ? (
+          <dl className="mt-3 space-y-1 rounded-md border border-[var(--color-brand-200)] bg-white p-3 text-sm text-[var(--color-brand-800)]">
+            <div>
+              <dt className="text-xs text-[var(--color-foreground-muted)]">
+                {t("deals.public.payee")}
+              </dt>
+              <dd>
+                {result.payment.recipientName}{" "}
+                ({result.payment.kind === "agency"
+                  ? t("deals.public.payeeAgency")
+                  : t("deals.public.payeeInvestor")}
+                )
+              </dd>
+            </div>
+            {result.payment.accountNumber ? (
+              <div>
+                <dt className="text-xs text-[var(--color-foreground-muted)]">
+                  {t("deals.public.account")}
+                </dt>
+                <dd className="font-mono">{result.payment.accountNumber}</dd>
+              </div>
+            ) : (
+              <p className="text-xs">{t("deals.public.noAccount")}</p>
+            )}
+            {result.payment.bankName ? (
+              <div>
+                <dt className="text-xs text-[var(--color-foreground-muted)]">
+                  {t("deals.public.bank")}
+                </dt>
+                <dd>{result.payment.bankName}</dd>
+              </div>
+            ) : null}
+          </dl>
+        ) : null}
         <p className="mt-1 text-xs text-[var(--color-brand-800)]">
           {t("deals.public.expiresAt", {
             date: new Date(result.expiresAt).toLocaleString(intlLocale(locale)),

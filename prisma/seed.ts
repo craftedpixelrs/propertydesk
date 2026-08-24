@@ -153,6 +153,8 @@ interface TenantSpec {
   city: string;
   type: "INVESTOR" | "AGENCY";
   planCode: string;
+  paymentAccountNumber?: string;
+  paymentBankName?: string;
   members: {
     email: string;
     name: string;
@@ -189,6 +191,8 @@ async function ensureTenant(spec: TenantSpec) {
         city: spec.city,
         country: "RS",
         status: orgStatus,
+        paymentAccountNumber: spec.paymentAccountNumber ?? null,
+        paymentBankName: spec.paymentBankName ?? null,
       },
     });
     await prisma.organizationSubscription.create({
@@ -202,7 +206,16 @@ async function ensureTenant(spec: TenantSpec) {
   } else {
     await prisma.organizationProfile.update({
       where: { organizationId: org.id },
-      data: { type: spec.type, ...(isAgency ? { status: "ACTIVE" } : {}) },
+      data: {
+        type: spec.type,
+        ...(isAgency ? { status: "ACTIVE" } : {}),
+        ...(spec.paymentAccountNumber
+          ? {
+              paymentAccountNumber: spec.paymentAccountNumber,
+              paymentBankName: spec.paymentBankName ?? null,
+            }
+          : {}),
+      },
     });
     await prisma.organizationSubscription.upsert({
       where: { organizationId: org.id },
@@ -418,6 +431,8 @@ async function main() {
     displayName: "Gradnja Plus",
     city: "Beograd",
     type: "INVESTOR",
+    paymentAccountNumber: "265000000000123456",
+    paymentBankName: "Banca Intesa",
     planCode: growth.code,
     members: [
       {
@@ -451,6 +466,8 @@ async function main() {
     displayName: "Top Nekretnine",
     city: "Novi Sad",
     type: "AGENCY",
+    paymentAccountNumber: "160000000000654321",
+    paymentBankName: "OTP banka",
     planCode: partner.code,
     members: [
       {

@@ -119,6 +119,9 @@ export function OrganizationProfileForm({
       phone: String(fd.get("phone") ?? "").trim() || null,
       email: String(fd.get("email") ?? "").trim() || null,
       website: normalizeWebsite(websiteRaw),
+      paymentAccountNumber:
+        String(fd.get("paymentAccountNumber") ?? "").trim() || null,
+      paymentBankName: String(fd.get("paymentBankName") ?? "").trim() || null,
     };
 
     try {
@@ -378,6 +381,43 @@ export function OrganizationProfileForm({
                 defaultValue={profile?.website ?? ""}
                 required={investorRequired}
                 placeholder="https://"
+              />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>{t("ops.org.paymentTitle")}</CardTitle>
+          </CardHeader>
+          <CardContent className="grid gap-4 sm:grid-cols-2">
+            <p className="text-sm text-[var(--color-foreground-muted)] sm:col-span-2">
+              {orgType === "AGENCY"
+                ? t("ops.org.paymentHintAgency")
+                : t("ops.org.paymentHintInvestor")}
+            </p>
+            <div>
+              <FieldLabel htmlFor="paymentAccountNumber">
+                {t("ops.org.paymentAccount")}
+              </FieldLabel>
+              <Input
+                id="paymentAccountNumber"
+                name="paymentAccountNumber"
+                defaultValue={profile?.paymentAccountNumber ?? ""}
+                inputMode="numeric"
+                autoComplete="off"
+                placeholder={t("ops.org.paymentAccountPlaceholder")}
+              />
+            </div>
+            <div>
+              <FieldLabel htmlFor="paymentBankName">
+                {t("ops.org.paymentBank")}
+              </FieldLabel>
+              <Input
+                id="paymentBankName"
+                name="paymentBankName"
+                defaultValue={profile?.paymentBankName ?? ""}
+                placeholder={t("ops.org.paymentBankPlaceholder")}
               />
             </div>
           </CardContent>

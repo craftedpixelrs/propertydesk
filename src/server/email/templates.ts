@@ -35,6 +35,60 @@ export function reservationRequestedEmail(params: {
   };
 }
 
+function formatWhen(value: Date): string {
+  return value.toLocaleString("sr-Latn-RS");
+}
+
+export function publicReservationRequestEmail(params: {
+  buyerName: string;
+  unitCode: string;
+  projectName: string;
+  expiresAt: Date;
+  paymentLines: string[];
+}): EmailMessage {
+  return {
+    to: "",
+    subject: `${APP_NAME}: Zahtev za rezervaciju — ${params.unitCode}`,
+    text: layout([
+      `Poštovani/a ${params.buyerName},`,
+      ``,
+      `Primili smo Vaš zahtev za rezervaciju.`,
+      ``,
+      `Jedinica: ${params.unitCode} (${params.projectName})`,
+      `Zahtev važi do: ${formatWhen(params.expiresAt)}`,
+      ``,
+      ...params.paymentLines,
+      ``,
+      `Kad uplata stigne, investitor potvrđuje rezervaciju na Vaše ime.`,
+    ]),
+  };
+}
+
+export function publicReservationConfirmedEmail(params: {
+  buyerName: string;
+  unitCode: string;
+  projectName: string;
+  expiresAt?: Date | null;
+  paymentLines: string[];
+}): EmailMessage {
+  return {
+    to: "",
+    subject: `${APP_NAME}: Rezervacija potvrđena — ${params.unitCode}`,
+    text: layout([
+      `Poštovani/a ${params.buyerName},`,
+      ``,
+      `Vaša rezervacija je potvrđena.`,
+      ``,
+      `Jedinica: ${params.unitCode} (${params.projectName})`,
+      ...(params.expiresAt
+        ? [`Rezervacija važi do: ${formatWhen(params.expiresAt)}`]
+        : []),
+      ``,
+      ...params.paymentLines,
+    ]),
+  };
+}
+
 export function reservationApprovedEmail(params: {
   unitCode: string;
   projectName: string;

@@ -306,6 +306,15 @@ export const opsSr = {
     logoMustBeImage: "Logo mora biti PNG, JPG, WebP ili SVG.",
     logoTooBig: "Logo je prevelik (maksimalno 2 MB).",
     logoUploadFailed: "Otpremanje logoa nije uspelo.",
+    paymentTitle: "Račun za kaparu",
+    paymentHintInvestor:
+      "Kupci sa javnog linka uplatuju kaparu na ovaj tekući račun. Unesite 18 cifara (sa ili bez crtica).",
+    paymentHintAgency:
+      "Kad kupac dođe preko vašeg referral linka, kapara ide na ovaj tekući račun agencije.",
+    paymentAccount: "Tekući račun",
+    paymentAccountPlaceholder: "265-0000000000123-45",
+    paymentBank: "Banka",
+    paymentBankPlaceholder: "npr. Banca Intesa",
   },
 
   members: {
@@ -742,6 +751,15 @@ export const opsEn: Leaves<typeof opsSr> = {
     logoMustBeImage: "Logo must be PNG, JPG, WebP, or SVG.",
     logoTooBig: "Logo is too large (2 MB maximum).",
     logoUploadFailed: "Could not upload the logo.",
+    paymentTitle: "Deposit account",
+    paymentHintInvestor:
+      "Buyers from a public link pay the deposit to this current account. Enter 18 digits (dashes optional).",
+    paymentHintAgency:
+      "When a buyer arrives via your referral link, the deposit goes to this agency account.",
+    paymentAccount: "Current account",
+    paymentAccountPlaceholder: "265-0000000000123-45",
+    paymentBank: "Bank",
+    paymentBankPlaceholder: "e.g. Banca Intesa",
   },
 
   members: {

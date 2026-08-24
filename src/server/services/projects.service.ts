@@ -54,27 +54,27 @@ export interface CreateProjectInput {
   code: string;
   name: string;
   slug?: string;
-  description?: string;
-  address?: string;
-  city?: string;
-  municipality?: string;
-  postalCode?: string;
+  description?: string | null;
+  address?: string | null;
+  city?: string | null;
+  municipality?: string | null;
+  postalCode?: string | null;
   /**
    * WGS84 decimal degrees, kept as `number` at the API edge and stored
    * as `Decimal(10,7)` (~1 cm precision). Both must be present or both
    * absent — enforced by the API zod schema, not the service.
    */
-  latitude?: number;
-  longitude?: number;
+  latitude?: number | null;
+  longitude?: number | null;
   /** Public cover image URL — used by the shareable offer page. */
-  coverImageUrl?: string;
+  coverImageUrl?: string | null;
   projectStatus?: ProjectStatus;
-  salesStartDate?: Date;
-  constructionStartDate?: Date;
-  expectedCompletionDate?: Date;
+  salesStartDate?: Date | null;
+  constructionStartDate?: Date | null;
+  expectedCompletionDate?: Date | null;
   defaultCurrency?: string;
-  defaultVatRate?: number;
-  internalNotes?: string;
+  defaultVatRate?: number | null;
+  internalNotes?: string | null;
   landCost?: number | null;
   constructionCost?: number | null;
   marketingCost?: number | null;
@@ -370,21 +370,39 @@ export async function updateProject(input: UpdateProjectInput) {
     data: {
       name: input.patch.name ?? undefined,
       slug: nextSlug ?? undefined,
-      description: input.patch.description ?? undefined,
-      address: input.patch.address ?? undefined,
-      city: input.patch.city ?? undefined,
-      municipality: input.patch.municipality ?? undefined,
-      postalCode: input.patch.postalCode ?? undefined,
-      latitude: input.patch.latitude ?? undefined,
-      longitude: input.patch.longitude ?? undefined,
-      coverImageUrl: input.patch.coverImageUrl ?? undefined,
+      description:
+        input.patch.description === undefined ? undefined : input.patch.description,
+      address: input.patch.address === undefined ? undefined : input.patch.address,
+      city: input.patch.city === undefined ? undefined : input.patch.city,
+      municipality:
+        input.patch.municipality === undefined ? undefined : input.patch.municipality,
+      postalCode:
+        input.patch.postalCode === undefined ? undefined : input.patch.postalCode,
+      latitude: input.patch.latitude === undefined ? undefined : input.patch.latitude,
+      longitude:
+        input.patch.longitude === undefined ? undefined : input.patch.longitude,
+      coverImageUrl:
+        input.patch.coverImageUrl === undefined ? undefined : input.patch.coverImageUrl,
       projectStatus: input.patch.projectStatus ?? undefined,
-      salesStartDate: input.patch.salesStartDate ?? undefined,
-      constructionStartDate: input.patch.constructionStartDate ?? undefined,
-      expectedCompletionDate: input.patch.expectedCompletionDate ?? undefined,
+      salesStartDate:
+        input.patch.salesStartDate === undefined
+          ? undefined
+          : input.patch.salesStartDate,
+      constructionStartDate:
+        input.patch.constructionStartDate === undefined
+          ? undefined
+          : input.patch.constructionStartDate,
+      expectedCompletionDate:
+        input.patch.expectedCompletionDate === undefined
+          ? undefined
+          : input.patch.expectedCompletionDate,
       defaultCurrency: input.patch.defaultCurrency ?? undefined,
-      defaultVatRate: input.patch.defaultVatRate ?? undefined,
-      internalNotes: input.patch.internalNotes ?? undefined,
+      defaultVatRate:
+        input.patch.defaultVatRate === undefined
+          ? undefined
+          : input.patch.defaultVatRate,
+      internalNotes:
+        input.patch.internalNotes === undefined ? undefined : input.patch.internalNotes,
       landCost:
         input.patch.landCost === undefined ? undefined : input.patch.landCost,
       constructionCost:

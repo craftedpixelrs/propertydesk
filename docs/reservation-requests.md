@@ -92,19 +92,28 @@ via the shared `sensitiveActionLimiter`. Because the visitor is not
 authenticated, this is the only defence against bulk submissions —
 please leave it in place.
 
+## Who receives the deposit
+
+`OrganizationProfile.paymentAccountNumber` (and optional
+`paymentBankName`) is the current account for kapara / avans.
+
+- Direct investor share link → investor account.
+- Agency referral (`?ref=`, `/p/r/<code>`, `pd_ref`) → agency account
+  when the agency has filled theirs; otherwise the investor account.
+
+Both investor and agency edit the account on **Podešavanja → Profil
+organizacije**.
+
 ## Emails
 
-Two templates fire on `POST /public/share/:token/reserve`:
+Buyer mail goes through `sendEmail` (see [`docs/email.md`](./email.md)):
 
-1. **Investor notification** — subject "Novi zahtev za rezervaciju",
-   body includes buyer contact + deposit amount + link to
-   `/rezervacije/zahtevi/[id]`.
-2. **Buyer confirmation** — subject "Rezervacija primljena", body
-   contains a deep link back to the share page + inline IPS QR image
-   (`cid:` attachment referencing the stored PNG).
-
-Both are queued through `sendEmail` (see
-[`docs/email.md`](./email.md)).
+1. **Zahtev poslat** — after `POST /public/share/:token/reserve`.
+   Includes hold expiry, payee, current account, amount, and
+   *poziv na broj*.
+2. **Rezervacija potvrđena** — after the investor confirms the
+   request. Includes reservation validity and the same payment
+   instructions.
 
 ## IPS QR generation
 

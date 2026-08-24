@@ -265,9 +265,6 @@ function OfferView({
         ) : null}
       </div>
 
-      <footer className="border-t border-[var(--color-border)] bg-[var(--color-surface)] py-4 text-center text-xs text-[var(--color-foreground-muted)]">
-        {t("marketing.public.footerPrivate")}
-      </footer>
     </main>
   );
 }

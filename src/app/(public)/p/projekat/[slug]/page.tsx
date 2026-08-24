@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { cookies, headers } from "next/headers";
 import { notFound } from "next/navigation";
 
@@ -7,9 +6,8 @@ import { absoluteCoverImageUrl } from "@/lib/geo/cover-image";
 import { REFERRAL_COOKIE, sanitizeReferralCode } from "@/lib/referral";
 import { hostFromHeaders } from "@/lib/seo/hosts";
 
-import { formatMoney } from "@/lib/formatters/money";
-import type { SupportedCurrency } from "@/lib/constants/app";
-import { createT, unitStatusLabel, unitTypeLabel } from "@/lib/i18n";
+import { createT } from "@/lib/i18n";
+import { PublicProjectUnitsCatalog } from "@/features/public/public-project-units";
 import { resolveRequestLocale } from "@/lib/i18n/resolve-locale";
 import {
   ensureUnitShareLinkForMicrosite,
@@ -209,101 +207,12 @@ export default async function PublicProjectMicrosite({ params, searchParams }: P
         </div>
       </div>
 
-      <div className="mx-auto max-w-6xl px-6">
-        <div className="mb-4 flex items-baseline justify-between">
-          <h2 className="text-2xl font-bold">
-            {t("marketing.public.availableUnits")}
-            <span className="ml-2 text-base font-normal text-neutral-500">
-              ({unitsWithTokens.length})
-            </span>
-          </h2>
-        </div>
-
-        {unitsWithTokens.length === 0 ? (
-          <div className="rounded-lg border border-neutral-200 bg-white p-10 text-center text-neutral-500">
-            {t("marketing.public.noUnits")}
-          </div>
-        ) : (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {unitsWithTokens.map((u) => (
-              <Link
-                key={u.id}
-                href={
-                  referralCode
-                    ? `/p/${u.shareToken}?ref=${encodeURIComponent(referralCode)}`
-                    : `/p/${u.shareToken}`
-                }
-                className="group overflow-hidden rounded-lg border border-neutral-200 bg-white transition hover:border-[var(--color-brand-500)] hover:shadow-md"
-              >
-                <div className="relative h-40 w-full bg-neutral-100">
-                  {u.coverDocumentId ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={`/api/public/share/${u.shareToken}/image/${u.coverDocumentId}`}
-                      alt={u.code}
-                      className="h-full w-full object-cover transition group-hover:scale-105"
-                    />
-                  ) : (
-                    <div className="flex h-full w-full items-center justify-center text-neutral-400">
-                      {t("marketing.public.noImage")}
-                    </div>
-                  )}
-                  <span className="absolute right-2 top-2 rounded-full bg-white/90 px-2 py-0.5 text-xs font-medium text-neutral-700 backdrop-blur">
-                    {unitStatusLabel(u.status, locale)}
-                  </span>
-                </div>
-                <div className="space-y-2 p-4">
-                  <div className="flex items-baseline justify-between">
-                    <h3 className="text-lg font-semibold">
-                      {unitTypeLabel(u.type, locale)} {u.code}
-                    </h3>
-                    {u.structure ? (
-                      <span className="text-sm text-neutral-500">{u.structure}</span>
-                    ) : null}
-                  </div>
-                  <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-neutral-600">
-                    <span>
-                      {t("marketing.public.areaM2", {
-                        value: Number(u.totalArea).toFixed(2),
-                      })}
-                    </span>
-                    {u.bedrooms != null ? (
-                      <span>{t("marketing.public.rooms", { count: u.bedrooms })}</span>
-                    ) : null}
-                    {u.bathrooms != null ? (
-                      <span>{t("marketing.public.bathrooms", { count: u.bathrooms })}</span>
-                    ) : null}
-                    {u.orientation ? <span>{u.orientation}</span> : null}
-                  </div>
-                  <div className="pt-2 text-lg font-semibold text-[var(--color-brand-700)]">
-                    {formatMoney(u.price ?? "0", u.currency as SupportedCurrency)}
-                  </div>
-                </div>
-              </Link>
-            ))}
-          </div>
-        )}
+      <div className="mx-auto max-w-6xl px-6 pb-10">
+        <PublicProjectUnitsCatalog
+          units={unitsWithTokens}
+          referralCode={referralCode}
+        />
       </div>
-
-      <footer className="mt-16 border-t border-neutral-200 bg-white">
-        <div className="mx-auto max-w-6xl px-6 py-6 text-sm text-neutral-500">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div>
-              © {new Date().getFullYear()} {site.organization.name}
-            </div>
-            {site.organization.website ? (
-              <a
-                href={site.organization.website}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hover:underline"
-              >
-                {site.organization.website}
-              </a>
-            ) : null}
-          </div>
-        </div>
-      </footer>
     </main>
   );
 }

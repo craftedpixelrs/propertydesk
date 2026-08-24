@@ -62,6 +62,7 @@ export const POST = apiHandler(
         ipsReference: result.ipsReference,
         ipsQrAvailable: result.ipsQrAvailable,
         expiresAt: result.expiresAt.toISOString(),
+        payment: result.payment,
       },
       status: 201,
     };

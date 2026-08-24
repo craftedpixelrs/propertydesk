@@ -6,10 +6,23 @@ import { prisma } from "@/server/db/prisma";
 import { DomainErrors } from "@/lib/errors";
 import { recordAudit } from "@/server/audit/audit";
 import { toDecimal } from "@/lib/formatters/money";
+import { paymentInstructionLines } from "@/lib/reservations/deposit-payee";
 import { serbianIpsQrProvider } from "@/server/services/billing/ips-qr";
 import { storage } from "@/server/storage";
 import { createReservation } from "@/server/services/reservations.service";
 import { normalizeEmail as libNormalizeEmail, normalizePhone as libNormalizePhone } from "@/lib/normalize";
+import { sendEmail } from "@/server/auth/email";
+import {
+  publicReservationConfirmedEmail,
+  publicReservationRequestEmail,
+} from "@/server/email/templates";
+import { logger } from "@/server/logger";
+import {
+  resolveDepositPayee,
+  toPaymentInstructions,
+  type DepositPayeeProfile,
+} from "@/server/services/reservations/deposit-payee";
+import type { DepositPaymentInstructions } from "@/lib/reservations/deposit-payee";
 
 /**
  * ReservationRequestsService — Faza 8.1 (A2).
@@ -19,8 +32,8 @@ import { normalizeEmail as libNormalizeEmail, normalizePhone as libNormalizePhon
  * The flow is:
  *
  *   1. Buyer submits the form. We generate a `poziv-na-broj` reference
- *      and, when the currency is RSD and the investor has an IPS-ready
- *      bank account on file, a pre-rendered IPS QR PNG.
+ *      and, when the currency is RSD and the payee (agency on referral,
+ *      otherwise investor) has an IPS-ready account, a pre-rendered QR.
  *   2. Unit is soft-held (`ON_HOLD`) for `expiresAt` (default 48h).
  *   3. Investor sees the request in `/rezervacije/zahtevi` and either
  *      confirms (deposit received) — which materialises a real
@@ -56,6 +69,7 @@ export interface CreateReservationRequestResult {
   ipsReference: string;
   ipsQrAvailable: boolean;
   expiresAt: Date;
+  payment: DepositPaymentInstructions;
 }
 
 // ---------------------------------------------------------------------------
@@ -94,8 +108,17 @@ function generateIpsReference(): { compact: string; model97: string } {
   const checkStr = check.toString().padStart(2, "0");
   return {
     compact: twelve,
-    model97: `97 ${checkStr}-${twelve}`,
+    model97: formatIpsReference(twelve),
   };
+}
+
+function formatIpsReference(compact: string): string {
+  if (!/^\d{12}$/.test(compact)) return compact;
+  const remainder = BigInt(compact) % 97n;
+  const check = Number(98n - remainder)
+    .toString()
+    .padStart(2, "0");
+  return `97 ${check}-${compact}`;
 }
 
 async function resolveOfferedUnit(token: string) {
@@ -149,6 +172,7 @@ async function resolveAgencyFromReferral(input: {
 
 async function tryGenerateIpsQr(input: {
   organizationId: string;
+  payee: DepositPayeeProfile;
   amount: string | number;
   currency: string;
   reference: string;
@@ -156,20 +180,12 @@ async function tryGenerateIpsQr(input: {
   description: string;
 }): Promise<{ storageKey: string } | null> {
   if (input.currency !== "RSD") return null;
-  const profile = await prisma.organizationProfile.findUnique({
-    where: { organizationId: input.organizationId },
-    select: {
-      legalName: true,
-      displayName: true,
-      paymentAccountNumber: true,
-    },
-  });
-  const account = profile?.paymentAccountNumber?.replace(/\s/g, "");
+  const account = input.payee.paymentAccountNumber?.replace(/\s/g, "");
   if (!account) return null;
 
   try {
     const result = await serbianIpsQrProvider.generate({
-      receiverName: profile?.legalName ?? profile?.displayName ?? "",
+      receiverName: input.payee.legalName ?? input.payee.displayName ?? "",
       receiverAccount: account,
       amount: input.amount,
       payerName: input.payerName,
@@ -242,9 +258,19 @@ export async function createReservationRequest(
   const expiresAt = new Date(
     Date.now() + (input.expirationHours ?? DEFAULT_EXPIRATION_HOURS) * 3_600_000,
   );
+  const payee = await resolveDepositPayee({
+    investorOrganizationId: unit.organizationId,
+    referralCode,
+  });
+  const payment = toPaymentInstructions(payee, {
+    reference: ref.model97,
+    amount: depositAmount.toFixed(2),
+    currency: unit.currency,
+  });
 
   const qr = await tryGenerateIpsQr({
     organizationId: unit.organizationId,
+    payee,
     amount: depositAmount.toString(),
     currency: unit.currency,
     reference: ref.model97,
@@ -304,11 +330,29 @@ export async function createReservationRequest(
     },
   });
 
+  const buyerName = `${firstName} ${lastName}`;
+  try {
+    const msg = publicReservationRequestEmail({
+      buyerName,
+      unitCode: unit.code,
+      projectName: unit.project.name,
+      expiresAt,
+      paymentLines: paymentInstructionLines(payment),
+    });
+    await sendEmail({ ...msg, to: email });
+  } catch (err) {
+    logger.error("reservation_request.buyer_email_failed", {
+      requestId: created.id,
+      error: (err as Error)?.message,
+    });
+  }
+
   return {
     id: created.id,
     ipsReference: ref.model97,
     ipsQrAvailable: qr != null,
     expiresAt,
+    payment,
   };
 }
 
@@ -457,6 +501,42 @@ export async function confirmReservationRequest(input: {
     agencyOrganizationId: agency?.agencyOrganizationId ?? null,
     referralCode: req.referralCode ?? null,
   });
+
+  const holdUntil =
+    reservation.expiresAt ??
+    new Date(Date.now() + 14 * 24 * 60 * 60 * 1000);
+  if (!reservation.expiresAt) {
+    await prisma.reservation.update({
+      where: { id: reservation.id },
+      data: { expiresAt: holdUntil },
+    });
+  }
+
+  const payee = await resolveDepositPayee({
+    investorOrganizationId: input.organizationId,
+    referralCode: req.referralCode,
+  });
+  const payment = toPaymentInstructions(payee, {
+    reference: formatIpsReference(req.ipsReference),
+    amount: req.depositAmount.toFixed(2),
+    currency: req.currency,
+  });
+
+  try {
+    const msg = publicReservationConfirmedEmail({
+      buyerName: `${req.firstName} ${req.lastName}`,
+      unitCode: req.unit.code,
+      projectName: req.unit.project.name,
+      expiresAt: holdUntil,
+      paymentLines: paymentInstructionLines(payment),
+    });
+    await sendEmail({ ...msg, to: req.email });
+  } catch (err) {
+    logger.error("reservation_request.confirm_email_failed", {
+      requestId: req.id,
+      error: (err as Error)?.message,
+    });
+  }
 
   await recordAudit({
     action: "reservation_request.confirmed",
