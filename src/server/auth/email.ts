@@ -234,3 +234,48 @@ export function agencyConnectionInvitationEmail(
     ].join("\n"),
   };
 }
+
+export function agencyConnectionRequestReceivedEmail(
+  agencyName: string,
+  url: string,
+): EmailMessage {
+  return {
+    to: "",
+    subject: `${APP_NAME}: ${agencyName} traži saradnju`,
+    text: [
+      `Agencija "${agencyName}" je poslala zahtev za saradnju preko mreže na platformi ${APP_NAME}.`,
+      ``,
+      `Pregledajte zahtev i prihvatite ili odbijte:`,
+      ``,
+      url,
+    ].join("\n"),
+  };
+}
+
+export function agencyConnectionRequestReviewedEmail(
+  investorName: string,
+  accepted: boolean,
+  url: string,
+): EmailMessage {
+  return {
+    to: "",
+    subject: accepted
+      ? `${APP_NAME}: ${investorName} je prihvatio saradnju`
+      : `${APP_NAME}: ${investorName} je odbio zahtev za saradnju`,
+    text: accepted
+      ? [
+          `${investorName} je prihvatio zahtev Vaše agencije na platformi ${APP_NAME}.`,
+          ``,
+          `Otvorite konekcije da vidite dodeljene projekte:`,
+          ``,
+          url,
+        ].join("\n")
+      : [
+          `${investorName} je odbio zahtev Vaše agencije na platformi ${APP_NAME}.`,
+          ``,
+          `Druge projekte u mreži i dalje možete videti u katalogu:`,
+          ``,
+          url,
+        ].join("\n"),
+  };
+}

@@ -131,6 +131,12 @@ function buildFields(t: TranslateFn): Field[] {
       hint: t("inventory.form.micrositeHint"),
     },
     {
+      name: "networkCatalogEnabled",
+      label: t("inventory.form.networkCatalog"),
+      type: "checkbox",
+      hint: t("inventory.form.networkCatalogHint"),
+    },
+    {
       name: "publicMicrositeSlug",
       label: t("inventory.form.micrositeSlug"),
       hint: t("inventory.form.micrositeSlugHint"),

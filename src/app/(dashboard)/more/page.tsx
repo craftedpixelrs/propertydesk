@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { LanguageSwitcher } from "@/components/app/language-switcher";
+import { ThemeSwitcher } from "@/components/app/theme-switcher";
 import { PageHeader } from "@/components/app/page-header";
 import { MoreGrid } from "@/features/navigation/more-grid";
 import { loadUserContext } from "@/server/auth/context";
@@ -24,6 +25,7 @@ export default async function MorePage() {
       />
       <div className="space-y-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-4">
         <LanguageSwitcher />
+        <ThemeSwitcher />
         <Link
           href="/podesavanja/profil"
           className="inline-flex text-sm text-[var(--color-brand-700)] hover:underline"

@@ -83,6 +83,8 @@ export interface CreateProjectInput {
   /** C1 — Public project microsite toggle & slug (defaults to project.slug). */
   publicMicrositeEnabled?: boolean;
   publicMicrositeSlug?: string | null;
+  /** Network catalog teaser for verified agencies. */
+  networkCatalogEnabled?: boolean;
 }
 
 export interface UpdateProjectInput {
@@ -301,6 +303,8 @@ export async function createProject(input: CreateProjectInput) {
         defaultCurrency: input.defaultCurrency ?? "EUR",
         defaultVatRate: input.defaultVatRate ?? null,
         internalNotes: input.internalNotes ?? null,
+        publicMicrositeEnabled: input.publicMicrositeEnabled ?? false,
+        networkCatalogEnabled: input.networkCatalogEnabled ?? false,
         createdByUserId: input.actorUserId,
       },
     });
@@ -423,6 +427,10 @@ export async function updateProject(input: UpdateProjectInput) {
           : input.patch.publicMicrositeEnabled,
       publicMicrositeSlug:
         nextMicrositeSlug === undefined ? undefined : nextMicrositeSlug,
+      networkCatalogEnabled:
+        input.patch.networkCatalogEnabled === undefined
+          ? undefined
+          : input.patch.networkCatalogEnabled,
     },
   });
 

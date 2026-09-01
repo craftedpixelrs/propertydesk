@@ -10,6 +10,12 @@ import {
   LOCALE_COOKIE_MAX_AGE,
   parseLocale,
 } from "@/lib/i18n";
+import {
+  DEFAULT_THEME,
+  THEME_COOKIE,
+  THEME_COOKIE_MAX_AGE,
+  parseTheme,
+} from "@/lib/theme";
 
 /**
  * Returns the current session's user, active organization context, and
@@ -21,11 +27,18 @@ import {
 const patchBodySchema = z
   .object({
     locale: z.enum(["sr-Latn", "en"]).optional(),
+    theme: z.enum(["light", "dark"]).optional(),
     name: z.string().min(2).max(80).optional(),
   })
-  .refine((body) => body.locale !== undefined || body.name !== undefined, {
-    message: "Potrebno je bar jedno polje.",
-  });
+  .refine(
+    (body) =>
+      body.locale !== undefined ||
+      body.theme !== undefined ||
+      body.name !== undefined,
+    {
+      message: "Potrebno je bar jedno polje.",
+    },
+  );
 
 export const GET = apiHandler({}, async () => {
   const session = await requireSession();
@@ -33,7 +46,7 @@ export const GET = apiHandler({}, async () => {
     getActiveOrganization(session),
     prisma.user.findUnique({
       where: { id: session.user.id },
-      select: { locale: true },
+      select: { locale: true, theme: true },
     }),
   ]);
 
@@ -46,6 +59,7 @@ export const GET = apiHandler({}, async () => {
         emailVerified: session.user.emailVerified,
         image: session.user.image ?? null,
         locale: parseLocale(userRow?.locale) ?? DEFAULT_LOCALE,
+        theme: parseTheme(userRow?.theme) ?? DEFAULT_THEME,
       },
       session: {
         expiresAt: session.session.expiresAt,
@@ -62,7 +76,7 @@ export const GET = apiHandler({}, async () => {
 
 export const PATCH = apiHandler({ bodySchema: patchBodySchema }, async ({ body }) => {
   const session = await requireSession();
-  const data: { locale?: string; name?: string } = {};
+  const data: { locale?: string; theme?: string; name?: string } = {};
   if (body.locale) {
     await prisma.user.update({
       where: { id: session.user.id },
@@ -75,6 +89,19 @@ export const PATCH = apiHandler({ bodySchema: patchBodySchema }, async ({ body }
       sameSite: "lax",
     });
     data.locale = body.locale;
+  }
+  if (body.theme) {
+    await prisma.user.update({
+      where: { id: session.user.id },
+      data: { theme: body.theme },
+    });
+    const jar = await cookies();
+    jar.set(THEME_COOKIE, body.theme, {
+      path: "/",
+      maxAge: THEME_COOKIE_MAX_AGE,
+      sameSite: "lax",
+    });
+    data.theme = body.theme;
   }
   if (body.name !== undefined) {
     const { updateOwnName } = await import("@/server/services/account.service");
@@ -92,7 +119,7 @@ export const PATCH = apiHandler({ bodySchema: patchBodySchema }, async ({ body }
  *       - me
  *     summary: Update current user preferences
  *     description: |
- *       **Auth:** sesija. `locale` i/ili `name`.
+ *       **Auth:** sesija. `locale`, `theme` i/ili `name`.
  *     responses:
  *       "200":
  *         description: OK

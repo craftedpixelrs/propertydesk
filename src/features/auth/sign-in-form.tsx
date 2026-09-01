@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { FormActions } from "@/components/forms/form-actions";
 import { useI18n } from "@/components/app/i18n-provider";
+import { useTheme } from "@/components/app/theme-provider";
 import { apiClient } from "@/lib/api-client";
 import { DemoLoginAccountsTable } from "@/features/auth/demo-login-accounts-table";
 import {
@@ -24,6 +25,7 @@ export function SignInForm({
   afterForm?: ReactNode;
 }) {
   const { t, locale } = useI18n();
+  const { theme } = useTheme();
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -47,7 +49,7 @@ export function SignInForm({
         return;
       }
       try {
-        await apiClient.patch("/me", { locale });
+        await apiClient.patch("/me", { locale, theme });
       } catch {
         // Cookie already holds the guest choice.
       }

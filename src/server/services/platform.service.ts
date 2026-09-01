@@ -457,6 +457,13 @@ export async function createOrganizationByPlatformAdmin(
         email: input.email ?? null,
         website: input.website ?? null,
         status: initialStatus,
+        ...(billing.type === "AGENCY"
+          ? {
+              verificationStatus: "VERIFIED" as const,
+              verifiedAt: now,
+              verifiedByUserId: actorUserId,
+            }
+          : {}),
       },
     });
 
@@ -497,6 +504,36 @@ export type UpdateOrganizationInput = Omit<
   CreateOrganizationInput,
   "ownerEmail" | "ownerName" | "ownerRole"
 >;
+
+export async function setAgencyVerification(input: {
+  organizationId: string;
+  actorUserId: string;
+  status: "VERIFIED" | "REJECTED" | "PENDING";
+  note?: string | null;
+}) {
+  const org = await getOrganizationForPlatformAdmin(input.organizationId);
+  if (org.profile?.type !== "AGENCY") {
+    throw DomainErrors.badRequest("Verifikacija važi samo za agencije.");
+  }
+  const updated = await prisma.organizationProfile.update({
+    where: { organizationId: input.organizationId },
+    data: {
+      verificationStatus: input.status,
+      verifiedAt: input.status === "VERIFIED" ? new Date() : null,
+      verifiedByUserId: input.status === "PENDING" ? null : input.actorUserId,
+      verificationNote: input.note?.trim() || null,
+    },
+  });
+  await recordAudit({
+    action: "agency.verification_set",
+    entityType: "OrganizationProfile",
+    entityId: updated.id,
+    organizationId: input.organizationId,
+    actorUserId: input.actorUserId,
+    newValues: { status: input.status, note: input.note },
+  });
+  return updated;
+}
 
 export async function getOrganizationForPlatformAdmin(organizationId: string) {
   const org = await prisma.organization.findUnique({

@@ -179,8 +179,13 @@ export const guidesSr = {
     ["Poziv", "Email + uloga (agent ili pregled). Isti tok kao pozivnica člana."],
     ["Prava", "Agent vidi svoje kupce i ponudu; ne briše nalog agencije."],
   ]),
+  catalog: page("Katalog mreže", [
+    ["Čemu služi", "Teaser novogradnji koje je investitor otvorio mreži. Nije puna lista stanova."],
+    ["Zahtev", "Pošaljite zahtev za saradnju. Investitor prihvata ili odbija. Tek posle prihvata vidite Ponudu."],
+    ["Verifikacija", "Zahtev šaljete tek kad je agencija verifikovana. Do tada katalog možete pregledati."],
+  ]),
   connections: page("Konekcije", [
-    ["Čemu služi", "Pozivi investitora da radite na njihovim projektima."],
+    ["Čemu služi", "Pozivi investitora i zahtevi koje ste poslali iz kataloga."],
     ["Prihvati", "Novi poziv stoji kao INVITED. Kliknite Prihvati — tek tada vidite Ponudu."],
     ["Prvi nalog", "Dok ne popunite profil agencije (sve sem sajta), portal je zaključan."],
     ["Referral", "Na konekciji je 8-znak kod + QR. Rotacija gasi stare linkove."],
@@ -353,8 +358,13 @@ export const guidesEn: Leaves<typeof guidesSr> = {
     ["Invite", "Email + role (agent or viewer). Same flow as a member invite."],
     ["Rights", "An agent sees their buyers and the offer; they cannot delete the agency account."],
   ]),
+  catalog: page("Network catalogue", [
+    ["What it is", "A teaser of new-builds the investor opened to the network. Not a full unit list."],
+    ["Request", "Send a partnership request. The investor accepts or declines. Offer unlocks only after accept."],
+    ["Verification", "You can send requests only after the agency is verified. Until then you can browse."],
+  ]),
   connections: page("Connections", [
-    ["What it is", "Investor invites to work on their projects."],
+    ["What it is", "Investor invites and requests you sent from the catalogue."],
     ["Accept", "A new invite stays INVITED. Click Accept — only then does Offer fill."],
     ["First account", "Until the agency profile is complete (everything except website), the portal stays locked."],
     ["Referral", "Each connection has an 8-character code + QR. Rotating it kills old links."],

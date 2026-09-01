@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { LanguageSwitcher } from "@/components/app/language-switcher";
+import { ThemeSwitcher } from "@/components/app/theme-switcher";
 import { apiClient, ApiClientError } from "@/lib/api-client";
 import { toast } from "sonner";
 import { useT } from "@/components/app/i18n-provider";
@@ -243,6 +244,15 @@ export function AccountProfileForm({
         </CardHeader>
         <CardContent>
           <LanguageSwitcher />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">{t("ops.account.themeTitle")}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ThemeSwitcher />
         </CardContent>
       </Card>
     </div>

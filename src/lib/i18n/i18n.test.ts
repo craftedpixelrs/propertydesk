@@ -16,6 +16,9 @@ describe("t()", () => {
     expect(t("nav.projects", undefined, "en")).toBe("Projects");
     expect(t("common.save", undefined, "en")).toBe("Save");
     expect(t("language.label", undefined, "en")).toBe("Language");
+    expect(t("theme.label", undefined, "en")).toBe("Theme");
+    expect(t("theme.dark")).toBe("Tamna");
+    expect(t("ops.account.themeTitle")).toBe("Tema aplikacije");
     expect(t("guides.chrome.open", undefined, "en")).toBe("How this page works");
     expect(t("auth.loginSuspended", undefined, "en")).toContain("suspended");
   });
@@ -34,6 +37,9 @@ describe("t()", () => {
     expect(t("auth.invitationAgencyFields")).toBe(
       "Podaci agencije (sva polja sem sajta)",
     );
+    expect(t("nav.catalog")).toBe("Katalog mreže");
+    expect(t("partners.catalog.title")).toBe("Katalog mreže");
+    expect(t("nav.catalog", undefined, "en")).toBe("Network catalog");
     expect(t("admin.orgBilling.issueInvoice", undefined, "en")).toBe("Issue invoice now");
   });
 

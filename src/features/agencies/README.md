@@ -4,9 +4,16 @@ Partner agency management on the investor side, plus the agency portal.
 
 Agencies are **free partner accounts** (`saas_plan.code = partner`).
 They are not sold Starter / Growth / Scale. There is no trial, no SaaS
-invoice, and no expiry lock. Access to inventory comes from an
-**investor invite**. The investor plan still limits
-`maxAgencyConnections`. There is no public self-registration.
+invoice, and no expiry lock. Full inventory access comes from an
+**investor invite or an accepted network request**. The investor plan
+still limits `maxAgencyConnections`.
+
+Public self-registration lives at `/registracija/agencija`
+(`POST /api/v1/public/agencies/register`). New agencies start
+`verificationStatus=PENDING`: they can browse `/katalog` but cannot
+send a connection request until a super-admin verifies them (or an
+investor later accepts a request, which also verifies). Investor
+invite and platform-admin create still mark the agency `VERIFIED`.
 
 ## Investor: invite by email
 
@@ -42,7 +49,9 @@ Partner plan defaults:
 After accept + (first-time) profile: `/ponuda`, `/moji-kupci`,
 `/moje-rezervacije`, `/moje-provizije`, `/agencija/konekcije`.
 
-The agency sees only projects granted via `AgencyProjectAccess`.
+`/katalog` shows teasers for `networkCatalogEnabled` projects.
+The agency sees full inventory only for projects granted via
+`AgencyProjectAccess`.
 Settings → Pretplata / Fakture are hidden. Platform Naplata shows a
 partner note only.
 

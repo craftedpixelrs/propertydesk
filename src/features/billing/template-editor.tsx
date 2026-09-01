@@ -342,7 +342,7 @@ export function TemplateEditor(props: Props) {
                 className={
                   "px-3 py-1 " +
                   (viewport === "desktop"
-                    ? "bg-[var(--color-brand-700)] text-white"
+                    ? "bg-[var(--color-brand-600)] text-white"
                     : "bg-[var(--color-surface)] text-[var(--color-foreground-muted)] hover:bg-[var(--color-surface-muted)]")
                 }
               >
@@ -354,7 +354,7 @@ export function TemplateEditor(props: Props) {
                 className={
                   "border-l border-[var(--color-border)] px-3 py-1 " +
                   (viewport === "mobile"
-                    ? "bg-[var(--color-brand-700)] text-white"
+                    ? "bg-[var(--color-brand-600)] text-white"
                     : "bg-[var(--color-surface)] text-[var(--color-foreground-muted)] hover:bg-[var(--color-surface-muted)]")
                 }
               >

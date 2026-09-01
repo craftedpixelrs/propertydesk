@@ -214,6 +214,20 @@ export const adminSr = {
     billing: "Naplata",
   },
 
+  verification: {
+    title: "Verifikacija agencije",
+    status: "Status",
+    verify: "Verifikuj",
+    reject: "Odbij",
+    reset: "Vrati na čekanje",
+    statusValue: {
+      UNVERIFIED: "Nije pokrenuta",
+      PENDING: "Na čekanju",
+      VERIFIED: "Verifikovana",
+      REJECTED: "Odbijena",
+    },
+  },
+
   plansPage: {
     title: "Planovi ({{count}})",
     subtitle:
@@ -1624,6 +1638,20 @@ export const adminEn: Leaves<typeof adminSr> = {
     edit: "Edit",
     editTitle: "Edit organization: {{name}}",
     billing: "Billing",
+  },
+
+  verification: {
+    title: "Agency verification",
+    status: "Status",
+    verify: "Verify",
+    reject: "Reject",
+    reset: "Back to pending",
+    statusValue: {
+      UNVERIFIED: "Not started",
+      PENDING: "Pending",
+      VERIFIED: "Verified",
+      REJECTED: "Rejected",
+    },
   },
 
   plansPage: {

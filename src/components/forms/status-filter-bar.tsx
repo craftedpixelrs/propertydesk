@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { useT } from "@/components/app/i18n-provider";
 
 const fieldClass =
-  "h-10 rounded-md border border-[var(--color-border)] bg-white px-3 text-sm";
+  "h-10 rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] px-3 text-sm text-[var(--color-foreground)]";
 
 /**
  * Live status filter: changing the select updates the URL immediately.

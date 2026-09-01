@@ -244,7 +244,7 @@ export const opsSr = {
   },
 
   account: {
-    subtitle: "Ime, email, lozinka i jezik — važi za Vas, ne za firmu.",
+    subtitle: "Ime, email, lozinka, jezik i tema — važi za Vas, ne za firmu.",
     nameTitle: "Ime i prezime",
     nameSaved: "Ime je sačuvano.",
     emailTitle: "Email",
@@ -261,6 +261,7 @@ export const opsSr = {
     passwordSaved: "Lozinka je promenjena. Ostale sesije su odjavljene.",
     wrongPassword: "Trenutna lozinka nije tačna.",
     languageTitle: "Jezik aplikacije",
+    themeTitle: "Tema aplikacije",
     impersonationBlocked: "Ne možete menjati nalog dok ste u impersonaciji.",
     emailChanged: "Email adresa je ažurirana.",
   },
@@ -689,7 +690,7 @@ export const opsEn: Leaves<typeof opsSr> = {
   },
 
   account: {
-    subtitle: "Name, email, password, and language — yours, not the company’s.",
+    subtitle: "Name, email, password, language, and theme — yours, not the company’s.",
     nameTitle: "Full name",
     nameSaved: "Name saved.",
     emailTitle: "Email",
@@ -706,6 +707,7 @@ export const opsEn: Leaves<typeof opsSr> = {
     passwordSaved: "Password changed. Other sessions were signed out.",
     wrongPassword: "The current password is incorrect.",
     languageTitle: "App language",
+    themeTitle: "App theme",
     impersonationBlocked: "You cannot change the account while impersonating.",
     emailChanged: "Email address updated.",
   },

@@ -710,6 +710,7 @@ async function seedProjectsAndUnits(
         isActive: true,
         publicMicrositeEnabled: spec.visibleToAgencies,
         publicMicrositeSlug: spec.visibleToAgencies ? spec.slug : null,
+        networkCatalogEnabled: spec.visibleToAgencies,
         createdByUserId: users.owner,
       },
     });

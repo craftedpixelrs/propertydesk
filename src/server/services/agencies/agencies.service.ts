@@ -38,7 +38,7 @@ function generateReferralCode(): string {
   return out;
 }
 
-async function ensureUniqueReferralCode(): Promise<string> {
+export async function ensureUniqueReferralCode(): Promise<string> {
   for (let attempt = 0; attempt < 5; attempt += 1) {
     const code = generateReferralCode();
     const clash = await prisma.agencyConnection.findFirst({
@@ -281,6 +281,21 @@ export async function inviteAgency(input: InviteAgencyInput) {
       notes: input.notes ?? null,
       // Preserve existing referral code across re-invites so previously
       // shared marketing links keep working.
+    },
+  });
+
+  await prisma.agencyConnectionRequest.updateMany({
+    where: {
+      agencyOrganizationId,
+      investorOrganizationId: input.investorOrganizationId,
+      status: "PENDING",
+    },
+    data: {
+      status: "CANCELED",
+      reviewedAt: new Date(),
+      reviewedByUserId: input.actorUserId,
+      rejectionReason: "Investitor je poslao poziv.",
+      resultingConnectionId: created.id,
     },
   });
 

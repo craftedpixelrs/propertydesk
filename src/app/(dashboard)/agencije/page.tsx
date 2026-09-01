@@ -8,6 +8,8 @@ import { loadUserContext } from "@/server/auth/context";
 import { listConnections } from "@/server/services/agencies/agencies.service";
 import { formatDate } from "@/lib/formatters";
 import { InviteAgencyForm } from "@/features/agencies/invite-agency-form";
+import { ConnectionRequestReview } from "@/features/agencies/connection-request-review";
+import { listConnectionRequests } from "@/server/services/agencies/connection-request.service";
 import { createT, type TranslationKey } from "@/lib/i18n";
 import type { AgencyConnectionStatus } from "@prisma/client";
 
@@ -39,12 +41,19 @@ export default async function AgencijePage() {
 
   const t = createT(ctx.user.locale);
 
-  const { items, total } = await listConnections({
-    organizationId: ctx.activeOrganization.id,
-    role: "INVESTOR",
-    page: 1,
-    pageSize: 50,
-  });
+  const [{ items, total }, incoming] = await Promise.all([
+    listConnections({
+      organizationId: ctx.activeOrganization.id,
+      role: "INVESTOR",
+      page: 1,
+      pageSize: 50,
+    }),
+    listConnectionRequests({
+      organizationId: ctx.activeOrganization.id,
+      role: "INVESTOR",
+      status: ["PENDING"],
+    }),
+  ]);
 
   return (
     <div className="space-y-6">
@@ -59,6 +68,56 @@ export default async function AgencijePage() {
           <InviteAgencyForm />
         </PermissionGuard>
       </div>
+
+      {incoming.length > 0 ? (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm">
+              {t("partners.requests.incomingTitle", { count: incoming.length })}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-0">
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-[var(--color-border)] text-sm">
+                <thead className="bg-[var(--color-surface-inset)] text-left text-xs uppercase tracking-wide text-[var(--color-foreground-muted)]">
+                  <tr>
+                    <th className="px-4 py-3">{t("organization.types.agency")}</th>
+                    <th className="px-4 py-3">{t("nav.projects")}</th>
+                    <th className="px-4 py-3">{t("partners.note")}</th>
+                    <th className="px-4 py-3 text-right">{t("common.actions")}</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[var(--color-border)]">
+                  {incoming.map((req) => (
+                    <tr key={req.id}>
+                      <td className="px-4 py-3">
+                        <div className="font-medium">
+                          {req.agency.profile?.displayName ?? req.agency.name}
+                        </div>
+                        <div className="text-xs text-[var(--color-foreground-muted)]">
+                          {req.agency.profile?.city}
+                          {req.agency.profile?.taxNumber
+                            ? ` · PIB ${req.agency.profile.taxNumber}`
+                            : ""}
+                        </div>
+                      </td>
+                      <td className="px-4 py-3">{req.project?.name ?? "—"}</td>
+                      <td className="px-4 py-3 text-[var(--color-foreground-muted)]">
+                        {req.message ?? "—"}
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        <PermissionGuard permission="agency.manage">
+                          <ConnectionRequestReview requestId={req.id} />
+                        </PermissionGuard>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
+      ) : null}
 
       <Card>
         <CardHeader>

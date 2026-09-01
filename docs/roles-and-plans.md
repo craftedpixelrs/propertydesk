@@ -561,6 +561,7 @@ partner`:
 - cena 0 €, `publiclyAvailable=false`, `audience=agency`
 - nije na javnoj cenovnoj stranici; ne dodeljujte ga investitoru
 - svaka nova `AGENCY` org dobija ovaj plan, status `ACTIVE`, bez trial-a
+  (self-reg, invite ili admin)
 - `expire-subscriptions`, izdavanje SaaS faktura i overdue job
   **preskaču** `AGENCY`; leftover trial/RESTRICTED se healu-je u
   ACTIVE + partner (osim `SUSPENDED` / `CLOSED`)
@@ -586,8 +587,8 @@ Direktan URL ide na `/dashboard`.
 | SALES_AGENT | bez Prijava i Izveštaja | Org, Pretplata |
 | FINANCE | bez Kupaca, Zadataka, Agencija | Org, Pretplata, Fakture, Planovi |
 | INVESTOR_VIEWER | čitanje, bez Prijava | Org, Pretplata |
-| AGENCY_OWNER / ADMIN | Ponuda, Moji kupci, Zadaci (Tim), rezervacije, provizije, Agenti, Konekcije, Dokumenti, Izveštaji | Org, Korisnici |
-| AGENCY_AGENT | isto bez Agenata, Izveštaja i taba Tim | Org |
+| AGENCY_OWNER / ADMIN | Ponuda, Katalog mreže, Moji kupci, Zadaci (Tim), rezervacije, provizije, Agenti, Konekcije, Dokumenti, Izveštaji | Org, Korisnici |
+| AGENCY_AGENT | isto bez Agenata, Izveštaja i taba Tim (katalog može da pregleda) | Org |
 | AGENCY_VIEWER | bez Mojih kupaca; Zadaci samo čitanje | Org |
 
 ---

@@ -94,6 +94,8 @@ active organization. The dominant endpoints:
 - `POST /agencies/connections/:id/{invite,revoke}`
 - `POST /agencies/connections/:id/project-access`
 - `POST /agencies/connections/:id/protection-days`
+- `GET /agencies/connection-requests` — incoming network requests.
+- `POST /agencies/connection-requests/:id/respond` — `{ action: ACCEPT|REJECT }`.
 
 ### Geo (project form)
 
@@ -110,8 +112,16 @@ active organization. The dominant endpoints:
 
 - `POST /projects/cover` — upload cover image to S3.
 
+### Public agency signup
+
+- `POST /public/agencies/register` — rate-limited (5/hour/email).
+  Creates a free `partner` agency (`verificationStatus=PENDING`).
+
 ### Agency portal
 
+- `GET /agency/network-catalog` — teaser catalogue (`networkCatalogEnabled`).
+- `GET/POST /agency/connection-requests` — list / send partnership requests (verified agencies).
+- `POST /agency/connection-requests/:id/cancel`
 - `GET /agency/offer/projects` — agency-safe project list.
 - `POST /agency/registrations` — buyer registration + protection.
 - `POST /agency/reservations` — via shared `ReservationService`.

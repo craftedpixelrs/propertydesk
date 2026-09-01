@@ -486,7 +486,7 @@ export const marketingSr = {
       "Predugovori i ugovori online, sa vremenskim žigom i pravnom snagom u Srbiji.",
     marketTitle: "Marketplace investitor - agencija",
     marketBody:
-      "Otvoreni katalog projekata dostupan verifikovanoj mreži partnerskih agencija.",
+      "Prvi sloj je u proizvodu: besplatna registracija agencije, opt-in teaser katalog i zahtev za saradnju. Pun inventar i dalje ide samo posle konekcije.",
   },
 
   faq: {
@@ -1309,7 +1309,7 @@ export const marketingEn: Leaves<typeof marketingSr> = {
       "Pre-contracts and contracts online, with a timestamp and legal force in Serbia.",
     marketTitle: "Investor–agency marketplace",
     marketBody:
-      "An open project catalogue available to a verified network of partner agencies.",
+      "The first slice is live: free agency signup, an opt-in teaser catalogue, and a connection request. Full inventory still opens only after a connection.",
   },
 
   faq: {

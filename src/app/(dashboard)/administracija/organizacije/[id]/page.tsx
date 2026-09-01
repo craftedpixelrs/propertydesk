@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { NewOrganizationForm } from "@/features/platform-admin/new-organization-form";
+import { AgencyVerificationActions } from "@/features/platform-admin/agency-verification-actions";
 import { requireSuperAdmin } from "@/server/permissions/require";
 import {
   getOrganizationForPlatformAdmin,
@@ -9,7 +10,7 @@ import {
 } from "@/server/services/platform.service";
 import { DomainError } from "@/lib/errors";
 import { Button } from "@/components/ui/button";
-import { createT } from "@/lib/i18n";
+import { createT, type TranslationKey } from "@/lib/i18n";
 import { resolveRequestLocale } from "@/lib/i18n/resolve-locale";
 import {
   originalTrialDays,
@@ -41,6 +42,13 @@ export default async function EditOrganizationPage({
     .filter((p) => p.active || p.code === currentPlanCode)
     .map((p) => ({ code: p.code, name: p.name }));
 
+  const VERIFICATION_KEYS: Record<string, TranslationKey> = {
+    UNVERIFIED: "admin.verification.statusValue.UNVERIFIED",
+    PENDING: "admin.verification.statusValue.PENDING",
+    VERIFIED: "admin.verification.statusValue.VERIFIED",
+    REJECTED: "admin.verification.statusValue.REJECTED",
+  };
+
   const trialEndsAt = org.subscription?.trialEndsAt ?? null;
   const trialStartsAt = org.subscription?.trialStartsAt ?? null;
 
@@ -56,6 +64,22 @@ export default async function EditOrganizationPage({
           </Link>
         </Button>
       </div>
+      {org.profile?.type === "AGENCY" ? (
+        <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-4 space-y-2">
+          <p className="text-sm font-medium">{t("admin.verification.title")}</p>
+          <p className="text-sm text-[var(--color-foreground-muted)]">
+            {t("admin.verification.status")}:{" "}
+            {t(
+              VERIFICATION_KEYS[org.profile.verificationStatus] ??
+                "admin.verification.statusValue.UNVERIFIED",
+            )}
+          </p>
+          <AgencyVerificationActions
+            organizationId={org.id}
+            status={org.profile.verificationStatus}
+          />
+        </div>
+      ) : null}
       <NewOrganizationForm
         mode="edit"
         organizationId={org.id}

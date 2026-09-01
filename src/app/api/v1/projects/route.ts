@@ -42,6 +42,8 @@ const createSchema = z
     defaultCurrency: z.string().length(3).optional(),
     defaultVatRate: z.number().min(0).max(100).optional(),
     internalNotes: z.string().max(2000).optional(),
+    publicMicrositeEnabled: z.boolean().optional(),
+    networkCatalogEnabled: z.boolean().optional(),
   })
   .refine(
     (v) => (v.latitude == null) === (v.longitude == null),

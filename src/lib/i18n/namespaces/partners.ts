@@ -100,9 +100,35 @@ export const partnersSr = {
 
   connectionsPage: {
     title: "Konekcije sa investitorima",
-    subtitle: "Investitori koji su Vas pozvali na saradnju.",
+    subtitle:
+      "Investitori koji su Vas pozvali, plus zahtevi koje ste poslali iz kataloga mreže.",
     empty: "Nemate uspostavljenih konekcija sa investitorima.",
     invitePending: "Poziv čeka",
+  },
+
+  catalog: {
+    title: "Katalog mreže",
+    subtitle:
+      "Novogradnje koje su investitori otvorili verifikovanim agencijama. Cene su raspon, ne lista stanova. Pun pristup ide tek posle prihvata zahteva.",
+    empty: "Još nema projekata u mreži.",
+    available: "Slobodnih jedinica",
+    priceRange: "Raspon cena",
+    completion: "Planirani završetak",
+    request: "Pošalji zahtev",
+    send: "Pošalji",
+    messagePlaceholder: "Kratka poruka investitoru (opciono)",
+    connected: "Već ste povezani sa ovim investitorom.",
+    pending: "Zahtev čeka odgovor investitora.",
+    needVerification: "Zahtev možete slati kada platforma verifikuje agenciju.",
+    pendingBanner:
+      "Nalog čeka verifikaciju. Katalog možete pregledati, a zahtev za saradnju šaljete tek posle potvrde.",
+    rejectedBanner:
+      "Verifikacija je odbijena. Kontaktirajte podršku ako mislite da je to greška.",
+  },
+
+  requests: {
+    incomingTitle: "Zahtevi iz mreže ({{count}})",
+    outgoingTitle: "Poslati zahtevi ({{count}})",
   },
 
   settings: {
@@ -305,9 +331,35 @@ export const partnersEn: Leaves<typeof partnersSr> = {
 
   connectionsPage: {
     title: "Connections with investors",
-    subtitle: "Investors who invited you to collaborate.",
+    subtitle:
+      "Investors who invited you, plus requests you sent from the network catalogue.",
     empty: "You have no connections with investors.",
     invitePending: "Invite pending",
+  },
+
+  catalog: {
+    title: "Network catalogue",
+    subtitle:
+      "New-build projects investors opened to verified agencies. Prices are a range, not a unit list. Full access starts only after they accept your request.",
+    empty: "No projects in the network yet.",
+    available: "Available units",
+    priceRange: "Price range",
+    completion: "Expected completion",
+    request: "Send request",
+    send: "Send",
+    messagePlaceholder: "Short note to the investor (optional)",
+    connected: "You are already connected to this investor.",
+    pending: "Your request is waiting for the investor.",
+    needVerification: "You can send requests after the platform verifies the agency.",
+    pendingBanner:
+      "Your account is awaiting verification. You can browse the catalogue; connection requests unlock after approval.",
+    rejectedBanner:
+      "Verification was rejected. Contact support if you think this is a mistake.",
+  },
+
+  requests: {
+    incomingTitle: "Network requests ({{count}})",
+    outgoingTitle: "Sent requests ({{count}})",
   },
 
   settings: {

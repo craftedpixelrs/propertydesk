@@ -8,6 +8,7 @@ import { Menu, X } from "lucide-react";
 import { APP_NAME, LANDING_IMAGES } from "@/lib/constants/app";
 import { Button } from "@/components/ui/button";
 import { LanguageSwitcher } from "@/components/app/language-switcher";
+import { ThemeSwitcher } from "@/components/app/theme-switcher";
 import { useT } from "@/components/app/i18n-provider";
 import { cn } from "@/lib/utils";
 
@@ -83,6 +84,7 @@ export function MarketingHeader() {
 
         <div className="hidden items-center gap-2 md:flex">
           <LanguageSwitcher compact />
+          <ThemeSwitcher compact />
           {/* Sign-in is intentionally disabled until the public launch
            * on 01.09.2026 - we surface a coming-soon affordance instead of
            * silently linking to a route that would just show a login
@@ -162,6 +164,7 @@ export function MarketingHeader() {
               ))}
               <div className="mt-2 px-1">
                 <LanguageSwitcher compact />
+                <ThemeSwitcher compact />
               </div>
               <div className="mt-2 grid grid-cols-2 gap-2">
                 <Button

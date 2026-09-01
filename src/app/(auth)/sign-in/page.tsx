@@ -37,9 +37,12 @@ export default async function SignInPage() {
             >
               {t("auth.forgotPassword", undefined, locale)}
             </Link>
-            <span className="text-xs text-[var(--color-foreground-subtle)]">
-              {t("auth.inviteOnly", undefined, locale)}
-            </span>
+            <Link
+              href="/registracija/agencija"
+              className="font-medium text-[var(--color-brand-700)] hover:text-[var(--color-brand-800)] hover:underline"
+            >
+              {t("auth.agencyRegisterLink", undefined, locale)}
+            </Link>
           </div>
         }
       />

@@ -5,6 +5,7 @@ import { Providers } from "@/components/app/providers";
 import { APP_LOCALE, APP_NAME, MARKETING_URL } from "@/lib/constants/app";
 import { htmlLang, t, type Locale } from "@/lib/i18n";
 import { resolveRequestLocale } from "@/lib/i18n/resolve-locale";
+import { resolveRequestTheme } from "@/lib/theme/resolve-theme";
 import { NOINDEX_ROBOTS } from "@/lib/seo/policy";
 import "./globals.css";
 
@@ -69,22 +70,30 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-export const viewport: Viewport = {
-  themeColor: "#ffffff",
-  width: "device-width",
-  initialScale: 1,
-  viewportFit: "cover",
-};
+export async function generateViewport(): Promise<Viewport> {
+  const theme = await resolveRequestTheme();
+  return {
+    themeColor: theme === "dark" ? "#0d1117" : "#ffffff",
+    width: "device-width",
+    initialScale: 1,
+    viewportFit: "cover",
+  };
+}
 
 export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const locale = await resolveRequestLocale();
+  const [locale, theme] = await Promise.all([
+    resolveRequestLocale(),
+    resolveRequestTheme(),
+  ]);
   return (
     <html
       lang={htmlLang(locale)}
+      data-theme={theme}
+      style={{ colorScheme: theme }}
       suppressHydrationWarning
       className={inter.variable}
     >
@@ -92,7 +101,9 @@ export default async function RootLayout({
         <a href="#main-content" className="skip-link">
             {t("common.skipToContent", undefined, locale)}
         </a>
-        <Providers locale={locale}>{children}</Providers>
+        <Providers locale={locale} theme={theme}>
+          {children}
+        </Providers>
       </body>
     </html>
   );

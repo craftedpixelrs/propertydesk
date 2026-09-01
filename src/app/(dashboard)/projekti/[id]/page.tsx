@@ -147,6 +147,16 @@ export default async function ProjectDetail({ params }: Props) {
               </div>
             </div>
           ) : null}
+          {project.networkCatalogEnabled ? (
+            <div className="rounded-md border border-sky-200 bg-sky-50 p-3 text-sm sm:col-span-2">
+              <div className="font-medium text-sky-900">
+                {t("inventory.projects.networkCatalogActive")}
+              </div>
+              <div className="mt-1 text-sky-800">
+                {t("inventory.projects.networkCatalogActiveHint")}
+              </div>
+            </div>
+          ) : null}
         </CardContent>
       </Card>
 

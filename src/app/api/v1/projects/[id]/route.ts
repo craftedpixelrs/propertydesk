@@ -51,6 +51,7 @@ const patchSchema = z
     otherCost: z.number().min(0).max(1e12).nullable().optional(),
     budgetNote: z.string().max(2000).nullable().optional(),
     publicMicrositeEnabled: z.boolean().optional(),
+    networkCatalogEnabled: z.boolean().optional(),
     publicMicrositeSlug: z
       .string()
       .max(80)

@@ -149,12 +149,14 @@ prirodno padaju u dva glavna tabora + sekundarne/buduće grupe.
   upravlja garancijama, reklamacijama, opštinskim taksama. Nije u v1 obimu,
   ali je logičan "upsell" modul kasnije (veći LTV po klijentu).
 
-### C3. Marketplace mreža verifikovanih agencija (već u roadmap-u, Q3 2027)
+### C3. Marketplace mreža verifikovanih agencija (prvi sloj u proizvodu)
 
-- Investitori koji nemaju sopstvenu mrežu agencija otvaraju ponudu javnom
-  katalogu verifikovanih agencija. Ovo pretvara PropertyDesk iz "alata" u
-  "mrežu/marketplace" — najveći strateški potencijal, ali zahteva kritičnu
-  masu korisnika na obe strane pre lansiranja.
+- **Sada:** besplatna self-registracija, verifikacija, opt-in teaser
+  katalog (`networkCatalogEnabled`) i `AgencyConnectionRequest`.
+  Pun inventar i rezervacije i dalje samo posle konekcije.
+- **Kasnije (kritična masa):** širi matching, javniji katalog,
+  provizijski defaulti za mrežu. Q3 2027 ostaje cilj za pun
+  marketplace, ne za ovaj prvi sloj.
 
 ### C4. Banke / finansijske institucije (posmatrač, ne primarni korisnik)
 

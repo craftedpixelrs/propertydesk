@@ -32,7 +32,7 @@ export async function CtaPanel({
   return (
     <section
       aria-labelledby="cta-panel-title"
-      className="relative overflow-hidden border-t border-[var(--color-border)] bg-[var(--color-brand-700)] text-white"
+      className="relative overflow-hidden border-t border-[var(--color-border)] bg-[var(--color-brand-600)] text-white"
     >
       <div
         aria-hidden

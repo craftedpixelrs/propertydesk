@@ -91,6 +91,13 @@ export const srLatn = {
     saved: "Jezik je sačuvan.",
   },
 
+  theme: {
+    label: "Tema",
+    light: "Svetla",
+    dark: "Tamna",
+    saved: "Tema je sačuvana.",
+  },
+
   nav: {
     dashboard: "Kontrolna tabla",
     projects: "Projekti",
@@ -112,6 +119,7 @@ export const srLatn = {
     myReservations: "Moje rezervacije",
     myCommissions: "Moje provizije",
     connections: "Konekcije",
+    catalog: "Katalog mreže",
     commissions: "Provizije",
     documents: "Dokumenti",
     reports: "Izveštaji",
@@ -174,6 +182,13 @@ export const srLatn = {
     brandingFeature2: "Sigurna razmena dokumenata sa kupcima i agencijama",
     brandingFeature3: "Automatski izveštaji za investitore i rukovodstvo",
     inviteOnly: "Pristup po pozivu",
+    agencyRegisterLink: "Registracija za agencije",
+    agencyRegisterTitle: "Registracija agencije",
+    agencyRegisterSubtitle:
+      "Besplatan partner nalog. Posle prijave vidite katalog novogradnji koje su investitori otvorili mreži. Pun pristup i rezervacije idu tek kad investitor prihvati zahtev.",
+    agencyRegisterFields: "Podaci agencije (sva polja sem sajta)",
+    agencyRegisterSubmit: "Napravi nalog",
+    agencyRegisterHaveAccount: "Već imate nalog?",
     demoAccountsTitle: "Probni nalozi",
     demoAccountsHint:
       "Izaberite nalog da popunite prijavu. Ista lozinka za sve: {{password}}",

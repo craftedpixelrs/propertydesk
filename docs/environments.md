@@ -63,7 +63,7 @@ prod project):
 - `DIRECT_URL` — pooler **5432** (session), same user
 - Append `?sslmode=require&uselibpqcompat=true`
 
-Bootstrapped with `prisma migrate deploy` (22 migrations) and
+Bootstrapped with `prisma migrate deploy` (25 migrations) and
 `pnpm db:seed:platform`: paid investor plans + hidden `partner` plan
 + one `SUPER_ADMIN` (`marko.banovic@craftedpixel.rs`). No demo tenants.
 

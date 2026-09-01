@@ -21,7 +21,7 @@ Migrations live under `prisma/migrations/`. Domain models:
 | **Inventory** | `Project`, `Building`, `Entrance`, `Floor`, `Unit`, `UnitPriceHistory`, `UnitStatusHistory` |
 | **CRM** | `Buyer`, `BuyerKycChecklist`, `BuyerInterest`, `Activity`, `Task`, `LeadSource` |
 | **Reservations** | `Reservation`, `ReservationStatusHistory`, `ReservationRequest` |
-| **Agencies** | `AgencyConnection` (+ `referralCode`), `AgencyProjectAccess`, `AgencyUnitAccessOverride`, `AgencyBuyerRegistration`, `AgencyCommissionRule` |
+| **Agencies** | `AgencyConnection` (+ `referralCode`), `AgencyProjectAccess`, `AgencyUnitAccessOverride`, `AgencyBuyerRegistration`, `AgencyCommissionRule`, `AgencyConnectionRequest` |
 | **Sales** | `Sale` (+ `contractStatus`, `vatMode`, `taxAmount`, `taxPayer`), `SaleStatusHistory`, `SaleContractTemplate` |
 | **Payments** | `PaymentPlan`, `PaymentInstallment`, `Payment`, `PaymentPlanTemplate`, `PaymentPlanTemplateItem` |
 | **Documents** | `Document` (categories now include `KYC`) |
@@ -123,6 +123,20 @@ The 2026-08 visual/sales layer expansion added:
 - `project.publicMicrositeEnabled`, `project.publicMicrositeSlug`
   (unique) — opt-in public project sites at `/p/projekat/[slug]`. Slug
   falls back to the internal project `slug` when null.
+
+## Agency network catalog (2026-08-30)
+
+- `organization_profile.verificationStatus`
+  (`UNVERIFIED` / `PENDING` / `VERIFIED` / `REJECTED`) plus
+  `verifiedAt`, `verifiedByUserId`, `verificationNote`. Existing
+  `AGENCY` rows were backfilled to `VERIFIED` (they only existed via
+  invite or admin).
+- `project.networkCatalogEnabled` — opt-in teaser listing for the
+  verified agency network. Independent of the public microsite.
+- `agency_connection_request` — agency-initiated partnership request.
+  Partial unique index on `(agencyOrganizationId, investorOrganizationId)`
+  where `status = PENDING`. Accept creates/reactivates
+  `agency_connection`; it does not replace the investor invite flow.
 - `system_health_check` table — result rows from the weekly backup
   verifier and future automated checks. Enum `SystemHealthCheckKind`:
   `BACKUP_VERIFY` / `DB_MIGRATE_STATUS`. Enum

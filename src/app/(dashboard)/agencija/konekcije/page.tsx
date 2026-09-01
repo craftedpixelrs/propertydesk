@@ -6,6 +6,8 @@ import { loadUserContext } from "@/server/auth/context";
 import { listMyConnections } from "@/server/services/agencies/connection.service";
 import { formatDate } from "@/lib/formatters";
 import { ConnectionInvitationActions } from "@/features/agency-portal/connection-invitation-actions";
+import { CancelConnectionRequest } from "@/features/agency-portal/cancel-connection-request";
+import { listConnectionRequests } from "@/server/services/agencies/connection-request.service";
 import { createT, type TranslationKey } from "@/lib/i18n";
 
 export const dynamic = "force-dynamic";
@@ -34,11 +36,18 @@ export default async function KonekcijePage() {
 
   const t = createT(ctx.user.locale);
 
-  const { items } = await listMyConnections({
-    agencyOrganizationId: ctx.activeOrganization.id,
-    page: 1,
-    pageSize: 100,
-  });
+  const [{ items }, outgoing] = await Promise.all([
+    listMyConnections({
+      agencyOrganizationId: ctx.activeOrganization.id,
+      page: 1,
+      pageSize: 100,
+    }),
+    listConnectionRequests({
+      organizationId: ctx.activeOrganization.id,
+      role: "AGENCY",
+      status: ["PENDING"],
+    }),
+  ]);
 
   return (
     <div className="space-y-6">
@@ -48,6 +57,42 @@ export default async function KonekcijePage() {
           {t("partners.connectionsPage.subtitle")}
         </p>
       </div>
+
+      {outgoing.length > 0 ? (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm">
+              {t("partners.requests.outgoingTitle", { count: outgoing.length })}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-0">
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-[var(--color-border)] text-sm">
+                <thead className="bg-[var(--color-surface-inset)] text-left text-xs uppercase tracking-wide text-[var(--color-foreground-muted)]">
+                  <tr>
+                    <th className="px-4 py-3">{t("organization.types.investor")}</th>
+                    <th className="px-4 py-3">{t("nav.projects")}</th>
+                    <th className="px-4 py-3 text-right">{t("common.actions")}</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[var(--color-border)]">
+                  {outgoing.map((req) => (
+                    <tr key={req.id}>
+                      <td className="px-4 py-3">
+                        {req.investor.profile?.displayName ?? req.investor.name}
+                      </td>
+                      <td className="px-4 py-3">{req.project?.name ?? "—"}</td>
+                      <td className="px-4 py-3 text-right">
+                        <CancelConnectionRequest requestId={req.id} />
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
+      ) : null}
 
       <Card>
         <CardHeader>

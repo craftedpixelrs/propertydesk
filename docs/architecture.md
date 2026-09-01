@@ -4,8 +4,11 @@
 
 PropertyDesk is a multi-tenant SaaS platform for real-estate investors and
 their partner agencies. Investors pay for a plan. Agencies are **free
-partner accounts** (`saas_plan.code = partner`) — access comes from an
-investor email invite, not a subscription. The application is a single Next.js 16 (App Router)
+partner accounts** (`saas_plan.code = partner`). They can self-register
+or join via an investor email invite. Full inventory access still
+comes from an `AgencyConnection` + `AgencyProjectAccess`, not from
+signup. The network catalog is a teaser opt-in
+(`networkCatalogEnabled`). The application is a single Next.js 16 (App Router)
 codebase serving both the browser UI and the versioned REST API at
 `/api/v1`. Postgres (Supabase on the current VPS; local via
 `DATABASE_URL`) is the single source of truth. Hosts and the planned
@@ -43,7 +46,7 @@ flowchart LR
 | **REST controllers** | Zod validation, error envelope, permissions, rate limiting. | `src/app/api/v1/**/route.ts`, `src/lib/api/handler.ts` |
 | **Domain services** | Transactional business rules; the only writers to Prisma. | `src/server/services/*` |
 | **Repositories & Prisma** | Tenant-scoped helpers on top of `@prisma/client`. | `src/server/db/*`, `prisma/schema.prisma` |
-| **Cross-cutting** | Audit, notifications, email, storage, jobs, monitoring, i18n. | `src/server/audit`, `src/server/email`, `src/server/storage`, `src/server/jobs`, `src/server/monitoring`, `src/lib/i18n` |
+| **Cross-cutting** | Audit, notifications, email, storage, jobs, monitoring, i18n, theme. | `src/server/audit`, `src/server/email`, `src/server/storage`, `src/server/jobs`, `src/server/monitoring`, `src/lib/i18n`, `src/lib/theme` |
 
 ## 3. Multi-tenancy
 

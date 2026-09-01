@@ -86,6 +86,13 @@ export const en: Dictionary = {
     saved: "Language saved.",
   },
 
+  theme: {
+    label: "Theme",
+    light: "Light",
+    dark: "Dark",
+    saved: "Theme saved.",
+  },
+
   nav: {
     dashboard: "Dashboard",
     projects: "Projects",
@@ -107,6 +114,7 @@ export const en: Dictionary = {
     myReservations: "My reservations",
     myCommissions: "My commissions",
     connections: "Connections",
+    catalog: "Network catalog",
     commissions: "Commissions",
     documents: "Documents",
     reports: "Reports",
@@ -169,6 +177,13 @@ export const en: Dictionary = {
     brandingFeature2: "Secure document sharing with buyers and agencies",
     brandingFeature3: "Automatic reports for developers and leadership",
     inviteOnly: "Invite-only access",
+    agencyRegisterLink: "Agency registration",
+    agencyRegisterTitle: "Register your agency",
+    agencyRegisterSubtitle:
+      "A free partner account. After sign-in you see the new-build catalogue investors opened to the network. Full access and reservations start only after the investor accepts your request.",
+    agencyRegisterFields: "Agency details (all fields except website)",
+    agencyRegisterSubmit: "Create account",
+    agencyRegisterHaveAccount: "Already have an account?",
     demoAccountsTitle: "Try-the-app accounts",
     demoAccountsHint:
       "Pick an account to fill the form. Shared password for all: {{password}}",

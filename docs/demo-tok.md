@@ -75,7 +75,7 @@ Nakon prijave si na **Kontrolnoj tabli** (`/dashboard`). Levi sidebar sadrži sv
 
 - **Zvono** — nepročitane notifikacije
 - **Prekidač organizacije** — ako imaš pristup u više tenant-a (super-admin ili invited user)
-- **Moj nalog** (dno sidebar-a ili `/podesavanja/profil`) — ime, email, lozinka, jezik
+- **Moj nalog** (dno sidebar-a ili `/podesavanja/profil`) — ime, email, lozinka, jezik, tema
 - **Odjava**
 
 ---
@@ -471,9 +471,10 @@ Detalj uplate → **"Storniraj"**:
 ### 8.1. Poziv agencije (od strane investora)
 
 **`/agencije`** — investitor šalje poziv **emailom** (naziv opciono).
-Ne mora da zna da li agencija već ima nalog. Nema javne
-self-registracije. Agencija je besplatan partner nalog (`partner`),
-bez pretplate i bez isteka paketa.
+Ne mora da zna da li agencija već ima nalog. Agencija takođe može
+sama da se registruje na `/registracija/agencija` (besplatan
+`partner` nalog); katalog mreže vidi odmah, a zahtev za saradnju
+tek posle verifikacije. Pun inventar i dalje ide preko konekcije.
 
 - **Novi email:** sistem pravi partner org i šalje link za
   registraciju. Vlasnik unosi ime + lozinku **i** profil agencije

@@ -28,6 +28,9 @@ export const inventorySr = {
     vatRate: "PDV stopa",
     expectedCompletion: "Očekivani završetak",
     micrositeActive: "Javna stranica aktivna",
+    networkCatalogActive: "Vidljivo mreži agencija",
+    networkCatalogActiveHint:
+      "Verifikovane agencije vide teaser ovog projekta u katalogu. Pun inventar i dalje ide samo preko konekcije.",
     location: "Lokacija",
     noCoordinates:
       "Koordinate projekta još nisu unete. Otvorite izmenu projekta i kliknite na mapu da postavite tačku.",
@@ -139,6 +142,9 @@ export const inventorySr = {
     micrositeSlug: "Slug javne stranice",
     micrositeSlugHint:
       "Opcionalno — ako je prazno, koristi se standardni slug projekta.",
+    networkCatalog: "Vidljivo mreži agencija",
+    networkCatalogHint:
+      "Kada je uključeno, verifikovane agencije vide teaser (lokacija, raspon cena, broj slobodnih). Pun inventar ostaje samo za povezane agencije.",
     selectPlaceholder: "— izaberite —",
     unspecified: "— nije određeno —",
     map: "Mapa",
@@ -319,6 +325,9 @@ export const inventoryEn: Leaves<typeof inventorySr> = {
     vatRate: "VAT rate",
     expectedCompletion: "Expected completion",
     micrositeActive: "Public page is active",
+    networkCatalogActive: "Visible to the agency network",
+    networkCatalogActiveHint:
+      "Verified agencies see a teaser of this project in the catalogue. Full inventory still requires a connection.",
     location: "Location",
     noCoordinates:
       "Project coordinates have not been set yet. Open project edit and click the map to place a point.",
@@ -430,6 +439,9 @@ export const inventoryEn: Leaves<typeof inventorySr> = {
     micrositeSlug: "Public page slug",
     micrositeSlugHint:
       "Optional — if empty, the standard project slug is used.",
+    networkCatalog: "Visible to the agency network",
+    networkCatalogHint:
+      "When enabled, verified agencies see a teaser (location, price range, availability). Full inventory stays for connected agencies only.",
     selectPlaceholder: "— select —",
     unspecified: "— not set —",
     map: "Map",

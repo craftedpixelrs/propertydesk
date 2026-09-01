@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
 import { useT } from "@/components/app/i18n-provider";
 import { LanguageSwitcher } from "@/components/app/language-switcher";
+import { ThemeSwitcher } from "@/components/app/theme-switcher";
 import { OrgBrandMark, type OrgBranding } from "@/components/app/org-brand-mark";
 import { cn } from "@/lib/utils";
 import { filterNavigation, navigation } from "@/components/app/navigation";
@@ -109,6 +110,7 @@ export function SidebarNav({
       {lockNav ? <div className="flex-1" /> : null}
       <div className="border-t border-[var(--color-border)] p-2 space-y-1">
         <LanguageSwitcher className="px-3 py-1" compact />
+        <ThemeSwitcher className="px-3 py-1" compact />
         <Link
           href="/podesavanja/profil"
           className={cn(

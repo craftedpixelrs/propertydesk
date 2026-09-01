@@ -221,7 +221,7 @@ function CommandPaletteDialog({ open, onOpenChange }: DialogProps) {
           </Command.List>
           <footer className="flex items-center justify-between border-t border-[var(--color-border)] px-4 py-2 text-[11px] text-[var(--color-foreground-muted)]">
             <span>{t("ui.search.enterToOpen")}</span>
-            <kbd className="rounded border border-[var(--color-border)] bg-white px-1.5 py-0.5 font-mono text-[10px]">
+            <kbd className="rounded border border-[var(--color-border)] bg-[var(--color-surface)] px-1.5 py-0.5 font-mono text-[10px]">
               Ctrl/⌘ + K
             </kbd>
           </footer>

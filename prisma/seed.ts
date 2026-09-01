@@ -193,6 +193,9 @@ async function ensureTenant(spec: TenantSpec) {
         status: orgStatus,
         paymentAccountNumber: spec.paymentAccountNumber ?? null,
         paymentBankName: spec.paymentBankName ?? null,
+        ...(isAgency
+          ? { verificationStatus: "VERIFIED" as const, verifiedAt: new Date() }
+          : {}),
       },
     });
     await prisma.organizationSubscription.create({
@@ -208,7 +211,13 @@ async function ensureTenant(spec: TenantSpec) {
       where: { organizationId: org.id },
       data: {
         type: spec.type,
-        ...(isAgency ? { status: "ACTIVE" } : {}),
+        ...(isAgency
+          ? {
+              status: "ACTIVE" as const,
+              verificationStatus: "VERIFIED" as const,
+              verifiedAt: new Date(),
+            }
+          : {}),
         ...(spec.paymentAccountNumber
           ? {
               paymentAccountNumber: spec.paymentAccountNumber,

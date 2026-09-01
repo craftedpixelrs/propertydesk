@@ -155,6 +155,22 @@
 - Agencies see only projects they've been granted access to via
   `AgencyProjectAccess` rows. Per-unit overrides can hide additional
   units.
+- **Network catalog** (first marketplace slice): a project is listed
+  to agencies only when `networkCatalogEnabled = true`. The teaser
+  DTO has city, price range and availability counts — never unit
+  rows, floor plans or internal notes. `Unit.isVisibleToAgencies`
+  stays the full-portal flag after a connection.
+- **Self-registration** creates an `AGENCY` org on the `partner` plan
+  with `verificationStatus = PENDING`. Browsing the catalog is
+  allowed; sending `AgencyConnectionRequest` requires `VERIFIED`.
+  Investor invite and platform-admin create still mark the agency
+  `VERIFIED`. One `PENDING` request per agency–investor pair
+  (partial unique index).
+- Accepting a request creates or reactivates `AgencyConnection`
+  (`ACTIVE`), optionally grants `AgencyProjectAccess` for the
+  requested project, and consumes `maxAgencyConnections` on the
+  investor plan. The invite-only `AgencyConnection` flow is
+  unchanged.
 - Commission rules follow the strict precedence chain in
   [`src/server/services/commissions/rules.ts`](../src/server/services/commissions/rules.ts).
 - **Referral code** (Faza 8.3 C2): every `AgencyConnection` can

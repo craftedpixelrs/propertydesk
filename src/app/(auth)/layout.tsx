@@ -4,6 +4,7 @@ import { type ReactNode } from "react";
 import { ShieldCheck, Sparkles, TrendingUp } from "lucide-react";
 
 import { LanguageSwitcher } from "@/components/app/language-switcher";
+import { ThemeSwitcher } from "@/components/app/theme-switcher";
 import { APP_NAME, AUTH_IMAGES, LANDING_IMAGES } from "@/lib/constants/app";
 import { t, type Locale } from "@/lib/i18n";
 import { resolveRequestLocale } from "@/lib/i18n/resolve-locale";
@@ -39,8 +40,9 @@ export default async function AuthLayout({ children }: { children: ReactNode }) 
             {children}
           </div>
 
-          <div className="mt-6 flex justify-center">
+          <div className="mt-6 flex flex-wrap items-center justify-center gap-4">
             <LanguageSwitcher />
+            <ThemeSwitcher />
           </div>
 
           <p className="mt-4 text-center text-xs text-[var(--color-foreground-subtle)]">
@@ -91,7 +93,7 @@ function BrandingPanel({ locale }: { locale: Locale }) {
         className="object-cover object-center"
       />
       <div
-        className="absolute inset-0 bg-gradient-to-t from-white via-white/80 to-white/55"
+        className="absolute inset-0 bg-gradient-to-t from-[var(--color-surface)] via-[color-mix(in_oklab,var(--color-surface)_80%,transparent)] to-[color-mix(in_oklab,var(--color-surface)_55%,transparent)]"
         aria-hidden
       />
 

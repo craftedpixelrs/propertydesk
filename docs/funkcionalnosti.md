@@ -102,8 +102,18 @@ Verzija: **v1** · Datum lansiranja: **01.09.2026.**
 - Agencija je **besplatan partner nalog** (`saas_plan.code = partner`):
   nema Starter/Growth/Scale, nema trial lock, nema SaaS fakturu, nema
   istek paketa. Pristup inventaru ide isključivo preko poziva
-  investitora. Nema javne self-registracije. Admin može
+  investitora **ili** posle prihvata zahteva iz mreže. Admin može
   `SUSPENDED` / `CLOSED`.
+- **Javna self-registracija** (`/registracija/agencija`) — besplatan
+  partner nalog, `verificationStatus=PENDING`. Katalog mreže je
+  vidljiv odmah; zahtev za saradnju tek posle verifikacije.
+- **Katalog mreže** (`/katalog`) — teaser projekata sa
+  `networkCatalogEnabled` (lokacija, raspon cena, broj slobodnih).
+  Nije puna lista stanova. Investitor uključuje flag na projektu.
+- **Zahtev za konekciju** — agencija šalje, investitor prihvata/
+  odbija na `/agencije`. Prihvat pravi `ACTIVE` konekciju i, ako je
+  naveden projekat, grant pristupa. Kvota `maxAgencyConnections`
+  važi na prihvatu.
 - **Poziv po emailu** (`/agencije`) — investitor unosi email (naziv
   opciono). Ne mora da zna da li agencija već ima nalog.
   - Novi email: partner org + `agencyPartnerInvitationEmail` →
@@ -290,7 +300,9 @@ Verzija: **v1** · Datum lansiranja: **01.09.2026.**
   uplata / Novi kupac).
 - Offline read-only za već cache-ovane stranice.
 - Sve poruke i UI na srpskom (Latinica), formatovanje datuma,
-  brojeva i valuta prema `sr-Latn` locale.
+  brojeva i valuta prema `sr-Latn` locale. Jezik i **svetla/tamna
+  tema** biraju se na loginu i u nalogu (`pd_locale` / `pd_theme`,
+  za ulogovanog `User.locale` / `User.theme`).
 
 ## 18. Integracije
 

@@ -122,6 +122,7 @@ describe("sidebar navigation matrix", () => {
     expect(keys).toContain("agencies");
     expect(keys).toContain("agency-registrations");
     expect(keys).not.toContain("offer");
+    expect(keys).not.toContain("catalog");
     expect(keys).not.toContain("my-buyers");
   });
 
@@ -135,6 +136,7 @@ describe("sidebar navigation matrix", () => {
     expect(keys).toContain("platform-admin");
     expect(keys).not.toContain("property-desk");
     expect(keys).toContain("offer");
+    expect(keys).toContain("catalog");
     expect(keys).toContain("my-buyers");
     expect(keys).toContain("connections");
     expect(keys).not.toContain("projects");
@@ -268,6 +270,7 @@ describe("sidebar navigation matrix", () => {
         [
           "dashboard",
           "offer",
+          "catalog",
           "my-buyers",
           "agency-tasks",
           "my-reservations",
@@ -293,6 +296,7 @@ describe("sidebar navigation matrix", () => {
         isSuperAdmin: false,
       });
       expect(keys).toContain("offer");
+      expect(keys).toContain("catalog");
       expect(keys).toContain("my-buyers");
       expect(keys).toContain("connections");
     });
@@ -304,6 +308,7 @@ describe("sidebar navigation matrix", () => {
         isSuperAdmin: false,
       });
       expect(keys).toContain("offer");
+      expect(keys).toContain("catalog");
       expect(keys).toContain("my-buyers");
       expect(keys).toContain("agency-tasks");
       expect(keys).toContain("my-reservations");
@@ -328,6 +333,7 @@ describe("sidebar navigation matrix", () => {
         isSuperAdmin: false,
       });
       expect(keys).toContain("offer");
+      expect(keys).toContain("catalog");
       expect(keys).toContain("connections");
       expect(keys).toContain("my-reservations");
       expect(keys).toContain("my-commissions");
@@ -345,6 +351,7 @@ describe("sidebar navigation matrix", () => {
     });
     expect(keys).not.toContain("projects");
     expect(keys).not.toContain("offer");
+    expect(keys).not.toContain("catalog");
     expect(keys).not.toContain("sales");
     expect(keys).not.toContain("settings");
     expect(keys).toContain("dashboard");
@@ -396,6 +403,7 @@ describe("sidebar navigation matrix", () => {
         isSuperAdmin: false,
       });
       expect(keys).not.toContain("offer");
+      expect(keys).not.toContain("catalog");
       expect(keys).not.toContain("my-buyers");
       expect(keys).not.toContain("my-reservations");
       expect(keys).not.toContain("my-commissions");

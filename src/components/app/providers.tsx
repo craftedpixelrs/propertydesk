@@ -5,7 +5,9 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ApiClientError } from "@/lib/api-client";
 import { CommandPaletteProvider } from "@/components/app/command-palette";
 import { I18nProvider } from "@/components/app/i18n-provider";
+import { ThemeProvider } from "@/components/app/theme-provider";
 import type { Locale } from "@/lib/i18n";
+import type { Theme } from "@/lib/theme";
 
 /**
  * Client-side providers root. Kept intentionally small so the majority of
@@ -14,9 +16,11 @@ import type { Locale } from "@/lib/i18n";
 export function Providers({
   children,
   locale,
+  theme,
 }: {
   children: ReactNode;
   locale: Locale;
+  theme: Theme;
 }) {
   const [queryClient] = useState(
     () =>
@@ -50,7 +54,9 @@ export function Providers({
   return (
     <QueryClientProvider client={queryClient}>
       <I18nProvider locale={locale}>
-        <CommandPaletteProvider>{children}</CommandPaletteProvider>
+        <ThemeProvider theme={theme}>
+          <CommandPaletteProvider>{children}</CommandPaletteProvider>
+        </ThemeProvider>
       </I18nProvider>
     </QueryClientProvider>
   );

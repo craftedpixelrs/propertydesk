@@ -16,6 +16,7 @@ import {
   Shield,
   Grid3x3,
   Store,
+  Compass,
   Inbox,
   CalendarDays,
   Radar,
@@ -56,6 +57,7 @@ export interface NavItem {
         | "myReservations"
         | "myCommissions"
         | "connections"
+        | "catalog"
         | "commissions"
         | "documents"
         | "reports"
@@ -168,6 +170,14 @@ export const navigation: NavItem[] = [
     labelKey: "nav.offer",
     href: "/ponuda",
     icon: Store,
+    permission: "agency.read",
+    orgTypes: ["AGENCY"],
+  },
+  {
+    key: "catalog",
+    labelKey: "nav.catalog",
+    href: "/katalog",
+    icon: Compass,
     permission: "agency.read",
     orgTypes: ["AGENCY"],
   },

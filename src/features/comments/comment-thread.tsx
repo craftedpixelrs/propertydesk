@@ -287,10 +287,10 @@ function ComposeForm({ mentionables, onSubmit }: ComposeProps) {
           onChange={handleChange}
           placeholder={t("crm.comments.placeholder")}
           rows={3}
-          className="w-full rounded-md border border-[var(--color-border)] bg-white p-2 text-sm outline-none focus:border-[var(--color-brand-500)]"
+          className="w-full rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] p-2 text-sm text-[var(--color-foreground)] outline-none focus:border-[var(--color-brand-500)]"
         />
         {suggest?.open && filtered.length > 0 ? (
-          <div className="absolute left-2 top-full z-20 mt-1 w-64 overflow-hidden rounded-md border border-[var(--color-border)] bg-white shadow-lg">
+          <div className="absolute left-2 top-full z-20 mt-1 w-64 overflow-hidden rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] shadow-lg">
             {filtered.map((m) => (
               <button
                 key={m.id}

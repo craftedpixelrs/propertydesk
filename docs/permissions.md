@@ -114,6 +114,12 @@ avoids granting-drift.
 | Unit CSV/XLSX import wizard | `POST /projects/:id/units/import` | `inventory.import` |
 | Project cost fields | `PATCH /projects/:id` (subset of body) | `project.update` |
 | Microsite toggle + slug | `PATCH /projects/:id` (subset of body) | `project.update` |
+| Network catalog toggle | `PATCH /projects/:id` (`networkCatalogEnabled`) | `project.update` |
+| Agency self-register | `POST /public/agencies/register` | *No auth* — rate limit |
+| Network catalog | `GET /agency/network-catalog` | `agency.read` (AGENCY) |
+| Send connection request | `POST /agency/connection-requests` | `organization.members:manage` + VERIFIED |
+| Review connection request | `POST /agencies/connection-requests/:id/respond` | `agency.manage` (INVESTOR) |
+| Verify agency | `POST /platform/organizations/:id/verification` | `SUPER_ADMIN` |
 | Rotate agency referral code | `POST /agency/referral/rotate` | `agency.read` (agent's own connection) |
 | Reservation-request confirm / decline | `/reservation-requests/:id/*` | `reservation.approve` (confirm), `reservation.cancel` (decline) |
 | Manual backup-verify trigger | `POST /platform/monitoring/backup-verify` | `SUPER_ADMIN` only (`requireSuperAdmin`) |

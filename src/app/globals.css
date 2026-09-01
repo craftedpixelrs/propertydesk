@@ -46,6 +46,14 @@
   --color-info: #0369a1;
   --color-info-bg: #e0f2fe;
 
+  /* Accent used by a few badges (agency / violet) */
+  --color-violet-bg: #ede9fe;
+  --color-violet-fg: #6d28d9;
+
+  /* Elevation */
+  --color-shadow: rgba(15, 23, 42, 0.06);
+  --color-overlay: rgba(15, 23, 42, 0.5);
+
   /* Radii */
   --radius-sm: 6px;
   --radius-md: 8px;
@@ -59,6 +67,47 @@
      * FAQ deep links, etc.). Overridden by the prefers-reduced-motion
      * block below, so this respects user preferences. */
     scroll-behavior: smooth;
+    color-scheme: light;
+  }
+
+  html[data-theme="dark"] {
+    color-scheme: dark;
+
+    --color-surface: #161b22;
+    --color-surface-muted: #0d1117;
+    --color-surface-inset: #21262d;
+
+    --color-foreground: #e6edf3;
+    --color-foreground-muted: #b1bac4;
+    --color-foreground-subtle: #8b949e;
+
+    --color-border: #30363d;
+    --color-border-strong: #484f58;
+
+    /* Tinted navy for active nav / chips; brighter blues for text/links
+     * so `text-brand-700` stays readable on dark surfaces. */
+    --color-brand-50: #1a2744;
+    --color-brand-100: #1e3a5f;
+    --color-brand-200: #274472;
+    --color-brand-600: #388bfd;
+    --color-brand-700: #79b8ff;
+    --color-brand-800: #a5d0ff;
+    --color-brand-900: #d4e8ff;
+
+    --color-success: #3fb950;
+    --color-success-bg: #16351f;
+    --color-warning: #d29922;
+    --color-warning-bg: #3d2f0b;
+    --color-danger: #f85149;
+    --color-danger-bg: #3d1416;
+    --color-info: #58a6ff;
+    --color-info-bg: #132337;
+
+    --color-violet-bg: #2a1f4a;
+    --color-violet-fg: #c4b5fd;
+
+    --color-shadow: rgba(0, 0, 0, 0.45);
+    --color-overlay: rgba(1, 4, 9, 0.72);
   }
 
   html,
@@ -128,7 +177,112 @@
   select,
   button {
     font: inherit;
+    color: inherit;
   }
+
+  textarea {
+    background-color: var(--color-surface);
+    color: var(--color-foreground);
+  }
+
+  input:-webkit-autofill,
+  textarea:-webkit-autofill,
+  select:-webkit-autofill {
+    -webkit-text-fill-color: var(--color-foreground);
+    caret-color: var(--color-foreground);
+    box-shadow: 0 0 0 1000px var(--color-surface) inset;
+    transition: background-color 9999s ease-out 0s;
+  }
+}
+
+/*
+ * Hardcoded light Tailwind utilities still appear on some list/filter
+ * surfaces. Unlayered so they beat `@layer utilities`.
+ */
+html[data-theme="dark"] .bg-white {
+  background-color: var(--color-surface);
+}
+html[data-theme="dark"] .bg-neutral-50,
+html[data-theme="dark"] .hover\:bg-neutral-50:hover {
+  background-color: var(--color-surface-inset);
+}
+html[data-theme="dark"] .bg-neutral-100,
+html[data-theme="dark"] .disabled\:bg-neutral-100:disabled {
+  background-color: var(--color-surface-inset);
+}
+html[data-theme="dark"] .text-neutral-500 {
+  color: var(--color-foreground-subtle);
+}
+html[data-theme="dark"] .from-white {
+  --tw-gradient-from: var(--color-surface);
+  --tw-gradient-from-position: 0%;
+}
+html[data-theme="dark"] .via-white {
+  --tw-gradient-via: var(--color-surface);
+}
+html[data-theme="dark"] .via-white\/80 {
+  --tw-gradient-via: color-mix(in oklab, var(--color-surface) 80%, transparent);
+}
+html[data-theme="dark"] .to-white {
+  --tw-gradient-to: var(--color-surface);
+  --tw-gradient-to-position: 100%;
+}
+html[data-theme="dark"] .to-white\/55 {
+  --tw-gradient-to: color-mix(in oklab, var(--color-surface) 55%, transparent);
+}
+
+html[data-theme="dark"] .bg-amber-50 {
+  background-color: var(--color-warning-bg);
+}
+html[data-theme="dark"] .text-amber-700,
+html[data-theme="dark"] .text-amber-800,
+html[data-theme="dark"] .text-amber-900 {
+  color: var(--color-warning);
+}
+html[data-theme="dark"] .border-amber-200 {
+  border-color: color-mix(in oklab, var(--color-warning) 35%, var(--color-border));
+}
+
+html[data-theme="dark"] .bg-emerald-50 {
+  background-color: var(--color-success-bg);
+}
+html[data-theme="dark"] .text-emerald-700,
+html[data-theme="dark"] .text-emerald-800,
+html[data-theme="dark"] .text-emerald-900 {
+  color: var(--color-success);
+}
+html[data-theme="dark"] .border-emerald-200 {
+  border-color: color-mix(in oklab, var(--color-success) 35%, var(--color-border));
+}
+
+html[data-theme="dark"] .bg-rose-50,
+html[data-theme="dark"] .bg-red-50 {
+  background-color: var(--color-danger-bg);
+}
+html[data-theme="dark"] .text-rose-700,
+html[data-theme="dark"] .text-rose-800,
+html[data-theme="dark"] .text-red-700,
+html[data-theme="dark"] .text-red-800 {
+  color: var(--color-danger);
+}
+html[data-theme="dark"] .border-rose-200,
+html[data-theme="dark"] .border-red-200 {
+  border-color: color-mix(in oklab, var(--color-danger) 35%, var(--color-border));
+}
+
+html[data-theme="dark"] .bg-sky-50,
+html[data-theme="dark"] .bg-blue-50 {
+  background-color: var(--color-info-bg);
+}
+html[data-theme="dark"] .text-sky-700,
+html[data-theme="dark"] .text-sky-800,
+html[data-theme="dark"] .text-blue-700,
+html[data-theme="dark"] .text-blue-800 {
+  color: var(--color-info);
+}
+html[data-theme="dark"] .border-sky-200,
+html[data-theme="dark"] .border-blue-200 {
+  border-color: color-mix(in oklab, var(--color-info) 35%, var(--color-border));
 }
 
 @utility container-app {

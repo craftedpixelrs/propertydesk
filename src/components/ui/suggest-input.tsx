@@ -105,13 +105,13 @@ export function SuggestInput({
             setOpen(false);
           }
         }}
-        className="h-11 w-full rounded-md border border-[var(--color-border)] bg-white px-3 text-sm disabled:bg-neutral-100 disabled:text-neutral-500"
+        className="h-11 w-full rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] px-3 text-sm text-[var(--color-foreground)] placeholder:text-[var(--color-foreground-subtle)] disabled:bg-[var(--color-surface-inset)] disabled:text-[var(--color-foreground-muted)]"
       />
       {open ? (
         <ul
           id={listId}
           role="listbox"
-          className="absolute z-20 mt-1 max-h-56 w-full overflow-auto rounded-md border border-[var(--color-border)] bg-white py-1 shadow-md"
+          className="absolute z-20 mt-1 max-h-56 w-full overflow-auto rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] py-1 shadow-md"
         >
           {loading ? (
             <li className="px-3 py-2 text-sm text-[var(--color-foreground-muted)]">
@@ -129,7 +129,7 @@ export function SuggestInput({
                   className={`flex w-full flex-col items-start px-3 py-2 text-left text-sm ${
                     index === active
                       ? "bg-[var(--color-surface-inset)]"
-                      : "hover:bg-neutral-50"
+                      : "hover:bg-[var(--color-surface-inset)]"
                   }`}
                   onMouseEnter={() => setActive(index)}
                   onMouseDown={(event) => {

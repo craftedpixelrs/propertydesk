@@ -58,6 +58,7 @@ export default async function EditProjectPage({ params }: Props) {
     budgetNote: project.budgetNote ?? "",
     publicMicrositeEnabled: project.publicMicrositeEnabled ? "true" : "false",
     publicMicrositeSlug: project.publicMicrositeSlug ?? "",
+    networkCatalogEnabled: project.networkCatalogEnabled ? "true" : "false",
   };
 
   return (
