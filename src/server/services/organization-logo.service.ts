@@ -16,12 +16,26 @@ const LOGO_MIME = new Set([
 ]);
 const MAX_LOGO_BYTES = 2 * 1024 * 1024;
 
+export type LogoVariant = "default" | "light";
+
 function resolveLogoMime(fileName: string, mimeType: string): string {
   return isSvgFile(fileName, mimeType) ? "image/svg+xml" : mimeType;
 }
 
-export function organizationLogoPublicPath(organizationId: string): string {
-  return `/api/v1/public/organization-logo/${organizationId}`;
+export function parseLogoVariant(value: string | null | undefined): LogoVariant {
+  return value === "light" ? "light" : "default";
+}
+
+function logoDocumentEntityId(organizationId: string, variant: LogoVariant): string {
+  return variant === "light" ? `${organizationId}:logo-light` : organizationId;
+}
+
+export function organizationLogoPublicPath(
+  organizationId: string,
+  variant: LogoVariant = "default",
+): string {
+  const base = `/api/v1/public/organization-logo/${organizationId}`;
+  return variant === "light" ? `${base}?variant=light` : base;
 }
 
 export { planAllowsWhiteLabel };
@@ -32,7 +46,9 @@ export async function uploadOrganizationLogo(input: {
   fileName: string;
   mimeType: string;
   buffer: Buffer;
+  variant?: LogoVariant;
 }) {
+  const variant = input.variant ?? "default";
   const mimeType = resolveLogoMime(input.fileName, input.mimeType);
   if (!LOGO_MIME.has(mimeType)) {
     throw DomainErrors.badRequest("Logo mora biti PNG, JPG, WebP ili SVG.");
@@ -58,31 +74,39 @@ export async function uploadOrganizationLogo(input: {
     actorUserId: input.actorUserId,
     category: "OTHER",
     entityType: "Organization",
-    entityId: input.organizationId,
+    entityId: logoDocumentEntityId(input.organizationId, variant),
     visibility: "INVESTOR_TEAM",
     fileName: input.fileName,
     mimeType,
     buffer,
   });
 
-  const logoUrl = organizationLogoPublicPath(input.organizationId);
+  const logoUrl = organizationLogoPublicPath(input.organizationId, variant);
   const previous = await prisma.organizationProfile.findUnique({
     where: { organizationId: input.organizationId },
-    select: { logoUrl: true },
+    select: { logoUrl: true, logoLightUrl: true, type: true },
   });
   if (!previous) {
     throw DomainErrors.notFound("Profil organizacije");
+  }
+  if (variant === "light" && previous.type !== "INVESTOR") {
+    throw DomainErrors.forbidden("Svetli logo je dostupan samo investitorima.");
   }
 
   await prisma.$transaction([
     prisma.organizationProfile.update({
       where: { organizationId: input.organizationId },
-      data: { logoUrl },
+      data:
+        variant === "light" ? { logoLightUrl: logoUrl } : { logoUrl },
     }),
-    prisma.organization.update({
-      where: { id: input.organizationId },
-      data: { logo: logoUrl },
-    }),
+    ...(variant === "default"
+      ? [
+          prisma.organization.update({
+            where: { id: input.organizationId },
+            data: { logo: logoUrl },
+          }),
+        ]
+      : []),
   ]);
 
   await recordAudit({
@@ -91,34 +115,52 @@ export async function uploadOrganizationLogo(input: {
     entityId: input.organizationId,
     organizationId: input.organizationId,
     actorUserId: input.actorUserId,
-    previousValues: { logoUrl: previous.logoUrl },
-    newValues: { logoUrl, documentId: doc.id },
+    previousValues:
+      variant === "light"
+        ? { logoLightUrl: previous.logoLightUrl }
+        : { logoUrl: previous.logoUrl },
+    newValues:
+      variant === "light"
+        ? { logoLightUrl: logoUrl, documentId: doc.id }
+        : { logoUrl, documentId: doc.id },
   });
 
-  return { logoUrl, documentId: doc.id };
+  return variant === "light"
+    ? { logoLightUrl: logoUrl, documentId: doc.id }
+    : { logoUrl, documentId: doc.id };
 }
 
 export async function removeOrganizationLogo(input: {
   organizationId: string;
   actorUserId: string;
+  variant?: LogoVariant;
 }) {
+  const variant = input.variant ?? "default";
   const previous = await prisma.organizationProfile.findUnique({
     where: { organizationId: input.organizationId },
-    select: { logoUrl: true },
+    select: { logoUrl: true, logoLightUrl: true, type: true },
   });
   if (!previous) {
     throw DomainErrors.notFound("Profil organizacije");
+  }
+  if (variant === "light" && previous.type !== "INVESTOR") {
+    throw DomainErrors.forbidden("Svetli logo je dostupan samo investitorima.");
   }
 
   await prisma.$transaction([
     prisma.organizationProfile.update({
       where: { organizationId: input.organizationId },
-      data: { logoUrl: null },
+      data:
+        variant === "light" ? { logoLightUrl: null } : { logoUrl: null },
     }),
-    prisma.organization.update({
-      where: { id: input.organizationId },
-      data: { logo: null },
-    }),
+    ...(variant === "default"
+      ? [
+          prisma.organization.update({
+            where: { id: input.organizationId },
+            data: { logo: null },
+          }),
+        ]
+      : []),
   ]);
 
   await recordAudit({
@@ -127,31 +169,43 @@ export async function removeOrganizationLogo(input: {
     entityId: input.organizationId,
     organizationId: input.organizationId,
     actorUserId: input.actorUserId,
-    previousValues: { logoUrl: previous.logoUrl },
-    newValues: { logoUrl: null },
+    previousValues:
+      variant === "light"
+        ? { logoLightUrl: previous.logoLightUrl }
+        : { logoUrl: previous.logoUrl },
+    newValues:
+      variant === "light" ? { logoLightUrl: null } : { logoUrl: null },
   });
 }
 
-export async function resolveOrganizationLogo(organizationId: string): Promise<{
-  buffer: Buffer;
-  mimeType: string;
-  fileName: string;
-} | { redirectUrl: string } | null> {
+export async function resolveOrganizationLogo(
+  organizationId: string,
+  variant: LogoVariant = "default",
+): Promise<
+  | {
+      buffer: Buffer;
+      mimeType: string;
+      fileName: string;
+    }
+  | { redirectUrl: string }
+  | null
+> {
   const profile = await prisma.organizationProfile.findUnique({
     where: { organizationId },
-    select: { logoUrl: true },
+    select: { logoUrl: true, logoLightUrl: true },
   });
-  if (!profile?.logoUrl) return null;
+  const stored = variant === "light" ? profile?.logoLightUrl : profile?.logoUrl;
+  if (!stored) return null;
 
-  if (/^https?:\/\//i.test(profile.logoUrl)) {
-    return { redirectUrl: profile.logoUrl };
+  if (/^https?:\/\//i.test(stored)) {
+    return { redirectUrl: stored };
   }
 
   const doc = await prisma.document.findFirst({
     where: {
       organizationId,
       entityType: "Organization",
-      entityId: organizationId,
+      entityId: logoDocumentEntityId(organizationId, variant),
       mimeType: { startsWith: "image/" },
       deletedAt: null,
     },
@@ -184,6 +238,7 @@ export async function resolveOrganizationLogo(organizationId: string): Promise<{
 export async function loadOrganizationBranding(organizationId: string): Promise<{
   name: string;
   logoUrl: string | null;
+  logoLightUrl: string | null;
   whiteLabel: boolean;
 }> {
   const org = await prisma.organization.findUnique({
@@ -191,7 +246,14 @@ export async function loadOrganizationBranding(organizationId: string): Promise<
     select: {
       name: true,
       logo: true,
-      profile: { select: { displayName: true, logoUrl: true, updatedAt: true } },
+      profile: {
+        select: {
+          displayName: true,
+          logoUrl: true,
+          logoLightUrl: true,
+          updatedAt: true,
+        },
+      },
       subscription: {
         select: {
           plan: { select: { code: true, features: true } },
@@ -205,6 +267,10 @@ export async function loadOrganizationBranding(organizationId: string): Promise<
     name: org?.profile?.displayName || org?.name || "",
     logoUrl: withLogoCacheBust(
       org?.profile?.logoUrl || org?.logo,
+      org?.profile?.updatedAt,
+    ),
+    logoLightUrl: withLogoCacheBust(
+      org?.profile?.logoLightUrl,
       org?.profile?.updatedAt,
     ),
     whiteLabel: planAllowsWhiteLabel(plan?.code, plan?.features),

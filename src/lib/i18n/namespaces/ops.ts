@@ -307,6 +307,13 @@ export const opsSr = {
     logoMustBeImage: "Logo mora biti PNG, JPG, WebP ili SVG.",
     logoTooBig: "Logo je prevelik (maksimalno 2 MB).",
     logoUploadFailed: "Otpremanje logoa nije uspelo.",
+    logoDefaultTitle: "Osnovni logo",
+    logoDefaultHint: "Za svetlu temu, ponude i javne stranice.",
+    logoLightTitle: "Svetli logo",
+    logoLightHint:
+      "Varijanta za tamnu temu (sidebar i zaglavlje). Ako nije otpremljen, koristi se osnovni logo.",
+    logoLightUploaded: "Svetli logo je otpremljen.",
+    logoLightRemoved: "Svetli logo je uklonjen.",
     paymentTitle: "Račun za kaparu",
     paymentHintInvestor:
       "Kupci sa javnog linka uplatuju kaparu na ovaj tekući račun. Unesite 18 cifara (sa ili bez crtica).",
@@ -753,6 +760,13 @@ export const opsEn: Leaves<typeof opsSr> = {
     logoMustBeImage: "Logo must be PNG, JPG, WebP, or SVG.",
     logoTooBig: "Logo is too large (2 MB maximum).",
     logoUploadFailed: "Could not upload the logo.",
+    logoDefaultTitle: "Default logo",
+    logoDefaultHint: "Used on the light theme, offers, and public pages.",
+    logoLightTitle: "Light logo",
+    logoLightHint:
+      "Variant for the dark theme (sidebar and header). If missing, the default logo is used.",
+    logoLightUploaded: "Light logo uploaded.",
+    logoLightRemoved: "Light logo removed.",
     paymentTitle: "Deposit account",
     paymentHintInvestor:
       "Buyers from a public link pay the deposit to this current account. Enter 18 digits (dashes optional).",

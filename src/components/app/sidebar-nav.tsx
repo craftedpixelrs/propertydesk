@@ -109,8 +109,10 @@ export function SidebarNav({
       )}
       {lockNav ? <div className="flex-1" /> : null}
       <div className="border-t border-[var(--color-border)] p-2 space-y-1">
-        <LanguageSwitcher className="px-3 py-1" compact />
-        <ThemeSwitcher className="px-3 py-1" compact />
+        <div className="flex items-center gap-2 px-3 py-2">
+          <LanguageSwitcher compact />
+          <ThemeSwitcher compact />
+        </div>
         <Link
           href="/podesavanja/profil"
           className={cn(

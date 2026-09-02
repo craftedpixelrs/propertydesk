@@ -120,10 +120,10 @@ export const guidesSr = {
   settingsOrg: page("Organizacija", [
     ["Čemu služi", "Pravni identitet i brend: PIB, adresa, logo, boja. Ide u PDF, share link i email."],
     ["Obavezna polja", "Investitor: sva polja. Agencija: sva sem sajta. Bez toga aplikacija ostaje zaključana."],
-    ["Logo", "PNG, JPEG, WebP ili SVG (sanitizovan). Na Growth/Scale white-label sidebar pokazuje samo logo."],
+    ["Logo", "PNG, JPEG, WebP ili SVG (sanitizovan). Na Growth/Scale white-label sidebar pokazuje samo logo. Investitor može da doda i svetli logo za tamnu temu."],
   ]),
   settingsAccount: page("Moj nalog", [
-    ["Čemu služi", "Vaše ime, email, lozinka i jezik. To nije profil firme — firmu menjate na kartici Organizacija."],
+    ["Čemu služi", "Vaše ime, email, lozinka, jezik i tema. To nije profil firme — firmu menjate na kartici Organizacija."],
     ["Email i lozinka", "Promena emaila traži potvrdu na staroj adresi. Nova lozinka: trenutna + nova (min. 10). Ostale sesije se odjavljuju."],
     ["Gde je", "Podešavanja → Moj nalog, ili link u dnu sidebar-a. Svaki član tima menja samo svoj nalog."],
   ]),
@@ -299,10 +299,10 @@ export const guidesEn: Leaves<typeof guidesSr> = {
   settingsOrg: page("Organization", [
     ["What it is", "Legal identity and brand: tax ID, address, logo, color. Used in PDFs, share links, and email."],
     ["Required fields", "Investor: every field. Agency: every field except the website. The app stays locked until then."],
-    ["Logo", "PNG, JPEG, WebP, or sanitized SVG. On Growth/Scale white-label the sidebar shows the logo only."],
+    ["Logo", "PNG, JPEG, WebP, or sanitized SVG. On Growth/Scale white-label the sidebar shows the logo only. Investors can also add a light logo for dark theme."],
   ]),
   settingsAccount: page("My account", [
-    ["What it is", "Your name, email, password, and language. This is not the company profile — that lives on the Organization tab."],
+    ["What it is", "Your name, email, password, language, and theme. This is not the company profile — that lives on the Organization tab."],
     ["Email and password", "An email change needs a confirmation on the old address. New password: current + new (min. 10). Other sessions are signed out."],
     ["Where", "Settings → My account, or the link at the bottom of the sidebar. Each teammate edits only their own account."],
   ]),

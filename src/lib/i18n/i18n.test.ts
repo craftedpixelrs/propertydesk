@@ -19,6 +19,8 @@ describe("t()", () => {
     expect(t("theme.label", undefined, "en")).toBe("Theme");
     expect(t("theme.dark")).toBe("Tamna");
     expect(t("ops.account.themeTitle")).toBe("Tema aplikacije");
+    expect(t("ops.org.logoLightTitle")).toBe("Svetli logo");
+    expect(t("ops.org.logoLightTitle", undefined, "en")).toBe("Light logo");
     expect(t("guides.chrome.open", undefined, "en")).toBe("How this page works");
     expect(t("auth.loginSuspended", undefined, "en")).toContain("suspended");
   });

@@ -870,6 +870,8 @@ model OrganizationProfile {
   email                 String?
   website               String?
   logoUrl               String?
+  // Light-on-dark mark for the app chrome (sidebar / header) in dark theme.
+  logoLightUrl          String?
   // Faza 8.1 (A2). Serbian domestic 18-digit bank account for the
   // investor's IPS QR receiver. When present + currency=RSD, the
   // public reservation flow renders a scannable QR; otherwise the

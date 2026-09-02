@@ -236,6 +236,7 @@ export function OrganizationProfileForm({
         <CardContent>
           <OrganizationLogoField
             logoUrl={profile?.logoUrl ?? null}
+            logoLightUrl={profile?.logoLightUrl ?? null}
             updatedAt={profile?.updatedAt ?? null}
             planCode={subscription?.plan.code ?? null}
             orgType={orgType}
@@ -455,14 +456,68 @@ export function OrganizationProfileForm({
 
 function OrganizationLogoField({
   logoUrl,
+  logoLightUrl,
   updatedAt,
   planCode,
   orgType,
 }: {
   logoUrl: string | null;
+  logoLightUrl: string | null;
   updatedAt: Date | null;
   planCode: string | null;
   orgType: "INVESTOR" | "AGENCY" | null;
+}) {
+  const t = useT();
+  const whiteLabel = planAllowsWhiteLabel(planCode);
+  const showLight = orgType === "INVESTOR";
+
+  return (
+    <div className="space-y-5">
+      <p className="text-sm text-[var(--color-foreground-muted)]">
+        {t("ops.org.logoHint")}{" "}
+        {orgType === "AGENCY"
+          ? t("ops.org.logoAgencyHint")
+          : whiteLabel
+            ? t("ops.org.logoWhiteLabelHint")
+            : t("ops.org.logoStarterHint")}
+      </p>
+      <div className={showLight ? "grid gap-6 sm:grid-cols-2" : undefined}>
+        <LogoSlot
+          variant="default"
+          logoUrl={logoUrl}
+          updatedAt={updatedAt}
+          title={showLight ? t("ops.org.logoDefaultTitle") : undefined}
+          hint={showLight ? t("ops.org.logoDefaultHint") : undefined}
+        />
+        {showLight ? (
+          <LogoSlot
+            variant="light"
+            logoUrl={logoLightUrl}
+            updatedAt={updatedAt}
+            title={t("ops.org.logoLightTitle")}
+            hint={t("ops.org.logoLightHint")}
+            previewOnDark
+          />
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
+function LogoSlot({
+  variant,
+  logoUrl,
+  updatedAt,
+  title,
+  hint,
+  previewOnDark = false,
+}: {
+  variant: "default" | "light";
+  logoUrl: string | null;
+  updatedAt: Date | null;
+  title?: string;
+  hint?: string;
+  previewOnDark?: boolean;
 }) {
   const t = useT();
   const router = useRouter();
@@ -470,7 +525,8 @@ function OrganizationLogoField({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const preview = withLogoCacheBust(logoUrl, updatedAt);
-  const whiteLabel = planAllowsWhiteLabel(planCode);
+  const endpoint = "/organization/logo";
+  const query = variant === "light" ? { variant: "light" } : undefined;
 
   async function handleFiles(files: FileList | null) {
     const file = files?.[0];
@@ -488,11 +544,16 @@ function OrganizationLogoField({
     try {
       const form = new FormData();
       form.append("file", file);
-      const res = await fetch("/api/v1/organization/logo", {
-        method: "POST",
-        body: form,
-        credentials: "include",
-      });
+      const res = await fetch(
+        variant === "light"
+          ? "/api/v1/organization/logo?variant=light"
+          : "/api/v1/organization/logo",
+        {
+          method: "POST",
+          body: form,
+          credentials: "include",
+        },
+      );
       const payload = (await res.json().catch(() => null)) as
         | { error?: { message?: string } }
         | null;
@@ -500,7 +561,9 @@ function OrganizationLogoField({
         throw new Error(payload?.error?.message ?? t("ops.org.logoUploadFailed"));
       }
       if (inputRef.current) inputRef.current.value = "";
-      toast.success(t("ops.org.logoUploaded"));
+      toast.success(
+        variant === "light" ? t("ops.org.logoLightUploaded") : t("ops.org.logoUploaded"),
+      );
       router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : t("ops.org.logoUploadFailed"));
@@ -513,8 +576,10 @@ function OrganizationLogoField({
     setBusy(true);
     setError(null);
     try {
-      await apiClient.delete("/organization/logo");
-      toast.success(t("ops.org.logoRemoved"));
+      await apiClient.delete(endpoint, { query });
+      toast.success(
+        variant === "light" ? t("ops.org.logoLightRemoved") : t("ops.org.logoRemoved"),
+      );
       router.refresh();
     } catch (err) {
       setError(
@@ -527,16 +592,20 @@ function OrganizationLogoField({
 
   return (
     <div className="space-y-3">
-      <p className="text-sm text-[var(--color-foreground-muted)]">
-        {t("ops.org.logoHint")}{" "}
-        {orgType === "AGENCY"
-          ? t("ops.org.logoAgencyHint")
-          : whiteLabel
-            ? t("ops.org.logoWhiteLabelHint")
-            : t("ops.org.logoStarterHint")}
-      </p>
+      {title ? (
+        <p className="text-sm font-medium text-[var(--color-foreground)]">{title}</p>
+      ) : null}
+      {hint ? (
+        <p className="text-sm text-[var(--color-foreground-muted)]">{hint}</p>
+      ) : null}
       <div className="flex flex-wrap items-center gap-4">
-        <div className="flex size-20 items-center justify-center overflow-hidden rounded-md border border-[var(--color-border)] bg-[var(--color-surface-inset)]">
+        <div
+          className={
+            previewOnDark
+              ? "flex size-20 items-center justify-center overflow-hidden rounded-md border border-[var(--color-border)] bg-[#161b22]"
+              : "flex size-20 items-center justify-center overflow-hidden rounded-md border border-[var(--color-border)] bg-[var(--color-surface-inset)]"
+          }
+        >
           {preview ? (
             <img
               src={preview}

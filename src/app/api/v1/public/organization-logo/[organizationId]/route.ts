@@ -3,7 +3,10 @@ import { z } from "zod";
 
 import { apiHandler } from "@/lib/api/handler";
 import { enforceRateLimit } from "@/server/rate-limit/enforce";
-import { resolveOrganizationLogo } from "@/server/services/organization-logo.service";
+import {
+  parseLogoVariant,
+  resolveOrganizationLogo,
+} from "@/server/services/organization-logo.service";
 
 const paramsSchema = z.object({
   organizationId: z.string().min(1).max(64),
@@ -16,7 +19,10 @@ export const GET = apiHandler({ paramsSchema }, async ({ req, params }) => {
     options: { windowMs: 60_000, maxHits: 180 },
   });
 
-  const resolved = await resolveOrganizationLogo(params.organizationId);
+  const resolved = await resolveOrganizationLogo(
+    params.organizationId,
+    parseLogoVariant(req.nextUrl.searchParams.get("variant")),
+  );
   if (!resolved) {
     return new NextResponse("Not Found", { status: 404 });
   }

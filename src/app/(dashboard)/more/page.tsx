@@ -24,8 +24,10 @@ export default async function MorePage() {
         }
       />
       <div className="space-y-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-4">
-        <LanguageSwitcher />
-        <ThemeSwitcher />
+        <div className="flex flex-wrap items-center gap-4">
+          <LanguageSwitcher />
+          <ThemeSwitcher />
+        </div>
         <Link
           href="/podesavanja/profil"
           className="inline-flex text-sm text-[var(--color-brand-700)] hover:underline"
