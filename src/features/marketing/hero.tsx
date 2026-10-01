@@ -21,7 +21,7 @@ import { useT } from "@/components/app/i18n-provider";
  *                 same page + on the dedicated `/demo` route)
  *
  * Login is intentionally NOT in the hero - it lives in the top-right
- * header only, and is disabled until 01.09.2026 anyway.
+ * header only, and is disabled until 15.10.2026 anyway.
  */
 export function Hero() {
   const t = useT();
@@ -52,7 +52,7 @@ export function Hero() {
 
           <h1
             id="hero-title"
-            className="mt-5 text-balance text-3xl font-extrabold leading-[1.1] tracking-tight text-[var(--color-foreground)] sm:text-5xl lg:text-6xl"
+            className="mt-5 text-balance text-3xl font-semibold leading-[1.08] text-[var(--color-foreground)] sm:text-5xl lg:text-[3.5rem]"
           >
             {t("marketing.hero.title")}
           </h1>

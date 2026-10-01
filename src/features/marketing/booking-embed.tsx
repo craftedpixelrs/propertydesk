@@ -95,7 +95,7 @@ export function BookingEmbed({
           </div>
           <h2
             id={`${anchorId}-title`}
-            className="mt-3 text-3xl font-bold tracking-tight sm:text-4xl"
+            className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl"
           >
             {resolvedTitle}
           </h2>

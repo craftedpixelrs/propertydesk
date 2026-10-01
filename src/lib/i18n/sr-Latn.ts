@@ -131,6 +131,13 @@ export const srLatn = {
     platformAdmin: "Administracija platforme",
     propertyDesk: "Property Desk",
     search: "Pretraga",
+    groupOverview: "Pregled",
+    groupProperty: "Nekretnine",
+    groupCrm: "Kupci",
+    groupDeals: "Poslovi",
+    groupFinance: "Finansije",
+    groupNetwork: "Partneri",
+    groupLibrary: "Ostalo",
   },
 
   auth: {
@@ -228,6 +235,9 @@ export const srLatn = {
     agencyRequiredHint:
       "Sva polja su obavezna sem sajta (naziv, PIB, matični broj, adresa, kontakt).",
     savedAndReady: "Profil je sačuvan. Možete da koristite aplikaciju.",
+    notYetActiveTitle: "Nalog još nije aktivan",
+    notYetActiveBody:
+      "Aktivacija počinje {{date}}. Do tada aplikacija nije dostupna: nema pregleda podataka, pretplate ni izvoza.",
     restrictedTitle: "Pristup je ograničen",
     restrictedBody:
       "Probni period ili pretplata su istekli. Aplikacija je zaključana dok se paket ne aktivira ili faktura ne plati. Možete otvoriti neplaćenu fakturu i pregledati pretplatu.",
@@ -236,6 +246,11 @@ export const srLatn = {
     unpaidInvoice: "Neplaćena faktura {{number}} — dug {{amount}}",
     noUnpaidInvoice:
       "Još nema izdate fakture. Kada administrator izda fakturu, ovde ćete moći da je otvorite.",
+    exportTitle: "Izvoz podataka",
+    exportBody:
+      "JSON sa projektima, jedinicama, kupcima, rezervacijama, prodajama, ratama i uplatama. Bez lozinki i bez sadržaja fajlova. Dostupno i kad je nalog ograničen zbog isteka.",
+    exportButton: "Preuzmi izvoz",
+    exportFailed: "Izvoz nije uspeo. Pokušajte ponovo.",
   },
 
   validation: {

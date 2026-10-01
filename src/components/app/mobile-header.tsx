@@ -17,7 +17,7 @@ export function MobileHeader({
   branding?: OrgBranding | null;
 }) {
   return (
-    <header className="sticky top-0 z-30 flex h-14 items-center justify-between gap-2 border-b border-[var(--color-border)] bg-[var(--color-surface)] px-4 safe-top md:hidden">
+    <header className="sticky top-0 z-30 flex h-14 items-center justify-between gap-2 border-b border-[var(--color-border)] bg-[color-mix(in_oklab,var(--color-surface)_92%,transparent)] px-4 shadow-[0_8px_24px_-18px_rgba(15,23,42,0.4)] backdrop-blur-md safe-top md:hidden">
       <div className="min-w-0 text-sm font-semibold text-[var(--color-foreground)]">
         <OrgBrandMark branding={branding} compact />
       </div>

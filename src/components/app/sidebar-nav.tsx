@@ -11,7 +11,13 @@ import { LanguageSwitcher } from "@/components/app/language-switcher";
 import { ThemeSwitcher } from "@/components/app/theme-switcher";
 import { OrgBrandMark, type OrgBranding } from "@/components/app/org-brand-mark";
 import { cn } from "@/lib/utils";
-import { filterNavigation, navigation } from "@/components/app/navigation";
+import {
+  activeNavHref,
+  filterNavigation,
+  groupNavigation,
+  NAV_GROUP_LABEL,
+  navigation,
+} from "@/components/app/navigation";
 import type { PermissionString } from "@/server/permissions/access-control";
 import { OrganizationSwitcher } from "@/components/app/organization-switcher";
 import { NotificationBell } from "@/features/notifications/notification-bell";
@@ -32,6 +38,65 @@ export interface SidebarNavProps {
  * parent layout hands us only the plain-string permission snapshot and
  * we build the filtered list here on the client.
  */
+function NavSections({
+  items,
+  pathname,
+}: {
+  items: ReturnType<typeof filterNavigation>;
+  pathname: string;
+}) {
+  const t = useT();
+  const current = activeNavHref(pathname, items);
+  return (
+    <ul className="space-y-4">
+      {groupNavigation(items).map((section) => (
+        <li key={section.group}>
+          <p className="px-2.5 pb-1.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--color-foreground-subtle)]">
+            {t(NAV_GROUP_LABEL[section.group])}
+          </p>
+          <ul className="space-y-0.5">
+            {section.items.map((item) => {
+              const Icon = item.icon;
+              const active = item.href === current;
+              return (
+                <li key={item.key}>
+                  <Link
+                    href={item.href}
+                    aria-current={active ? "page" : undefined}
+                    className={cn(
+                      "relative flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm transition-colors",
+                      active
+                        ? "bg-[var(--color-brand-50)] font-medium text-[var(--color-brand-800)]"
+                        : "text-[var(--color-foreground-muted)] hover:bg-[var(--color-surface)] hover:text-[var(--color-foreground)]",
+                    )}
+                  >
+                    {active ? (
+                      <span
+                        aria-hidden
+                        className="absolute top-1.5 bottom-1.5 left-0 w-0.5 rounded-full bg-[var(--color-brand-600)]"
+                      />
+                    ) : null}
+                    <Icon
+                      aria-hidden
+                      className={cn(
+                        "size-4 flex-none",
+                        active
+                          ? "text-[var(--color-brand-700)]"
+                          : "text-[var(--color-foreground-subtle)]",
+                      )}
+                    />
+                    <span className="truncate">{t(item.labelKey)}</span>
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 export function SidebarNav({
   organizationType,
   permissions,
@@ -62,7 +127,7 @@ export function SidebarNav({
 
   return (
     <aside
-      className="hidden md:flex md:w-64 md:shrink-0 md:flex-col border-r border-[var(--color-border)] bg-[var(--color-surface)]"
+      className="hidden border-r border-[var(--color-border)] bg-[var(--color-sidebar)] md:flex md:w-[17rem] md:shrink-0 md:flex-col"
       aria-label={t("a11y.primaryNavigation")}
     >
       <div className="flex h-14 items-center justify-between gap-2 border-b border-[var(--color-border)] px-4 font-semibold text-[var(--color-foreground)]">
@@ -80,30 +145,8 @@ export function SidebarNav({
           <div className="border-b border-[var(--color-border)] p-3">
             <SearchButton />
           </div>
-          <nav className="flex-1 overflow-y-auto p-2">
-            <ul className="space-y-0.5">
-              {items.map((item) => {
-                const Icon = item.icon;
-                const active =
-                  pathname === item.href || pathname.startsWith(`${item.href}/`);
-                return (
-                  <li key={item.key}>
-                    <Link
-                      href={item.href}
-                      className={cn(
-                        "flex items-center gap-3 rounded-md px-3 py-2 text-sm text-[var(--color-foreground)]",
-                        active
-                          ? "bg-[var(--color-brand-50)] text-[var(--color-brand-700)]"
-                          : "hover:bg-[var(--color-surface-inset)]",
-                      )}
-                    >
-                      <Icon aria-hidden className="size-4 flex-none" />
-                      <span className="truncate">{t(item.labelKey)}</span>
-                    </Link>
-                  </li>
-                );
-              })}
-            </ul>
+          <nav className="flex-1 overflow-y-auto px-2 py-3">
+            <NavSections items={items} pathname={pathname} />
           </nav>
         </>
       )}
@@ -116,11 +159,11 @@ export function SidebarNav({
         <Link
           href="/podesavanja/profil"
           className={cn(
-            "flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm",
+            "flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
             pathname === "/podesavanja/profil" ||
               pathname.startsWith("/podesavanja/profil/")
               ? "bg-[var(--color-brand-50)] text-[var(--color-brand-700)]"
-              : "text-[var(--color-foreground-muted)] hover:bg-[var(--color-surface-inset)]",
+              : "text-[var(--color-foreground-muted)] hover:bg-[var(--color-surface)] hover:text-[var(--color-foreground)]",
           )}
         >
           <CircleUser aria-hidden className="size-4" />
@@ -129,7 +172,7 @@ export function SidebarNav({
         <button
           type="button"
           onClick={handleSignOut}
-          className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm text-[var(--color-foreground-muted)] hover:bg-[var(--color-surface-inset)]"
+          className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-[var(--color-foreground-muted)] transition-colors hover:bg-[var(--color-surface)] hover:text-[var(--color-foreground)]"
         >
           <LogOut aria-hidden className="size-4" />
           {t("nav.signOut")}

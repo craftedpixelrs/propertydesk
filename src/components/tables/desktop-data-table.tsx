@@ -31,15 +31,15 @@ export function DesktopDataTable<T>({
   className,
 }: DesktopDataTableProps<T>) {
   return (
-    <div className={cn("overflow-x-auto rounded-lg border border-[var(--color-border)]", className)}>
+    <div className={cn("overflow-x-auto rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] shadow-[0_1px_2px_var(--color-shadow),0_12px_28px_-18px_var(--color-shadow)]", className)}>
       <table className="w-full border-collapse text-sm">
-        <thead className="bg-[var(--color-surface-inset)] text-left text-xs uppercase tracking-wide text-[var(--color-foreground-subtle)]">
+        <thead className="border-b border-[var(--color-border)] bg-[var(--color-surface-muted)] text-left text-[11px] font-semibold uppercase tracking-[0.06em] text-[var(--color-foreground-subtle)]">
           <tr>
             {columns.map((col) => (
               <th
                 key={col.key}
                 className={cn(
-                  "px-4 py-2.5 font-medium",
+                  "px-4 py-3 font-medium",
                   col.align === "right" && "text-right",
                   col.align === "center" && "text-center",
                 )}
@@ -56,7 +56,7 @@ export function DesktopDataTable<T>({
             <tr
               key={rowKey(row)}
               className={cn(
-                "hover:bg-[var(--color-surface-muted)]",
+                "transition-colors hover:bg-[color-mix(in_oklab,var(--color-brand-50)_70%,var(--color-surface))]",
                 onRowClick && "cursor-pointer",
               )}
               onClick={onRowClick ? () => onRowClick(row) : undefined}

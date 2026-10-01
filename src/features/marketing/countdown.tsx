@@ -77,7 +77,7 @@ export function Countdown({ targetIso, className }: CountdownProps) {
           key={c.label}
           className="rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] px-2 py-3 sm:px-4 sm:py-4 shadow-sm"
         >
-          <div className="font-mono text-2xl sm:text-3xl font-bold text-[var(--color-foreground)] tabular-nums">
+          <div className="font-display text-2xl font-semibold tabular-nums text-[var(--color-foreground)] sm:text-3xl">
             {c.value}
           </div>
           <div className="mt-0.5 text-[10px] sm:text-xs font-medium uppercase tracking-wider text-[var(--color-foreground-muted)]">

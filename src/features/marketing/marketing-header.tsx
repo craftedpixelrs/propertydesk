@@ -67,26 +67,28 @@ export function MarketingHeader() {
             priority
             className="h-8 w-8 object-contain sm:h-9 sm:w-9"
           />
-          <span className="text-base sm:text-lg">{APP_NAME}</span>
+          <span className="font-display text-lg font-semibold tracking-tight">
+            {APP_NAME}
+          </span>
         </Link>
 
-        <nav className="hidden items-center gap-1 md:flex" aria-label={t("a11y.primaryNavigation")}>
+        <nav className="hidden items-center gap-0.5 lg:flex" aria-label={t("a11y.primaryNavigation")}>
           {navLinks.map((l) => (
             <a
               key={l.href}
               href={l.href}
-              className="rounded-md px-3 py-2 text-sm font-medium text-[var(--color-foreground-muted)] hover:bg-[var(--color-surface-inset)] hover:text-[var(--color-foreground)]"
+              className="whitespace-nowrap rounded-md px-2.5 py-2 text-[13px] font-medium text-[var(--color-foreground-muted)] hover:bg-[var(--color-surface-inset)] hover:text-[var(--color-foreground)]"
             >
               {l.label}
             </a>
           ))}
         </nav>
 
-        <div className="hidden items-center gap-2 md:flex">
+        <div className="hidden items-center gap-2 lg:flex">
           <LanguageSwitcher compact />
           <ThemeSwitcher compact />
           {/* Sign-in is intentionally disabled until the public launch
-           * on 01.09.2026 - we surface a coming-soon affordance instead of
+           * on 15.10.2026 - we surface a coming-soon affordance instead of
            * silently linking to a route that would just show a login
            * page for accounts that don't exist yet. */}
           <Button
@@ -99,7 +101,7 @@ export function MarketingHeader() {
             className="cursor-not-allowed gap-2"
           >
             <span>{t("auth.signIn")}</span>
-            <span className="rounded-full bg-[var(--color-surface-inset)] px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[var(--color-foreground-muted)]">
+            <span className="hidden rounded-full bg-[var(--color-surface-inset)] px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[var(--color-foreground-muted)] xl:inline">
               {t("common.comingSoon")}
             </span>
           </Button>
@@ -114,7 +116,7 @@ export function MarketingHeader() {
           aria-label={open ? t("a11y.closeMenu") : t("a11y.openMenu")}
           aria-expanded={open}
           aria-controls="mobile-nav"
-          className="relative inline-flex h-10 w-10 items-center justify-center rounded-md text-[var(--color-foreground-muted)] transition-colors hover:bg-[var(--color-surface-inset)] md:hidden"
+          className="relative inline-flex h-10 w-10 items-center justify-center rounded-md text-[var(--color-foreground-muted)] transition-colors hover:bg-[var(--color-surface-inset)] lg:hidden"
         >
           <span className="relative grid size-5 place-items-center">
             <Menu
@@ -138,7 +140,7 @@ export function MarketingHeader() {
       <div
         id="mobile-nav"
         className={cn(
-          "grid overflow-hidden transition-[grid-template-rows] duration-300 ease-out md:hidden",
+          "grid overflow-hidden transition-[grid-template-rows] duration-300 ease-out lg:hidden",
           open ? "grid-rows-[1fr]" : "grid-rows-[0fr]",
         )}
         aria-hidden={!open}

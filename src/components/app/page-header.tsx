@@ -17,16 +17,18 @@ export function PageHeader({ title, description, actions, className }: PageHeade
   return (
     <header
       className={cn(
-        "flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between",
+        "mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between",
         className,
       )}
     >
       <div className="min-w-0">
-        <h1 className="text-xl font-semibold text-[var(--color-foreground)] sm:text-2xl">
+        <h1 className="text-[1.35rem] font-semibold text-[var(--color-foreground)] sm:text-[1.7rem]">
           {title}
         </h1>
         {description ? (
-          <p className="text-sm text-[var(--color-foreground-muted)] mt-1">{description}</p>
+          <p className="mt-1 max-w-2xl text-sm leading-relaxed text-[var(--color-foreground-muted)]">
+            {description}
+          </p>
         ) : null}
       </div>
       {actions ? (

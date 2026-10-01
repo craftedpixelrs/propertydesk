@@ -126,6 +126,13 @@ export const en: Dictionary = {
     platformAdmin: "Platform admin",
     propertyDesk: "Property Desk",
     search: "Search",
+    groupOverview: "Overview",
+    groupProperty: "Properties",
+    groupCrm: "Buyers",
+    groupDeals: "Deals",
+    groupFinance: "Finance",
+    groupNetwork: "Partners",
+    groupLibrary: "Other",
   },
 
   auth: {
@@ -223,6 +230,9 @@ export const en: Dictionary = {
     agencyRequiredHint:
       "Every field is required except the website (name, tax ID, registration number, address, contact).",
     savedAndReady: "Profile saved. You can use the app now.",
+    notYetActiveTitle: "This account is not active yet",
+    notYetActiveBody:
+      "Activation starts on {{date}}. Until then the app is unavailable: no data, subscription, or export.",
     restrictedTitle: "Access is restricted",
     restrictedBody:
       "The trial or subscription has expired. The app is locked until a plan is activated or the invoice is paid. You can open the unpaid invoice and view the subscription.",
@@ -231,6 +241,11 @@ export const en: Dictionary = {
     unpaidInvoice: "Unpaid invoice {{number}} — due {{amount}}",
     noUnpaidInvoice:
       "No invoice has been issued yet. Once an administrator issues one, you will be able to open it here.",
+    exportTitle: "Data export",
+    exportBody:
+      "JSON with projects, units, buyers, reservations, sales, installments and payments. No passwords and no file contents. Still available when the account is restricted after expiry.",
+    exportButton: "Download export",
+    exportFailed: "Export failed. Try again.",
   },
 
   validation: {

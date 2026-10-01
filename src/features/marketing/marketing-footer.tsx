@@ -26,7 +26,7 @@ export async function MarketingFooter() {
               height={LANDING_IMAGES.logo.height}
               className="h-8 w-8 object-contain"
             />
-            <span className="text-base">{APP_NAME}</span>
+            <span className="font-display text-lg font-semibold tracking-tight">{APP_NAME}</span>
           </div>
           <p className="max-w-xs text-sm leading-relaxed text-[var(--color-foreground-muted)]">
             {t("marketing.footer.blurb")}

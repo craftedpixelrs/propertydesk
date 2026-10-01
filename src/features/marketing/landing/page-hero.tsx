@@ -65,7 +65,7 @@ export async function PageHero({
           </Badge>
           <h1
             id="page-hero-title"
-            className="mt-4 text-balance text-3xl font-extrabold leading-[1.1] tracking-tight text-[var(--color-foreground)] sm:text-5xl lg:text-6xl"
+            className="mt-4 text-balance text-3xl font-semibold leading-[1.08] text-[var(--color-foreground)] sm:text-5xl lg:text-[3.5rem]"
           >
             {title}
           </h1>

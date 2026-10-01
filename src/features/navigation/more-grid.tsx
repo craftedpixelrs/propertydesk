@@ -4,7 +4,9 @@ import Link from "next/link";
 import { useMemo } from "react";
 import {
   MOBILE_BOTTOM_NAV_KEYS,
+  NAV_GROUP_LABEL,
   filterNavigation,
+  groupNavigation,
   navigation,
 } from "@/components/app/navigation";
 import type { PermissionString } from "@/server/permissions/access-control";
@@ -52,31 +54,40 @@ export function MoreGrid({
   }
 
   return (
-    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
-      {items.map((item) => {
-        const Icon = item.icon;
-        return (
-          <Link
-            key={item.key}
-            href={item.href}
-            className={cn(
-              "flex min-h-24 flex-col items-start gap-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-4 text-sm",
-              "hover:border-[var(--color-brand-500)] hover:bg-[var(--color-brand-50)]",
-              "focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--color-brand-500)]",
-            )}
-          >
-            <span
-              aria-hidden
-              className="flex size-9 items-center justify-center rounded-md bg-[var(--color-brand-50)] text-[var(--color-brand-700)]"
-            >
-              <Icon className="size-5" />
-            </span>
-            <span className="font-medium text-[var(--color-foreground)]">
-              {t(item.labelKey)}
-            </span>
-          </Link>
-        );
-      })}
+    <div className="space-y-6">
+      {groupNavigation(items).map((section) => (
+        <section key={section.group} className="space-y-2">
+          <h2 className="px-1 text-xs font-semibold uppercase tracking-wide text-[var(--color-foreground-subtle)]">
+            {t(NAV_GROUP_LABEL[section.group])}
+          </h2>
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+            {section.items.map((item) => {
+              const Icon = item.icon;
+              return (
+                <Link
+                  key={item.key}
+                  href={item.href}
+                  className={cn(
+                    "flex min-h-24 flex-col items-start gap-2 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-4 text-sm shadow-[0_1px_2px_var(--color-shadow)] transition-colors",
+                    "hover:border-[var(--color-brand-300)] hover:bg-[var(--color-brand-50)]",
+                    "focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--color-brand-500)]",
+                  )}
+                >
+                  <span
+                    aria-hidden
+                    className="flex size-9 items-center justify-center rounded-lg bg-[var(--color-brand-50)] text-[var(--color-brand-700)]"
+                  >
+                    <Icon className="size-5" />
+                  </span>
+                  <span className="font-medium text-[var(--color-foreground)]">
+                    {t(item.labelKey)}
+                  </span>
+                </Link>
+              );
+            })}
+          </div>
+        </section>
+      ))}
     </div>
   );
 }

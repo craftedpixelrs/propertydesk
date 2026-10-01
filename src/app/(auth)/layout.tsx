@@ -68,7 +68,7 @@ function BrandLockup({ size }: { size: "md" | "lg" }) {
         priority
         className={`${markClass} object-contain`}
       />
-      <span className={`${nameClass} font-semibold tracking-tight text-[var(--color-brand-900)]`}>
+      <span className={`${nameClass} font-display font-semibold tracking-tight text-[var(--color-brand-900)]`}>
         {APP_NAME}
       </span>
     </span>

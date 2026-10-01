@@ -20,7 +20,11 @@ export function OrgBrandMark({
   const { theme } = useTheme();
   const showOrg = Boolean(branding?.whiteLabel && branding.logoUrl);
   if (!showOrg) {
-    return <span className="truncate">{APP_NAME}</span>;
+    return (
+      <span className="truncate font-display text-[1.05rem] font-semibold tracking-tight">
+        {APP_NAME}
+      </span>
+    );
   }
 
   const src =

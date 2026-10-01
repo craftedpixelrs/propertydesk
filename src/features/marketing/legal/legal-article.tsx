@@ -6,7 +6,7 @@ export function LegalArticle({ doc }: { doc: LegalDoc }) {
       <p className="text-xs font-semibold uppercase tracking-wider text-[var(--color-foreground-subtle)]">
         {doc.updated}
       </p>
-      <h1 className="mt-2 text-3xl font-bold tracking-tight sm:text-4xl">
+      <h1 className="mt-2 text-3xl font-semibold tracking-tight sm:text-4xl">
         {doc.title}
       </h1>
       <p className="mt-4 text-base leading-relaxed text-[var(--color-foreground-muted)]">

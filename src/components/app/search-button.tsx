@@ -30,7 +30,7 @@ export function SearchButton({ variant = "sidebar" }: { variant?: "sidebar" | "c
     <button
       type="button"
       onClick={toggle}
-      className="flex w-full items-center gap-2 rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-1.5 text-left text-sm text-[var(--color-foreground-muted)] hover:bg-[var(--color-surface-inset)]"
+      className="flex w-full items-center gap-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2 text-left text-sm text-[var(--color-foreground-muted)] shadow-sm transition-colors hover:border-[var(--color-border-strong)]"
     >
       <Search aria-hidden className="size-4" />
       <span className="flex-1 truncate">{t("ui.search.title")}…</span>

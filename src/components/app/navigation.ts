@@ -32,8 +32,47 @@ import type { PermissionString } from "@/server/permissions/access-control";
  *   - the mobile "Više" secondary menu
  */
 
+export type NavGroup =
+  | "overview"
+  | "property"
+  | "crm"
+  | "deals"
+  | "finance"
+  | "network"
+  | "library";
+
+export const NAV_GROUP_ORDER: NavGroup[] = [
+  "overview",
+  "property",
+  "crm",
+  "deals",
+  "finance",
+  "network",
+  "library",
+];
+
+export const NAV_GROUP_LABEL: Record<
+  NavGroup,
+  | "nav.groupOverview"
+  | "nav.groupProperty"
+  | "nav.groupCrm"
+  | "nav.groupDeals"
+  | "nav.groupFinance"
+  | "nav.groupNetwork"
+  | "nav.groupLibrary"
+> = {
+  overview: "nav.groupOverview",
+  property: "nav.groupProperty",
+  crm: "nav.groupCrm",
+  deals: "nav.groupDeals",
+  finance: "nav.groupFinance",
+  network: "nav.groupNetwork",
+  library: "nav.groupLibrary",
+};
+
 export interface NavItem {
   key: string;
+  group: NavGroup;
   labelKey:
     | `nav.${
         | "dashboard"
@@ -84,9 +123,10 @@ export interface NavItem {
 }
 
 export const navigation: NavItem[] = [
-  { key: "dashboard", labelKey: "nav.dashboard", href: "/dashboard", icon: Home },
+  { key: "dashboard", group: "overview", labelKey: "nav.dashboard", href: "/dashboard", icon: Home },
   {
     key: "projects",
+    group: "property",
     labelKey: "nav.projects",
     href: "/projekti",
     icon: Building2,
@@ -95,6 +135,7 @@ export const navigation: NavItem[] = [
   },
   {
     key: "inventory",
+    group: "property",
     labelKey: "nav.inventory",
     href: "/jedinice",
     icon: LayoutGrid,
@@ -103,6 +144,7 @@ export const navigation: NavItem[] = [
   },
   {
     key: "customers",
+    group: "crm",
     labelKey: "nav.customers",
     href: "/kupci",
     icon: Contact,
@@ -111,6 +153,7 @@ export const navigation: NavItem[] = [
   },
   {
     key: "tasks",
+    group: "crm",
     labelKey: "nav.tasks",
     href: "/zadaci",
     icon: ClipboardCheck,
@@ -119,6 +162,7 @@ export const navigation: NavItem[] = [
   },
   {
     key: "reservations",
+    group: "deals",
     labelKey: "nav.reservations",
     href: "/rezervacije",
     icon: BadgeCheck,
@@ -127,6 +171,7 @@ export const navigation: NavItem[] = [
   },
   {
     key: "calendar",
+    group: "deals",
     labelKey: "nav.calendar",
     href: "/kalendar",
     icon: CalendarDays,
@@ -135,6 +180,7 @@ export const navigation: NavItem[] = [
   },
   {
     key: "sales",
+    group: "deals",
     labelKey: "nav.sales",
     href: "/prodaje",
     icon: Handshake,
@@ -143,6 +189,7 @@ export const navigation: NavItem[] = [
   },
   {
     key: "payments",
+    group: "finance",
     labelKey: "nav.payments",
     href: "/uplate",
     icon: Wallet,
@@ -151,6 +198,7 @@ export const navigation: NavItem[] = [
   },
   {
     key: "agencies",
+    group: "network",
     labelKey: "nav.agencies",
     href: "/agencije",
     icon: Users,
@@ -159,6 +207,7 @@ export const navigation: NavItem[] = [
   },
   {
     key: "agency-registrations",
+    group: "network",
     labelKey: "nav.agencyRegistrations",
     href: "/agencije/registracije",
     icon: Inbox,
@@ -167,6 +216,7 @@ export const navigation: NavItem[] = [
   },
   {
     key: "offer",
+    group: "property",
     labelKey: "nav.offer",
     href: "/ponuda",
     icon: Store,
@@ -175,6 +225,7 @@ export const navigation: NavItem[] = [
   },
   {
     key: "catalog",
+    group: "property",
     labelKey: "nav.catalog",
     href: "/katalog",
     icon: Compass,
@@ -183,6 +234,7 @@ export const navigation: NavItem[] = [
   },
   {
     key: "my-buyers",
+    group: "crm",
     labelKey: "nav.myBuyers",
     href: "/moji-kupci",
     icon: Contact,
@@ -191,6 +243,7 @@ export const navigation: NavItem[] = [
   },
   {
     key: "agency-tasks",
+    group: "crm",
     labelKey: "nav.tasks",
     href: "/zadaci",
     icon: ClipboardCheck,
@@ -199,6 +252,7 @@ export const navigation: NavItem[] = [
   },
   {
     key: "my-reservations",
+    group: "deals",
     labelKey: "nav.myReservations",
     href: "/moje-rezervacije",
     icon: BadgeCheck,
@@ -207,6 +261,7 @@ export const navigation: NavItem[] = [
   },
   {
     key: "my-commissions",
+    group: "finance",
     labelKey: "nav.myCommissions",
     href: "/moje-provizije",
     icon: Wallet,
@@ -215,6 +270,7 @@ export const navigation: NavItem[] = [
   },
   {
     key: "agents",
+    group: "network",
     labelKey: "nav.agents",
     href: "/agencija/agenti",
     icon: Users,
@@ -225,6 +281,7 @@ export const navigation: NavItem[] = [
   },
   {
     key: "connections",
+    group: "network",
     labelKey: "nav.connections",
     href: "/agencija/konekcije",
     icon: Handshake,
@@ -233,6 +290,7 @@ export const navigation: NavItem[] = [
   },
   {
     key: "commissions",
+    group: "finance",
     labelKey: "nav.commissions",
     href: "/provizije",
     icon: Wallet,
@@ -241,6 +299,7 @@ export const navigation: NavItem[] = [
   },
   {
     key: "documents",
+    group: "library",
     labelKey: "nav.documents",
     href: "/dokumenti",
     icon: FileText,
@@ -248,6 +307,7 @@ export const navigation: NavItem[] = [
   },
   {
     key: "reports",
+    group: "library",
     labelKey: "nav.reports",
     href: "/izvestaji",
     icon: BarChart3,
@@ -255,12 +315,14 @@ export const navigation: NavItem[] = [
   },
   {
     key: "settings",
+    group: "library",
     labelKey: "nav.settings",
     href: "/podesavanja",
     icon: Settings,
   },
   {
     key: "platform-admin",
+    group: "library",
     labelKey: "nav.platformAdmin",
     href: "/administracija",
     icon: Shield,
@@ -268,6 +330,7 @@ export const navigation: NavItem[] = [
   },
   {
     key: "property-desk",
+    group: "library",
     labelKey: "nav.propertyDesk",
     href: "/administracija/property-desk",
     icon: Radar,
@@ -353,3 +416,27 @@ export const MOBILE_BOTTOM_NAV_KEYS = [
 ] as const;
 
 export const MoreIcon = Grid3x3;
+
+export function groupNavigation(items: NavItem[]): { group: NavGroup; items: NavItem[] }[] {
+  const buckets = new Map<NavGroup, NavItem[]>();
+  for (const item of items) {
+    const list = buckets.get(item.group) ?? [];
+    list.push(item);
+    buckets.set(item.group, list);
+  }
+  return NAV_GROUP_ORDER.filter((group) => buckets.has(group)).map((group) => ({
+    group,
+    items: buckets.get(group) ?? [],
+  }));
+}
+
+/** Longest matching href wins, so /agencije stays quiet on /agencije/registracije. */
+export function activeNavHref(pathname: string, items: { href: string }[]): string | null {
+  let best: string | null = null;
+  for (const item of items) {
+    const hit = pathname === item.href || pathname.startsWith(`${item.href}/`);
+    if (!hit) continue;
+    if (!best || item.href.length > best.length) best = item.href;
+  }
+  return best;
+}

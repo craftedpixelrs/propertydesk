@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Inter } from "next/font/google";
+import { Plus_Jakarta_Sans, Source_Serif_4 } from "next/font/google";
 
 import { Providers } from "@/components/app/providers";
 import { APP_LOCALE, APP_NAME, MARKETING_URL } from "@/lib/constants/app";
@@ -10,17 +10,27 @@ import { NOINDEX_ROBOTS } from "@/lib/seo/policy";
 import "./globals.css";
 
 /**
- * Self-hosted Inter via `next/font/google`. This is CSP-safe: Next writes
+ * Self-hosted faces via `next/font/google`. This is CSP-safe: Next writes
  * the woff2 files under `_next/static` (served from `'self'`), so the
  * strict `font-src 'self' data:` policy in [next.config.ts](next.config.ts)
- * still allows the fonts to load. We restrict weights to the ones the UI
- * actually uses to keep the payload lean.
+ * still allows the fonts to load. Latin-ext covers Serbian diacritics.
+ *
+ * Plus Jakarta Sans is the UI face (nav, tables, forms). Source Serif 4
+ * is reserved for titles so the product reads as a property brand, not
+ * a generic admin template.
  */
-const inter = Inter({
+const sans = Plus_Jakarta_Sans({
   subsets: ["latin", "latin-ext"],
   variable: "--font-sans-loaded",
   display: "swap",
-  weight: ["400", "500", "600", "700", "800"],
+  weight: ["400", "500", "600", "700"],
+});
+
+const display = Source_Serif_4({
+  subsets: ["latin", "latin-ext"],
+  variable: "--font-display-loaded",
+  display: "swap",
+  weight: ["500", "600", "700"],
 });
 
 function ogLocale(locale: Locale): string {
@@ -95,7 +105,7 @@ export default async function RootLayout({
       data-theme={theme}
       style={{ colorScheme: theme }}
       suppressHydrationWarning
-      className={inter.variable}
+      className={`${sans.variable} ${display.variable}`}
     >
       <body suppressHydrationWarning>
         <a href="#main-content" className="skip-link">

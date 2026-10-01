@@ -34,7 +34,7 @@ function PersonaCard({
           {eyebrow}
         </div>
       </div>
-      <h3 className="mt-4 text-2xl font-bold tracking-tight">{title}</h3>
+      <h3 className="mt-4 font-display text-2xl font-semibold tracking-tight">{title}</h3>
       <p className="mt-2 text-sm leading-relaxed text-[var(--color-foreground-muted)]">
         {description}
       </p>
@@ -69,7 +69,7 @@ export function Personas() {
           </div>
           <h2
             id="personas-title"
-            className="mt-2 text-3xl font-bold tracking-tight sm:text-4xl"
+            className="mt-2 text-3xl font-semibold tracking-tight sm:text-4xl"
           >
             {t("marketing.personas.title")}
           </h2>

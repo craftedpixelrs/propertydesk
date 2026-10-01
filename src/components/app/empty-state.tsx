@@ -13,10 +13,10 @@ export interface EmptyStateProps {
 
 export function EmptyState({ title, description, icon, action, className }: EmptyStateProps) {
   return (
-    <Card className={cn("flex flex-col items-center justify-center gap-3 px-6 py-12 text-center", className)}>
+    <Card className={cn("flex flex-col items-center justify-center gap-3 px-6 py-16 text-center", className)}>
       <div
         aria-hidden
-        className="flex size-12 items-center justify-center rounded-full bg-[var(--color-surface-inset)] text-[var(--color-foreground-muted)]"
+        className="flex size-12 items-center justify-center rounded-2xl bg-[var(--color-brand-50)] text-[var(--color-brand-700)]"
       >
         {icon ?? <Inbox className="size-6" />}
       </div>

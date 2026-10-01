@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useMemo } from "react";
 import {
+  activeNavHref,
   filterNavigation,
   MOBILE_BOTTOM_NAV_KEYS,
   MoreIcon,
@@ -53,35 +54,38 @@ export function BottomNav({
 
   return (
     <nav
-      className="fixed inset-x-0 bottom-0 z-40 flex border-t border-[var(--color-border)] bg-[var(--color-surface)] safe-bottom md:hidden"
+      className="fixed inset-x-0 bottom-0 z-40 flex gap-0.5 border-t border-[var(--color-border)] bg-[color-mix(in_oklab,var(--color-surface)_92%,transparent)] px-1 pt-1 shadow-[0_-10px_30px_-18px_rgba(15,23,42,0.35)] backdrop-blur-md safe-bottom md:hidden"
       aria-label={t("a11y.bottomNavigation")}
     >
       {primaryItems.map((item) => {
         const Icon = item.icon;
-        const active =
-          pathname === item.href || pathname.startsWith(`${item.href}/`);
+        const current = activeNavHref(pathname, primaryItems);
+        const active = item.href === current;
         return (
           <Link
             key={item.key}
             href={item.href}
+            aria-current={active ? "page" : undefined}
             className={cn(
-              "flex min-w-0 flex-1 flex-col items-center gap-0.5 px-1 py-2 min-h-14 text-xs",
+              "mx-0.5 flex min-h-14 min-w-0 flex-1 flex-col items-center justify-center gap-0.5 rounded-xl px-1 py-1.5 text-[11px] font-medium",
               active
-                ? "text-[var(--color-brand-700)]"
+                ? "bg-[var(--color-brand-50)] text-[var(--color-brand-800)]"
                 : "text-[var(--color-foreground-muted)]",
             )}
           >
             <Icon aria-hidden className="size-5 shrink-0" />
-            <span className="w-full text-center leading-tight">{t(item.labelKey)}</span>
+            <span className="w-full truncate text-center leading-tight">{t(item.labelKey)}</span>
           </Link>
         );
       })}
       <Link
         href="/more"
         className={cn(
-          "flex min-w-0 flex-1 flex-col items-center gap-0.5 px-1 py-2 min-h-14 text-xs",
-          pathname === "/more" || pathname.startsWith("/more/")
-            ? "text-[var(--color-brand-700)]"
+          "mx-0.5 flex min-h-14 min-w-0 flex-1 flex-col items-center justify-center gap-0.5 rounded-xl px-1 py-1.5 text-[11px] font-medium",
+          pathname === "/more" ||
+          pathname.startsWith("/more/") ||
+          activeNavHref(pathname, primaryItems) == null
+            ? "bg-[var(--color-brand-50)] text-[var(--color-brand-800)]"
             : "text-[var(--color-foreground-muted)]",
         )}
       >

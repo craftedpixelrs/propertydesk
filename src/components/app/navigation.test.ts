@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { filterNavigation, navigation } from "./navigation";
+import { activeNavHref, filterNavigation, groupNavigation, navigation } from "./navigation";
 import { organizationRoles } from "@/server/permissions/roles";
 import {
   permissionStatement,
@@ -51,6 +51,35 @@ function keysFor(input: {
     hasPropertyDeskAccess: input.hasPropertyDeskAccess ?? input.isSuperAdmin,
   }).map((i) => i.key);
 }
+
+describe("nav grouping", () => {
+  it("highlights the longer child route, not its parent", () => {
+    expect(
+      activeNavHref("/agencije/registracije", [
+        { href: "/agencije" },
+        { href: "/agencije/registracije" },
+      ]),
+    ).toBe("/agencije/registracije");
+  });
+
+  it("keeps investor sections in a stable order and drops empty ones", () => {
+    const items = filterNavigation(navigation, {
+      organizationType: "INVESTOR",
+      hasPermission: () => true,
+      isSuperAdmin: false,
+      hasPropertyDeskAccess: false,
+    });
+    expect(groupNavigation(items).map((section) => section.group)).toEqual([
+      "overview",
+      "property",
+      "crm",
+      "deals",
+      "finance",
+      "network",
+      "library",
+    ]);
+  });
+});
 
 describe("sidebar navigation matrix", () => {
   it("SUPER_ADMIN without active org sees only platform-admin (dashboard would just redirect here)", () => {

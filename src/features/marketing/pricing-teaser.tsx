@@ -67,7 +67,7 @@ export function PricingTeaser() {
           </div>
           <h2
             id="pricing-title"
-            className="mt-2 text-3xl font-bold tracking-tight sm:text-4xl"
+            className="mt-2 text-3xl font-semibold tracking-tight sm:text-4xl"
           >
             {t("marketing.pricing.title")}
           </h2>
@@ -102,7 +102,7 @@ export function PricingTeaser() {
                 {t(plan.descKey)}
               </p>
               <div className="mt-5 flex items-baseline gap-1.5">
-                <span className="text-4xl font-extrabold tracking-tight">
+                <span className="font-display text-4xl font-semibold tabular-nums tracking-tight">
                   {plan.price}
                 </span>
                 <span className="text-sm text-[var(--color-foreground-muted)]">

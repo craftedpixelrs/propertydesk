@@ -52,7 +52,7 @@ export async function CtaPanel({
           </span>
           <h2
             id="cta-panel-title"
-            className="mt-5 text-3xl font-bold tracking-tight text-white sm:text-4xl"
+            className="mt-5 text-3xl font-semibold tracking-tight text-white sm:text-4xl"
           >
             {title ?? t("marketing.cta.title")}
           </h2>

@@ -18,16 +18,15 @@ interface RoadmapItem {
   icon: LucideIcon;
   titleKey: TranslationKey;
   bodyKey: TranslationKey;
-  eta: string;
 }
 
 const ROADMAP: RoadmapItem[] = [
-  { icon: Blocks, titleKey: "marketing.roadmap.wpTitle", bodyKey: "marketing.roadmap.wpBody", eta: "Q4 2026" },
-  { icon: Bot, titleKey: "marketing.roadmap.aiTitle", bodyKey: "marketing.roadmap.aiBody", eta: "Q1 2027" },
-  { icon: SearchCheck, titleKey: "marketing.roadmap.qualifyTitle", bodyKey: "marketing.roadmap.qualifyBody", eta: "Q1 2027" },
-  { icon: Zap, titleKey: "marketing.roadmap.leadsTitle", bodyKey: "marketing.roadmap.leadsBody", eta: "Q2 2027" },
-  { icon: FileSignature, titleKey: "marketing.roadmap.signTitle", bodyKey: "marketing.roadmap.signBody", eta: "Q2 2027" },
-  { icon: Network, titleKey: "marketing.roadmap.marketTitle", bodyKey: "marketing.roadmap.marketBody", eta: "Q3 2027" },
+  { icon: Blocks, titleKey: "marketing.roadmap.wpTitle", bodyKey: "marketing.roadmap.wpBody" },
+  { icon: Bot, titleKey: "marketing.roadmap.aiTitle", bodyKey: "marketing.roadmap.aiBody" },
+  { icon: SearchCheck, titleKey: "marketing.roadmap.qualifyTitle", bodyKey: "marketing.roadmap.qualifyBody" },
+  { icon: Zap, titleKey: "marketing.roadmap.leadsTitle", bodyKey: "marketing.roadmap.leadsBody" },
+  { icon: FileSignature, titleKey: "marketing.roadmap.signTitle", bodyKey: "marketing.roadmap.signBody" },
+  { icon: Network, titleKey: "marketing.roadmap.marketTitle", bodyKey: "marketing.roadmap.marketBody" },
 ];
 
 export function Roadmap() {
@@ -46,7 +45,7 @@ export function Roadmap() {
           </div>
           <h2
             id="roadmap-title"
-            className="mt-2 text-2xl font-bold tracking-tight sm:text-3xl"
+            className="mt-2 text-2xl font-semibold tracking-tight sm:text-3xl"
           >
             {t("marketing.roadmap.title")}
           </h2>
@@ -70,8 +69,8 @@ export function Roadmap() {
                   >
                     <Icon className="size-4" />
                   </span>
-                  <Badge tone="neutral" className="uppercase tracking-wide">
-                    {item.eta}
+                  <Badge tone="neutral">
+                    {t("marketing.roadmap.notADeadline")}
                   </Badge>
                 </div>
                 <div>

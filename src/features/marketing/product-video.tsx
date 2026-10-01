@@ -81,7 +81,7 @@ export function ProductVideo() {
           </div>
           <h2
             id="video-title"
-            className="mt-3 text-3xl font-bold tracking-tight sm:text-4xl"
+            className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl"
           >
             {t("marketing.video.title")}
           </h2>

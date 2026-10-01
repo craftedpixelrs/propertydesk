@@ -35,7 +35,7 @@ export async function ProblemSolutionGrid({
         <div className="max-w-3xl">
           <h2
             id="ps-title"
-            className="text-3xl font-bold tracking-tight sm:text-4xl"
+            className="text-3xl font-semibold tracking-tight sm:text-4xl"
           >
             {title ?? t("marketing.cta.title")}
           </h2>

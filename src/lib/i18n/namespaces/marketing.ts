@@ -37,7 +37,7 @@ export const marketingSr = {
 
   header: {
     homeAria: "{{name}} — početna",
-    signInSoonTitle: "Prijava biće dostupna nakon lansiranja 01.09.2026.",
+    signInSoonTitle: "Prijava biće dostupna nakon lansiranja 15.10.2026.",
     bookDemo: "Zakažite demo",
   },
 
@@ -46,7 +46,7 @@ export const marketingSr = {
       "Operativni sistem za prodaju novogradnje - projekti, kupci, rezervacije, uplate i provizije agencija na jednom mestu.",
     bookDemo: "Zakaži 25-minutni demo",
     signIn: "Prijava na nalog",
-    launchDate: "Zvanično lansiranje: 01.09.2026.",
+    launchDate: "Zvanično lansiranje: 15.10.2026.",
     rights: "Sva prava zadržana.",
     madeFor: "Napravljeno za srpsko tržište · sr-Latn · EUR / RSD",
     poweredBy: "Powered by",
@@ -94,7 +94,7 @@ export const marketingSr = {
       "Iza proizvoda stoji Marko Banović i CraftedPixel, softverska firma iz Srbije. Radimo sa investitorima i agencijama koje i dalje vode zalihe u Excelu i rezervacije u Viber grupama. PropertyDesk je odgovor na te iste probleme.",
     whyTitle: "Zašto sada",
     whyBody:
-      "Zvanično lansiranje je 01.09.2026. Do tada radimo sa malim brojem pilot partnera: demo, pa trial na Vašim podacima, pa onboarding. Ne otvaramo samostalnu registraciju pre lansiranja.",
+      "Zvanično lansiranje je 15.10.2026. Do tada radimo sa malim brojem pilot partnera: demo, pa trial na Vašim podacima, pa onboarding. Ne otvaramo samostalnu registraciju pre lansiranja.",
     contactTitle: "Kontakt",
     contactBody:
       "Za demo, rani pristup i pitanja o proizvodu pišite na poslovnu adresu. Odgovaramo u roku od 2 radna dana.",
@@ -270,7 +270,7 @@ export const marketingSr = {
       automation: {
         title: "Automatizacija, podsetnici i @mentions",
         description:
-          "Email podsetnici za dospele rate, obaveštenja u aplikaciji, komentari sa @mentions na kupcima i prodajama - bez ručnog praćenja i Viber grupa.",
+          "Obaveštenje prodajnom timu kad rata dospeva, komentari sa @mentions na kupcima i prodajama. Podsetnik ide zaposlenom, ne kupcu.",
       },
     },
   },
@@ -282,7 +282,7 @@ export const marketingSr = {
       "PropertyDesk gradimo direktno sa ljudima koji svakodnevno prodaju novogradnju - investitorima koji vode više projekata paralelno i agencijama koje treba da vide azurno stanje inventara u svakom trenutku.",
     pilots: "Pilot partneri",
     pilotsHint:
-      "Tražimo 3–5 investitora i agencija za pilot pre 01.09.2026. Logo ide ovde kada krenemo da radimo zajedno — ne prikazujemo izmišljene reference.",
+      "Tražimo 3–5 investitora i agencija za pilot pre 15.10.2026. Logo ide ovde kada krenemo da radimo zajedno — ne prikazujemo izmišljene reference.",
     yourLogo: "Pilot mesto",
     pilotsCta: "Prijavite se za pilot",
     investor: "Investitor",
@@ -343,7 +343,7 @@ export const marketingSr = {
       "Ceo interfejs, emailovi, PDF izlazi i validacije - na srpskom (sr-Latn). Format datuma, adresa i telefona po lokalnom standardu.",
     currencyTitle: "EUR i RSD",
     currencyBody:
-      "Ugrađena podrška za obe valute. Automatski preračun po srednjem kursu NBS na dan izdavanja fakture za dinarsku protivvrednost.",
+      "Ugrađena podrška za obe valute. Kurs za dinarsku protivvrednost unosi se ručno u kursnu listu. Automatsko povlačenje srednjeg kursa NBS još nije uključeno.",
     qrTitle: "IPS QR za kaparu i fakture",
     qrBody:
       "Ispravan IPS QR usklađen sa NBS specifikacijom - i na SaaS fakturama i na online rezervacijama sa kaparom. Kupac plaća skeniranjem, bez prekucavanja poziva na broj.",
@@ -405,7 +405,7 @@ export const marketingSr = {
   },
 
   bonuses: {
-    until: "Sve prijave do 01.09.2026.",
+    until: "Sve prijave do 15.10.2026.",
     title: "Šta tačno dobijate prijavom pre lansiranja",
     leadStrong:
       "Prvih 30 dana besplatno. Nakon toga 50% popusta na naredna tri meseca.",
@@ -431,7 +431,7 @@ export const marketingSr = {
     lockBody:
       "Cena se ne menja godinu dana - bez poskupljenja u toku prve godine korišćenja.",
     footnote:
-      "Rana ponuda važi za sve koji zakažu demo ili se prijave putem forme do 01.09.2026. Nakon lansiranja standardni cenovnik.",
+      "Rana ponuda važi za sve koji zakažu demo ili se prijave putem forme do 15.10.2026. Nakon lansiranja standardni cenovnik.",
   },
 
   pricing: {
@@ -440,7 +440,7 @@ export const marketingSr = {
     subtitle:
       "Sve cene su na mesečnom nivou. Kvartalno, polugodišnje i godišnje plaćanje takođe je dostupno u aplikaciji. Bez obavezujućih ugovora - otkazivanje jednim klikom.",
     earlyBird:
-      "Rani pristup: 30 dana besplatno + 50% na naredna 3 meseca (za prijave do 01.09.2026.)",
+      "Rani pristup: 30 dana besplatno + 50% na naredna 3 meseca (za prijave do 15.10.2026.)",
     popular: "Najpopularnije",
     monthly: "/ mesečno",
     footnote:
@@ -466,10 +466,11 @@ export const marketingSr = {
   },
 
   roadmap: {
-    eyebrow: "Šta dolazi sledeće",
-    title: "Roadmap posle lansiranja",
+    eyebrow: "Ideje, ne obaveza",
+    title: "Šta razmatramo posle prvih klijenata",
     subtitle:
-      "PropertyDesk 1.0 već pokriva ceo prodajni tok od projekta do provizije. Ovo su naredni koraci - rani pretplatnici ih dobijaju čim budu dostupni, bez doplate.",
+      "Ovo nije deo ugovora, nije u ceni i nema rok. WordPress, AI chat i marketplace ne obećavamo za 2026. Ulaze tek ako ih prvi klijenti zatraže i ako stanu u plan.",
+    notADeadline: "nije rok",
     wpTitle: "WordPress plugin",
     wpBody: "Auto-sync projekata, jedinica i cena sa sajtom - bez ručnog održavanja.",
     aiTitle: "AI asistent za sajtove",
@@ -493,8 +494,8 @@ export const marketingSr = {
     eyebrow: "Česta pitanja",
     title: "Odgovori pre nego što pitate",
     q1: "Kada se lansira PropertyDesk?",
-    a1: "Zvanično lansiranje je 01.09.2026. Do tada je otvorena rana prijava - svi koji se prijave putem forme na ovoj stranici dobijaju obaveštenje pre javnog puštanja.",
-    q2: "Kako funkcioniše rana ponuda za prijave do 01.09.2026.?",
+    a1: "Zvanično lansiranje je 15.10.2026. Do tada je otvorena rana prijava - svi koji se prijave putem forme na ovoj stranici dobijaju obaveštenje pre javnog puštanja.",
+    q2: "Kako funkcioniše rana ponuda za prijave do 15.10.2026.?",
     a2: "Prvih 30 dana besplatno. Nakon toga 50% popusta na naredna tri meseca. Uz to: besplatan uvoz prve Excel tabele, besplatno podešavanje jednog projekta, onboarding za tim, prioritetna podrška i zaključana cena paketa 12 meseci - bez poskupljenja u toku prve godine.",
     q3: "Kako izgleda demo i koliko traje?",
     a3: "Personalizovan demo traje 20-30 minuta (video poziv, direktno zakazivanje iz kalendara na sajtu, bez čekanja). Ako nakon toga odlučite da probate PropertyDesk, dobijate 30 dana besplatnog trial-a. Onboarding za tim (60 min) zakazuje se nakon aktivacije trial naloga - kroz konkretne primere iz Vašeg poslovanja.",
@@ -520,7 +521,7 @@ export const marketingSr = {
     subtitleBefore:
       "Ostavite kontakt - javljamo se u roku od 2 radna dana radi dogovora za demo i obuku u trajanju od sat vremena. Prijavljeni korisnici automatski ostvaruju pravo na",
     subtitleStrong: "50% popusta prva 3 meseca",
-    subtitleAfter: "nakon lansiranja 01.09.2026.",
+    subtitleAfter: "nakon lansiranja 15.10.2026.",
     perk1: "Bez obaveze - sve dok Vi ne odlučite drugačije.",
     perk2: "Podaci ostaju u EU, brišu se na Vaš zahtev.",
     perk3:
@@ -566,7 +567,7 @@ export const marketingSr = {
   cta: {
     title: "Videli ste šta radi. Vidimo se na demo pozivu?",
     subtitle:
-      "Prvih 30 dana besplatno. Nakon toga 50% popusta na naredna tri meseca. Zaključana cena paketa 12 meseci - za sve prijave do 01.09.2026.",
+      "Prvih 30 dana besplatno. Nakon toga 50% popusta na naredna tri meseca. Zaključana cena paketa 12 meseci - za sve prijave do 15.10.2026.",
   },
 
   landing: {
@@ -574,14 +575,14 @@ export const marketingSr = {
     metaHomeTitle:
       "{{name}} - Softver za prodaju novogradnje | Investitori i agencije",
     metaHomeDescription:
-      "Softver za investitore i agencije koje prodaju novogradnju: projekti, KYC kupaca, online rezervacija sa IPS QR kaparom, generator ugovora u PDF-u, planovi otplate, uplate, provizije, referral kod za agencije, javni sajt projekta, cash-flow projekcija i izveštaji. IPS QR, PDV 10%/2.5%, EUR/RSD. Lansiranje 01.09.2026 - prijave do lansiranja dobijaju 30 dana besplatno + 50% na naredna 3 meseca.",
+      "Softver za investitore i agencije koje prodaju novogradnju: projekti, KYC kupaca, online rezervacija sa IPS QR kaparom, generator ugovora u PDF-u, planovi otplate, uplate, provizije, referral kod za agencije, javni sajt projekta, cash-flow projekcija i izveštaji. IPS QR, PDV 10%/2.5%, EUR/RSD. Lansiranje 15.10.2026 - prijave do lansiranja dobijaju 30 dana besplatno + 50% na naredna 3 meseca.",
     softwareDescription:
       "Multi-tenant SaaS platforma za investitore u nekretnine i partnerske agencije. Projekti, jedinice, kupci, rezervacije, prodaje, planovi otplate, uplate, provizije, dokumenti i izveštaji - sa IPS QR za kaparu i fakture.",
     ogAlt: "PropertyDesk - operativni sistem za prodaju novogradnje",
     ogHeadline: "Operativni sistem za prodaju novogradnje",
     ogSub:
       "Projekti, kupci, rezervacije, uplate i provizije agencija - sve na srpskom, sa IPS QR za kaparu i fakture.",
-    ogBadge: "Lansiranje 01.09.2026 · −50% prva 3 meseca",
+    ogBadge: "Lansiranje 15.10.2026 · −50% prva 3 meseca",
   },
 
   pages: {
@@ -695,7 +696,7 @@ export const marketingSr = {
       p2: "Nema koncepta rezervacije, storniranja ili aneksa - morate to sami da modelujete kroz custom polja.",
       s2: "Rezervacije, storniranja, aneksi i planovi rata su ugrađeni tokovi - ne prilagođavate CRM njima.",
       p3: "Automatizacije rade na apstraktne 'stage-ove', ne na realne događaje (istek rezervacije, dospele rate).",
-      s3: "Automatski podsetnici za dospele rate, istek rezervacije, obavezne dokumente - iz kutije.",
+      s3: "Prodavac dobija obaveštenje za ratu koja dospeva i kad rezervacija istekne. Podsetnik kupcu još nije uključen.",
       p4: "Partnerske agencije nemaju svoj portal - morate im slati Excel svakog dana.",
       s4: "Svaka agencija ima svoj login sa pravima videti samo ono što joj Vi dopustite - stanovi, cene, provizije.",
     },
@@ -712,7 +713,7 @@ export const marketingSr = {
         "Excel je odličan za pojedinca. Za tim od 5 ljudi koji istovremeno vode 300 jedinica - postaje uzrok grešaka. Ovo su najčešće tačke bola.",
       ctaTitle: "Pošaljite nam Vašu Excel tabelu - postavimo Vam sistem besplatno",
       ctaSubtitle:
-        "Prijave do 01.09.2026. dobijaju besplatan uvoz prve Excel tabele i besplatno podešavanje jednog projekta. Prvih 30 dana korišćenja bez plaćanja.",
+        "Prijave do 15.10.2026. dobijaju besplatan uvoz prve Excel tabele i besplatno podešavanje jednog projekta. Prvih 30 dana korišćenja bez plaćanja.",
       p1: "Excel se otvara u više verzija - kolega prepisuje ćeliju bez znanja da ste Vi već upisali novi status.",
       s1: "Jedna baza podataka, svako radi u istom trenutku, sa audit tragom ko je i kada promenio šta.",
       p2: "Formule pucaju - jedan pogrešan copy-paste briše polovinu izračuna cena.",
@@ -720,7 +721,7 @@ export const marketingSr = {
       p3: "Nema koncepta prava pristupa - ceo tim vidi sve, ili niko ne vidi ništa.",
       s3: "Uloge (direktor, prodavac, agent, kontrolor) sa preciznim pravima po projektu i akciji.",
       p4: "Excel ne šalje podsetnike - dospele rate ostaju neprijavljene mesecima.",
-      s4: "Automatski email podsetnici za kupce i notifikacije za prodajni tim - bez ručnog praćenja kalendara.",
+      s4: "Prodajni tim dobija obaveštenje za dospele rate. Mejl kupcu za ratu još nije uključen.",
       p5: "Prelazak na novi alat obično znači ručno ukucavanje 1.000+ jedinica.",
       s5: "Besplatan uvoz Vaše prve Excel tabele - mi radimo mapiranje, vi samo pošaljete fajl.",
     },
@@ -738,7 +739,7 @@ export const marketingSr = {
       p1: "Rezervacije se dogovaraju preko Vibera - ne znate ko je prvi rezervisao istu jedinicu.",
       s1: "Sistem forsira jednu aktivnu rezervaciju po jedinici - dupla rezervacija je fizički nemoguća.",
       p2: "Zaboravite da rezervacija ističe - stan je 'blokiran' mesec dana bez akcije.",
-      s2: "Automatski istek rezervacije + email podsetnici pre isteka - tim vidi realno slobodne jedinice.",
+      s2: "Rezervacija ističe sama i jedinica se oslobađa. Tim dobija obaveštenje kad istekne. Podsetnik pre isteka, kupcu, još nije uključen.",
       p3: "Uplate stižu u različitim valutama i preko različitih računa - ručno uparivanje traje danima.",
       s3: "FIFO alokacija na otvorene rate, konverzija EUR/RSD po dnevnom kursu, uvoz bankovnih izvoda.",
       p4: "Jedna uplata se deli na više prodaja (ili jedan kupac ima više stanova) - kako to rasporediti?",
@@ -864,7 +865,7 @@ export const marketingEn: Leaves<typeof marketingSr> = {
 
   header: {
     homeAria: "{{name}} — home",
-    signInSoonTitle: "Sign-in will be available after launch on 01.09.2026.",
+    signInSoonTitle: "Sign-in will be available after launch on 15.10.2026.",
     bookDemo: "Book a demo",
   },
 
@@ -873,7 +874,7 @@ export const marketingEn: Leaves<typeof marketingSr> = {
       "The operating system for new-build sales — projects, buyers, reservations, payments and agency commissions in one place.",
     bookDemo: "Book a 25-minute demo",
     signIn: "Sign in",
-    launchDate: "Official launch: 01.09.2026.",
+    launchDate: "Official launch: 15.10.2026.",
     rights: "All rights reserved.",
     madeFor: "Built for the Serbian market · sr-Latn · EUR / RSD",
     poweredBy: "Powered by",
@@ -921,7 +922,7 @@ export const marketingEn: Leaves<typeof marketingSr> = {
       "Behind the product are Marko Banović and CraftedPixel, a software company in Serbia. We work with investors and agencies that still run inventory in Excel and reservations in Viber groups. PropertyDesk is the answer to those same problems.",
     whyTitle: "Why now",
     whyBody:
-      "Official launch is 01.09.2026. Until then we work with a small number of pilot partners: demo, then a trial on your data, then onboarding. We do not open self-serve sign-up before launch.",
+      "Official launch is 15.10.2026. Until then we work with a small number of pilot partners: demo, then a trial on your data, then onboarding. We do not open self-serve sign-up before launch.",
     contactTitle: "Contact",
     contactBody:
       "For demo, early access and product questions write to the business address. We reply within 2 business days.",
@@ -1097,7 +1098,7 @@ export const marketingEn: Leaves<typeof marketingSr> = {
       automation: {
         title: "Automation, reminders and @mentions",
         description:
-          "Email reminders for due installments, in-app notifications, comments with @mentions on buyers and sales — no manual chasing or Viber groups.",
+          "The sales team is notified when an installment is due, plus comments with @mentions on buyers and sales. The reminder goes to the employee, not the buyer.",
       },
     },
   },
@@ -1109,7 +1110,7 @@ export const marketingEn: Leaves<typeof marketingSr> = {
       "We build PropertyDesk with people who sell new builds every day — investors running several projects at once and agencies that need live inventory at all times.",
     pilots: "Pilot partners",
     pilotsHint:
-      "We are looking for 3–5 investors and agencies as pilots before 01.09.2026. A logo goes here when we start working together — we do not show invented references.",
+      "We are looking for 3–5 investors and agencies as pilots before 15.10.2026. A logo goes here when we start working together — we do not show invented references.",
     yourLogo: "Pilot slot",
     pilotsCta: "Apply for a pilot",
     investor: "Investor",
@@ -1169,7 +1170,7 @@ export const marketingEn: Leaves<typeof marketingSr> = {
       "The full interface, emails, PDF output and validation — in Serbian (sr-Latn). Date, address and phone formats follow the local standard.",
     currencyTitle: "EUR and RSD",
     currencyBody:
-      "Built-in support for both currencies. Automatic conversion at the NBS mid rate on the invoice issue date for the dinar equivalent.",
+      "Built-in support for both currencies. The rate for the dinar equivalent is entered manually in the rate list. Automatic pull of the NBS mid rate is not switched on yet.",
     qrTitle: "IPS QR for deposits and invoices",
     qrBody:
       "A valid IPS QR aligned with the NBS specification — on SaaS invoices and on online reservations with a deposit. The buyer pays by scanning, with no manual payment reference.",
@@ -1231,7 +1232,7 @@ export const marketingEn: Leaves<typeof marketingSr> = {
   },
 
   bonuses: {
-    until: "All applications until 01.09.2026.",
+    until: "All applications until 15.10.2026.",
     title: "Exactly what you get by applying before launch",
     leadStrong: "First 30 days free. Then 50% off the next three months.",
     leadRest:
@@ -1254,7 +1255,7 @@ export const marketingEn: Leaves<typeof marketingSr> = {
     lockTitle: "Plan price locked for 12 months",
     lockBody: "The price does not change for a year — no increase during the first year.",
     footnote:
-      "The early offer applies to everyone who books a demo or applies via the form by 01.09.2026. After launch, standard pricing applies.",
+      "The early offer applies to everyone who books a demo or applies via the form by 15.10.2026. After launch, standard pricing applies.",
   },
 
   pricing: {
@@ -1263,7 +1264,7 @@ export const marketingEn: Leaves<typeof marketingSr> = {
     subtitle:
       "All prices are monthly. Quarterly, semi-annual and annual billing is also available in the app. No binding contracts — cancel in one click.",
     earlyBird:
-      "Early access: 30 days free + 50% off the next 3 months (for applications until 01.09.2026.)",
+      "Early access: 30 days free + 50% off the next 3 months (for applications until 15.10.2026.)",
     popular: "Most popular",
     monthly: "/ month",
     footnote:
@@ -1289,10 +1290,11 @@ export const marketingEn: Leaves<typeof marketingSr> = {
   },
 
   roadmap: {
-    eyebrow: "What's next",
-    title: "Roadmap after launch",
+    eyebrow: "Ideas, not a commitment",
+    title: "What we may build after the first clients",
     subtitle:
-      "PropertyDesk 1.0 already covers the full sales flow from project to commission. These are the next steps — early subscribers get them as soon as they ship, at no extra cost.",
+      "This is not part of the contract, not included in the price, and it has no deadline. We do not promise WordPress, an AI chat, or a marketplace for 2026. They land only if the first clients ask and they fit the plan.",
+    notADeadline: "not a deadline",
     wpTitle: "WordPress plugin",
     wpBody: "Auto-sync of projects, units and prices with the website — no manual upkeep.",
     aiTitle: "AI assistant for websites",
@@ -1316,8 +1318,8 @@ export const marketingEn: Leaves<typeof marketingSr> = {
     eyebrow: "FAQ",
     title: "Answers before you ask",
     q1: "When does PropertyDesk launch?",
-    a1: "The official launch is 01.09.2026. Until then early applications are open — everyone who applies via the form on this page is notified before the public release.",
-    q2: "How does the early offer work for applications until 01.09.2026?",
+    a1: "The official launch is 15.10.2026. Until then early applications are open — everyone who applies via the form on this page is notified before the public release.",
+    q2: "How does the early offer work for applications until 15.10.2026?",
     a2: "The first 30 days are free. Then 50% off the next three months. Plus: free import of the first Excel file, free setup of one project, team onboarding, priority support and a locked plan price for 12 months — no increase during the first year.",
     q3: "What does the demo look like and how long is it?",
     a3: "A personalised demo lasts 20–30 minutes (video call, booked directly from the site calendar, no waiting). If you then decide to try PropertyDesk, you get a 30-day free trial. Team onboarding (60 min) is scheduled after the trial account is activated — using concrete examples from your business.",
@@ -1343,7 +1345,7 @@ export const marketingEn: Leaves<typeof marketingSr> = {
     subtitleBefore:
       "Leave your contact — we reply within 2 business days to arrange a demo and a one-hour training. Applicants automatically get",
     subtitleStrong: "50% off the first 3 months",
-    subtitleAfter: "after launch on 01.09.2026.",
+    subtitleAfter: "after launch on 15.10.2026.",
     perk1: "No obligation — until you decide otherwise.",
     perk2: "Data stays in the EU and is deleted on your request.",
     perk3:
@@ -1388,21 +1390,21 @@ export const marketingEn: Leaves<typeof marketingSr> = {
   cta: {
     title: "You've seen what it does. Shall we meet on a demo call?",
     subtitle:
-      "First 30 days free. Then 50% off the next three months. Plan price locked for 12 months — for all applications until 01.09.2026.",
+      "First 30 days free. Then 50% off the next three months. Plan price locked for 12 months — for all applications until 15.10.2026.",
   },
 
   landing: {
     home: "Home",
     metaHomeTitle: "{{name}} - Software for new-build sales | Investors and agencies",
     metaHomeDescription:
-      "Software for investors and agencies selling new builds: projects, buyer KYC, online reservation with IPS QR deposit, PDF contract generator, payment plans, payments, commissions, agency referral codes, public project site, cash-flow projection and reports. IPS QR, VAT 10%/2.5%, EUR/RSD. Launch 01.09.2026 — applications before launch get 30 days free + 50% off the next 3 months.",
+      "Software for investors and agencies selling new builds: projects, buyer KYC, online reservation with IPS QR deposit, PDF contract generator, payment plans, payments, commissions, agency referral codes, public project site, cash-flow projection and reports. IPS QR, VAT 10%/2.5%, EUR/RSD. Launch 15.10.2026 — applications before launch get 30 days free + 50% off the next 3 months.",
     softwareDescription:
       "A multi-tenant SaaS platform for real-estate investors and partner agencies. Projects, units, buyers, reservations, sales, payment plans, payments, commissions, documents and reports — with IPS QR for deposits and invoices.",
     ogAlt: "PropertyDesk - the operating system for new-build sales",
     ogHeadline: "The operating system for new-build sales",
     ogSub:
       "Projects, buyers, reservations, payments and agency commissions — built for Serbia, with IPS QR for deposits and invoices.",
-    ogBadge: "Launch 01.09.2026 · −50% first 3 months",
+    ogBadge: "Launch 15.10.2026 · −50% first 3 months",
   },
 
   pages: {
@@ -1515,7 +1517,7 @@ export const marketingEn: Leaves<typeof marketingSr> = {
       p2: "There is no concept of a reservation, cancellation or annex — you have to model that yourself with custom fields.",
       s2: "Reservations, cancellations, annexes and installment plans are built-in flows — you do not adapt the CRM to them.",
       p3: "Automations run on abstract 'stages', not real events (reservation expiry, due installments).",
-      s3: "Automatic reminders for due installments, reservation expiry and required documents — out of the box.",
+      s3: "The salesperson is notified when an installment is due and when a reservation expires. A reminder to the buyer is not switched on yet.",
       p4: "Partner agencies have no portal of their own — you have to send them Excel every day.",
       s4: "Each agency has its own login with rights to see only what you allow — apartments, prices, commissions.",
     },
@@ -1532,7 +1534,7 @@ export const marketingEn: Leaves<typeof marketingSr> = {
         "Excel is great for one person. For a team of 5 running 300 units at once — it becomes a source of errors. These are the most common pain points.",
       ctaTitle: "Send us your Excel file — we will set the system up for free",
       ctaSubtitle:
-        "Applications until 01.09.2026 get a free import of the first Excel file and free setup of one project. The first 30 days of use are unpaid.",
+        "Applications until 15.10.2026 get a free import of the first Excel file and free setup of one project. The first 30 days of use are unpaid.",
       p1: "Excel opens in several versions — a colleague overwrites a cell without knowing you already entered a new status.",
       s1: "One database, everyone works at the same time, with an audit trail of who changed what and when.",
       p2: "Formulas break — one bad copy-paste wipes half the price calculations.",
@@ -1540,7 +1542,7 @@ export const marketingEn: Leaves<typeof marketingSr> = {
       p3: "There is no access-rights concept — the whole team sees everything, or nobody sees anything.",
       s3: "Roles (director, salesperson, agent, controller) with precise rights per project and action.",
       p4: "Excel does not send reminders — due installments stay unreported for months.",
-      s4: "Automatic email reminders for buyers and notifications for the sales team — no manual calendar chasing.",
+      s4: "The sales team is notified about due installments. An email to the buyer about an installment is not switched on yet.",
       p5: "Moving to a new tool usually means typing 1,000+ units by hand.",
       s5: "Free import of your first Excel file — we do the mapping, you just send the file.",
     },
@@ -1558,7 +1560,7 @@ export const marketingEn: Leaves<typeof marketingSr> = {
       p1: "Reservations are agreed over Viber — you do not know who reserved the same unit first.",
       s1: "The system enforces one active reservation per unit — a double reservation is physically impossible.",
       p2: "You forget the reservation expires — the apartment is 'blocked' for a month with no action.",
-      s2: "Automatic reservation expiry + email reminders before expiry — the team sees units that are actually free.",
+      s2: "A reservation expires on its own and the unit is released. The team is notified when it expires. A pre-expiry reminder to the buyer is not switched on yet.",
       p3: "Payments arrive in different currencies and via different accounts — manual matching takes days.",
       s3: "FIFO allocation to open installments, EUR/RSD conversion at the daily rate, bank-statement import.",
       p4: "One payment is split across several sales (or one buyer has several apartments) — how do you allocate it?",

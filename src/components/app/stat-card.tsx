@@ -12,20 +12,20 @@ export interface StatCardProps {
 
 export function StatCard({ label, value, hint, icon, className }: StatCardProps) {
   return (
-    <Card className={cn("flex items-center gap-3 p-4", className)}>
+    <Card className={cn("flex items-center gap-3.5 px-5 py-4", className)}>
       {icon ? (
         <div
           aria-hidden
-          className="flex size-10 items-center justify-center rounded-md bg-[var(--color-brand-50)] text-[var(--color-brand-700)]"
+          className="flex size-11 items-center justify-center rounded-xl bg-[var(--color-brand-50)] text-[var(--color-brand-700)]"
         >
           {icon}
         </div>
       ) : null}
       <div className="min-w-0">
-        <div className="text-xs font-medium uppercase tracking-wide text-[var(--color-foreground-subtle)]">
+        <div className="text-[13px] font-medium text-[var(--color-foreground-muted)]">
           {label}
         </div>
-        <div className="text-lg font-semibold text-[var(--color-foreground)] sm:text-xl">
+        <div className="mt-0.5 text-[1.65rem] font-semibold tabular-nums tracking-tight text-[var(--color-foreground)]">
           {value}
         </div>
         {hint ? (
