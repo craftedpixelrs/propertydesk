@@ -127,7 +127,7 @@ export function SidebarNav({
 
   return (
     <aside
-      className="hidden border-r border-[var(--color-border)] bg-[var(--color-sidebar)] md:flex md:w-[17rem] md:shrink-0 md:flex-col"
+      className="hidden border-r border-[var(--color-border)] bg-[var(--color-sidebar)] md:sticky md:top-0 md:flex md:h-dvh md:w-[17rem] md:shrink-0 md:flex-col md:self-start"
       aria-label={t("a11y.primaryNavigation")}
     >
       <div className="flex h-14 items-center justify-between gap-2 border-b border-[var(--color-border)] px-4 font-semibold text-[var(--color-foreground)]">
@@ -145,13 +145,13 @@ export function SidebarNav({
           <div className="border-b border-[var(--color-border)] p-3">
             <SearchButton />
           </div>
-          <nav className="flex-1 overflow-y-auto px-2 py-3">
+          <nav className="min-h-0 flex-1 overflow-y-auto px-2 py-3">
             <NavSections items={items} pathname={pathname} />
           </nav>
         </>
       )}
       {lockNav ? <div className="flex-1" /> : null}
-      <div className="border-t border-[var(--color-border)] p-2 space-y-1">
+      <div className="shrink-0 space-y-1 border-t border-[var(--color-border)] bg-[var(--color-sidebar)] p-2">
         <div className="flex items-center gap-2 px-3 py-2">
           <LanguageSwitcher compact />
           <ThemeSwitcher compact />
