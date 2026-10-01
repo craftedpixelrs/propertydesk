@@ -19,6 +19,7 @@ import { OrganizationProfileForm } from "@/features/settings/organization-profil
 import { RestrictedAccessPanel } from "@/features/settings/restricted-access-panel";
 import { loadOrganizationBranding } from "@/server/services/organization-logo.service";
 import { PageGuide } from "@/features/guides/page-guide";
+import { SessionToolbar } from "@/components/app/session-toolbar";
 
 export const dynamic = "force-dynamic";
 
@@ -126,12 +127,15 @@ export default async function DashboardLayout({ children }: { children: ReactNod
         <SidebarNav {...navProps} lockNav={lockNav} />
         <div className="flex min-w-0 flex-1 flex-col">
           <MobileHeader lockNav={lockNav} branding={branding} />
-          {ctx.session.impersonatedBy ? (
-            <ImpersonationBanner
-              userName={ctx.user.name}
-              organizationName={ctx.activeOrganization?.name ?? null}
-            />
-          ) : null}
+          <div className="sticky top-0 z-30">
+            {ctx.session.impersonatedBy ? (
+              <ImpersonationBanner
+                userName={ctx.user.name}
+                organizationName={ctx.activeOrganization?.name ?? null}
+              />
+            ) : null}
+            <SessionToolbar />
+          </div>
           <main id="main-content" role="main" className="flex-1 pb-24 md:pb-8">
             <div className="mx-auto w-full max-w-6xl px-4 py-6 sm:px-6 lg:px-8">
               {gatedChildren}

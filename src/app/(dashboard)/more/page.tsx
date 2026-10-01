@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { LanguageSwitcher } from "@/components/app/language-switcher";
+import { SignOutButton } from "@/components/app/session-toolbar";
 import { ThemeSwitcher } from "@/components/app/theme-switcher";
 import { PageHeader } from "@/components/app/page-header";
 import { MoreGrid } from "@/features/navigation/more-grid";
@@ -28,12 +29,15 @@ export default async function MorePage() {
           <LanguageSwitcher />
           <ThemeSwitcher />
         </div>
-        <Link
-          href="/podesavanja/profil"
-          className="inline-flex text-sm text-[var(--color-brand-700)] hover:underline"
-        >
-          {t("nav.account", undefined, locale)}
-        </Link>
+        <div className="flex flex-wrap items-center gap-3">
+          <Link
+            href="/podesavanja/profil"
+            className="inline-flex text-sm text-[var(--color-brand-700)] hover:underline"
+          >
+            {t("nav.account", undefined, locale)}
+          </Link>
+          <SignOutButton />
+        </div>
       </div>
     </div>
   );
