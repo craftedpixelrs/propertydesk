@@ -307,13 +307,16 @@ export const opsSr = {
     logoMustBeImage: "Logo mora biti PNG, JPG, WebP ili SVG.",
     logoTooBig: "Logo je prevelik (maksimalno 2 MB).",
     logoUploadFailed: "Otpremanje logoa nije uspelo.",
-    logoDefaultTitle: "Osnovni logo",
-    logoDefaultHint: "Za svetlu temu, ponude i javne stranice.",
-    logoLightTitle: "Svetli logo",
+    logoDefaultTitle: "Logo za svetlu temu",
+    logoDefaultHint:
+      "Tamni znak na svetloj pozadini. Koristi se dok je aplikacija u svetloj temi, i na ponudama.",
+    logoLightTitle: "Logo za tamnu temu",
     logoLightHint:
-      "Varijanta za tamnu temu (sidebar i zaglavlje). Ako nije otpremljen, koristi se osnovni logo.",
-    logoLightUploaded: "Svetli logo je otpremljen.",
-    logoLightRemoved: "Svetli logo je uklonjen.",
+      "Svetli znak na tamnoj pozadini. Sidebar i zaglavlje ga koriste dok je uključena tamna tema. Ako ga nema, ostaje logo za svetlu temu.",
+    logoLightHintLocked:
+      "Može da se otpremi unapred. U sidebaru se pojavljuje tek na Growth i Scale paketu.",
+    logoLightUploaded: "Logo za tamnu temu je otpremljen.",
+    logoLightRemoved: "Logo za tamnu temu je uklonjen.",
     paymentTitle: "Račun za kaparu",
     paymentHintInvestor:
       "Kupci sa javnog linka uplatuju kaparu na ovaj tekući račun. Unesite 18 cifara (sa ili bez crtica).",
@@ -760,13 +763,16 @@ export const opsEn: Leaves<typeof opsSr> = {
     logoMustBeImage: "Logo must be PNG, JPG, WebP, or SVG.",
     logoTooBig: "Logo is too large (2 MB maximum).",
     logoUploadFailed: "Could not upload the logo.",
-    logoDefaultTitle: "Default logo",
-    logoDefaultHint: "Used on the light theme, offers, and public pages.",
-    logoLightTitle: "Light logo",
+    logoDefaultTitle: "Logo for the light theme",
+    logoDefaultHint:
+      "Dark mark on a light background. Used while the app is in the light theme, and on offers.",
+    logoLightTitle: "Logo for the dark theme",
     logoLightHint:
-      "Variant for the dark theme (sidebar and header). If missing, the default logo is used.",
-    logoLightUploaded: "Light logo uploaded.",
-    logoLightRemoved: "Light logo removed.",
+      "Light mark on a dark background. The sidebar and header use it while dark theme is on. If it is missing, the light-theme logo stays.",
+    logoLightHintLocked:
+      "You can upload it ahead of time. It appears in the sidebar only on Growth and Scale.",
+    logoLightUploaded: "Dark-theme logo uploaded.",
+    logoLightRemoved: "Dark-theme logo removed.",
     paymentTitle: "Deposit account",
     paymentHintInvestor:
       "Buyers from a public link pay the deposit to this current account. Enter 18 digits (dashes optional).",

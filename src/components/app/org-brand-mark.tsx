@@ -27,10 +27,11 @@ export function OrgBrandMark({
     );
   }
 
-  const src =
-    theme === "dark" && branding!.logoLightUrl
-      ? branding!.logoLightUrl
-      : branding!.logoUrl!;
+  const onDark = theme === "dark" && Boolean(branding!.logoLightUrl);
+  const src = onDark ? branding!.logoLightUrl! : branding!.logoUrl!;
+  // A dark mark disappears on the dark sidebar. Until a light mark is
+  // uploaded, keep the light-theme logo on a small light plate.
+  const plate = theme === "dark" && !onDark;
 
   return (
     <span className="flex min-w-0 items-center">
@@ -40,8 +41,8 @@ export function OrgBrandMark({
         alt={branding!.name || APP_NAME}
         className={
           compact
-            ? "h-7 w-auto max-w-[140px] object-contain"
-            : "h-8 w-auto max-w-[168px] object-contain"
+            ? `h-7 w-auto max-w-[140px] object-contain ${plate ? "rounded-md bg-white px-1.5 py-0.5" : ""}`
+            : `h-8 w-auto max-w-[168px] object-contain ${plate ? "rounded-md bg-white px-1.5 py-0.5" : ""}`
         }
       />
     </span>

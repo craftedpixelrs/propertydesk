@@ -495,7 +495,11 @@ function OrganizationLogoField({
             logoUrl={logoLightUrl}
             updatedAt={updatedAt}
             title={t("ops.org.logoLightTitle")}
-            hint={t("ops.org.logoLightHint")}
+            hint={
+              whiteLabel
+                ? t("ops.org.logoLightHint")
+                : t("ops.org.logoLightHintLocked")
+            }
             previewOnDark
           />
         ) : null}
@@ -602,8 +606,8 @@ function LogoSlot({
         <div
           className={
             previewOnDark
-              ? "flex size-20 items-center justify-center overflow-hidden rounded-md border border-[var(--color-border)] bg-[#161b22]"
-              : "flex size-20 items-center justify-center overflow-hidden rounded-md border border-[var(--color-border)] bg-[var(--color-surface-inset)]"
+              ? "flex h-16 w-full max-w-[220px] items-center justify-center overflow-hidden rounded-lg border border-[#30363d] bg-[#12171f] px-3"
+              : "flex h-16 w-full max-w-[220px] items-center justify-center overflow-hidden rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] px-3"
           }
         >
           {preview ? (
