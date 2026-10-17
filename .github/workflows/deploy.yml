@@ -218,8 +218,13 @@ jobs:
           UP_SERVICES="app caddy"
           if [ -f .env.demo ]; then UP_SERVICES="$UP_SERVICES app-demo"; fi
           if [ -f .env.staging ]; then UP_SERVICES="$UP_SERVICES app-staging"; fi
+          # --force-recreate je NUŽAN: ako je prethodni (padnuti) run već
+          # upisao IMAGE=... u .env.deploy, compose vidi config kao "no
+          # changes" i nikad ne restartuje kontejnere — tiha regresija.
+          # Explicitni recreate garantuje da novi image stvarno ulazi u
+          # saobraćaj. Downtime i dalje ~5-10s per kontejner.
           IMAGE="$IMAGE_REF" docker compose --env-file .env --env-file .env.deploy \
-            up -d --no-build --remove-orphans $UP_SERVICES
+            up -d --no-build --force-recreate --remove-orphans $UP_SERVICES
 
           echo "==> Waiting for healthcheck"
           for i in \$(seq 1 30); do
