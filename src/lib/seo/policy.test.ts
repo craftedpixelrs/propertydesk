@@ -55,4 +55,17 @@ describe("seo policy", () => {
     expect(urls.every((url) => url.startsWith(MARKETING_URL))).toBe(true);
     expect(urls.every((url) => !url.includes("my."))).toBe(true);
   });
+
+  it("lists the city hub and every city page", () => {
+    const now = new Date("2026-08-19T00:00:00.000Z");
+    const urls = buildSitemapEntries("propertydesk.app", now).map((e) => e.url);
+
+    expect(urls).toContain(`${MARKETING_URL}/softver-za-prodaju-novogradnje`);
+    expect(urls).toContain(`${MARKETING_URL}/softver-za-prodaju-novogradnje/beograd`);
+    expect(urls).toContain(`${MARKETING_URL}/softver-za-prodaju-novogradnje/novi-sad`);
+    expect(urls).toContain(`${MARKETING_URL}/softver-za-prodaju-novogradnje/zlatibor`);
+
+    // No duplicates - each URL should appear exactly once.
+    expect(new Set(urls).size).toBe(urls.length);
+  });
 });

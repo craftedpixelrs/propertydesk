@@ -147,6 +147,10 @@ export default async function LandingPage() {
       <RelatedLinks
         title={t("marketing.anchors.related")}
         items={[
+          {
+            href: "/softver-za-prodaju-novogradnje",
+            label: t("marketing.anchors.software"),
+          },
           { href: "/prodaja-novogradnje", label: t("marketing.anchors.newBuild") },
           { href: "/crm-za-investitore", label: t("marketing.anchors.crm") },
           { href: "/alternative-excelu", label: t("marketing.anchors.excel") },

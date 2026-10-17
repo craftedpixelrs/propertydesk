@@ -50,7 +50,10 @@ export default async function Page() {
       <RelatedLinks
         title={t("marketing.anchors.related")}
         items={[
-          { href: "/", label: t("marketing.anchors.software") },
+          {
+            href: "/softver-za-prodaju-novogradnje",
+            label: t("marketing.anchors.software"),
+          },
           { href: "/za-investitore", label: t("marketing.anchors.investors") },
           { href: "/rezervacije-i-uplate", label: t("marketing.anchors.reservation") },
           { href: "/blog/primopredaja-stana", label: t("marketing.anchors.handover") },

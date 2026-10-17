@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 
+import { CITIES } from "@/features/marketing/cities/cities";
 import { APP_NAME, COMPANY, LANDING_IMAGES } from "@/lib/constants/app";
 import { LANDING_ROUTES } from "@/features/marketing/landing/landing-shell";
 import { CookieSettingsButton } from "@/features/marketing/cookie-banner";
@@ -11,12 +12,19 @@ const SOLUTION_LINKS = LANDING_ROUTES.filter(
   (r) => r.slug !== "demo" && r.slug !== "prodaja-novogradnje",
 ).slice(0, 6);
 
+/**
+ * Footer "Gradovi" column. We cap at 6 entries so the column visually
+ * matches the others; the full list lives on the hub page.
+ */
+const FOOTER_CITIES = CITIES.slice(0, 6);
+const CITY_HUB_SLUG = "softver-za-prodaju-novogradnje";
+
 export async function MarketingFooter() {
   const t = createT(await resolveRequestLocale());
   const year = new Date().getFullYear();
   return (
     <footer className="border-t border-white/10 bg-[#0b1020] text-[#f7f3ea]">
-      <div className="container-app grid gap-8 py-10 sm:grid-cols-2 md:grid-cols-3 md:py-12 lg:grid-cols-5">
+      <div className="container-app grid gap-8 py-10 sm:grid-cols-2 md:grid-cols-3 md:py-12 lg:grid-cols-6">
         <div className="space-y-3">
           <div className="flex items-center gap-2 font-semibold tracking-tight">
             <Image
@@ -78,6 +86,29 @@ export async function MarketingFooter() {
                 </Link>
               </li>
             ))}
+          </ul>
+        </div>
+
+        <div>
+          <div className="text-xs font-semibold tracking-wider text-white/45 uppercase">
+            {t("marketing.nav.cities")}
+          </div>
+          <ul className="mt-3 space-y-2 text-sm">
+            {FOOTER_CITIES.map((c) => (
+              <li key={c.slug}>
+                <Link
+                  href={`/${CITY_HUB_SLUG}/${c.slug}`}
+                  className="text-white/65 hover:text-white"
+                >
+                  {c.name}
+                </Link>
+              </li>
+            ))}
+            <li>
+              <Link href={`/${CITY_HUB_SLUG}`} className="text-white/65 hover:text-white">
+                {t("marketing.anchors.software")}
+              </Link>
+            </li>
           </ul>
         </div>
 

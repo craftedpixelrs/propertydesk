@@ -48,9 +48,12 @@ export default async function Page() {
       <RelatedLinks
         title={t("marketing.anchors.related")}
         items={[
+          {
+            href: "/softver-za-prodaju-novogradnje",
+            label: t("marketing.anchors.software"),
+          },
           { href: "/provizije-agencija", label: t("marketing.anchors.commission") },
           { href: "/rezervacije-i-uplate", label: t("marketing.anchors.reservation") },
-          { href: "/", label: t("marketing.anchors.software") },
         ]}
       />
       <RelatedReading slugs={["provizije-agencija-za-novogradnju", "javni-link-ponuda-stana"]} />

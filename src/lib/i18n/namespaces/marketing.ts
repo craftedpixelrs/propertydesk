@@ -30,6 +30,7 @@ export const marketingSr = {
     blog: "Blog",
     about: "O nama",
     help: "Pomoć",
+    cities: "Gradovi",
     privacy: "Privatnost",
     terms: "Uslovi",
     imprint: "Impresum",
@@ -571,9 +572,9 @@ export const marketingSr = {
 
   landing: {
     home: "Početna",
-    metaHomeTitle: "Softver za prodaju novogradnje u Srbiji | {{name}}",
+    metaHomeTitle: "Softver za prodaju stanova i novogradnje u Srbiji | {{name}}",
     metaHomeDescription:
-      "Softver za prodaju novogradnje u Srbiji: projekti, kupci, rezervacije sa IPS QR, ugovori, uplate i provizije. Lansiranje 15.10.2026.",
+      "Softver za prodaju stanova i novogradnje u Srbiji za investitore i agencije za nekretnine: projekti, cenovnik, rezervacije sa IPS QR kaparom, ugovori, uplate i provizije agencija. Beograd, Novi Sad, Niš i više od 10 gradova.",
     softwareDescription:
       "Multi-tenant SaaS platforma za investitore u nekretnine i partnerske agencije. Projekti, jedinice, kupci, rezervacije, prodaje, planovi otplate, uplate, provizije, dokumenti i izveštaji - sa IPS QR za kaparu i fakture.",
     ogAlt: "PropertyDesk - operativni sistem za prodaju novogradnje",
@@ -599,9 +600,9 @@ export const marketingSr = {
         "Standardni demo traje 25 minuta putem video poziva. Podsetnik dobijate e-mailom sa linkom za sastanak. Ako Vam ne odgovara video poziv, uvek Vas možemo pozvati telefonom.",
     },
     investors: {
-      metaTitle: "Softver za investitore",
+      metaTitle: "Softver za investitore u novogradnju",
       metaDescription:
-        "Softver za investitore u novogradnju: projekti, zaliha, rezervacija stana, ugovor, uplate i provizija agencije. Jedno mesto umesto Excela i Vibera.",
+        "Softver za investitore u novogradnju i građevinske firme: projekti, cenovnik, rezervacija stana, ugovor, uplate i provizija agencije. Jedno mesto umesto Excela i Vibera, sa IPS QR kaparom.",
       eyebrow: "Za investitore",
       title: "Vodite više projekata bez Excela, Vibera i haosa",
       subtitle:
@@ -631,9 +632,9 @@ export const marketingSr = {
       s10: "Centralno skladište dokumenata vezano za projekat, jedinicu, kupca ili prodaju - sa Vašim brendom. KYC checklist na kupcu blokira ugovor dok LK, adresa i (za pravna lica) poreska potvrda nisu potvrđene.",
     },
     agencies: {
-      metaTitle: "Softver za agencije za nekretnine",
+      metaTitle: "Softver i CRM za agencije za nekretnine",
       metaDescription:
-        "Softver za agencije za nekretnine: katalog investitora u realnom vremenu, rezervacija stana i provizija vidljiva do isplate.",
+        "Softver i CRM za agencije za nekretnine: real-time katalog investitora, rezervacija stana jednim klikom i provizija agencije za nekretnine vidljiva od prodaje do isplate.",
       eyebrow: "Za agencije",
       title: "Prodajte novogradnju iz kataloga koji je uvek ažuran",
       subtitle:
@@ -678,9 +679,9 @@ export const marketingSr = {
       s4: "Automatska FIFO alokacija na najstarije otvorene rate, ručna realokacija po potrebi.",
     },
     crm: {
-      metaTitle: "CRM za investitore u novogradnju",
+      metaTitle: "CRM za nekretnine i investitore u novogradnju",
       metaDescription:
-        "CRM za investitore u novogradnju vezuje kupca za stan, ratu, ugovor i agenciju. Bez pretvaranja stana u generički deal.",
+        "CRM za nekretnine, namenjen investitorima u novogradnju: vezuje kupca za stan, ratu, ugovor i agenciju. Bez generičkog 'deal-a' iz HubSpot-a ili Pipedrive-a.",
       eyebrow: "CRM za novogradnju",
       title: "CRM koji razume da prodajete stanove, ne 'deal-ove'",
       subtitle:
@@ -907,6 +908,7 @@ export const marketingEn: Leaves<typeof marketingSr> = {
     blog: "Blog",
     about: "About",
     help: "Help",
+    cities: "Cities",
     privacy: "Privacy",
     terms: "Terms",
     imprint: "Legal notice",
@@ -1451,9 +1453,9 @@ export const marketingEn: Leaves<typeof marketingSr> = {
 
   landing: {
     home: "Home",
-    metaHomeTitle: "New-build sales software in Serbia | {{name}}",
+    metaHomeTitle: "Software for selling apartments and new builds in Serbia | {{name}}",
     metaHomeDescription:
-      "Software for new-build sales in Serbia: projects, buyers, IPS QR reservations, contracts, payments and commissions. Launch 15.10.2026.",
+      "Software for selling apartments and new builds in Serbia for investors and estate agencies: projects, price list, reservations with IPS QR deposits, contracts, payments and agency commissions. Belgrade, Novi Sad, Niš and 10+ cities.",
     softwareDescription:
       "A multi-tenant SaaS platform for real-estate investors and partner agencies. Projects, units, buyers, reservations, sales, payment plans, payments, commissions, documents and reports — with IPS QR for deposits and invoices.",
     ogAlt: "PropertyDesk - the operating system for new-build sales",
@@ -1479,9 +1481,9 @@ export const marketingEn: Leaves<typeof marketingSr> = {
         "A standard demo lasts 25 minutes on a video call. You get an email reminder with the meeting link. If a video call does not work, we can always call you.",
     },
     investors: {
-      metaTitle: "Software for investors",
+      metaTitle: "Software for new-build investors",
       metaDescription:
-        "Software for new-build investors: projects, stock, a unit reservation, the contract, payments and the agency commission. One place instead of Excel and Viber.",
+        "Software for new-build investors and developers: projects, price list, unit reservation, contract, payments and agency commission. One place instead of Excel and Viber, with IPS QR deposits.",
       eyebrow: "For investors",
       title: "Run multiple projects without Excel, Viber and chaos",
       subtitle:
@@ -1511,9 +1513,9 @@ export const marketingEn: Leaves<typeof marketingSr> = {
       s10: "A central document store tied to the project, unit, buyer or sale — with your brand. A KYC checklist on the buyer blocks the contract until ID, address and (for companies) the tax certificate are confirmed.",
     },
     agencies: {
-      metaTitle: "Software for estate agencies",
+      metaTitle: "Software and CRM for estate agencies",
       metaDescription:
-        "Software for estate agencies: the investor catalogue in real time, a unit reservation, and a commission you can see through to payout.",
+        "Software and CRM for estate agencies: real-time investor catalogue, one-click unit reservation and an estate-agency commission visible from sale to payout.",
       eyebrow: "For agencies",
       title: "Sell new builds from a catalogue that is always current",
       subtitle:
@@ -1558,9 +1560,9 @@ export const marketingEn: Leaves<typeof marketingSr> = {
       s4: "Automatic FIFO allocation to the oldest open installments, with manual reallocation when needed.",
     },
     crm: {
-      metaTitle: "CRM for new-build investors",
+      metaTitle: "Real-estate CRM for new-build investors",
       metaDescription:
-        "A CRM for new-build investors ties the buyer to the apartment, the installment, the contract and the agency. Without turning the unit into a generic deal.",
+        "A real-estate CRM for new-build investors ties the buyer to the apartment, the installment, the contract and the agency. No generic HubSpot or Pipedrive 'deal'.",
       eyebrow: "CRM for new builds",
       title: "A CRM that understands you sell apartments, not 'deals'",
       subtitle:

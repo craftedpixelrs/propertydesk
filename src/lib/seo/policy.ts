@@ -1,10 +1,17 @@
 import type { Metadata, MetadataRoute } from "next";
 
 import { BLOG_POSTS } from "@/features/marketing/blog/posts";
+import { CITIES } from "@/features/marketing/cities/cities";
 import { LANDING_ROUTES } from "@/features/marketing/landing/landing-shell";
 import { MARKETING_URL } from "@/lib/constants/app";
 
 import { isMarketingHost } from "./hosts";
+
+/**
+ * Hub for the local SEO cluster (`/softver-za-prodaju-novogradnje`).
+ * Kept here so the sitemap and the city tree stay in one place.
+ */
+const CITY_HUB_SLUG = "softver-za-prodaju-novogradnje";
 
 /**
  * Paths that must never appear as search results, even on the apex.
@@ -103,6 +110,18 @@ export function buildSitemapEntries(host: string, now: Date): MetadataRoute.Site
       lastModified: now,
       changeFrequency: "weekly" as const,
       priority: r.slug === "demo" ? 0.9 : 0.8,
+    })),
+    {
+      url: `${MARKETING_URL}/${CITY_HUB_SLUG}`,
+      lastModified: now,
+      changeFrequency: "weekly" as const,
+      priority: 0.8,
+    },
+    ...CITIES.map((city) => ({
+      url: `${MARKETING_URL}/${CITY_HUB_SLUG}/${city.slug}`,
+      lastModified: now,
+      changeFrequency: "weekly" as const,
+      priority: 0.7,
     })),
     ...LEGAL_SITEMAP_SLUGS.map((slug) => ({
       url: `${MARKETING_URL}/${slug}`,

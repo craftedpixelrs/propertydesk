@@ -36,6 +36,7 @@ const privacySr: LegalDoc = {
         "Zakazivanje demoa: ime, email i termin koji unesete u Google Calendar Appointment Schedules. Te podatke prima Google kao nezavisni rukovalac svog kalendara.",
         "Aplikacija (nakon aktivacije naloga): nalog, članovi tima, projekti, kupci, rezervacije, ugovori, uplate i dokumenta koje Vi unesete. To su poslovni podaci Vaše organizacije.",
         "Tehnički podaci: IP adresa, tip pregledača i osnovni server logovi potrebni za bezbednost i rad sajta. Ako prihvatite analitičke kolačiće, Google Analytics 4 prima skraćenu IP adresu, stranice koje otvorite i opšte informacije o uređaju.",
+        "Ahrefs Web Analytics se učitava na svim marketing stranicama radi praćenja SEO performansi. Ne postavlja kolačiće i ne prikuplja lične podatke — beleži samo anonimnu statistiku poseta (stranica, izvor, zemlja), pa se ne vezuje za saglasnost za kolačiće.",
       ],
     },
     {
@@ -102,6 +103,7 @@ const privacyEn: LegalDoc = {
         "Demo booking: the name, email and slot you enter in Google Calendar Appointment Schedules. Google receives that data as an independent controller of its calendar.",
         "App (after an account is activated): the account, team members, projects, buyers, reservations, contracts, payments and documents you enter. Those are your organisation’s business data.",
         "Technical data: IP address, browser type and basic server logs needed for security and to run the site. If you accept analytics cookies, Google Analytics 4 receives a truncated IP, the pages you open and general device information.",
+        "Ahrefs Web Analytics runs on every marketing page to track SEO performance. It sets no cookies and collects no personal data — only anonymous visit stats (page, source, country), so it does not require cookie consent.",
       ],
     },
     {

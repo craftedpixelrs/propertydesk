@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { headers } from "next/headers";
 import type { ReactNode } from "react";
 
+import { AhrefsAnalytics } from "@/features/marketing/ahrefs-analytics";
 import { CookieBanner } from "@/features/marketing/cookie-banner";
 import { MarketingMotion } from "@/features/marketing/marketing-motion";
 import { GoogleAnalytics } from "@/features/marketing/google-analytics";
@@ -52,6 +53,7 @@ export default function MarketingLayout({ children }: { children: ReactNode }) {
       <MarketingMotion />
       <CookieBanner />
       <GoogleAnalytics />
+      <AhrefsAnalytics />
     </div>
   );
 }
