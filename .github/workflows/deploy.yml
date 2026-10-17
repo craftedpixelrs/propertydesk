@@ -182,6 +182,10 @@ jobs:
           grep -v '^IMAGE=' .env.deploy 2>/dev/null > .env.deploy.tmp || true
           echo "IMAGE=$IMAGE_REF" >> .env.deploy.tmp
           mv .env.deploy.tmp .env.deploy
+          echo "==> .env.deploy content:"
+          cat .env.deploy
+          echo "==> Before deploy: running container image"
+          docker inspect propertydesk-app --format '{{.Image}} {{.Config.Image}}' 2>/dev/null || echo "(no container yet)"
 
           echo "==> Syncing compose / Caddyfile from origin/main"
           if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
@@ -256,11 +260,25 @@ jobs:
           # biti onaj iz ovog deploya (po digest-u). Ako Docker vrati stari
           # image zbog cached layer-a ili .env.deploy nije pročitao $IMAGE,
           # bolje da to vidimo kao failed deploy nego kao tihu regresiju.
-          running_image=\$(docker inspect -f '{{.Image}}' propertydesk-app 2>/dev/null || echo "unknown")
-          expected_image=\$(docker inspect -f '{{.Id}}' "$IMAGE_REF" 2>/dev/null || echo "unknown2")
-          echo "==> Image check: running=\$running_image expected=\$expected_image"
-          if [ "\$running_image" != "\$expected_image" ] && [ "\$expected_image" != "unknown2" ]; then
-            echo "::error::propertydesk-app vrti \$running_image, očekivali smo \$expected_image iz $IMAGE_REF"
+          running_image=\$(docker inspect propertydesk-app --format '{{.Image}}' 2>/dev/null || echo "unknown-running")
+          # docker image inspect (ne container inspect) ume da resolve-uje
+          # ime+digest u lokalni sha256:... hash. Container inspect ne ume.
+          expected_image=\$(docker image inspect "$IMAGE_REF" --format '{{.Id}}' 2>/dev/null || echo "unknown-expected")
+          echo "==> Image check:"
+          echo "    running  = \$running_image"
+          echo "    expected = \$expected_image"
+          echo "    ref      = $IMAGE_REF"
+          if [ "\$expected_image" = "unknown-expected" ]; then
+            echo "::error::Očekivani image '$IMAGE_REF' nije lokalno dostupan - pull nije uspeo?"
+            docker image ls | head -20
+            exit 1
+          fi
+          if [ "\$running_image" != "\$expected_image" ]; then
+            echo "::error::propertydesk-app vrti \$running_image, očekivali smo \$expected_image"
+            echo "==> docker ps -a"
+            docker ps -a --filter name=propertydesk-app
+            echo "==> docker image ls (last 10)"
+            docker image ls | head -10
             exit 1
           fi
 
