@@ -293,5 +293,25 @@ jobs:
           echo "==> Pruning old images"
           docker image prune -f --filter "until=168h" >/dev/null 2>&1 || true
 
+          # End-to-end sanity: idemo kroz container-ov /api/health koji od
+          # ovog commit-a vraća i baked BUILD_SHA. Ako workflow javlja
+          # success a ovaj curl ne vraća isti SHA kao GITHUB_SHA, tada
+          # container na mašini na kojoj se izvršava deploy NIJE isti
+          # kao container koji opslužuje propertydesk.app saobraćaj —
+          # najverovatnije SSH_HOST secret pokazuje na pogrešan VPS.
+          echo "==> Running on \$(hostname) ($(uname -r))"
+          echo "==> Local /api/health (prod container):"
+          local_health=\$(docker exec propertydesk-app wget -qO- http://127.0.0.1:3000/api/health 2>&1 || echo "exec-failed")
+          echo "   \$local_health"
+          deployed_sha="${{ github.sha }}"
+          deployed_short=\$(echo "\$deployed_sha" | cut -c1-12)
+          if echo "\$local_health" | grep -q "\"commit\":\"\$deployed_short\""; then
+            echo "==> OK: /api/health vraća deployed commit \$deployed_short"
+          else
+            echo "::warning::/api/health NE vraća deployed commit \$deployed_short."
+            echo "::warning::Container na ovoj mašini ne služi očekivani build."
+            echo "::warning::Proveri SSH_HOST secret i da li ovaj host zaista opslužuje propertydesk.app."
+          fi
+
           echo "==> Deploy complete"
           REMOTE
