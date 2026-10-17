@@ -11,6 +11,10 @@ import Script from "next/script";
  * The site key is a public identifier - safe to inline. It is kept
  * hardcoded so the CSP `script-src` allowlist in `next.config.ts`
  * can stay tight.
+ *
+ * Deploy anchor: v1 (changing this comment forces a new image digest
+ * so Docker cannot short-circuit the pull and the container is
+ * actually recreated against the new build).
  */
 const AHREFS_KEY = "6rrccZTgy+JYa7xFlZwF7Q";
 

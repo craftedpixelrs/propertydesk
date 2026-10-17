@@ -227,15 +227,42 @@ jobs:
             up -d --no-build --force-recreate --remove-orphans $UP_SERVICES
 
           echo "==> Waiting for healthcheck"
+          healthy=0
           for i in \$(seq 1 30); do
             status=\$(docker inspect -f '{{.State.Health.Status}}' propertydesk-app 2>/dev/null || echo "starting")
             if [ "\$status" = "healthy" ]; then
               echo "==> App is healthy"
+              healthy=1
               break
             fi
             echo "[\${i}/30] status=\$status, waiting..."
             sleep 5
           done
+
+          # Prethodna verzija je samo logovala i nastavljala - zato je
+          # workflow znao da javi success iako je novi kontejner padao
+          # u crash loop i stari je ostao da služi saobraćaj. Sada
+          # eksplicitno fail-ujemo sa poslednjih 100 linija logova.
+          if [ "\$healthy" -ne 1 ]; then
+            echo "::error::propertydesk-app nikad nije postao healthy posle 150s"
+            echo "==> docker ps -a"
+            docker ps -a --filter name=propertydesk-app
+            echo "==> docker logs propertydesk-app --tail 100"
+            docker logs propertydesk-app --tail 100 || true
+            exit 1
+          fi
+
+          # Dodatna sanity provera: image koji container stvarno vrti mora
+          # biti onaj iz ovog deploya (po digest-u). Ako Docker vrati stari
+          # image zbog cached layer-a ili .env.deploy nije pročitao $IMAGE,
+          # bolje da to vidimo kao failed deploy nego kao tihu regresiju.
+          running_image=\$(docker inspect -f '{{.Image}}' propertydesk-app 2>/dev/null || echo "unknown")
+          expected_image=\$(docker inspect -f '{{.Id}}' "$IMAGE_REF" 2>/dev/null || echo "unknown2")
+          echo "==> Image check: running=\$running_image expected=\$expected_image"
+          if [ "\$running_image" != "\$expected_image" ] && [ "\$expected_image" != "unknown2" ]; then
+            echo "::error::propertydesk-app vrti \$running_image, očekivali smo \$expected_image iz $IMAGE_REF"
+            exit 1
+          fi
 
           echo "==> Pruning old images"
           docker image prune -f --filter "until=168h" >/dev/null 2>&1 || true
