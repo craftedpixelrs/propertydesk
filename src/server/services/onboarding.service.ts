@@ -18,11 +18,7 @@ import { recordAudit } from "@/server/audit/audit";
  *     stop showing the "Get started" nag.
  */
 
-export type OnboardingStepKey =
-  | "profile"
-  | "project"
-  | "units"
-  | "team";
+export type OnboardingStepKey = "profile" | "project" | "units" | "team";
 
 export interface OnboardingStep {
   key: OnboardingStepKey;
@@ -42,9 +38,7 @@ export interface OnboardingState {
   visible: boolean;
 }
 
-export async function loadOnboardingState(
-  organizationId: string,
-): Promise<OnboardingState> {
+export async function loadOnboardingState(organizationId: string): Promise<OnboardingState> {
   const [profile, projectsCount, unitsCount, membersCount] = await Promise.all([
     prisma.organizationProfile.findUnique({
       where: { organizationId },

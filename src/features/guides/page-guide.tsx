@@ -14,11 +14,7 @@ import {
 } from "@/components/ui/dialog";
 import { useT } from "@/components/app/i18n-provider";
 import type { TranslationKey } from "@/lib/i18n";
-import {
-  PAGE_GUIDE_STORAGE_KEY,
-  resolvePageGuide,
-  type PageGuideKey,
-} from "@/lib/guides/catalog";
+import { PAGE_GUIDE_STORAGE_KEY, resolvePageGuide, type PageGuideKey } from "@/lib/guides/catalog";
 
 function storage(): Record<string, "seen" | "skip"> {
   if (typeof window === "undefined") return {};
@@ -97,7 +93,7 @@ export function PageGuide({ disabled = false }: { disabled?: boolean }) {
     <>
       <button
         type="button"
-        className="fixed z-40 flex items-center gap-2 rounded-full border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2 text-sm font-medium text-[var(--color-foreground)] shadow-md hover:bg-[var(--color-surface-inset)] bottom-[5.5rem] right-4 md:bottom-6"
+        className="fixed right-4 bottom-[5.5rem] z-40 flex items-center gap-2 rounded-full border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2 text-sm font-medium text-[var(--color-foreground)] shadow-md hover:bg-[var(--color-surface-inset)] md:bottom-6"
         onClick={() => {
           dismissed.current = null;
           setStep(0);
@@ -113,9 +109,7 @@ export function PageGuide({ disabled = false }: { disabled?: boolean }) {
         <DialogContent className="max-w-lg">
           <DialogHeader>
             <DialogTitle>{t(guideTitleKey(guide.key))}</DialogTitle>
-            <DialogDescription>
-              {t("guides.chrome.stepOf", { current, total })}
-            </DialogDescription>
+            <DialogDescription>{t("guides.chrome.stepOf", { current, total })}</DialogDescription>
           </DialogHeader>
 
           <div className="flex gap-1">
@@ -136,9 +130,7 @@ export function PageGuide({ disabled = false }: { disabled?: boolean }) {
           </div>
 
           <div className="space-y-2">
-            <h3 className="text-base font-semibold">
-              {t(stepTitleKey(guide.key, current))}
-            </h3>
+            <h3 className="text-base font-semibold">{t(stepTitleKey(guide.key, current))}</h3>
             <p className="text-sm leading-relaxed text-[var(--color-foreground-muted)]">
               {t(stepBodyKey(guide.key, current))}
             </p>

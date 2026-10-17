@@ -3,6 +3,7 @@ import { headers } from "next/headers";
 import type { ReactNode } from "react";
 
 import { CookieBanner } from "@/features/marketing/cookie-banner";
+import { MarketingMotion } from "@/features/marketing/marketing-motion";
 import { GoogleAnalytics } from "@/features/marketing/google-analytics";
 import { MarketingFooter } from "@/features/marketing/marketing-footer";
 import { MarketingHeader } from "@/features/marketing/marketing-header";
@@ -41,13 +42,14 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default function MarketingLayout({ children }: { children: ReactNode }) {
   return (
-    <div className="flex min-h-dvh flex-col bg-[var(--color-surface)] text-[var(--color-foreground)]">
+    <div className="marketing-site flex min-h-dvh flex-col bg-[#f7f3ea] text-[#0b1020]">
       <ScrollToTopOnRouteChange />
       <MarketingHeader />
       <main id="main-content" role="main" className="flex-1">
         {children}
       </main>
       <MarketingFooter />
+      <MarketingMotion />
       <CookieBanner />
       <GoogleAnalytics />
     </div>

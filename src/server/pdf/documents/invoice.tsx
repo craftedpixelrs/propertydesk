@@ -149,9 +149,7 @@ export function InvoicePdf(data: InvoicePdfData) {
         <View style={pdfStyles.row}>
           <View style={[pdfStyles.col, pdfStyles.card]}>
             <Text style={pdfStyles.cardTitle}>Status</Text>
-            <Text style={pdfStyles.cardValue}>
-              {STATUS_LABELS[data.status] ?? data.status}
-            </Text>
+            <Text style={pdfStyles.cardValue}>{STATUS_LABELS[data.status] ?? data.status}</Text>
           </View>
           <View style={[pdfStyles.col, pdfStyles.card]}>
             <Text style={pdfStyles.cardTitle}>Datum izdavanja</Text>
@@ -161,9 +159,7 @@ export function InvoicePdf(data: InvoicePdfData) {
           </View>
           <View style={[pdfStyles.col, pdfStyles.card]}>
             <Text style={pdfStyles.cardTitle}>Rok plaćanja</Text>
-            <Text style={pdfStyles.cardValue}>
-              {data.dueDate ? formatDate(data.dueDate) : "—"}
-            </Text>
+            <Text style={pdfStyles.cardValue}>{data.dueDate ? formatDate(data.dueDate) : "—"}</Text>
           </View>
         </View>
       </View>
@@ -172,9 +168,7 @@ export function InvoicePdf(data: InvoicePdfData) {
         <View style={pdfStyles.section}>
           <Text style={pdfStyles.sectionTitle}>
             Period usluge: {formatDate(data.servicePeriodStart)} –{" "}
-            {formatDate(
-              new Date(data.servicePeriodEnd.getTime() - 24 * 60 * 60 * 1000),
-            )}
+            {formatDate(new Date(data.servicePeriodEnd.getTime() - 24 * 60 * 60 * 1000))}
           </Text>
         </View>
       ) : null}
@@ -214,7 +208,9 @@ export function InvoicePdf(data: InvoicePdfData) {
                 <Text>{data.bankAccount.bankName}</Text>
                 <Text>Račun: {data.bankAccount.accountNumber}</Text>
                 {data.bankAccount.iban ? <Text>IBAN: {data.bankAccount.iban}</Text> : null}
-                {data.bankAccount.swiftBic ? <Text>SWIFT/BIC: {data.bankAccount.swiftBic}</Text> : null}
+                {data.bankAccount.swiftBic ? (
+                  <Text>SWIFT/BIC: {data.bankAccount.swiftBic}</Text>
+                ) : null}
                 <Text>Poziv na broj: {data.invoiceNumber}</Text>
               </>
             ) : (
@@ -224,33 +220,23 @@ export function InvoicePdf(data: InvoicePdfData) {
           <View style={pdfStyles.col}>
             <View style={pdfStyles.totalRow}>
               <Text style={pdfStyles.totalLabel}>Osnovica</Text>
-              <Text style={pdfStyles.totalValue}>
-                {formatMoney(data.subtotal, currency)}
-              </Text>
+              <Text style={pdfStyles.totalValue}>{formatMoney(data.subtotal, currency)}</Text>
             </View>
             <View style={pdfStyles.totalRow}>
               <Text style={pdfStyles.totalLabel}>PDV</Text>
-              <Text style={pdfStyles.totalValue}>
-                {formatMoney(data.taxAmount, currency)}
-              </Text>
+              <Text style={pdfStyles.totalValue}>{formatMoney(data.taxAmount, currency)}</Text>
             </View>
             <View style={pdfStyles.totalRow}>
               <Text style={pdfStyles.totalLabel}>Ukupno</Text>
-              <Text style={pdfStyles.totalValue}>
-                {formatMoney(data.totalAmount, currency)}
-              </Text>
+              <Text style={pdfStyles.totalValue}>{formatMoney(data.totalAmount, currency)}</Text>
             </View>
             <View style={pdfStyles.totalRow}>
               <Text style={pdfStyles.totalLabel}>Uplaćeno</Text>
-              <Text style={pdfStyles.totalValue}>
-                {formatMoney(data.amountPaid, currency)}
-              </Text>
+              <Text style={pdfStyles.totalValue}>{formatMoney(data.amountPaid, currency)}</Text>
             </View>
             <View style={pdfStyles.totalRow}>
               <Text style={pdfStyles.totalLabel}>Za plaćanje</Text>
-              <Text style={pdfStyles.totalValue}>
-                {formatMoney(data.amountDue, currency)}
-              </Text>
+              <Text style={pdfStyles.totalValue}>{formatMoney(data.amountDue, currency)}</Text>
             </View>
           </View>
         </View>
@@ -272,16 +258,21 @@ export function InvoicePdf(data: InvoicePdfData) {
           <Text style={pdfStyles.sectionTitle}>IPS QR — brzo plaćanje</Text>
           <View style={pdfStyles.row}>
             <View style={pdfStyles.col}>
-              <Image src={`data:image/png;base64,${data.ipsQrPngBase64}`} style={{ width: 140, height: 140 } as never} />
+              <Image
+                src={`data:image/png;base64,${data.ipsQrPngBase64}`}
+                style={{ width: 140, height: 140 } as never}
+              />
             </View>
             <View style={pdfStyles.col}>
-              <Text>Skenirajte kod u aplikaciji Vaše banke da automatski popunite nalog za plaćanje.</Text>
+              <Text>
+                Skenirajte kod u aplikaciji Vaše banke da automatski popunite nalog za plaćanje.
+              </Text>
             </View>
           </View>
         </View>
       ) : null}
 
-      {(data.note || data.issuer.invoiceNote) ? (
+      {data.note || data.issuer.invoiceNote ? (
         <View style={pdfStyles.section}>
           <Text style={pdfStyles.sectionTitle}>Napomena</Text>
           {data.note ? <Text>{data.note}</Text> : null}

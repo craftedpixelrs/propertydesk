@@ -114,13 +114,9 @@ export function SuggestInput({
           className="absolute z-20 mt-1 max-h-56 w-full overflow-auto rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] py-1 shadow-md"
         >
           {loading ? (
-            <li className="px-3 py-2 text-sm text-[var(--color-foreground-muted)]">
-              …
-            </li>
+            <li className="px-3 py-2 text-sm text-[var(--color-foreground-muted)]">…</li>
           ) : options.length === 0 ? (
-            <li className="px-3 py-2 text-sm text-[var(--color-foreground-muted)]">
-              {emptyLabel}
-            </li>
+            <li className="px-3 py-2 text-sm text-[var(--color-foreground-muted)]">{emptyLabel}</li>
           ) : (
             options.map((option, index) => (
               <li key={option.id} role="option" aria-selected={index === active}>

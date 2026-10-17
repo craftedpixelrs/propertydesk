@@ -16,10 +16,12 @@ import { ImpersonationBanner } from "@/components/app/impersonation-banner";
 import { UserContextProvider } from "@/components/app/user-context";
 import { OrganizationSetupWait } from "@/features/settings/organization-setup-wait";
 import { OrganizationProfileForm } from "@/features/settings/organization-profile-form";
+import { NotYetActivePanel } from "@/features/settings/not-yet-active-panel";
 import { RestrictedAccessPanel } from "@/features/settings/restricted-access-panel";
 import { loadOrganizationBranding } from "@/server/services/organization-logo.service";
 import { PageGuide } from "@/features/guides/page-guide";
 import { SessionToolbar } from "@/components/app/session-toolbar";
+import { TwoFactorSettings } from "@/features/settings/two-factor-settings";
 
 export const dynamic = "force-dynamic";
 
@@ -31,13 +33,26 @@ export default async function DashboardLayout({ children }: { children: ReactNod
   const ctx = await loadUserContext();
   if (!ctx) redirect("/sign-in");
 
-  const hasPropertyDeskAccess =
-    ctx.isSuperAdmin || Boolean(ctx.propertyDeskTeam?.enabled);
+  const hasPropertyDeskAccess = ctx.isSuperAdmin || Boolean(ctx.propertyDeskTeam?.enabled);
 
   let lockNav = false;
   let gatedChildren: ReactNode = children;
 
-  if (
+  const mustEnroll = ctx.twoFactorRequired && !ctx.twoFactorEnabled && !ctx.session.impersonatedBy;
+
+  if (mustEnroll) {
+    lockNav = true;
+    gatedChildren = (
+      <TwoFactorSettings enabled={false} required impersonating={false} requiredGate />
+    );
+  } else if (
+    !ctx.isSuperAdmin &&
+    ctx.activeOrganization?.activationPending &&
+    ctx.activeOrganization.activatesAt
+  ) {
+    lockNav = true;
+    gatedChildren = <NotYetActivePanel activatesAt={ctx.activeOrganization.activatesAt} />;
+  } else if (
     !ctx.isSuperAdmin &&
     ctx.activeOrganization?.status === "RESTRICTED" &&
     ctx.activeOrganization.type !== "AGENCY"
@@ -55,8 +70,7 @@ export default async function DashboardLayout({ children }: { children: ReactNod
     );
   } else if (
     !ctx.isSuperAdmin &&
-    (ctx.activeOrganization?.type === "INVESTOR" ||
-      ctx.activeOrganization?.type === "AGENCY")
+    (ctx.activeOrganization?.type === "INVESTOR" || ctx.activeOrganization?.type === "AGENCY")
   ) {
     const setupDone =
       ctx.activeOrganization.type === "INVESTOR"
@@ -68,9 +82,7 @@ export default async function DashboardLayout({ children }: { children: ReactNod
       if (!canFill) {
         gatedChildren = <OrganizationSetupWait />;
       } else {
-        const { organization, quota } = await loadOrganizationProfile(
-          ctx.activeOrganization.id,
-        );
+        const { organization, quota } = await loadOrganizationProfile(ctx.activeOrganization.id);
         gatedChildren = (
           <div className="space-y-4">
             <OrganizationProfileForm
@@ -137,7 +149,7 @@ export default async function DashboardLayout({ children }: { children: ReactNod
             <SessionToolbar />
           </div>
           <main id="main-content" role="main" className="flex-1 pb-24 md:pb-8">
-            <div className="mx-auto w-full max-w-6xl px-4 py-6 sm:px-6 lg:px-8">
+            <div className="mx-auto w-full max-w-[90rem] px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
               {gatedChildren}
             </div>
           </main>

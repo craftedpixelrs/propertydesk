@@ -19,10 +19,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useI18n } from "@/components/app/i18n-provider";
 import { intlLocale, type TranslateFn } from "@/lib/i18n";
-import type {
-  CalendarEvent,
-  CalendarEventType,
-} from "@/server/services/calendar/calendar.service";
+import type { CalendarEvent, CalendarEventType } from "@/server/services/calendar/calendar.service";
 
 interface Props {
   initialYear: number;
@@ -169,7 +166,7 @@ export function MonthGrid({ initialYear, initialMonth, events }: Props) {
         {weekdays.map((label) => (
           <div
             key={label}
-            className="border-b border-[var(--color-border)] bg-[var(--color-surface-inset)] px-2 py-1.5 text-center text-[11px] font-semibold uppercase tracking-wide text-[var(--color-foreground-muted)]"
+            className="border-b border-[var(--color-border)] bg-[var(--color-surface-inset)] px-2 py-1.5 text-center text-[11px] font-semibold tracking-wide text-[var(--color-foreground-muted)] uppercase"
           >
             {label}
           </div>
@@ -182,7 +179,7 @@ export function MonthGrid({ initialYear, initialMonth, events }: Props) {
           return (
             <div
               key={key}
-              className={`min-h-24 border-b border-r border-[var(--color-border)] p-1 ${
+              className={`min-h-24 border-r border-b border-[var(--color-border)] p-1 ${
                 inMonth ? "bg-white" : "bg-[var(--color-surface-inset)]/40"
               }`}
             >
@@ -246,11 +243,30 @@ function EventPill({ event }: { event: CalendarEvent }) {
       {title}
     </div>
   );
-  if (event.href) {
+  if (event.href || event.meta?.buyerEmail) {
+    const email =
+      typeof event.meta?.buyerEmail === "string" && event.meta.buyerEmail
+        ? event.meta.buyerEmail
+        : null;
     return (
-      <Link href={event.href} className="block">
-        {inner}
-      </Link>
+      <div className="flex items-center gap-1">
+        {event.href ? (
+          <Link href={event.href} className="block min-w-0 flex-1">
+            {inner}
+          </Link>
+        ) : (
+          inner
+        )}
+        {email ? (
+          <a
+            href={`mailto:${email}`}
+            className="shrink-0 text-[10px] underline"
+            title={t("deals.calendar.writeBuyer")}
+          >
+            {t("deals.calendar.writeBuyer")}
+          </a>
+        ) : null}
+      </div>
     );
   }
   return inner;

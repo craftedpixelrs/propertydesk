@@ -27,10 +27,7 @@ export function BackupVerifyButton() {
   async function run() {
     setRunning(true);
     try {
-      const res = await apiClient.post<Response>(
-        "/platform/monitoring/backup-verify",
-        {},
-      );
+      const res = await apiClient.post<Response>("/platform/monitoring/backup-verify", {});
       if (res.status === "OK") {
         toast.success(t("admin.backupVerify.ok"), { description: res.message });
       } else {
@@ -51,12 +48,7 @@ export function BackupVerifyButton() {
   }
 
   return (
-    <Button
-      type="button"
-      variant="outline"
-      onClick={run}
-      disabled={running || pending}
-    >
+    <Button type="button" variant="outline" onClick={run} disabled={running || pending}>
       {running || pending ? t("admin.running") : t("admin.backupVerify.runNow")}
     </Button>
   );

@@ -35,9 +35,7 @@ export function CashFlowCard(props: {
           {props.title ?? t("ops.reports.cashFlowDefaultTitle")}
         </CardTitle>
         {props.description ? (
-          <p className="text-xs text-[var(--color-foreground-muted)]">
-            {props.description}
-          </p>
+          <p className="text-xs text-[var(--color-foreground-muted)]">{props.description}</p>
         ) : null}
       </CardHeader>
       <CardContent className="space-y-6">
@@ -47,18 +45,13 @@ export function CashFlowCard(props: {
           </p>
         ) : (
           projection.currencies.map((currency) => {
-            const currencyBuckets = projection.buckets.filter(
-              (b) => b.currency === currency,
-            );
+            const currencyBuckets = projection.buckets.filter((b) => b.currency === currency);
             const summary =
               projection.summaries.find((s) => s.currency === currency) ??
               (undefined as unknown as CashFlowSummary);
             return (
               <div key={currency} className="space-y-3">
-                <SummaryRow
-                  summary={summary}
-                  currency={currency as SupportedCurrency}
-                />
+                <SummaryRow summary={summary} currency={currency as SupportedCurrency} />
                 <ChartCard
                   title={t(
                     projection.grain === "day"
@@ -93,10 +86,7 @@ export function CashFlowCard(props: {
   );
 }
 
-function SummaryRow(props: {
-  summary: CashFlowSummary | undefined;
-  currency: SupportedCurrency;
-}) {
+function SummaryRow(props: { summary: CashFlowSummary | undefined; currency: SupportedCurrency }) {
   const t = useT();
   if (!props.summary) return null;
   return (
@@ -133,12 +123,8 @@ function SummaryStat(props: {
         : "text-[var(--color-foreground)]";
   return (
     <div className="rounded-md border border-[var(--color-border)] p-3">
-      <div className="text-xs text-[var(--color-foreground-muted)]">
-        {props.label}
-      </div>
-      <div className={`mt-1 text-base font-semibold ${toneClass}`}>
-        {props.value}
-      </div>
+      <div className="text-xs text-[var(--color-foreground-muted)]">{props.label}</div>
+      <div className={`mt-1 text-base font-semibold ${toneClass}`}>{props.value}</div>
     </div>
   );
 }

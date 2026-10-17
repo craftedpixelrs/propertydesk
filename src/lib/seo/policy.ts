@@ -1,5 +1,6 @@
 import type { Metadata, MetadataRoute } from "next";
 
+import { BLOG_POSTS } from "@/features/marketing/blog/posts";
 import { LANDING_ROUTES } from "@/features/marketing/landing/landing-shell";
 import { MARKETING_URL } from "@/lib/constants/app";
 
@@ -28,13 +29,7 @@ export const APP_PATH_DISALLOWS = [
   "/p/",
 ] as const;
 
-export const LEGAL_SITEMAP_SLUGS = [
-  "o-nama",
-  "pomoc",
-  "privatnost",
-  "uslovi",
-  "impresum",
-] as const;
+export const LEGAL_SITEMAP_SLUGS = ["o-nama", "pomoc", "privatnost", "uslovi", "impresum"] as const;
 
 export const INDEX_ROBOTS = {
   index: true,
@@ -58,7 +53,9 @@ export const NOINDEX_ROBOTS = {
   },
 } satisfies Metadata["robots"];
 
-export function metadataRobotsForHost(host: string): Metadata["robots"] {
+type RobotsObject = Exclude<Metadata["robots"], string | null | undefined>;
+
+export function metadataRobotsForHost(host: string): RobotsObject {
   return isMarketingHost(host) ? INDEX_ROBOTS : NOINDEX_ROBOTS;
 }
 
@@ -91,10 +88,7 @@ export function buildRobotsPolicy(host: string): MetadataRoute.Robots {
   };
 }
 
-export function buildSitemapEntries(
-  host: string,
-  now: Date,
-): MetadataRoute.Sitemap {
+export function buildSitemapEntries(host: string, now: Date): MetadataRoute.Sitemap {
   if (!isMarketingHost(host)) return [];
 
   return [
@@ -115,6 +109,18 @@ export function buildSitemapEntries(
       lastModified: now,
       changeFrequency: "monthly" as const,
       priority: slug === "o-nama" || slug === "pomoc" ? 0.6 : 0.4,
+    })),
+    {
+      url: `${MARKETING_URL}/blog`,
+      lastModified: now,
+      changeFrequency: "weekly" as const,
+      priority: 0.7,
+    },
+    ...BLOG_POSTS.map((post) => ({
+      url: `${MARKETING_URL}/blog/${post.slug}`,
+      lastModified: new Date(`${post.modified}T00:00:00.000Z`),
+      changeFrequency: "monthly" as const,
+      priority: 0.6,
     })),
   ];
 }

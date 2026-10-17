@@ -50,9 +50,7 @@ export function StatusFilterBar({
         ))}
       </select>
       {pending ? (
-        <span className="text-sm text-[var(--color-foreground-muted)]">
-          {t("common.updating")}
-        </span>
+        <span className="text-sm text-[var(--color-foreground-muted)]">{t("common.updating")}</span>
       ) : null}
       {status ? (
         <button

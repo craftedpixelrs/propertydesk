@@ -3,12 +3,11 @@ import { Building2 } from "lucide-react";
 
 import { PageHero } from "@/features/marketing/landing/page-hero";
 import { ProblemSolutionGrid } from "@/features/marketing/landing/problem-solution-grid";
+import { RelatedReading } from "@/features/marketing/blog/related-reading";
+import { RelatedLinks } from "@/features/marketing/landing/related-links";
 import { CtaPanel } from "@/features/marketing/landing/cta-panel";
 import { FeatureGrid } from "@/features/marketing/feature-grid";
-import {
-  buildLandingMetadata,
-  LandingJsonLd,
-} from "@/features/marketing/landing/landing-shell";
+import { buildLandingMetadata, LandingJsonLd } from "@/features/marketing/landing/landing-shell";
 import { createT, type TranslateFn } from "@/lib/i18n";
 import { resolveRequestLocale } from "@/lib/i18n/resolve-locale";
 
@@ -48,6 +47,17 @@ export default async function Page() {
         items={pairs(t)}
       />
       <FeatureGrid />
+      <RelatedLinks
+        title={t("marketing.anchors.related")}
+        items={[
+          { href: "/prodaja-novogradnje", label: t("marketing.anchors.newBuild") },
+          { href: "/crm-za-investitore", label: t("marketing.anchors.crm") },
+          { href: "/provizije-agencija", label: t("marketing.anchors.commission") },
+        ]}
+      />
+      <RelatedReading
+        slugs={["excel-ili-softver-za-prodaju-novogradnje", "evidencija-uplata-za-stanove"]}
+      />
       <CtaPanel />
       <LandingJsonLd
         slug="za-investitore"

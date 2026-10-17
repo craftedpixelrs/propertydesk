@@ -1,10 +1,6 @@
 import { ApiClientError } from "@/lib/api-client/errors";
 import { localizeFieldErrors, localizeZodMessage } from "@/lib/api/zod-messages";
-import {
-  DEFAULT_LOCALE,
-  localeFromCookieString,
-  type Locale,
-} from "@/lib/i18n";
+import { DEFAULT_LOCALE, localeFromCookieString, type Locale } from "@/lib/i18n";
 
 /**
  * Typed fetch client for the PropertyDesk REST API.
@@ -102,13 +98,11 @@ export class ApiClient {
     } catch (err) {
       clearTimeout(timeoutHandle);
       const isAbort = err instanceof DOMException && err.name === "AbortError";
-      const message = isAbort
-        ? "Zahtev je prekinut."
-        : "Greška u komunikaciji sa serverom.";
+      const message = isAbort ? "Zahtev je prekinut." : "Greška u komunikaciji sa serverom.";
       if (!isAbort && typeof window !== "undefined") {
         // Surface the real underlying cause in the browser console so
         // dev-time NETWORK_ERROR failures are not silent.
-         
+
         console.error("[apiClient] fetch failed", { url, method: opts.method, err });
       }
       throw new ApiClientError("NETWORK_ERROR", message);
@@ -194,10 +188,7 @@ function readClientLocale(): Locale {
   return localeFromCookieString(document.cookie) ?? DEFAULT_LOCALE;
 }
 
-function mergeSignals(
-  primary: AbortSignal,
-  extra?: AbortSignal,
-): AbortSignal {
+function mergeSignals(primary: AbortSignal, extra?: AbortSignal): AbortSignal {
   if (!extra) return primary;
   const merged = new AbortController();
   const onAbort = () => merged.abort();

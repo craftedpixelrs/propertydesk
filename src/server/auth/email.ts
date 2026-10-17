@@ -73,16 +73,13 @@ async function sendViaSmtp(msg: EmailMessage, from: string): Promise<void> {
   try {
     // Runtime-only import path so TypeScript doesn't require @types/nodemailer.
     const nodemailerPath = "nodemailer";
-    const mod = (await import(
-      /* webpackIgnore: true */ nodemailerPath
-    ).catch(() => null)) as
-      | { default?: { createTransport: (o: unknown) => unknown }; createTransport?: (o: unknown) => unknown }
-      | null;
+    const mod = (await import(/* webpackIgnore: true */ nodemailerPath).catch(() => null)) as {
+      default?: { createTransport: (o: unknown) => unknown };
+      createTransport?: (o: unknown) => unknown;
+    } | null;
 
     if (!mod) {
-      console.warn(
-        "[email:smtp] nodemailer is not installed. Falling back to console.",
-      );
+      console.warn("[email:smtp] nodemailer is not installed. Falling back to console.");
       console.info(
         `[email:console-fallback] from="${from}" to="${msg.to}" subject="${msg.subject}"\n${msg.text}`,
       );
@@ -164,10 +161,7 @@ export function verificationEmail(url: string): EmailMessage {
   };
 }
 
-export function changeEmailConfirmationEmail(
-  url: string,
-  newEmail: string,
-): EmailMessage {
+export function changeEmailConfirmationEmail(url: string, newEmail: string): EmailMessage {
   return {
     to: "",
     subject: `${APP_NAME}: Potvrda nove email adrese`,
@@ -218,10 +212,7 @@ export function agencyPartnerInvitationEmail(
   };
 }
 
-export function agencyConnectionInvitationEmail(
-  investorName: string,
-  url: string,
-): EmailMessage {
+export function agencyConnectionInvitationEmail(investorName: string, url: string): EmailMessage {
   return {
     to: "",
     subject: `${APP_NAME}: Novi poziv za saradnju od ${investorName}`,

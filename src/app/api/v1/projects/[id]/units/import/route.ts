@@ -67,8 +67,7 @@ const importBodySchema = z.discriminatedUnion("action", [
 
 export const GET = apiHandler({ paramsSchema }, async ({ req }) => {
   await requirePermission("inventory.import");
-  const locale =
-    parseLocale(req.nextUrl.searchParams.get("locale")) ?? localeFromRequest(req);
+  const locale = parseLocale(req.nextUrl.searchParams.get("locale")) ?? localeFromRequest(req);
   const format = req.nextUrl.searchParams.get("format") === "xlsx" ? "xlsx" : "csv";
   const filename =
     locale === "en"
@@ -78,8 +77,7 @@ export const GET = apiHandler({ paramsSchema }, async ({ req }) => {
     const buffer = await buildImportTemplateXlsx(locale);
     return new NextResponse(new Uint8Array(buffer), {
       headers: {
-        "content-type":
-          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        "content-type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         "content-disposition": `attachment; filename="${filename}"`,
       },
     });

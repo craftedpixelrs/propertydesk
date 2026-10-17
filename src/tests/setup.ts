@@ -6,8 +6,7 @@ import "@testing-library/jest-dom/vitest";
 process.env.DATABASE_URL ??=
   "postgres://user:pass@localhost:5432/propertydesk_test?sslmode=disable";
 process.env.DIRECT_URL ??= process.env.DATABASE_URL;
-process.env.BETTER_AUTH_SECRET ??=
-  "test-secret-that-is-longer-than-32-characters-for-real";
+process.env.BETTER_AUTH_SECRET ??= "test-secret-that-is-longer-than-32-characters-for-real";
 process.env.BETTER_AUTH_URL ??= "http://localhost:3000";
 process.env.NEXT_PUBLIC_APP_URL ??= "http://localhost:3000";
 process.env.APP_NAME ??= "PropertyDesk";

@@ -81,12 +81,8 @@ export function computeLeadScore(input: LeadScoreInput): number {
       break;
   }
 
-  const hasDmName = Boolean(
-    input.decisionMakerName && input.decisionMakerName.trim(),
-  );
-  const hasDmTitle = Boolean(
-    input.decisionMakerTitle && input.decisionMakerTitle.trim(),
-  );
+  const hasDmName = Boolean(input.decisionMakerName && input.decisionMakerName.trim());
+  const hasDmTitle = Boolean(input.decisionMakerTitle && input.decisionMakerTitle.trim());
   if (hasDmName && hasDmTitle) score += 10;
 
   switch (input.temperature) {

@@ -4,10 +4,7 @@ import type { AgencyConnectionStatus } from "@prisma/client";
 import { apiHandler } from "@/lib/api/handler";
 import { paginate } from "@/lib/api/query";
 import { requirePermission } from "@/server/permissions/require";
-import {
-  inviteAgency,
-  listConnections,
-} from "@/server/services/agencies/agencies.service";
+import { inviteAgency, listConnections } from "@/server/services/agencies/agencies.service";
 
 const inviteSchema = z
   .object({

@@ -11,11 +11,7 @@ import {
   type OrganizationRole,
 } from "@/server/permissions/roles";
 import { loadQuotaSnapshot } from "@/server/services/quotas.service";
-import {
-  invitationEmail,
-  sendEmail,
-  type EmailMessage,
-} from "@/server/auth/email";
+import { invitationEmail, sendEmail, type EmailMessage } from "@/server/auth/email";
 import { serverEnv } from "@/lib/env";
 import {
   INVESTOR_PROFILE_FIELD_LABEL,
@@ -78,23 +74,20 @@ export async function updateOrganizationProfile(
   });
   if (!previous) throw DomainErrors.notFound("Profil organizacije");
 
-  const website =
-    input.website === undefined ? undefined : normalizeWebsite(input.website);
+  const website = input.website === undefined ? undefined : normalizeWebsite(input.website);
 
   if (previous.type === "INVESTOR") {
     const merged = {
       displayName: input.displayName ?? previous.displayName,
       legalName: input.legalName ?? previous.legalName,
-      taxNumber:
-        input.taxNumber === undefined ? previous.taxNumber : input.taxNumber,
+      taxNumber: input.taxNumber === undefined ? previous.taxNumber : input.taxNumber,
       registrationNumber:
         input.registrationNumber === undefined
           ? previous.registrationNumber
           : input.registrationNumber,
       address: input.address === undefined ? previous.address : input.address,
       city: input.city === undefined ? previous.city : input.city,
-      postalCode:
-        input.postalCode === undefined ? previous.postalCode : input.postalCode,
+      postalCode: input.postalCode === undefined ? previous.postalCode : input.postalCode,
       phone: input.phone === undefined ? previous.phone : input.phone,
       email: input.email === undefined ? previous.email : input.email,
       website: website === undefined ? previous.website : website,
@@ -120,9 +113,7 @@ export async function updateOrganizationProfile(
       displayName: input.displayName ?? undefined,
       legalName: input.legalName ?? undefined,
       registrationNumber:
-        input.registrationNumber === undefined
-          ? undefined
-          : input.registrationNumber,
+        input.registrationNumber === undefined ? undefined : input.registrationNumber,
       taxNumber: input.taxNumber === undefined ? undefined : input.taxNumber,
       address: input.address === undefined ? undefined : input.address,
       city: input.city === undefined ? undefined : input.city,
@@ -133,13 +124,8 @@ export async function updateOrganizationProfile(
       website: website === undefined ? undefined : website,
       logoUrl: input.logoUrl === undefined ? undefined : input.logoUrl,
       paymentAccountNumber:
-        input.paymentAccountNumber === undefined
-          ? undefined
-          : input.paymentAccountNumber,
-      paymentBankName:
-        input.paymentBankName === undefined
-          ? undefined
-          : input.paymentBankName,
+        input.paymentAccountNumber === undefined ? undefined : input.paymentAccountNumber,
+      paymentBankName: input.paymentBankName === undefined ? undefined : input.paymentBankName,
     },
   });
 
@@ -171,9 +157,7 @@ export async function updateOrganizationProfile(
   return updated;
 }
 
-export async function isInvestorOrgSetupComplete(
-  organizationId: string,
-): Promise<boolean> {
+export async function isInvestorOrgSetupComplete(organizationId: string): Promise<boolean> {
   const profile = await prisma.organizationProfile.findUnique({
     where: { organizationId },
     select: {
@@ -194,9 +178,7 @@ export async function isInvestorOrgSetupComplete(
   return isInvestorProfileComplete(profile);
 }
 
-export async function isAgencyOrgSetupComplete(
-  organizationId: string,
-): Promise<boolean> {
+export async function isAgencyOrgSetupComplete(organizationId: string): Promise<boolean> {
   const profile = await prisma.organizationProfile.findUnique({
     where: { organizationId },
     select: {
@@ -231,9 +213,7 @@ export interface MemberListItem {
   createdAt: Date;
 }
 
-export async function listMembers(
-  organizationId: string,
-): Promise<MemberListItem[]> {
+export async function listMembers(organizationId: string): Promise<MemberListItem[]> {
   const rows = await prisma.member.findMany({
     where: { organizationId },
     include: {
@@ -279,9 +259,7 @@ export async function updateMemberRole(
   });
   const orgType = profile?.type ?? null;
   if (orgType && !rolesForOrgType(orgType).includes(newRole)) {
-    throw DomainErrors.badRequest(
-      "Izabrana uloga nije dozvoljena za ovaj tip organizacije.",
-    );
+    throw DomainErrors.badRequest("Izabrana uloga nije dozvoljena za ovaj tip organizacije.");
   }
 
   const previousRole = membership.role;
@@ -339,9 +317,7 @@ export async function setMemberActivation(
   if (!membership) throw DomainErrors.notFound("Član");
 
   if (!active && membership.userId === actorUserId) {
-    throw DomainErrors.invalidState(
-      "Ne možete deaktivirati nalog na koji ste ulogovani.",
-    );
+    throw DomainErrors.invalidState("Ne možete deaktivirati nalog na koji ste ulogovani.");
   }
 
   await prisma.user.update({
@@ -350,9 +326,7 @@ export async function setMemberActivation(
   });
 
   await recordAudit({
-    action: active
-      ? "organization.member_reactivated"
-      : "organization.member_deactivated",
+    action: active ? "organization.member_reactivated" : "organization.member_deactivated",
     entityType: "User",
     entityId: membership.userId,
     organizationId,
@@ -391,9 +365,7 @@ export async function inviteMember(input: {
   });
   const orgType = profile?.type ?? null;
   if (orgType && !rolesForOrgType(orgType).includes(input.role)) {
-    throw DomainErrors.badRequest(
-      "Izabrana uloga nije dozvoljena za ovaj tip organizacije.",
-    );
+    throw DomainErrors.badRequest("Izabrana uloga nije dozvoljena za ovaj tip organizacije.");
   }
 
   await loadQuotaSnapshot(input.organizationId).then((snap) => {
@@ -509,9 +481,7 @@ export interface PublicInvitation {
   investorName: string | null;
 }
 
-export async function getPublicInvitation(
-  id: string,
-): Promise<PublicInvitation | null> {
+export async function getPublicInvitation(id: string): Promise<PublicInvitation | null> {
   const invitation = await prisma.invitation.findUnique({
     where: { id },
     include: {
@@ -539,12 +509,10 @@ export async function getPublicInvitation(
   });
   if (!invitation) return null;
   const expired = invitation.expiresAt <= new Date();
-  const status =
-    invitation.status === "pending" && expired ? "expired" : invitation.status;
+  const status = invitation.status === "pending" && expired ? "expired" : invitation.status;
   const organizationType = invitation.organization.profile?.type ?? null;
   const requiresAgencyProfile =
-    invitation.role === "AGENCY_OWNER" &&
-    !isAgencyProfileComplete(invitation.organization.profile);
+    invitation.role === "AGENCY_OWNER" && !isAgencyProfileComplete(invitation.organization.profile);
 
   let investorName: string | null = null;
   if (organizationType === "AGENCY") {
@@ -560,18 +528,14 @@ export async function getPublicInvitation(
         },
       },
     });
-    investorName =
-      pending?.investor.profile?.displayName?.trim() ||
-      pending?.investor.name ||
-      null;
+    investorName = pending?.investor.profile?.displayName?.trim() || pending?.investor.name || null;
   }
 
   return {
     id: invitation.id,
     email: invitation.email,
     organizationName:
-      invitation.organization.profile?.displayName?.trim() ||
-      invitation.organization.name,
+      invitation.organization.profile?.displayName?.trim() || invitation.organization.name,
     role: invitation.role ?? "",
     status,
     expiresAt: invitation.expiresAt,
@@ -655,10 +619,7 @@ async function joinOrganizationFromInvitation(input: {
   });
 }
 
-async function applyAgencyInviteProfile(
-  organizationId: string,
-  profile: AgencyInviteProfileInput,
-) {
+async function applyAgencyInviteProfile(organizationId: string, profile: AgencyInviteProfileInput) {
   const next = {
     displayName: profile.displayName.trim(),
     legalName: profile.legalName.trim(),
@@ -671,9 +632,7 @@ async function applyAgencyInviteProfile(
     email: (profile.email ?? "").trim(),
   };
   if (!isAgencyProfileComplete(next)) {
-    throw DomainErrors.validation(
-      "Popunite sva obavezna polja agencije (sve sem sajta).",
-    );
+    throw DomainErrors.validation("Popunite sva obavezna polja agencije (sve sem sajta).");
   }
   await prisma.organizationProfile.update({
     where: { organizationId },
@@ -703,9 +662,7 @@ async function requireCompleteAgencyInviteProfile(
   if (role !== "AGENCY_OWNER") return;
   if (await isAgencyOrgSetupComplete(organizationId)) return;
   if (!agencyProfile) {
-    throw DomainErrors.validation(
-      "Popunite sva obavezna polja agencije (sve sem sajta).",
-    );
+    throw DomainErrors.validation("Popunite sva obavezna polja agencije (sve sem sajta).");
   }
   await applyAgencyInviteProfile(organizationId, agencyProfile);
 }
@@ -740,9 +697,7 @@ export async function acceptPendingInvitation(input: {
   });
   if (!user) throw DomainErrors.notFound("Korisnik");
   if (user.deactivatedAt) {
-    throw DomainErrors.forbidden(
-      "Vaš nalog je deaktiviran. Kontaktirajte administratora.",
-    );
+    throw DomainErrors.forbidden("Vaš nalog je deaktiviran. Kontaktirajte administratora.");
   }
 
   await requireCompleteAgencyInviteProfile(

@@ -13,11 +13,7 @@ import { logger } from "@/server/logger";
 import { DomainErrors } from "@/lib/errors";
 import { resolveBillingSettings } from "../settings/resolved.service";
 import { addCycle, priceForCycle } from "../subscriptions.service";
-import {
-  createInvoiceDraft,
-  issueInvoice,
-  type InvoiceItemInput,
-} from "./service";
+import { createInvoiceDraft, issueInvoice, type InvoiceItemInput } from "./service";
 
 /**
  * Idempotent automatic invoice generation.
@@ -71,13 +67,8 @@ export async function generateDueSubscriptionInvoices(
   const candidates = await prisma.organizationSubscription.findMany({
     where: {
       status: { in: ["ACTIVE", "PAYMENT_DUE", "PAST_DUE"] },
-      OR: [
-        { nextBillingDate: { lte: now } },
-        { currentPeriodEnd: { lte: now } },
-      ],
-      ...(options.organizationIds
-        ? { organizationId: { in: options.organizationIds } }
-        : {}),
+      OR: [{ nextBillingDate: { lte: now } }, { currentPeriodEnd: { lte: now } }],
+      ...(options.organizationIds ? { organizationId: { in: options.organizationIds } } : {}),
     },
     include: { organization: { include: { profile: true } }, plan: true },
   });
@@ -100,14 +91,17 @@ export async function generateDueSubscriptionInvoices(
       const periodStart = sub.currentPeriodEnd ?? sub.currentPeriodStart ?? now;
       const cycle: BillingCycle = sub.billingCycle;
       const periodEnd = addCycle(periodStart, cycle);
-      const price = sub.customPrice
-        ? sub.price
-        : priceForCycle(sub.plan, cycle);
+      const price = sub.customPrice ? sub.price : priceForCycle(sub.plan, cycle);
 
       const items: InvoiceItemInput[] = [
         {
           type: "SUBSCRIPTION",
-          description: buildSubscriptionLineDescription(sub.plan.name, cycle, periodStart, periodEnd),
+          description: buildSubscriptionLineDescription(
+            sub.plan.name,
+            cycle,
+            periodStart,
+            periodEnd,
+          ),
           quantity: 1,
           unitPrice: Number(price.toString()),
           taxRate: 0,
@@ -156,10 +150,7 @@ export async function generateDueSubscriptionInvoices(
         // Idempotency: if a concurrent run already inserted an AUTOMATIC row
         // for the same (subscriptionId, servicePeriodStart), Postgres rejects
         // with P2002 — we treat that as "already exists" and skip cleanly.
-        if (
-          err instanceof Prisma.PrismaClientKnownRequestError &&
-          err.code === "P2002"
-        ) {
+        if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002") {
           return null;
         }
         throw err;
@@ -184,8 +175,7 @@ export async function generateDueSubscriptionInvoices(
       await prisma.organizationSubscription.update({
         where: { id: sub.id },
         data: {
-          status:
-            sub.status === "ACTIVE" ? "PAYMENT_DUE" : sub.status,
+          status: sub.status === "ACTIVE" ? "PAYMENT_DUE" : sub.status,
           nextBillingDate: periodEnd,
           gracePeriodEndsAt:
             sub.gracePeriodEndsAt ??
@@ -210,12 +200,7 @@ export async function generateDueSubscriptionInvoices(
   return summary;
 }
 
-const UNPAID_ISSUED: InvoiceStatus[] = [
-  "ISSUED",
-  "SENT",
-  "OVERDUE",
-  "PARTIALLY_PAID",
-];
+const UNPAID_ISSUED: InvoiceStatus[] = ["ISSUED", "SENT", "OVERDUE", "PARTIALLY_PAID"];
 
 export async function getInvoiceIssueState(organizationId: string): Promise<{
   canIssue: boolean;
@@ -379,12 +364,7 @@ function buildSubscriptionLineDescription(
 }
 
 function formatDay(d: Date): string {
-  return d
-    .toISOString()
-    .slice(0, 10)
-    .split("-")
-    .reverse()
-    .join(".");
+  return d.toISOString().slice(0, 10).split("-").reverse().join(".");
 }
 
 function cycleLabelSr(cycle: BillingCycle): string {

@@ -4,13 +4,13 @@ import { notFound } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { formatDateTime } from "@/lib/formatters/date";
-import {
-  hasPdPermission,
-  requirePropertyDeskAccess,
-} from "@/server/permissions/property-desk";
+import { hasPdPermission, requirePropertyDeskAccess } from "@/server/permissions/property-desk";
 import { prisma } from "@/server/db/prisma";
 import { DomainError } from "@/lib/errors";
-import { getMarketingLead, canCreateTenantFromLead } from "@/server/services/property-desk/marketing-leads.service";
+import {
+  getMarketingLead,
+  canCreateTenantFromLead,
+} from "@/server/services/property-desk/marketing-leads.service";
 import { listLeadActivities } from "@/server/services/property-desk/marketing-lead-activities.service";
 import { listTasksForLead } from "@/server/services/property-desk/marketing-lead-tasks.service";
 import { listTeamMembers } from "@/server/services/property-desk/team.service";
@@ -20,10 +20,7 @@ import { createT, type TranslateFn, type TranslationKey } from "@/lib/i18n";
 import { resolveRequestLocale } from "@/lib/i18n/resolve-locale";
 
 import { LeadDetailEditor } from "./editor";
-import {
-  LeadActivityPanel,
-  type ActivityItem,
-} from "./activity-panel";
+import { LeadActivityPanel, type ActivityItem } from "./activity-panel";
 import { LeadTaskPanel, type TaskItem } from "./task-panel";
 
 export const dynamic = "force-dynamic";
@@ -32,9 +29,7 @@ interface PageProps {
   params: Promise<{ id: string }>;
 }
 
-export default async function PropertyDeskLeadDetailPage({
-  params,
-}: PageProps) {
+export default async function PropertyDeskLeadDetailPage({ params }: PageProps) {
   const { id } = await params;
   const ctx = await requirePropertyDeskAccess();
   const t = createT(await resolveRequestLocale());
@@ -110,10 +105,7 @@ export default async function PropertyDeskLeadDetailPage({
     hasPdPermission(ctx, "pd_lead.view_team"),
   ]);
 
-  const fullName = [lead.firstName, lead.lastName]
-    .filter(Boolean)
-    .join(" ")
-    .trim();
+  const fullName = [lead.firstName, lead.lastName].filter(Boolean).join(" ").trim();
 
   const allowedNext = nextAllowedStages(
     lead.stage,
@@ -126,9 +118,7 @@ export default async function PropertyDeskLeadDetailPage({
     title: a.title,
     body: a.body,
     occurredAt: a.occurredAt.toISOString(),
-    actor: a.actor
-      ? { id: a.actor.id, name: a.actor.name, email: a.actor.email }
-      : null,
+    actor: a.actor ? { id: a.actor.id, name: a.actor.name, email: a.actor.email } : null,
   }));
 
   const taskItems: TaskItem[] = tasks.map((t) => ({
@@ -137,9 +127,7 @@ export default async function PropertyDeskLeadDetailPage({
     description: t.description,
     dueAt: t.dueAt ? t.dueAt.toISOString() : null,
     completedAt: t.completedAt ? t.completedAt.toISOString() : null,
-    assignedTo: t.assignedTo
-      ? { id: t.assignedTo.id, name: t.assignedTo.name }
-      : null,
+    assignedTo: t.assignedTo ? { id: t.assignedTo.id, name: t.assignedTo.name } : null,
     createdBy: { id: t.createdBy.id, name: t.createdBy.name },
   }));
 
@@ -155,9 +143,7 @@ export default async function PropertyDeskLeadDetailPage({
               ← {t("admin.pdDetail.backToList")}
             </Link>
           </div>
-          <h2 className="text-lg font-semibold">
-            {fullName || lead.email}
-          </h2>
+          <h2 className="text-lg font-semibold">{fullName || lead.email}</h2>
           <p className="text-sm text-[var(--color-foreground-muted)]">
             {lead.email}
             {lead.phone ? ` · ${lead.phone}` : ""}
@@ -166,9 +152,7 @@ export default async function PropertyDeskLeadDetailPage({
           </p>
         </div>
         <div className="flex flex-col items-end gap-1">
-          <Badge tone="neutral">
-            {t(`admin.pd.audience.${lead.audience}` as TranslationKey)}
-          </Badge>
+          <Badge tone="neutral">{t(`admin.pd.audience.${lead.audience}` as TranslationKey)}</Badge>
           <span className="text-xs text-[var(--color-foreground-muted)]">
             {t("admin.pdDetail.received", { date: formatDateTime(lead.createdAt) })}
           </span>
@@ -193,9 +177,7 @@ export default async function PropertyDeskLeadDetailPage({
         initialPriority={lead.priority}
         initialTemperature={lead.temperature}
         initialTimelineHorizon={lead.timelineHorizon}
-        initialNextFollowUpAt={
-          lead.nextFollowUpAt ? lead.nextFollowUpAt.toISOString() : null
-        }
+        initialNextFollowUpAt={lead.nextFollowUpAt ? lead.nextFollowUpAt.toISOString() : null}
         initialLeadScore={lead.leadScore}
         initialCompanyName={lead.companyName}
         initialCompanyWebsite={lead.companyWebsite}
@@ -220,9 +202,7 @@ export default async function PropertyDeskLeadDetailPage({
           name: o.name,
           type: o.profile?.type ?? null,
         }))}
-        plans={plans
-          .filter((p) => p.active)
-          .map((p) => ({ code: p.code, name: p.name }))}
+        plans={plans.filter((p) => p.active).map((p) => ({ code: p.code, name: p.name }))}
         canConvert={canConvert}
         canCreateNewOrg={canCreateNewOrg}
         canReassign={canReassign}
@@ -239,11 +219,7 @@ export default async function PropertyDeskLeadDetailPage({
       />
 
       <div className="grid gap-4 xl:grid-cols-2">
-        <LeadActivityPanel
-          leadId={lead.id}
-          items={activityItems}
-          canCreate={canCreateActivity}
-        />
+        <LeadActivityPanel leadId={lead.id} items={activityItems} canCreate={canCreateActivity} />
         <LeadTaskPanel
           leadId={lead.id}
           items={taskItems}
@@ -285,13 +261,11 @@ export default async function PropertyDeskLeadDetailPage({
 function LeadLeftPipelineNotice({ t }: { t: TranslateFn }) {
   return (
     <div className="mx-auto max-w-lg space-y-4 py-10 text-center">
-      <p className="text-xs font-semibold uppercase tracking-widest text-[var(--color-success)]">
+      <p className="text-xs font-semibold tracking-widest text-[var(--color-success)] uppercase">
         {t("admin.pdDetail.leftKicker")}
       </p>
       <h1 className="text-2xl font-semibold">{t("admin.pdDetail.leftTitle")}</h1>
-      <p className="text-sm text-[var(--color-foreground-muted)]">
-        {t("admin.pdDetail.leftBody")}
-      </p>
+      <p className="text-sm text-[var(--color-foreground-muted)]">{t("admin.pdDetail.leftBody")}</p>
       <div className="flex justify-center gap-2">
         <Link
           href="/administracija/property-desk/leadovi"

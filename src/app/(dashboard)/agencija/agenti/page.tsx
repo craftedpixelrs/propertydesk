@@ -2,10 +2,7 @@ import { redirect } from "next/navigation";
 
 import { loadUserContext } from "@/server/auth/context";
 import { requireSessionAndOrg } from "@/server/auth/session";
-import {
-  listMembers,
-  listPendingInvitations,
-} from "@/server/services/organization-admin.service";
+import { listMembers, listPendingInvitations } from "@/server/services/organization-admin.service";
 import { MembersManager } from "@/features/settings/members-manager";
 import { buildRoleCapabilityGuide } from "@/features/settings/role-capability-guide";
 import {

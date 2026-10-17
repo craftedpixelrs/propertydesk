@@ -20,19 +20,13 @@ export default async function SubscriptionPage() {
     const ctx = await loadUserContext();
     if (!ctx) redirect("/sign-in");
     if (!ctx.activeOrganization) redirect("/dashboard");
-    const canReadInvoices =
-      ctx.isSuperAdmin || ctx.permissions.includes("billing.invoice.read");
+    const canReadInvoices = ctx.isSuperAdmin || ctx.permissions.includes("billing.invoice.read");
     const t = createT(await resolveRequestLocale());
-    const { organization, quota } = await loadOrganizationProfile(
-      ctx.activeOrganization.id,
-    );
+    const { organization, quota } = await loadOrganizationProfile(ctx.activeOrganization.id);
     if (organization.profile?.type === "AGENCY") {
       return (
         <div className="space-y-6">
-          <Link
-            href="/dashboard"
-            className="text-sm text-[var(--color-brand-700)] hover:underline"
-          >
+          <Link href="/dashboard" className="text-sm text-[var(--color-brand-700)] hover:underline">
             {t("common.back")}
           </Link>
           <Card>
@@ -73,10 +67,7 @@ export default async function SubscriptionPage() {
 
     return (
       <div className="space-y-6">
-        <Link
-          href="/dashboard"
-          className="text-sm text-[var(--color-brand-700)] hover:underline"
-        >
+        <Link href="/dashboard" className="text-sm text-[var(--color-brand-700)] hover:underline">
           {t("common.back")}
         </Link>
         <Card>
@@ -181,7 +172,7 @@ export default async function SubscriptionPage() {
               </p>
             ) : (
               <table className="w-full text-sm">
-                <thead className="text-left text-xs uppercase text-[var(--color-foreground-subtle)]">
+                <thead className="text-left text-xs text-[var(--color-foreground-subtle)] uppercase">
                   <tr>
                     <th className="border-b border-[var(--color-border)] px-3 py-2">
                       {t("billing.columns.invoiceNumber")}
@@ -202,7 +193,10 @@ export default async function SubscriptionPage() {
                 </thead>
                 <tbody>
                   {recentInvoices.map((inv) => (
-                    <tr key={inv.id} className="border-b border-[var(--color-border)] last:border-b-0">
+                    <tr
+                      key={inv.id}
+                      className="border-b border-[var(--color-border)] last:border-b-0"
+                    >
                       <td className="px-3 py-2 font-mono text-xs">
                         {canReadInvoices ? (
                           <Link
@@ -219,15 +213,29 @@ export default async function SubscriptionPage() {
                         {inv.issueDate ? formatDate(inv.issueDate) : "—"}
                       </td>
                       <td className="px-3 py-2">
-                        <Badge tone={inv.status === "PAID" ? "success" : inv.status === "OVERDUE" ? "danger" : "info"}>
+                        <Badge
+                          tone={
+                            inv.status === "PAID"
+                              ? "success"
+                              : inv.status === "OVERDUE"
+                                ? "danger"
+                                : "info"
+                          }
+                        >
                           {invoiceStatusLabel(inv.status)}
                         </Badge>
                       </td>
                       <td className="px-3 py-2 text-right tabular-nums">
-                        {formatMoney(Number(inv.totalAmount.toString()), inv.currency as "EUR" | "RSD")}
+                        {formatMoney(
+                          Number(inv.totalAmount.toString()),
+                          inv.currency as "EUR" | "RSD",
+                        )}
                       </td>
                       <td className="px-3 py-2 text-right tabular-nums">
-                        {formatMoney(Number(inv.amountDue.toString()), inv.currency as "EUR" | "RSD")}
+                        {formatMoney(
+                          Number(inv.amountDue.toString()),
+                          inv.currency as "EUR" | "RSD",
+                        )}
                       </td>
                     </tr>
                   ))}
@@ -238,9 +246,7 @@ export default async function SubscriptionPage() {
         </Card>
 
         <Alert tone="info">
-          <AlertDescription>
-            {t("ops.subscription.contactAdmin")}
-          </AlertDescription>
+          <AlertDescription>{t("ops.subscription.contactAdmin")}</AlertDescription>
         </Alert>
       </div>
     );

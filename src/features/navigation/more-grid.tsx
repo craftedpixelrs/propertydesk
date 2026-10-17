@@ -57,7 +57,7 @@ export function MoreGrid({
     <div className="space-y-6">
       {groupNavigation(items).map((section) => (
         <section key={section.group} className="space-y-2">
-          <h2 className="px-1 text-xs font-semibold uppercase tracking-wide text-[var(--color-foreground-subtle)]">
+          <h2 className="px-1 text-xs font-semibold tracking-wide text-[var(--color-foreground-subtle)] uppercase">
             {t(NAV_GROUP_LABEL[section.group])}
           </h2>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">

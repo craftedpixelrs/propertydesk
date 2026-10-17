@@ -3,12 +3,10 @@ import type { LegalDoc } from "./copy";
 export function LegalArticle({ doc }: { doc: LegalDoc }) {
   return (
     <article className="container-app max-w-3xl py-14 sm:py-16">
-      <p className="text-xs font-semibold uppercase tracking-wider text-[var(--color-foreground-subtle)]">
+      <p className="text-xs font-semibold tracking-wider text-[var(--color-foreground-subtle)] uppercase">
         {doc.updated}
       </p>
-      <h1 className="mt-2 text-3xl font-semibold tracking-tight sm:text-4xl">
-        {doc.title}
-      </h1>
+      <h1 className="mt-2 text-3xl font-semibold tracking-tight sm:text-4xl">{doc.title}</h1>
       <p className="mt-4 text-base leading-relaxed text-[var(--color-foreground-muted)]">
         {doc.intro}
       </p>
@@ -16,9 +14,7 @@ export function LegalArticle({ doc }: { doc: LegalDoc }) {
         {doc.sections.map((section) => (
           <section key={section.heading}>
             <h2
-              id={
-                /kolač|cookie/i.test(section.heading) ? "kolacici" : undefined
-              }
+              id={/kolač|cookie/i.test(section.heading) ? "kolacici" : undefined}
               className="scroll-mt-20 text-lg font-semibold tracking-tight"
             >
               {section.heading}

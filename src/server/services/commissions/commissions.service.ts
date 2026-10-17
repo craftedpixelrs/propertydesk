@@ -31,6 +31,7 @@ export interface AgencyCommissionDto {
   invoicedAt: Date | null;
   paidAt: Date | null;
   saleId: string;
+  investorOrganizationId: string;
   agencyVisibleNote: string | null;
 }
 
@@ -62,6 +63,7 @@ export async function listAgencyCommissions(
     invoicedAt: row.invoicedAt,
     paidAt: row.paidAt,
     saleId: row.saleId,
+    investorOrganizationId: row.investorOrganizationId,
     agencyVisibleNote: row.notes,
   }));
   return { items, total };

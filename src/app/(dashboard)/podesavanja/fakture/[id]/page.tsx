@@ -72,7 +72,7 @@ export default async function TenantInvoiceDetailPage({
       </header>
 
       <Card>
-        <CardContent className="grid gap-3 md:grid-cols-3 text-sm p-4">
+        <CardContent className="grid gap-3 p-4 text-sm md:grid-cols-3">
           <Field
             label={t("billing.columns.issueDate")}
             value={invoice.issueDate ? formatDate(invoice.issueDate) : "—"}
@@ -84,15 +84,24 @@ export default async function TenantInvoiceDetailPage({
           <Field label={t("ops.invoices.note")} value={invoice.note ?? "—"} />
           <Field
             label={t("billing.columns.total")}
-            value={formatMoney(Number(invoice.totalAmount.toString()), invoice.currency as "EUR" | "RSD")}
+            value={formatMoney(
+              Number(invoice.totalAmount.toString()),
+              invoice.currency as "EUR" | "RSD",
+            )}
           />
           <Field
             label={t("billing.columns.paid")}
-            value={formatMoney(Number(invoice.amountPaid.toString()), invoice.currency as "EUR" | "RSD")}
+            value={formatMoney(
+              Number(invoice.amountPaid.toString()),
+              invoice.currency as "EUR" | "RSD",
+            )}
           />
           <Field
             label={t("billing.columns.remaining")}
-            value={formatMoney(Number(invoice.amountDue.toString()), invoice.currency as "EUR" | "RSD")}
+            value={formatMoney(
+              Number(invoice.amountDue.toString()),
+              invoice.currency as "EUR" | "RSD",
+            )}
           />
         </CardContent>
       </Card>
@@ -103,7 +112,7 @@ export default async function TenantInvoiceDetailPage({
         </CardHeader>
         <CardContent className="p-0">
           <table className="w-full text-sm">
-            <thead className="text-left text-xs uppercase text-[var(--color-foreground-subtle)]">
+            <thead className="text-left text-xs text-[var(--color-foreground-subtle)] uppercase">
               <tr>
                 <th className="border-b border-[var(--color-border)] px-3 py-2">
                   {t("ops.invoices.description")}
@@ -123,9 +132,14 @@ export default async function TenantInvoiceDetailPage({
               {invoice.items.map((it) => (
                 <tr key={it.id} className="border-b border-[var(--color-border)] last:border-b-0">
                   <td className="px-3 py-2">{it.description}</td>
-                  <td className="px-3 py-2 text-right tabular-nums">{Number(it.quantity.toString())}</td>
                   <td className="px-3 py-2 text-right tabular-nums">
-                    {formatMoney(Number(it.unitPrice.toString()), invoice.currency as "EUR" | "RSD")}
+                    {Number(it.quantity.toString())}
+                  </td>
+                  <td className="px-3 py-2 text-right tabular-nums">
+                    {formatMoney(
+                      Number(it.unitPrice.toString()),
+                      invoice.currency as "EUR" | "RSD",
+                    )}
                   </td>
                   <td className="px-3 py-2 text-right tabular-nums">
                     {formatMoney(Number(it.amount.toString()), invoice.currency as "EUR" | "RSD")}
@@ -146,7 +160,7 @@ export default async function TenantInvoiceDetailPage({
           </CardHeader>
           <CardContent className="p-0">
             <table className="w-full text-sm">
-              <thead className="text-left text-xs uppercase text-[var(--color-foreground-subtle)]">
+              <thead className="text-left text-xs text-[var(--color-foreground-subtle)] uppercase">
                 <tr>
                   <th className="border-b border-[var(--color-border)] px-3 py-2">
                     {t("common.date")}
@@ -162,10 +176,13 @@ export default async function TenantInvoiceDetailPage({
               <tbody>
                 {allocations.map((a) => (
                   <tr key={a.id} className="border-b border-[var(--color-border)] last:border-b-0">
-                    <td className="px-3 py-2 text-xs">{formatDate(a.subscriptionPayment.paidAt)}</td>
+                    <td className="px-3 py-2 text-xs">
+                      {formatDate(a.subscriptionPayment.paidAt)}
+                    </td>
                     <td className="px-3 py-2 text-xs">
                       {(() => {
-                        const key = `billing.provider.${a.subscriptionPayment.provider}` as TranslationKey;
+                        const key =
+                          `billing.provider.${a.subscriptionPayment.provider}` as TranslationKey;
                         const out = t(key);
                         return out === key ? a.subscriptionPayment.provider : out;
                       })()}

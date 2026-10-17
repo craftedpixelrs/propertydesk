@@ -18,15 +18,10 @@ import {
   removeTeamMember,
   updateTeamMember,
 } from "@/server/services/property-desk/team.service";
-import {
-  rolesForOrgType,
-  type OrganizationRole,
-} from "@/server/permissions/roles";
-import {
-  AGENCY_PARTNER_PLAN_CODE,
-  applyAgencyOrgDefaults,
-} from "@/lib/billing/agency-partner";
+import { rolesForOrgType, type OrganizationRole } from "@/server/permissions/roles";
+import { AGENCY_PARTNER_PLAN_CODE, applyAgencyOrgDefaults } from "@/lib/billing/agency-partner";
 import { normalizeWebsite } from "@/server/services/organization-profile-completeness";
+import { belgradeStartOfDay } from "@/lib/billing/activation";
 import { addDays, remainingTrialDays } from "@/server/services/subscriptions/trial-days";
 
 /**
@@ -93,10 +88,7 @@ async function ensurePartnerPlan() {
   });
 }
 
-export async function createSaaSPlan(
-  input: SaaSPlanInput,
-  actorUserId: string,
-) {
+export async function createSaaSPlan(input: SaaSPlanInput, actorUserId: string) {
   const existing = await prisma.saaSPlan.findUnique({
     where: { code: input.code },
   });
@@ -115,8 +107,7 @@ export async function createSaaSPlan(
       semiAnnualPrice:
         input.semiAnnualPrice != null ? new Prisma.Decimal(input.semiAnnualPrice) : null,
       annualPrice: input.annualPrice != null ? new Prisma.Decimal(input.annualPrice) : null,
-      onboardingFee:
-        input.onboardingFee != null ? new Prisma.Decimal(input.onboardingFee) : null,
+      onboardingFee: input.onboardingFee != null ? new Prisma.Decimal(input.onboardingFee) : null,
       currency: input.currency,
       maxActiveProjects: input.maxActiveProjects ?? null,
       maxUnits: input.maxUnits ?? null,
@@ -159,9 +150,7 @@ export async function updateSaaSPlan(
       name: input.name ?? undefined,
       description: input.description === undefined ? undefined : input.description,
       monthlyPrice:
-        input.monthlyPrice === undefined
-          ? undefined
-          : new Prisma.Decimal(input.monthlyPrice),
+        input.monthlyPrice === undefined ? undefined : new Prisma.Decimal(input.monthlyPrice),
       quarterlyPrice: decimalOrUndef(input.quarterlyPrice),
       semiAnnualPrice: decimalOrUndef(input.semiAnnualPrice),
       annualPrice: decimalOrUndef(input.annualPrice),
@@ -172,18 +161,13 @@ export async function updateSaaSPlan(
       maxUnits: input.maxUnits === undefined ? undefined : input.maxUnits,
       maxMembers: input.maxMembers === undefined ? undefined : input.maxMembers,
       maxAgencyConnections:
-        input.maxAgencyConnections === undefined
-          ? undefined
-          : input.maxAgencyConnections,
+        input.maxAgencyConnections === undefined ? undefined : input.maxAgencyConnections,
       features:
-        input.features === undefined
-          ? undefined
-          : (input.features as Prisma.InputJsonValue),
+        input.features === undefined ? undefined : (input.features as Prisma.InputJsonValue),
       active: input.active ?? undefined,
       publiclyAvailable: input.publiclyAvailable ?? undefined,
       recommended: input.recommended ?? undefined,
-      defaultTrialDays:
-        input.defaultTrialDays === undefined ? undefined : input.defaultTrialDays,
+      defaultTrialDays: input.defaultTrialDays === undefined ? undefined : input.defaultTrialDays,
       sortOrder: input.sortOrder ?? undefined,
     },
   });
@@ -392,9 +376,21 @@ export interface CreateOrganizationInput {
   planCode: string;
   status?: OrganizationStatus;
   trialDays?: number | null;
+  /** Calendar date `YYYY-MM-DD` in Europe/Belgrade. Trial is counted from this midnight. */
+  activatesAt?: string | null;
   ownerEmail?: string | null;
   ownerName?: string | null;
   ownerRole?: string | null;
+}
+
+function requireActivationStart(value: string): Date {
+  const start = belgradeStartOfDay(value.trim());
+  if (!start) {
+    throw DomainErrors.validation("Datum početka aktivacije nije ispravan.", {
+      activatesAt: ["Unesite kalendarski datum."],
+    });
+  }
+  return start;
 }
 
 export async function createOrganizationByPlatformAdmin(
@@ -405,9 +401,7 @@ export async function createOrganizationByPlatformAdmin(
     where: { slug: input.slug },
   });
   if (existingSlug) {
-    throw DomainErrors.conflict(
-      `Organizacija sa oznakom "${input.slug}" već postoji.`,
-    );
+    throw DomainErrors.conflict(`Organizacija sa oznakom "${input.slug}" već postoji.`);
   }
 
   const billing = applyAgencyOrgDefaults(input);
@@ -423,13 +417,15 @@ export async function createOrganizationByPlatformAdmin(
 
   const now = new Date();
   const trialDays = billing.trialDays ?? 30;
+  const activationStart =
+    billing.type === "AGENCY"
+      ? null
+      : input.activatesAt
+        ? requireActivationStart(input.activatesAt)
+        : now;
   const initialStatus: OrganizationStatus = billing.status ?? "TRIAL";
   const subscriptionStatus: SubscriptionStatus =
-    billing.type === "AGENCY"
-      ? "ACTIVE"
-      : initialStatus === "TRIAL"
-        ? "TRIAL"
-        : "ACTIVE";
+    billing.type === "AGENCY" ? "ACTIVE" : initialStatus === "TRIAL" ? "TRIAL" : "ACTIVE";
 
   const result = await prisma.$transaction(async (tx) => {
     const orgId = createId();
@@ -472,10 +468,11 @@ export async function createOrganizationByPlatformAdmin(
         organizationId: org.id,
         planId: plan.id,
         status: subscriptionStatus,
+        trialStartsAt: activationStart,
         trialEndsAt:
-          billing.type === "AGENCY" || subscriptionStatus !== "TRIAL"
-            ? null
-            : new Date(now.getTime() + trialDays * 24 * 60 * 60 * 1000),
+          activationStart && subscriptionStatus === "TRIAL"
+            ? addDays(activationStart, trialDays)
+            : null,
       },
     });
 
@@ -494,6 +491,8 @@ export async function createOrganizationByPlatformAdmin(
       type: billing.type,
       status: initialStatus,
       planCode: plan.code,
+      activatesAt: input.activatesAt ?? null,
+      trialDays,
     },
   });
 
@@ -549,10 +548,7 @@ export async function getOrganizationForPlatformAdmin(organizationId: string) {
 
 function subscriptionStatusForOrgStatus(
   status: OrganizationStatus,
-): Pick<
-  Prisma.OrganizationSubscriptionUncheckedUpdateInput,
-  "status" | "endsAt"
-> {
+): Pick<Prisma.OrganizationSubscriptionUncheckedUpdateInput, "status" | "endsAt"> {
   if (status === "SUSPENDED") return { status: "SUSPENDED" };
   if (status === "RESTRICTED") return { status: "RESTRICTED" };
   if (status === "CLOSED") {
@@ -574,17 +570,14 @@ export async function updateOrganizationByPlatformAdmin(
       where: { slug: input.slug },
     });
     if (clash) {
-      throw DomainErrors.validation(
-        `Organizacija sa oznakom "${input.slug}" već postoji.`,
-        { slug: [`Organizacija sa oznakom "${input.slug}" već postoji.`] },
-      );
+      throw DomainErrors.validation(`Organizacija sa oznakom "${input.slug}" već postoji.`, {
+        slug: [`Organizacija sa oznakom "${input.slug}" već postoji.`],
+      });
     }
   }
 
   const effectiveType =
-    existing.profile?.type === "AGENCY" || input.type === "AGENCY"
-      ? "AGENCY"
-      : input.type;
+    existing.profile?.type === "AGENCY" || input.type === "AGENCY" ? "AGENCY" : input.type;
   const billing = applyAgencyOrgDefaults({
     ...input,
     type: effectiveType,
@@ -605,13 +598,25 @@ export async function updateOrganizationByPlatformAdmin(
   let nextStatus: OrganizationStatus = billing.status ?? input.status ?? previousStatus;
   const website = normalizeWebsite(input.website);
   const now = new Date();
+  const activatesAtRaw = billing.type === "AGENCY" ? null : input.activatesAt?.trim() || null;
+  const activationStart = activatesAtRaw ? requireActivationStart(activatesAtRaw) : null;
   const currentRemaining = remainingTrialDays(existing.subscription?.trialEndsAt, now);
   const requestedDays = billing.type === "AGENCY" ? 0 : (input.trialDays ?? null);
   const trialChanged =
     billing.type !== "AGENCY" &&
+    activationStart == null &&
     requestedDays != null &&
     (currentRemaining == null ? requestedDays > 0 : requestedDays !== currentRemaining);
-  if (trialChanged && requestedDays > 0 && (nextStatus === "RESTRICTED" || nextStatus === "TRIAL")) {
+  if (activationStart && (nextStatus === "RESTRICTED" || nextStatus === "TRIAL")) {
+    const days = requestedDays ?? 0;
+    const windowEnd = addDays(activationStart, days);
+    if (windowEnd.getTime() > now.getTime()) nextStatus = "TRIAL";
+  } else if (
+    trialChanged &&
+    requestedDays != null &&
+    requestedDays > 0 &&
+    (nextStatus === "RESTRICTED" || nextStatus === "TRIAL")
+  ) {
     nextStatus = "TRIAL";
   }
   if (billing.type === "AGENCY" && nextStatus === "TRIAL") {
@@ -651,12 +656,30 @@ export async function updateOrganizationByPlatformAdmin(
       });
     }
 
-    const trialEndsAt =
+    const trialPatch: Prisma.OrganizationSubscriptionUncheckedUpdateInput =
       billing.type === "AGENCY"
-        ? null
-        : trialChanged && requestedDays != null
-          ? addDays(now, requestedDays)
-          : undefined;
+        ? {
+            trialEndsAt: null,
+            trialStartsAt: null,
+            autoRenew: false,
+            nextBillingDate: null,
+            price: 0,
+            customPrice: false,
+          }
+        : activationStart
+          ? {
+              trialStartsAt: activationStart,
+              trialEndsAt:
+                nextStatus === "TRIAL" ? addDays(activationStart, requestedDays ?? 0) : null,
+              ...(nextStatus === "TRIAL" ? { restrictedAt: null } : {}),
+            }
+          : trialChanged && requestedDays != null
+            ? {
+                trialEndsAt: addDays(now, requestedDays),
+                trialStartsAt: existing.subscription?.trialStartsAt ?? now,
+                ...(nextStatus === "TRIAL" ? { restrictedAt: null } : {}),
+              }
+            : {};
 
     const subPatch: Prisma.OrganizationSubscriptionUncheckedUpdateInput = {
       ...subscriptionStatusForOrgStatus(
@@ -670,22 +693,7 @@ export async function updateOrganizationByPlatformAdmin(
               : {}),
           }
         : {}),
-      ...(billing.type === "AGENCY"
-        ? {
-            trialEndsAt: null,
-            trialStartsAt: null,
-            autoRenew: false,
-            nextBillingDate: null,
-            price: 0,
-            customPrice: false,
-          }
-        : trialEndsAt
-          ? {
-              trialEndsAt,
-              trialStartsAt: existing.subscription?.trialStartsAt ?? now,
-              ...(nextStatus === "TRIAL" ? { restrictedAt: null } : {}),
-            }
-          : {}),
+      ...trialPatch,
     };
 
     if (existing.subscription) {
@@ -699,11 +707,13 @@ export async function updateOrganizationByPlatformAdmin(
           organizationId,
           planId: plan.id,
           status: nextStatus === "TRIAL" ? "TRIAL" : "ACTIVE",
+          trialStartsAt: activationStart,
           trialEndsAt:
-            trialEndsAt ??
-            (nextStatus === "TRIAL"
-              ? new Date(now.getTime() + (input.trialDays ?? 30) * 24 * 60 * 60 * 1000)
-              : null),
+            activationStart && nextStatus === "TRIAL"
+              ? addDays(activationStart, input.trialDays ?? 30)
+              : nextStatus === "TRIAL"
+                ? addDays(now, input.trialDays ?? 30)
+                : null,
         },
       });
     }
@@ -728,6 +738,7 @@ export async function updateOrganizationByPlatformAdmin(
       type: billing.type,
       status: nextStatus,
       planCode: plan.code,
+      ...(activationStart ? { activatesAt: activatesAtRaw, trialDays: requestedDays } : {}),
       ...(trialChanged ? { trialDays: requestedDays } : {}),
     },
   });
@@ -759,10 +770,7 @@ export async function setOrganizationStatus(
       await tx.organizationSubscription.update({
         where: { organizationId },
         data: {
-          status:
-            status === "SUSPENDED"
-              ? "SUSPENDED"
-              : ("CANCELED" as SubscriptionStatus),
+          status: status === "SUSPENDED" ? "SUSPENDED" : ("CANCELED" as SubscriptionStatus),
           endsAt: status === "CLOSED" ? new Date() : null,
         },
       });
@@ -869,11 +877,7 @@ export interface PlatformUserRow {
 }
 
 export type PlatformUserStatusFilter =
-  | "verified"
-  | "unverified"
-  | "banned"
-  | "login_locked"
-  | "login_suspended";
+  "verified" | "unverified" | "banned" | "login_locked" | "login_suspended";
 export type PlatformUserLayerFilter = "SUPER_ADMIN" | "user";
 
 export interface ListPlatformUsersInput {
@@ -915,9 +919,7 @@ export function buildPlatformUserListWhere(
         some: {
           ...(input.organizationId ? { organizationId: input.organizationId } : {}),
           ...(input.role ? { role: input.role } : {}),
-          ...(input.orgType
-            ? { organization: { profile: { type: input.orgType } } }
-            : {}),
+          ...(input.orgType ? { organization: { profile: { type: input.orgType } } } : {}),
         },
       },
     };
@@ -940,16 +942,13 @@ export function buildPlatformUserListWhere(
         ? { loginLockLevel: 6 }
         : input.status === "login_locked"
           ? {
-              OR: [
-                { loginLockLevel: 6 },
-                { loginLockedUntil: { gt: new Date() } },
-              ],
+              OR: [{ loginLockLevel: 6 }, { loginLockedUntil: { gt: new Date() } }],
             }
           : input.status === "verified"
-        ? { emailVerified: true, banned: { not: true } }
-        : input.status === "unverified"
-          ? { emailVerified: false, banned: { not: true } }
-          : {};
+            ? { emailVerified: true, banned: { not: true } }
+            : input.status === "unverified"
+              ? { emailVerified: false, banned: { not: true } }
+              : {};
 
   const platformFilter: Prisma.UserWhereInput =
     input.platform === "SUPER_ADMIN"
@@ -1074,9 +1073,7 @@ export async function updatePlatformUser(
   });
   if (!existing) throw DomainErrors.notFound("Korisnik");
 
-  const nextEmail = input.email
-    ? input.email.trim().toLowerCase()
-    : undefined;
+  const nextEmail = input.email ? input.email.trim().toLowerCase() : undefined;
   if (nextEmail && nextEmail !== existing.email.toLowerCase()) {
     const clash = await prisma.user.findFirst({
       where: {
@@ -1099,17 +1096,13 @@ export async function updatePlatformUser(
     const willBeAdmin = input.platformRole === "SUPER_ADMIN";
     if (currentlyAdmin && !willBeAdmin) {
       if (userId === actorUserId) {
-        throw DomainErrors.forbidden(
-          "Ne možete ukloniti SUPER_ADMIN ulogu sa sopstvenog naloga.",
-        );
+        throw DomainErrors.forbidden("Ne možete ukloniti SUPER_ADMIN ulogu sa sopstvenog naloga.");
       }
       const otherAdmins = await prisma.user.count({
         where: { role: "SUPER_ADMIN", id: { not: userId } },
       });
       if (otherAdmins === 0) {
-        throw DomainErrors.invalidState(
-          "Ne možete ukloniti poslednjeg administratora platforme.",
-        );
+        throw DomainErrors.invalidState("Ne možete ukloniti poslednjeg administratora platforme.");
       }
     }
   }
@@ -1167,10 +1160,8 @@ export async function updatePlatformUser(
   const accountChanged =
     (input.name !== undefined && input.name.trim() !== existing.name) ||
     (nextEmail !== undefined && nextEmail !== existing.email.toLowerCase()) ||
-    (input.emailVerified !== undefined &&
-      input.emailVerified !== existing.emailVerified) ||
-    (input.platformRole !== undefined &&
-      (input.platformRole ?? null) !== (existing.role ?? null));
+    (input.emailVerified !== undefined && input.emailVerified !== existing.emailVerified) ||
+    (input.platformRole !== undefined && (input.platformRole ?? null) !== (existing.role ?? null));
 
   if (accountChanged) {
     await recordAudit({
@@ -1199,10 +1190,9 @@ export async function updatePlatformUser(
       }
     } else if (!current) {
       if (!pd.teamRole) {
-        throw DomainErrors.validation(
-          "Izaberite ulogu Property Desk tima.",
-          { teamRole: ["Obavezno pri dodavanju u tim."] },
-        );
+        throw DomainErrors.validation("Izaberite ulogu Property Desk tima.", {
+          teamRole: ["Obavezno pri dodavanju u tim."],
+        });
       }
       await addTeamMember(
         {
@@ -1213,12 +1203,9 @@ export async function updatePlatformUser(
         actorUserId,
       );
     } else {
-      const roleChanged =
-        pd.teamRole !== undefined && pd.teamRole !== current.teamRole;
-      const scopeChanged =
-        pd.leadScope !== undefined && pd.leadScope !== current.leadScope;
-      const enabledChanged =
-        pd.enabled !== undefined && pd.enabled !== current.enabled;
+      const roleChanged = pd.teamRole !== undefined && pd.teamRole !== current.teamRole;
+      const scopeChanged = pd.leadScope !== undefined && pd.leadScope !== current.leadScope;
+      const enabledChanged = pd.enabled !== undefined && pd.enabled !== current.enabled;
       if (roleChanged || scopeChanged || enabledChanged) {
         await updateTeamMember(
           current.id,
@@ -1291,9 +1278,7 @@ export interface OrganizationPickerRow {
   type: OrganizationType | null;
 }
 
-export async function listOrganizationsForPicker(): Promise<
-  OrganizationPickerRow[]
-> {
+export async function listOrganizationsForPicker(): Promise<OrganizationPickerRow[]> {
   const rows = await prisma.organization.findMany({
     select: {
       id: true,
@@ -1372,9 +1357,7 @@ export async function createPlatformUser(
       });
     }
     if (orgType && !rolesForOrgType(orgType).includes(input.organizationRole)) {
-      throw DomainErrors.badRequest(
-        "Izabrana uloga nije dozvoljena za ovaj tip organizacije.",
-      );
+      throw DomainErrors.badRequest("Izabrana uloga nije dozvoljena za ovaj tip organizacije.");
     }
   }
 
@@ -1386,10 +1369,9 @@ export async function createPlatformUser(
   if (!user) {
     const password = input.password?.trim() ?? "";
     if (password.length < 10) {
-      throw DomainErrors.validation(
-        "Lozinka mora imati najmanje 10 karaktera.",
-        { password: ["Najmanje 10 karaktera."] },
-      );
+      throw DomainErrors.validation("Lozinka mora imati najmanje 10 karaktera.", {
+        password: ["Najmanje 10 karaktera."],
+      });
     }
     const hashed = await hashCredentialPassword(password);
     const id = createId();
@@ -1443,9 +1425,7 @@ export async function createPlatformUser(
         actorUserId,
       );
     } else if (created === false) {
-      throw DomainErrors.conflict(
-        "Korisnik sa ovim e-mailom je već član izabrane organizacije.",
-      );
+      throw DomainErrors.conflict("Korisnik sa ovim e-mailom je već član izabrane organizacije.");
     }
   }
 
@@ -1463,9 +1443,7 @@ export async function createPlatformUser(
         actorUserId,
       );
     } else if (!created && !wantsOrg) {
-      throw DomainErrors.conflict(
-        "Korisnik je već član Property Desk tima.",
-      );
+      throw DomainErrors.conflict("Korisnik je već član Property Desk tima.");
     }
   }
 

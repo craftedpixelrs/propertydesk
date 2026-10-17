@@ -23,8 +23,7 @@ export const dynamic = "force-dynamic";
 export default async function PropertyDeskTeamPage() {
   const ctx = await requirePropertyDeskAccess();
   const t = createT(await resolveRequestLocale());
-  const canManage =
-    ctx.isSuperAdmin || ctx.teamMember.teamRole === "MANAGER";
+  const canManage = ctx.isSuperAdmin || ctx.teamMember.teamRole === "MANAGER";
   if (!canManage) {
     return (
       <Card>

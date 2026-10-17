@@ -48,6 +48,8 @@ Ceo operator + developer runbook je u [`docs/`](./docs/):
 - **[`prezentacija-funkcionalnosti.html`](./docs/prezentacija-funkcionalnosti.html)** — slide deck (otvori u browseru, F = fullscreen, ←/→ navigacija)
 - **[`demo-snimanje.md`](./docs/demo-snimanje.md)** — scenario za snimanje video demoa (10-min investitor + 4-min agencija + 6 mikro-videa)
 - [`ciljne-grupe.md`](./docs/ciljne-grupe.md) — GTM / ciljne grupe
+- [`pilot-nalog.md`](./docs/pilot-nalog.md) — checklist pre predaje prvog naloga
+- [`obrada-podataka.md`](./docs/obrada-podataka.md) — šablon ugovora o obradi (JMBG)
 - [`billing/`](./docs/billing/) — SaaS naplata (12 dokumenata)
 - [`architecture.md`](./docs/architecture.md)
 - [`database.md`](./docs/database.md)

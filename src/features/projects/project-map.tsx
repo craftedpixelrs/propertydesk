@@ -16,12 +16,9 @@ if (typeof window !== "undefined") {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   delete (L.Icon.Default.prototype as any)._getIconUrl;
   L.Icon.Default.mergeOptions({
-    iconRetinaUrl:
-      "https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/images/marker-icon-2x.png",
-    iconUrl:
-      "https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/images/marker-icon.png",
-    shadowUrl:
-      "https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/images/marker-shadow.png",
+    iconRetinaUrl: "https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/images/marker-icon-2x.png",
+    iconUrl: "https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/images/marker-icon.png",
+    shadowUrl: "https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/images/marker-shadow.png",
   });
 }
 
@@ -50,9 +47,7 @@ export function ProjectMap({
   heightPx = 320,
 }: ProjectMapProps) {
   const hasCoords = latitude != null && longitude != null;
-  const center: [number, number] = hasCoords
-    ? [latitude, longitude]
-    : DEFAULT_CENTER;
+  const center: [number, number] = hasCoords ? [latitude, longitude] : DEFAULT_CENTER;
   const hostRef = React.useRef<HTMLDivElement>(null);
   const [mounted, setMounted] = React.useState(false);
 
@@ -95,11 +90,7 @@ export function ProjectMap({
             url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
           {hasCoords ? <Marker position={[latitude, longitude]} /> : null}
-          <SyncView
-            latitude={latitude}
-            longitude={longitude}
-            focusZoom={zoom}
-          />
+          <SyncView latitude={latitude} longitude={longitude} focusZoom={zoom} />
           {onPick ? <ClickHandler onPick={onPick} /> : null}
         </MapContainer>
       ) : null}

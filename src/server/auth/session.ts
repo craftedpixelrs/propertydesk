@@ -1,7 +1,12 @@
 import { headers } from "next/headers";
 import { auth } from "@/server/auth/auth";
 import { prisma } from "@/server/db/prisma";
+import {
+  getTwoFactorRequired,
+  userHasTwoFactor,
+} from "@/server/services/security/two-factor-policy";
 import type { OrganizationRole, PlatformRole } from "@/server/permissions/roles";
+import { isBeforeActivation } from "@/lib/billing/activation";
 import {
   expiryReasonForSubscription,
   syncExpiredAccess,
@@ -17,16 +22,9 @@ import {
  * `member` table.
  */
 
-export type AppSession = NonNullable<
-  Awaited<ReturnType<typeof auth.api.getSession>>
->;
+export type AppSession = NonNullable<Awaited<ReturnType<typeof auth.api.getSession>>>;
 
-export type OrganizationStatusValue =
-  | "TRIAL"
-  | "ACTIVE"
-  | "RESTRICTED"
-  | "SUSPENDED"
-  | "CLOSED";
+export type OrganizationStatusValue = "TRIAL" | "ACTIVE" | "RESTRICTED" | "SUSPENDED" | "CLOSED";
 
 export interface ActiveOrganizationContext {
   organizationId: string;
@@ -34,6 +32,9 @@ export interface ActiveOrganizationContext {
   organizationName: string;
   organizationType: "INVESTOR" | "AGENCY" | null;
   organizationStatus: OrganizationStatusValue | null;
+  /** Members have no access until this instant. Super-admin is exempt. */
+  activationPending: boolean;
+  activatesAt: string | null;
 }
 
 export async function getSession(): Promise<AppSession | null> {
@@ -46,6 +47,16 @@ export async function requireSession(): Promise<AppSession> {
   const s = await getSession();
   if (!s) {
     throw new AuthError("UNAUTHENTICATED", "Neophodna je prijava.");
+  }
+  const impersonatedBy = (s.session as { impersonatedBy?: string | null }).impersonatedBy;
+  if (!impersonatedBy && (await getTwoFactorRequired())) {
+    const enrolled = await userHasTwoFactor(s.user.id);
+    if (!enrolled) {
+      throw new AuthError(
+        "TWO_FACTOR_SETUP_REQUIRED",
+        "Dvofaktorska prijava je obavezna. Podesite je pre nastavka.",
+      );
+    }
   }
   return s;
 }
@@ -116,6 +127,7 @@ export async function getActiveOrganization(
           subscription: {
             select: {
               status: true,
+              trialStartsAt: true,
               trialEndsAt: true,
               endsAt: true,
               currentPeriodEnd: true,
@@ -127,21 +139,14 @@ export async function getActiveOrganization(
   });
 
   if (!membership) {
-    throw new AuthError(
-      "ORGANIZATION_ACCESS_DENIED",
-      "Nemate pristup toj organizaciji.",
-    );
+    throw new AuthError("ORGANIZATION_ACCESS_DENIED", "Nemate pristup toj organizaciji.");
   }
 
-  let status = (membership.organization.profile?.status ?? null) as
-    | OrganizationStatusValue
-    | null;
+  let status = (membership.organization.profile?.status ?? null) as OrganizationStatusValue | null;
 
   const sub = membership.organization.subscription;
   if (membership.organization.profile?.type === "AGENCY") {
-    const synced = await syncExpiredAccess(membership.organizationId).catch(
-      () => status,
-    );
+    const synced = await syncExpiredAccess(membership.organizationId).catch(() => status);
     status = synced ?? status;
   } else if (sub && expiryReasonForSubscription(sub, new Date())) {
     const synced = await syncExpiredAccess(membership.organizationId).catch(
@@ -166,6 +171,9 @@ export async function getActiveOrganization(
     organizationName: membership.organization.name,
     organizationType: membership.organization.profile?.type ?? null,
     organizationStatus: status,
+    activationPending:
+      membership.organization.profile?.type !== "AGENCY" && isBeforeActivation(sub?.trialStartsAt),
+    activatesAt: sub?.trialStartsAt?.toISOString() ?? null,
   };
 }
 
@@ -174,10 +182,7 @@ export async function requireActiveOrganization(
 ): Promise<ActiveOrganizationContext> {
   const ctx = await getActiveOrganization(session);
   if (!ctx) {
-    throw new AuthError(
-      "NO_ACTIVE_ORGANIZATION",
-      "Molimo izaberite aktivnu organizaciju.",
-    );
+    throw new AuthError("NO_ACTIVE_ORGANIZATION", "Molimo izaberite aktivnu organizaciju.");
   }
   return ctx;
 }
@@ -203,9 +208,11 @@ export type AuthErrorCode =
   | "FORBIDDEN"
   | "ORGANIZATION_ACCESS_DENIED"
   | "ORGANIZATION_SUSPENDED"
+  | "ORGANIZATION_NOT_ACTIVE"
   | "ORGANIZATION_RESTRICTED"
   | "NO_ACTIVE_ORGANIZATION"
-  | "PLATFORM_ADMIN_REQUIRED";
+  | "PLATFORM_ADMIN_REQUIRED"
+  | "TWO_FACTOR_SETUP_REQUIRED";
 
 export class AuthError extends Error {
   readonly code: AuthErrorCode;

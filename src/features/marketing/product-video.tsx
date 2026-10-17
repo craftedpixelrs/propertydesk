@@ -36,9 +36,7 @@ function parseYouTubeId(url: string): string | null {
 }
 
 type VideoMode =
-  | { kind: "placeholder" }
-  | { kind: "youtube"; id: string }
-  | { kind: "mp4"; url: string };
+  { kind: "placeholder" } | { kind: "youtube"; id: string } | { kind: "mp4"; url: string };
 
 function resolveMode(url: string): VideoMode {
   const trimmed = url.trim();
@@ -68,21 +66,14 @@ export function ProductVideo() {
   const mode = useMemo<VideoMode>(() => resolveMode(PRODUCT_VIDEO_URL), []);
 
   return (
-    <section
-      id="video"
-      aria-labelledby="video-title"
-      className="scroll-mt-20 bg-white"
-    >
+    <section id="video" aria-labelledby="video-title" className="scroll-mt-20 bg-white">
       <div className="container-app py-14 sm:py-20">
         <div className="mx-auto max-w-3xl text-center">
-          <div className="inline-flex items-center gap-2 rounded-full border border-[var(--color-brand-200)] bg-[var(--color-brand-50)] px-3 py-1 text-xs font-semibold uppercase tracking-wider text-[var(--color-brand-700)]">
+          <div className="inline-flex items-center gap-2 rounded-full border border-[#d6b26a]/40 bg-[#f7f3ea] px-3 py-1 text-xs font-semibold tracking-[0.16em] text-[#9a7430] uppercase">
             <Sparkles aria-hidden className="size-3.5" />
             {t("marketing.video.eyebrow")}
           </div>
-          <h2
-            id="video-title"
-            className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl"
-          >
+          <h2 id="video-title" className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">
             {t("marketing.video.title")}
           </h2>
           <p className="mt-4 text-base leading-relaxed text-[var(--color-foreground-muted)]">
@@ -97,11 +88,7 @@ export function ProductVideo() {
             aria-label={t("marketing.video.regionAria")}
           >
             {mode.kind === "youtube" ? (
-              <YouTubeFacade
-                id={mode.id}
-                loaded={loaded}
-                onLoad={() => setLoaded(true)}
-              />
+              <YouTubeFacade id={mode.id} loaded={loaded} onLoad={() => setLoaded(true)} />
             ) : mode.kind === "mp4" ? (
               <video
                 src={mode.url}
@@ -163,7 +150,7 @@ function YouTubeFacade({
         aria-hidden
         className="absolute inset-0 grid place-items-center bg-black/20 transition group-hover:bg-black/30"
       >
-        <span className="grid h-20 w-20 place-items-center rounded-full bg-white/95 text-[var(--color-brand-700)] shadow-lg transition group-hover:scale-105">
+        <span className="grid h-20 w-20 place-items-center rounded-full bg-[#f7f3ea] text-[#0b1020] shadow-lg transition group-hover:scale-105">
           <PlayCircle className="size-10" strokeWidth={1.5} />
         </span>
       </span>
@@ -174,7 +161,7 @@ function YouTubeFacade({
 function VideoPlaceholder() {
   const t = useT();
   return (
-    <div className="absolute inset-0 flex flex-col items-center justify-center gap-5 bg-gradient-to-br from-[var(--color-brand-600)] to-[var(--color-brand-900)] px-6 text-center text-white">
+    <div className="absolute inset-0 flex flex-col items-center justify-center gap-5 bg-[#0b1020] px-6 text-center text-[#f7f3ea]">
       <span
         aria-hidden
         className="grid h-16 w-16 place-items-center rounded-full bg-white/15 backdrop-blur"
@@ -183,14 +170,11 @@ function VideoPlaceholder() {
       </span>
       <div className="max-w-lg">
         <h3 className="text-xl font-semibold">{t("marketing.video.placeholderTitle")}</h3>
-        <p className="mt-2 text-sm text-white/80">
-          {t("marketing.video.placeholderBody")}
-        </p>
+        <p className="mt-2 text-sm text-white/80">{t("marketing.video.placeholderBody")}</p>
       </div>
       <a
         href="#zakazivanje"
-        style={{ color: "#1d4ed8" }}
-        className="inline-flex h-11 items-center justify-center gap-2 rounded-md bg-white px-5 text-sm font-semibold shadow-lg shadow-black/10 transition hover:bg-neutral-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-blue-900"
+        className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-[#f7f3ea] px-5 text-sm font-semibold text-[#0b1020] transition hover:bg-white focus-visible:ring-2 focus-visible:ring-[#d6b26a] focus-visible:ring-offset-2 focus-visible:ring-offset-[#0b1020] focus-visible:outline-none"
       >
         {t("marketing.video.bookLive")}
       </a>

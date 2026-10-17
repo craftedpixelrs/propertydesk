@@ -32,27 +32,24 @@ export const GET = apiHandler({}, async ({ searchParams }) => {
   return { data: items };
 });
 
-export const POST = apiHandler(
-  { bodySchema: createSchema },
-  async ({ body }) => {
-    const ctx = await requirePermission("payment.manage");
-    const created = await createTemplate({
-      organizationId: ctx.organization.organizationId,
-      actorUserId: ctx.session.user.id,
-      name: body.name,
-      description: body.description ?? null,
-      projectId: body.projectId ?? null,
-      isDefault: body.isDefault,
-      items: body.items.map((it) => ({
-        label: it.label,
-        percentage: it.percentage,
-        dueDateAnchor: it.dueDateAnchor,
-        offsetDays: it.offsetDays,
-      })),
-    });
-    return { data: created, status: 201 };
-  },
-);
+export const POST = apiHandler({ bodySchema: createSchema }, async ({ body }) => {
+  const ctx = await requirePermission("payment.manage");
+  const created = await createTemplate({
+    organizationId: ctx.organization.organizationId,
+    actorUserId: ctx.session.user.id,
+    name: body.name,
+    description: body.description ?? null,
+    projectId: body.projectId ?? null,
+    isDefault: body.isDefault,
+    items: body.items.map((it) => ({
+      label: it.label,
+      percentage: it.percentage,
+      dueDateAnchor: it.dueDateAnchor,
+      offsetDays: it.offsetDays,
+    })),
+  });
+  return { data: created, status: 201 };
+});
 
 /**
  * @swagger

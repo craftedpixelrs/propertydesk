@@ -12,11 +12,7 @@ import {
   useState,
 } from "react";
 
-import {
-  Dialog,
-  DialogContent,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { apiClient, ApiClientError } from "@/lib/api-client";
 import { useT } from "@/components/app/i18n-provider";
 import type { TranslationKey } from "@/lib/i18n";
@@ -35,9 +31,7 @@ interface CommandPaletteContextValue {
   toggle: () => void;
 }
 
-const CommandPaletteContext = createContext<CommandPaletteContextValue | null>(
-  null,
-);
+const CommandPaletteContext = createContext<CommandPaletteContextValue | null>(null);
 
 /**
  * Provider that owns the palette's open/close state and hotkey binding.
@@ -46,11 +40,7 @@ const CommandPaletteContext = createContext<CommandPaletteContextValue | null>(
  * intercept the browser default (which would open the URL bar in some
  * browsers) only when the palette can actually be opened.
  */
-export function CommandPaletteProvider({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export function CommandPaletteProvider({ children }: { children: React.ReactNode }) {
   const [open, setOpen] = useState(false);
   const toggle = useCallback(() => setOpen((v) => !v), []);
 
@@ -66,10 +56,7 @@ export function CommandPaletteProvider({
     return () => window.removeEventListener("keydown", onKey);
   }, [toggle]);
 
-  const value = useMemo(
-    () => ({ open, setOpen, toggle }),
-    [open, toggle],
-  );
+  const value = useMemo(() => ({ open, setOpen, toggle }), [open, toggle]);
 
   return (
     <CommandPaletteContext.Provider value={value}>
@@ -134,10 +121,7 @@ function CommandPaletteDialog({ open, onOpenChange }: DialogProps) {
         })
         .catch((err: unknown) => {
           if (seq !== requestSeq.current) return;
-          const message =
-            err instanceof ApiClientError
-              ? err.message
-              : t("ui.search.failed");
+          const message = err instanceof ApiClientError ? err.message : t("ui.search.failed");
           setError(message);
           setHits([]);
         })
@@ -159,14 +143,8 @@ function CommandPaletteDialog({ open, onOpenChange }: DialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl gap-0 p-0">
-        <DialogTitle className="sr-only">
-          {t("ui.search.title")}
-        </DialogTitle>
-        <Command
-          label={t("ui.search.globalLabel")}
-          shouldFilter={false}
-          className="flex flex-col"
-        >
+        <DialogTitle className="sr-only">{t("ui.search.title")}</DialogTitle>
+        <Command label={t("ui.search.globalLabel")} shouldFilter={false} className="flex flex-col">
           <div className="border-b border-[var(--color-border)] px-4">
             <Command.Input
               value={q}
@@ -177,24 +155,20 @@ function CommandPaletteDialog({ open, onOpenChange }: DialogProps) {
             />
           </div>
           <Command.List className="max-h-[60vh] overflow-y-auto p-2">
-            {error ? (
-              <div className="px-3 py-4 text-sm text-red-700">{error}</div>
-            ) : null}
+            {error ? <div className="px-3 py-4 text-sm text-red-700">{error}</div> : null}
             {loading && hits.length === 0 ? (
               <div className="px-3 py-4 text-sm text-[var(--color-foreground-muted)]">
                 {t("ui.search.searching")}
               </div>
             ) : null}
             <Command.Empty className="px-3 py-6 text-sm text-[var(--color-foreground-muted)]">
-              {q.trim().length < 2
-                ? t("ui.search.emptyHint")
-                : t("empty.noResults")}
+              {q.trim().length < 2 ? t("ui.search.emptyHint") : t("empty.noResults")}
             </Command.Empty>
             {grouped.map((group) => (
               <Command.Group
                 key={group.entity}
                 heading={
-                  <span className="px-2 pt-2 text-[10px] font-semibold uppercase tracking-wide text-[var(--color-foreground-muted)]">
+                  <span className="px-2 pt-2 text-[10px] font-semibold tracking-wide text-[var(--color-foreground-muted)] uppercase">
                     {group.label}
                   </span>
                 }
@@ -206,9 +180,7 @@ function CommandPaletteDialog({ open, onOpenChange }: DialogProps) {
                     onSelect={() => go(hit.href)}
                     className="flex cursor-pointer flex-col gap-0.5 rounded-md px-3 py-2 text-sm data-[selected=true]:bg-[var(--color-brand-50)]"
                   >
-                    <span className="font-medium text-[var(--color-foreground)]">
-                      {hit.title}
-                    </span>
+                    <span className="font-medium text-[var(--color-foreground)]">{hit.title}</span>
                     {hit.subtitle ? (
                       <span className="text-xs text-[var(--color-foreground-muted)]">
                         {hit.subtitle}
@@ -255,10 +227,7 @@ const GROUP_ORDER: SearchHit["entity"][] = [
   "lead",
 ];
 
-function groupHits(
-  hits: SearchHit[],
-  translate: (key: TranslationKey) => string,
-): HitGroup[] {
+function groupHits(hits: SearchHit[], translate: (key: TranslationKey) => string): HitGroup[] {
   const buckets = new Map<SearchHit["entity"], SearchHit[]>();
   for (const hit of hits) {
     const list = buckets.get(hit.entity) ?? [];

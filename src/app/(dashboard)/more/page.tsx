@@ -20,9 +20,7 @@ export default async function MorePage() {
         organizationType={ctx.activeOrganization?.type ?? null}
         permissions={ctx.permissions}
         isSuperAdmin={ctx.isSuperAdmin}
-        hasPropertyDeskAccess={
-          ctx.isSuperAdmin || Boolean(ctx.propertyDeskTeam?.enabled)
-        }
+        hasPropertyDeskAccess={ctx.isSuperAdmin || Boolean(ctx.propertyDeskTeam?.enabled)}
       />
       <div className="space-y-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-4">
         <div className="flex flex-wrap items-center gap-4">

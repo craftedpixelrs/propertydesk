@@ -18,12 +18,7 @@ const CATEGORY_VALUES = [
   "COMMISSION",
 ] as const;
 
-const VISIBILITY_VALUES = [
-  "INTERNAL",
-  "INVESTOR_TEAM",
-  "AGENCY_SHARED",
-  "BUYER_SHARED",
-] as const;
+const VISIBILITY_VALUES = ["INTERNAL", "INVESTOR_TEAM", "AGENCY_SHARED", "BUYER_SHARED"] as const;
 
 /**
  * Standalone uploader for the /dokumenti page. For entity-scoped uploads
@@ -68,8 +63,7 @@ export function DocumentUploader({
       if (!res.ok) {
         const payload = await res.json().catch(() => null);
         throw new Error(
-          (payload?.error?.message as string | undefined) ??
-            t("ops.documents.uploadFailed"),
+          (payload?.error?.message as string | undefined) ?? t("ops.documents.uploadFailed"),
         );
       }
       setSuccess(t("ops.documents.uploadedSuccess", { name: file.name }));

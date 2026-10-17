@@ -16,6 +16,7 @@ import {
   loadAgencyDashboard,
 } from "@/server/services/dashboard/dashboard.service";
 import { loadOnboardingState } from "@/server/services/onboarding.service";
+import { loadWorkQueue } from "@/server/services/dashboard/work-queue.service";
 import { buildCashFlowProjection } from "@/server/services/reports/cash-flow.service";
 import { OnboardingChecklist } from "@/features/onboarding/onboarding-checklist";
 import { CashFlowCard } from "@/features/reports/cash-flow-card";
@@ -88,10 +89,11 @@ async function InvestorDashboard({
   name: string;
   locale: Locale;
 }) {
-  const [data, onboarding, cashflow] = await Promise.all([
+  const [data, onboarding, cashflow, queue] = await Promise.all([
     loadInvestorDashboard(organizationId),
     loadOnboardingState(organizationId),
     buildCashFlowProjection({ organizationId, months: 12 }),
+    loadWorkQueue(organizationId),
   ]);
   const currency = data.financial.currency as SupportedCurrency;
 
@@ -111,6 +113,43 @@ async function InvestorDashboard({
             allDone: onboarding.allDone,
           }}
         />
+      ) : null}
+
+      {queue.length ? (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm">
+              {t("ui.dashboard.workQueue", undefined, locale)}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            {queue.map((item) => {
+              const kindKey = {
+                installment: "ui.dashboard.workKind.installment",
+                kyc: "ui.dashboard.workKind.kyc",
+                contract: "ui.dashboard.workKind.contract",
+                reservation: "ui.dashboard.workKind.reservation",
+              } as const;
+              return (
+                <Link
+                  key={item.id}
+                  href={item.href}
+                  className="flex items-baseline justify-between gap-3 rounded-md border border-[var(--color-border)] px-3 py-2 text-sm hover:bg-[var(--color-surface-inset)]"
+                >
+                  <span>
+                    <span className="mr-2 text-xs tracking-wide text-[var(--color-foreground-muted)] uppercase">
+                      {t(kindKey[item.kind], undefined, locale)}
+                    </span>
+                    {item.title}
+                  </span>
+                  <span className="text-xs text-[var(--color-foreground-muted)]">
+                    {item.detail}
+                  </span>
+                </Link>
+              );
+            })}
+          </CardContent>
+        </Card>
       ) : null}
 
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
@@ -208,7 +247,10 @@ async function InvestorDashboard({
             <CardTitle className="text-sm">
               {t("ui.dashboard.recentReservations", undefined, locale)}
             </CardTitle>
-            <Link href="/rezervacije" className="text-xs text-[var(--color-brand-700)] hover:underline">
+            <Link
+              href="/rezervacije"
+              className="text-xs text-[var(--color-brand-700)] hover:underline"
+            >
               {t("ui.dashboard.viewAll", undefined, locale)}
             </Link>
           </CardHeader>
@@ -288,9 +330,7 @@ async function InvestorDashboard({
             {t("ui.dashboard.upcomingInstallments", undefined, locale)}
           </CardTitle>
           <div className="flex items-center gap-3 text-xs text-[var(--color-foreground-muted)]">
-            <span>
-              {t("ui.dashboard.tasksToday", { count: data.totals.tasksToday }, locale)}
-            </span>
+            <span>{t("ui.dashboard.tasksToday", { count: data.totals.tasksToday }, locale)}</span>
             <span>
               {t("ui.dashboard.tasksOverdue", { count: data.totals.tasksOverdue }, locale)}
             </span>
@@ -394,7 +434,10 @@ async function AgencyDashboard({
             <CardTitle className="text-sm">
               {t("ui.dashboard.recentRegistrations", undefined, locale)}
             </CardTitle>
-            <Link href="/moji-kupci" className="text-xs text-[var(--color-brand-700)] hover:underline">
+            <Link
+              href="/moji-kupci"
+              className="text-xs text-[var(--color-brand-700)] hover:underline"
+            >
               {t("ui.dashboard.viewAll", undefined, locale)}
             </Link>
           </CardHeader>
@@ -426,7 +469,10 @@ async function AgencyDashboard({
             <CardTitle className="text-sm">
               {t("ui.dashboard.myReservations", undefined, locale)}
             </CardTitle>
-            <Link href="/moje-rezervacije" className="text-xs text-[var(--color-brand-700)] hover:underline">
+            <Link
+              href="/moje-rezervacije"
+              className="text-xs text-[var(--color-brand-700)] hover:underline"
+            >
               {t("ui.dashboard.viewAll", undefined, locale)}
             </Link>
           </CardHeader>

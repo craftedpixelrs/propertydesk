@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 import { headers } from "next/headers";
 
+import { MARKETING_CONTENT_UPDATED } from "@/lib/constants/app";
 import { hostFromHeaders } from "@/lib/seo/hosts";
 import { buildSitemapEntries } from "@/lib/seo/policy";
 
@@ -12,5 +13,8 @@ import { buildSitemapEntries } from "@/lib/seo/policy";
  * entries and Google ignores or warns on them.
  */
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  return buildSitemapEntries(hostFromHeaders(await headers()), new Date());
+  return buildSitemapEntries(
+    hostFromHeaders(await headers()),
+    new Date(`${MARKETING_CONTENT_UPDATED}T00:00:00.000Z`),
+  );
 }

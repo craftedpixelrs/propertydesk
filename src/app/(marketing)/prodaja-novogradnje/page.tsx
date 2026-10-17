@@ -3,12 +3,11 @@ import { LayoutGrid } from "lucide-react";
 
 import { PageHero } from "@/features/marketing/landing/page-hero";
 import { ProblemSolutionGrid } from "@/features/marketing/landing/problem-solution-grid";
+import { RelatedReading } from "@/features/marketing/blog/related-reading";
 import { CtaPanel } from "@/features/marketing/landing/cta-panel";
+import { RelatedLinks } from "@/features/marketing/landing/related-links";
 import { FeatureGrid } from "@/features/marketing/feature-grid";
-import {
-  buildLandingMetadata,
-  LandingJsonLd,
-} from "@/features/marketing/landing/landing-shell";
+import { buildLandingMetadata, LandingJsonLd } from "@/features/marketing/landing/landing-shell";
 import { createT, type TranslateFn } from "@/lib/i18n";
 import { resolveRequestLocale } from "@/lib/i18n/resolve-locale";
 
@@ -48,6 +47,18 @@ export default async function Page() {
         items={pairs(t)}
       />
       <FeatureGrid />
+      <RelatedLinks
+        title={t("marketing.anchors.related")}
+        items={[
+          { href: "/", label: t("marketing.anchors.software") },
+          { href: "/za-investitore", label: t("marketing.anchors.investors") },
+          { href: "/rezervacije-i-uplate", label: t("marketing.anchors.reservation") },
+          { href: "/blog/primopredaja-stana", label: t("marketing.anchors.handover") },
+        ]}
+      />
+      <RelatedReading
+        slugs={["primopredaja-stana", "kako-izabrati-softver-za-prodaju-novogradnje"]}
+      />
       <CtaPanel />
       <LandingJsonLd
         slug="prodaja-novogradnje"

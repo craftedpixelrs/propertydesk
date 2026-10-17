@@ -99,16 +99,9 @@ export interface UpdateProjectInput {
 // arbitrary columns.
 // -----------------------------------------------------------------------------
 
-const ALLOWED_SORT_FIELDS = new Set([
-  "createdAt",
-  "name",
-  "code",
-  "projectStatus",
-]);
+const ALLOWED_SORT_FIELDS = new Set(["createdAt", "name", "code", "projectStatus"]);
 
-function resolveOrderBy(
-  sort: ListProjectsInput["sort"],
-): Prisma.ProjectOrderByWithRelationInput {
+function resolveOrderBy(sort: ListProjectsInput["sort"]): Prisma.ProjectOrderByWithRelationInput {
   if (!sort || !ALLOWED_SORT_FIELDS.has(sort.field)) {
     return { createdAt: "desc" };
   }
@@ -129,25 +122,17 @@ function slugify(input: string): string {
     .slice(0, 80);
 }
 
-async function ensureUniqueCode(
-  organizationId: string,
-  code: string,
-): Promise<void> {
+async function ensureUniqueCode(organizationId: string, code: string): Promise<void> {
   const existing = await prisma.project.findUnique({
     where: { organizationId_code: { organizationId, code } },
     select: { id: true },
   });
   if (existing) {
-    throw DomainErrors.conflict(
-      `Projekat sa šifrom "${code}" već postoji u ovoj organizaciji.`,
-    );
+    throw DomainErrors.conflict(`Projekat sa šifrom "${code}" već postoji u ovoj organizaciji.`);
   }
 }
 
-async function ensureUniqueSlug(
-  organizationId: string,
-  slug: string,
-): Promise<string> {
+async function ensureUniqueSlug(organizationId: string, slug: string): Promise<string> {
   let candidate = slug;
   let attempt = 0;
   while (true) {
@@ -249,10 +234,7 @@ export async function listProjects(
   return { items, total };
 }
 
-export async function getProjectById(
-  organizationId: string,
-  projectId: string,
-) {
+export async function getProjectById(organizationId: string, projectId: string) {
   const project = await prisma.project.findFirst({
     where: { id: projectId, organizationId },
     include: {
@@ -360,9 +342,7 @@ export async function updateProject(input: UpdateProjectInput) {
           select: { id: true },
         });
         if (clash) {
-          throw DomainErrors.conflict(
-            `Slug "${normalized}" je već zauzet drugim projektom.`,
-          );
+          throw DomainErrors.conflict(`Slug "${normalized}" je već zauzet drugim projektom.`);
         }
       }
       nextMicrositeSlug = normalized;
@@ -374,24 +354,18 @@ export async function updateProject(input: UpdateProjectInput) {
     data: {
       name: input.patch.name ?? undefined,
       slug: nextSlug ?? undefined,
-      description:
-        input.patch.description === undefined ? undefined : input.patch.description,
+      description: input.patch.description === undefined ? undefined : input.patch.description,
       address: input.patch.address === undefined ? undefined : input.patch.address,
       city: input.patch.city === undefined ? undefined : input.patch.city,
-      municipality:
-        input.patch.municipality === undefined ? undefined : input.patch.municipality,
-      postalCode:
-        input.patch.postalCode === undefined ? undefined : input.patch.postalCode,
+      municipality: input.patch.municipality === undefined ? undefined : input.patch.municipality,
+      postalCode: input.patch.postalCode === undefined ? undefined : input.patch.postalCode,
       latitude: input.patch.latitude === undefined ? undefined : input.patch.latitude,
-      longitude:
-        input.patch.longitude === undefined ? undefined : input.patch.longitude,
+      longitude: input.patch.longitude === undefined ? undefined : input.patch.longitude,
       coverImageUrl:
         input.patch.coverImageUrl === undefined ? undefined : input.patch.coverImageUrl,
       projectStatus: input.patch.projectStatus ?? undefined,
       salesStartDate:
-        input.patch.salesStartDate === undefined
-          ? undefined
-          : input.patch.salesStartDate,
+        input.patch.salesStartDate === undefined ? undefined : input.patch.salesStartDate,
       constructionStartDate:
         input.patch.constructionStartDate === undefined
           ? undefined
@@ -402,31 +376,21 @@ export async function updateProject(input: UpdateProjectInput) {
           : input.patch.expectedCompletionDate,
       defaultCurrency: input.patch.defaultCurrency ?? undefined,
       defaultVatRate:
-        input.patch.defaultVatRate === undefined
-          ? undefined
-          : input.patch.defaultVatRate,
+        input.patch.defaultVatRate === undefined ? undefined : input.patch.defaultVatRate,
       internalNotes:
         input.patch.internalNotes === undefined ? undefined : input.patch.internalNotes,
-      landCost:
-        input.patch.landCost === undefined ? undefined : input.patch.landCost,
+      landCost: input.patch.landCost === undefined ? undefined : input.patch.landCost,
       constructionCost:
-        input.patch.constructionCost === undefined
-          ? undefined
-          : input.patch.constructionCost,
+        input.patch.constructionCost === undefined ? undefined : input.patch.constructionCost,
       marketingCost:
-        input.patch.marketingCost === undefined
-          ? undefined
-          : input.patch.marketingCost,
-      otherCost:
-        input.patch.otherCost === undefined ? undefined : input.patch.otherCost,
-      budgetNote:
-        input.patch.budgetNote === undefined ? undefined : input.patch.budgetNote,
+        input.patch.marketingCost === undefined ? undefined : input.patch.marketingCost,
+      otherCost: input.patch.otherCost === undefined ? undefined : input.patch.otherCost,
+      budgetNote: input.patch.budgetNote === undefined ? undefined : input.patch.budgetNote,
       publicMicrositeEnabled:
         input.patch.publicMicrositeEnabled === undefined
           ? undefined
           : input.patch.publicMicrositeEnabled,
-      publicMicrositeSlug:
-        nextMicrositeSlug === undefined ? undefined : nextMicrositeSlug,
+      publicMicrositeSlug: nextMicrositeSlug === undefined ? undefined : nextMicrositeSlug,
       networkCatalogEnabled:
         input.patch.networkCatalogEnabled === undefined
           ? undefined

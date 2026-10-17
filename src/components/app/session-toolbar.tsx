@@ -42,8 +42,7 @@ export function SignOutButton({ className }: { className?: string }) {
 export function SessionToolbar() {
   const t = useT();
   const pathname = usePathname();
-  const account =
-    pathname === "/podesavanja/profil" || pathname.startsWith("/podesavanja/profil/");
+  const account = pathname === "/podesavanja/profil" || pathname.startsWith("/podesavanja/profil/");
 
   return (
     <div className="hidden h-14 items-center justify-end gap-1.5 border-b border-[var(--color-border)] bg-[color-mix(in_oklab,var(--color-surface)_92%,transparent)] px-4 backdrop-blur-md md:flex lg:px-8">

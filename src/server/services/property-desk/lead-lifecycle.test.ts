@@ -70,9 +70,7 @@ describe("nextAllowedStages", () => {
     expect(nextAllowedStages("NEW", null).sort()).toEqual(
       ["CONTACTED", "LOST", "NURTURING"].sort(),
     );
-    expect(nextAllowedStages("PROPOSAL", null).sort()).toEqual(
-      ["LOST", "WON"].sort(),
-    );
+    expect(nextAllowedStages("PROPOSAL", null).sort()).toEqual(["LOST", "WON"].sort());
     expect(nextAllowedStages("WON", null)).toEqual([]);
   });
 

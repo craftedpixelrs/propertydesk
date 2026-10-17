@@ -3,11 +3,10 @@ import { Contact } from "lucide-react";
 
 import { PageHero } from "@/features/marketing/landing/page-hero";
 import { ProblemSolutionGrid } from "@/features/marketing/landing/problem-solution-grid";
+import { RelatedReading } from "@/features/marketing/blog/related-reading";
+import { RelatedLinks } from "@/features/marketing/landing/related-links";
 import { CtaPanel } from "@/features/marketing/landing/cta-panel";
-import {
-  buildLandingMetadata,
-  LandingJsonLd,
-} from "@/features/marketing/landing/landing-shell";
+import { buildLandingMetadata, LandingJsonLd } from "@/features/marketing/landing/landing-shell";
 import { createT, type TranslateFn } from "@/lib/i18n";
 import { resolveRequestLocale } from "@/lib/i18n/resolve-locale";
 
@@ -45,6 +44,17 @@ export default async function Page() {
         title={t("marketing.pages.crm.gridTitle")}
         subtitle={t("marketing.pages.crm.gridSubtitle")}
         items={pairs(t)}
+      />
+      <RelatedLinks
+        title={t("marketing.anchors.related")}
+        items={[
+          { href: "/", label: t("marketing.anchors.software") },
+          { href: "/alternative-excelu", label: t("marketing.anchors.excel") },
+          { href: "/prodaja-novogradnje", label: t("marketing.anchors.newBuild") },
+        ]}
+      />
+      <RelatedReading
+        slugs={["kyc-kupca-pre-ugovora-o-stanu", "kako-izabrati-softver-za-prodaju-novogradnje"]}
       />
       <CtaPanel />
       <LandingJsonLd

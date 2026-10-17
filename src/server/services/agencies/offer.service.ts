@@ -292,7 +292,11 @@ async function isUnitVisibleToAgency(
     select: { visible: true },
   });
   if (override?.visible === false) return false;
-  if (access.showOnlyAgencyVisibleUnits && !unit.isVisibleToAgencies && override?.visible !== true) {
+  if (
+    access.showOnlyAgencyVisibleUnits &&
+    !unit.isVisibleToAgencies &&
+    override?.visible !== true
+  ) {
     return false;
   }
   return true;

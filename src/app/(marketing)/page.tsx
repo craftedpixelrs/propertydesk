@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
 
 import { APP_NAME, COMPANY, MARKETING_URL, LAUNCH_DATE_ISO } from "@/lib/constants/app";
+import { JsonLd } from "@/lib/seo/json-ld";
 import { Hero } from "@/features/marketing/hero";
 import { OfferBanner } from "@/features/marketing/offer-banner";
+import { SalesCompare } from "@/features/marketing/sales-compare";
 import { FeatureGrid } from "@/features/marketing/feature-grid";
 import { SocialProof } from "@/features/marketing/social-proof";
 import { Personas } from "@/features/marketing/personas";
@@ -13,6 +15,8 @@ import { EarlyBirdBonuses } from "@/features/marketing/early-bird-bonuses";
 import { Roadmap } from "@/features/marketing/roadmap";
 import { PricingTeaser } from "@/features/marketing/pricing-teaser";
 import { LeadForm } from "@/features/marketing/lead-form";
+import { BlogTeaser } from "@/features/marketing/blog/blog-teaser";
+import { RelatedLinks } from "@/features/marketing/landing/related-links";
 import { Faq } from "@/features/marketing/faq";
 import { faqItems } from "@/features/marketing/faq-items";
 import { createT, htmlLang } from "@/lib/i18n";
@@ -27,12 +31,16 @@ export async function generateMetadata(): Promise<Metadata> {
     },
     description: t("marketing.landing.metaHomeDescription"),
     alternates: {
-      canonical: MARKETING_URL,
+      canonical: `${MARKETING_URL}/`,
+      languages: {
+        "sr-Latn": `${MARKETING_URL}/`,
+        "x-default": `${MARKETING_URL}/`,
+      },
     },
     openGraph: {
       title: t("marketing.landing.metaHomeTitle", { name: APP_NAME }),
       description: t("marketing.landing.metaHomeDescription"),
-      url: MARKETING_URL,
+      url: `${MARKETING_URL}/`,
       type: "website",
       siteName: APP_NAME,
     },
@@ -49,21 +57,49 @@ export default async function LandingPage() {
   const t = createT(locale);
   const faqs = faqItems(t);
 
+  const orgId = `${MARKETING_URL}/#organization`;
+  const offer = (name: string, price: string) => ({
+    "@type": "Offer",
+    name,
+    price,
+    priceCurrency: "EUR",
+    availability: "https://schema.org/PreOrder",
+    availabilityStarts: LAUNCH_DATE_ISO,
+    url: `${MARKETING_URL}/#cenovnik`,
+  });
+
   const orgJsonLd = {
     "@context": "https://schema.org",
     "@type": "Organization",
+    "@id": orgId,
     name: APP_NAME,
-    url: MARKETING_URL,
+    url: `${MARKETING_URL}/`,
     logo: `${MARKETING_URL}/icons/icon-512.png`,
+    email: COMPANY.email,
+    telephone: COMPANY.phoneTel,
+    areaServed: "RS",
+    sameAs: [COMPANY.operatorUrl],
     contactPoint: [
       {
         "@type": "ContactPoint",
         contactType: "customer support",
         email: COMPANY.email,
         telephone: COMPANY.phoneTel,
-        availableLanguage: locale === "en" ? ["English", "Serbian"] : ["Serbian"],
+        areaServed: "RS",
+        availableLanguage: ["Serbian", "English"],
       },
     ],
+  };
+
+  const websiteJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "@id": `${MARKETING_URL}/#website`,
+    name: APP_NAME,
+    url: `${MARKETING_URL}/`,
+    inLanguage: htmlLang(locale),
+    publisher: { "@id": orgId },
+    description: t("marketing.landing.metaHomeDescription"),
   };
 
   const softwareJsonLd = {
@@ -73,33 +109,10 @@ export default async function LandingPage() {
     applicationCategory: "BusinessApplication",
     operatingSystem: "Web",
     inLanguage: htmlLang(locale),
-    url: MARKETING_URL,
+    url: `${MARKETING_URL}/`,
     description: t("marketing.landing.softwareDescription"),
-    softwareVersion: "1.0",
-    datePublished: LAUNCH_DATE_ISO,
-    offers: [
-      {
-        "@type": "Offer",
-        name: "Starter",
-        price: "49",
-        priceCurrency: "EUR",
-        category: "monthly subscription",
-      },
-      {
-        "@type": "Offer",
-        name: "Growth",
-        price: "149",
-        priceCurrency: "EUR",
-        category: "monthly subscription",
-      },
-      {
-        "@type": "Offer",
-        name: "Scale",
-        price: "399",
-        priceCurrency: "EUR",
-        category: "monthly subscription",
-      },
-    ],
+    publisher: { "@id": orgId },
+    offers: [offer("Starter", "49"), offer("Growth", "149"), offer("Scale", "399")],
   };
 
   const faqJsonLd = {
@@ -119,6 +132,7 @@ export default async function LandingPage() {
     <>
       <Hero />
       <OfferBanner />
+      <SalesCompare />
       <FeatureGrid />
       <SocialProof />
       <Personas />
@@ -129,20 +143,25 @@ export default async function LandingPage() {
       <PricingTeaser />
       <Roadmap />
       <LeadForm />
+      <BlogTeaser />
+      <RelatedLinks
+        title={t("marketing.anchors.related")}
+        items={[
+          { href: "/prodaja-novogradnje", label: t("marketing.anchors.newBuild") },
+          { href: "/crm-za-investitore", label: t("marketing.anchors.crm") },
+          { href: "/alternative-excelu", label: t("marketing.anchors.excel") },
+          { href: "/rezervacije-i-uplate", label: t("marketing.anchors.reservation") },
+          { href: "/provizije-agencija", label: t("marketing.anchors.commission") },
+          { href: "/za-investitore", label: t("marketing.anchors.investors") },
+          { href: "/za-agencije", label: t("marketing.anchors.agencies") },
+        ]}
+      />
       <Faq />
 
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(orgJsonLd) }}
-      />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(softwareJsonLd) }}
-      />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
-      />
+      <JsonLd data={orgJsonLd} />
+      <JsonLd data={websiteJsonLd} />
+      <JsonLd data={softwareJsonLd} />
+      <JsonLd data={faqJsonLd} />
     </>
   );
 }

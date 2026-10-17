@@ -26,9 +26,7 @@ function deriveDevKey(): Buffer {
   // BILLING_SECRET_KEY is missing (dev / test) so encryption still works
   // without extra environment setup. Production requires an explicit key.
   const source = serverEnv.BETTER_AUTH_SECRET ?? "propertydesk-dev";
-  return createHash("sha256")
-    .update(`billing-key/${source}`, "utf8")
-    .digest();
+  return createHash("sha256").update(`billing-key/${source}`, "utf8").digest();
 }
 
 function loadKey(): Buffer {
@@ -37,9 +35,7 @@ function loadKey(): Buffer {
   if (raw && raw.trim().length > 0) {
     const buf = Buffer.from(raw, "base64");
     if (buf.length !== 32) {
-      throw new Error(
-        `BILLING_SECRET_KEY must decode to exactly 32 bytes; got ${buf.length}`,
-      );
+      throw new Error(`BILLING_SECRET_KEY must decode to exactly 32 bytes; got ${buf.length}`);
     }
     cachedKey = buf;
     return cachedKey;
@@ -62,10 +58,7 @@ export function encryptSecret(plaintext: string | null | undefined): string | nu
   const key = loadKey();
   const iv = randomBytes(IV_LEN);
   const cipher = createCipheriv(ALGO, key, iv);
-  const enc = Buffer.concat([
-    cipher.update(plaintext, "utf8"),
-    cipher.final(),
-  ]);
+  const enc = Buffer.concat([cipher.update(plaintext, "utf8"), cipher.final()]);
   const tag = cipher.getAuthTag();
   return `v1.${iv.toString("base64")}.${tag.toString("base64")}.${enc.toString("base64")}`;
 }

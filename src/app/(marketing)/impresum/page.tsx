@@ -2,10 +2,7 @@ import type { Metadata } from "next";
 
 import { LegalArticle } from "@/features/marketing/legal/legal-article";
 import { getLegalDoc } from "@/features/marketing/legal/copy";
-import {
-  buildLandingMetadata,
-  LandingJsonLd,
-} from "@/features/marketing/landing/landing-shell";
+import { buildLandingMetadata, LandingJsonLd } from "@/features/marketing/landing/landing-shell";
 import { createT } from "@/lib/i18n";
 import { resolveRequestLocale } from "@/lib/i18n/resolve-locale";
 

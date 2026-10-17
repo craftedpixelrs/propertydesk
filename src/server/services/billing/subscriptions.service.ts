@@ -111,9 +111,7 @@ export async function activateSubscription(
   const plan = await prisma.saaSPlan.findUniqueOrThrow({ where: { id: sub.planId } });
   const cycle = input.cycle ?? sub.billingCycle ?? "MONTHLY";
   const price =
-    input.customPrice != null
-      ? new Prisma.Decimal(input.customPrice)
-      : priceForCycle(plan, cycle);
+    input.customPrice != null ? new Prisma.Decimal(input.customPrice) : priceForCycle(plan, cycle);
 
   const now = new Date();
   const periodStart = sub.currentPeriodStart ?? now;
@@ -174,17 +172,13 @@ export async function changeSubscriptionPlan(
     select: { type: true },
   });
   if (orgType?.type === "AGENCY") {
-    throw DomainErrors.badRequest(
-      "Agencija nema pretplatu. Pristup ide preko poziva investitora.",
-    );
+    throw DomainErrors.badRequest("Agencija nema pretplatu. Pristup ide preko poziva investitora.");
   }
 
   const nextPlan = await prisma.saaSPlan.findUnique({ where: { id: newPlanId } });
   if (!nextPlan) throw DomainErrors.notFound("Plan");
 
-  const nextPrice = sub.customPrice
-    ? sub.price
-    : priceForCycle(nextPlan, sub.billingCycle);
+  const nextPrice = sub.customPrice ? sub.price : priceForCycle(nextPlan, sub.billingCycle);
 
   const updated = await prisma.organizationSubscription.update({
     where: { organizationId },
@@ -260,9 +254,7 @@ export async function changeSubscriptionPrice(
   const sub = await loadSubscription(organizationId);
   const isCustom = newPrice != null;
   const plan = await prisma.saaSPlan.findUniqueOrThrow({ where: { id: sub.planId } });
-  const price = isCustom
-    ? new Prisma.Decimal(newPrice)
-    : priceForCycle(plan, sub.billingCycle);
+  const price = isCustom ? new Prisma.Decimal(newPrice) : priceForCycle(plan, sub.billingCycle);
 
   const updated = await prisma.organizationSubscription.update({
     where: { organizationId },
@@ -295,8 +287,7 @@ export async function extendTrial(
   }
   const sub = await loadSubscription(organizationId);
   const now = new Date();
-  const base =
-    sub.trialEndsAt && sub.trialEndsAt.getTime() > now.getTime() ? sub.trialEndsAt : now;
+  const base = sub.trialEndsAt && sub.trialEndsAt.getTime() > now.getTime() ? sub.trialEndsAt : now;
   const nextEnd = new Date(base.getTime() + additionalDays * 24 * 60 * 60 * 1000);
   const unlock = nextEnd.getTime() > now.getTime();
 

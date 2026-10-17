@@ -25,10 +25,7 @@ const ALL_PERMISSIONS: PermissionString[] = (() => {
 
 function computeOrgPermissions(roleKey: keyof typeof organizationRoles): Set<PermissionString> {
   const roleDef = organizationRoles[roleKey] as unknown as {
-    authorize: (
-      req: Record<string, string[]>,
-      connector?: "AND" | "OR",
-    ) => { success: boolean };
+    authorize: (req: Record<string, string[]>, connector?: "AND" | "OR") => { success: boolean };
   };
   const out = new Set<PermissionString>();
   for (const perm of ALL_PERMISSIONS) {

@@ -112,15 +112,19 @@ async function buildCurrentInventoryReport(
     currency: row.currency,
   }));
 
-  return finishInventoryReport(filters, reportRows, detail.map((u) => ({
-    id: u.id,
-    projectName: u.project.name,
-    code: u.code,
-    status: u.status,
-    area: toDecimal(u.totalArea).toString(),
-    price: toDecimal(u.finalPrice ?? u.basePrice).toString(),
-    currency: u.currency,
-  })));
+  return finishInventoryReport(
+    filters,
+    reportRows,
+    detail.map((u) => ({
+      id: u.id,
+      projectName: u.project.name,
+      code: u.code,
+      status: u.status,
+      area: toDecimal(u.totalArea).toString(),
+      price: toDecimal(u.finalPrice ?? u.basePrice).toString(),
+      currency: u.currency,
+    })),
+  );
 }
 
 async function buildInventoryReportAsOf(
@@ -303,11 +307,7 @@ export async function buildSalesReport(filters: ReportFilters): Promise<SalesRep
   ]);
 
   const agencyIds = Array.from(
-    new Set(
-      rows
-        .map((r) => r.agencyOrganizationId)
-        .filter((id): id is string => Boolean(id)),
-    ),
+    new Set(rows.map((r) => r.agencyOrganizationId).filter((id): id is string => Boolean(id))),
   );
   const agencies = agencyIds.length
     ? await prisma.organization.findMany({
@@ -328,7 +328,9 @@ export async function buildSalesReport(filters: ReportFilters): Promise<SalesRep
       unitCode: row.unit.code,
       projectName: row.project.name,
       buyerName: `${row.buyer.firstName} ${row.buyer.lastName}`,
-      agencyName: row.agencyOrganizationId ? agencyName.get(row.agencyOrganizationId) ?? null : null,
+      agencyName: row.agencyOrganizationId
+        ? (agencyName.get(row.agencyOrganizationId) ?? null)
+        : null,
       finalPrice: total.toString(),
       paid: paid.toString(),
       outstanding: total.minus(paid).toString(),
@@ -428,9 +430,7 @@ export interface ReservationsReport {
   }>;
 }
 
-export async function buildReservationsReport(
-  filters: ReportFilters,
-): Promise<ReservationsReport> {
+export async function buildReservationsReport(filters: ReportFilters): Promise<ReservationsReport> {
   const where: Prisma.ReservationWhereInput = {
     organizationId: filters.organizationId,
     ...(filters.projectId ? { projectId: filters.projectId } : {}),
@@ -667,14 +667,9 @@ export async function buildAgencyReport(filters: ReportFilters): Promise<AgencyR
   // was converted from a public `ReservationRequest` that carried a
   // `?ref=<code>` parameter, so this column cleanly distinguishes
   // referral-driven pipeline from direct agency-driven pipeline.
-  const referralByAgency = new Map<
-    string,
-    { count: number; total: Decimal }
-  >();
+  const referralByAgency = new Map<string, { count: number; total: Decimal }>();
   const codeToAgency = new Map(
-    connections
-      .filter((c) => c.referralCode)
-      .map((c) => [c.referralCode!, c.agencyOrganizationId]),
+    connections.filter((c) => c.referralCode).map((c) => [c.referralCode!, c.agencyOrganizationId]),
   );
   if (codeToAgency.size > 0) {
     const referralSales = await prisma.sale.findMany({
@@ -719,10 +714,7 @@ export async function buildAgencyReport(filters: ReportFilters): Promise<AgencyR
     if (!row.agencyOrganizationId) continue;
     reservationsByAgency.set(row.agencyOrganizationId, row._count._all);
   }
-  const commissionByAgency = new Map<
-    string,
-    { calculated: Decimal; paid: Decimal }
-  >();
+  const commissionByAgency = new Map<string, { calculated: Decimal; paid: Decimal }>();
   for (const row of commissionGroup) {
     const agencyId = row.agencyOrganizationId;
     const bucket = commissionByAgency.get(agencyId) ?? {
@@ -812,9 +804,7 @@ export interface SalesTrendReport {
  * Monthly trend of gross sales (finalPrice sums) per currency. Cancelled
  * sales are excluded so the line reflects committed pipeline.
  */
-export async function buildSalesTrend(
-  filters: ReportFilters,
-): Promise<SalesTrendReport> {
+export async function buildSalesTrend(filters: ReportFilters): Promise<SalesTrendReport> {
   const clauses: Prisma.Sql[] = [
     Prisma.sql`"organizationId" = ${filters.organizationId}`,
     Prisma.sql`status <> 'CANCELED'`,
@@ -860,8 +850,7 @@ export async function buildSalesTrend(
       bucketStart: bucketDate.toISOString(),
       bucketLabel: `${year}-${month.toString().padStart(2, "0")}`,
       currency: row.currency,
-      salesCount:
-        typeof row.count === "bigint" ? Number(row.count) : Number(row.count ?? 0),
+      salesCount: typeof row.count === "bigint" ? Number(row.count) : Number(row.count ?? 0),
       salesTotal: toDecimal(row.sum ?? 0).toString(),
     };
   });

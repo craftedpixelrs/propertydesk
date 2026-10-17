@@ -33,7 +33,6 @@ type PhotonFeature = {
   geometry?: { coordinates?: [number, number] };
   properties?: {
     osm_id?: number | string;
-    osm_id?: number | string;
     name?: string;
     street?: string;
     housenumber?: string;
@@ -77,10 +76,7 @@ export function suggestLocalPlaces(
   return suggestSerbiaPlaces(kind, query, city).map(placeToSuggestion);
 }
 
-async function fetchStreetFeatures(
-  street: string,
-  cityName: string,
-): Promise<PhotonFeature[]> {
+async function fetchStreetFeatures(street: string, cityName: string): Promise<PhotonFeature[]> {
   const cityPlace = findSerbiaCity(cityName);
   const seen = new Set<string>();
   const out: PhotonFeature[] = [];
@@ -119,10 +115,7 @@ async function fetchStreetFeatures(
   return out;
 }
 
-export async function suggestAddresses(
-  query: string,
-  city: string,
-): Promise<GeoSuggestion[]> {
+export async function suggestAddresses(query: string, city: string): Promise<GeoSuggestion[]> {
   const q = query.trim();
   const cityName = city.trim();
   if (q.length < 2 || !cityName) return [];
@@ -137,10 +130,7 @@ export async function suggestAddresses(
     .slice(0, 8);
 }
 
-export async function geocodeAddress(
-  address: string,
-  city: string,
-): Promise<GeoSuggestion | null> {
+export async function geocodeAddress(address: string, city: string): Promise<GeoSuggestion | null> {
   const items = await suggestAddresses(address, city);
   return items[0] ?? null;
 }
@@ -176,13 +166,7 @@ function toAddressSuggestion(
 ): GeoSuggestion | null {
   const props = feature.properties ?? {};
   if (!isSerbia(props)) return null;
-  if (
-    !cityNameMatches(fallbackCity, [
-      props.city,
-      props.district,
-      props.locality,
-    ])
-  ) {
+  if (!cityNameMatches(fallbackCity, [props.city, props.district, props.locality])) {
     return null;
   }
   const osmStreet = photonStreetName(props);
@@ -193,11 +177,7 @@ function toAddressSuggestion(
   return {
     label,
     city: fallbackCity,
-    municipality:
-      props.district?.trim() ||
-      props.locality?.trim() ||
-      props.county?.trim() ||
-      null,
+    municipality: props.district?.trim() || props.locality?.trim() || props.county?.trim() || null,
     address: label,
     postalCode: props.postcode?.trim() || null,
     latitude: typeof lat === "number" ? lat : null,

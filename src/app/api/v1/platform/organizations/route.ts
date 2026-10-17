@@ -29,6 +29,11 @@ const createSchema = z.object({
   planCode: z.string().min(1).max(60),
   status: z.enum(["TRIAL", "ACTIVE", "RESTRICTED", "SUSPENDED", "CLOSED"]).optional(),
   trialDays: z.number().int().min(0).max(365).optional().nullable(),
+  activatesAt: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/)
+    .optional()
+    .nullable(),
 });
 
 export const GET = apiHandler({}, async ({ query, searchParams }) => {
@@ -41,17 +46,10 @@ export const GET = apiHandler({}, async ({ query, searchParams }) => {
     pageSize: query.pageSize,
     search: query.q,
     type: (type as "INVESTOR" | "AGENCY" | null) ?? undefined,
-    status:
-      (status as "TRIAL" | "ACTIVE" | "SUSPENDED" | "CLOSED" | null) ??
-      undefined,
+    status: (status as "TRIAL" | "ACTIVE" | "SUSPENDED" | "CLOSED" | null) ?? undefined,
   });
 
-  const { items: pageItems, pagination } = paginate(
-    items,
-    query.page,
-    query.pageSize,
-    total,
-  );
+  const { items: pageItems, pagination } = paginate(items, query.page, query.pageSize, total);
 
   return {
     data: pageItems,

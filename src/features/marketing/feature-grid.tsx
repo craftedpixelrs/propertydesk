@@ -96,19 +96,15 @@ export function FeatureGrid() {
   const t = useT();
 
   return (
-    <section
-      id="mogucnosti"
-      aria-labelledby="features-title"
-      className="scroll-mt-20"
-    >
+    <section id="mogucnosti" aria-labelledby="features-title" className="scroll-mt-20">
       <div className="container-app py-16 sm:py-20">
         <div className="max-w-3xl">
-          <div className="text-xs font-semibold uppercase tracking-wider text-[var(--color-brand-700)]">
+          <div className="text-xs font-semibold tracking-[0.18em] text-[#9a7430] uppercase">
             {t("marketing.features.eyebrow")}
           </div>
           <h2
             id="features-title"
-            className="mt-2 text-3xl font-semibold tracking-tight sm:text-4xl"
+            className="font-display mt-3 text-4xl font-semibold tracking-tight text-[#0b1020] sm:text-5xl"
           >
             {t("marketing.features.title")}
           </h2>
@@ -117,30 +113,55 @@ export function FeatureGrid() {
           </p>
         </div>
 
-        <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {FEATURES.map((f) => {
+        <div className="mt-12 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {FEATURES.map((f, index) => {
             const Icon = f.icon;
+            const lead = index < 2;
             return (
               <article
                 key={f.titleKey}
-                className="group rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5 shadow-sm transition hover:border-[var(--color-brand-200)] hover:shadow-md"
+                data-reveal=""
+                style={{ "--pd-delay": `${(index % 3) * 80}ms` } as React.CSSProperties}
+                className={
+                  lead
+                    ? "group relative overflow-hidden rounded-2xl border border-[#0b1020] bg-[#0b1020] p-6 text-[#f7f3ea] sm:col-span-1 lg:p-7"
+                    : "group rounded-2xl border border-[#0b1020]/10 bg-white p-5 transition hover:-translate-y-0.5 hover:border-[#d6b26a] hover:shadow-[0_16px_40px_-28px_rgba(11,16,32,0.35)]"
+                }
               >
-                <div className="flex items-start gap-3">
-                  <span
+                {lead ? (
+                  <div
                     aria-hidden
-                    className="grid h-10 w-10 flex-none place-items-center rounded-lg bg-[var(--color-brand-50)] text-[var(--color-brand-700)] transition group-hover:bg-[var(--color-brand-100)]"
-                  >
-                    <Icon className="size-5" />
-                  </span>
-                  <div className="min-w-0">
-                    <h3 className="text-base font-semibold text-[var(--color-foreground)]">
-                      {t(f.titleKey)}
-                    </h3>
-                    <p className="mt-1.5 text-sm leading-relaxed text-[var(--color-foreground-muted)]">
-                      {t(f.bodyKey)}
-                    </p>
-                  </div>
-                </div>
+                    className="pointer-events-none absolute -top-10 -right-8 size-32 rounded-full bg-[#d6b26a]/20 blur-2xl"
+                  />
+                ) : null}
+                <span
+                  aria-hidden
+                  className={
+                    lead
+                      ? "grid size-11 place-items-center rounded-xl bg-white/10 text-[#f3e2bc]"
+                      : "grid size-10 place-items-center rounded-xl bg-[#0b1020] text-[#f3e2bc]"
+                  }
+                >
+                  <Icon className="size-5" />
+                </span>
+                <h3
+                  className={
+                    lead
+                      ? "font-display mt-5 text-2xl font-semibold tracking-tight"
+                      : "font-display mt-4 text-lg font-semibold text-[#0b1020]"
+                  }
+                >
+                  {t(f.titleKey)}
+                </h3>
+                <p
+                  className={
+                    lead
+                      ? "mt-2 text-sm leading-relaxed text-white/70"
+                      : "mt-1.5 text-sm leading-relaxed text-[var(--color-foreground-muted)]"
+                  }
+                >
+                  {t(f.bodyKey)}
+                </p>
               </article>
             );
           })}

@@ -32,10 +32,7 @@ vi.mock("@/server/services/units.service", () => ({ changeUnitStatus: vi.fn() })
 vi.mock("@/server/services/activities.service", () => ({ recordActivity: vi.fn() }));
 vi.mock("@/server/services/notifications.service", () => ({ notify: vi.fn() }));
 
-import {
-  createReservation,
-  expireDueReservations,
-} from "./reservations.service";
+import { createReservation, expireDueReservations } from "./reservations.service";
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -120,9 +117,7 @@ describe("expireDueReservations — idempotency", () => {
   });
 
   it("expires a due reservation exactly once", async () => {
-    prismaMock.reservation.findMany.mockResolvedValue([
-      { id: "res-1", organizationId: "org-1" },
-    ]);
+    prismaMock.reservation.findMany.mockResolvedValue([{ id: "res-1", organizationId: "org-1" }]);
     // Owner lookup for actor attribution.
     prismaMock.reservation.findFirst.mockResolvedValue({
       assignedUserId: "user-1",
@@ -144,9 +139,7 @@ describe("expireDueReservations — idempotency", () => {
   });
 
   it("does not re-process a reservation already EXPIRED (idempotent)", async () => {
-    prismaMock.reservation.findMany.mockResolvedValue([
-      { id: "res-1", organizationId: "org-1" },
-    ]);
+    prismaMock.reservation.findMany.mockResolvedValue([{ id: "res-1", organizationId: "org-1" }]);
     prismaMock.reservation.findFirst.mockResolvedValue({
       assignedUserId: "user-1",
       createdByUserId: "user-1",

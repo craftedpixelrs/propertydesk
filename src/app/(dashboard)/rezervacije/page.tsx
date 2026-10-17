@@ -3,13 +3,10 @@ import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { loadUserContext, requireTenantPage } from "@/server/auth/context";
-import {
-  listReservations,
-  listReservationsBoard,
-} from "@/server/services/reservations.service";
+import { listReservations, listReservationsBoard } from "@/server/services/reservations.service";
 import { formatDate } from "@/lib/formatters";
 import { ReservationsBoard } from "@/features/board/reservations-board";
-import { StatusFilterBar } from "@/components/forms/status-filter-bar";
+import { ReservationsFilterBar } from "@/features/reservations/reservations-filter-bar";
 import { createT, enumLabel, type TranslateFn } from "@/lib/i18n";
 import type { ReservationStatus } from "@prisma/client";
 
@@ -49,6 +46,7 @@ export default async function RezervacijePage({ searchParams }: PageProps) {
   const sp = await searchParams;
   const view = readParam(sp.view) === "board" ? "board" : "list";
   const status = readParam(sp.status) as ReservationStatus | undefined;
+  const q = readParam(sp.q)?.trim() ?? "";
   const page = Number(readParam(sp.page) ?? "1") || 1;
   const pageSize = 20;
 
@@ -65,16 +63,39 @@ export default async function RezervacijePage({ searchParams }: PageProps) {
           <Button asChild variant="outline" size="sm">
             <Link href="/rezervacije/zahtevi">{t("deals.reservations.publicRequests")}</Link>
           </Button>
-          <ViewSwitcher view={view} status={status} t={t} />
+          <ViewSwitcher view={view} status={status} q={q} t={t} />
         </div>
       </div>
 
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-sm">{t("common.filter")}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ReservationsFilterBar
+            q={q}
+            status={status ?? ""}
+            view={view}
+            statusOptions={RESERVATION_STATUSES.map((value) => ({
+              value,
+              label: enumLabel("reservation", value, t),
+            }))}
+          />
+        </CardContent>
+      </Card>
+
       {view === "board" ? (
-        <BoardView organizationId={ctx.activeOrganization.id} ctxPermissions={ctx.permissions} />
+        <BoardView
+          organizationId={ctx.activeOrganization.id}
+          ctxPermissions={ctx.permissions}
+          search={q}
+          t={t}
+        />
       ) : (
         <ListView
           organizationId={ctx.activeOrganization.id}
           status={status}
+          search={q}
           page={page}
           pageSize={pageSize}
           t={t}
@@ -87,13 +108,16 @@ export default async function RezervacijePage({ searchParams }: PageProps) {
 function ViewSwitcher({
   view,
   status,
+  q,
   t,
 }: {
   view: "list" | "board";
   status: ReservationStatus | undefined;
+  q: string;
   t: TranslateFn;
 }) {
   const query: Record<string, string> = {};
+  if (q) query.q = q;
   if (status) query.status = status;
   return (
     <div className="inline-flex overflow-hidden rounded-md border border-[var(--color-border)] text-sm">
@@ -124,11 +148,18 @@ function ViewSwitcher({
 async function BoardView({
   organizationId,
   ctxPermissions,
+  search,
+  t,
 }: {
   organizationId: string;
   ctxPermissions: readonly string[];
+  search: string;
+  t: TranslateFn;
 }) {
-  const board = await listReservationsBoard({ organizationId });
+  const board = await listReservationsBoard({
+    organizationId,
+    search: search || undefined,
+  });
   // Serialise dates for the client boundary — RSC won't let us pass
   // `Date` instances through to a `"use client"` boundary directly.
   const columns = board.map((col) => ({
@@ -140,6 +171,16 @@ async function BoardView({
       expiresAt: c.expiresAt ? c.expiresAt.toISOString() : null,
     })),
   }));
+  if (search && columns.every((col) => col.total === 0)) {
+    return (
+      <Card>
+        <CardContent className="py-12 text-center text-sm text-[var(--color-foreground-muted)]">
+          {t("deals.reservations.searchEmpty")}
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <ReservationsBoard
       columns={columns}
@@ -152,12 +193,14 @@ async function BoardView({
 async function ListView({
   organizationId,
   status,
+  search,
   page,
   pageSize,
   t,
 }: {
   organizationId: string;
   status: ReservationStatus | undefined;
+  search: string;
   page: number;
   pageSize: number;
   t: TranslateFn;
@@ -167,39 +210,29 @@ async function ListView({
     page,
     pageSize,
     status: status ? [status] : undefined,
+    search: search || undefined,
   });
 
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
+  const listQuery = {
+    ...(search ? { q: search } : {}),
+    ...(status ? { status } : {}),
+  };
+
   return (
     <>
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-sm">{t("common.filter")}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <StatusFilterBar
-            path="/rezervacije"
-            status={status ?? ""}
-            options={RESERVATION_STATUSES.map((value) => ({
-              value,
-              label: enumLabel("reservation", value, t),
-            }))}
-          />
-        </CardContent>
-      </Card>
-
       {items.length === 0 ? (
         <Card>
           <CardContent className="py-12 text-center text-sm text-[var(--color-foreground-muted)]">
-            {t("deals.reservations.empty")}
+            {search ? t("deals.reservations.searchEmpty") : t("deals.reservations.empty")}
           </CardContent>
         </Card>
       ) : (
         <>
           <div className="hidden overflow-x-auto rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] md:block">
             <table className="min-w-full divide-y divide-[var(--color-border)] text-sm">
-              <thead className="bg-[var(--color-surface-inset)] text-left text-xs uppercase tracking-wide text-[var(--color-foreground-muted)]">
+              <thead className="bg-[var(--color-surface-inset)] text-left text-xs tracking-wide text-[var(--color-foreground-muted)] uppercase">
                 <tr>
                   <th className="px-4 py-3">{t("deals.unit")}</th>
                   <th className="px-4 py-3">{t("units.columns.project")}</th>
@@ -277,7 +310,7 @@ async function ListView({
                       href={{
                         pathname: "/rezervacije",
                         query: {
-                          ...(status ? { status } : {}),
+                          ...listQuery,
                           page: String(page - 1),
                         },
                       }}
@@ -292,7 +325,7 @@ async function ListView({
                       href={{
                         pathname: "/rezervacije",
                         query: {
-                          ...(status ? { status } : {}),
+                          ...listQuery,
                           page: String(page + 1),
                         },
                       }}

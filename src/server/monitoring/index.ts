@@ -84,9 +84,7 @@ export function setUserContext(user: {
       id: user.id,
       email: user.email ?? undefined,
       // Sentry accepts arbitrary keys on the user object.
-      ...(user.organizationId
-        ? { organization_id: user.organizationId }
-        : {}),
+      ...(user.organizationId ? { organization_id: user.organizationId } : {}),
     });
   } catch {
     // Ignore.

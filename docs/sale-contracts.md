@@ -96,8 +96,10 @@ the UI can offer a "Preuzmi PDF" link.
 
 - `POST /api/v1/sales/:id/contract/mark-sent` → `GENERATED → SENT`,
   stamps `contractSentAt = now()`. Audit: `CONTRACT_SENT`.
-- `POST /api/v1/sales/:id/contract/mark-signed` → `SENT → SIGNED`,
-  stamps `contractSignedAt = now()`. Audit: `CONTRACT_SIGNED`.
+- `POST /api/v1/sales/:id/contract/mark-signed` → `SENT → SIGNED`
+  (also from `GENERATED`). Body `{ documentId }` must point at a
+  document of this sale. Stamps `contractSignedAt = now()`. Audit:
+  `CONTRACT_SIGNED`.
 - Cancellation currently happens implicitly (regenerating a contract
   sets the previous PDF to `visibility = INTERNAL` but keeps it in
   the Document store; the `Sale.contractStatus` is reset to

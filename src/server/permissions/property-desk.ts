@@ -8,12 +8,7 @@ import type {
 } from "@prisma/client";
 
 import { prisma } from "@/server/db/prisma";
-import {
-  AuthError,
-  isSuperAdmin,
-  requireSession,
-  type AppSession,
-} from "@/server/auth/session";
+import { AuthError, isSuperAdmin, requireSession, type AppSession } from "@/server/auth/session";
 import type { PermissionString } from "@/server/permissions/access-control";
 import {
   isPermittedWithOverrides,
@@ -39,15 +34,17 @@ import { ROLE_LEVELS } from "@/server/services/property-desk/lead-lifecycle";
  * be overridden by SUPER_ADMIN through `/administracija/role`.
  */
 
-export type PropertyDeskAccessContext = {
-  session: AppSession;
-  isSuperAdmin: true;
-  teamMember: null;
-} | {
-  session: AppSession;
-  isSuperAdmin: false;
-  teamMember: PropertyDeskTeamMember;
-};
+export type PropertyDeskAccessContext =
+  | {
+      session: AppSession;
+      isSuperAdmin: true;
+      teamMember: null;
+    }
+  | {
+      session: AppSession;
+      isSuperAdmin: false;
+      teamMember: PropertyDeskTeamMember;
+    };
 
 // -----------------------------------------------------------------------------
 // Cache — small in-process cache to avoid a DB roundtrip on every page/API
@@ -56,10 +53,7 @@ export type PropertyDeskAccessContext = {
 // -----------------------------------------------------------------------------
 
 const TEAM_CACHE_MS = 30_000;
-const teamCache = new Map<
-  string,
-  { at: number; member: PropertyDeskTeamMember | null }
->();
+const teamCache = new Map<string, { at: number; member: PropertyDeskTeamMember | null }>();
 
 export function invalidatePropertyDeskTeamCache(userId?: string): void {
   if (userId) {
@@ -99,10 +93,7 @@ export async function requirePropertyDeskAccess(): Promise<PropertyDeskAccessCon
   }
   const member = await getPropertyDeskTeamMember(session.user.id);
   if (!member || !member.enabled) {
-    throw new AuthError(
-      "FORBIDDEN",
-      "Nemate pristup Property Desk operativnom timu.",
-    );
+    throw new AuthError("FORBIDDEN", "Nemate pristup Property Desk operativnom timu.");
   }
   return { session, isSuperAdmin: false, teamMember: member };
 }
@@ -118,11 +109,7 @@ export async function hasPdPermission(
 ): Promise<boolean> {
   if (ctx.isSuperAdmin) return true;
   const overrides = await loadOverridesMap();
-  return isPermittedWithOverrides(
-    ctx.teamMember.teamRole,
-    permission,
-    overrides,
-  );
+  return isPermittedWithOverrides(ctx.teamMember.teamRole, permission, overrides);
 }
 
 /**
@@ -137,10 +124,7 @@ export async function requirePdPermission(
 ): Promise<PropertyDeskAccessContext> {
   const allowed = await hasPdPermission(ctx, permission);
   if (!allowed) {
-    throw new AuthError(
-      "FORBIDDEN",
-      `Nemate dozvolu za: ${permission}.`,
-    );
+    throw new AuthError("FORBIDDEN", `Nemate dozvolu za: ${permission}.`);
   }
   return ctx;
 }
@@ -157,10 +141,7 @@ export async function requirePropertyDeskTeamRole(
   const ctx = await requirePropertyDeskAccess();
   if (ctx.isSuperAdmin) return ctx;
   if (!roles.includes(ctx.teamMember.teamRole)) {
-    throw new AuthError(
-      "FORBIDDEN",
-      "Za ovu radnju potrebna je viša uloga u Property Desk timu.",
-    );
+    throw new AuthError("FORBIDDEN", "Za ovu radnju potrebna je viša uloga u Property Desk timu.");
   }
   return ctx;
 }
@@ -186,13 +167,7 @@ export async function canViewMarketingLead(
 ): Promise<boolean> {
   if (ctx.isSuperAdmin) return true;
   const overrides = await loadOverridesMap();
-  if (
-    isPermittedWithOverrides(
-      ctx.teamMember.teamRole,
-      "pd_lead.view_team",
-      overrides,
-    )
-  ) {
+  if (isPermittedWithOverrides(ctx.teamMember.teamRole, "pd_lead.view_team", overrides)) {
     return true;
   }
   const allowedLevels = ROLE_LEVELS[ctx.teamMember.teamRole];
@@ -215,22 +190,13 @@ export async function canWriteLead(
   if (ctx.isSuperAdmin) return true;
   if (ctx.teamMember.teamRole === "MANAGER") return true;
   const overrides = await loadOverridesMap();
-  if (
-    isPermittedWithOverrides(
-      ctx.teamMember.teamRole,
-      "pd_lead.view_team",
-      overrides,
-    )
-  ) {
+  if (isPermittedWithOverrides(ctx.teamMember.teamRole, "pd_lead.view_team", overrides)) {
     return true;
   }
   return ROLE_LEVELS[ctx.teamMember.teamRole].includes(lead.level);
 }
 
-function matchesScope(
-  member: PropertyDeskTeamMember,
-  assignedToUserId: string | null,
-): boolean {
+function matchesScope(member: PropertyDeskTeamMember, assignedToUserId: string | null): boolean {
   switch (member.leadScope as PropertyDeskLeadScope) {
     case "OWN":
       return assignedToUserId === member.userId;
@@ -267,13 +233,7 @@ export async function buildMarketingLeadScopeFilter(
 ): Promise<Record<string, unknown>> {
   if (ctx.isSuperAdmin) return {};
   const overrides = await loadOverridesMap();
-  if (
-    isPermittedWithOverrides(
-      ctx.teamMember.teamRole,
-      "pd_lead.view_team",
-      overrides,
-    )
-  ) {
+  if (isPermittedWithOverrides(ctx.teamMember.teamRole, "pd_lead.view_team", overrides)) {
     return {};
   }
   const levels = ROLE_LEVELS[ctx.teamMember.teamRole];
@@ -284,18 +244,13 @@ export async function buildMarketingLeadScopeFilter(
   return { AND: [levelFilter, scopeFilter] };
 }
 
-function leadScopeFilter(
-  member: PropertyDeskTeamMember,
-): Record<string, unknown> {
+function leadScopeFilter(member: PropertyDeskTeamMember): Record<string, unknown> {
   switch (member.leadScope as PropertyDeskLeadScope) {
     case "OWN":
       return { assignedToUserId: member.userId };
     case "OWN_AND_UNASSIGNED":
       return {
-        OR: [
-          { assignedToUserId: member.userId },
-          { assignedToUserId: null },
-        ],
+        OR: [{ assignedToUserId: member.userId }, { assignedToUserId: null }],
       };
     case "TEAM":
     case "ALL":

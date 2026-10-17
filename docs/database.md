@@ -22,7 +22,7 @@ Migrations live under `prisma/migrations/`. Domain models:
 | **CRM** | `Buyer`, `BuyerKycChecklist`, `BuyerInterest`, `Activity`, `Task`, `LeadSource` |
 | **Reservations** | `Reservation`, `ReservationStatusHistory`, `ReservationRequest` |
 | **Agencies** | `AgencyConnection` (+ `referralCode`), `AgencyProjectAccess`, `AgencyUnitAccessOverride`, `AgencyBuyerRegistration`, `AgencyCommissionRule`, `AgencyConnectionRequest` |
-| **Sales** | `Sale` (+ `contractStatus`, `vatMode`, `taxAmount`, `taxPayer`), `SaleStatusHistory`, `SaleContractTemplate` |
+| **Sales** | `Sale` (+ `contractStatus`, `vatMode`, `taxAmount`, `taxPayer`, `SaleHandover`), `SaleStatusHistory`, `SaleSettlementLine`, `SaleContractTemplate`, `BuyerNotice`, `OrgMessageTemplate` |
 | **Payments** | `PaymentPlan`, `PaymentInstallment`, `Payment`, `PaymentPlanTemplate`, `PaymentPlanTemplateItem` |
 | **Documents** | `Document` (categories now include `KYC`) |
 | **Commissions** | `Commission` |
@@ -111,6 +111,8 @@ The 2026-08 visual/sales layer expansion added:
   `buyer.entityType` (`NATURAL` / `LEGAL`), `buyer.legalName`,
   `buyer.addressLine1`, `buyer.city`, `buyer.postalCode`,
   `buyer.country`. All nullable so existing rows stay valid.
+- `buyer.anonymizedAt` — set when personal fields are wiped. Null
+  until then. Migration `20260923180000_buyer_anonymized_at`.
 - `sale.vatMode` (`SaleVatMode` — `NEW_BUILD_10` / `SECONDARY_MARKET_2_5` /
   `NONE`), `sale.taxAmount` (`Decimal(14,2)`), `sale.taxPayer`
   (`SaleTaxPayer` — `BUYER` / `SELLER`). Automatically populated by

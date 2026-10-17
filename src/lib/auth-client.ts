@@ -1,5 +1,5 @@
 import { createAuthClient } from "better-auth/react";
-import { adminClient, organizationClient } from "better-auth/client/plugins";
+import { adminClient, organizationClient, twoFactorClient } from "better-auth/client/plugins";
 
 import { ac } from "@/server/permissions/access-control";
 import { organizationRoles, platformRoles } from "@/server/permissions/roles";
@@ -23,6 +23,7 @@ export const authClient = createAuthClient({
       ac,
       roles: platformRoles,
     }),
+    twoFactorClient(),
   ],
 });
 

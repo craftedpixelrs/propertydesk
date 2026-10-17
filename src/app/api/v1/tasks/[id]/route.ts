@@ -15,23 +15,26 @@ const patchSchema = z.object({
   status: z.enum(["OPEN", "IN_PROGRESS", "COMPLETED", "CANCELED"]).optional(),
 });
 
-export const PATCH = apiHandler({ paramsSchema, bodySchema: patchSchema }, async ({ params, body }) => {
-  const ctx = await requirePermission("lead.manage");
-  const updated = await updateTask({
-    organizationId: ctx.organization.organizationId,
-    actorUserId: ctx.session.user.id,
-    taskId: params.id,
-    patch: {
-      title: body.title,
-      description: body.description,
-      assignedUserId: body.assignedUserId,
-      dueAt: body.dueAt ? new Date(body.dueAt) : undefined,
-      priority: body.priority,
-      status: body.status,
-    },
-  });
-  return { data: updated };
-});
+export const PATCH = apiHandler(
+  { paramsSchema, bodySchema: patchSchema },
+  async ({ params, body }) => {
+    const ctx = await requirePermission("lead.manage");
+    const updated = await updateTask({
+      organizationId: ctx.organization.organizationId,
+      actorUserId: ctx.session.user.id,
+      taskId: params.id,
+      patch: {
+        title: body.title,
+        description: body.description,
+        assignedUserId: body.assignedUserId,
+        dueAt: body.dueAt ? new Date(body.dueAt) : undefined,
+        priority: body.priority,
+        status: body.status,
+      },
+    });
+    return { data: updated };
+  },
+);
 
 /**
  * @swagger

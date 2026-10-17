@@ -87,6 +87,17 @@ KYC uploads use `DocumentCategory.KYC` and are:
 - MIME allowlist unchanged (PDF, JPEG, PNG). Files > 10 MB are
   rejected in the multipart handler.
 
+## Anonymisation
+
+`POST /api/v1/buyers/:id/anonymize` (`buyer.anonymize`) strips
+name, contact, JMBG, PIB, address, notes, buyer comments, activity
+text, KYC flags and KYC files. Matching public reservation requests
+(same email or phone) are stripped too. Sale amounts and generated
+contracts stay for accounting. The audit row records that a wipe
+happened, not the old national ID. `Buyer.anonymizedAt` blocks a
+second wipe. This is the feature the marketing site calls GDPR
+anonymisation.
+
 ## Retention
 
 Per the platform's data-retention policy KYC documents that remain in

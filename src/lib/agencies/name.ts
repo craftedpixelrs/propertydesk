@@ -11,6 +11,9 @@ export function slugifyAgencyName(name: string): string {
 }
 
 export function agencyNameFromEmail(email: string): string {
-  const local = email.split("@")[0]?.replace(/[._-]+/g, " ").trim();
+  const local = email
+    .split("@")[0]
+    ?.replace(/[._-]+/g, " ")
+    .trim();
   return local ? local.slice(0, 80) : "Agencija";
 }

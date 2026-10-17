@@ -12,10 +12,7 @@ import { apiClient, ApiClientError } from "@/lib/api-client";
 import { PermissionGuard } from "@/components/app/permission-guard";
 import { useT } from "@/components/app/i18n-provider";
 import { formatDate } from "@/lib/formatters/date";
-import {
-  ALL_ORG_ROLE_NAMES,
-  rolesForOrgType,
-} from "@/server/permissions/roles";
+import { ALL_ORG_ROLE_NAMES, rolesForOrgType } from "@/server/permissions/roles";
 import { toast } from "sonner";
 import type { RoleCapabilityGuide, CapabilityLevel } from "./role-capability-guide";
 import type { TranslationKey, TranslateFn } from "@/lib/i18n";
@@ -84,9 +81,7 @@ export function MembersManager({
   const [inviteError, setInviteError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
-  const availableRoles = organizationType
-    ? rolesForOrgType(organizationType)
-    : ALL_ORG_ROLE_NAMES;
+  const availableRoles = organizationType ? rolesForOrgType(organizationType) : ALL_ORG_ROLE_NAMES;
 
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviteRole, setInviteRole] = useState<string>(availableRoles[0] ?? "");
@@ -226,7 +221,7 @@ export function MembersManager({
         <CardContent className="p-0">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="text-left text-xs uppercase text-[var(--color-foreground-subtle)]">
+              <thead className="text-left text-xs text-[var(--color-foreground-subtle)] uppercase">
                 <tr>
                   <th className="border-b border-[var(--color-border)] px-4 py-2">
                     {t("common.name")}
@@ -252,9 +247,7 @@ export function MembersManager({
                     className="border-b border-[var(--color-border)] last:border-b-0"
                   >
                     <td className="px-4 py-2 font-medium">{m.name}</td>
-                    <td className="px-4 py-2 text-[var(--color-foreground-muted)]">
-                      {m.email}
-                    </td>
+                    <td className="px-4 py-2 text-[var(--color-foreground-muted)]">{m.email}</td>
                     <td className="px-4 py-2">
                       <PermissionGuard
                         permission="organization.members:manage"
@@ -288,17 +281,13 @@ export function MembersManager({
                           <Button
                             size="sm"
                             variant="outline"
-                            disabled={
-                              m.userId === currentUserId && !m.deactivatedAt
-                            }
+                            disabled={m.userId === currentUserId && !m.deactivatedAt}
                             title={
                               m.userId === currentUserId && !m.deactivatedAt
                                 ? t("ops.members.cannotDeactivateSelf")
                                 : undefined
                             }
-                            onClick={() =>
-                              toggleActive(m.membershipId, m.deactivatedAt !== null)
-                            }
+                            onClick={() => toggleActive(m.membershipId, m.deactivatedAt !== null)}
                           >
                             {m.deactivatedAt
                               ? t("ops.members.activate")
@@ -325,9 +314,7 @@ export function MembersManager({
       {invitations.length > 0 ? (
         <Card>
           <CardHeader>
-            <CardTitle>
-              {t("ops.members.pendingInvites", { count: invitations.length })}
-            </CardTitle>
+            <CardTitle>{t("ops.members.pendingInvites", { count: invitations.length })}</CardTitle>
           </CardHeader>
           <CardContent className="p-0">
             <p className="border-b border-[var(--color-border)] px-4 py-3 text-sm text-[var(--color-foreground-muted)]">
@@ -351,9 +338,7 @@ export function MembersManager({
                   <div className="flex items-center gap-2">
                     <Badge
                       tone={
-                        inv.status === "pending" || inv.status === "PENDING"
-                          ? "warning"
-                          : "neutral"
+                        inv.status === "pending" || inv.status === "PENDING" ? "warning" : "neutral"
                       }
                     >
                       {inviteStatusLabel(inv.status, t)}
@@ -407,7 +392,7 @@ function RolePermissionsTable({ guide }: { guide: RoleCapabilityGuide }) {
         </p>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
-            <thead className="text-left text-xs uppercase text-[var(--color-foreground-subtle)]">
+            <thead className="text-left text-xs text-[var(--color-foreground-subtle)] uppercase">
               <tr>
                 <th className="border-b border-[var(--color-border)] px-4 py-2 font-medium">
                   {t("ops.members.permission")}
@@ -455,7 +440,7 @@ function SectionRows({
       <tr className="bg-[var(--color-surface-inset)]">
         <td
           colSpan={colSpan}
-          className="px-4 py-1.5 text-xs font-semibold uppercase tracking-wide text-[var(--color-foreground-muted)]"
+          className="px-4 py-1.5 text-xs font-semibold tracking-wide text-[var(--color-foreground-muted)] uppercase"
         >
           {sectionKey ? t(sectionKey) : section.title}
         </td>
@@ -464,10 +449,7 @@ function SectionRows({
         const rowKey = `ops.capability.row.${row.id}` as TranslationKey;
         const rowLabel = t(rowKey);
         return (
-          <tr
-            key={row.id}
-            className="border-b border-[var(--color-border)] last:border-b-0"
-          >
+          <tr key={row.id} className="border-b border-[var(--color-border)] last:border-b-0">
             <td className="px-4 py-2">{rowLabel === rowKey ? row.label : rowLabel}</td>
             {roleKeys.map((key) => (
               <td key={key} className="px-3 py-2 text-center">

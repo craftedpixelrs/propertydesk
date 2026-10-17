@@ -192,6 +192,8 @@ export async function renderSaleSummaryPdf(input: {
           },
         },
         payments: { orderBy: { paymentDate: "asc" } },
+        settlementLines: { orderBy: { createdAt: "asc" } },
+        handover: true,
       },
     }),
     prisma.organization.findUnique({
@@ -262,6 +264,22 @@ export async function renderSaleSummaryPdf(input: {
       method: p.paymentMethod,
       reversed: Boolean(p.reversedAt),
     })),
+    handover: sale.handover
+      ? {
+          keysHanded: sale.handover.keysHanded,
+          meterElectricity: sale.handover.meterElectricity,
+          meterWater: sale.handover.meterWater,
+          meterHeating: sale.handover.meterHeating,
+          defects: sale.handover.defects,
+          attendees: sale.handover.attendees,
+          completedAt: sale.handover.completedAt,
+        }
+      : null,
+    settlement: sale.settlementLines.map((line) => ({
+      label: line.label,
+      kind: line.kind,
+      amount: toDecimal(line.amount).toString(),
+    })),
     totals: {
       contracted: contracted.toString(),
       paid: paid.toString(),
@@ -330,7 +348,12 @@ export async function renderCommissionStatementPdf(input: {
   for (const c of rows) {
     const amount = toDecimal(c.adjustedAmount ?? c.calculatedAmount);
     if (c.status !== "CANCELED") calculated = calculated.plus(amount);
-    if (c.status === "APPROVED" || c.status === "INVOICED" || c.status === "DUE" || c.status === "PAID") {
+    if (
+      c.status === "APPROVED" ||
+      c.status === "INVOICED" ||
+      c.status === "DUE" ||
+      c.status === "PAID"
+    ) {
       approved = approved.plus(amount);
     }
     if (c.status === "PAID") paid = paid.plus(amount);
@@ -408,7 +431,7 @@ export async function renderSaleContractPdf(input: {
 
   const buyerFullName =
     sale.buyer.entityType === "LEGAL"
-      ? (sale.buyer.legalName || `${sale.buyer.firstName} ${sale.buyer.lastName}`)
+      ? sale.buyer.legalName || `${sale.buyer.firstName} ${sale.buyer.lastName}`
       : `${sale.buyer.firstName} ${sale.buyer.lastName}`;
 
   const data: SaleContractPdfData = {

@@ -144,6 +144,15 @@ export const en: Dictionary = {
     confirmPassword: "Confirm password",
     fullName: "Full name",
     signIn: "Sign in",
+    twoFactorTitle: "Authenticator code",
+    twoFactorHint: "Enter the 6 digits. Sign-in starts as soon as the code is complete.",
+    twoFactorInvalid: "That code is not correct. Try again.",
+    twoFactorLocked: "Too many wrong attempts. Wait a moment and try again.",
+    twoFactorBackup: "Backup code",
+    twoFactorBackupHint:
+      "Enter a backup code as XXXXX-XXXXX. The check starts as soon as it is complete.",
+    twoFactorUseApp: "Use the authenticator code",
+    twoFactorUseBackup: "Use a backup code",
     signUp: "Create account",
     forgotPassword: "Forgot password?",
     resetPasswordTitle: "Reset password",
@@ -170,7 +179,8 @@ export const en: Dictionary = {
     invitationSignInAccept: "Sign in and accept invitation",
     invitationAgencySubtitle:
       "{{investor}} is inviting you as an agency partner. Create an account and fill in every agency field (website is optional).",
-    invitationAgencyOrg: "Invitation to the agency partner portal. Fill in every field except the website.",
+    invitationAgencyOrg:
+      "Invitation to the agency partner portal. Fill in every field except the website.",
     invitationAgencyFields: "Agency details (all fields except website)",
     invitationAgencyHint: "Without a complete profile the portal stays locked after sign-in.",
     acceptInvitation: "Accept invitation",
@@ -192,8 +202,7 @@ export const en: Dictionary = {
     agencyRegisterSubmit: "Create account",
     agencyRegisterHaveAccount: "Already have an account?",
     demoAccountsTitle: "Try-the-app accounts",
-    demoAccountsHint:
-      "Pick an account to fill the form. Shared password for all: {{password}}",
+    demoAccountsHint: "Pick an account to fill the form. Shared password for all: {{password}}",
     demoAccountsOrg: "Organization",
     demoAccountsRole: "Role",
     demoAccountsEmail: "Email",
@@ -201,10 +210,8 @@ export const en: Dictionary = {
     demoAccountsInvestor: "Gradnja Plus",
     demoAccountsAgency: "Top Nekretnine",
     accountDeactivated: "Your account is deactivated. Contact an administrator.",
-    organizationSuspended:
-      "Your organization is currently suspended. Contact support.",
-    loginFailedRemaining:
-      "Wrong email or password. Attempts left before lock: {{remaining}}.",
+    organizationSuspended: "Your organization is currently suspended. Contact support.",
+    loginFailedRemaining: "Wrong email or password. Attempts left before lock: {{remaining}}.",
     loginLocked:
       "This account is locked after failed sign-ins ({{duration}}). Try again {{until}}.",
     loginSuspended:
@@ -219,8 +226,7 @@ export const en: Dictionary = {
   },
 
   orgProfile: {
-    setupBanner:
-      "Fill in all required organization fields before using the app.",
+    setupBanner: "Fill in all required organization fields before using the app.",
     setupWaitTitle: "The organization is not ready yet",
     setupWaitBody:
       "The owner needs to complete company details (tax ID, registration number, address, contact and website). The app stays locked until then. Ask the owner to finish setup.",
@@ -320,8 +326,7 @@ export const en: Dictionary = {
   },
 
   impersonation: {
-    banner:
-      "An administrator session is active on behalf of another user. All actions are logged.",
+    banner: "An administrator session is active on behalf of another user. All actions are logged.",
     impersonatingAs: "Signed in as:",
     inOrganization: "in organization:",
     stop: "Stop",
@@ -341,8 +346,7 @@ export const en: Dictionary = {
     newProject: "New project",
     editProject: "Edit project",
     archive: "Archive project",
-    archiveConfirm:
-      "Are you sure? An archived project no longer accepts new units.",
+    archiveConfirm: "Are you sure? An archived project no longer accepts new units.",
     tabs: {
       overview: "Overview",
       structure: "Structure",
@@ -495,8 +499,7 @@ export const en: Dictionary = {
       title: "Change status",
       newStatus: "New status",
       reason: "Reason",
-      reasonRequiredForSold:
-        "Reverting a sold unit requires a reason and special permission.",
+      reasonRequiredForSold: "Reverting a sold unit requires a reason and special permission.",
     },
     fields: {
       code: "Unit code",
@@ -530,8 +533,7 @@ export const en: Dictionary = {
 
   import: {
     title: "Import units",
-    subtitle:
-      "Upload a CSV or XLSX file. We will show a detailed report before anything is saved.",
+    subtitle: "Upload a CSV or XLSX file. We will show a detailed report before anything is saved.",
     steps: {
       upload: "1. Upload",
       preview: "2. Review and validate",
@@ -574,8 +576,7 @@ export const en: Dictionary = {
 
   billing: {
     title: "Billing",
-    subtitle:
-      "Automated invoicing, subscription management, IPS QR and e-invoice integration.",
+    subtitle: "Automated invoicing, subscription management, IPS QR and e-invoice integration.",
 
     subscriptionStatus: {
       TRIAL: "Trial",
@@ -671,8 +672,7 @@ export const en: Dictionary = {
       insufficientPermission: "You do not have permission for this billing action.",
       currencyMismatch: "Payment and invoice currencies do not match.",
       cannotIssueDraft: "An invoice can only be issued from DRAFT.",
-      cannotCancelIssued:
-        "Invoices with payments cannot be canceled — use VOID with a note.",
+      cannotCancelIssued: "Invoices with payments cannot be canceled — use VOID with a note.",
       reasonRequired: "Please enter a reason. This action is written to the audit log.",
     },
 

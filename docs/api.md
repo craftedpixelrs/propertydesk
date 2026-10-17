@@ -42,9 +42,15 @@ active organization. The dominant endpoints:
 
 ### Platform admin
 
-- `GET/POST /platform/organizations`
+- `GET/POST /platform/organizations` — create accepts `trialDays` and
+  `activatesAt` (`YYYY-MM-DD`, Europe/Belgrade midnight). Trial length
+  is counted from that midnight. Before it, member calls return
+  `403 ORGANIZATION_NOT_ACTIVE` (no billing or export either).
+  `SUPER_ADMIN` is exempt.
 - `POST /platform/organizations/:id/{suspend,activate,impersonate}`
-- `PATCH /platform/organizations/:id`
+- `PATCH /platform/organizations/:id` — same `activatesAt` / `trialDays`.
+  When `activatesAt` is sent, `trialDays` is the length from that date,
+  not the remaining days from today.
 - `GET/PATCH /platform/plans`
 - `PATCH /platform/subscriptions/:id`
 - `GET /platform/audit-log`
@@ -67,6 +73,11 @@ active organization. The dominant endpoints:
 ### CRM
 
 - `GET/POST /buyers`, `GET/PATCH /buyers/:id`
+- `POST /buyers/:id/anonymize` — `buyer.anonymize` (investor owner,
+  admin, super-admin). Strips personal data. Sale amounts and contracts
+  stay. See [`kyc.md`](./kyc.md).
+- `GET /organization/export` — owner/admin JSON download. Still
+  allowed when the organization is restricted.
 - `GET /buyers/duplicates?phone=…&email=…`
 - `GET/PATCH /buyers/:id/kyc` — Faza 8.2 B1. Fetch / update
   `BuyerKycChecklist` flags. See [`docs/kyc.md`](./kyc.md).
@@ -147,8 +158,14 @@ active organization. The dominant endpoints:
   `{ templateId: string, kind: "PRE_CONTRACT" | "CONTRACT" }`.
 - `POST /sales/:id/contract/mark-sent` — transitions
   `GENERATED → SENT`, stamps `contractSentAt`.
-- `POST /sales/:id/contract/mark-signed` — transitions
-  `SENT → SIGNED`, stamps `contractSignedAt`.
+- `POST /sales/:id/contract/mark-signed` — body `{ documentId }`.
+  The document must belong to this sale. Transitions `SENT → SIGNED`
+  (also allowed from `GENERATED`).
+- `GET /sales/:id/handover` — `sale.read`. `PUT` — `sale.handover`.
+- `POST /sales/:id/buyer-link` — `sale.buyer_link`. Creates or reuses `/p/kupac/[token]`.
+- `GET /sales/:id/documents-zip` — `sale.dossier`. ZIP of sale documents.
+- `POST /sales/:id/settlement` and `DELETE /sales/:id/settlement/:lineId` — `sale.settlement`.
+- `GET /organization/message-templates` — `organization.read`. `PUT` — `organization.templates`.
 - `GET/POST /payments`, `POST /payments/:id/reverse`
 - `GET/POST /commissions`, `POST /commissions/:id/{approve,mark-invoiced,mark-paid}`
 
@@ -180,8 +197,9 @@ report is Faza 8.1 A3; it returns per-month projected inflow.
 
 - `GET /pdf/unit-offer?unitId=…&buyerId=…`
 - `GET /pdf/price-list?projectId=…`
-- `GET /pdf/sale-summary/:id`
-- `GET /pdf/commission-statement?agencyOrganizationId=…&from=…&to=…`
+- `GET /pdf/sale-summary/:id` — `sale.dossier`. Includes handover and settlement lines when present
+- `GET /pdf/commission-statement?agencyOrganizationId=…&from=…&to=…` — `commission.statement` (investor)
+- `GET /pdf/agency-commission-statement?investorOrganizationId=…&from=…&to=…` — `commission.statement` (agency)
 
 ### Public microsite (Faza 8.3 C1)
 
@@ -195,11 +213,11 @@ authenticated app. See [`docs/microsite.md`](./microsite.md).
 
 Guarded by `x-cron-secret` matching `CRON_SECRET`:
 
-- `POST /jobs/expire-reservations`
-- `POST /jobs/expire-reservation-requests`
+- `POST /jobs/expire-reservations` — approved reservations only; notifies the assignee
+- `POST /jobs/expire-reservation-requests` — public requests past the 48-hour deadline
 - `POST /jobs/expire-buyer-protection`
 - `POST /jobs/mark-installments-overdue`
-- `POST /jobs/due-soon-notifications`
+- `POST /jobs/due-soon-notifications` — salesperson reminder, buyer emails, deadline tasks
 - `POST /jobs/trial-expiration-notifications`
 - `POST /jobs/backup-verify`
 - `POST /jobs/purge-deleted-documents`

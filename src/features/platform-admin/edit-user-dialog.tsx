@@ -69,15 +69,11 @@ export function EditUserDialog({ user }: { user: EditablePlatformUser }) {
   const [banReason, setBanReason] = useState(user.banReason ?? "");
   const [platformAdmin, setPlatformAdmin] = useState(user.role === "SUPER_ADMIN");
   const [pdMember, setPdMember] = useState(Boolean(user.propertyDeskTeam));
-  const [pdRole, setPdRole] = useState<TeamRole>(
-    user.propertyDeskTeam?.teamRole ?? "SETTER",
-  );
+  const [pdRole, setPdRole] = useState<TeamRole>(user.propertyDeskTeam?.teamRole ?? "SETTER");
   const [pdScope, setPdScope] = useState<LeadScope>(
     user.propertyDeskTeam?.leadScope ?? "OWN_AND_UNASSIGNED",
   );
-  const [pdEnabled, setPdEnabled] = useState(
-    user.propertyDeskTeam?.enabled ?? true,
-  );
+  const [pdEnabled, setPdEnabled] = useState(user.propertyDeskTeam?.enabled ?? true);
 
   function resetFromUser() {
     setName(user.name);
@@ -107,19 +103,13 @@ export function EditUserDialog({ user }: { user: EditablePlatformUser }) {
         platformRole: platformAdmin ? "SUPER_ADMIN" : null,
         propertyDeskTeam: {
           member: pdMember,
-          ...(pdMember
-            ? { teamRole: pdRole, leadScope: pdScope, enabled: pdEnabled }
-            : {}),
+          ...(pdMember ? { teamRole: pdRole, leadScope: pdScope, enabled: pdEnabled } : {}),
         },
       });
       setOpen(false);
       router.refresh();
     } catch (err) {
-      setError(
-        err instanceof ApiClientError
-          ? err.message
-          : t("admin.editUser.failed"),
-      );
+      setError(err instanceof ApiClientError ? err.message : t("admin.editUser.failed"));
     } finally {
       setBusy(false);
     }
@@ -142,9 +132,7 @@ export function EditUserDialog({ user }: { user: EditablePlatformUser }) {
       <DialogContent className="max-h-[90vh] max-w-xl overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{t("admin.editUser.title")}</DialogTitle>
-          <DialogDescription>
-            {t("admin.editUser.description")}
-          </DialogDescription>
+          <DialogDescription>{t("admin.editUser.description")}</DialogDescription>
         </DialogHeader>
         <form onSubmit={onSubmit} className="space-y-4">
           <div>
@@ -187,11 +175,7 @@ export function EditUserDialog({ user }: { user: EditablePlatformUser }) {
             {t("admin.editUser.platformAdmin")}
           </label>
           <label className="flex items-center gap-2 text-sm">
-            <input
-              type="checkbox"
-              checked={banned}
-              onChange={(e) => setBanned(e.target.checked)}
-            />
+            <input type="checkbox" checked={banned} onChange={(e) => setBanned(e.target.checked)} />
             {t("admin.editUser.banned")}
           </label>
           {banned ? (
@@ -209,9 +193,7 @@ export function EditUserDialog({ user }: { user: EditablePlatformUser }) {
           ) : null}
 
           <fieldset className="space-y-3 rounded-md border border-[var(--color-border)] p-3">
-            <legend className="px-1 text-sm font-medium">
-              {t("admin.editUser.pdLegend")}
-            </legend>
+            <legend className="px-1 text-sm font-medium">{t("admin.editUser.pdLegend")}</legend>
             <label className="flex items-center gap-2 text-sm">
               <input
                 type="checkbox"
@@ -266,17 +248,10 @@ export function EditUserDialog({ user }: { user: EditablePlatformUser }) {
             ) : null}
           </fieldset>
 
-          {error ? (
-            <p className="text-sm text-[var(--color-danger)]">{error}</p>
-          ) : null}
+          {error ? <p className="text-sm text-[var(--color-danger)]">{error}</p> : null}
 
           <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setOpen(false)}
-              disabled={busy}
-            >
+            <Button type="button" variant="outline" onClick={() => setOpen(false)} disabled={busy}>
               {t("common.cancel")}
             </Button>
             <Button type="submit" loading={busy}>

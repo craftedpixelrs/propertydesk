@@ -69,6 +69,12 @@ pnpm dev                   # startuje na http://localhost:3000
 
 Detalji nalozima su vidljivi kao super-admin u `/administracija/organizacije`.
 
+Na `demo.propertydesk.app/sign-in` ista lozinka stoji na samoj stranici.
+To je za vođeni demo. Ne šalji taj link unapred: posetilac može da
+izmeni Gradnja Plus pre sledećeg sastanka. Na demou ostani na srpskom —
+engleski prekidač i dalje meša tvrdo srpski tekst. Ne otvaraj
+super-admin niti SEF provajder.
+
 ### 1.4. Prvi kontakt
 
 Nakon prijave si na **Kontrolnoj tabli** (`/dashboard`). Levi sidebar sadrži sve module dostupne tvojoj ulozi. Gornja traka:
@@ -113,7 +119,7 @@ Nakon prijave si na **Kontrolnoj tabli** (`/dashboard`). Levi sidebar sadrži sv
 
 ### 2.4. Kasnije izmene
 
-Na detalju projekta u gornjem desnom uglu klikni **"Izmeni projekat"** (`/projekti/{id}/izmena`):
+Na detalju projekta u gornjem desnom uglu klikni **"Izmeni projekat"** (desni off-canvas; stari `/projekti/{id}/izmena` vraća na detalj):
 
 - Sva polja iz kreiranja se mogu menjati **osim šifre** (šifra je jedinstveni identifikator i koristi se u izveštajima).
 - Prazno polje **briše vrednost** (npr. ako obrišeš "Grad" postaje `null`).
@@ -204,7 +210,7 @@ Postojeće jedinice sa istim `code` se **update-uju** (nikad ne dupliraju).
 
 Iz njega dostupno:
 
-- **"Izmeni jedinicu"** — otvara `/jedinice/{id}/izmena` sa punom formom. Šifra jedinice je zaključana, sve ostalo (Objekat/Ulaz/Sprat, površina, sobe, cena, PDV, orijentacija, opisi) može da se menja. **Osnovna cena** — ako je menjaš, forma traži razlog i sve upisuje u `PriceChangeHistory` (istoriju cena).
+- **"Izmeni jedinicu"** — desni off-canvas preko detalja jedinice, puna forma. Stari `/jedinice/{id}/izmena` vraća na detalj. Šifra jedinice je zaključana, sve ostalo (Objekat/Ulaz/Sprat, površina, sobe, cena, PDV, orijentacija, opisi) može da se menja. **Osnovna cena** — ako je menjaš, forma traži razlog i sve upisuje u `PriceChangeHistory` (istoriju cena).
 - **"Rezerviši"** — pokreće flow rezervacije (v. tačku 5)
 - **"Promeni status"** — ručna promena (uz razlog, audituje se)
 - **"Prodaj direktno"** — preskače rezervaciju, kreira odmah prodaju
@@ -262,7 +268,7 @@ Tabovi:
 
 ### 4.4. Akcije
 
-- **"Izmeni kupca"** — otvara `/kupci/{id}/izmena`. Sva polja iz kreiranja se mogu menjati (ime, prezime, telefon, email, budžet, izvor, napomena, preferirani kontakt). Detekcija duplikata se **ne** okida na edit-u.
+- **"Izmeni kupca"** — desni off-canvas preko detalja kupca, ista animacija kao novi kupac. Stari URL `/kupci/{id}/izmena` vraća na detalj. Sva polja iz kreiranja se mogu menjati (ime, prezime, telefon, email, budžet, izvor, napomena, preferirani kontakt). Detekcija duplikata se **ne** okida na edit-u.
 - **"Nova rezervacija"** — otvara rezervaciju vezanu za ovog kupca (bira jedinicu)
 - **"Zakaži zadatak"** — kreira zadatak sa rokom (opciono "podseti me email-om")
 - **"Objedini sa drugim kupcem"** — merge dva zapisa u jedan (koristi kad greškom uneseš duplikat)
@@ -304,23 +310,20 @@ Dva puta:
 
 ### 5.3. Isteklost i podsetnici
 
-**Cron `expire-reservations`** (dnevno u 08:00 Europe/Belgrade):
+**Cron `expire-reservations`** (na svakih 15 minuta, `POST /api/v1/jobs/expire-reservations`):
 
-- Ako je `expiresAt < now` i rezervacija je i dalje `AKTIVNA`:
-  - Rezervacija: `AKTIVNA` → `ISTEKLA`
-  - Jedinica: `REZERVISANA` → `DOSTUPNA`
-  - Kupac i tim dobijaju notifikaciju
-  - Ako je uplaćen depozit — automatski se otvara zadatak "Vrati depozit klijentu"
-
-**Cron `reservation-reminders`** (dnevno u 09:00):
-- Kupcima kojima rezervacija ističe za 2 dana šalje se email podsetnik + notifikacija u aplikaciji
+- Samo odobrene rezervacije (`APPROVED`) kojima je `expiresAt` prošao:
+  - Rezervacija → `EXPIRED`
+  - Jedinica → `AVAILABLE`
+  - In-app i email idu dodeljenom članu (ili kreatoru). Kupac ne dobija mail.
+- Dva dana ranije `due-soon-notifications` šalje pismo kupcu i pravi zadatak. Nema automatskog zadatka za povraćaj depozita.
 
 ### 5.4. Ručne akcije na rezervaciji (`/rezervacije/{id}`)
 
 - **Produži** — dodaje X dana rezervaciji (uz razlog, audit)
 - **Otkaži** — postavlja `OTKAZANA` status i vraća jedinicu na `DOSTUPNA` (uz razlog)
 - **Konvertuj u prodaju** — glavni sledeći korak (v. tačku 6)
-- **Vrati depozit** — automatska storniranje depozita
+- Povraćaj depozita se ne radi sam — nema dugmeta koje automatski stornira depozit
 
 ### 5.5. Race-condition sigurnost
 
@@ -584,7 +587,7 @@ investitor dozvolio rezervacije na tom projektu).
 
 Kupac **nije** obavezan. Dodeljena osoba dobija in-app notifikaciju i email (osim ako dodeliš sebi).
 
-Svaki zadatak ima naslov, opcion opis, opcionog kupca, rok, prioritet i `assignedUser`. Veza na rezervaciju/prodaju i auto-generisanje iz cron-a **nisu** implementirani — ostaju u backlogu, ne u UI.
+Svaki zadatak ima naslov, opcion opis, opcionog kupca, rok, prioritet i `assignedUser`. `due-soon-notifications` sam pravi jedan zadatak visokog prioriteta kad rata dospeva u narednih 7 dana ili odobrena rezervacija ističe u naredna 2 dana. Ključ `sourceKey` sprečava duplikat. Veza zadatka na rezervaciju ili prodaju i dalje nije posebno polje — zadatak nosi kupca, projekat i jedinicu.
 
 ### 9.2. Notifikacije
 
@@ -743,7 +746,7 @@ omotača (`chart-card`, `status-donut`, `trend-line`, `funnel-bars`).
 - Ako je za sprat učitana osnova (`Floor.floorPlanUrl`), SVG preklop
   oboji poligone jedinica po statusu (`FloorPlanArea`), klik na poligon
   vodi na jedinicu. Editor za crtanje poligona je planiran posle
-  01.09.2026 — do tada se poligoni unose kao JSON.
+  15.10.2026 — do tada se poligoni unose kao JSON.
 
 ---
 
@@ -808,6 +811,8 @@ Vidljivo samo `SUPER_ADMIN` ulozi. Sidebar → **Administracija** (`/administrac
 
 **"Nova organizacija"** (`/administracija/organizacije/nova`) — ručno kreiranje tenant-a bez čekanja na signup.
 
+Pored **trajanja probnog perioda** forma traži **datum početka aktivacije** (isto na izmeni organizacije i pri kreiranju iz lead-a). Datum je kalendarski dan u Beogradu: nalog se uključuje u ponoć tog dana. Broj dana trial-a kreće od te ponoći, ne od trenutka snimanja. Pre tog trenutka članovi nemaju pristup — nema ekrana, pretplate ni izvoza (`ORGANIZATION_NOT_ACTIVE`). Super-admin i dalje može da uđe u tenant i da pripremi podatke. Agencija nema ovo polje. Ako je status **Aktivan**, datum i dalje drži članove napolju do ponoći, a trial sat se ne vodi.
+
 ### 13.2. Korisnici platforme (`/administracija/korisnici`)
 
 - Svi korisnici svih tenant-a
@@ -858,23 +863,14 @@ Audit-log preko svih tenant-a:
 
 ## 14. Automatizacija (cron jobs)
 
-Cron-ovi se pokreću preko `/api/v1/cron/run/{name}` sa `CRON_SECRET` u header-u.
+Cron-ovi se pokreću preko `POST /api/v1/jobs/{name}` sa headerom `x-cron-secret`. Pun spisak je u [`cron-jobs.md`](./cron-jobs.md).
 
 ### 14.1. Registrovani cron-ovi
 
-| Cron | Preporučeno vreme | Šta radi |
-| --- | --- | --- |
-| `expire-reservations` | Dnevno 08:00 | Aktivne rezervacije čiji `expiresAt < now` → `ISTEKLA` |
-| `reservation-reminders` | Dnevno 09:00 | Email podsetnik kupcima kojima rezervacija ističe za 2 dana |
-| `overdue-installments` | Dnevno 09:00 | Rate koje su dospele → `KAŠNJENJE` + email podsetnici |
-| `notify-trials-expiring` | Dnevno 10:00 | **Investitor** tenanti čiji trial ističe za 3 dana. Agencije se preskaču. |
-| `billing.generate-invoices` | Dnevno 09:00 | Generiše SaaS fakture za investitor pretplate. **Preskače `AGENCY`.** |
-| `billing.send-invoices` | Dnevno 09:15 | Šalje izdatane fakture kupcima (email + IPS QR PDF) |
-| `billing.reminders` | Dnevno 09:30 | Podsetnike za neplaćene fakture |
-| `billing.overdue` | Dnevno 09:45 | Investitor pretplate: `PAYMENT_DUE` → `PAST_DUE` → `RESTRICTED` → `SUSPENDED`. **Preskače `AGENCY`.** |
-| `billing.extend-subscriptions` | Dnevno 10:00 | Produžava period pretplate nakon plaćene fakture |
-| `billing.sync-sef` | Dnevno 10:15 | Šalje / retry-uje neuspele SEF submisije |
-| `billing.match-payments` | Dnevno 10:30 | Rematch neresolvani transakcija bankarskih izvoda |
+Imena, raspored i ponašanje su u [`cron-jobs.md`](./cron-jobs.md).
+Stara imena (`reservation-reminders`, `overdue-installments`,
+`billing.sync-sef`) nisu rute. `billing-sync-sef` samo ponavlja
+`FAILED` i, dok SEF transport nije uključen, ne beleži prihvat.
 
 ### 14.2. Ručno pokretanje
 
@@ -987,6 +983,27 @@ Osnovne stranice su cached preko service worker-a. Bez interneta:
 
 RBAC matrica se testira sa 16 Vitest scenarija (`src/components/app/navigation.test.ts`) da nijedna uloga nikad ne vidi ništa što nije predviđeno.
 
+### 17.5. Evidencija u uređivaču (sloj Aplikacija)
+
+Super-admin menja ćelije na
+`/administracija/role`, naslov **Uređivač uloga i dozvola (platforma ·
+aplikacija · Property Desk)**. Nove dozvole su sloj B (aplikacija), ne
+platforma i ne Property Desk.
+
+| Dozvola | Podrazumevano |
+| --- | --- |
+| `sale.dossier` | svi koji vide prodaju, uključujući agenta, finansije i posmatrača |
+| `sale.handover` | vlasnik, admin, menadžer prodaje |
+| `sale.buyer_link` | vlasnik, admin, menadžer prodaje |
+| `sale.settlement` | vlasnik, admin, menadžer prodaje, finansije |
+| `commission.statement` | sve uloge koje vide provizije, i agencija |
+| `organization.templates` | vlasnik i admin investitora, vlasnik agencije |
+| `buyer.anonymize` | vlasnik i admin investitora |
+
+Agencija nema `sale.*`. Demo i staging dele demo bazu, pa sačuvana ćelija
+važi na oba hosta. Produkcija (`my.`) ima svoju bazu. Detalj:
+[`permissions.md`](./permissions.md) i [`roles-and-plans.md`](./roles-and-plans.md).
+
 ---
 
 ## 18. Rešavanje čestih problema
@@ -1071,15 +1088,16 @@ investitor u `/rezervacije/zahtevi` klikne *Potvrdi*.
 
 **Rate limit i sigurnost:**
 
-- 10 zahteva / sat / IP na `POST /public/share/:token/reserve`.
+- 5 pokušaja / 10 min po IP i tokenu, plus 20 / sat po tokenu, na `POST /public/share/:token/reserve`.
 - Više od jednog `PENDING` zahteva za istu jedinicu blokira drugi
   (409 CONFLICT sa Serbian porukom).
 - Token je 192-bit — praktično nemoguć za pogađanje. Opoziv trenutan.
 
 **Automatika:**
 
-- Cron `expire-reservation-requests` (15 min) — zahteve stare
-  > 48h prebacuje u `EXPIRED` i vraća jedinicu u `AVAILABLE`.
+- Istek javnog zahteva nije cron. Otvaranje `/rezervacije/zahtevi`
+  prebacuje PENDING stariji od 48h u `EXPIRED` i oslobađa jedinicu
+  ako nema drugog živog zahteva. Kupac ne dobija mail o isteku.
 
 Detalji u [`reservation-requests.md`](./reservation-requests.md).
 

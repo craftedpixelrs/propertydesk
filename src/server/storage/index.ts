@@ -119,12 +119,13 @@ class S3StorageProvider implements StorageProvider {
         // provider is optional and only activated when STORAGE_PROVIDER=s3.
         const s3Path = "@aws-sdk/client-s3";
         const presignPath = "@aws-sdk/s3-request-presigner";
-        const s3Mod = (await import(
-          /* webpackIgnore: true */ s3Path
-        ).catch(() => null)) as Record<string, unknown> | null;
-        const presignMod = (await import(
-          /* webpackIgnore: true */ presignPath
-        ).catch(() => null)) as Record<string, unknown> | null;
+        const s3Mod = (await import(/* webpackIgnore: true */ s3Path).catch(() => null)) as Record<
+          string,
+          unknown
+        > | null;
+        const presignMod = (await import(/* webpackIgnore: true */ presignPath).catch(
+          () => null,
+        )) as Record<string, unknown> | null;
         if (!s3Mod || !presignMod) return null;
 
         const S3Client = s3Mod.S3Client as new (opts: unknown) => unknown;
@@ -162,10 +163,7 @@ class S3StorageProvider implements StorageProvider {
   private ensureBucket(): string {
     const bucket = serverEnv.STORAGE_BUCKET;
     if (!bucket) {
-      throw new DomainError(
-        "INTERNAL",
-        "STORAGE_BUCKET nije konfigurisan.",
-      );
+      throw new DomainError("INTERNAL", "STORAGE_BUCKET nije konfigurisan.");
     }
     return bucket;
   }
@@ -173,10 +171,7 @@ class S3StorageProvider implements StorageProvider {
   async put(input: PutObjectInput): Promise<PutObjectResult> {
     const sdk = await this.loadClient();
     if (!sdk) {
-      throw new DomainError(
-        "INTERNAL",
-        "S3 SDK nije dostupan. Instalirajte @aws-sdk/client-s3.",
-      );
+      throw new DomainError("INTERNAL", "S3 SDK nije dostupan. Instalirajte @aws-sdk/client-s3.");
     }
     const bucket = this.ensureBucket();
     const ext = extractExtension(input.fileName);
@@ -214,9 +209,7 @@ class S3StorageProvider implements StorageProvider {
     const sdk = await this.loadClient();
     if (!sdk) return;
     const bucket = this.ensureBucket();
-    const DeleteObjectCommand = sdk.lib.DeleteObjectCommand as new (
-      o: unknown,
-    ) => unknown;
+    const DeleteObjectCommand = sdk.lib.DeleteObjectCommand as new (o: unknown) => unknown;
     const cmd = new DeleteObjectCommand({ Bucket: bucket, Key: storageKey });
     await (sdk.client as { send: (cmd: unknown) => Promise<unknown> }).send(cmd);
   }
@@ -227,9 +220,9 @@ class S3StorageProvider implements StorageProvider {
     const bucket = this.ensureBucket();
     const GetObjectCommand = sdk.lib.GetObjectCommand as new (o: unknown) => unknown;
     const cmd = new GetObjectCommand({ Bucket: bucket, Key: storageKey });
-    const res = (await (
-      sdk.client as { send: (cmd: unknown) => Promise<{ Body?: unknown }> }
-    ).send(cmd)) as { Body?: { transformToByteArray?: () => Promise<Uint8Array> } };
+    const res = (await (sdk.client as { send: (cmd: unknown) => Promise<{ Body?: unknown }> }).send(
+      cmd,
+    )) as { Body?: { transformToByteArray?: () => Promise<Uint8Array> } };
     const body = res.Body;
     if (!body?.transformToByteArray) {
       throw new DomainError("INTERNAL", "Neispravan odgovor storage sloja.");
@@ -284,10 +277,7 @@ export const ALLOWED_DOCUMENT_MIME_TYPES = new Set<string>([
 
 export function assertAllowedMimeType(mime: string): void {
   if (!ALLOWED_DOCUMENT_MIME_TYPES.has(mime)) {
-    throw new DomainError(
-      "BAD_REQUEST",
-      "Ovaj tip datoteke nije podržan.",
-    );
+    throw new DomainError("BAD_REQUEST", "Ovaj tip datoteke nije podržan.");
   }
 }
 

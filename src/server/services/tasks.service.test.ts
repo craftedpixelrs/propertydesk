@@ -18,9 +18,7 @@ describe("buildTaskViewWhere", () => {
 
     const overdue = buildTaskViewWhere({ ...base, view: "overdue" });
     expect(overdue.assignedUserId).toBe("user-1");
-    expect(overdue.dueAt).toEqual(
-      expect.objectContaining({ lt: expect.any(Date) }),
-    );
+    expect(overdue.dueAt).toEqual(expect.objectContaining({ lt: expect.any(Date) }));
   });
 
   it("lists the current user's completed tasks", () => {

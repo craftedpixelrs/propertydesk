@@ -1,10 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import {
-  publicReferralPath,
-  referralCodeFromUrl,
-  sanitizeReferralCode,
-} from "./referral";
+import { publicReferralPath, referralCodeFromUrl, sanitizeReferralCode } from "./referral";
 
 describe("sanitizeReferralCode", () => {
   it("keeps a normal 8-char code", () => {

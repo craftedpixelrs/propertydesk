@@ -6,6 +6,9 @@ import { prisma } from "@/server/db/prisma";
 import { DomainErrors } from "@/lib/errors";
 import { recordAudit } from "@/server/audit/audit";
 import { toDecimal, sumMoney } from "@/lib/formatters/money";
+import { logger } from "@/server/logger";
+import { buyerPaymentReceiptEmail } from "@/server/email/templates";
+import { messageExtra, sendBuyerNoticeOnce } from "@/server/services/messaging/buyer-mail.service";
 
 import { propagatePlanStatusFromInstallments } from "./payment-plans.service";
 import { propagateSaleStatusFromPayments } from "./sales.service";
@@ -178,12 +181,7 @@ export async function recordPayment(input: RecordPaymentInput) {
       throw DomainErrors.invalidState("Ne možete evidentirati uplatu za otkazanu prodaju.");
     }
 
-    await assertNoOverpayment(
-      tx,
-      input.saleId,
-      input.installmentId ?? null,
-      amount,
-    );
+    await assertNoOverpayment(tx, input.saleId, input.installmentId ?? null, amount);
 
     const created = await tx.payment.create({
       data: {
@@ -226,6 +224,15 @@ export async function recordPayment(input: RecordPaymentInput) {
       currency: payment.currency,
       method: payment.paymentMethod,
     },
+  });
+
+  await emailBuyerAboutPayment({
+    organizationId: input.organizationId,
+    saleId: payment.saleId,
+    paymentId: payment.id,
+    amount: payment.amount.toString(),
+    currency: payment.currency,
+    reversed: false,
   });
 
   return payment;
@@ -274,7 +281,63 @@ export async function reversePayment(input: ReversePaymentInput) {
       amount: reversed.amount.toString(),
     },
   });
+  await emailBuyerAboutPayment({
+    organizationId: input.organizationId,
+    saleId: reversed.saleId,
+    paymentId: reversed.id,
+    amount: reversed.amount.toString(),
+    currency: reversed.currency,
+    reversed: true,
+    reason: input.reason,
+  });
   return reversed;
+}
+
+async function emailBuyerAboutPayment(input: {
+  organizationId: string;
+  saleId: string;
+  paymentId: string;
+  amount: string;
+  currency: string;
+  reversed: boolean;
+  reason?: string | null;
+}) {
+  try {
+    const sale = await prisma.sale.findFirst({
+      where: { id: input.saleId, organizationId: input.organizationId },
+      select: {
+        buyer: { select: { id: true, firstName: true, lastName: true, email: true } },
+        unit: { select: { code: true } },
+        project: { select: { name: true } },
+      },
+    });
+    if (!sale) return;
+    const extra = input.reversed
+      ? null
+      : await messageExtra(input.organizationId, "payment_receipt");
+    await sendBuyerNoticeOnce({
+      organizationId: input.organizationId,
+      buyerId: sale.buyer.id,
+      kind: input.reversed ? "payment_reversal" : "payment_receipt",
+      entityId: input.paymentId,
+      email: sale.buyer.email,
+      message: buyerPaymentReceiptEmail({
+        buyerName: `${sale.buyer.firstName} ${sale.buyer.lastName}`,
+        unitCode: sale.unit.code,
+        projectName: sale.project.name,
+        amount: input.amount,
+        currency: input.currency,
+        reversed: input.reversed,
+        reason: input.reason,
+        extra,
+      }),
+    });
+  } catch (err) {
+    logger.error("payment.buyer_email_failed", {
+      paymentId: input.paymentId,
+      error: (err as Error)?.message,
+    });
+  }
 }
 
 // -----------------------------------------------------------------------------

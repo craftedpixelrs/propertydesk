@@ -15,7 +15,9 @@ const baseInput = {
 describe("SerbianIpsQrProvider.buildPayload", () => {
   it("builds a payload with all documented NBS segments", () => {
     const payload = provider.buildPayload(baseInput);
-    expect(payload).toMatch(/^K:PR\|V:01\|C:1\|R:160005400000009999\|N:PropertyDesk d\.o\.o\.\|I:RSD1234,50\|P:Marko Marković\|SF:289\|S:Pretplata mesečna\|RO:97 1234567890$/);
+    expect(payload).toMatch(
+      /^K:PR\|V:01\|C:1\|R:160005400000009999\|N:PropertyDesk d\.o\.o\.\|I:RSD1234,50\|P:Marko Marković\|SF:289\|S:Pretplata mesečna\|RO:97 1234567890$/,
+    );
   });
 
   it("formats fractional amount to 2 decimals with comma", () => {
@@ -29,8 +31,12 @@ describe("SerbianIpsQrProvider.buildPayload", () => {
   });
 
   it("rejects malformed receiver account", () => {
-    expect(() => provider.buildPayload({ ...baseInput, receiverAccount: "abc" })).toThrow(/cifre|cifara/);
-    expect(() => provider.buildPayload({ ...baseInput, receiverAccount: "12345" })).toThrow(/cifara/);
+    expect(() => provider.buildPayload({ ...baseInput, receiverAccount: "abc" })).toThrow(
+      /cifre|cifara/,
+    );
+    expect(() => provider.buildPayload({ ...baseInput, receiverAccount: "12345" })).toThrow(
+      /cifara/,
+    );
   });
 
   it("rejects non-positive amount", () => {

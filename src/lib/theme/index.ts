@@ -21,13 +21,9 @@ export function writeThemeCookieValue(theme: Theme): string {
 }
 
 /** Read `pd_theme` from a Cookie header or `document.cookie` string. */
-export function themeFromCookieString(
-  cookieHeader: string | undefined | null,
-): Theme | null {
+export function themeFromCookieString(cookieHeader: string | undefined | null): Theme | null {
   if (!cookieHeader) return null;
-  const match = cookieHeader.match(
-    new RegExp(`(?:^|;\\s*)${THEME_COOKIE}=([^;]*)`),
-  );
+  const match = cookieHeader.match(new RegExp(`(?:^|;\\s*)${THEME_COOKIE}=([^;]*)`));
   return parseTheme(match?.[1] ? decodeURIComponent(match[1]) : null);
 }
 

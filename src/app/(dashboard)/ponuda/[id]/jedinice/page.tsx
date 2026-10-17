@@ -72,7 +72,7 @@ export default async function JedinicePage({ params, searchParams }: PageProps) 
           <CardContent className="p-0">
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-[var(--color-border)] text-sm">
-                <thead className="bg-[var(--color-surface-inset)] text-left text-xs uppercase tracking-wide text-[var(--color-foreground-muted)]">
+                <thead className="bg-[var(--color-surface-inset)] text-left text-xs tracking-wide text-[var(--color-foreground-muted)] uppercase">
                   <tr>
                     <th className="px-4 py-3">{t("units.columns.code")}</th>
                     <th className="px-4 py-3">{t("units.columns.type")}</th>
@@ -99,9 +99,7 @@ export default async function JedinicePage({ params, searchParams }: PageProps) 
                       </td>
                       <td className="px-4 py-3 text-right tabular-nums">{u.totalArea} m²</td>
                       <td className="px-4 py-3 text-right tabular-nums">
-                        {u.price
-                          ? `${u.price.final ?? u.price.base} ${u.price.currency}`
-                          : "—"}
+                        {u.price ? `${u.price.final ?? u.price.base} ${u.price.currency}` : "—"}
                       </td>
                       <td className="px-4 py-3">
                         <span className="text-xs">{unitStatusLabel(u.status, t)}</span>

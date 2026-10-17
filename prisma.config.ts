@@ -20,8 +20,7 @@ import { defineConfig } from "prisma/config";
  *    when using prisma migrate deploy."
  * Reading `process.env` directly sidesteps the proxy entirely.
  */
-const datasourceUrl =
-  process.env.DIRECT_URL || process.env.DATABASE_URL || "";
+const datasourceUrl = process.env.DIRECT_URL || process.env.DATABASE_URL || "";
 
 export default defineConfig({
   schema: "prisma/schema.prisma",

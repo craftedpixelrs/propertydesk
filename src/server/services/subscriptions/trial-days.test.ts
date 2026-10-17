@@ -21,10 +21,7 @@ describe("remainingTrialDays", () => {
 describe("originalTrialDays", () => {
   it("returns the configured length from start to end", () => {
     expect(
-      originalTrialDays(
-        new Date("2026-07-16T10:00:00.000Z"),
-        new Date("2026-08-15T10:00:00.000Z"),
-      ),
+      originalTrialDays(new Date("2026-07-16T10:00:00.000Z"), new Date("2026-08-15T10:00:00.000Z")),
     ).toBe(30);
   });
 

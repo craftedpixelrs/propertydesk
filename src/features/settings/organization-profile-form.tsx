@@ -27,13 +27,7 @@ import {
 
 const LOGO_ACCEPT = "image/png,image/jpeg,image/webp,image/svg+xml,.svg";
 const MAX_LOGO_BYTES = 2 * 1024 * 1024;
-const LOGO_MIME = new Set([
-  "image/png",
-  "image/jpeg",
-  "image/webp",
-  "image/svg+xml",
-  "image/svg",
-]);
+const LOGO_MIME = new Set(["image/png", "image/jpeg", "image/webp", "image/svg+xml", "image/svg"]);
 
 function isAllowedLogoFile(file: File): boolean {
   if (LOGO_MIME.has(file.type)) return true;
@@ -83,6 +77,7 @@ export function OrganizationProfileForm({
   const t = useT();
   const router = useRouter();
   const [submitting, setSubmitting] = useState(false);
+  const [exporting, setExporting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({});
   const investorRequired = orgType === "INVESTOR";
@@ -109,8 +104,7 @@ export function OrganizationProfileForm({
     const payload = {
       displayName: String(fd.get("displayName") ?? "").trim(),
       legalName: String(fd.get("legalName") ?? "").trim(),
-      registrationNumber:
-        String(fd.get("registrationNumber") ?? "").trim() || null,
+      registrationNumber: String(fd.get("registrationNumber") ?? "").trim() || null,
       taxNumber: String(fd.get("taxNumber") ?? "").trim() || null,
       address: String(fd.get("address") ?? "").trim() || null,
       city: String(fd.get("city") ?? "").trim() || null,
@@ -119,16 +113,13 @@ export function OrganizationProfileForm({
       phone: String(fd.get("phone") ?? "").trim() || null,
       email: String(fd.get("email") ?? "").trim() || null,
       website: normalizeWebsite(websiteRaw),
-      paymentAccountNumber:
-        String(fd.get("paymentAccountNumber") ?? "").trim() || null,
+      paymentAccountNumber: String(fd.get("paymentAccountNumber") ?? "").trim() || null,
       paymentBankName: String(fd.get("paymentBankName") ?? "").trim() || null,
     };
 
     try {
       await apiClient.patch("/organization/profile", payload);
-      toast.success(
-        setupIncomplete ? t("orgProfile.savedAndReady") : t("ops.org.profileSaved"),
-      );
+      toast.success(setupIncomplete ? t("orgProfile.savedAndReady") : t("ops.org.profileSaved"));
       if (setupIncomplete) router.push("/dashboard");
       router.refresh();
     } catch (err) {
@@ -195,38 +186,36 @@ export function OrganizationProfileForm({
           </CardContent>
         </Card>
       ) : (
-      <Card>
-        <CardHeader className="flex-row items-center justify-between">
-          <CardTitle>{t("ops.settings.subscription")}</CardTitle>
-          {subscription ? (
-            <Badge tone="brand">{subscription.plan.name}</Badge>
-          ) : null}
-        </CardHeader>
-        <CardContent>
-          {subscription ? (
-            <ul className="text-sm">
-              <li>
-                {t("common.statusLabel")}:{" "}
-                <strong>{subscriptionStatusLabel(subscription.status)}</strong>
-              </li>
-              {subscription.trialEndsAt ? (
+        <Card>
+          <CardHeader className="flex-row items-center justify-between">
+            <CardTitle>{t("ops.settings.subscription")}</CardTitle>
+            {subscription ? <Badge tone="brand">{subscription.plan.name}</Badge> : null}
+          </CardHeader>
+          <CardContent>
+            {subscription ? (
+              <ul className="text-sm">
                 <li>
-                  {t("ops.org.trialUntil")}{" "}
-                  <strong>{formatDate(subscription.trialEndsAt)}</strong>
+                  {t("common.statusLabel")}:{" "}
+                  <strong>{subscriptionStatusLabel(subscription.status)}</strong>
                 </li>
-              ) : null}
-              <li>
-                {t("ops.org.planCode")}{" "}
-                <span className="font-mono text-xs">{subscription.plan.code}</span>
-              </li>
-            </ul>
-          ) : (
-            <p className="text-sm text-[var(--color-foreground-muted)]">
-              {t("ops.org.noSubscription")}
-            </p>
-          )}
-        </CardContent>
-      </Card>
+                {subscription.trialEndsAt ? (
+                  <li>
+                    {t("ops.org.trialUntil")}{" "}
+                    <strong>{formatDate(subscription.trialEndsAt)}</strong>
+                  </li>
+                ) : null}
+                <li>
+                  {t("ops.org.planCode")}{" "}
+                  <span className="font-mono text-xs">{subscription.plan.code}</span>
+                </li>
+              </ul>
+            ) : (
+              <p className="text-sm text-[var(--color-foreground-muted)]">
+                {t("ops.org.noSubscription")}
+              </p>
+            )}
+          </CardContent>
+        </Card>
       )}
 
       <Card>
@@ -248,14 +237,10 @@ export function OrganizationProfileForm({
         {setupIncomplete ? (
           <Alert tone="warning">
             <AlertTitle>
-              {agencyRequired
-                ? t("orgProfile.agencySetupBanner")
-                : t("orgProfile.setupBanner")}
+              {agencyRequired ? t("orgProfile.agencySetupBanner") : t("orgProfile.setupBanner")}
             </AlertTitle>
             <AlertDescription>
-              {agencyRequired
-                ? t("orgProfile.agencyRequiredHint")
-                : t("orgProfile.requiredHint")}
+              {agencyRequired ? t("orgProfile.agencyRequiredHint") : t("orgProfile.requiredHint")}
             </AlertDescription>
           </Alert>
         ) : null}
@@ -398,9 +383,7 @@ export function OrganizationProfileForm({
                 : t("ops.org.paymentHintInvestor")}
             </p>
             <div>
-              <FieldLabel htmlFor="paymentAccountNumber">
-                {t("ops.org.paymentAccount")}
-              </FieldLabel>
+              <FieldLabel htmlFor="paymentAccountNumber">{t("ops.org.paymentAccount")}</FieldLabel>
               <Input
                 id="paymentAccountNumber"
                 name="paymentAccountNumber"
@@ -411,9 +394,7 @@ export function OrganizationProfileForm({
               />
             </div>
             <div>
-              <FieldLabel htmlFor="paymentBankName">
-                {t("ops.org.paymentBank")}
-              </FieldLabel>
+              <FieldLabel htmlFor="paymentBankName">{t("ops.org.paymentBank")}</FieldLabel>
               <Input
                 id="paymentBankName"
                 name="paymentBankName"
@@ -424,13 +405,56 @@ export function OrganizationProfileForm({
           </CardContent>
         </Card>
 
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm">{t("orgProfile.exportTitle")}</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <p className="text-sm text-[var(--color-foreground-muted)]">
+              {t("orgProfile.exportBody")}
+            </p>
+            <PermissionGuard permission="organization.export">
+              <Button
+                type="button"
+                variant="outline"
+                loading={exporting}
+                onClick={async () => {
+                  setExporting(true);
+                  setError(null);
+                  try {
+                    const res = await fetch("/api/v1/organization/export", {
+                      credentials: "include",
+                    });
+                    if (!res.ok) {
+                      setError(t("orgProfile.exportFailed"));
+                      return;
+                    }
+                    const blob = await res.blob();
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement("a");
+                    const slug = organization.slug || organization.id;
+                    a.href = url;
+                    a.download = `propertydesk-${slug}.json`;
+                    a.click();
+                    URL.revokeObjectURL(url);
+                  } catch {
+                    setError(t("orgProfile.exportFailed"));
+                  } finally {
+                    setExporting(false);
+                  }
+                }}
+              >
+                {t("orgProfile.exportButton")}
+              </Button>
+            </PermissionGuard>
+          </CardContent>
+        </Card>
+
         <PermissionGuard
           permission="organization.manage"
           fallback={
             <Alert tone="info">
-              <AlertDescription>
-                {t("ops.org.adminOnly")}
-              </AlertDescription>
+              <AlertDescription>{t("ops.org.adminOnly")}</AlertDescription>
             </Alert>
           }
         >
@@ -495,11 +519,7 @@ function OrganizationLogoField({
             logoUrl={logoLightUrl}
             updatedAt={updatedAt}
             title={t("ops.org.logoLightTitle")}
-            hint={
-              whiteLabel
-                ? t("ops.org.logoLightHint")
-                : t("ops.org.logoLightHintLocked")
-            }
+            hint={whiteLabel ? t("ops.org.logoLightHint") : t("ops.org.logoLightHintLocked")}
             previewOnDark
           />
         ) : null}
@@ -558,9 +578,9 @@ function LogoSlot({
           credentials: "include",
         },
       );
-      const payload = (await res.json().catch(() => null)) as
-        | { error?: { message?: string } }
-        | null;
+      const payload = (await res.json().catch(() => null)) as {
+        error?: { message?: string };
+      } | null;
       if (!res.ok) {
         throw new Error(payload?.error?.message ?? t("ops.org.logoUploadFailed"));
       }
@@ -581,14 +601,10 @@ function LogoSlot({
     setError(null);
     try {
       await apiClient.delete(endpoint, { query });
-      toast.success(
-        variant === "light" ? t("ops.org.logoLightRemoved") : t("ops.org.logoRemoved"),
-      );
+      toast.success(variant === "light" ? t("ops.org.logoLightRemoved") : t("ops.org.logoRemoved"));
       router.refresh();
     } catch (err) {
-      setError(
-        err instanceof ApiClientError ? err.message : t("common.unexpectedError"),
-      );
+      setError(err instanceof ApiClientError ? err.message : t("common.unexpectedError"));
     } finally {
       setBusy(false);
     }
@@ -596,12 +612,8 @@ function LogoSlot({
 
   return (
     <div className="space-y-3">
-      {title ? (
-        <p className="text-sm font-medium text-[var(--color-foreground)]">{title}</p>
-      ) : null}
-      {hint ? (
-        <p className="text-sm text-[var(--color-foreground-muted)]">{hint}</p>
-      ) : null}
+      {title ? <p className="text-sm font-medium text-[var(--color-foreground)]">{title}</p> : null}
+      {hint ? <p className="text-sm text-[var(--color-foreground-muted)]">{hint}</p> : null}
       <div className="flex flex-wrap items-center gap-4">
         <div
           className={
@@ -611,16 +623,9 @@ function LogoSlot({
           }
         >
           {preview ? (
-            <img
-              src={preview}
-              alt=""
-              className="max-h-full max-w-full object-contain"
-            />
+            <img src={preview} alt="" className="max-h-full max-w-full object-contain" />
           ) : (
-            <ImagePlus
-              aria-hidden
-              className="size-6 text-[var(--color-foreground-muted)]"
-            />
+            <ImagePlus aria-hidden className="size-6 text-[var(--color-foreground-muted)]" />
           )}
         </div>
         <PermissionGuard permission="organization.manage">
@@ -655,9 +660,7 @@ function LogoSlot({
           </div>
         </PermissionGuard>
       </div>
-      {error ? (
-        <p className="text-sm text-[var(--color-danger)]">{error}</p>
-      ) : null}
+      {error ? <p className="text-sm text-[var(--color-danger)]">{error}</p> : null}
     </div>
   );
 }

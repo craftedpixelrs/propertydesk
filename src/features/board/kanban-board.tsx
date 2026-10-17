@@ -95,7 +95,7 @@ export function KanbanBoard<C extends BoardCard>({
     }),
   );
 
-  const activeCard = activeId ? cardById.get(activeId) ?? null : null;
+  const activeCard = activeId ? (cardById.get(activeId) ?? null) : null;
 
   function onDragStart(evt: DragStartEvent) {
     if (!canDrag) return;
@@ -130,9 +130,9 @@ export function KanbanBoard<C extends BoardCard>({
         credentials: "include",
       });
       if (!res.ok) {
-        const body = (await res.json().catch(() => null)) as
-          | { error?: { message?: string } }
-          | null;
+        const body = (await res.json().catch(() => null)) as {
+          error?: { message?: string };
+        } | null;
         setError(body?.error?.message ?? t("deals.board.statusChangeFailed"));
       } else {
         router.refresh();
@@ -232,8 +232,7 @@ function Column<C extends BoardCard>({
     id: column.status,
     disabled: column.readOnly,
   });
-  const dim =
-    dragState && !dragState.isSource && (!dragState.allowed || column.readOnly);
+  const dim = dragState && !dragState.isSource && (!dragState.allowed || column.readOnly);
   const highlight = isOver && dragState?.allowed && !column.readOnly;
   return (
     <div
@@ -297,13 +296,7 @@ interface DraggableCardProps {
   children: React.ReactNode;
 }
 
-function DraggableCard({
-  card,
-  disabled,
-  busy,
-  href,
-  children,
-}: DraggableCardProps) {
+function DraggableCard({ card, disabled, busy, href, children }: DraggableCardProps) {
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
     id: card.id,
     disabled,

@@ -97,16 +97,12 @@ export function SaleContractPdf(data: SaleContractPdfData) {
           <View style={{ flex: 1, marginRight: 12 }}>
             <Text style={{ fontFamily: "Helvetica-Bold" }}>Za prodavca</Text>
             <Text style={{ marginTop: 24 }}>_______________________________</Text>
-            <Text style={{ color: "#64748b", marginTop: 4 }}>
-              {data.organizationName}
-            </Text>
+            <Text style={{ color: "#64748b", marginTop: 4 }}>{data.organizationName}</Text>
           </View>
           <View style={{ flex: 1, marginLeft: 12 }}>
             <Text style={{ fontFamily: "Helvetica-Bold" }}>Za kupca</Text>
             <Text style={{ marginTop: 24 }}>_______________________________</Text>
-            <Text style={{ color: "#64748b", marginTop: 4 }}>
-              {data.buyerFullName}
-            </Text>
+            <Text style={{ color: "#64748b", marginTop: 4 }}>{data.buyerFullName}</Text>
           </View>
         </View>
       </View>

@@ -225,12 +225,7 @@ export function NewTaskDrawer({
             </select>
           </label>
           <div className="mt-auto flex justify-end gap-2 pt-2">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setOpen(false)}
-              disabled={busy}
-            >
+            <Button type="button" variant="outline" onClick={() => setOpen(false)} disabled={busy}>
               {t("common.cancel")}
             </Button>
             <Button type="submit" loading={busy} disabled={!title.trim() || !dueAt}>

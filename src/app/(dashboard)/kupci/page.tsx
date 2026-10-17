@@ -8,12 +8,7 @@ import { NewBuyerDrawer } from "@/features/buyers/new-buyer-drawer";
 import { loadUserContext, requireTenantPage } from "@/server/auth/context";
 import { listBuyers } from "@/server/services/buyers.service";
 import { formatDate } from "@/lib/formatters";
-import {
-  createT,
-  enumLabel,
-  type TranslateFn,
-  type TranslationKey,
-} from "@/lib/i18n";
+import { createT, enumLabel, type TranslateFn, type TranslationKey } from "@/lib/i18n";
 import type { BuyerEntityType, BuyerStatus } from "@prisma/client";
 
 interface KycShape {
@@ -92,9 +87,7 @@ export default async function KupciPage({ searchParams }: PageProps) {
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold">{t("nav.customers")}</h1>
-          <p className="text-sm text-[var(--color-foreground-muted)]">
-            {t("crm.buyers.subtitle")}
-          </p>
+          <p className="text-sm text-[var(--color-foreground-muted)]">{t("crm.buyers.subtitle")}</p>
         </div>
         <PermissionGuard permission="lead.manage">
           <NewBuyerDrawer>
@@ -122,7 +115,7 @@ export default async function KupciPage({ searchParams }: PageProps) {
         <>
           <div className="hidden overflow-x-auto rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] md:block">
             <table className="min-w-full divide-y divide-[var(--color-border)] text-sm">
-              <thead className="bg-[var(--color-surface-inset)] text-left text-xs uppercase tracking-wide text-[var(--color-foreground-muted)]">
+              <thead className="bg-[var(--color-surface-inset)] text-left text-xs tracking-wide text-[var(--color-foreground-muted)] uppercase">
                 <tr>
                   <th className="px-4 py-3">{t("auth.fullName")}</th>
                   <th className="px-4 py-3">{t("common.phone")}</th>
@@ -170,9 +163,7 @@ export default async function KupciPage({ searchParams }: PageProps) {
                             : t("crm.buyers.kycIncomplete")}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-right tabular-nums">
-                        {b._count.reservations}
-                      </td>
+                      <td className="px-4 py-3 text-right tabular-nums">{b._count.reservations}</td>
                       <td className="px-4 py-3 text-right text-[var(--color-foreground-muted)]">
                         {formatDate(b.createdAt)}
                       </td>

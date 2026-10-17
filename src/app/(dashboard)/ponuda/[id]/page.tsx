@@ -49,7 +49,9 @@ export default async function PonudaProjectPage({ params }: PageProps) {
           {detail.project.description ? (
             <p>{detail.project.description}</p>
           ) : (
-            <p className="text-[var(--color-foreground-muted)]">{t("inventory.offer.noDescription")}</p>
+            <p className="text-[var(--color-foreground-muted)]">
+              {t("inventory.offer.noDescription")}
+            </p>
           )}
           <div className="text-xs text-[var(--color-foreground-muted)]">
             {t("inventory.offer.accessLine", {

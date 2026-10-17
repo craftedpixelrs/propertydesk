@@ -77,8 +77,7 @@ export function SaleActions({ saleId, status, version, canManage }: Props) {
   const canContract = status === "DRAFT" || status === "PRE_CONTRACT";
   const canPaidQuick = status === "CONTRACTED";
   const canHandOver = status === "PAID";
-  const canCancel =
-    status !== "CANCELED" && status !== "HANDED_OVER" && status !== "PAID";
+  const canCancel = status !== "CANCELED" && status !== "HANDED_OVER" && status !== "PAID";
 
   return (
     <div className="space-y-3">

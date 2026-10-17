@@ -1,0 +1,7 @@
+Task Name,Status,Priority,Due Date,Tags,Description
+"Dnevni outreach: 8 NEW + svi follow-up Due today",TO DO,urgent,2026-09-28,"ritam,dnevno","Svaki radni dan 09:30. Otvori Leadovi Board filter Due today + Status NEW. 8 first-touch. Zatim filter Due today + CONTACTED. Upis komentar na leadu (šta si poslao). Recurring: every weekday."
+"Dnevno 17:00 — NEW stariji od 24h posle prvog kanala",TO DO,high,2026-09-28,"ritam,dnevno","Ako lead ima komentar kontakta a status je još NEW — prebaci u CONTACTED ili uradi follow-up sad. Recurring: weekday 17:00."
+"Nedeljni pregled 25 min (pon 09:00)",TO DO,urgent,2026-09-28,"ritam,nedeljno","Lead: new/qual/demo/won/lost. MRR/ACTIVE/TRIAL. P0. Tačno 3 obaveze nedelje (prodaja / naplata / proizvod). Upis u operativni-plan §18. Recurring: every Monday 09:00."
+"Petak 16:00 catch-up",TO DO,high,2026-10-02,"ritam,nedeljno","Ako je 0 QUALIFIED ove nedelje — vikend nije coding. Dopuni 8 imena ako je inbox prazan. Recurring: every Friday 16:00."
+"Sentry + my. health (dnevno 5 min)",TO DO,normal,2026-09-28,"ritam,ops","Sentry + /administracija/monitoring. P0 >48h = stop feature. Recurring: weekday 09:15."
+"my. promo odluka",TO DO,urgent,2026-09-28,"proizvod,deploy","Health + staging/demo OK + nema live klijentskog demoa. Inače ostaje stari image."

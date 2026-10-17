@@ -8,12 +8,7 @@ import { AGENCY_PARTNER_PLAN_CODE } from "@/lib/billing/agency-partner";
 
 export type ExpiryReason = "trial" | "period";
 
-const ALREADY_LOCKED: SubscriptionStatus[] = [
-  "RESTRICTED",
-  "SUSPENDED",
-  "CANCELED",
-  "EXPIRED",
-];
+const ALREADY_LOCKED: SubscriptionStatus[] = ["RESTRICTED", "SUSPENDED", "CANCELED", "EXPIRED"];
 
 export function expiryReasonForSubscription(
   sub: {
@@ -26,11 +21,7 @@ export function expiryReasonForSubscription(
 ): ExpiryReason | null {
   if (ALREADY_LOCKED.includes(sub.status)) return null;
 
-  if (
-    sub.status === "TRIAL" &&
-    sub.trialEndsAt &&
-    sub.trialEndsAt.getTime() <= now.getTime()
-  ) {
+  if (sub.status === "TRIAL" && sub.trialEndsAt && sub.trialEndsAt.getTime() <= now.getTime()) {
     return "trial";
   }
 
@@ -39,9 +30,7 @@ export function expiryReasonForSubscription(
   }
 
   if (
-    (sub.status === "ACTIVE" ||
-      sub.status === "PAYMENT_DUE" ||
-      sub.status === "PAST_DUE") &&
+    (sub.status === "ACTIVE" || sub.status === "PAYMENT_DUE" || sub.status === "PAST_DUE") &&
     sub.currentPeriodEnd &&
     sub.currentPeriodEnd.getTime() <= now.getTime()
   ) {
@@ -187,10 +176,12 @@ export async function syncExpiredAccess(
   return "RESTRICTED";
 }
 
-export async function expireEndedSubscriptions(input: {
-  now?: Date;
-  organizationId?: string;
-} = {}): Promise<{ processed: number; errors: number }> {
+export async function expireEndedSubscriptions(
+  input: {
+    now?: Date;
+    organizationId?: string;
+  } = {},
+): Promise<{ processed: number; errors: number }> {
   const now = input.now ?? new Date();
 
   const subs = await prisma.organizationSubscription.findMany({

@@ -62,9 +62,10 @@ function ThemeSwatch({ theme, active }: { theme: Theme; active: boolean }) {
       className={cn(
         "size-4 rounded-full border",
         theme === "light"
-          ? "bg-[#f4f5f7] border-[var(--color-border-strong)]"
-          : "bg-[#161b22] border-[var(--color-border-strong)]",
-        active && "ring-2 ring-[var(--color-brand-600)] ring-offset-1 ring-offset-[var(--color-surface)]",
+          ? "border-[var(--color-border-strong)] bg-[#f4f5f7]"
+          : "border-[var(--color-border-strong)] bg-[#161b22]",
+        active &&
+          "ring-2 ring-[var(--color-brand-600)] ring-offset-1 ring-offset-[var(--color-surface)]",
       )}
     />
   );

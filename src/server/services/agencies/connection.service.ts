@@ -40,10 +40,7 @@ export async function listMyConnections(input: {
   return { items: rows, total };
 }
 
-async function loadInvitationForAgency(
-  agencyOrganizationId: string,
-  connectionId: string,
-) {
+async function loadInvitationForAgency(agencyOrganizationId: string, connectionId: string) {
   const conn = await prisma.agencyConnection.findFirst({
     where: { id: connectionId, agencyOrganizationId },
   });
@@ -51,9 +48,7 @@ async function loadInvitationForAgency(
   return conn;
 }
 
-export async function activatePendingAgencyConnections(
-  agencyOrganizationId: string,
-) {
+export async function activatePendingAgencyConnections(agencyOrganizationId: string) {
   await prisma.agencyConnection.updateMany({
     where: { agencyOrganizationId, status: "INVITED" },
     data: { status: "ACTIVE", acceptedAt: new Date() },
@@ -65,10 +60,7 @@ export async function acceptInvitation(input: {
   actorUserId: string;
   connectionId: string;
 }) {
-  const existing = await loadInvitationForAgency(
-    input.agencyOrganizationId,
-    input.connectionId,
-  );
+  const existing = await loadInvitationForAgency(input.agencyOrganizationId, input.connectionId);
   if (existing.status === "ACTIVE") return existing;
   if (existing.status !== "INVITED") {
     throw DomainErrors.invalidState("Ovaj poziv se ne može prihvatiti.");
@@ -93,10 +85,7 @@ export async function rejectInvitation(input: {
   connectionId: string;
   reason?: string;
 }) {
-  const existing = await loadInvitationForAgency(
-    input.agencyOrganizationId,
-    input.connectionId,
-  );
+  const existing = await loadInvitationForAgency(input.agencyOrganizationId, input.connectionId);
   if (existing.status === "REJECTED") return existing;
   if (existing.status !== "INVITED") {
     throw DomainErrors.invalidState("Ovaj poziv se ne može odbiti.");

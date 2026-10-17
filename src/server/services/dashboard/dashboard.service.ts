@@ -72,9 +72,7 @@ export interface InvestorDashboard {
   }>;
 }
 
-export async function loadInvestorDashboard(
-  organizationId: string,
-): Promise<InvestorDashboard> {
+export async function loadInvestorDashboard(organizationId: string): Promise<InvestorDashboard> {
   const now = new Date();
   const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const endOfDay = new Date(startOfDay.getTime() + 24 * 60 * 60 * 1000);
@@ -314,9 +312,7 @@ export interface AgencyDashboard {
   }>;
 }
 
-export async function loadAgencyDashboard(
-  agencyOrganizationId: string,
-): Promise<AgencyDashboard> {
+export async function loadAgencyDashboard(agencyOrganizationId: string): Promise<AgencyDashboard> {
   const [
     activeConnections,
     accessibleProjects,
@@ -390,9 +386,7 @@ export async function loadAgencyDashboard(
 
   const commissionByStatus = new Map<string, Decimal>();
   for (const row of commissionAggs) {
-    const value = toDecimal(
-      row._sum.adjustedAmount ?? row._sum.calculatedAmount ?? 0,
-    );
+    const value = toDecimal(row._sum.adjustedAmount ?? row._sum.calculatedAmount ?? 0);
     commissionByStatus.set(row.status, value);
   }
   const calculated = new Decimal(0)

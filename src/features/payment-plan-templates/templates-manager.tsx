@@ -76,9 +76,7 @@ export function PaymentPlanTemplatesManager({ templates, projects }: Props) {
     if (filterProjectId === "__org__") {
       return templates.filter((t) => t.projectId === null);
     }
-    return templates.filter(
-      (t) => t.projectId === filterProjectId || t.projectId === null,
-    );
+    return templates.filter((t) => t.projectId === filterProjectId || t.projectId === null);
   }, [templates, filterProjectId]);
 
   function openCreate() {
@@ -148,21 +146,12 @@ export function PaymentPlanTemplatesManager({ templates, projects }: Props) {
   );
 }
 
-function TemplateCard({
-  template,
-  onEdit,
-}: {
-  template: TemplateView;
-  onEdit: () => void;
-}) {
+function TemplateCard({ template, onEdit }: { template: TemplateView; onEdit: () => void }) {
   const t = useT();
   const router = useRouter();
   const [busy, setBusy] = React.useState(false);
 
-  const sum = template.items.reduce(
-    (acc, it) => acc + Number(it.percentage || 0),
-    0,
-  );
+  const sum = template.items.reduce((acc, it) => acc + Number(it.percentage || 0), 0);
 
   async function handleDelete() {
     if (!confirm(t("deals.planTemplates.deleteConfirm", { name: template.name }))) return;
@@ -171,9 +160,7 @@ function TemplateCard({
       await apiClient.delete(`/payment-plan-templates/${template.id}`);
       router.refresh();
     } catch (err) {
-      alert(
-        err instanceof ApiClientError ? err.message : t("errors.generic"),
-      );
+      alert(err instanceof ApiClientError ? err.message : t("errors.generic"));
     } finally {
       setBusy(false);
     }
@@ -187,9 +174,7 @@ function TemplateCard({
       });
       router.refresh();
     } catch (err) {
-      alert(
-        err instanceof ApiClientError ? err.message : t("errors.generic"),
-      );
+      alert(err instanceof ApiClientError ? err.message : t("errors.generic"));
     } finally {
       setBusy(false);
     }
@@ -267,9 +252,7 @@ function TemplateCard({
               <td colSpan={2} className="py-1 pr-2 text-right">
                 {t("deals.planTemplates.sum")}
               </td>
-              <td className="py-1 pr-2 text-right font-medium tabular-nums">
-                {sum.toFixed(2)}%
-              </td>
+              <td className="py-1 pr-2 text-right font-medium tabular-nums">{sum.toFixed(2)}%</td>
               <td colSpan={2} />
             </tr>
           </tbody>
@@ -298,9 +281,7 @@ function TemplateEditor({
   const t = useT();
   const router = useRouter();
   const [name, setName] = React.useState(initial?.name ?? "");
-  const [description, setDescription] = React.useState(
-    initial?.description ?? "",
-  );
+  const [description, setDescription] = React.useState(initial?.description ?? "");
   const [projectId, setProjectId] = React.useState(initial?.projectId ?? "");
   const [isDefault, setIsDefault] = React.useState(initial?.isDefault ?? false);
   const [items, setItems] = React.useState<TemplateItem[]>(
@@ -339,9 +320,7 @@ function TemplateEditor({
 
   function removeRow(idx: number) {
     setItems((rs) =>
-      rs
-        .filter((_, i) => i !== idx)
-        .map((r, i) => ({ ...r, sequenceNumber: i + 1 })),
+      rs.filter((_, i) => i !== idx).map((r, i) => ({ ...r, sequenceNumber: i + 1 })),
     );
   }
 
@@ -377,9 +356,7 @@ function TemplateEditor({
       router.refresh();
       onClose();
     } catch (err) {
-      setError(
-        err instanceof ApiClientError ? err.message : t("deals.planTemplates.saveFailed"),
-      );
+      setError(err instanceof ApiClientError ? err.message : t("deals.planTemplates.saveFailed"));
     } finally {
       setBusy(false);
     }
@@ -477,7 +454,7 @@ function TemplateEditor({
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
-                <thead className="text-left text-xs uppercase tracking-wide text-[var(--color-foreground-muted)]">
+                <thead className="text-left text-xs tracking-wide text-[var(--color-foreground-muted)] uppercase">
                   <tr>
                     <th className="py-1 pr-2">#</th>
                     <th className="py-1 pr-2">{t("deals.planTemplates.colName")}</th>
@@ -490,15 +467,11 @@ function TemplateEditor({
                 <tbody className="divide-y divide-[var(--color-border)]">
                   {items.map((it, idx) => (
                     <tr key={idx}>
-                      <td className="py-1 pr-2 text-[var(--color-foreground-muted)]">
-                        {idx + 1}
-                      </td>
+                      <td className="py-1 pr-2 text-[var(--color-foreground-muted)]">{idx + 1}</td>
                       <td className="py-1 pr-2">
                         <input
                           value={it.label}
-                          onChange={(e) =>
-                            setItem(idx, { label: e.target.value })
-                          }
+                          onChange={(e) => setItem(idx, { label: e.target.value })}
                           className="h-9 w-full rounded-md border border-[var(--color-border)] px-2 text-sm"
                           placeholder={t("deals.planTemplates.labelPlaceholder")}
                         />
@@ -507,9 +480,7 @@ function TemplateEditor({
                         <input
                           inputMode="decimal"
                           value={it.percentage}
-                          onChange={(e) =>
-                            setItem(idx, { percentage: e.target.value })
-                          }
+                          onChange={(e) => setItem(idx, { percentage: e.target.value })}
                           className="h-9 w-20 rounded-md border border-[var(--color-border)] px-2 text-right text-sm"
                         />
                       </td>
@@ -523,9 +494,15 @@ function TemplateEditor({
                           }
                           className="h-9 rounded-md border border-[var(--color-border)] px-2 text-sm"
                         >
-                          <option value="CONTRACT">{t("deals.planTemplates.anchor.CONTRACT")}</option>
-                          <option value="HANDOVER">{t("deals.planTemplates.anchor.HANDOVER")}</option>
-                          <option value="CUSTOM_OFFSET">{t("deals.planTemplates.anchor.CUSTOM_OFFSET")}</option>
+                          <option value="CONTRACT">
+                            {t("deals.planTemplates.anchor.CONTRACT")}
+                          </option>
+                          <option value="HANDOVER">
+                            {t("deals.planTemplates.anchor.HANDOVER")}
+                          </option>
+                          <option value="CUSTOM_OFFSET">
+                            {t("deals.planTemplates.anchor.CUSTOM_OFFSET")}
+                          </option>
                         </select>
                       </td>
                       <td className="py-1 pr-2">
@@ -555,14 +532,7 @@ function TemplateEditor({
                 </tbody>
               </table>
             </div>
-            <p
-              className={
-                "text-xs " +
-                (totalOk
-                  ? "text-emerald-600"
-                  : "text-red-600")
-              }
-            >
+            <p className={"text-xs " + (totalOk ? "text-emerald-600" : "text-red-600")}>
               {totalOk
                 ? t("deals.planTemplates.pctSumOk", { sum: totalPct.toFixed(3) })
                 : t("deals.planTemplates.pctSumBad", { sum: totalPct.toFixed(3) })}

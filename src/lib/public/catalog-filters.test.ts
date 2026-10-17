@@ -1,10 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import {
-  filterCatalogUnits,
-  paginateCatalog,
-  PUBLIC_CATALOG_PAGE_SIZE,
-} from "./catalog-filters";
+import { filterCatalogUnits, paginateCatalog, PUBLIC_CATALOG_PAGE_SIZE } from "./catalog-filters";
 
 const units = [
   {
@@ -63,10 +59,11 @@ describe("filterCatalogUnits", () => {
   });
 
   it("treats 4+ as four or more bedrooms", () => {
-    const out = filterCatalogUnits(
-      [...units, { ...units[0], code: "P", bedrooms: 5 }],
-      { ...blank, bedrooms: "4+" },
-    );
+    const base = units[0]!;
+    const out = filterCatalogUnits([...units, { ...base, code: "P", bedrooms: 5 }], {
+      ...blank,
+      bedrooms: "4+",
+    });
     expect(out.map((u) => u.code)).toEqual(["P"]);
   });
 });

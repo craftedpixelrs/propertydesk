@@ -46,9 +46,21 @@ docker compose start app
   latest.
 - Local `storage/`: replace the folder with the snapshot copy.
 
+## Before the first paying client
+
+Run one restore that is not the weekly verify job. Verify only checks
+that a dump can be listed. Restore proves a project and a unit come back.
+
+1. Take the latest production dump.
+2. Restore it into an empty database that is not `my.` (a local Postgres
+   or a throwaway Neon branch).
+3. Point a local `.env` at that database and open one project and one unit.
+4. Write the date and the dump filename in the ops note. Do not restore
+   over `my.` as the test.
+
 ## Smoke checks after restore
 
-1. `curl -f https://<host>/api/v1/ready` returns 200 (DB reachable).
+1. `curl -f https://<host>/api/v1/health/ready` returns 200 with `database: ok`.
 2. Sign in as the super-admin from the environment.
 3. Open `/administracija/pregled` — usage counts populate.
 4. Open a project → **Jedinice** — units load with their prices.

@@ -28,24 +28,21 @@ const bodySchema = z.object({
  * subject/text/html supplied here take precedence over the DB row, so
  * the operator sees exactly what a save would produce.
  */
-export const POST = apiHandler(
-  { paramsSchema, bodySchema },
-  async ({ params, body }) => {
-    await requireSuperAdmin();
-    const preview = await previewBillingEmail(params.key, {
-      variables: body.variables,
-      draft: body.draft,
-    });
-    return {
-      data: {
-        subject: preview.subject,
-        html: preview.html,
-        text: preview.text,
-        variables: preview.variables,
-      },
-    };
-  },
-);
+export const POST = apiHandler({ paramsSchema, bodySchema }, async ({ params, body }) => {
+  await requireSuperAdmin();
+  const preview = await previewBillingEmail(params.key, {
+    variables: body.variables,
+    draft: body.draft,
+  });
+  return {
+    data: {
+      subject: preview.subject,
+      html: preview.html,
+      text: preview.text,
+      variables: preview.variables,
+    },
+  };
+});
 
 /**
  * @swagger

@@ -21,9 +21,7 @@ export default async function EditBillingTemplatePage({
   if (!template) notFound();
 
   const variables = Array.isArray(template.variables)
-    ? (template.variables as unknown[]).filter(
-        (v): v is string => typeof v === "string",
-      )
+    ? (template.variables as unknown[]).filter((v): v is string => typeof v === "string")
     : [];
 
   async function save(formData: FormData) {
@@ -42,9 +40,7 @@ export default async function EditBillingTemplatePage({
       inner.session.user.id,
     );
     revalidatePath(`/administracija/naplata/sabloni/${encodeURIComponent(k)}`);
-    redirect(
-      `/administracija/naplata/sabloni/${encodeURIComponent(k)}?saved=1`,
-    );
+    redirect(`/administracija/naplata/sabloni/${encodeURIComponent(k)}?saved=1`);
   }
 
   return (

@@ -1,9 +1,11 @@
 /* PropertyDesk docs — shared tokens matching src/app/globals.css */
 :root {
-  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI",
-    Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
-  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, "SF Mono",
-    Menlo, Consolas, "Liberation Mono", monospace;
+  --font-sans:
+    "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial,
+    "Noto Sans", sans-serif;
+  --font-mono:
+    "JetBrains Mono", ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono",
+    monospace;
 
   --surface: #ffffff;
   --surface-muted: #f7f8fa;
@@ -65,7 +67,10 @@ body {
   color: var(--fg);
   font-family: var(--font-sans);
   font-optical-sizing: auto;
-  font-feature-settings: "cv02" 1, "cv03" 1, "cv04" 1;
+  font-feature-settings:
+    "cv02" 1,
+    "cv03" 1,
+    "cv04" 1;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
@@ -326,8 +331,14 @@ kbd {
   flex-shrink: 0;
   display: block;
 }
-.logo.sm { width: 1.65rem; height: 1.65rem; }
-.logo.lg { width: 2.5rem; height: 2.5rem; }
+.logo.sm {
+  width: 1.65rem;
+  height: 1.65rem;
+}
+.logo.lg {
+  width: 2.5rem;
+  height: 2.5rem;
+}
 
 .brand-lockup {
   display: inline-flex;
@@ -338,7 +349,10 @@ kbd {
   font-weight: 700;
   letter-spacing: -0.02em;
 }
-.brand-lockup:hover { text-decoration: none; color: var(--fg); }
+.brand-lockup:hover {
+  text-decoration: none;
+  color: var(--fg);
+}
 .brand-lockup .brand-text {
   display: flex;
   flex-direction: column;

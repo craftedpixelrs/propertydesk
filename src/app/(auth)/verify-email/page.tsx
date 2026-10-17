@@ -17,7 +17,7 @@ export default async function VerifyEmailPage() {
       <h1 className="text-xl font-semibold text-[var(--color-foreground)]">
         {t("auth.verifyEmailTitle", undefined, locale)}
       </h1>
-      <p className="text-sm text-[var(--color-foreground-muted)] mt-1">
+      <p className="mt-1 text-sm text-[var(--color-foreground-muted)]">
         {t("auth.verifyEmailSubtitle", undefined, locale)}
       </p>
       <div className="mt-5">

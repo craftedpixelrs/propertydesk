@@ -3,6 +3,11 @@
 Recipe for migrating PropertyDesk from managed hosting (Neon + Vercel /
 Fly) to a self-hosted VPS running Docker Compose + nginx.
 
+Live hosts today are `my.propertydesk.app`, `demo.propertydesk.app`
+and `staging.propertydesk.app`. Snippets below that still say
+`app.propertydesk.app` are the old name from this migration. Cron
+must call `my.`, see [`cron-jobs.md`](./cron-jobs.md).
+
 ## Target VPS shape
 
 - Ubuntu 24.04 LTS.
@@ -144,7 +149,7 @@ Verify with `journalctl -u cron -f`.
    mode).
 3. Take one last dump; load it into the VPS.
 4. Update DNS A record to the VPS IP.
-5. Watch `/api/v1/ready` from an external monitor for 30 min.
+5. Watch `/api/v1/health/ready` from an external monitor for 30 min.
 6. Restore normal TTL.
 
 ## 9. Rollback

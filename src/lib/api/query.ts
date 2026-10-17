@@ -86,7 +86,10 @@ export function paginate<T>(
   page: number,
   pageSize: number,
   total: number,
-): { items: T[]; pagination: { page: number; pageSize: number; total: number; totalPages: number } } {
+): {
+  items: T[];
+  pagination: { page: number; pageSize: number; total: number; totalPages: number };
+} {
   return {
     items,
     pagination: {

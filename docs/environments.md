@@ -40,6 +40,19 @@ Cookies are host-scoped, so a session on `demo.` does not carry to
 `staging.`. Deploy WIP images to `app-staging`; leave `app-demo` on a
 known-good digest during a client session.
 
+The evidence pack (dossier, handover, buyer page, settlement, buyer
+emails, role matrix in layer B) is what `app-demo` and `app-staging`
+serve. Both keep `.env.demo` / `.env.staging` and the demo Supabase
+project. Permission overrides saved on either host are rows in that
+shared database. Production (`app`, `.env`) stays on the production
+Supabase project and is not switched when demo and staging are
+recreated. Do not point `app` at the demo database.
+
+Buyer-page and IPS QR links are built from each container's
+`BETTER_AUTH_URL`, so one image can run on `demo.` and `staging.`
+and still emit that host. The browser calls `/api/v1` on the same
+origin.
+
 ## VPS files
 
 | File | Used by |

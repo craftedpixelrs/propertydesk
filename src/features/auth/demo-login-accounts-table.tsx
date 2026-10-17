@@ -9,11 +9,7 @@ import {
   type DemoLoginAccount,
 } from "./demo-login-accounts";
 
-export function DemoLoginAccountsTable({
-  onUse,
-}: {
-  onUse: (account: DemoLoginAccount) => void;
-}) {
+export function DemoLoginAccountsTable({ onUse }: { onUse: (account: DemoLoginAccount) => void }) {
   const { t } = useI18n();
 
   return (
@@ -29,9 +25,9 @@ export function DemoLoginAccountsTable({
         <table className="w-full min-w-[20rem] border-collapse text-left text-xs">
           <thead>
             <tr className="text-[var(--color-foreground-subtle)]">
-              <th className="pb-2 pr-2 font-medium">{t("auth.demoAccountsOrg")}</th>
-              <th className="pb-2 pr-2 font-medium">{t("auth.demoAccountsRole")}</th>
-              <th className="pb-2 pr-2 font-medium">{t("auth.demoAccountsEmail")}</th>
+              <th className="pr-2 pb-2 font-medium">{t("auth.demoAccountsOrg")}</th>
+              <th className="pr-2 pb-2 font-medium">{t("auth.demoAccountsRole")}</th>
+              <th className="pr-2 pb-2 font-medium">{t("auth.demoAccountsEmail")}</th>
               <th className="pb-2 font-medium">
                 <span className="sr-only">{t("auth.demoAccountsUse")}</span>
               </th>
@@ -39,18 +35,13 @@ export function DemoLoginAccountsTable({
           </thead>
           <tbody>
             {DEMO_LOGIN_ACCOUNTS.map((account) => (
-              <tr
-                key={account.email}
-                className="border-t border-[var(--color-border)] align-top"
-              >
+              <tr key={account.email} className="border-t border-[var(--color-border)] align-top">
                 <td className="py-2 pr-2 text-[var(--color-foreground)]">
                   {account.org === "investor"
                     ? t("auth.demoAccountsInvestor")
                     : t("auth.demoAccountsAgency")}
                 </td>
-                <td className="py-2 pr-2 text-[var(--color-foreground)]">
-                  {t(account.roleKey)}
-                </td>
+                <td className="py-2 pr-2 text-[var(--color-foreground)]">{t(account.roleKey)}</td>
                 <td className="py-2 pr-2 font-mono text-[11px] break-all text-[var(--color-foreground-muted)]">
                   {account.email}
                 </td>

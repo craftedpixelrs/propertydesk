@@ -3,10 +3,7 @@ import { z } from "zod";
 import { apiHandler } from "@/lib/api/handler";
 import { paginate } from "@/lib/api/query";
 import { requirePermission } from "@/server/permissions/require";
-import {
-  createReservation,
-  listReservations,
-} from "@/server/services/reservations.service";
+import { createReservation, listReservations } from "@/server/services/reservations.service";
 import { enforceRateLimit } from "@/server/rate-limit/enforce";
 import type { ReservationStatus } from "@prisma/client";
 
@@ -30,7 +27,10 @@ const createSchema = z.object({
 
 function parseCsvList(raw: string | null): ReservationStatus[] | undefined {
   if (!raw) return undefined;
-  const values = raw.split(",").map((s) => s.trim().toUpperCase()).filter(Boolean);
+  const values = raw
+    .split(",")
+    .map((s) => s.trim().toUpperCase())
+    .filter(Boolean);
   const filtered = values.filter((v): v is ReservationStatus =>
     (RESERVATION_STATUSES as readonly string[]).includes(v),
   );
@@ -47,6 +47,7 @@ export const GET = apiHandler({}, async ({ query, searchParams }) => {
     unitId: searchParams.get("unitId") ?? undefined,
     buyerId: searchParams.get("buyerId") ?? undefined,
     projectId: searchParams.get("projectId") ?? undefined,
+    search: query.q,
   });
   const { items: pageItems, pagination } = paginate(items, query.page, query.pageSize, total);
   return { data: pageItems, meta: { pagination } };

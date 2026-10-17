@@ -12,15 +12,11 @@ const createBody = z.object({
   emailVerified: z.boolean().optional(),
   platformRole: z.enum(["SUPER_ADMIN"]).nullable().optional(),
   organizationId: z.string().min(1).nullable().optional(),
-  organizationRole: z
-    .enum(ALL_ORG_ROLE_NAMES as [string, ...string[]])
-    .optional(),
+  organizationRole: z.enum(ALL_ORG_ROLE_NAMES as [string, ...string[]]).optional(),
   propertyDeskTeam: z
     .object({
       teamRole: z.enum(["SETTER", "CLOSER", "OPERATIONS", "MANAGER"]),
-      leadScope: z
-        .enum(["OWN", "OWN_AND_UNASSIGNED", "TEAM", "ALL"])
-        .optional(),
+      leadScope: z.enum(["OWN", "OWN_AND_UNASSIGNED", "TEAM", "ALL"]).optional(),
     })
     .nullable()
     .optional(),
@@ -28,15 +24,13 @@ const createBody = z.object({
 
 export const POST = apiHandler({ bodySchema: createBody }, async ({ body }) => {
   const ctx = await requireSuperAdmin();
-    const user = await createPlatformUser(
-      {
-        ...body,
-        organizationRole: body.organizationRole as
-          | (typeof ALL_ORG_ROLE_NAMES)[number]
-          | undefined,
-      },
-      ctx.session.user.id,
-    );
+  const user = await createPlatformUser(
+    {
+      ...body,
+      organizationRole: body.organizationRole as (typeof ALL_ORG_ROLE_NAMES)[number] | undefined,
+    },
+    ctx.session.user.id,
+  );
   return { data: user, status: 201 };
 });
 

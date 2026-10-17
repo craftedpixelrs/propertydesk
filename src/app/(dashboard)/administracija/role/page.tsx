@@ -48,7 +48,7 @@ export default async function RolesAdminPage() {
             </li>
             <li>
               <span className="mr-1 inline-block size-2 rounded-full bg-emerald-500 align-middle" />
-              <span className="ml-1 mr-1 inline-block size-1.5 rounded-full bg-amber-500 align-middle" />
+              <span className="mr-1 ml-1 inline-block size-1.5 rounded-full bg-amber-500 align-middle" />
               {t("admin.rolesPage.legendOverride")}
             </li>
             <li>{t("admin.rolesPage.legendSuperAdmin")}</li>

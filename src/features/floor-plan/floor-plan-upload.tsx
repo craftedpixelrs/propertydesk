@@ -56,12 +56,10 @@ export function FloorPlanUpload({ floorId, variant, onUploaded }: Props) {
         body: form,
       });
       if (!res.ok) {
-        const payload = (await res.json().catch(() => null)) as
-          | { error?: { message?: string } }
-          | null;
-        throw new Error(
-          payload?.error?.message ?? t("inventory.floorPlan.uploadFailed"),
-        );
+        const payload = (await res.json().catch(() => null)) as {
+          error?: { message?: string };
+        } | null;
+        throw new Error(payload?.error?.message ?? t("inventory.floorPlan.uploadFailed"));
       }
       if (inputRef.current) inputRef.current.value = "";
       onUploaded?.();
@@ -97,9 +95,7 @@ export function FloorPlanUpload({ floorId, variant, onUploaded }: Props) {
           <Upload className="mr-1 size-4" />
           {t("inventory.floorPlan.change")}
         </Button>
-        {error ? (
-          <span className="ml-2 text-xs text-red-600">{error}</span>
-        ) : null}
+        {error ? <span className="ml-2 text-xs text-red-600">{error}</span> : null}
       </>
     );
   }
@@ -107,25 +103,17 @@ export function FloorPlanUpload({ floorId, variant, onUploaded }: Props) {
   return (
     <div className="rounded-md border border-dashed border-[var(--color-border)] bg-[var(--color-surface-inset)] p-6 text-center">
       {input}
-      <p className="text-sm text-[var(--color-foreground)]">
-        {t("inventory.floorPlan.empty")}
-      </p>
+      <p className="text-sm text-[var(--color-foreground)]">{t("inventory.floorPlan.empty")}</p>
       <p className="mt-1 text-xs text-[var(--color-foreground-muted)]">
         {t("inventory.floorPlan.emptyHint")}
       </p>
       <div className="mt-3">
-        <Button
-          loading={busy}
-          onClick={() => inputRef.current?.click()}
-          size="sm"
-        >
+        <Button loading={busy} onClick={() => inputRef.current?.click()} size="sm">
           <Upload className="mr-1 size-4" />
           {t("inventory.floorPlan.upload")}
         </Button>
       </div>
-      {error ? (
-        <p className="mt-2 text-xs text-red-600">{error}</p>
-      ) : null}
+      {error ? <p className="mt-2 text-xs text-red-600">{error}</p> : null}
     </div>
   );
 }

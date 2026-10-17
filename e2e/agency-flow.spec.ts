@@ -20,17 +20,13 @@ test.describe("agency portal", () => {
   ];
 
   for (const route of agencyRoutes) {
-    test(`redirects anonymous visitor from ${route} to /sign-in`, async ({
-      page,
-    }) => {
+    test(`redirects anonymous visitor from ${route} to /sign-in`, async ({ page }) => {
       await page.goto(route);
       await expect(page).toHaveURL(/\/sign-in(\?|$)/);
     });
   }
 
-  test("agency portal API rejects unauthenticated buyer registration", async ({
-    request,
-  }) => {
+  test("agency portal API rejects unauthenticated buyer registration", async ({ request }) => {
     const res = await request.post("/api/v1/agency/registrations", {
       data: {
         projectId: "not-a-real-project",

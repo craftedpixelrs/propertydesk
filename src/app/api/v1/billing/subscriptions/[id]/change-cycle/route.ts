@@ -13,24 +13,21 @@ const bodySchema = z.object({
   reason: z.string().min(2).max(500),
 });
 
-export const POST = apiHandler(
-  { paramsSchema, bodySchema },
-  async ({ params, body }) => {
-    const ctx = await requireSuperAdmin();
-    const sub = await prisma.organizationSubscription.findUnique({
-      where: { id: params.id },
-      select: { organizationId: true },
-    });
-    if (!sub) throw new ApiError("NOT_FOUND", "Pretplata nije pronađena.");
-    const updated = await changeSubscriptionCycle(
-      sub.organizationId,
-      body.cycle as BillingCycle,
-      body.reason,
-      ctx.session.user.id,
-    );
-    return { data: updated };
-  },
-);
+export const POST = apiHandler({ paramsSchema, bodySchema }, async ({ params, body }) => {
+  const ctx = await requireSuperAdmin();
+  const sub = await prisma.organizationSubscription.findUnique({
+    where: { id: params.id },
+    select: { organizationId: true },
+  });
+  if (!sub) throw new ApiError("NOT_FOUND", "Pretplata nije pronađena.");
+  const updated = await changeSubscriptionCycle(
+    sub.organizationId,
+    body.cycle as BillingCycle,
+    body.reason,
+    ctx.session.user.id,
+  );
+  return { data: updated };
+});
 
 /**
  * @swagger

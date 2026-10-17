@@ -70,10 +70,7 @@ function slugify(input: string): string {
     .slice(0, 80);
 }
 
-async function resolveUniqueSlug(
-  organizationId: string,
-  base: string,
-): Promise<string> {
+async function resolveUniqueSlug(organizationId: string, base: string): Promise<string> {
   let candidate = base;
   let attempt = 0;
   while (true) {
@@ -128,9 +125,7 @@ export async function cloneProjectStructure(
     select: { id: true },
   });
   if (codeClash) {
-    throw DomainErrors.conflict(
-      `Projekat sa šifrom "${newCode}" već postoji u ovoj organizaciji.`,
-    );
+    throw DomainErrors.conflict(`Projekat sa šifrom "${newCode}" već postoji u ovoj organizaciji.`);
   }
 
   await assertQuota(input.organizationId, "projects");
@@ -255,9 +250,7 @@ export async function cloneProjectStructure(
                 ? entranceIdMap.get(u.entranceId)!
                 : null;
             const targetFloorId =
-              u.floorId && floorIdMap.has(u.floorId)
-                ? floorIdMap.get(u.floorId)!
-                : null;
+              u.floorId && floorIdMap.has(u.floorId) ? floorIdMap.get(u.floorId)! : null;
             await tx.unit.create({
               data: {
                 organizationId: input.organizationId,

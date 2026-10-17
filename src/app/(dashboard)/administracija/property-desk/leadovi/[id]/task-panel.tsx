@@ -52,14 +52,11 @@ export function LeadTaskPanel({
     setBusy("create");
     setErr(null);
     try {
-      await apiClient.post(
-        `/platform/property-desk/leads/${leadId}/tasks`,
-        {
-          title: title.trim(),
-          dueAt: dueAt ? new Date(dueAt).toISOString() : null,
-          assignedToUserId: assignee || null,
-        },
-      );
+      await apiClient.post(`/platform/property-desk/leads/${leadId}/tasks`, {
+        title: title.trim(),
+        dueAt: dueAt ? new Date(dueAt).toISOString() : null,
+        assignedToUserId: assignee || null,
+      });
       setTitle("");
       setDueAt("");
       setAssignee("");
@@ -75,10 +72,9 @@ export function LeadTaskPanel({
     setBusy(taskId);
     setErr(null);
     try {
-      await apiClient.post(
-        `/platform/property-desk/lead-tasks/${taskId}/complete`,
-        { completed: next },
-      );
+      await apiClient.post(`/platform/property-desk/lead-tasks/${taskId}/complete`, {
+        completed: next,
+      });
       router.refresh();
     } catch (e) {
       setErr(errorMessage(e, t));
@@ -115,7 +111,7 @@ export function LeadTaskPanel({
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder={t("admin.pdTasks.placeholder")}
-                className="h-9 flex-1 min-w-64 rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] px-2 text-sm"
+                className="h-9 min-w-64 flex-1 rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] px-2 text-sm"
                 disabled={busy === "create"}
               />
               <DateTimeInput
@@ -153,24 +149,18 @@ export function LeadTaskPanel({
         ) : null}
 
         {items.length === 0 ? (
-          <p className="text-sm text-[var(--color-foreground-muted)]">
-            {t("admin.pdTasks.empty")}
-          </p>
+          <p className="text-sm text-[var(--color-foreground-muted)]">{t("admin.pdTasks.empty")}</p>
         ) : (
           <ul className="divide-y divide-[var(--color-border)]">
             {items.map((task) => {
               const overdue =
-                !task.completedAt &&
-                task.dueAt &&
-                new Date(task.dueAt).getTime() < now;
+                !task.completedAt && task.dueAt && new Date(task.dueAt).getTime() < now;
               return (
                 <li key={task.id} className="flex items-start gap-3 py-3">
                   <input
                     type="checkbox"
                     checked={Boolean(task.completedAt)}
-                    onChange={(e) =>
-                      toggleComplete(task.id, e.target.checked)
-                    }
+                    onChange={(e) => toggleComplete(task.id, e.target.checked)}
                     disabled={!canComplete || busy === task.id}
                     className="mt-1"
                   />
@@ -179,7 +169,7 @@ export function LeadTaskPanel({
                       <span
                         className={`text-sm font-medium ${
                           task.completedAt
-                            ? "line-through text-[var(--color-foreground-muted)]"
+                            ? "text-[var(--color-foreground-muted)] line-through"
                             : ""
                         }`}
                       >
@@ -191,7 +181,7 @@ export function LeadTaskPanel({
                       ) : null}
                     </div>
                     {task.description ? (
-                      <div className="mt-1 whitespace-pre-line text-xs text-[var(--color-foreground-muted)]">
+                      <div className="mt-1 text-xs whitespace-pre-line text-[var(--color-foreground-muted)]">
                         {task.description}
                       </div>
                     ) : null}

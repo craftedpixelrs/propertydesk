@@ -1,20 +1,13 @@
 import "server-only";
 import { Prisma } from "@prisma/client";
-import type {
-  Invoice,
-  SubscriptionPayment,
-  SubscriptionPaymentProvider,
-} from "@prisma/client";
+import type { Invoice, SubscriptionPayment, SubscriptionPaymentProvider } from "@prisma/client";
 import { createId } from "@paralleldrive/cuid2";
 
 import { prisma } from "@/server/db/prisma";
 import { recordAudit } from "@/server/audit/audit";
 import { DomainErrors } from "@/lib/errors";
 import { toDecimal } from "@/lib/formatters/money";
-import {
-  addCycle,
-  CYCLE_MONTHS,
-} from "../subscriptions.service";
+import { addCycle, CYCLE_MONTHS } from "../subscriptions.service";
 import { resolveBillingSettings } from "../settings/resolved.service";
 import {
   applyAllocations,
@@ -239,11 +232,7 @@ export async function reversePayment(
         new Prisma.Decimal(inv.amountPaid.toString()).minus(alloc.amount.toString()),
       );
       const nextDue = new Prisma.Decimal(inv.totalAmount.toString()).minus(nextPaid);
-      const nextStatus = nextDue.eq(0)
-        ? "PAID"
-        : nextPaid.gt(0)
-          ? "PARTIALLY_PAID"
-          : "ISSUED";
+      const nextStatus = nextDue.eq(0) ? "PAID" : nextPaid.gt(0) ? "PARTIALLY_PAID" : "ISSUED";
       await tx.invoice.update({
         where: { id: inv.id },
         data: {

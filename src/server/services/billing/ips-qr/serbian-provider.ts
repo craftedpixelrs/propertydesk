@@ -45,9 +45,7 @@ function sanitize(s: string, max: number): string {
 function normalizeAccount(raw: string): string {
   const trimmed = raw.replace(/[\s-]/g, "");
   if (!/^\d+$/.test(trimmed)) {
-    throw DomainErrors.badRequest(
-      "IPS QR: primaočev račun mora sadržati samo cifre.",
-    );
+    throw DomainErrors.badRequest("IPS QR: primaočev račun mora sadržati samo cifre.");
   }
   if (trimmed.length !== ACCOUNT_LEN) {
     throw DomainErrors.badRequest(
@@ -74,9 +72,7 @@ export class SerbianIpsQrProvider implements IpsQrProvider {
   buildPayload(input: IpsQrRequest): string {
     const currency = input.currency ?? "RSD";
     if (currency !== "RSD") {
-      throw DomainErrors.badRequest(
-        "IPS QR: podržana je samo valuta RSD (dinar).",
-      );
+      throw DomainErrors.badRequest("IPS QR: podržana je samo valuta RSD (dinar).");
     }
     const account = normalizeAccount(input.receiverAccount);
     const receiver = sanitize(input.receiverName, MAX_NAME);
@@ -85,12 +81,8 @@ export class SerbianIpsQrProvider implements IpsQrProvider {
     }
     const amount = formatAmount(input.amount);
     const payer = input.payerName ? sanitize(input.payerName, MAX_NAME) : "";
-    const description = input.description
-      ? sanitize(input.description, MAX_DESC)
-      : "";
-    const reference = input.paymentReference
-      ? sanitize(input.paymentReference, MAX_REF)
-      : "";
+    const description = input.description ? sanitize(input.description, MAX_DESC) : "";
+    const reference = input.paymentReference ? sanitize(input.paymentReference, MAX_REF) : "";
     const purpose = (input.purposeCode ?? "289").replace(/[^0-9]/g, "").slice(0, 3);
 
     // Ordered per NBS spec.

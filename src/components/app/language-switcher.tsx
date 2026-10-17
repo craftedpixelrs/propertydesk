@@ -12,9 +12,11 @@ const LOCALE_SHORT: Record<Locale, string> = {
 export function LanguageSwitcher({
   className,
   compact = false,
+  tone = "app",
 }: {
   className?: string;
   compact?: boolean;
+  tone?: "app" | "marketing";
 }) {
   const { locale, setLocale, t } = useI18n();
 
@@ -29,7 +31,12 @@ export function LanguageSwitcher({
       <div
         role="group"
         aria-label={t("language.label")}
-        className="inline-flex items-center rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] p-0.5"
+        className={cn(
+          "inline-flex items-center p-0.5",
+          tone === "marketing"
+            ? "rounded-full bg-transparent"
+            : "rounded-md border border-[var(--color-border)] bg-[var(--color-surface)]",
+        )}
       >
         {SUPPORTED_LOCALES.map((code) => {
           const active = locale === code;
@@ -43,10 +50,15 @@ export function LanguageSwitcher({
                 if (!active) void setLocale(code);
               }}
               className={cn(
-                "inline-flex h-8 min-w-9 items-center justify-center rounded px-2 text-xs font-semibold tracking-wide",
+                "inline-flex h-8 min-w-9 items-center justify-center px-2 text-xs font-semibold tracking-wide",
+                tone === "marketing" ? "rounded-full" : "rounded",
                 active
-                  ? "bg-[var(--color-surface-inset)] text-[var(--color-foreground)]"
-                  : "text-[var(--color-foreground-muted)] hover:text-[var(--color-foreground)]",
+                  ? tone === "marketing"
+                    ? "bg-[#f7f3ea] text-[#0b1020]"
+                    : "bg-[var(--color-surface-inset)] text-[var(--color-foreground)]"
+                  : tone === "marketing"
+                    ? "text-[#f7f3ea]/55 hover:text-[#f7f3ea]"
+                    : "text-[var(--color-foreground-muted)] hover:text-[var(--color-foreground)]",
               )}
             >
               {LOCALE_SHORT[code]}

@@ -33,11 +33,7 @@ export function Providers({
             retry: (failureCount, error) => {
               if (error instanceof ApiClientError) {
                 // Don't retry auth or client errors.
-                if (
-                  error.statusCode >= 400 &&
-                  error.statusCode < 500 &&
-                  error.statusCode !== 429
-                ) {
+                if (error.statusCode >= 400 && error.statusCode < 500 && error.statusCode !== 429) {
                   return false;
                 }
               }

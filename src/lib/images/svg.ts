@@ -5,9 +5,7 @@ const EVENT_ATTR_RE = /\son[a-z]+\s*=\s*("[^"]*"|'[^']*'|[^\s>]+)/gi;
 export function isSvgFile(fileName: string, mimeType: string): boolean {
   const mime = mimeType.toLowerCase();
   return (
-    mime === "image/svg+xml" ||
-    mime === "image/svg" ||
-    fileName.toLowerCase().endsWith(".svg")
+    mime === "image/svg+xml" || mime === "image/svg" || fileName.toLowerCase().endsWith(".svg")
   );
 }
 

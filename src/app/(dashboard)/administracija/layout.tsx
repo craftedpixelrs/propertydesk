@@ -21,20 +21,14 @@ import { resolveRequestLocale } from "@/lib/i18n/resolve-locale";
  *
  * Everyone else is bounced back to `/dashboard`.
  */
-export default async function PlatformAdminLayout({
-  children,
-}: {
-  children: ReactNode;
-}) {
+export default async function PlatformAdminLayout({ children }: { children: ReactNode }) {
   const session = await getSession();
   if (!session) redirect("/sign-in");
 
   const superAdmin = isSuperAdmin(session);
   let pdTeamMember = null;
   if (!superAdmin) {
-    pdTeamMember = await getPropertyDeskTeamMember(session.user.id).catch(
-      () => null,
-    );
+    pdTeamMember = await getPropertyDeskTeamMember(session.user.id).catch(() => null);
     if (!pdTeamMember || !pdTeamMember.enabled) {
       redirect("/dashboard");
     }
@@ -47,9 +41,7 @@ export default async function PlatformAdminLayout({
     <div className="space-y-6">
       <PageHeader
         title={superAdmin ? t("admin.title") : t("admin.titlePd")}
-        description={
-          superAdmin ? t("admin.description") : t("admin.descriptionPd")
-        }
+        description={superAdmin ? t("admin.description") : t("admin.descriptionPd")}
       />
       {canSeePlatformSections ? (
         <nav

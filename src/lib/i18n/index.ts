@@ -62,10 +62,7 @@ function lookup(dict: Dictionary, key: string): string | undefined {
   return typeof node === "string" ? node : undefined;
 }
 
-export type TranslateFn = (
-  key: TranslationKey,
-  vars?: Record<string, string | number>,
-) => string;
+export type TranslateFn = (key: TranslationKey, vars?: Record<string, string | number>) => string;
 
 export function createT(locale: Locale): TranslateFn {
   return (key, vars) => t(key, vars, locale);
@@ -128,9 +125,8 @@ export function localeFromRequest(req: {
 }
 
 function lookupLabel(key: TranslationKey, localeOrT: Locale | TranslateFn): string {
-  const out =
-    typeof localeOrT === "function" ? localeOrT(key) : t(key, undefined, localeOrT);
-  return out === key ? key.split(".").pop() ?? key : out;
+  const out = typeof localeOrT === "function" ? localeOrT(key) : t(key, undefined, localeOrT);
+  return out === key ? (key.split(".").pop() ?? key) : out;
 }
 
 export function unitStatusLabel(
@@ -160,7 +156,6 @@ export function enumLabel(
   localeOrT: Locale | TranslateFn = DEFAULT_LOCALE,
 ): string {
   const key = `enums.${group}.${value}` as TranslationKey;
-  const out =
-    typeof localeOrT === "function" ? localeOrT(key) : t(key, undefined, localeOrT);
+  const out = typeof localeOrT === "function" ? localeOrT(key) : t(key, undefined, localeOrT);
   return out === key ? value : out;
 }

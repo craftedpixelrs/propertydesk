@@ -163,7 +163,8 @@ export async function autoMatchPendingBankTransactions(
         const reasons: string[] = [];
         let score = 0;
 
-        const memo = `${tx.reference ?? ""} ${tx.counterpartyRef ?? ""} ${tx.narrative ?? ""}`.toLowerCase();
+        const memo =
+          `${tx.reference ?? ""} ${tx.counterpartyRef ?? ""} ${tx.narrative ?? ""}`.toLowerCase();
 
         // 1) exact reference match
         if (inv.invoiceNumber && memo.includes(inv.invoiceNumber.toLowerCase())) {
@@ -186,17 +187,15 @@ export async function autoMatchPendingBankTransactions(
         }
 
         // 3) counterparty name fuzzy match against org name / legal name
-        const nameCandidates = [
-          inv.organization?.name,
-          inv.organization?.profile?.legalName,
-        ]
+        const nameCandidates = [inv.organization?.name, inv.organization?.profile?.legalName]
           .filter(Boolean)
           .map((s) => (s as string).toLowerCase());
         if (
           tx.counterpartyName &&
-          nameCandidates.some((n) =>
-            n.includes(tx.counterpartyName!.toLowerCase()) ||
-            tx.counterpartyName!.toLowerCase().includes(n),
+          nameCandidates.some(
+            (n) =>
+              n.includes(tx.counterpartyName!.toLowerCase()) ||
+              tx.counterpartyName!.toLowerCase().includes(n),
           )
         ) {
           score += 15;
@@ -206,8 +205,7 @@ export async function autoMatchPendingBankTransactions(
         // 4) date proximity to due date
         if (inv.dueDate) {
           const days = Math.abs(
-            (tx.transactionDate.getTime() - inv.dueDate.getTime()) /
-              (24 * 60 * 60 * 1000),
+            (tx.transactionDate.getTime() - inv.dueDate.getTime()) / (24 * 60 * 60 * 1000),
           );
           if (days <= 3) {
             score += 10;

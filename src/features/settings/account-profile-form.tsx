@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
@@ -21,12 +21,14 @@ export function AccountProfileForm({
   emailVerified,
   impersonating,
   emailJustChanged,
+  security,
 }: {
   name: string;
   email: string;
   emailVerified: boolean;
   impersonating: boolean;
   emailJustChanged?: boolean;
+  security?: ReactNode;
 }) {
   const t = useT();
   const router = useRouter();
@@ -90,9 +92,7 @@ export function AccountProfileForm({
 
   return (
     <div className="space-y-4">
-      <p className="text-sm text-[var(--color-foreground-muted)]">
-        {t("ops.account.subtitle")}
-      </p>
+      <p className="text-sm text-[var(--color-foreground-muted)]">{t("ops.account.subtitle")}</p>
       {impersonating ? (
         <Alert tone="warning">
           <AlertDescription>{t("ops.account.impersonationBlocked")}</AlertDescription>
@@ -105,9 +105,7 @@ export function AccountProfileForm({
       ) : null}
       {emailPending ? (
         <Alert tone="info">
-          <AlertDescription>
-            {t("ops.account.emailPending", { email })}
-          </AlertDescription>
+          <AlertDescription>{t("ops.account.emailPending", { email })}</AlertDescription>
         </Alert>
       ) : null}
 
@@ -178,15 +176,15 @@ export function AccountProfileForm({
         </CardContent>
       </Card>
 
+      {security}
+
       <Card>
         <CardHeader>
           <CardTitle className="text-base">{t("ops.account.passwordTitle")}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
           <div className="space-y-1.5">
-            <Label htmlFor="account-current-password">
-              {t("ops.account.currentPassword")}
-            </Label>
+            <Label htmlFor="account-current-password">{t("ops.account.currentPassword")}</Label>
             <Input
               id="account-current-password"
               type="password"
@@ -208,9 +206,7 @@ export function AccountProfileForm({
             />
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="account-confirm-password">
-              {t("ops.account.confirmNewPassword")}
-            </Label>
+            <Label htmlFor="account-confirm-password">{t("ops.account.confirmNewPassword")}</Label>
             <Input
               id="account-confirm-password"
               type="password"

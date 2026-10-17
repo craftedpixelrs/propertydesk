@@ -18,15 +18,10 @@ export const dynamic = "force-dynamic";
  * page can render a realistic subject without hitting the network per row.
  */
 const SUBJECT_VAR_RE = /\{\{\s*([a-zA-Z][a-zA-Z0-9_]*)\s*\}\}/g;
-function previewSubject(
-  raw: string,
-  variables: Record<string, string> | undefined,
-): string {
+function previewSubject(raw: string, variables: Record<string, string> | undefined): string {
   if (!variables) return raw;
   return raw.replace(SUBJECT_VAR_RE, (_, name: string) =>
-    Object.prototype.hasOwnProperty.call(variables, name)
-      ? (variables[name] ?? "")
-      : `{{${name}}}`,
+    Object.prototype.hasOwnProperty.call(variables, name) ? (variables[name] ?? "") : `{{${name}}}`,
   );
 }
 
@@ -109,21 +104,15 @@ export default async function BillingTemplatesPage() {
 
             <div className="grid gap-3 md:grid-cols-2">
               {rows.map((tpl) => {
-                const sample =
-                  SAMPLE_VARIABLES[tpl.key as keyof typeof SAMPLE_VARIABLES];
+                const sample = SAMPLE_VARIABLES[tpl.key as keyof typeof SAMPLE_VARIABLES];
                 const subjectPreview = previewSubject(tpl.subject, sample);
                 return (
-                  <Card
-                    key={tpl.id}
-                    className="transition hover:border-[var(--color-brand-700)]"
-                  >
+                  <Card key={tpl.id} className="transition hover:border-[var(--color-brand-700)]">
                     <CardContent className="space-y-3 p-4">
                       <div className="flex items-start justify-between gap-2">
                         <div className="min-w-0">
                           <div className="flex items-center gap-2">
-                            <Badge tone={groupBadgeTone(group.id)}>
-                              {t(group.labelKey)}
-                            </Badge>
+                            <Badge tone={groupBadgeTone(group.id)}>{t(group.labelKey)}</Badge>
                             <Badge tone={tpl.active ? "success" : "neutral"}>
                               {tpl.active ? t("admin.activeInTeam") : t("admin.inactive")}
                             </Badge>
@@ -144,7 +133,7 @@ export default async function BillingTemplatesPage() {
                       ) : null}
 
                       <div className="rounded-md border border-[var(--color-border)] bg-[var(--color-surface-muted)] px-3 py-2">
-                        <div className="text-[10px] uppercase tracking-wide text-[var(--color-foreground-subtle)]">
+                        <div className="text-[10px] tracking-wide text-[var(--color-foreground-subtle)] uppercase">
                           {t("admin.templates.inboxSubject")}
                         </div>
                         <div className="mt-0.5 truncate text-sm text-[var(--color-foreground)]">

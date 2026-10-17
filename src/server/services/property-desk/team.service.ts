@@ -72,10 +72,7 @@ export async function addTeamMember(
     where: { userId: input.userId },
   });
   if (existing) {
-    throw new DomainError(
-      "CONFLICT",
-      "Korisnik je već član Property Desk tima.",
-    );
+    throw new DomainError("CONFLICT", "Korisnik je već član Property Desk tima.");
   }
 
   const member = await prisma.propertyDeskTeamMember.create({
@@ -159,10 +156,7 @@ export async function updateTeamMember(
   return member;
 }
 
-export async function removeTeamMember(
-  id: string,
-  actorUserId: string,
-): Promise<void> {
+export async function removeTeamMember(id: string, actorUserId: string): Promise<void> {
   const existing = await prisma.propertyDeskTeamMember.findUnique({
     where: { id },
   });

@@ -48,9 +48,7 @@ export async function listBankAccounts(activeOnly = true): Promise<BillingBankAc
   });
 }
 
-export async function getDefaultBankAccount(
-  currency: string,
-): Promise<BillingBankAccount | null> {
+export async function getDefaultBankAccount(currency: string): Promise<BillingBankAccount | null> {
   return prisma.billingBankAccount.findFirst({
     where: { currency, isDefault: true, isActive: true },
   });

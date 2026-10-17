@@ -3,10 +3,7 @@ import { z } from "zod";
 import { apiHandler } from "@/lib/api/handler";
 import { ApiError } from "@/lib/api/errors";
 import { requirePermission } from "@/server/permissions/require";
-import {
-  createComment,
-  listComments,
-} from "@/server/services/comments/comments.service";
+import { createComment, listComments } from "@/server/services/comments/comments.service";
 import type { PermissionString } from "@/server/permissions/access-control";
 
 const entityTypeSchema = z.enum(["Buyer", "Sale"]);
@@ -41,21 +38,18 @@ const createSchema = z.object({
   parentId: z.string().min(1).max(64).optional().nullable(),
 });
 
-export const POST = apiHandler(
-  { bodySchema: createSchema },
-  async ({ body }) => {
-    const ctx = await requirePermission(permissionForEntity(body.entityType));
-    const created = await createComment({
-      organizationId: ctx.organization.organizationId,
-      actorUserId: ctx.session.user.id,
-      entityType: body.entityType,
-      entityId: body.entityId,
-      body: body.body,
-      parentId: body.parentId ?? null,
-    });
-    return { data: created, status: 201 };
-  },
-);
+export const POST = apiHandler({ bodySchema: createSchema }, async ({ body }) => {
+  const ctx = await requirePermission(permissionForEntity(body.entityType));
+  const created = await createComment({
+    organizationId: ctx.organization.organizationId,
+    actorUserId: ctx.session.user.id,
+    entityType: body.entityType,
+    entityId: body.entityId,
+    body: body.body,
+    parentId: body.parentId ?? null,
+  });
+  return { data: created, status: 201 };
+});
 
 /**
  * @swagger

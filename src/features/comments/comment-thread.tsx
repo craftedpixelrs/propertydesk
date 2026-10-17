@@ -51,9 +51,7 @@ export function CommentThread({ entityType, entityId, currentUserId }: Props) {
         setError(null);
       } catch (err) {
         if (!alive) return;
-        setError(
-          err instanceof ApiClientError ? err.message : t("crm.comments.loadError"),
-        );
+        setError(err instanceof ApiClientError ? err.message : t("crm.comments.loadError"));
       } finally {
         if (alive) setLoading(false);
       }
@@ -93,9 +91,7 @@ export function CommentThread({ entityType, entityId, currentUserId }: Props) {
       await apiClient.delete<{ ok: boolean }>(`/comments/${id}`);
       setItems((prev) => prev.filter((c) => c.id !== id));
     } catch (err) {
-      setError(
-        err instanceof ApiClientError ? err.message : t("crm.comments.deleteError"),
-      );
+      setError(err instanceof ApiClientError ? err.message : t("crm.comments.deleteError"));
     }
   }
 
@@ -107,13 +103,9 @@ export function CommentThread({ entityType, entityId, currentUserId }: Props) {
         </div>
       ) : null}
       {loading ? (
-        <p className="text-sm text-[var(--color-foreground-muted)]">
-          {t("common.loading")}
-        </p>
+        <p className="text-sm text-[var(--color-foreground-muted)]">{t("common.loading")}</p>
       ) : items.length === 0 ? (
-        <p className="text-sm text-[var(--color-foreground-muted)]">
-          {t("crm.comments.empty")}
-        </p>
+        <p className="text-sm text-[var(--color-foreground-muted)]">{t("crm.comments.empty")}</p>
       ) : (
         <ul className="space-y-3">
           {items.map((c) => (
@@ -123,10 +115,8 @@ export function CommentThread({ entityType, entityId, currentUserId }: Props) {
             >
               <div className="flex items-center justify-between text-xs text-[var(--color-foreground-muted)]">
                 <span>
-                  <strong className="text-[var(--color-foreground)]">
-                    {c.author.name}
-                  </strong>{" "}
-                  · {formatDateTime(c.createdAt)}
+                  <strong className="text-[var(--color-foreground)]">{c.author.name}</strong> ·{" "}
+                  {formatDateTime(c.createdAt)}
                 </span>
                 {c.author.id === currentUserId ? (
                   <button
@@ -138,7 +128,7 @@ export function CommentThread({ entityType, entityId, currentUserId }: Props) {
                   </button>
                 ) : null}
               </div>
-              <div className="mt-1 whitespace-pre-wrap break-words">
+              <div className="mt-1 break-words whitespace-pre-wrap">
                 <RenderedBody body={c.body} />
               </div>
             </li>
@@ -170,9 +160,7 @@ function RenderedBody({ body }: { body: string }) {
   );
 }
 
-type BodyPart =
-  | { kind: "text"; text: string }
-  | { kind: "mention"; name: string; userId: string };
+type BodyPart = { kind: "text"; text: string } | { kind: "mention"; name: string; userId: string };
 
 function splitMentions(body: string): BodyPart[] {
   const parts: BodyPart[] = [];
@@ -211,11 +199,7 @@ function ComposeForm({ mentionables, onSubmit }: ComposeProps) {
     if (!suggest?.open) return [];
     const q = suggest.query.toLowerCase();
     return mentionables
-      .filter(
-        (m) =>
-          m.name.toLowerCase().includes(q) ||
-          m.email.toLowerCase().includes(q),
-      )
+      .filter((m) => m.name.toLowerCase().includes(q) || m.email.toLowerCase().includes(q))
       .slice(0, 8);
   }, [mentionables, suggest]);
 
@@ -265,9 +249,7 @@ function ComposeForm({ mentionables, onSubmit }: ComposeProps) {
       setValue("");
       setSuggest(null);
     } catch (err) {
-      setError(
-        err instanceof ApiClientError ? err.message : t("crm.comments.sendError"),
-      );
+      setError(err instanceof ApiClientError ? err.message : t("crm.comments.sendError"));
     } finally {
       setBusy(false);
     }
@@ -290,7 +272,7 @@ function ComposeForm({ mentionables, onSubmit }: ComposeProps) {
           className="w-full rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] p-2 text-sm text-[var(--color-foreground)] outline-none focus:border-[var(--color-brand-500)]"
         />
         {suggest?.open && filtered.length > 0 ? (
-          <div className="absolute left-2 top-full z-20 mt-1 w-64 overflow-hidden rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] shadow-lg">
+          <div className="absolute top-full left-2 z-20 mt-1 w-64 overflow-hidden rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] shadow-lg">
             {filtered.map((m) => (
               <button
                 key={m.id}
@@ -302,21 +284,14 @@ function ComposeForm({ mentionables, onSubmit }: ComposeProps) {
                 className="flex w-full flex-col items-start px-3 py-1.5 text-left text-sm hover:bg-[var(--color-brand-50)]"
               >
                 <span className="font-medium">{m.name}</span>
-                <span className="text-xs text-[var(--color-foreground-muted)]">
-                  {m.email}
-                </span>
+                <span className="text-xs text-[var(--color-foreground-muted)]">{m.email}</span>
               </button>
             ))}
           </div>
         ) : null}
       </div>
       <div className="flex justify-end">
-        <Button
-          type="button"
-          size="sm"
-          onClick={submit}
-          disabled={busy || !value.trim()}
-        >
+        <Button type="button" size="sm" onClick={submit} disabled={busy || !value.trim()}>
           {busy ? t("crm.comments.sending") : t("crm.comments.send")}
         </Button>
       </div>

@@ -114,10 +114,8 @@ export function PublicReservationForm(props: {
         </h2>
         <p className="mt-1 text-sm text-[var(--color-brand-800)]">
           {t("deals.public.submittedLead")}{" "}
-          <code className="rounded bg-white px-1.5 py-0.5">
-            {result.ipsReference}
-          </code>
-          . {t("deals.public.submittedTail")}
+          <code className="rounded bg-white px-1.5 py-0.5">{result.ipsReference}</code>.{" "}
+          {t("deals.public.submittedTail")}
         </p>
         {result.payment ? (
           <dl className="mt-3 space-y-1 rounded-md border border-[var(--color-brand-200)] bg-white p-3 text-sm text-[var(--color-brand-800)]">
@@ -126,8 +124,8 @@ export function PublicReservationForm(props: {
                 {t("deals.public.payee")}
               </dt>
               <dd>
-                {result.payment.recipientName}{" "}
-                ({result.payment.kind === "agency"
+                {result.payment.recipientName} (
+                {result.payment.kind === "agency"
                   ? t("deals.public.payeeAgency")
                   : t("deals.public.payeeInvestor")}
                 )
@@ -291,9 +289,7 @@ export function PublicReservationForm(props: {
           />
           <span>{t("deals.public.consent", { org: props.organizationName })}</span>
         </label>
-        {error ? (
-          <p className="text-xs text-red-700 sm:col-span-2">{error}</p>
-        ) : null}
+        {error ? <p className="text-xs text-red-700 sm:col-span-2">{error}</p> : null}
         <div className="sm:col-span-2">
           <Button type="submit" loading={busy}>
             {t("deals.public.submit")}

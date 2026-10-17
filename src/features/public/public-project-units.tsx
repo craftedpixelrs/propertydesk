@@ -33,8 +33,7 @@ export interface PublicCatalogUnit {
   shareToken: string | null;
 }
 
-const fieldClass =
-  "h-10 w-full rounded-md border border-neutral-200 bg-white px-3 text-sm";
+const fieldClass = "h-10 w-full rounded-md border border-neutral-200 bg-white px-3 text-sm";
 
 export function PublicProjectUnitsCatalog({
   units,
@@ -47,10 +46,7 @@ export function PublicProjectUnitsCatalog({
   const [filters, setFilters] = useState<CatalogFilters>(EMPTY_CATALOG_FILTERS);
   const [page, setPage] = useState(1);
 
-  const types = useMemo(
-    () => Array.from(new Set(units.map((u) => u.type))).sort(),
-    [units],
-  );
+  const types = useMemo(() => Array.from(new Set(units.map((u) => u.type))).sort(), [units]);
   const orientations = useMemo(
     () =>
       Array.from(
@@ -59,10 +55,7 @@ export function PublicProjectUnitsCatalog({
     [units],
   );
 
-  const filtered = useMemo(
-    () => filterCatalogUnits(units, filters),
-    [units, filters],
-  );
+  const filtered = useMemo(() => filterCatalogUnits(units, filters), [units, filters]);
   const paged = useMemo(
     () => paginateCatalog(filtered, page, PUBLIC_CATALOG_PAGE_SIZE),
     [filtered, page],
@@ -210,9 +203,7 @@ export function PublicProjectUnitsCatalog({
 
       {paged.total === 0 ? (
         <div className="rounded-lg border border-neutral-200 bg-white p-10 text-center text-neutral-500">
-          {units.length === 0
-            ? t("marketing.public.noUnits")
-            : t("marketing.public.filterEmpty")}
+          {units.length === 0 ? t("marketing.public.noUnits") : t("marketing.public.filterEmpty")}
         </div>
       ) : (
         <>
@@ -240,7 +231,7 @@ export function PublicProjectUnitsCatalog({
                       {t("marketing.public.noImage")}
                     </div>
                   )}
-                  <span className="absolute right-2 top-2 rounded-full bg-white/90 px-2 py-0.5 text-xs font-medium text-neutral-700 backdrop-blur">
+                  <span className="absolute top-2 right-2 rounded-full bg-white/90 px-2 py-0.5 text-xs font-medium text-neutral-700 backdrop-blur">
                     {unitStatusLabel(u.status, locale)}
                   </span>
                 </div>

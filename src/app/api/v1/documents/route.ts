@@ -20,12 +20,7 @@ const CATEGORIES = [
   "KYC",
   "OTHER",
 ] as const;
-const VISIBILITIES = [
-  "INTERNAL",
-  "INVESTOR_TEAM",
-  "AGENCY_SHARED",
-  "BUYER_SHARED",
-] as const;
+const VISIBILITIES = ["INTERNAL", "INVESTOR_TEAM", "AGENCY_SHARED", "BUYER_SHARED"] as const;
 
 export const GET = apiHandler({}, async ({ query, searchParams }) => {
   const ctx = await requirePermission("document.read");
@@ -35,14 +30,15 @@ export const GET = apiHandler({}, async ({ query, searchParams }) => {
     throw DomainErrors.badRequest("entityType i entityId su obavezni.");
   }
   const categoryRaw = searchParams.get("category");
-  const category = categoryRaw && (CATEGORIES as readonly string[]).includes(categoryRaw)
-    ? (categoryRaw as DocumentCategory)
-    : undefined;
+  const category =
+    categoryRaw && (CATEGORIES as readonly string[]).includes(categoryRaw)
+      ? (categoryRaw as DocumentCategory)
+      : undefined;
   // `excludeImages=1` mirrors PhotoGallery's imagesOnly flag from the
   // other direction. Used by the sale detail page to render only
   // Unit-attached non-image documents (photos live in the gallery).
-  const excludeImages = searchParams.get("excludeImages") === "1"
-    || searchParams.get("excludeImages") === "true";
+  const excludeImages =
+    searchParams.get("excludeImages") === "1" || searchParams.get("excludeImages") === "true";
   const { items, total } = await listDocuments({
     organizationId: ctx.organization.organizationId,
     entityType,

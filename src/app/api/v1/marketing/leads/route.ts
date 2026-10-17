@@ -5,10 +5,7 @@ import { ApiError } from "@/lib/api/errors";
 import { prisma } from "@/server/db/prisma";
 import { enforceRateLimit } from "@/server/rate-limit/enforce";
 import { computeLeadScore } from "@/server/services/property-desk/lead-scoring";
-import {
-  LOOPS_USER_GROUPS,
-  upsertLoopsContact,
-} from "@/server/services/marketing/loops";
+import { LOOPS_USER_GROUPS, upsertLoopsContact } from "@/server/services/marketing/loops";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -36,16 +33,8 @@ const PROJECT_COUNTS = ["ZERO", "ONE_TWO", "THREE_FIVE", "SIX_TEN", "TEN_PLUS"] 
 const PHONE_REGEX = /^[+\d][\d\s\-()]{5,30}$/;
 
 const bodySchema = z.object({
-  firstName: z
-    .string()
-    .trim()
-    .min(2, "Ime je obavezno.")
-    .max(80, "Ime je predugačko."),
-  lastName: z
-    .string()
-    .trim()
-    .min(2, "Prezime je obavezno.")
-    .max(80, "Prezime je predugačko."),
+  firstName: z.string().trim().min(2, "Ime je obavezno.").max(80, "Ime je predugačko."),
+  lastName: z.string().trim().min(2, "Prezime je obavezno.").max(80, "Prezime je predugačko."),
   email: z
     .string()
     .trim()
@@ -79,11 +68,9 @@ const bodySchema = z.object({
     .max(2000, "Poruka je predugačka.")
     .optional()
     .or(z.literal("").transform(() => undefined)),
-  consent: z
-    .boolean()
-    .refine((v) => v === true, {
-      message: "Saglasnost sa obradom podataka je obavezna.",
-    }),
+  consent: z.boolean().refine((v) => v === true, {
+    message: "Saglasnost sa obradom podataka je obavezna.",
+  }),
   utmSource: z.string().trim().max(80).optional(),
   utmMedium: z.string().trim().max(80).optional(),
   utmCampaign: z.string().trim().max(80).optional(),
@@ -97,9 +84,7 @@ const bodySchema = z.object({
     .optional()
     .or(z.literal("").transform(() => undefined)),
   budgetTier: z.enum(["STARTER", "GROWTH", "ENTERPRISE", "UNKNOWN"]).optional(),
-  timelineHorizon: z
-    .enum(["WITHIN_30D", "WITHIN_90D", "LATER", "UNDECIDED"])
-    .optional(),
+  timelineHorizon: z.enum(["WITHIN_30D", "WITHIN_90D", "LATER", "UNDECIDED"]).optional(),
   // Honeypot — bots fill this, humans never see it. Must be empty.
   website: z
     .string()
@@ -134,173 +119,167 @@ const AUDIENCE_LABELS: Record<(typeof AUDIENCES)[number], string> = {
   AGENCY: "Agencija za nekretnine",
 };
 
-export const POST = apiHandler<LeadBody>(
-  { bodySchema },
-  async ({ req, body }) => {
-    enforceRateLimit({
-      req,
-      scope: "marketing.leads",
-      options: { windowMs: 60_000, max: 5 },
+export const POST = apiHandler<LeadBody>({ bodySchema }, async ({ req, body }) => {
+  enforceRateLimit({
+    req,
+    scope: "marketing.leads",
+    options: { windowMs: 60_000, max: 5 },
+  });
+
+  // Silently succeed on honeypot hits — we don't want the bot to know
+  // it was caught. Do NOT contact Loops or persist anything.
+  if (body.website && body.website.length > 0) {
+    return { data: { ok: true }, status: 202 };
+  }
+
+  // 1) Persist to our own marketing_lead pipeline. This is the primary
+  // source of truth for the Property Desk operational team; the Loops
+  // sync (below) is a secondary, marketing-automation destination.
+  //
+  // Upsert by email — a returning visitor should update UTM/note without
+  // losing the existing pipeline stage or assignee.
+  const emailNormalized = body.email.trim().toLowerCase();
+  const projectCountBucket = body.projectCount
+    ? PROJECT_COUNT_TO_INT[body.projectCount]
+    : undefined;
+  try {
+    const before = await prisma.marketingLead.findUnique({
+      where: { email: emailNormalized },
+      select: {
+        id: true,
+        stage: true,
+        companyName: true,
+        companyWebsite: true,
+        companySize: true,
+        budgetTier: true,
+        timelineHorizon: true,
+        decisionMakerName: true,
+        decisionMakerTitle: true,
+        temperature: true,
+      },
     });
-
-    // Silently succeed on honeypot hits — we don't want the bot to know
-    // it was caught. Do NOT contact Loops or persist anything.
-    if (body.website && body.website.length > 0) {
-      return { data: { ok: true }, status: 202 };
-    }
-
-    // 1) Persist to our own marketing_lead pipeline. This is the primary
-    // source of truth for the Property Desk operational team; the Loops
-    // sync (below) is a secondary, marketing-automation destination.
-    //
-    // Upsert by email — a returning visitor should update UTM/note without
-    // losing the existing pipeline stage or assignee.
-    const emailNormalized = body.email.trim().toLowerCase();
-    const projectCountBucket = body.projectCount
-      ? PROJECT_COUNT_TO_INT[body.projectCount]
-      : undefined;
-    try {
-      const before = await prisma.marketingLead.findUnique({
-        where: { email: emailNormalized },
-        select: {
-          id: true,
-          stage: true,
-          companyName: true,
-          companyWebsite: true,
-          companySize: true,
-          budgetTier: true,
-          timelineHorizon: true,
-          decisionMakerName: true,
-          decisionMakerTitle: true,
-          temperature: true,
-        },
-      });
-      const leadScore = computeLeadScore({
-        stage: before?.stage ?? "NEW",
-        companyName: body.companyName ?? before?.companyName ?? null,
-        companyWebsite: body.companyWebsite ?? before?.companyWebsite ?? null,
-        companySize: before?.companySize ?? null,
-        budgetTier: body.budgetTier ?? before?.budgetTier ?? "UNKNOWN",
-        timelineHorizon:
-          body.timelineHorizon ?? before?.timelineHorizon ?? "UNDECIDED",
-        decisionMakerName: before?.decisionMakerName ?? null,
-        decisionMakerTitle: before?.decisionMakerTitle ?? null,
-        temperature: before?.temperature ?? "COLD",
-      });
-      const lead = await prisma.marketingLead.upsert({
-        where: { email: emailNormalized },
-        create: {
-          email: emailNormalized,
-          firstName: body.firstName,
-          lastName: body.lastName,
-          phone: body.phone,
+    const leadScore = computeLeadScore({
+      stage: before?.stage ?? "NEW",
+      companyName: body.companyName ?? before?.companyName ?? null,
+      companyWebsite: body.companyWebsite ?? before?.companyWebsite ?? null,
+      companySize: before?.companySize ?? null,
+      budgetTier: body.budgetTier ?? before?.budgetTier ?? "UNKNOWN",
+      timelineHorizon: body.timelineHorizon ?? before?.timelineHorizon ?? "UNDECIDED",
+      decisionMakerName: before?.decisionMakerName ?? null,
+      decisionMakerTitle: before?.decisionMakerTitle ?? null,
+      temperature: before?.temperature ?? "COLD",
+    });
+    const lead = await prisma.marketingLead.upsert({
+      where: { email: emailNormalized },
+      create: {
+        email: emailNormalized,
+        firstName: body.firstName,
+        lastName: body.lastName,
+        phone: body.phone,
+        audience: body.audience,
+        city: body.city ?? null,
+        projectCount: projectCountBucket ?? null,
+        note: body.note ?? null,
+        source: "landing",
+        utmSource: body.utmSource ?? null,
+        utmMedium: body.utmMedium ?? null,
+        utmCampaign: body.utmCampaign ?? null,
+        consent: true,
+        stage: "NEW",
+        level: "SOURCING",
+        companyName: body.companyName ?? null,
+        companyWebsite: body.companyWebsite ?? null,
+        budgetTier: body.budgetTier ?? "UNKNOWN",
+        timelineHorizon: body.timelineHorizon ?? "UNDECIDED",
+        leadScore,
+      },
+      update: {
+        firstName: body.firstName,
+        lastName: body.lastName,
+        phone: body.phone,
+        audience: body.audience,
+        city: body.city ?? undefined,
+        projectCount: projectCountBucket ?? undefined,
+        note: body.note ?? undefined,
+        utmSource: body.utmSource ?? undefined,
+        utmMedium: body.utmMedium ?? undefined,
+        utmCampaign: body.utmCampaign ?? undefined,
+        consent: true,
+        companyName: body.companyName ?? undefined,
+        companyWebsite: body.companyWebsite ?? undefined,
+        budgetTier: body.budgetTier ?? undefined,
+        timelineHorizon: body.timelineHorizon ?? undefined,
+        leadScore,
+      },
+    });
+    // Emit a SYSTEM activity row so the Property Desk timeline shows the
+    // arrival (and any subsequent re-submission) with UTM + referrer.
+    await prisma.marketingLeadActivity.create({
+      data: {
+        leadId: lead.id,
+        kind: "SYSTEM",
+        title: before
+          ? "Lead ponovo pristigao sa landing forme"
+          : "Lead pristigao sa landing forme",
+        body: body.note ?? null,
+        metadata: {
           audience: body.audience,
           city: body.city ?? null,
-          projectCount: projectCountBucket ?? null,
-          note: body.note ?? null,
-          source: "landing",
+          projectCount: body.projectCount ?? null,
           utmSource: body.utmSource ?? null,
           utmMedium: body.utmMedium ?? null,
           utmCampaign: body.utmCampaign ?? null,
-          consent: true,
-          stage: "NEW",
-          level: "SOURCING",
-          companyName: body.companyName ?? null,
-          companyWebsite: body.companyWebsite ?? null,
-          budgetTier: body.budgetTier ?? "UNKNOWN",
-          timelineHorizon: body.timelineHorizon ?? "UNDECIDED",
-          leadScore,
+          referrer: body.referrer ?? null,
         },
-        update: {
-          firstName: body.firstName,
-          lastName: body.lastName,
-          phone: body.phone,
-          audience: body.audience,
-          city: body.city ?? undefined,
-          projectCount: projectCountBucket ?? undefined,
-          note: body.note ?? undefined,
-          utmSource: body.utmSource ?? undefined,
-          utmMedium: body.utmMedium ?? undefined,
-          utmCampaign: body.utmCampaign ?? undefined,
-          consent: true,
-          companyName: body.companyName ?? undefined,
-          companyWebsite: body.companyWebsite ?? undefined,
-          budgetTier: body.budgetTier ?? undefined,
-          timelineHorizon: body.timelineHorizon ?? undefined,
-          leadScore,
-        },
-      });
-      // Emit a SYSTEM activity row so the Property Desk timeline shows the
-      // arrival (and any subsequent re-submission) with UTM + referrer.
-      await prisma.marketingLeadActivity.create({
-        data: {
-          leadId: lead.id,
-          kind: "SYSTEM",
-          title: before
-            ? "Lead ponovo pristigao sa landing forme"
-            : "Lead pristigao sa landing forme",
-          body: body.note ?? null,
-          metadata: {
-            audience: body.audience,
-            city: body.city ?? null,
-            projectCount: body.projectCount ?? null,
-            utmSource: body.utmSource ?? null,
-            utmMedium: body.utmMedium ?? null,
-            utmCampaign: body.utmCampaign ?? null,
-            referrer: body.referrer ?? null,
-          },
-        },
-      });
-    } catch (err) {
-      // Lead capture is critical — do not silently swallow. Log and 500.
-      console.error("[marketing.leads] DB upsert failed:", err);
-      throw new ApiError("INTERNAL_ERROR", "Prijava trenutno nije uspela.", {
-        statusCode: 500,
-        cause: err,
-      });
-    }
+      },
+    });
+  } catch (err) {
+    // Lead capture is critical — do not silently swallow. Log and 500.
+    console.error("[marketing.leads] DB upsert failed:", err);
+    throw new ApiError("INTERNAL_ERROR", "Prijava trenutno nije uspela.", {
+      statusCode: 500,
+      cause: err,
+    });
+  }
 
-    // 2) Sync to Loops for marketing automation. Loops failures should NOT
-    // lose the lead — but we still surface a friendly error so the operator
-    // knows something's off and the visitor can retry.
-    try {
-      await upsertLoopsContact({
-        email: body.email,
-        firstName: body.firstName,
-        lastName: body.lastName,
-        subscribed: true,
-        userGroup: LOOPS_USER_GROUPS[body.audience],
-        source: "landing",
-        // Custom properties. Loops auto-creates the property on first
-        // send, so we can iterate on this list without a dashboard step.
-        phone: body.phone,
-        companyName: body.companyName,
-        audience: body.audience,
-        audienceLabel: AUDIENCE_LABELS[body.audience],
-        projectCount: body.projectCount,
-        projectCountLabel: body.projectCount
-          ? PROJECT_COUNT_LABELS[body.projectCount]
-          : undefined,
-        city: body.city,
-        note: body.note,
-        utmSource: body.utmSource,
-        utmMedium: body.utmMedium,
-        utmCampaign: body.utmCampaign,
-        referrer: body.referrer,
-        signupAt: new Date().toISOString(),
-        landingLocale: "sr-Latn",
-        gdprConsent: true,
-      });
-    } catch (err) {
-      // Fail-soft: the lead is already in our own DB (step 1). We log the
-      // Loops error for the operator to reconcile but keep the request
-      // successful so the visitor sees a confirmation, not a red banner.
-      console.error("[marketing.leads] Loops sync failed (lead was saved):", err);
-    }
+  // 2) Sync to Loops for marketing automation. Loops failures should NOT
+  // lose the lead — but we still surface a friendly error so the operator
+  // knows something's off and the visitor can retry.
+  try {
+    await upsertLoopsContact({
+      email: body.email,
+      firstName: body.firstName,
+      lastName: body.lastName,
+      subscribed: true,
+      userGroup: LOOPS_USER_GROUPS[body.audience],
+      source: "landing",
+      // Custom properties. Loops auto-creates the property on first
+      // send, so we can iterate on this list without a dashboard step.
+      phone: body.phone,
+      companyName: body.companyName,
+      audience: body.audience,
+      audienceLabel: AUDIENCE_LABELS[body.audience],
+      projectCount: body.projectCount,
+      projectCountLabel: body.projectCount ? PROJECT_COUNT_LABELS[body.projectCount] : undefined,
+      city: body.city,
+      note: body.note,
+      utmSource: body.utmSource,
+      utmMedium: body.utmMedium,
+      utmCampaign: body.utmCampaign,
+      referrer: body.referrer,
+      signupAt: new Date().toISOString(),
+      landingLocale: "sr-Latn",
+      gdprConsent: true,
+    });
+  } catch (err) {
+    // Fail-soft: the lead is already in our own DB (step 1). We log the
+    // Loops error for the operator to reconcile but keep the request
+    // successful so the visitor sees a confirmation, not a red banner.
+    console.error("[marketing.leads] Loops sync failed (lead was saved):", err);
+  }
 
-    return { data: { ok: true }, status: 201 };
-  },
-);
+  return { data: { ok: true }, status: 201 };
+});
 
 /**
  * @swagger

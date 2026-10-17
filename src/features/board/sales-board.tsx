@@ -2,11 +2,7 @@
 
 import type { SaleStatus } from "@prisma/client";
 
-import {
-  type BoardColumn,
-  type DropResult,
-  KanbanBoard,
-} from "@/features/board/kanban-board";
+import { type BoardColumn, type DropResult, KanbanBoard } from "@/features/board/kanban-board";
 import { useT } from "@/components/app/i18n-provider";
 import { formatDate, formatMoney } from "@/lib/formatters";
 import { SUPPORTED_CURRENCIES, type SupportedCurrency } from "@/lib/constants/app";
@@ -72,25 +68,21 @@ interface Props {
 export function SalesBoard({ columns, canManage }: Props) {
   const t = useT();
   const byStatus = new Map(columns.map((c) => [c.status, c] as const));
-  const board: BoardColumn<
-    SaleBoardCard & { createdAt: string; contractDate: string | null }
-  >[] = COLUMN_ORDER.map((status) => {
-    const col = byStatus.get(status);
-    return {
-      status,
-      title: saleStatusLabel(status, t),
-      total: col?.total ?? 0,
-      cards: (col?.cards ?? []) as (SaleBoardCard & {
-        createdAt: string;
-        contractDate: string | null;
-      })[],
-      readOnly: status === "PAYMENT_IN_PROGRESS",
-      hint:
-        status === "PAYMENT_IN_PROGRESS"
-          ? t("deals.sales.paymentInProgressHint")
-          : undefined,
-    };
-  });
+  const board: BoardColumn<SaleBoardCard & { createdAt: string; contractDate: string | null }>[] =
+    COLUMN_ORDER.map((status) => {
+      const col = byStatus.get(status);
+      return {
+        status,
+        title: saleStatusLabel(status, t),
+        total: col?.total ?? 0,
+        cards: (col?.cards ?? []) as (SaleBoardCard & {
+          createdAt: string;
+          contractDate: string | null;
+        })[],
+        readOnly: status === "PAYMENT_IN_PROGRESS",
+        hint: status === "PAYMENT_IN_PROGRESS" ? t("deals.sales.paymentInProgressHint") : undefined,
+      };
+    });
 
   return (
     <KanbanBoard
@@ -101,20 +93,14 @@ export function SalesBoard({ columns, canManage }: Props) {
       renderCard={(c) => (
         <div className="space-y-1">
           <div className="flex items-center justify-between gap-2">
-            <span className="font-semibold text-[var(--color-foreground)]">
-              {c.unitCode}
-            </span>
+            <span className="font-semibold text-[var(--color-foreground)]">{c.unitCode}</span>
             <span className="text-[10px] text-[var(--color-foreground-muted)]">
               {formatDate(c.createdAt)}
             </span>
           </div>
-          <div className="text-xs text-[var(--color-foreground-muted)]">
-            {c.projectName}
-          </div>
+          <div className="text-xs text-[var(--color-foreground-muted)]">{c.projectName}</div>
           <div className="truncate text-xs">{c.buyerName}</div>
-          <div className="text-xs font-medium">
-            {displayMoney(c.finalPrice, c.currency)}
-          </div>
+          <div className="text-xs font-medium">{displayMoney(c.finalPrice, c.currency)}</div>
           {c.contractDate ? (
             <div className="text-[10px] text-[var(--color-foreground-muted)]">
               {t("deals.sales.contractOn", { date: formatDate(c.contractDate) })}

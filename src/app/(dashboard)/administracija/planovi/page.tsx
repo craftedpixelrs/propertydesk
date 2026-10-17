@@ -69,9 +69,7 @@ export default async function PlatformPlansPage() {
                   </span>
                 </div>
                 {plan.description ? (
-                  <p className="text-sm text-[var(--color-foreground-muted)]">
-                    {plan.description}
-                  </p>
+                  <p className="text-sm text-[var(--color-foreground-muted)]">{plan.description}</p>
                 ) : null}
                 <ul className="space-y-1 text-sm text-[var(--color-foreground)]">
                   <li>
@@ -95,16 +93,12 @@ export default async function PlatformPlansPage() {
                     })}
                   </li>
                   {plan.defaultTrialDays != null ? (
-                    <li>
-                      {t("admin.plansPage.trial", { days: plan.defaultTrialDays })}
-                    </li>
+                    <li>{t("admin.plansPage.trial", { days: plan.defaultTrialDays })}</li>
                   ) : null}
                 </ul>
                 <div className="flex gap-2 pt-2">
                   <Button asChild size="sm" variant="outline">
-                    <Link href={`/administracija/planovi/${plan.id}`}>
-                      {t("common.edit")}
-                    </Link>
+                    <Link href={`/administracija/planovi/${plan.id}`}>{t("common.edit")}</Link>
                   </Button>
                 </div>
               </CardContent>

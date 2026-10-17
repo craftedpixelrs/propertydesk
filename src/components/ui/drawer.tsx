@@ -28,9 +28,7 @@ export const DrawerOverlay = React.forwardRef<
 ));
 DrawerOverlay.displayName = "DrawerOverlay";
 
-type DrawerContentProps = React.ComponentPropsWithoutRef<
-  typeof DrawerPrimitive.Content
-> & {
+type DrawerContentProps = React.ComponentPropsWithoutRef<typeof DrawerPrimitive.Content> & {
   /** Bottom sheet (default) or a right-side panel. Pair `right` with `direction="right"` on `Drawer`. */
   side?: "bottom" | "right";
 };
@@ -45,8 +43,8 @@ export const DrawerContent = React.forwardRef<
       ref={ref}
       className={cn(
         side === "right"
-          ? "fixed inset-y-0 right-0 z-50 flex h-full w-full min-h-0 flex-col overflow-hidden border-l border-[var(--color-border)] bg-[var(--color-surface)] outline-none sm:max-w-xl md:max-w-2xl"
-          : "fixed inset-x-0 bottom-0 z-50 mt-24 flex h-auto flex-col rounded-t-xl border border-[var(--color-border)] bg-[var(--color-surface)] safe-bottom",
+          ? "fixed inset-y-0 right-0 z-50 flex h-full min-h-0 w-full flex-col overflow-hidden border-l border-[var(--color-border)] bg-[var(--color-surface)] outline-none sm:max-w-xl md:max-w-2xl"
+          : "safe-bottom fixed inset-x-0 bottom-0 z-50 mt-24 flex h-auto flex-col rounded-t-xl border border-[var(--color-border)] bg-[var(--color-surface)]",
         className,
       )}
       {...props}

@@ -38,10 +38,7 @@ export interface RateLimitResult {
  * Consume one unit against the bucket identified by `key`.
  * If rate limiting is disabled via env, always returns `{ allowed: true }`.
  */
-export function rateLimit(
-  key: string,
-  options: RateLimitOptions,
-): RateLimitResult {
+export function rateLimit(key: string, options: RateLimitOptions): RateLimitResult {
   if (!serverEnv.RATE_LIMIT_ENABLED) {
     return { allowed: true, remaining: options.max, resetAt: Date.now() };
   }

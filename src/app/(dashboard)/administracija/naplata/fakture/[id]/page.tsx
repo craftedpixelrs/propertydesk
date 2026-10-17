@@ -53,7 +53,9 @@ export default async function AdminInvoiceDetailPage({
               <Link href={`/administracija/organizacije`} className="hover:underline">
                 {org.name}
               </Link>
-            ) : t("admin.dash")}
+            ) : (
+              t("admin.dash")
+            )}
           </p>
         </div>
         <div className="flex gap-2">
@@ -67,7 +69,7 @@ export default async function AdminInvoiceDetailPage({
         <CardHeader>
           <CardTitle className="text-base">{t("common.details")}</CardTitle>
         </CardHeader>
-        <CardContent className="grid gap-3 md:grid-cols-3 text-sm">
+        <CardContent className="grid gap-3 text-sm md:grid-cols-3">
           <Row
             label={t("admin.invoiceDetail.issueDate")}
             value={invoice.issueDate ? formatDate(invoice.issueDate) : t("admin.dash")}
@@ -79,15 +81,24 @@ export default async function AdminInvoiceDetailPage({
           <Row label={t("billing.columns.period")} value={periodValue} />
           <Row
             label={t("billing.columns.total")}
-            value={formatMoney(Number(invoice.totalAmount.toString()), invoice.currency as "EUR" | "RSD")}
+            value={formatMoney(
+              Number(invoice.totalAmount.toString()),
+              invoice.currency as "EUR" | "RSD",
+            )}
           />
           <Row
             label={t("billing.columns.paid")}
-            value={formatMoney(Number(invoice.amountPaid.toString()), invoice.currency as "EUR" | "RSD")}
+            value={formatMoney(
+              Number(invoice.amountPaid.toString()),
+              invoice.currency as "EUR" | "RSD",
+            )}
           />
           <Row
             label={t("billing.columns.remaining")}
-            value={formatMoney(Number(invoice.amountDue.toString()), invoice.currency as "EUR" | "RSD")}
+            value={formatMoney(
+              Number(invoice.amountDue.toString()),
+              invoice.currency as "EUR" | "RSD",
+            )}
           />
         </CardContent>
       </Card>
@@ -98,7 +109,7 @@ export default async function AdminInvoiceDetailPage({
         </CardHeader>
         <CardContent className="p-0">
           <table className="w-full text-sm">
-            <thead className="text-left text-xs uppercase text-[var(--color-foreground-subtle)]">
+            <thead className="text-left text-xs text-[var(--color-foreground-subtle)] uppercase">
               <tr>
                 <th className="border-b border-[var(--color-border)] px-3 py-2">
                   {t("admin.invoiceDetail.description")}
@@ -118,9 +129,14 @@ export default async function AdminInvoiceDetailPage({
               {invoice.items.map((it) => (
                 <tr key={it.id} className="border-b border-[var(--color-border)] last:border-b-0">
                   <td className="px-3 py-2">{it.description}</td>
-                  <td className="px-3 py-2 text-right tabular-nums">{Number(it.quantity.toString())}</td>
                   <td className="px-3 py-2 text-right tabular-nums">
-                    {formatMoney(Number(it.unitPrice.toString()), invoice.currency as "EUR" | "RSD")}
+                    {Number(it.quantity.toString())}
+                  </td>
+                  <td className="px-3 py-2 text-right tabular-nums">
+                    {formatMoney(
+                      Number(it.unitPrice.toString()),
+                      invoice.currency as "EUR" | "RSD",
+                    )}
                   </td>
                   <td className="px-3 py-2 text-right tabular-nums">
                     {formatMoney(Number(it.amount.toString()), invoice.currency as "EUR" | "RSD")}
@@ -145,7 +161,7 @@ export default async function AdminInvoiceDetailPage({
             </p>
           ) : (
             <table className="w-full text-sm">
-              <thead className="text-left text-xs uppercase text-[var(--color-foreground-subtle)]">
+              <thead className="text-left text-xs text-[var(--color-foreground-subtle)] uppercase">
                 <tr>
                   <th className="border-b border-[var(--color-border)] px-3 py-2">
                     {t("common.date")}
@@ -161,7 +177,9 @@ export default async function AdminInvoiceDetailPage({
               <tbody>
                 {payments.map((a) => (
                   <tr key={a.id} className="border-b border-[var(--color-border)] last:border-b-0">
-                    <td className="px-3 py-2 text-xs">{formatDate(a.subscriptionPayment.paidAt)}</td>
+                    <td className="px-3 py-2 text-xs">
+                      {formatDate(a.subscriptionPayment.paidAt)}
+                    </td>
                     <td className="px-3 py-2 text-xs">
                       {t(`billing.provider.${a.subscriptionPayment.provider}` as TranslationKey)}
                     </td>

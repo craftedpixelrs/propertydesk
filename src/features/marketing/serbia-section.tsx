@@ -19,14 +19,30 @@ const ITEMS: Array<{
   titleKey: TranslationKey;
   bodyKey: TranslationKey;
 }> = [
-  { icon: Languages, titleKey: "marketing.serbia.languageTitle", bodyKey: "marketing.serbia.languageBody" },
-  { icon: Coins, titleKey: "marketing.serbia.currencyTitle", bodyKey: "marketing.serbia.currencyBody" },
+  {
+    icon: Languages,
+    titleKey: "marketing.serbia.languageTitle",
+    bodyKey: "marketing.serbia.languageBody",
+  },
+  {
+    icon: Coins,
+    titleKey: "marketing.serbia.currencyTitle",
+    bodyKey: "marketing.serbia.currencyBody",
+  },
   { icon: QrCode, titleKey: "marketing.serbia.qrTitle", bodyKey: "marketing.serbia.qrBody" },
   { icon: FileCheck, titleKey: "marketing.serbia.sefTitle", bodyKey: "marketing.serbia.sefBody" },
   { icon: ShieldCheck, titleKey: "marketing.serbia.kycTitle", bodyKey: "marketing.serbia.kycBody" },
   { icon: Percent, titleKey: "marketing.serbia.vatTitle", bodyKey: "marketing.serbia.vatBody" },
-  { icon: FileSignature, titleKey: "marketing.serbia.contractsTitle", bodyKey: "marketing.serbia.contractsBody" },
-  { icon: FileSpreadsheet, titleKey: "marketing.serbia.importTitle", bodyKey: "marketing.serbia.importBody" },
+  {
+    icon: FileSignature,
+    titleKey: "marketing.serbia.contractsTitle",
+    bodyKey: "marketing.serbia.contractsBody",
+  },
+  {
+    icon: FileSpreadsheet,
+    titleKey: "marketing.serbia.importTitle",
+    bodyKey: "marketing.serbia.importBody",
+  },
 ];
 
 export function SerbiaSection() {
@@ -35,42 +51,46 @@ export function SerbiaSection() {
   return (
     <section
       aria-labelledby="serbia-title"
-      className="border-t border-[var(--color-border)]"
+      className="relative overflow-hidden bg-[#0b1020] text-[#f7f3ea]"
     >
-      <div className="container-app py-16 sm:py-20">
+      <div
+        aria-hidden
+        className="pointer-events-none absolute top-0 -left-24 size-80 rounded-full bg-[#d6b26a]/15 blur-3xl"
+      />
+      <div className="container-app relative py-16 sm:py-24">
         <div className="max-w-3xl">
-          <div className="text-xs font-semibold uppercase tracking-wider text-[var(--color-brand-700)]">
+          <div className="text-xs font-semibold tracking-[0.18em] text-[#d6b26a] uppercase">
             {t("marketing.serbia.eyebrow")}
           </div>
           <h2
             id="serbia-title"
-            className="mt-2 text-3xl font-semibold tracking-tight sm:text-4xl"
+            className="font-display mt-3 text-4xl font-semibold tracking-tight sm:text-5xl"
           >
             {t("marketing.serbia.title")}
           </h2>
-          <p className="mt-4 text-base leading-relaxed text-[var(--color-foreground-muted)]">
+          <p className="mt-4 max-w-2xl text-base leading-relaxed text-white/65">
             {t("marketing.serbia.subtitle")}
           </p>
         </div>
 
-        <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {ITEMS.map((it) => {
+        <div className="mt-12 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {ITEMS.map((it, index) => {
             const Icon = it.icon;
             return (
               <div
                 key={it.titleKey}
-                className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5 shadow-sm"
+                data-reveal=""
+                style={{ "--pd-delay": `${(index % 4) * 70}ms` } as React.CSSProperties}
+                className="rounded-2xl border border-white/10 bg-white/[0.04] p-5"
               >
                 <span
                   aria-hidden
-                  className="inline-grid h-10 w-10 place-items-center rounded-lg bg-[var(--color-brand-50)] text-[var(--color-brand-700)]"
+                  className="inline-grid size-10 place-items-center rounded-xl bg-[#d6b26a]/15 text-[#f3e2bc]"
                 >
                   <Icon className="size-5" />
                 </span>
-                <h3 className="mt-4 text-base font-semibold">{t(it.titleKey)}</h3>
-                <p className="mt-1.5 text-sm leading-relaxed text-[var(--color-foreground-muted)]">
-                  {t(it.bodyKey)}
-                </p>
+                <h3 className="font-display mt-4 text-lg font-semibold">{t(it.titleKey)}</h3>
+                <p className="mt-1.5 text-sm leading-relaxed text-white/60">{t(it.bodyKey)}</p>
               </div>
             );
           })}

@@ -22,10 +22,7 @@ function MapLoading() {
  * server. Callers import from this file, never from `project-map.tsx`
  * directly.
  */
-export const ProjectMap = dynamic(
-  () => import("./project-map").then((mod) => mod.ProjectMap),
-  {
-    ssr: false,
-    loading: () => <MapLoading />,
-  },
-);
+export const ProjectMap = dynamic(() => import("./project-map").then((mod) => mod.ProjectMap), {
+  ssr: false,
+  loading: () => <MapLoading />,
+});

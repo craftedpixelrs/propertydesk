@@ -37,6 +37,7 @@ export interface OrganizationFormValues {
   trialDays?: number;
   trialEndsAt?: string | null;
   originalTrialDays?: number | null;
+  activatesAt?: string;
 }
 
 interface OrganizationFormProps {
@@ -71,14 +72,10 @@ export function NewOrganizationForm({
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({});
-  const [orgType, setOrgType] = useState<"INVESTOR" | "AGENCY">(
-    initialValues?.type ?? "INVESTOR",
-  );
+  const [orgType, setOrgType] = useState<"INVESTOR" | "AGENCY">(initialValues?.type ?? "INVESTOR");
   const isAgency = orgType === "AGENCY";
   const investorPlans = plans.filter((p) => p.code !== AGENCY_PARTNER_PLAN_CODE);
-  const [agencyStatus, setAgencyStatus] = useState<
-    "ACTIVE" | "SUSPENDED" | "CLOSED"
-  >(
+  const [agencyStatus, setAgencyStatus] = useState<"ACTIVE" | "SUSPENDED" | "CLOSED">(
     initialValues?.status === "SUSPENDED" || initialValues?.status === "CLOSED"
       ? initialValues.status
       : "ACTIVE",
@@ -120,6 +117,7 @@ export function NewOrganizationForm({
             const parsed = Number.parseInt(raw, 10);
             return Number.isFinite(parsed) ? parsed : null;
           })(),
+      activatesAt: isAgency ? null : String(fd.get("activatesAt") ?? "").trim() || null,
     };
 
     const missing: Record<string, string[]> = {};
@@ -161,7 +159,7 @@ export function NewOrganizationForm({
     <form
       key={
         isEdit
-          ? `${organizationId}-${initialValues?.trialDays ?? ""}-${initialValues?.trialEndsAt ?? ""}-${initialValues?.status ?? ""}`
+          ? `${organizationId}-${initialValues?.trialDays ?? ""}-${initialValues?.trialEndsAt ?? ""}-${initialValues?.activatesAt ?? ""}-${initialValues?.status ?? ""}`
           : "create"
       }
       onSubmit={onSubmit}
@@ -206,9 +204,7 @@ export function NewOrganizationForm({
             required
             value={orgType}
             disabled={isEdit && initialValues?.type === "AGENCY"}
-            onChange={(event) =>
-              setOrgType(event.target.value as "INVESTOR" | "AGENCY")
-            }
+            onChange={(event) => setOrgType(event.target.value as "INVESTOR" | "AGENCY")}
             className="mt-1 h-11 w-full rounded-md border border-[var(--color-border-strong)] bg-[var(--color-surface)] px-3 text-sm"
           >
             <option value="INVESTOR">{t("organization.types.investor")}</option>
@@ -218,92 +214,104 @@ export function NewOrganizationForm({
         </div>
         {isAgency ? (
           <>
-          <div className="sm:col-span-2 rounded-md border border-[var(--color-border)] bg-[var(--color-surface-inset)] px-3 py-2 text-sm text-[var(--color-foreground-muted)]">
-            {t("admin.newOrg.agencyPartnerNote")}
-          </div>
-          <div>
-            <Label htmlFor="status">{t("common.statusLabel")}</Label>
-            <select
-              id="status"
-              name="status"
-              value={agencyStatus}
-              onChange={(event) =>
-                setAgencyStatus(event.target.value as "ACTIVE" | "SUSPENDED" | "CLOSED")
-              }
-              className="mt-1 h-11 w-full rounded-md border border-[var(--color-border-strong)] bg-[var(--color-surface)] px-3 text-sm"
-            >
-              <option value="ACTIVE">{t("status.active")}</option>
-              <option value="SUSPENDED">{t("status.suspended")}</option>
-              <option value="CLOSED">{t("status.closed")}</option>
-            </select>
-          </div>
+            <div className="rounded-md border border-[var(--color-border)] bg-[var(--color-surface-inset)] px-3 py-2 text-sm text-[var(--color-foreground-muted)] sm:col-span-2">
+              {t("admin.newOrg.agencyPartnerNote")}
+            </div>
+            <div>
+              <Label htmlFor="status">{t("common.statusLabel")}</Label>
+              <select
+                id="status"
+                name="status"
+                value={agencyStatus}
+                onChange={(event) =>
+                  setAgencyStatus(event.target.value as "ACTIVE" | "SUSPENDED" | "CLOSED")
+                }
+                className="mt-1 h-11 w-full rounded-md border border-[var(--color-border-strong)] bg-[var(--color-surface)] px-3 text-sm"
+              >
+                <option value="ACTIVE">{t("status.active")}</option>
+                <option value="SUSPENDED">{t("status.suspended")}</option>
+                <option value="CLOSED">{t("status.closed")}</option>
+              </select>
+            </div>
           </>
         ) : (
           <>
-        <div>
-          <Label htmlFor="status">{t("common.statusLabel")}</Label>
-          <select
-            id="status"
-            name="status"
-            required
-            defaultValue={initialValues?.status ?? "TRIAL"}
-            className="mt-1 h-11 w-full rounded-md border border-[var(--color-border-strong)] bg-[var(--color-surface)] px-3 text-sm"
-          >
-            <option value="TRIAL">{t("status.trial")}</option>
-            <option value="ACTIVE">{t("status.active")}</option>
-            <option value="RESTRICTED">{t("status.restricted")}</option>
-            <option value="SUSPENDED">{t("status.suspended")}</option>
-            <option value="CLOSED">{t("status.closed")}</option>
-          </select>
-          <FieldError messages={fieldErrors.status} />
-        </div>
-        <div>
-          <Label htmlFor="planCode">{t("admin.newOrg.plan")}</Label>
-          <select
-            id="planCode"
-            name="planCode"
-            required
-            defaultValue={initialValues?.planCode ?? investorPlans[0]?.code}
-            className="mt-1 h-11 w-full rounded-md border border-[var(--color-border-strong)] bg-[var(--color-surface)] px-3 text-sm"
-          >
-            {investorPlans.map((p) => (
-              <option key={p.code} value={p.code}>
-                {p.name}
-              </option>
-            ))}
-          </select>
-          <FieldError messages={fieldErrors.planCode} />
-        </div>
-        <div>
-          <Label htmlFor="trialDays">{t("admin.newOrg.trialDays")}</Label>
-          <Input
-            id="trialDays"
-            name="trialDays"
-            type="number"
-            min={0}
-            max={365}
-            defaultValue={
-              isEdit
-                ? (initialValues?.trialDays ?? "")
-                : (initialValues?.trialDays ?? 30)
-            }
-          />
-          {isEdit ? (
-            <p className="mt-1 text-xs text-[var(--color-foreground-muted)]">
-              {initialValues?.trialEndsAt
-                ? new Date(initialValues.trialEndsAt).getTime() > Date.now()
-                  ? t("admin.newOrg.trialDaysHintActive", {
-                      date: formatDate(initialValues.trialEndsAt),
-                    })
-                  : t("admin.newOrg.trialDaysHintExpired", {
-                      date: formatDate(initialValues.trialEndsAt),
-                      days: initialValues.originalTrialDays ?? initialValues.trialDays ?? 0,
-                    })
-                : t("admin.newOrg.trialDaysHintNone")}
-            </p>
-          ) : null}
-          <FieldError messages={fieldErrors.trialDays} />
-        </div>
+            <div>
+              <Label htmlFor="status">{t("common.statusLabel")}</Label>
+              <select
+                id="status"
+                name="status"
+                required
+                defaultValue={initialValues?.status ?? "TRIAL"}
+                className="mt-1 h-11 w-full rounded-md border border-[var(--color-border-strong)] bg-[var(--color-surface)] px-3 text-sm"
+              >
+                <option value="TRIAL">{t("status.trial")}</option>
+                <option value="ACTIVE">{t("status.active")}</option>
+                <option value="RESTRICTED">{t("status.restricted")}</option>
+                <option value="SUSPENDED">{t("status.suspended")}</option>
+                <option value="CLOSED">{t("status.closed")}</option>
+              </select>
+              <FieldError messages={fieldErrors.status} />
+            </div>
+            <div>
+              <Label htmlFor="planCode">{t("admin.newOrg.plan")}</Label>
+              <select
+                id="planCode"
+                name="planCode"
+                required
+                defaultValue={initialValues?.planCode ?? investorPlans[0]?.code}
+                className="mt-1 h-11 w-full rounded-md border border-[var(--color-border-strong)] bg-[var(--color-surface)] px-3 text-sm"
+              >
+                {investorPlans.map((p) => (
+                  <option key={p.code} value={p.code}>
+                    {p.name}
+                  </option>
+                ))}
+              </select>
+              <FieldError messages={fieldErrors.planCode} />
+            </div>
+            <div>
+              <Label htmlFor="trialDays">{t("admin.newOrg.trialDays")}</Label>
+              <Input
+                id="trialDays"
+                name="trialDays"
+                type="number"
+                min={0}
+                max={365}
+                defaultValue={
+                  isEdit ? (initialValues?.trialDays ?? "") : (initialValues?.trialDays ?? 30)
+                }
+              />
+              {isEdit ? (
+                <p className="mt-1 text-xs text-[var(--color-foreground-muted)]">
+                  {initialValues?.trialEndsAt
+                    ? new Date(initialValues.trialEndsAt).getTime() > Date.now()
+                      ? t("admin.newOrg.trialDaysHintActive", {
+                          date: formatDate(initialValues.trialEndsAt),
+                        })
+                      : t("admin.newOrg.trialDaysHintExpired", {
+                          date: formatDate(initialValues.trialEndsAt),
+                          days: initialValues.originalTrialDays ?? initialValues.trialDays ?? 0,
+                        })
+                    : t("admin.newOrg.trialDaysHintNone")}
+                </p>
+              ) : null}
+              <FieldError messages={fieldErrors.trialDays} />
+            </div>
+            <div>
+              <Label htmlFor="activatesAt">{t("admin.newOrg.activatesAt")}</Label>
+              <Input
+                id="activatesAt"
+                name="activatesAt"
+                type="date"
+                required={!isEdit}
+                defaultValue={initialValues?.activatesAt ?? ""}
+              />
+              <p className="mt-1 text-xs text-[var(--color-foreground-muted)]">
+                {t("admin.newOrg.activatesAtHint")}
+              </p>
+              <FieldError messages={fieldErrors.activatesAt} />
+            </div>
           </>
         )}
         <div>
@@ -328,11 +336,7 @@ export function NewOrganizationForm({
         </div>
         <div>
           <Label htmlFor="taxNumber">{t("admin.newOrg.taxNumber")}</Label>
-          <Input
-            id="taxNumber"
-            name="taxNumber"
-            defaultValue={initialValues?.taxNumber ?? ""}
-          />
+          <Input id="taxNumber" name="taxNumber" defaultValue={initialValues?.taxNumber ?? ""} />
           <FieldError messages={fieldErrors.taxNumber} />
         </div>
         <div>
@@ -346,11 +350,7 @@ export function NewOrganizationForm({
         </div>
         <div>
           <Label htmlFor="address">{t("admin.newOrg.address")}</Label>
-          <Input
-            id="address"
-            name="address"
-            defaultValue={initialValues?.address ?? ""}
-          />
+          <Input id="address" name="address" defaultValue={initialValues?.address ?? ""} />
           <FieldError messages={fieldErrors.address} />
         </div>
         <div>
@@ -360,11 +360,7 @@ export function NewOrganizationForm({
         </div>
         <div>
           <Label htmlFor="postalCode">{t("admin.newOrg.postalCode")}</Label>
-          <Input
-            id="postalCode"
-            name="postalCode"
-            defaultValue={initialValues?.postalCode ?? ""}
-          />
+          <Input id="postalCode" name="postalCode" defaultValue={initialValues?.postalCode ?? ""} />
           <FieldError messages={fieldErrors.postalCode} />
         </div>
         <div>
@@ -379,12 +375,7 @@ export function NewOrganizationForm({
         </div>
         <div>
           <Label htmlFor="email">{t("admin.newOrg.contactEmail")}</Label>
-          <Input
-            id="email"
-            name="email"
-            type="email"
-            defaultValue={initialValues?.email ?? ""}
-          />
+          <Input id="email" name="email" type="email" defaultValue={initialValues?.email ?? ""} />
           <FieldError messages={fieldErrors.email} />
         </div>
         <div>

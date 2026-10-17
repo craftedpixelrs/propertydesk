@@ -7,10 +7,7 @@ const prismaMock = vi.hoisted(() => ({
 
 vi.mock("@/server/db/prisma", () => ({ prisma: prismaMock }));
 
-import {
-  referralUnlocksProject,
-  resolveReferralCatalog,
-} from "./referral-catalog.service";
+import { referralUnlocksProject, resolveReferralCatalog } from "./referral-catalog.service";
 
 beforeEach(() => {
   vi.clearAllMocks();

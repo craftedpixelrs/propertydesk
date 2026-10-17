@@ -71,9 +71,7 @@ export function RegisterBuyerButton({ projectId }: { projectId: string }) {
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{t("partners.registerBuyer.title")}</DialogTitle>
-          <DialogDescription>
-            {t("partners.registerBuyer.description")}
-          </DialogDescription>
+          <DialogDescription>{t("partners.registerBuyer.description")}</DialogDescription>
         </DialogHeader>
         {result ? (
           <div
@@ -85,7 +83,7 @@ export function RegisterBuyerButton({ projectId }: { projectId: string }) {
           >
             {result.status === "PENDING"
               ? t("partners.registerBuyer.pending")
-              : result.message ?? t("partners.registerBuyer.conflict")}
+              : (result.message ?? t("partners.registerBuyer.conflict"))}
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -149,11 +147,7 @@ export function RegisterBuyerButton({ projectId }: { projectId: string }) {
             {result ? t("common.close") : t("common.cancel")}
           </Button>
           {!result ? (
-            <Button
-              onClick={submit}
-              loading={loading}
-              disabled={!firstName || !lastName || !phone}
-            >
+            <Button onClick={submit} loading={loading} disabled={!firstName || !lastName || !phone}>
               {t("partners.registerBuyer.submit")}
             </Button>
           ) : null}

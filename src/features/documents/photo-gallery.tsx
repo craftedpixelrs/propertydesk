@@ -56,8 +56,7 @@ export function PhotoGallery({
   const [error, setError] = React.useState<string | null>(null);
   const [lightboxIndex, setLightboxIndex] = React.useState<number | null>(null);
 
-  const category =
-    uploadCategory ?? (entityType === "Unit" ? "UNIT" : "PROJECT");
+  const category = uploadCategory ?? (entityType === "Unit" ? "UNIT" : "PROJECT");
 
   const orderedPhotos = React.useMemo(() => photos, [photos]);
 
@@ -83,8 +82,7 @@ export function PhotoGallery({
         if (!res.ok) {
           const payload = await res.json().catch(() => null);
           throw new Error(
-            (payload?.error?.message as string | undefined) ??
-              t("ops.documents.uploadFailed"),
+            (payload?.error?.message as string | undefined) ?? t("ops.documents.uploadFailed"),
           );
         }
       }
@@ -193,9 +191,7 @@ export function PhotoGallery({
           <EmptyState
             title={t("ops.gallery.emptyTitle")}
             description={
-              canManage
-                ? t("ops.gallery.emptyCanManage")
-                : t("ops.gallery.emptyReadOnly")
+              canManage ? t("ops.gallery.emptyCanManage") : t("ops.gallery.emptyReadOnly")
             }
           />
         ) : (
@@ -231,12 +227,12 @@ export function PhotoGallery({
                   />
                 </button>
                 {photo.isCover ? (
-                  <div className="absolute left-1 top-1 rounded bg-[var(--color-brand-600)] px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-white">
+                  <div className="absolute top-1 left-1 rounded bg-[var(--color-brand-600)] px-1.5 py-0.5 text-[10px] font-medium tracking-wide text-white uppercase">
                     {t("ops.gallery.coverBadge")}
                   </div>
                 ) : null}
                 {canManage ? (
-                  <div className="absolute right-1 top-1 flex gap-1 opacity-0 transition group-hover:opacity-100">
+                  <div className="absolute top-1 right-1 flex gap-1 opacity-0 transition group-hover:opacity-100">
                     <button
                       type="button"
                       onClick={(e) => {
@@ -245,9 +241,7 @@ export function PhotoGallery({
                       }}
                       className="rounded bg-white/95 p-1 text-[var(--color-foreground)] shadow"
                       aria-label={
-                        photo.isCover
-                          ? t("ops.gallery.removeCover")
-                          : t("ops.gallery.setCover")
+                        photo.isCover ? t("ops.gallery.removeCover") : t("ops.gallery.setCover")
                       }
                       disabled={busy}
                     >
@@ -286,7 +280,7 @@ export function PhotoGallery({
         >
           <button
             type="button"
-            className="absolute right-4 top-4 rounded p-2 text-white hover:bg-white/10"
+            className="absolute top-4 right-4 rounded p-2 text-white hover:bg-white/10"
             aria-label={t("common.close")}
             onClick={(e) => {
               e.stopPropagation();
@@ -299,7 +293,7 @@ export function PhotoGallery({
             <>
               <button
                 type="button"
-                className="absolute left-4 top-1/2 -translate-y-1/2 rounded-full bg-white/10 p-2 text-white hover:bg-white/20"
+                className="absolute top-1/2 left-4 -translate-y-1/2 rounded-full bg-white/10 p-2 text-white hover:bg-white/20"
                 aria-label={t("common.previous")}
                 onClick={(e) => {
                   e.stopPropagation();
@@ -310,7 +304,7 @@ export function PhotoGallery({
               </button>
               <button
                 type="button"
-                className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full bg-white/10 p-2 text-white hover:bg-white/20"
+                className="absolute top-1/2 right-4 -translate-y-1/2 rounded-full bg-white/10 p-2 text-white hover:bg-white/20"
                 aria-label={t("common.next")}
                 onClick={(e) => {
                   e.stopPropagation();

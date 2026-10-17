@@ -39,7 +39,6 @@ function todayIsoDate(): string {
   return `${y}-${m}-${day}`;
 }
 
-
 export function ExchangeRateEditor({ initialRates }: Props) {
   const router = useRouter();
   const { t, locale } = useI18n();
@@ -63,16 +62,13 @@ export function ExchangeRateEditor({ initialRates }: Props) {
 
     startSave(async () => {
       try {
-        const created = await apiClient.post<ExchangeRateRow>(
-          "/billing/exchange-rates",
-          {
-            baseCurrency: "EUR",
-            quoteCurrency: "RSD",
-            rate: parsed.toString(),
-            effectiveDate,
-            note: note.trim() || null,
-          },
-        );
+        const created = await apiClient.post<ExchangeRateRow>("/billing/exchange-rates", {
+          baseCurrency: "EUR",
+          quoteCurrency: "RSD",
+          rate: parsed.toString(),
+          effectiveDate,
+          note: note.trim() || null,
+        });
         setRates((prev) =>
           [created, ...prev.filter((r) => r.id !== created.id)].sort((a, b) =>
             b.effectiveDate.localeCompare(a.effectiveDate),
@@ -83,9 +79,7 @@ export function ExchangeRateEditor({ initialRates }: Props) {
         setEffectiveDate(todayIsoDate());
         router.refresh();
       } catch (err) {
-        setError(
-          err instanceof ApiClientError ? err.message : t("admin.saveFailed"),
-        );
+        setError(err instanceof ApiClientError ? err.message : t("admin.saveFailed"));
       }
     });
   }
@@ -101,9 +95,7 @@ export function ExchangeRateEditor({ initialRates }: Props) {
       setRates((prev) => prev.filter((r) => r.id !== id));
       router.refresh();
     } catch (err) {
-      setError(
-        err instanceof ApiClientError ? err.message : t("admin.deleteFailed"),
-      );
+      setError(err instanceof ApiClientError ? err.message : t("admin.deleteFailed"));
     } finally {
       setPendingDeleteId(null);
     }
@@ -120,11 +112,7 @@ export function ExchangeRateEditor({ initialRates }: Props) {
             <span className="text-xs text-[var(--color-foreground-muted)]">
               {t("admin.exchangeRates.effectiveDate")}
             </span>
-            <DateInput
-              value={effectiveDate}
-              onChange={setEffectiveDate}
-              required
-            />
+            <DateInput value={effectiveDate} onChange={setEffectiveDate} required />
           </label>
           <label className="grid gap-1 text-sm">
             <span className="text-xs text-[var(--color-foreground-muted)]">
@@ -197,13 +185,12 @@ export function ExchangeRateEditor({ initialRates }: Props) {
               </tr>
             ) : (
               rates.map((r) => (
-                <tr
-                  key={r.id}
-                  className="border-t border-[var(--color-border)]"
-                >
+                <tr key={r.id} className="border-t border-[var(--color-border)]">
                   <td className="px-3 py-1.5">{formatDate(r.effectiveDate, undefined, locale)}</td>
                   <td className="px-3 py-1.5 font-mono">
-                    1 {r.baseCurrency} = {formatMoney(r.rate, "RSD", { withSymbol: false, decimals: 4 })} {r.quoteCurrency}
+                    1 {r.baseCurrency} ={" "}
+                    {formatMoney(r.rate, "RSD", { withSymbol: false, decimals: 4 })}{" "}
+                    {r.quoteCurrency}
                   </td>
                   <td className="px-3 py-1.5 text-xs">
                     {r.source === "MANUAL"
@@ -220,9 +207,7 @@ export function ExchangeRateEditor({ initialRates }: Props) {
                       disabled={pendingDeleteId === r.id}
                       className="text-xs text-red-700 hover:underline disabled:opacity-50"
                     >
-                      {pendingDeleteId === r.id
-                        ? t("admin.deleting")
-                        : t("common.delete")}
+                      {pendingDeleteId === r.id ? t("admin.deleting") : t("common.delete")}
                     </button>
                   </td>
                 </tr>

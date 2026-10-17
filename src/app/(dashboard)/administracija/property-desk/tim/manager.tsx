@@ -102,10 +102,11 @@ export function PropertyDeskTeamManager({
     setError(null);
     setPendingId("__new__");
     try {
-      const created = await apiClient.post<TeamMemberDto>(
-        "/platform/property-desk/team",
-        { userId: newUserId, teamRole: newRole, leadScope: newScope },
-      );
+      const created = await apiClient.post<TeamMemberDto>("/platform/property-desk/team", {
+        userId: newUserId,
+        teamRole: newRole,
+        leadScope: newScope,
+      });
       // Backend returns the raw member row without the user relation — pull
       // the user data from the picker list we already have.
       const pickedUser = addable.find((u) => u.id === newUserId);
@@ -145,13 +146,8 @@ export function PropertyDeskTeamManager({
     setError(null);
     setPendingId(id);
     try {
-      await apiClient.patch(
-        `/platform/property-desk/team/${id}`,
-        patch,
-      );
-      setMembers((prev) =>
-        prev.map((m) => (m.id === id ? { ...m, ...patch } : m)),
-      );
+      await apiClient.patch(`/platform/property-desk/team/${id}`, patch);
+      setMembers((prev) => prev.map((m) => (m.id === id ? { ...m, ...patch } : m)));
       await refresh();
     } catch (err) {
       setError(errorMessage(err, t));
@@ -285,10 +281,7 @@ export function PropertyDeskTeamManager({
                     const busy = pendingId === m.id;
                     const isSelf = m.userId === currentUserId;
                     return (
-                      <tr
-                        key={m.id}
-                        className="border-b border-[var(--color-border)] align-top"
-                      >
+                      <tr key={m.id} className="border-b border-[var(--color-border)] align-top">
                         <td className="px-4 py-3">
                           <div className="font-medium">
                             {m.user.name}
@@ -321,9 +314,7 @@ export function PropertyDeskTeamManager({
                               ))}
                             </select>
                           ) : (
-                            <Badge tone={ROLE_TONE[m.teamRole]}>
-                              {roleLabel(t, m.teamRole)}
-                            </Badge>
+                            <Badge tone={ROLE_TONE[m.teamRole]}>{roleLabel(t, m.teamRole)}</Badge>
                           )}
                         </td>
                         <td className="px-4 py-3">

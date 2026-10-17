@@ -10,11 +10,7 @@ import { prisma } from "@/server/db/prisma";
 
 const UNPAID_STATUSES = ["ISSUED", "SENT", "PARTIALLY_PAID", "OVERDUE"] as const;
 
-export async function RestrictedAccessPanel({
-  organizationId,
-}: {
-  organizationId: string;
-}) {
+export async function RestrictedAccessPanel({ organizationId }: { organizationId: string }) {
   const t = createT(await resolveRequestLocale());
   const [sub, unpaidInvoice] = await Promise.all([
     prisma.organizationSubscription.findUnique({
@@ -36,8 +32,7 @@ export async function RestrictedAccessPanel({
     return out === key ? status : out;
   }
 
-  const trialExpired =
-    Boolean(sub?.trialEndsAt) && sub!.trialEndsAt!.getTime() <= Date.now();
+  const trialExpired = Boolean(sub?.trialEndsAt) && sub!.trialEndsAt!.getTime() <= Date.now();
 
   return (
     <Card>
@@ -45,18 +40,14 @@ export async function RestrictedAccessPanel({
         <CardTitle>{t("orgProfile.restrictedTitle")}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-3 text-sm">
-        <p className="text-[var(--color-foreground-muted)]">
-          {t("orgProfile.restrictedBody")}
-        </p>
+        <p className="text-[var(--color-foreground-muted)]">{t("orgProfile.restrictedBody")}</p>
         {sub ? (
           <div className="space-y-1">
             <p className="flex items-center gap-2">
               <span className="font-medium">{sub.plan.name}</span>
               <Badge
                 tone={
-                  sub.status === "EXPIRED" || sub.status === "RESTRICTED"
-                    ? "danger"
-                    : "warning"
+                  sub.status === "EXPIRED" || sub.status === "RESTRICTED" ? "danger" : "warning"
                 }
               >
                 {statusLabel(sub.status)}
@@ -64,29 +55,25 @@ export async function RestrictedAccessPanel({
             </p>
             {sub.trialEndsAt ? (
               <p>
-                {trialExpired
-                  ? t("ops.subscription.trialEnded")
-                  : t("ops.subscription.trialEnds")}{" "}
+                {trialExpired ? t("ops.subscription.trialEnded") : t("ops.subscription.trialEnds")}{" "}
                 <strong>{formatDate(sub.trialEndsAt)}</strong>
               </p>
             ) : null}
             {sub.currentPeriodEnd ? (
               <p>
-                {t("ops.subscription.endsAt")}{" "}
-                <strong>{formatDate(sub.currentPeriodEnd)}</strong>
+                {t("ops.subscription.endsAt")} <strong>{formatDate(sub.currentPeriodEnd)}</strong>
               </p>
             ) : null}
             {sub.endsAt ? (
               <p>
-                {t("ops.subscription.endsAt")}{" "}
-                <strong>{formatDate(sub.endsAt)}</strong>
+                {t("ops.subscription.endsAt")} <strong>{formatDate(sub.endsAt)}</strong>
               </p>
             ) : null}
           </div>
         ) : null}
 
         {unpaidInvoice ? (
-          <div className="rounded-md border border-[var(--color-border)] p-3 space-y-2">
+          <div className="space-y-2 rounded-md border border-[var(--color-border)] p-3">
             <p>
               {t("orgProfile.unpaidInvoice", {
                 number: unpaidInvoice.invoiceNumber ?? t("ops.invoices.draftNumber"),
@@ -110,9 +97,7 @@ export async function RestrictedAccessPanel({
             </div>
           </div>
         ) : (
-          <p className="text-[var(--color-foreground-muted)]">
-            {t("orgProfile.noUnpaidInvoice")}
-          </p>
+          <p className="text-[var(--color-foreground-muted)]">{t("orgProfile.noUnpaidInvoice")}</p>
         )}
 
         <div className="flex flex-wrap gap-2">
@@ -120,9 +105,7 @@ export async function RestrictedAccessPanel({
             <Link href="/podesavanja/pretplata">{t("orgProfile.restrictedCta")}</Link>
           </Button>
         </div>
-        <p className="text-[var(--color-foreground-muted)]">
-          {t("ops.subscription.contactAdmin")}
-        </p>
+        <p className="text-[var(--color-foreground-muted)]">{t("ops.subscription.contactAdmin")}</p>
       </CardContent>
     </Card>
   );

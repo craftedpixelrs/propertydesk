@@ -17,9 +17,7 @@ export default async function AcceptInvitationPage({
   const locale = await resolveRequestLocale();
   const { id } = await params;
   const invitation = await getPublicInvitation(id);
-  const inactive =
-    !invitation ||
-    invitation.status !== "pending";
+  const inactive = !invitation || invitation.status !== "pending";
 
   return (
     <div>
@@ -32,9 +30,13 @@ export default async function AcceptInvitationPage({
             ? t("auth.invitationExpired", undefined, locale)
             : t("auth.invitationUnavailable", undefined, locale)
           : invitation?.requiresAgencyProfile
-            ? t("auth.invitationAgencySubtitle", {
-                investor: invitation.investorName ?? invitation.organizationName,
-              }, locale)
+            ? t(
+                "auth.invitationAgencySubtitle",
+                {
+                  investor: invitation.investorName ?? invitation.organizationName,
+                },
+                locale,
+              )
             : t("auth.invitationSubtitle", undefined, locale)}
       </p>
       {invitation && invitation.status === "pending" ? (

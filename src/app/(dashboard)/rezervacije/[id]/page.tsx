@@ -95,7 +95,9 @@ export default async function RezervacijaDetaljPage({ params }: PageProps) {
               {reservation.rejectionReason ? (
                 <Row label={t("deals.rejectionReason")} value={reservation.rejectionReason} />
               ) : null}
-              {reservation.notes ? <Row label={t("common.notes")} value={reservation.notes} /> : null}
+              {reservation.notes ? (
+                <Row label={t("common.notes")} value={reservation.notes} />
+              ) : null}
             </CardContent>
           </Card>
 
@@ -140,8 +142,7 @@ export default async function RezervacijaDetaljPage({ params }: PageProps) {
                 canApprove={canApprove}
                 canCancel={canCancel}
               />
-              {reservation.status === "APPROVED" &&
-              ctx.permissions.includes("sale.manage") ? (
+              {reservation.status === "APPROVED" && ctx.permissions.includes("sale.manage") ? (
                 <Link
                   href={`/prodaje/nova?reservation=${reservation.id}`}
                   className="inline-flex h-9 items-center rounded-md bg-[var(--color-brand-600)] px-3 text-sm font-medium text-white hover:bg-[var(--color-brand-700)]"
@@ -149,8 +150,7 @@ export default async function RezervacijaDetaljPage({ params }: PageProps) {
                   {t("deals.createSale")}
                 </Link>
               ) : null}
-              {reservation.status !== "REQUESTED" &&
-              reservation.status !== "APPROVED" ? (
+              {reservation.status !== "REQUESTED" && reservation.status !== "APPROVED" ? (
                 <p className="text-sm text-[var(--color-foreground-muted)]">
                   {t("deals.reservations.noActions")}
                 </p>

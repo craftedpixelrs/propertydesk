@@ -36,8 +36,7 @@ export default async function KatalogPage() {
     }),
   ]);
   const verified = profile?.verificationStatus === "VERIFIED";
-  const canRequest =
-    verified && ctx.permissions.includes("organization.members:manage");
+  const canRequest = verified && ctx.permissions.includes("organization.members:manage");
 
   return (
     <div className="space-y-6">
@@ -70,8 +69,7 @@ export default async function KatalogPage() {
           {items.map((item) => {
             const min = money(item.priceMin, item.currency);
             const max = money(item.priceMax, item.currency);
-            const range =
-              min && max && min !== max ? `${min} – ${max}` : (min ?? max ?? "—");
+            const range = min && max && min !== max ? `${min} – ${max}` : (min ?? max ?? "—");
             return (
               <Card key={item.projectId}>
                 <CardHeader>

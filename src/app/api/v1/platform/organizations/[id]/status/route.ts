@@ -10,19 +10,11 @@ const bodySchema = z.object({
 
 const paramsSchema = z.object({ id: z.string().min(1) });
 
-export const PATCH = apiHandler(
-  { bodySchema, paramsSchema },
-  async ({ body, params }) => {
-    const ctx = await requireSuperAdmin();
-    await setOrganizationStatus(
-      params.id,
-      body.status,
-      ctx.session.user.id,
-      body.reason,
-    );
-    return { data: { ok: true } };
-  },
-);
+export const PATCH = apiHandler({ bodySchema, paramsSchema }, async ({ body, params }) => {
+  const ctx = await requireSuperAdmin();
+  await setOrganizationStatus(params.id, body.status, ctx.session.user.id, body.reason);
+  return { data: { ok: true } };
+});
 
 /**
  * @swagger

@@ -35,9 +35,7 @@ beforeEach(() => {
 
 describe("listNotifications", () => {
   it("returns unreadCount from an unfiltered count independent of unreadOnly", async () => {
-    prismaMock.notification.count
-      .mockResolvedValueOnce(5)
-      .mockResolvedValueOnce(2);
+    prismaMock.notification.count.mockResolvedValueOnce(5).mockResolvedValueOnce(2);
     prismaMock.notification.findMany.mockResolvedValue([]);
 
     const result = await listNotifications({
@@ -52,9 +50,7 @@ describe("listNotifications", () => {
   });
 
   it("still returns full unreadCount when unreadOnly=true", async () => {
-    prismaMock.notification.count
-      .mockResolvedValueOnce(2)
-      .mockResolvedValueOnce(2);
+    prismaMock.notification.count.mockResolvedValueOnce(2).mockResolvedValueOnce(2);
     prismaMock.notification.findMany.mockResolvedValue([]);
 
     const result = await listNotifications({
@@ -73,9 +69,7 @@ describe("listNotifications", () => {
   });
 
   it("applies category filter without corrupting unreadCount", async () => {
-    prismaMock.notification.count
-      .mockResolvedValueOnce(3)
-      .mockResolvedValueOnce(4);
+    prismaMock.notification.count.mockResolvedValueOnce(3).mockResolvedValueOnce(4);
     prismaMock.notification.findMany.mockResolvedValue([]);
 
     const result = await listNotifications({

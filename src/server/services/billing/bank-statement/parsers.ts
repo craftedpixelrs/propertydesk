@@ -63,7 +63,10 @@ function parseDate(raw: unknown): Date {
 }
 
 function parseAmount(raw: unknown): string {
-  const s = String(raw ?? "").replace(/\./g, "").replace(",", ".").trim();
+  const s = String(raw ?? "")
+    .replace(/\./g, "")
+    .replace(",", ".")
+    .trim();
   if (!s) throw DomainErrors.badRequest("Iznos je obavezan.");
   const value = toDecimal(s);
   return value.toFixed(2);
@@ -75,7 +78,9 @@ function mapRow(rec: Record<string, unknown>): BankStatementRow {
     const canonical = ALIASES[key.trim().toLowerCase()];
     if (canonical) out[canonical] = rec[key];
   }
-  const currency = String(out.currency ?? "RSD").toUpperCase().slice(0, 3);
+  const currency = String(out.currency ?? "RSD")
+    .toUpperCase()
+    .slice(0, 3);
   return {
     transactionDate: parseDate(out.transactionDate),
     valueDate: out.valueDate ? parseDate(out.valueDate) : null,
@@ -118,9 +123,7 @@ export async function parseXlsx(buffer: Buffer): Promise<BankStatementRow[]> {
     // ExcelJS uses 1-based indexing; index 0 is undefined.
     const cells = values.slice(1).map((v) => (v == null ? "" : String(v)));
     if (!headers) {
-      const looksLikeHeader = cells.some((c) =>
-        ["datum", "date"].includes(c.trim().toLowerCase()),
-      );
+      const looksLikeHeader = cells.some((c) => ["datum", "date"].includes(c.trim().toLowerCase()));
       if (!looksLikeHeader) return;
       headers = cells.map((c) => c.trim());
       return;

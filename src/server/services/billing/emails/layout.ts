@@ -68,12 +68,7 @@ const FONT_FAMILY =
 // Types
 // -----------------------------------------------------------------------------
 
-export type BillingEmailTone =
-  | "info"
-  | "success"
-  | "warning"
-  | "danger"
-  | "muted";
+export type BillingEmailTone = "info" | "success" | "warning" | "danger" | "muted";
 
 export interface KeyValuePair {
   label: string;
@@ -182,9 +177,7 @@ export function renderKeyValue(pairs: KeyValuePair[]): string {
   const rows = pairs
     .map((p, idx) => {
       const isLast = idx === pairs.length - 1;
-      const borderBottom = isLast
-        ? "none"
-        : `1px solid ${COLORS.border}`;
+      const borderBottom = isLast ? "none" : `1px solid ${COLORS.border}`;
       const valueStyle = p.emphasize
         ? `color:${COLORS.textPrimary};font-size:18px;font-weight:700;`
         : `color:${COLORS.textPrimary};font-size:14px;font-weight:500;`;
@@ -260,16 +253,13 @@ export function wrapBillingEmail(input: WrapBillingEmailInput): string {
   const preheader = input.preheader ? escapeHtml(input.preheader) : "";
   const title = input.title ? escapeHtml(input.title) : "";
   const intro = input.intro ? escapeHtml(input.intro) : "";
-  const badge = input.badge
-    ? renderBadge(input.badge.label, input.badge.tone)
-    : "";
+  const badge = input.badge ? renderBadge(input.badge.label, input.badge.tone) : "";
   const cta = input.cta ? renderButton(input.cta) : "";
   const footerNote = input.footerNote
     ? `<div style="margin:0 0 16px 0;color:${COLORS.textMuted};font-size:13px;font-style:italic;text-align:center;line-height:1.5;">${escapeHtml(input.footerNote)}</div>`
     : "";
   const issuerName = input.issuerName ?? "PropertyDesk d.o.o.";
-  const issuerAddress =
-    input.issuerAddress ?? "Naplata i pretplate";
+  const issuerAddress = input.issuerAddress ?? "Naplata i pretplate";
   const supportEmail = input.supportEmail ?? "podrska@propertydesk.app";
 
   return `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">

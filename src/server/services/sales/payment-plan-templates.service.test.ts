@@ -50,8 +50,8 @@ import {
 
 beforeEach(() => {
   vi.clearAllMocks();
-  prismaMock.$transaction.mockImplementation(
-    async (fn: (tx: unknown) => Promise<unknown>) => fn(prismaMock),
+  prismaMock.$transaction.mockImplementation(async (fn: (tx: unknown) => Promise<unknown>) =>
+    fn(prismaMock),
   );
 });
 

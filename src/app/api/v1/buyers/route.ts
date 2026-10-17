@@ -53,7 +53,10 @@ function parseCsvList<T extends string>(
   allowed: readonly T[],
 ): T[] | undefined {
   if (!raw) return undefined;
-  const values = raw.split(",").map((s) => s.trim().toUpperCase()).filter(Boolean);
+  const values = raw
+    .split(",")
+    .map((s) => s.trim().toUpperCase())
+    .filter(Boolean);
   const filtered = values.filter((v): v is T => (allowed as readonly string[]).includes(v));
   return filtered.length > 0 ? filtered : undefined;
 }

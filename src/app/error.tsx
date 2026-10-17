@@ -28,12 +28,9 @@ export default function Error({
   }, [error]);
 
   return (
-    <main
-      role="main"
-      className="flex min-h-[60vh] items-center justify-center p-6"
-    >
+    <main role="main" className="flex min-h-[60vh] items-center justify-center p-6">
       <div className="max-w-md text-center">
-        <p className="text-xs font-semibold uppercase tracking-widest text-red-600">
+        <p className="text-xs font-semibold tracking-widest text-red-600 uppercase">
           {t("pages.errorKicker")}
         </p>
         <h1 className="mt-2 text-2xl font-semibold text-[var(--color-foreground)]">

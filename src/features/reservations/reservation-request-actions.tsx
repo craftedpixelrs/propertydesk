@@ -15,10 +15,7 @@ import { apiClient, ApiClientError } from "@/lib/api-client";
  * frees the unit's soft hold when no other pending requests
  * remain.
  */
-export function ReservationRequestActions(props: {
-  requestId: string;
-  canApprove: boolean;
-}) {
+export function ReservationRequestActions(props: { requestId: string; canApprove: boolean }) {
   const t = useT();
   const router = useRouter();
   const [busy, setBusy] = useState<"confirm" | "decline" | null>(null);
@@ -36,10 +33,7 @@ export function ReservationRequestActions(props: {
     setBusy("confirm");
     setError(null);
     try {
-      await apiClient.post(
-        `/reservation-requests/${props.requestId}/confirm`,
-        {},
-      );
+      await apiClient.post(`/reservation-requests/${props.requestId}/confirm`, {});
       router.refresh();
     } catch (err) {
       setError(err instanceof ApiClientError ? err.message : t("errors.generic"));
@@ -54,10 +48,9 @@ export function ReservationRequestActions(props: {
     setBusy("decline");
     setError(null);
     try {
-      await apiClient.post(
-        `/reservation-requests/${props.requestId}/decline`,
-        { reason: reason || null },
-      );
+      await apiClient.post(`/reservation-requests/${props.requestId}/decline`, {
+        reason: reason || null,
+      });
       router.refresh();
     } catch (err) {
       setError(err instanceof ApiClientError ? err.message : t("errors.generic"));

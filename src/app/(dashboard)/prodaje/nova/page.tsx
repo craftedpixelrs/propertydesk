@@ -33,7 +33,9 @@ export default async function NovaProdajaPage({ searchParams }: PageProps) {
     const reservation = await prisma.reservation.findFirst({
       where: { id: reservationId, organizationId: ctx.activeOrganization.id },
       include: {
-        unit: { select: { id: true, code: true, basePrice: true, finalPrice: true, currency: true } },
+        unit: {
+          select: { id: true, code: true, basePrice: true, finalPrice: true, currency: true },
+        },
         buyer: { select: { firstName: true, lastName: true } },
         project: { select: { name: true } },
       },
@@ -43,7 +45,9 @@ export default async function NovaProdajaPage({ searchParams }: PageProps) {
         <div className="space-y-4">
           <h1 className="text-2xl font-semibold">{t("deals.sales.newSale")}</h1>
           <Card>
-            <CardContent className="py-8 text-sm">{t("deals.sales.reservationNotFound")}</CardContent>
+            <CardContent className="py-8 text-sm">
+              {t("deals.sales.reservationNotFound")}
+            </CardContent>
           </Card>
         </div>
       );
@@ -53,17 +57,13 @@ export default async function NovaProdajaPage({ searchParams }: PageProps) {
         <div className="space-y-4">
           <h1 className="text-2xl font-semibold">{t("deals.sales.newSale")}</h1>
           <Card>
-            <CardContent className="py-8 text-sm">
-              {t("deals.sales.onlyApproved")}
-            </CardContent>
+            <CardContent className="py-8 text-sm">{t("deals.sales.onlyApproved")}</CardContent>
           </Card>
         </div>
       );
     }
     const currency = (reservation.unit.currency ?? "EUR") as SupportedCurrency;
-    const listPrice = (
-      reservation.unit.finalPrice ?? reservation.unit.basePrice
-    ).toString();
+    const listPrice = (reservation.unit.finalPrice ?? reservation.unit.basePrice).toString();
     return (
       <div className="space-y-6">
         <div>
@@ -117,9 +117,7 @@ export default async function NovaProdajaPage({ searchParams }: PageProps) {
 
       {approved.length === 0 ? (
         <Card>
-          <CardContent className="py-8 text-sm">
-            {t("deals.sales.noApproved")}
-          </CardContent>
+          <CardContent className="py-8 text-sm">{t("deals.sales.noApproved")}</CardContent>
         </Card>
       ) : (
         <div className="grid gap-3">
@@ -132,8 +130,7 @@ export default async function NovaProdajaPage({ searchParams }: PageProps) {
                   </div>
                   <div className="text-xs text-[var(--color-foreground-muted)]">
                     {t("deals.buyer")}: {r.buyer?.firstName} {r.buyer?.lastName} ·{" "}
-                    {t("deals.sales.approvedOn")}{" "}
-                    {r.approvedAt ? formatDate(r.approvedAt) : "—"}
+                    {t("deals.sales.approvedOn")} {r.approvedAt ? formatDate(r.approvedAt) : "—"}
                     {r.reservationAmount ? (
                       <>
                         {" "}

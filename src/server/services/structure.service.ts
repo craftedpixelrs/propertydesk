@@ -12,10 +12,7 @@ import { recordAudit } from "@/server/audit/audit";
  * project's owner and emits an audit event.
  */
 
-async function assertProjectOwned(
-  organizationId: string,
-  projectId: string,
-): Promise<void> {
+async function assertProjectOwned(organizationId: string, projectId: string): Promise<void> {
   const project = await prisma.project.findFirst({
     where: { id: projectId, organizationId },
     select: { id: true },
@@ -23,10 +20,7 @@ async function assertProjectOwned(
   if (!project) throw DomainErrors.notFound("Projekat");
 }
 
-async function assertBuildingOwned(
-  organizationId: string,
-  buildingId: string,
-): Promise<string> {
+async function assertBuildingOwned(organizationId: string, buildingId: string): Promise<string> {
   const building = await prisma.building.findFirst({
     where: { id: buildingId, project: { organizationId } },
     select: { id: true, projectId: true },
@@ -69,9 +63,7 @@ export async function createBuilding(input: {
     select: { id: true },
   });
   if (dup) {
-    throw DomainErrors.conflict(
-      `Objekat sa šifrom "${input.code}" već postoji u ovom projektu.`,
-    );
+    throw DomainErrors.conflict(`Objekat sa šifrom "${input.code}" već postoji u ovom projektu.`);
   }
   const created = await prisma.building.create({
     data: {
@@ -157,9 +149,7 @@ export async function createEntrance(input: {
     select: { id: true },
   });
   if (dup) {
-    throw DomainErrors.conflict(
-      `Ulaz sa šifrom "${input.code}" već postoji u ovom objektu.`,
-    );
+    throw DomainErrors.conflict(`Ulaz sa šifrom "${input.code}" već postoji u ovom objektu.`);
   }
   const created = await prisma.entrance.create({
     data: {
@@ -212,9 +202,7 @@ export async function deleteEntrance(input: {
     where: { entranceId: input.entranceId },
   });
   if (unitCount > 0) {
-    throw DomainErrors.invalidState(
-      "Ovaj ulaz sadrži jedinice i ne može biti obrisan.",
-    );
+    throw DomainErrors.invalidState("Ovaj ulaz sadrži jedinice i ne može biti obrisan.");
   }
   await prisma.entrance.delete({ where: { id: input.entranceId } });
   await recordAudit({
@@ -245,9 +233,7 @@ export async function createFloor(input: {
     select: { id: true },
   });
   if (dup) {
-    throw DomainErrors.conflict(
-      `Sprat "${input.label}" već postoji u ovom ulazu.`,
-    );
+    throw DomainErrors.conflict(`Sprat "${input.label}" već postoji u ovom ulazu.`);
   }
   const created = await prisma.floor.create({
     data: {
@@ -273,10 +259,18 @@ export async function updateFloor(input: {
   organizationId: string;
   actorUserId: string;
   floorId: string;
-  patch: { label?: string; number?: number | null; sortOrder?: number; floorPlanUrl?: string | null };
+  patch: {
+    label?: string;
+    number?: number | null;
+    sortOrder?: number;
+    floorPlanUrl?: string | null;
+  };
 }) {
   const floor = await prisma.floor.findFirst({
-    where: { id: input.floorId, entrance: { building: { project: { organizationId: input.organizationId } } } },
+    where: {
+      id: input.floorId,
+      entrance: { building: { project: { organizationId: input.organizationId } } },
+    },
     select: { id: true },
   });
   if (!floor) throw DomainErrors.notFound("Sprat");
@@ -301,7 +295,10 @@ export async function deleteFloor(input: {
   floorId: string;
 }) {
   const floor = await prisma.floor.findFirst({
-    where: { id: input.floorId, entrance: { building: { project: { organizationId: input.organizationId } } } },
+    where: {
+      id: input.floorId,
+      entrance: { building: { project: { organizationId: input.organizationId } } },
+    },
     select: { id: true },
   });
   if (!floor) throw DomainErrors.notFound("Sprat");
@@ -309,9 +306,7 @@ export async function deleteFloor(input: {
     where: { floorId: input.floorId },
   });
   if (unitCount > 0) {
-    throw DomainErrors.invalidState(
-      "Ovaj sprat sadrži jedinice i ne može biti obrisan.",
-    );
+    throw DomainErrors.invalidState("Ovaj sprat sadrži jedinice i ne može biti obrisan.");
   }
   await prisma.floor.delete({ where: { id: input.floorId } });
   await recordAudit({

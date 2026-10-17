@@ -15,8 +15,7 @@ const paramsSchema = z.object({ name: z.string().min(1) });
  * authenticated as a user — this is machine-to-machine only.
  */
 export const POST = apiHandler({ paramsSchema }, async ({ req, params }) => {
-  const provided =
-    req.headers.get("authorization") ?? req.headers.get("x-cron-secret");
+  const provided = req.headers.get("authorization") ?? req.headers.get("x-cron-secret");
   if (!verifyCronSecret(provided)) {
     throw new ApiError("UNAUTHENTICATED", "Neispravan ili nedostajući cron token.", {
       statusCode: 401,

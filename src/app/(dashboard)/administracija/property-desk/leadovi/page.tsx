@@ -3,10 +3,7 @@ import { z } from "zod";
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import {
-  hasPdPermission,
-  requirePropertyDeskAccess,
-} from "@/server/permissions/property-desk";
+import { hasPdPermission, requirePropertyDeskAccess } from "@/server/permissions/property-desk";
 import { listMarketingLeads } from "@/server/services/property-desk/marketing-leads.service";
 import { listTeamMembers } from "@/server/services/property-desk/team.service";
 import { STAGE_TO_LEVEL } from "@/server/services/property-desk/lead-lifecycle";
@@ -128,9 +125,7 @@ export default async function PropertyDeskLeadsPage({ searchParams }: PageProps)
     nextFollowUpAt: l.nextFollowUpAt ? l.nextFollowUpAt.toISOString() : null,
     createdAt: l.createdAt.toISOString(),
     source: l.source,
-    assignedTo: l.assignedTo
-      ? { id: l.assignedTo.id, name: l.assignedTo.name }
-      : null,
+    assignedTo: l.assignedTo ? { id: l.assignedTo.id, name: l.assignedTo.name } : null,
   }));
 
   return (
@@ -145,9 +140,7 @@ export default async function PropertyDeskLeadsPage({ searchParams }: PageProps)
         <Badge tone="neutral">{t("admin.pdLeads.total", { total })}</Badge>
       </div>
 
-      {raw.handoff ? (
-        <HandoffBanner stage={raw.handoff} t={t} />
-      ) : null}
+      {raw.handoff ? <HandoffBanner stage={raw.handoff} t={t} /> : null}
 
       <Card>
         <CardContent className="p-4">
@@ -298,7 +291,7 @@ export default async function PropertyDeskLeadsPage({ searchParams }: PageProps)
               placeholder="utm_source"
               className="h-10 rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] px-3 text-sm"
             />
-            <div className="md:col-span-6 flex gap-2">
+            <div className="flex gap-2 md:col-span-6">
               <button
                 type="submit"
                 className="h-10 rounded-md bg-[var(--color-brand-600)] px-4 text-sm text-white hover:bg-[var(--color-brand-700)]"

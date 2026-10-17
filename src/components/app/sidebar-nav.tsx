@@ -46,7 +46,7 @@ function NavSections({
     <ul className="space-y-4">
       {groupNavigation(items).map((section) => (
         <li key={section.group}>
-          <p className="px-2.5 pb-1.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--color-foreground-subtle)]">
+          <p className="px-2.5 pb-1.5 text-[11px] font-semibold tracking-[0.12em] text-[var(--color-foreground-subtle)] uppercase">
             {t(NAV_GROUP_LABEL[section.group])}
           </p>
           <ul className="space-y-0.5">

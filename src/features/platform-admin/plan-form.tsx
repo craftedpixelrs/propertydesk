@@ -36,7 +36,13 @@ const FIELDS: FieldSpec[] = [
   { name: "name", labelKey: "admin.planForm.name", required: true },
   { name: "description", labelKey: "admin.planForm.description", type: "textarea" },
 
-  { name: "monthlyPrice", labelKey: "admin.planForm.monthlyPrice", type: "number", required: true, step: "0.01" },
+  {
+    name: "monthlyPrice",
+    labelKey: "admin.planForm.monthlyPrice",
+    type: "number",
+    required: true,
+    step: "0.01",
+  },
   {
     name: "quarterlyPrice",
     labelKey: "admin.planForm.quarterlyPrice",
@@ -65,19 +71,69 @@ const FIELDS: FieldSpec[] = [
     step: "0.01",
     hintKey: "admin.planForm.onboardingHint",
   },
-  { name: "currency", labelKey: "admin.planForm.currency", required: true, hintKey: "admin.planForm.currencyHint" },
+  {
+    name: "currency",
+    labelKey: "admin.planForm.currency",
+    required: true,
+    hintKey: "admin.planForm.currencyHint",
+  },
 
-  { name: "defaultTrialDays", labelKey: "admin.planForm.trialDays", type: "number", hintKey: "admin.planForm.trialHint" },
+  {
+    name: "defaultTrialDays",
+    labelKey: "admin.planForm.trialDays",
+    type: "number",
+    hintKey: "admin.planForm.trialHint",
+  },
 
-  { name: "maxActiveProjects", labelKey: "admin.planForm.maxProjects", type: "number", hintKey: "admin.planForm.unlimitedHint" },
-  { name: "maxUnits", labelKey: "admin.planForm.maxUnits", type: "number", hintKey: "admin.planForm.unlimitedHint" },
-  { name: "maxMembers", labelKey: "admin.planForm.maxMembers", type: "number", hintKey: "admin.planForm.unlimitedHint" },
-  { name: "maxAgencyConnections", labelKey: "admin.planForm.maxAgencies", type: "number", hintKey: "admin.planForm.unlimitedHint" },
+  {
+    name: "maxActiveProjects",
+    labelKey: "admin.planForm.maxProjects",
+    type: "number",
+    hintKey: "admin.planForm.unlimitedHint",
+  },
+  {
+    name: "maxUnits",
+    labelKey: "admin.planForm.maxUnits",
+    type: "number",
+    hintKey: "admin.planForm.unlimitedHint",
+  },
+  {
+    name: "maxMembers",
+    labelKey: "admin.planForm.maxMembers",
+    type: "number",
+    hintKey: "admin.planForm.unlimitedHint",
+  },
+  {
+    name: "maxAgencyConnections",
+    labelKey: "admin.planForm.maxAgencies",
+    type: "number",
+    hintKey: "admin.planForm.unlimitedHint",
+  },
 
-  { name: "sortOrder", labelKey: "admin.planForm.sortOrder", type: "number", hintKey: "admin.planForm.sortHint" },
-  { name: "active", labelKey: "admin.planForm.active", type: "checkbox", hintKey: "admin.planForm.activeHint" },
-  { name: "publiclyAvailable", labelKey: "admin.planForm.public", type: "checkbox", hintKey: "admin.planForm.publicHint" },
-  { name: "recommended", labelKey: "admin.planForm.recommended", type: "checkbox", hintKey: "admin.planForm.recommendedHint" },
+  {
+    name: "sortOrder",
+    labelKey: "admin.planForm.sortOrder",
+    type: "number",
+    hintKey: "admin.planForm.sortHint",
+  },
+  {
+    name: "active",
+    labelKey: "admin.planForm.active",
+    type: "checkbox",
+    hintKey: "admin.planForm.activeHint",
+  },
+  {
+    name: "publiclyAvailable",
+    labelKey: "admin.planForm.public",
+    type: "checkbox",
+    hintKey: "admin.planForm.publicHint",
+  },
+  {
+    name: "recommended",
+    labelKey: "admin.planForm.recommended",
+    type: "checkbox",
+    hintKey: "admin.planForm.recommendedHint",
+  },
 ];
 
 const NUMERIC_FIELDS = new Set([
@@ -189,10 +245,7 @@ export function PlanForm({ mode, planId, initialValues }: PlanFormProps) {
             const disabled = isEdit && f.immutable;
             const spanFull = f.type === "textarea";
             return (
-              <div
-                key={f.name}
-                className={`space-y-1 ${spanFull ? "sm:col-span-2" : ""}`}
-              >
+              <div key={f.name} className={`space-y-1 ${spanFull ? "sm:col-span-2" : ""}`}>
                 <label htmlFor={f.name} className="text-sm font-medium">
                   {t(f.labelKey)}
                   {f.required ? <span className="text-red-500">*</span> : null}
@@ -210,9 +263,7 @@ export function PlanForm({ mode, planId, initialValues }: PlanFormProps) {
                     <input
                       type="checkbox"
                       checked={(values[f.name] ?? "false") === "true"}
-                      onChange={(e) =>
-                        setValue(f.name, e.target.checked ? "true" : "false")
-                      }
+                      onChange={(e) => setValue(f.name, e.target.checked ? "true" : "false")}
                       className="size-4"
                     />
                     <span className="text-sm">{f.hintKey ? t(f.hintKey) : ""}</span>
@@ -230,9 +281,7 @@ export function PlanForm({ mode, planId, initialValues }: PlanFormProps) {
                   />
                 )}
                 {f.hintKey && f.type !== "checkbox" ? (
-                  <p className="text-xs text-[var(--color-foreground-muted)]">
-                    {t(f.hintKey)}
-                  </p>
+                  <p className="text-xs text-[var(--color-foreground-muted)]">{t(f.hintKey)}</p>
                 ) : null}
                 {fieldErrors[f.name]?.map((m, i) => (
                   <p key={i} className="text-xs text-red-600">
@@ -244,12 +293,12 @@ export function PlanForm({ mode, planId, initialValues }: PlanFormProps) {
           })}
 
           {error ? (
-            <div className="sm:col-span-2 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+            <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700 sm:col-span-2">
               {error}
             </div>
           ) : null}
 
-          <div className="sm:col-span-2 flex justify-end gap-2 pt-2">
+          <div className="flex justify-end gap-2 pt-2 sm:col-span-2">
             <Button
               variant="outline"
               type="button"

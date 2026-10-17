@@ -13,8 +13,8 @@ export interface LegalDoc {
   sections: LegalSection[];
 }
 
-const UPDATED_SR = "17.08.2026.";
-const UPDATED_EN = "17 August 2026";
+const UPDATED_SR = "23.09.2026.";
+const UPDATED_EN = "23 September 2026";
 
 const privacySr: LegalDoc = {
   title: "Politika privatnosti",
@@ -166,7 +166,7 @@ const termsSr: LegalDoc = {
       paragraphs: [
         `Prijave do ${LAUNCH_DATE_LABEL} ostvaruju 30 dana besplatnog korišćenja, zatim 50% popusta na naredna tri meseca, i zaključanu cenu izabranog paketa 12 meseci. Besplatan uvoz prve Excel tabele i podešavanje jednog projekta dogovaramo tokom onboardinga.`,
         "Cene paketa (Starter, Growth, Scale) prikazane na sajtu su mesečne pretplate u eurima, bez PDV-a ako nije drugačije navedeno. Tačan iznos i valuta na fakturi potvrđuju se pri aktivaciji.",
-        "Pretplatu možete otkazati u bilo kom trenutku iz aplikacije, bez ugovorne obaveze. Podaci ostaju dostupni za izvoz još 30 dana nakon otkazivanja.",
+        "Pretplatu možete otkazati u bilo kom trenutku iz aplikacije, bez ugovorne obaveze. Vlasnik preuzima JSON izvoz iz Podešavanja → Organizacija. Izvoz ostaje dostupan i kad je nalog ograničen zbog isteka, najmanje 30 dana.",
       ],
     },
     {
@@ -179,8 +179,8 @@ const termsSr: LegalDoc = {
     {
       heading: "Šta usluga još ne radi automatski",
       paragraphs: [
-        "IPS QR za kaparu i fakture je u upotrebi. Automatsko slanje faktura u Sistem elektronskih faktura (SEF) još nije uključeno — status e-fakture do tada pratite ručno preko SEF portala. Elektronski potpis ugovora i editor poligona na spratu su na roadmapu posle lansiranja.",
-        "Sajt i FAQ ne tvrde da su te stavke već žive. Ako Vam je neka od njih uslov za kupovinu, recite nam na demou.",
+        "IPS QR za kaparu i fakture je u upotrebi. Automatsko slanje faktura u SEF nije uključeno i, ako se provajder slučajno uključi, sistem neće prijaviti da je faktura primljena. Kurs NBS se unosi ručno. Podsetnik za ratu ide prodavcu, ne kupcu. Elektronski potpis, WordPress, AI chat i marketplace nisu deo ugovora i nemaju rok.",
+        "Ako Vam je neka od tih stavki uslov za kupovinu, recite nam na demou.",
       ],
     },
     {
@@ -218,7 +218,7 @@ const termsEn: LegalDoc = {
       paragraphs: [
         `Applications until ${LAUNCH_DATE_LABEL} get 30 days free, then 50% off the next three months, and a locked plan price for 12 months. A free first Excel import and setup of one project are arranged during onboarding.`,
         "Plan prices (Starter, Growth, Scale) on the site are monthly subscriptions in euros, excluding VAT unless stated otherwise. The exact amount and currency on the invoice are confirmed at activation.",
-        "You may cancel at any time from the app, with no contractual lock-in. Your data stays available for export for 30 days after cancellation.",
+        "You may cancel at any time from the app, with no contractual lock-in. The owner downloads a JSON export from Settings → Organization. The export stays available when the account is restricted after expiry, for at least 30 days.",
       ],
     },
     {
@@ -231,8 +231,8 @@ const termsEn: LegalDoc = {
     {
       heading: "What the service does not yet do automatically",
       paragraphs: [
-        "IPS QR for deposits and invoices is in use. Automatic submission of invoices to Serbia’s electronic invoicing system (SEF) is not enabled yet — until then you track e-invoice status manually via the SEF portal. Electronic contract signing and the floor-plan polygon editor are on the post-launch roadmap.",
-        "The site and FAQ do not claim those items are already live. If any of them is a purchase condition, tell us on the demo.",
+        "IPS QR for deposits and invoices is in use. Automatic submission to SEF is not enabled, and if that provider is switched on by mistake the system will not report the invoice as accepted. The NBS rate is entered manually. Installment reminders go to the salesperson, not the buyer. Electronic signing, WordPress, an AI chat and a marketplace are not part of the contract and have no deadline.",
+        "If any of those is a purchase condition, tell us on the demo.",
       ],
     },
     {
@@ -332,10 +332,7 @@ const imprintEn: LegalDoc = {
   ],
 };
 
-export function getLegalDoc(
-  kind: "privacy" | "terms" | "imprint",
-  locale: Locale,
-): LegalDoc {
+export function getLegalDoc(kind: "privacy" | "terms" | "imprint", locale: Locale): LegalDoc {
   const sr = { privacy: privacySr, terms: termsSr, imprint: imprintSr };
   const en = { privacy: privacyEn, terms: termsEn, imprint: imprintEn };
   return locale === "en" ? en[kind] : sr[kind];

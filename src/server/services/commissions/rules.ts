@@ -20,10 +20,7 @@ import type { AgencyCommissionRule } from "@prisma/client";
  */
 
 export type CommissionRuleTier =
-  | "UNIT_AGENCY"
-  | "PROJECT_AGENCY"
-  | "CONNECTION_DEFAULT"
-  | "PROJECT_DEFAULT";
+  "UNIT_AGENCY" | "PROJECT_AGENCY" | "CONNECTION_DEFAULT" | "PROJECT_DEFAULT";
 
 export interface ResolveRuleContext {
   agencyConnectionId: string;
@@ -43,10 +40,7 @@ function isRuleInWindow(rule: AgencyCommissionRule, at: Date): boolean {
   return true;
 }
 
-function classify(
-  rule: AgencyCommissionRule,
-  ctx: ResolveRuleContext,
-): CommissionRuleTier | null {
+function classify(rule: AgencyCommissionRule, ctx: ResolveRuleContext): CommissionRuleTier | null {
   const matchAgency = rule.agencyConnectionId === ctx.agencyConnectionId;
   const matchProject = rule.projectId === ctx.projectId;
   const matchUnit = ctx.unitId != null && rule.unitId === ctx.unitId;
@@ -79,8 +73,7 @@ export function resolveCommissionRule(
     if (
       !best ||
       TIER_PRIORITY[tier] > TIER_PRIORITY[best.tier] ||
-      (TIER_PRIORITY[tier] === TIER_PRIORITY[best.tier] &&
-        rule.createdAt > best.rule.createdAt)
+      (TIER_PRIORITY[tier] === TIER_PRIORITY[best.tier] && rule.createdAt > best.rule.createdAt)
     ) {
       best = { rule, tier };
     }

@@ -110,7 +110,11 @@ export const GET = apiHandler({}, async ({ searchParams }): Promise<Response> =>
       const data = await buildPaymentsReport(filters);
       filename = `uplate-${today()}`;
       columns = [
-        { key: "paymentDate", label: "Datum uplate", format: (v) => new Date(String(v)).toISOString() },
+        {
+          key: "paymentDate",
+          label: "Datum uplate",
+          format: (v) => new Date(String(v)).toISOString(),
+        },
         { key: "unitCode", label: "Jedinica" },
         { key: "amount", label: "Iznos" },
         { key: "currency", label: "Valuta" },

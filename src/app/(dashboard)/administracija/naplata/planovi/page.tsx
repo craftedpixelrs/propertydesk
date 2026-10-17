@@ -52,7 +52,10 @@ export default async function BillingPlansPage() {
                     {t("billing.cycle.MONTHLY")}
                   </span>
                   <span className="font-medium tabular-nums">
-                    {formatMoney(Number(plan.monthlyPrice.toString()), plan.currency as "EUR" | "RSD")}
+                    {formatMoney(
+                      Number(plan.monthlyPrice.toString()),
+                      plan.currency as "EUR" | "RSD",
+                    )}
                   </span>
                 </li>
                 <li className="flex items-center justify-between">
@@ -61,7 +64,10 @@ export default async function BillingPlansPage() {
                   </span>
                   <span className="font-medium tabular-nums">
                     {plan.quarterlyPrice
-                      ? formatMoney(Number(plan.quarterlyPrice.toString()), plan.currency as "EUR" | "RSD")
+                      ? formatMoney(
+                          Number(plan.quarterlyPrice.toString()),
+                          plan.currency as "EUR" | "RSD",
+                        )
                       : t("admin.dash")}
                   </span>
                 </li>
@@ -71,7 +77,10 @@ export default async function BillingPlansPage() {
                   </span>
                   <span className="font-medium tabular-nums">
                     {plan.semiAnnualPrice
-                      ? formatMoney(Number(plan.semiAnnualPrice.toString()), plan.currency as "EUR" | "RSD")
+                      ? formatMoney(
+                          Number(plan.semiAnnualPrice.toString()),
+                          plan.currency as "EUR" | "RSD",
+                        )
                       : t("admin.dash")}
                   </span>
                 </li>
@@ -81,17 +90,23 @@ export default async function BillingPlansPage() {
                   </span>
                   <span className="font-medium tabular-nums">
                     {plan.annualPrice
-                      ? formatMoney(Number(plan.annualPrice.toString()), plan.currency as "EUR" | "RSD")
+                      ? formatMoney(
+                          Number(plan.annualPrice.toString()),
+                          plan.currency as "EUR" | "RSD",
+                        )
                       : t("admin.dash")}
                   </span>
                 </li>
-                <li className="flex items-center justify-between pt-2 border-t border-[var(--color-border)]">
+                <li className="flex items-center justify-between border-t border-[var(--color-border)] pt-2">
                   <span className="text-[var(--color-foreground-muted)]">
                     {t("admin.billingPlans.onboarding")}
                   </span>
                   <span className="font-medium tabular-nums">
                     {plan.onboardingFee && Number(plan.onboardingFee.toString()) > 0
-                      ? formatMoney(Number(plan.onboardingFee.toString()), plan.currency as "EUR" | "RSD")
+                      ? formatMoney(
+                          Number(plan.onboardingFee.toString()),
+                          plan.currency as "EUR" | "RSD",
+                        )
                       : t("admin.dash")}
                   </span>
                 </li>

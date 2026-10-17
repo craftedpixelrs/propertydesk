@@ -40,8 +40,7 @@ export function CommissionRulesManager({
   const t = useT();
   const router = useRouter();
   const [projectId, setProjectId] = useState("");
-  const [calculationType, setCalculationType] =
-    useState<CommissionCalculationType>("PERCENTAGE");
+  const [calculationType, setCalculationType] = useState<CommissionCalculationType>("PERCENTAGE");
   const [rate, setRate] = useState("3");
   const [fixedAmount, setFixedAmount] = useState("");
   const [loading, setLoading] = useState(false);
@@ -123,9 +122,7 @@ export function CommissionRulesManager({
               <select
                 id="rule-type"
                 value={calculationType}
-                onChange={(e) =>
-                  setCalculationType(e.target.value as CommissionCalculationType)
-                }
+                onChange={(e) => setCalculationType(e.target.value as CommissionCalculationType)}
                 className="h-11 w-full rounded-md border border-[var(--color-border)] bg-white px-3 text-sm"
               >
                 <option value="PERCENTAGE">{t("partners.percentage")}</option>
@@ -183,7 +180,7 @@ export function CommissionRulesManager({
           ) : (
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-[var(--color-border)] text-sm">
-                <thead className="bg-[var(--color-surface-inset)] text-left text-xs uppercase tracking-wide text-[var(--color-foreground-muted)]">
+                <thead className="bg-[var(--color-surface-inset)] text-left text-xs tracking-wide text-[var(--color-foreground-muted)] uppercase">
                   <tr>
                     <th className="px-4 py-3">{t("partners.level")}</th>
                     <th className="px-4 py-3">{t("units.columns.project")}</th>

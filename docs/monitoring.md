@@ -9,7 +9,7 @@ Two independent pillars:
    on consecutive failures.
 
 Neither replaces uptime monitoring (Better Uptime / Pingdom / Grafana
-Cloud). Set up one of those on `/api/v1/health` and `/api/v1/ready`
+Cloud). Set up one of those on `/api/v1/health` and `/api/v1/health/ready`
 before you rely on either of the below.
 
 ---

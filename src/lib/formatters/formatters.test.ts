@@ -66,18 +66,10 @@ describe("date formatter", () => {
   });
 
   it("parses datetime input in both locales", () => {
-    expect(formatDateTimeInputValue("2026-08-20T14:30", "sr-Latn")).toBe(
-      "20.08.2026 14:30",
-    );
-    expect(formatDateTimeInputValue("2026-08-20T14:30", "en")).toBe(
-      "08/20/2026 14:30",
-    );
-    expect(parseDateTimeInputValue("20.08.2026 14:30", "sr-Latn")).toBe(
-      "2026-08-20T14:30",
-    );
-    expect(parseDateTimeInputValue("08/20/2026 14:30", "en")).toBe(
-      "2026-08-20T14:30",
-    );
+    expect(formatDateTimeInputValue("2026-08-20T14:30", "sr-Latn")).toBe("20.08.2026 14:30");
+    expect(formatDateTimeInputValue("2026-08-20T14:30", "en")).toBe("08/20/2026 14:30");
+    expect(parseDateTimeInputValue("20.08.2026 14:30", "sr-Latn")).toBe("2026-08-20T14:30");
+    expect(parseDateTimeInputValue("08/20/2026 14:30", "en")).toBe("2026-08-20T14:30");
   });
 });
 

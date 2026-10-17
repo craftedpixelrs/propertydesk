@@ -7,20 +7,13 @@ import {
   requirePdPermission,
   requirePropertyDeskAccess,
 } from "@/server/permissions/property-desk";
-import {
-  removeTeamMember,
-  updateTeamMember,
-} from "@/server/services/property-desk/team.service";
+import { removeTeamMember, updateTeamMember } from "@/server/services/property-desk/team.service";
 
 const paramsSchema = z.object({ id: z.string().min(1) });
 
 const patchBody = z.object({
-  teamRole: z
-    .enum(["SETTER", "CLOSER", "OPERATIONS", "MANAGER"])
-    .optional(),
-  leadScope: z
-    .enum(["OWN", "OWN_AND_UNASSIGNED", "TEAM", "ALL"])
-    .optional(),
+  teamRole: z.enum(["SETTER", "CLOSER", "OPERATIONS", "MANAGER"]).optional(),
+  leadScope: z.enum(["OWN", "OWN_AND_UNASSIGNED", "TEAM", "ALL"]).optional(),
   enabled: z.boolean().optional(),
   notes: z.string().max(1000).nullable().optional(),
 });
@@ -42,26 +35,17 @@ export const PATCH = apiHandler(
     // SUPER_ADMIN can rebind them independently through the admin console.
     if (body.teamRole !== undefined) {
       if (!(await hasPdPermission(ctx, "pd_team.manage_role"))) {
-        throw new AuthError(
-          "FORBIDDEN",
-          "Nemate dozvolu za promenu uloge člana tima.",
-        );
+        throw new AuthError("FORBIDDEN", "Nemate dozvolu za promenu uloge člana tima.");
       }
     }
     if (body.leadScope !== undefined) {
       if (!(await hasPdPermission(ctx, "pd_team.manage_scope"))) {
-        throw new AuthError(
-          "FORBIDDEN",
-          "Nemate dozvolu za promenu opsega lead-ova člana tima.",
-        );
+        throw new AuthError("FORBIDDEN", "Nemate dozvolu za promenu opsega lead-ova člana tima.");
       }
     }
     if (body.enabled !== undefined) {
       if (!(await hasPdPermission(ctx, "pd_team.disable"))) {
-        throw new AuthError(
-          "FORBIDDEN",
-          "Nemate dozvolu za deaktivaciju člana tima.",
-        );
+        throw new AuthError("FORBIDDEN", "Nemate dozvolu za deaktivaciju člana tima.");
       }
     }
     if (
@@ -74,11 +58,7 @@ export const PATCH = apiHandler(
       await requirePdPermission(ctx, "pd_team.view");
     }
 
-    const member = await updateTeamMember(
-      params.id,
-      body,
-      ctx.session.user.id,
-    );
+    const member = await updateTeamMember(params.id, body, ctx.session.user.id);
     return { data: member };
   },
 );

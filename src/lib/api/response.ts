@@ -49,10 +49,7 @@ export function ok<T>(
   return NextResponse.json(body, typeof init === "number" ? { status: init } : init);
 }
 
-export function fail(
-  err: ApiError,
-  requestId: string,
-): NextResponse<ErrorBody> {
+export function fail(err: ApiError, requestId: string): NextResponse<ErrorBody> {
   const body: ErrorBody = {
     error: {
       code: err.code,

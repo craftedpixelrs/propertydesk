@@ -139,10 +139,7 @@ export async function recordFailedSignIn(email: string): Promise<{
   ]);
 
   await recordAudit({
-    action:
-      level >= LOGIN_LOCK_SUSPENDED_LEVEL
-        ? "auth.account_suspended"
-        : "auth.account_locked",
+    action: level >= LOGIN_LOCK_SUSPENDED_LEVEL ? "auth.account_suspended" : "auth.account_locked",
     entityType: "User",
     entityId: user.id,
     metadata: {

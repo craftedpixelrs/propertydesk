@@ -31,9 +31,7 @@ describe("computeFifoAllocations", () => {
   });
 
   it("returns leftover as unapplied when payment exceeds all invoices", () => {
-    const invoices = [
-      { id: "a", amountDue: d(50), currency: "EUR" },
-    ];
+    const invoices = [{ id: "a", amountDue: d(50), currency: "EUR" }];
     const { allocations, unapplied } = computeFifoAllocations(d(80), invoices, "EUR");
     expect(allocations).toEqual([{ invoiceId: "a", amount: d(50) }]);
     expect(unapplied.toString()).toBe("30");

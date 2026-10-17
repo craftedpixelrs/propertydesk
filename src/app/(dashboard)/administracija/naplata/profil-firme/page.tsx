@@ -65,12 +65,40 @@ export default async function CompanyProfilePage() {
             <CardTitle className="text-base">{t("admin.companyProfile.basics")}</CardTitle>
           </CardHeader>
           <CardContent className="grid gap-3 md:grid-cols-2">
-            <F name="legalName" label={t("admin.companyProfile.legalName")} defaultValue={profile?.legalName ?? ""} required />
-            <F name="tradeName" label={t("admin.companyProfile.tradeName")} defaultValue={profile?.tradeName ?? ""} />
-            <F name="taxNumber" label={t("admin.companyProfile.taxNumber")} defaultValue={profile?.taxNumber ?? ""} required />
-            <F name="registrationNumber" label={t("admin.companyProfile.registrationNumber")} defaultValue={profile?.registrationNumber ?? ""} />
-            <F name="vatId" label={t("admin.companyProfile.vatId")} defaultValue={profile?.vatId ?? ""} />
-            <F name="country" label={t("admin.companyProfile.country")} defaultValue={profile?.country ?? "RS"} required maxLength={2} />
+            <F
+              name="legalName"
+              label={t("admin.companyProfile.legalName")}
+              defaultValue={profile?.legalName ?? ""}
+              required
+            />
+            <F
+              name="tradeName"
+              label={t("admin.companyProfile.tradeName")}
+              defaultValue={profile?.tradeName ?? ""}
+            />
+            <F
+              name="taxNumber"
+              label={t("admin.companyProfile.taxNumber")}
+              defaultValue={profile?.taxNumber ?? ""}
+              required
+            />
+            <F
+              name="registrationNumber"
+              label={t("admin.companyProfile.registrationNumber")}
+              defaultValue={profile?.registrationNumber ?? ""}
+            />
+            <F
+              name="vatId"
+              label={t("admin.companyProfile.vatId")}
+              defaultValue={profile?.vatId ?? ""}
+            />
+            <F
+              name="country"
+              label={t("admin.companyProfile.country")}
+              defaultValue={profile?.country ?? "RS"}
+              required
+              maxLength={2}
+            />
           </CardContent>
         </Card>
         <Card>
@@ -78,10 +106,28 @@ export default async function CompanyProfilePage() {
             <CardTitle className="text-base">{t("admin.companyProfile.address")}</CardTitle>
           </CardHeader>
           <CardContent className="grid gap-3 md:grid-cols-2">
-            <F name="addressLine1" label={t("admin.companyProfile.street")} defaultValue={profile?.addressLine1 ?? ""} required />
-            <F name="addressLine2" label={t("admin.companyProfile.address2")} defaultValue={profile?.addressLine2 ?? ""} />
-            <F name="postalCode" label={t("admin.companyProfile.postalCode")} defaultValue={profile?.postalCode ?? ""} />
-            <F name="city" label={t("admin.companyProfile.city")} defaultValue={profile?.city ?? ""} required />
+            <F
+              name="addressLine1"
+              label={t("admin.companyProfile.street")}
+              defaultValue={profile?.addressLine1 ?? ""}
+              required
+            />
+            <F
+              name="addressLine2"
+              label={t("admin.companyProfile.address2")}
+              defaultValue={profile?.addressLine2 ?? ""}
+            />
+            <F
+              name="postalCode"
+              label={t("admin.companyProfile.postalCode")}
+              defaultValue={profile?.postalCode ?? ""}
+            />
+            <F
+              name="city"
+              label={t("admin.companyProfile.city")}
+              defaultValue={profile?.city ?? ""}
+              required
+            />
           </CardContent>
         </Card>
         <Card>
@@ -89,9 +135,22 @@ export default async function CompanyProfilePage() {
             <CardTitle className="text-base">{t("admin.companyProfile.contactSef")}</CardTitle>
           </CardHeader>
           <CardContent className="grid gap-3 md:grid-cols-2">
-            <F name="email" label={t("admin.companyProfile.contactEmail")} type="email" defaultValue={profile?.email ?? ""} />
-            <F name="phone" label={t("admin.companyProfile.contactPhone")} defaultValue={profile?.phone ?? ""} />
-            <F name="website" label={t("admin.companyProfile.website")} defaultValue={profile?.website ?? ""} />
+            <F
+              name="email"
+              label={t("admin.companyProfile.contactEmail")}
+              type="email"
+              defaultValue={profile?.email ?? ""}
+            />
+            <F
+              name="phone"
+              label={t("admin.companyProfile.contactPhone")}
+              defaultValue={profile?.phone ?? ""}
+            />
+            <F
+              name="website"
+              label={t("admin.companyProfile.website")}
+              defaultValue={profile?.website ?? ""}
+            />
             <F
               name="sefApiKey"
               label={t("admin.companyProfile.sefKey")}

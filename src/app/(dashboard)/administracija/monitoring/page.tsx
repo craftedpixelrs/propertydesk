@@ -23,10 +23,7 @@ export const dynamic = "force-dynamic";
  */
 export default async function MonitoringPage() {
   await requireSuperAdmin();
-  const [rows, summary] = await Promise.all([
-    listRecentHealthChecks(30),
-    summarizeBackupVerify(),
-  ]);
+  const [rows, summary] = await Promise.all([listRecentHealthChecks(30), summarizeBackupVerify()]);
   const t = createT(await resolveRequestLocale());
 
   const backupRows = rows.filter((r) => r.kind === "BACKUP_VERIFY");
@@ -53,9 +50,7 @@ export default async function MonitoringPage() {
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
           label={t("admin.monitoringPage.lastBackup")}
-          value={
-            summary.lastRunAt ? formatDateTime(summary.lastRunAt) : t("admin.never")
-          }
+          value={summary.lastRunAt ? formatDateTime(summary.lastRunAt) : t("admin.never")}
           hint={t("admin.statusHint", { status: lastStatusLabel })}
         />
         <StatCard
@@ -84,12 +79,9 @@ export default async function MonitoringPage() {
           }
           hint={
             serverEnv.BACKUP_VERIFY_SOURCE === "local"
-              ? serverEnv.BACKUP_VERIFY_LOCAL_DIR ?? t("admin.dash")
+              ? (serverEnv.BACKUP_VERIFY_LOCAL_DIR ?? t("admin.dash"))
               : serverEnv.BACKUP_VERIFY_SOURCE === "s3"
-                ? [
-                    serverEnv.BACKUP_VERIFY_S3_BUCKET,
-                    serverEnv.BACKUP_VERIFY_S3_PREFIX,
-                  ]
+                ? [serverEnv.BACKUP_VERIFY_S3_BUCKET, serverEnv.BACKUP_VERIFY_S3_PREFIX]
                     .filter(Boolean)
                     .join(" / ")
                 : t("admin.monitoringPage.sourceHintEnv")
@@ -104,7 +96,7 @@ export default async function MonitoringPage() {
         <CardContent className="p-0">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="text-left text-xs uppercase text-[var(--color-foreground-subtle)]">
+              <thead className="text-left text-xs text-[var(--color-foreground-subtle)] uppercase">
                 <tr>
                   <th className="border-b border-[var(--color-border)] px-4 py-2">
                     {t("admin.time")}
@@ -133,7 +125,7 @@ export default async function MonitoringPage() {
                       key={row.id}
                       className="border-b border-[var(--color-border)] last:border-b-0"
                     >
-                      <td className="whitespace-nowrap px-4 py-2 text-xs">
+                      <td className="px-4 py-2 text-xs whitespace-nowrap">
                         {formatDateTime(row.runAt)}
                       </td>
                       <td className="px-4 py-2">

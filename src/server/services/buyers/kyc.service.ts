@@ -104,7 +104,7 @@ export async function updateKycChecklist(input: KycUpdateInput) {
     idBackOk: input.idBackOk ?? existing?.idBackOk ?? false,
     addressProofOk: input.addressProofOk ?? existing?.addressProofOk ?? false,
     taxCertOk: input.taxCertOk ?? existing?.taxCertOk ?? false,
-    notes: input.notes === undefined ? existing?.notes ?? null : input.notes,
+    notes: input.notes === undefined ? (existing?.notes ?? null) : input.notes,
     reviewedAt: now,
     reviewedByUserId: input.actorUserId,
   };

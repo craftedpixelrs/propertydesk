@@ -18,7 +18,7 @@ export function FormActions({ children, sticky, className }: FormActionsProps) {
       className={cn(
         "flex flex-col-reverse gap-2 sm:flex-row sm:justify-end sm:gap-3",
         sticky
-          ? "sm:static sticky bottom-0 z-10 -mx-4 mt-6 border-t border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 safe-bottom sm:mx-0 sm:mt-8 sm:border-0 sm:bg-transparent sm:p-0"
+          ? "safe-bottom sticky bottom-0 z-10 -mx-4 mt-6 border-t border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 sm:static sm:mx-0 sm:mt-8 sm:border-0 sm:bg-transparent sm:p-0"
           : "mt-8",
         className,
       )}

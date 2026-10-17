@@ -13,8 +13,7 @@ const prisma = new PrismaClient({
 
 const PARTNER = {
   name: "Partner",
-  description:
-    "Besplatan portal agencije. Pristup ide preko poziva investitora, bez pretplate.",
+  description: "Besplatan portal agencije. Pristup ide preko poziva investitora, bez pretplate.",
   monthlyPrice: 0,
   maxActiveProjects: 0,
   maxUnits: 0,
@@ -91,7 +90,9 @@ async function main() {
       organization: {
         select: {
           slug: true,
-          subscription: { select: { status: true, trialEndsAt: true, plan: { select: { code: true } } } },
+          subscription: {
+            select: { status: true, trialEndsAt: true, plan: { select: { code: true } } },
+          },
         },
       },
     },

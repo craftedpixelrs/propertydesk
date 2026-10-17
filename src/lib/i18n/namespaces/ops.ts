@@ -17,14 +17,14 @@ export const opsSr = {
     emptyDescription: "Otpremite ugovore, priloge i drugu dokumentaciju.",
     uploadFailed: "Otpremanje nije uspelo.",
     deleteFailed: "Brisanje nije uspelo.",
-    deleteConfirm: "Obrisati dokument \"{{name}}\"?",
+    deleteConfirm: 'Obrisati dokument "{{name}}"?',
     uploadButton: "Otpremi dokument",
     shareWithBuyer: "Deljivo sa kupcem",
     acceptHint: "PDF, DOCX, XLSX, slike. Više fajlova odjednom.",
     downloadNamed: "Preuzmi {{name}}",
     deleteNamed: "Obriši {{name}}",
     chooseFile: "Izaberite datoteku.",
-    uploadedSuccess: "Dokument \"{{name}}\" je otpremljen.",
+    uploadedSuccess: 'Dokument "{{name}}" je otpremljen.',
     entityType: "Tip entiteta",
     entityId: "ID entiteta",
     sizeBytes: "{{n}} B",
@@ -62,7 +62,7 @@ export const opsSr = {
     emptyTitle: "Nema fotografija",
     emptyCanManage: "Otpremite fotografije koje će se videti u ponudi i galeriji.",
     emptyReadOnly: "Kada operater doda fotografije, biće prikazane ovde.",
-    notImage: "\"{{name}}\" nije slika.",
+    notImage: '"{{name}}" nije slika.',
     coverFailed: "Neuspela promena naslovne slike.",
     deleteConfirm: "Obrisati sliku?",
     openPhoto: "Otvori sliku {{name}}",
@@ -167,8 +167,7 @@ export const opsSr = {
     cashFlowDesc:
       "Očekivane naplate po planovima plaćanja i stvarni prilivi iz uplata — sve u jednoj slici.",
     cashFlowPeriodTitle: "Nadolazeće uplate u periodu",
-    cashFlowPeriodDesc:
-      "Očekivane rate po dospeću i stvarni prilivi za izabrane datume.",
+    cashFlowPeriodDesc: "Očekivane rate po dospeću i stvarni prilivi za izabrane datume.",
     cashFlowDefaultTitle: "Cash-flow projekcija",
     cashFlowEmpty: "Nema aktivnih planova plaćanja u traženom periodu.",
     monthlyFlow: "Mesečni tok ({{currency}})",
@@ -244,12 +243,11 @@ export const opsSr = {
   },
 
   account: {
-    subtitle: "Ime, email, lozinka, jezik i tema — važi za Vas, ne za firmu.",
+    subtitle: "Ime, email, dvofaktorska prijava, lozinka, jezik i tema — važi za Vas, ne za firmu.",
     nameTitle: "Ime i prezime",
     nameSaved: "Ime je sačuvano.",
     emailTitle: "Email",
-    emailHint:
-      "Na trenutnu adresu šaljemo link za potvrdu. Nova adresa važi tek posle klika.",
+    emailHint: "Na trenutnu adresu šaljemo link za potvrdu. Nova adresa važi tek posle klika.",
     emailPending: "Proverite inbox na {{email}} i potvrdite promenu.",
     emailSame: "To je već Vaša trenutna adresa.",
     verified: "Potvrđen",
@@ -264,6 +262,27 @@ export const opsSr = {
     themeTitle: "Tema aplikacije",
     impersonationBlocked: "Ne možete menjati nalog dok ste u impersonaciji.",
     emailChanged: "Email adresa je ažurirana.",
+    twoFactorTitle: "Dvofaktorska prijava",
+    twoFactorSubtitle:
+      "Kod iz aplikacije (Google Authenticator, 1Password i slično) pored lozinke.",
+    twoFactorOn: "Uključena",
+    twoFactorOff: "Isključena",
+    twoFactorPassword: "Lozinka za potvrdu",
+    twoFactorStart: "Prikaži QR kod",
+    twoFactorScan:
+      "Skenirajte QR kod, sačuvajte rezervne kodove, pa unesite 6 cifara iz aplikacije.",
+    twoFactorManual: "Ručni ključ",
+    twoFactorBackupCodes: "Rezervni kodovi",
+    twoFactorBackupOnce: "Prikazuju se samo sada. Sačuvajte ih na sigurnom mestu.",
+    twoFactorConfirmHint: "Potvrda kreće čim unesete svih 6 cifara.",
+    twoFactorEnabled: "Dvofaktorska prijava je uključena.",
+    twoFactorDisabled: "Dvofaktorska prijava je isključena.",
+    twoFactorDisable: "Isključi",
+    twoFactorRequiredHint:
+      "Administrator platforme je učinio 2FA obaveznom. Ne može da se isključi dok je to pravilo uključeno.",
+    twoFactorRequiredBanner:
+      "Dvofaktorska prijava je obavezna. Podesite je da nastavite da koristite Property Desk.",
+    twoFactorWrongPassword: "Lozinka nije tačna.",
   },
 
   quota: {
@@ -288,14 +307,11 @@ export const opsSr = {
     planCode: "Oznaka plana:",
     noSubscription: "Nema aktivne pretplate.",
     logoTitle: "Logo kompanije",
-    logoHint:
-      "PNG, JPG, WebP ili SVG, do 2 MB. Logo se koristi na ponudama i javnim stranicama.",
+    logoHint: "PNG, JPG, WebP ili SVG, do 2 MB. Logo se koristi na ponudama i javnim stranicama.",
     logoWhiteLabelHint:
       "Na Growth i Scale paketu ovaj logo zamenjuje PropertyDesk u aplikaciji (white-label).",
-    logoStarterHint:
-      "Zamena logoa aplikacije (white-label) dostupna je na Growth i Scale paketu.",
-    logoAgencyHint:
-      "Logo agencije se prikazuje u njenom portalu. Nije vezan za pretplatu.",
+    logoStarterHint: "Zamena logoa aplikacije (white-label) dostupna je na Growth i Scale paketu.",
+    logoAgencyHint: "Logo agencije se prikazuje u njenom portalu. Nije vezan za pretplatu.",
     agencyPartnerTitle: "Partner nalog",
     agencyPartnerHint:
       "Agencija nema paket ni fakture. Projekte, rezervacije i provizije vidi tek kad je investitor pozove.",
@@ -473,14 +489,14 @@ export const opsEn: Leaves<typeof opsSr> = {
     emptyDescription: "Upload contracts, attachments and other files.",
     uploadFailed: "Upload failed.",
     deleteFailed: "Delete failed.",
-    deleteConfirm: "Delete document \"{{name}}\"?",
+    deleteConfirm: 'Delete document "{{name}}"?',
     uploadButton: "Upload document",
     shareWithBuyer: "Share with buyer",
     acceptHint: "PDF, DOCX, XLSX, images. Multiple files at once.",
     downloadNamed: "Download {{name}}",
     deleteNamed: "Delete {{name}}",
     chooseFile: "Choose a file.",
-    uploadedSuccess: "Document \"{{name}}\" was uploaded.",
+    uploadedSuccess: 'Document "{{name}}" was uploaded.',
     entityType: "Entity type",
     entityId: "Entity ID",
     sizeBytes: "{{n}} B",
@@ -518,7 +534,7 @@ export const opsEn: Leaves<typeof opsSr> = {
     emptyTitle: "No photos",
     emptyCanManage: "Upload photos that will appear in the offer and gallery.",
     emptyReadOnly: "Photos will appear here once an operator adds them.",
-    notImage: "\"{{name}}\" is not an image.",
+    notImage: '"{{name}}" is not an image.',
     coverFailed: "Could not change the cover photo.",
     deleteConfirm: "Delete this photo?",
     openPhoto: "Open photo {{name}}",
@@ -529,8 +545,7 @@ export const opsEn: Leaves<typeof opsSr> = {
   },
 
   reports: {
-    subtitle:
-      "Server-side analytics. Filter by project and period; export to CSV/XLSX.",
+    subtitle: "Server-side analytics. Filter by project and period; export to CSV/XLSX.",
     inventoryTitle: "Unit inventory",
     inventoryCardDesc: "Available, sold, reserved — by project and status.",
     inventoryDesc: "Inventory breakdown by project and status.",
@@ -700,7 +715,8 @@ export const opsEn: Leaves<typeof opsSr> = {
   },
 
   account: {
-    subtitle: "Name, email, password, language, and theme — yours, not the company’s.",
+    subtitle:
+      "Name, email, two-factor sign-in, password, language, and theme — yours, not the company’s.",
     nameTitle: "Full name",
     nameSaved: "Name saved.",
     emailTitle: "Email",
@@ -720,6 +736,26 @@ export const opsEn: Leaves<typeof opsSr> = {
     themeTitle: "App theme",
     impersonationBlocked: "You cannot change the account while impersonating.",
     emailChanged: "Email address updated.",
+    twoFactorTitle: "Two-factor sign-in",
+    twoFactorSubtitle:
+      "An authenticator code (Google Authenticator, 1Password, and similar) in addition to your password.",
+    twoFactorOn: "On",
+    twoFactorOff: "Off",
+    twoFactorPassword: "Password to confirm",
+    twoFactorStart: "Show QR code",
+    twoFactorScan: "Scan the QR code, save the backup codes, then enter the 6 digits from the app.",
+    twoFactorManual: "Manual key",
+    twoFactorBackupCodes: "Backup codes",
+    twoFactorBackupOnce: "Shown only now. Store them somewhere safe.",
+    twoFactorConfirmHint: "Confirmation starts as soon as all 6 digits are entered.",
+    twoFactorEnabled: "Two-factor sign-in is on.",
+    twoFactorDisabled: "Two-factor sign-in is off.",
+    twoFactorDisable: "Turn off",
+    twoFactorRequiredHint:
+      "A platform administrator made 2FA mandatory. It cannot be turned off while that rule is on.",
+    twoFactorRequiredBanner:
+      "Two-factor sign-in is required. Set it up to keep using Property Desk.",
+    twoFactorWrongPassword: "The password is not correct.",
   },
 
   quota: {
@@ -744,14 +780,11 @@ export const opsEn: Leaves<typeof opsSr> = {
     planCode: "Plan code:",
     noSubscription: "No active subscription.",
     logoTitle: "Company logo",
-    logoHint:
-      "PNG, JPG, WebP, or SVG, up to 2 MB. Used on offers and public pages.",
+    logoHint: "PNG, JPG, WebP, or SVG, up to 2 MB. Used on offers and public pages.",
     logoWhiteLabelHint:
       "On Growth and Scale this logo replaces PropertyDesk in the app (white-label).",
-    logoStarterHint:
-      "Replacing the app logo (white-label) is available on Growth and Scale.",
-    logoAgencyHint:
-      "The agency logo appears in its portal. It is not tied to a subscription.",
+    logoStarterHint: "Replacing the app logo (white-label) is available on Growth and Scale.",
+    logoAgencyHint: "The agency logo appears in its portal. It is not tied to a subscription.",
     agencyPartnerTitle: "Partner account",
     agencyPartnerHint:
       "The agency has no plan or invoices. It sees projects, reservations, and commissions only after an investor invites it.",
@@ -885,8 +918,7 @@ export const opsEn: Leaves<typeof opsSr> = {
     recentInvoices: "Recent invoices",
     allInvoices: "All invoices",
     noInvoices: "No invoices for this organization.",
-    contactAdmin:
-      "To change the plan or ask about billing, contact the platform administrator.",
+    contactAdmin: "To change the plan or ask about billing, contact the platform administrator.",
   },
 
   invoices: {

@@ -11,15 +11,7 @@ import {
   type TaskView,
 } from "@/server/services/tasks.service";
 
-const TASK_VIEWS = [
-  "mine",
-  "today",
-  "overdue",
-  "upcoming",
-  "completed",
-  "team",
-  "all",
-] as const;
+const TASK_VIEWS = ["mine", "today", "overdue", "upcoming", "completed", "team", "all"] as const;
 const TASK_STATUSES = ["OPEN", "IN_PROGRESS", "COMPLETED", "CANCELED"] as const;
 
 const createSchema = z.object({

@@ -106,13 +106,7 @@ interface ProjectSeed {
   municipality: string;
   postalCode: string;
   city: string;
-  status:
-    | "DRAFT"
-    | "PRE_SALES"
-    | "ACTIVE_SALES"
-    | "CONSTRUCTION"
-    | "COMPLETED"
-    | "ARCHIVED";
+  status: "DRAFT" | "PRE_SALES" | "ACTIVE_SALES" | "CONSTRUCTION" | "COMPLETED" | "ARCHIVED";
   description: string;
   salesStartDate?: Date;
   constructionStartDate?: Date;
@@ -139,14 +133,7 @@ interface FloorSeed {
 }
 interface UnitSeedInput {
   code: string;
-  type:
-    | "APARTMENT"
-    | "GARAGE"
-    | "PARKING_SPACE"
-    | "STORAGE"
-    | "COMMERCIAL"
-    | "HOUSE"
-    | "OTHER";
+  type: "APARTMENT" | "GARAGE" | "PARKING_SPACE" | "STORAGE" | "COMMERCIAL" | "HOUSE" | "OTHER";
   structure?: string; // "1.5", "2.0", ...
   roomCount?: number;
   totalArea: number;
@@ -308,13 +295,10 @@ function buildFloors(
   for (let i = 1; i <= count; i++) {
     const units: UnitSeedInput[] = [];
     for (let j = 0; j < opts.apartmentsPerFloor; j++) {
-      const structure =
-        opts.structures[j % opts.structures.length] ?? opts.structures[0]!;
+      const structure = opts.structures[j % opts.structures.length] ?? opts.structures[0]!;
       const roomCount = Number.parseFloat(structure);
       // Area grows with structure; small bump per floor for penthouse feel
-      const area =
-        (30 + roomCount * 15 + i * 0.5) *
-        (opts.apartmentsPerFloor > 3 ? 1 : 1.1);
+      const area = (30 + roomCount * 15 + i * 0.5) * (opts.apartmentsPerFloor > 3 ? 1 : 1.1);
       const orientation = ["Istok", "Zapad", "Jug", "Sever"][j % 4] ?? "Istok";
       const priceBump = 1 + (i - 1) * 0.02; // 2% floor premium
       units.push({
@@ -361,11 +345,7 @@ function makeGarage(code: string, area: number): UnitSeedInput[] {
     },
   ];
 }
-function makeCommercial(
-  code: string,
-  area: number,
-  pricePerSqm: number,
-): UnitSeedInput[] {
+function makeCommercial(code: string, area: number, pricePerSqm: number): UnitSeedInput[] {
   return [
     {
       code,
@@ -620,10 +600,7 @@ async function findOrg(slug: string): Promise<string> {
   return o.id;
 }
 
-async function findConnection(
-  investorId: string,
-  agencyId: string,
-): Promise<string> {
+async function findConnection(investorId: string, agencyId: string): Promise<string> {
   const c = await prisma.agencyConnection.findFirst({
     where: { investorOrganizationId: investorId, agencyOrganizationId: agencyId },
     select: { id: true },
@@ -762,18 +739,12 @@ async function seedProjectsAndUnits(
                 status: "AVAILABLE",
                 structure: uSpec.structure ?? null,
                 roomCount:
-                  uSpec.roomCount !== undefined
-                    ? new Prisma.Decimal(uSpec.roomCount)
-                    : null,
+                  uSpec.roomCount !== undefined ? new Prisma.Decimal(uSpec.roomCount) : null,
                 totalArea: new Prisma.Decimal(uSpec.totalArea),
                 internalArea:
-                  uSpec.internalArea !== undefined
-                    ? new Prisma.Decimal(uSpec.internalArea)
-                    : null,
+                  uSpec.internalArea !== undefined ? new Prisma.Decimal(uSpec.internalArea) : null,
                 terraceArea:
-                  uSpec.terraceArea !== undefined
-                    ? new Prisma.Decimal(uSpec.terraceArea)
-                    : null,
+                  uSpec.terraceArea !== undefined ? new Prisma.Decimal(uSpec.terraceArea) : null,
                 orientation: uSpec.orientation ?? null,
                 basePrice: new Prisma.Decimal(basePrice),
                 finalPrice: new Prisma.Decimal(basePrice),
@@ -846,18 +817,14 @@ async function seedAgencyAccess(orgIds: OrgIds): Promise<void> {
       rate: new Prisma.Decimal("3.000"),
       currency: "EUR",
       validFrom: daysAgo(180),
-      internalNote:
-        "Standardni ugovor sa Top Nekretninama — 3% od finalne prodajne cene.",
+      internalNote: "Standardni ugovor sa Top Nekretninama — 3% od finalne prodajne cene.",
       agencyVisibleNote:
         "Provizija se obračunava po zatvaranju predugovora, isplata u roku od 15 dana.",
     },
   });
 }
 
-async function seedBuyers(
-  orgIds: OrgIds,
-  users: Users,
-): Promise<Map<string, string>> {
+async function seedBuyers(orgIds: OrgIds, users: Users): Promise<Map<string, string>> {
   const buyerIds = new Map<string, string>();
   const userMap: Record<string, string> = {
     owner: users.owner,
@@ -878,10 +845,8 @@ async function seedBuyers(
         phone: b.phone,
         normalizedPhone: normalizePhone(b.phone),
         preferredContactMethod: "ANY",
-        budgetMin:
-          b.budgetMin !== undefined ? new Prisma.Decimal(b.budgetMin) : null,
-        budgetMax:
-          b.budgetMax !== undefined ? new Prisma.Decimal(b.budgetMax) : null,
+        budgetMin: b.budgetMin !== undefined ? new Prisma.Decimal(b.budgetMin) : null,
+        budgetMax: b.budgetMax !== undefined ? new Prisma.Decimal(b.budgetMax) : null,
         preferredCurrency: "EUR",
         desiredUnitTypes: (b.desiredTypes ?? []) as never,
         desiredRoomCounts: b.desiredRoomCounts ?? [],
@@ -1113,8 +1078,7 @@ async function seedActivitiesAndTasks(
         dueAt: daysFromNow(t.dueInDays),
         priority: t.priority as never,
         status: (t.status ?? "OPEN") as never,
-        completedAt:
-          t.completedAgo !== undefined ? daysAgo(t.completedAgo) : null,
+        completedAt: t.completedAgo !== undefined ? daysAgo(t.completedAgo) : null,
         createdByUserId: t.creator,
       },
     });
@@ -1163,13 +1127,7 @@ interface SalePlan {
       paid?: {
         amount: number;
         daysAgo: number;
-        method:
-          | "BANK_TRANSFER"
-          | "CASH"
-          | "CARD"
-          | "LOAN"
-          | "COMPENSATION"
-          | "OTHER";
+        method: "BANK_TRANSFER" | "CASH" | "CARD" | "LOAN" | "COMPENSATION" | "OTHER";
         reference?: string;
       };
     }>;
@@ -1239,8 +1197,7 @@ const RESERVATIONS: ReservationPlan[] = [
     source: "INTERNAL",
     requestedDaysAgo: 20,
     amount: 2500,
-    rejectionReason:
-      "Klijent tražio popust preko okvira; jedinica ostala dostupna.",
+    rejectionReason: "Klijent tražio popust preko okvira; jedinica ostala dostupna.",
   },
   {
     buyer: "Ivana Radovanović",
@@ -1552,10 +1509,7 @@ async function seedReservations(
       const now = daysAgo(r.requestedDaysAgo);
       const initialStatus: string = "REQUESTED";
       const targetStatus = r.status;
-      const expiresAt =
-        r.expiresDaysAhead !== undefined
-          ? daysFromNow(r.expiresDaysAhead)
-          : null;
+      const expiresAt = r.expiresDaysAhead !== undefined ? daysFromNow(r.expiresDaysAhead) : null;
 
       const reservation = await tx.reservation.create({
         data: {
@@ -1564,20 +1518,15 @@ async function seedReservations(
           projectId: unit.projectId,
           unitId: unit.unitId,
           buyerId: buyerIds.get(r.buyer)!,
-          createdByUserId:
-            r.source === "AGENCY" ? users.agencyAgent : users.manager,
+          createdByUserId: r.source === "AGENCY" ? users.agencyAgent : users.manager,
           assignedUserId: users.manager,
           sourceType: r.source as never,
-          agencyOrganizationId:
-            r.source === "AGENCY" ? orgIds.agencyId : null,
-          agencyAgentUserId:
-            r.source === "AGENCY" ? users.agencyAgent : null,
+          agencyOrganizationId: r.source === "AGENCY" ? orgIds.agencyId : null,
+          agencyAgentUserId: r.source === "AGENCY" ? users.agencyAgent : null,
           status: targetStatus as never,
           requestedAt: now,
-          approvedAt:
-            r.approvedDaysAgo !== undefined ? daysAgo(r.approvedDaysAgo) : null,
-          rejectedAt:
-            r.status === "REJECTED" ? daysAgo(r.requestedDaysAgo - 1) : null,
+          approvedAt: r.approvedDaysAgo !== undefined ? daysAgo(r.approvedDaysAgo) : null,
+          rejectedAt: r.status === "REJECTED" ? daysAgo(r.requestedDaysAgo - 1) : null,
           expiresAt: expiresAt,
           canceledAt: r.status === "CANCELED" ? daysAgo(1) : null,
           reservationAmount: new Prisma.Decimal(r.amount),
@@ -1643,9 +1592,7 @@ async function seedSales(
       });
       const listPrice = Number(unitRow.basePrice);
       const discountValue =
-        s.discountPct !== undefined
-          ? round2((listPrice * s.discountPct) / 100)
-          : 0;
+        s.discountPct !== undefined ? round2((listPrice * s.discountPct) / 100) : 0;
       const finalPrice = round2(listPrice - discountValue);
 
       const responsibleId =
@@ -1667,16 +1614,11 @@ async function seedSales(
             projectId: unit.projectId,
             unitId: unit.unitId,
             buyerId: buyerIds.get(s.buyer)!,
-            createdByUserId:
-              s.reservation.source === "AGENCY"
-                ? users.agencyAgent
-                : users.manager,
+            createdByUserId: s.reservation.source === "AGENCY" ? users.agencyAgent : users.manager,
             assignedUserId: responsibleId,
             sourceType: s.reservation.source as never,
-            agencyOrganizationId:
-              s.reservation.source === "AGENCY" ? orgIds.agencyId : null,
-            agencyAgentUserId:
-              s.reservation.source === "AGENCY" ? users.agencyAgent : null,
+            agencyOrganizationId: s.reservation.source === "AGENCY" ? orgIds.agencyId : null,
+            agencyAgentUserId: s.reservation.source === "AGENCY" ? users.agencyAgent : null,
             status: "CONVERTED",
             requestedAt: daysAgo(s.reservation.requestedDaysAgo),
             approvedAt: daysAgo(s.reservation.approvedDaysAgo),
@@ -1722,35 +1664,22 @@ async function seedSales(
           buyerId: buyerIds.get(s.buyer)!,
           reservationId,
           sourceType: (s.reservation?.source ?? "INTERNAL") as never,
-          agencyOrganizationId:
-            s.reservation?.source === "AGENCY" ? orgIds.agencyId : null,
-          agencyAgentUserId:
-            s.reservation?.source === "AGENCY" ? users.agencyAgent : null,
+          agencyOrganizationId: s.reservation?.source === "AGENCY" ? orgIds.agencyId : null,
+          agencyAgentUserId: s.reservation?.source === "AGENCY" ? users.agencyAgent : null,
           responsibleUserId: responsibleId,
           createdByUserId: users.manager,
           status: s.status as never,
           listPrice: new Prisma.Decimal(listPrice),
           discountType: s.discountPct !== undefined ? "PERCENTAGE" : null,
-          discountValue:
-            s.discountPct !== undefined
-              ? new Prisma.Decimal(s.discountPct)
-              : null,
+          discountValue: s.discountPct !== undefined ? new Prisma.Decimal(s.discountPct) : null,
           finalPrice: new Prisma.Decimal(finalPrice),
           currency: "EUR",
-          depositAmount:
-            s.depositAmount !== undefined
-              ? new Prisma.Decimal(s.depositAmount)
-              : null,
+          depositAmount: s.depositAmount !== undefined ? new Prisma.Decimal(s.depositAmount) : null,
           preContractDate:
-            s.preContractDaysAgo !== undefined
-              ? daysAgo(s.preContractDaysAgo)
-              : null,
-          contractDate:
-            s.contractDaysAgo !== undefined ? daysAgo(s.contractDaysAgo) : null,
+            s.preContractDaysAgo !== undefined ? daysAgo(s.preContractDaysAgo) : null,
+          contractDate: s.contractDaysAgo !== undefined ? daysAgo(s.contractDaysAgo) : null,
           plannedHandoverDate:
-            s.plannedHandoverInDays !== undefined
-              ? daysFromNow(s.plannedHandoverInDays)
-              : null,
+            s.plannedHandoverInDays !== undefined ? daysFromNow(s.plannedHandoverInDays) : null,
           actualHandoverDate: null,
         },
       });
@@ -1771,10 +1700,7 @@ async function seedSales(
           ago: s.contractDaysAgo,
         });
       }
-      if (
-        s.status === "PAYMENT_IN_PROGRESS" ||
-        s.status === "PAID"
-      ) {
+      if (s.status === "PAYMENT_IN_PROGRESS" || s.status === "PAID") {
         path.push({
           prev: "CONTRACTED",
           next: "PAYMENT_IN_PROGRESS",
@@ -1824,12 +1750,8 @@ async function seedSales(
 
       // Payment plan + installments + payments
       if (s.paymentPlan) {
-        const totalPercent = s.paymentPlan.installments.reduce(
-          (acc, i) => acc + i.percentage,
-          0,
-        );
-        const planStatus: "ACTIVE" | "COMPLETED" =
-          s.status === "PAID" ? "COMPLETED" : "ACTIVE";
+        const totalPercent = s.paymentPlan.installments.reduce((acc, i) => acc + i.percentage, 0);
+        const planStatus: "ACTIVE" | "COMPLETED" = s.status === "PAID" ? "COMPLETED" : "ACTIVE";
         const plan = await tx.paymentPlan.create({
           data: {
             id: createId(),
@@ -1845,9 +1767,7 @@ async function seedSales(
         let seq = 1;
         const remainderAdjust = 100 / totalPercent;
         for (const ins of s.paymentPlan.installments) {
-          const amount = round2(
-            (finalPrice * ins.percentage * remainderAdjust) / 100,
-          );
+          const amount = round2((finalPrice * ins.percentage * remainderAdjust) / 100);
           const paid = ins.paid;
           const installmentStatus: string =
             paid && paid.amount >= amount
@@ -1896,9 +1816,7 @@ async function seedSales(
       // Commission snapshot for agency-sourced contracted+ sales.
       if (
         s.reservation?.source === "AGENCY" &&
-        (s.status === "CONTRACTED" ||
-          s.status === "PAYMENT_IN_PROGRESS" ||
-          s.status === "PAID")
+        (s.status === "CONTRACTED" || s.status === "PAYMENT_IN_PROGRESS" || s.status === "PAID")
       ) {
         const rate = 3;
         const calculated = round2((finalPrice * rate) / 100);
@@ -1940,21 +1858,11 @@ async function seedSales(
   }
 }
 
-async function seedNotifications(
-  orgIds: OrgIds,
-  users: Users,
-): Promise<void> {
+async function seedNotifications(orgIds: OrgIds, users: Users): Promise<void> {
   const notes: Array<{
     userId: string;
     category:
-      | "RESERVATION"
-      | "SALE"
-      | "PAYMENT"
-      | "AGENCY"
-      | "COMMISSION"
-      | "TASK"
-      | "BUYER"
-      | "SYSTEM";
+      "RESERVATION" | "SALE" | "PAYMENT" | "AGENCY" | "COMMISSION" | "TASK" | "BUYER" | "SYSTEM";
     title: string;
     message: string;
     ago: number;
@@ -1987,8 +1895,7 @@ async function seedNotifications(
       userId: users.owner,
       category: "AGENCY",
       title: "Agencijska rezervacija",
-      message:
-        "Top Nekretnine je rezervisala jedinicu A1-04B za Katarinu Živković.",
+      message: "Top Nekretnine je rezervisala jedinicu A1-04B za Katarinu Živković.",
       ago: 4,
     },
     {
@@ -2036,10 +1943,7 @@ async function seedNotifications(
 // ---------------------------------------------------------------------------
 
 async function main(): Promise<void> {
-  if (
-    process.env.NODE_ENV === "production" &&
-    process.env.ALLOW_SEED_IN_PRODUCTION !== "true"
-  ) {
+  if (process.env.NODE_ENV === "production" && process.env.ALLOW_SEED_IN_PRODUCTION !== "true") {
     console.error(
       "Refusing to run demo seed in production. Set ALLOW_SEED_IN_PRODUCTION=true to override.",
     );

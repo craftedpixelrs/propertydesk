@@ -6,10 +6,7 @@
  * them directly or follows a leaked dashboard URL.
  */
 
-export const MARKETING_HOSTS = new Set([
-  "propertydesk.app",
-  "www.propertydesk.app",
-]);
+export const MARKETING_HOSTS = new Set(["propertydesk.app", "www.propertydesk.app"]);
 
 export const APP_HOSTS = new Set([
   "my.propertydesk.app",

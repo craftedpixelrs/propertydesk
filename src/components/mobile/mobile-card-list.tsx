@@ -30,7 +30,7 @@ export function MobileCardList<T>({
             <button
               type="button"
               onClick={() => onItemClick(row)}
-              className="w-full min-h-14 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-4 text-left shadow-[0_1px_2px_var(--color-shadow)] transition-colors hover:bg-[var(--color-surface-muted)]"
+              className="min-h-14 w-full rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-4 text-left shadow-[0_1px_2px_var(--color-shadow)] transition-colors hover:bg-[var(--color-surface-muted)]"
             >
               {renderItem(row)}
             </button>

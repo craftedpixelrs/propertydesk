@@ -8,7 +8,8 @@
 - Valid statuses: `PLANNED`, `AVAILABLE`, `RESERVED`, `SOLD`, `HELD`,
   `ARCHIVED`.
 - Price changes go through `updatePrice()` which appends
-  `UnitPriceHistory` and records the actor.
+  `UnitPriceHistory` and records the actor. A changed base price
+  requires `priceChangeReason`.
 
 ## Reservations
 
@@ -26,25 +27,26 @@
 
 - A public visitor can submit a reservation via `/p/[token]` when the
   share link is active and the unit is `AVAILABLE`. The endpoint
-  `POST /api/v1/public/share/:token/reserve` is rate-limited (10
-  requests / hour / IP) and validated with a strict Zod schema.
+  `POST /api/v1/public/share/:token/reserve` is rate-limited
+  (5 attempts / 10 minutes per IP and token, plus 20 / hour per
+  token) and validated with a strict Zod schema.
 - Creating the request:
-  1. Transitions the unit to `HELD` (not `RESERVED`, so it never
-     collides with an internal reservation).
-  2. Generates an IPS QR PNG for the deposit (see
-     [`docs/billing/ips-qr.md`](./billing/ips-qr.md#reservation-deposits)
+  1. Transitions the unit to `ON_HOLD` (not `RESERVED`).
+  2. Generates an IPS QR PNG for the deposit when a payee account
+     exists (see [`docs/billing/ips-qr.md`](./billing/ips-qr.md#reservation-deposits)
      and [`docs/reservation-requests.md`](./reservation-requests.md)).
-  3. Stores `ipsReference` (12-digit Serbian *poziv na broj* with
-     Mod-97 check digit) and `ipsQrPngPath` on the row.
-  4. Emails the investor and the visitor. The visitor confirmation
-     includes the IPS QR image so they can scan and pay.
-- On `confirm`, the investor's action materialises a real `Reservation`
-  (linked to the same buyer, upserted from `firstName`/`lastName`/
-  `email`/`phone`). Unit goes from `HELD` → `RESERVED`.
-- On `decline` or `expire`, the unit returns to `AVAILABLE`.
-- `expiresAt` is 48 hours by default (configurable per organisation).
-  The cron `POST /api/v1/jobs/expire-reservation-requests` runs every
-  15 minutes.
+  3. Stores `ipsReference` and `ipsQrPngPath` on the row.
+  4. Emails the visitor plain text: payee, account, amount, reference,
+     and the 48-hour deadline. The email includes the URL of the IPS QR
+     image. The investor is not emailed.
+- On `confirm`, the investor's action materialises a `Reservation` in
+  `REQUESTED` and emails the visitor again (text, same payment lines).
+  The unit stays `ON_HOLD` until someone approves the reservation.
+- On `decline`, or when a stale request is expired, the unit returns
+  to `AVAILABLE` only if no other live `PENDING` request remains.
+- `expiresAt` is 48 hours. Cron `expire-reservation-requests` runs
+  every 15 minutes. Opening the requests list still expires stale rows.
+  The applicant is not emailed about expiry.
 
 ## Buyers
 
@@ -86,7 +88,24 @@
   `category = SALE`, and sets `sale.contractStatus = GENERATED` +
   `contractTemplateId`. Follow-up actions transition
   `GENERATED → SENT → SIGNED` with matching timestamps and audit rows.
+  `mark-signed` requires `documentId` of a file already stored on that sale.
   Cancellation goes to `CANCELED` (never deletes the file).
+- **Handover** (`SaleHandover`): keys, meter readings, defects, attendees.
+  Photos stay as sale documents. Completing the checklist stamps who finished it.
+- Status history keeps `changedByUserId`. The sale page shows that name.
+- A buyer page at `/p/kupac/[token]` needs no account. It lists installments,
+  payment instructions, an IPS QR when the currency is RSD, buyer-visible
+  documents, and accepts a proof upload (PDF, JPG, PNG).
+- Buyer emails (installment reminder, payment receipt, reservation expiring)
+  are sent once per event. An optional extra paragraph lives on
+  `OrgMessageTemplate`, edited under organization settings.
+- **Final settlement** (`SaleSettlementLine`): shown when the sale is
+  `PAID` or `HANDED_OVER` and non-reversed payments cover `finalPrice`.
+  Lines are deductions or surcharges (preset or custom). They do not
+  rewrite `finalPrice`, the payment plan, or recorded payments.
+  Settled = contracted − deductions + surcharges. The difference versus
+  paid is what the buyer still owes, or a refund. Max 40 lines.
+  Audit: `sale.settlement_line_added` / `sale.settlement_line_removed`.
 
 ## Payment plans & payments
 

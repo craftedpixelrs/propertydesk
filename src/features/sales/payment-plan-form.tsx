@@ -66,15 +66,21 @@ export function PaymentPlanForm({ saleId, currency, finalPrice, projectId }: Pro
   const [error, setError] = useState<string | null>(null);
 
   const [manualRows, setManualRows] = useState<ManualRow[]>([
-    { name: t("deals.plan.firstInstallment"), amount: "", dueDate: new Date().toISOString().slice(0, 10) },
+    {
+      name: t("deals.plan.firstInstallment"),
+      amount: "",
+      dueDate: new Date().toISOString().slice(0, 10),
+    },
   ]);
   const [pctRows, setPctRows] = useState<PctRow[]>([
-    { name: t("deals.plan.firstInstallment"), percentage: "100", dueDate: new Date().toISOString().slice(0, 10) },
+    {
+      name: t("deals.plan.firstInstallment"),
+      percentage: "100",
+      dueDate: new Date().toISOString().slice(0, 10),
+    },
   ]);
   const [equalCount, setEqualCount] = useState(12);
-  const [equalFirstDue, setEqualFirstDue] = useState(
-    () => new Date().toISOString().slice(0, 10),
-  );
+  const [equalFirstDue, setEqualFirstDue] = useState(() => new Date().toISOString().slice(0, 10));
 
   // Template mode state.
   const [templateOptions, setTemplateOptions] = useState<TemplateOption[]>([]);
@@ -99,8 +105,7 @@ export function PaymentPlanForm({ saleId, currency, finalPrice, projectId }: Pro
             id: String(t.id),
             name: String(t.name),
             projectId: (t.projectId as string | null) ?? null,
-            projectName:
-              (t.project as { name?: string } | null | undefined)?.name ?? null,
+            projectName: (t.project as { name?: string } | null | undefined)?.name ?? null,
             isDefault: Boolean(t.isDefault),
           }));
         // Sort default first, then project-scoped, then org-scoped.
@@ -139,24 +144,18 @@ export function PaymentPlanForm({ saleId, currency, finalPrice, projectId }: Pro
         draft.rows.map((r) => ({
           name: r.label,
           amount: r.amount,
-          dueDate: r.dueDate
-            ? new Date(r.dueDate).toISOString().slice(0, 10)
-            : "",
+          dueDate: r.dueDate ? new Date(r.dueDate).toISOString().slice(0, 10) : "",
         })),
       );
       setTemplateApplied(chosen?.name ?? draft.template.name);
       const missing = draft.rows.filter((r) => !r.dueDate).length;
       if (missing > 0) {
-        setTemplateInfo(
-          t("deals.plan.templateMissingDates", { count: missing }),
-        );
+        setTemplateInfo(t("deals.plan.templateMissingDates", { count: missing }));
       } else {
         setTemplateInfo(t("deals.plan.templateApplied"));
       }
     } catch (err) {
-      setError(
-        err instanceof ApiClientError ? err.message : t("deals.plan.applyFailed"),
-      );
+      setError(err instanceof ApiClientError ? err.message : t("deals.plan.applyFailed"));
     } finally {
       setBusy(false);
     }
@@ -225,7 +224,9 @@ export function PaymentPlanForm({ saleId, currency, finalPrice, projectId }: Pro
           />
         </div>
         <div>
-          <label className="block text-xs text-[var(--color-foreground-muted)]">{t("deals.plan.template")}</label>
+          <label className="block text-xs text-[var(--color-foreground-muted)]">
+            {t("deals.plan.template")}
+          </label>
           <select
             value={template}
             onChange={(e) => setTemplate(e.target.value as Template)}
@@ -242,7 +243,7 @@ export function PaymentPlanForm({ saleId, currency, finalPrice, projectId }: Pro
       {template === "TEMPLATE" ? (
         <div className="space-y-3 rounded-md border border-[var(--color-border)] bg-[var(--color-surface-inset)] p-3">
           <div className="flex flex-wrap items-end gap-2">
-            <div className="flex-1 min-w-[220px]">
+            <div className="min-w-[220px] flex-1">
               <label className="block text-xs text-[var(--color-foreground-muted)]">
                 {t("deals.plan.template")}
               </label>
@@ -289,9 +290,7 @@ export function PaymentPlanForm({ saleId, currency, finalPrice, projectId }: Pro
             </p>
           ) : null}
           {templateInfo ? (
-            <p className="text-xs text-[var(--color-foreground-muted)]">
-              {templateInfo}
-            </p>
+            <p className="text-xs text-[var(--color-foreground-muted)]">{templateInfo}</p>
           ) : null}
           {templateApplied ? (
             <div className="space-y-2">
@@ -301,9 +300,7 @@ export function PaymentPlanForm({ saleId, currency, finalPrice, projectId }: Pro
                     value={row.name}
                     onChange={(e) =>
                       setManualRows((rs) =>
-                        rs.map((r, i) =>
-                          i === idx ? { ...r, name: e.target.value } : r,
-                        ),
+                        rs.map((r, i) => (i === idx ? { ...r, name: e.target.value } : r)),
                       )
                     }
                     className="h-10 rounded-md border border-[var(--color-border)] px-3 text-sm"
@@ -314,9 +311,7 @@ export function PaymentPlanForm({ saleId, currency, finalPrice, projectId }: Pro
                     value={row.amount}
                     onChange={(e) =>
                       setManualRows((rs) =>
-                        rs.map((r, i) =>
-                          i === idx ? { ...r, amount: e.target.value } : r,
-                        ),
+                        rs.map((r, i) => (i === idx ? { ...r, amount: e.target.value } : r)),
                       )
                     }
                     className="h-10 rounded-md border border-[var(--color-border)] px-3 text-sm"
@@ -325,21 +320,14 @@ export function PaymentPlanForm({ saleId, currency, finalPrice, projectId }: Pro
                   <DateInput
                     value={row.dueDate}
                     onChange={(dueDate) =>
-                      setManualRows((rs) =>
-                        rs.map((r, i) => (i === idx ? { ...r, dueDate } : r)),
-                      )
+                      setManualRows((rs) => rs.map((r, i) => (i === idx ? { ...r, dueDate } : r)))
                     }
-                    className={
-                      "h-10 " +
-                      (row.dueDate ? "" : "border-amber-300 bg-amber-50")
-                    }
+                    className={"h-10 " + (row.dueDate ? "" : "border-amber-300 bg-amber-50")}
                   />
                   <Button
                     size="sm"
                     variant="outline"
-                    onClick={() =>
-                      setManualRows((rs) => rs.filter((_, i) => i !== idx))
-                    }
+                    onClick={() => setManualRows((rs) => rs.filter((_, i) => i !== idx))}
                   >
                     {t("common.remove")}
                   </Button>
@@ -375,13 +363,9 @@ export function PaymentPlanForm({ saleId, currency, finalPrice, projectId }: Pro
             <label className="block text-xs text-[var(--color-foreground-muted)]">
               {t("deals.plan.firstDue")}
             </label>
-            <DateInput
-              value={equalFirstDue}
-              onChange={setEqualFirstDue}
-              className="h-10"
-            />
+            <DateInput value={equalFirstDue} onChange={setEqualFirstDue} className="h-10" />
           </div>
-          <p className="sm:col-span-2 text-xs text-[var(--color-foreground-muted)]">
+          <p className="text-xs text-[var(--color-foreground-muted)] sm:col-span-2">
             {t("deals.plan.equalHint", { amount: finalNum.toFixed(2), currency })}
           </p>
         </div>
@@ -394,7 +378,9 @@ export function PaymentPlanForm({ saleId, currency, finalPrice, projectId }: Pro
               <input
                 value={row.name}
                 onChange={(e) =>
-                  setPctRows((rs) => rs.map((r, i) => (i === idx ? { ...r, name: e.target.value } : r)))
+                  setPctRows((rs) =>
+                    rs.map((r, i) => (i === idx ? { ...r, name: e.target.value } : r)),
+                  )
                 }
                 className="h-10 rounded-md border border-[var(--color-border)] px-3 text-sm"
                 placeholder={t("common.name")}
@@ -413,9 +399,7 @@ export function PaymentPlanForm({ saleId, currency, finalPrice, projectId }: Pro
               <DateInput
                 value={row.dueDate}
                 onChange={(dueDate) =>
-                  setPctRows((rs) =>
-                    rs.map((r, i) => (i === idx ? { ...r, dueDate } : r)),
-                  )
+                  setPctRows((rs) => rs.map((r, i) => (i === idx ? { ...r, dueDate } : r)))
                 }
                 className="h-10"
               />
@@ -478,9 +462,7 @@ export function PaymentPlanForm({ saleId, currency, finalPrice, projectId }: Pro
               <DateInput
                 value={row.dueDate}
                 onChange={(dueDate) =>
-                  setManualRows((rs) =>
-                    rs.map((r, i) => (i === idx ? { ...r, dueDate } : r)),
-                  )
+                  setManualRows((rs) => rs.map((r, i) => (i === idx ? { ...r, dueDate } : r)))
                 }
                 className="h-10"
               />

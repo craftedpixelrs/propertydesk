@@ -37,15 +37,12 @@ export async function allocateInvoiceNumber(
   const month = now.getUTCMonth() + 1; // 1..12
   const orgId =
     input.scope === "ORG_YEARLY" || input.scope === "ORG_MONTHLY"
-      ? input.organizationId ?? null
+      ? (input.organizationId ?? null)
       : null;
-  const monthKey =
-    input.scope === "GLOBAL_MONTHLY" || input.scope === "ORG_MONTHLY" ? month : null;
+  const monthKey = input.scope === "GLOBAL_MONTHLY" || input.scope === "ORG_MONTHLY" ? month : null;
 
   if ((input.scope === "ORG_YEARLY" || input.scope === "ORG_MONTHLY") && !orgId) {
-    throw DomainErrors.badRequest(
-      "organizationId je obavezan za per-org šemu numeracije faktura.",
-    );
+    throw DomainErrors.badRequest("organizationId je obavezan za per-org šemu numeracije faktura.");
   }
 
   return await prisma.$transaction(async (tx) => {

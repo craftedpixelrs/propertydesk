@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
@@ -66,6 +66,7 @@ export function ContractSection(props: {
   );
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const signedFileRef = useRef<HTMLInputElement>(null);
 
   const groups = useMemo(() => {
     const pre = props.templates.filter((tmpl) => tmpl.kind === "PRE_CONTRACT");
@@ -114,11 +115,40 @@ export function ContractSection(props: {
     setError(null);
     setBusy(action);
     try {
-      await apiClient.post(`/sales/${props.saleId}/contract/${action}`, {});
+      let documentId: string | undefined;
+      if (action === "mark-signed") {
+        const file = signedFileRef.current?.files?.[0];
+        if (!file) {
+          setError(t("deals.clientPack.fileRequired"));
+          return;
+        }
+        const form = new FormData();
+        form.append("file", file);
+        form.append("category", "SALE");
+        form.append("visibility", "BUYER_SHARED");
+        form.append("entityType", "Sale");
+        form.append("entityId", props.saleId);
+        const upload = await fetch("/api/v1/documents", { method: "POST", body: form });
+        const payload = (await upload.json().catch(() => null)) as {
+          data?: { id?: string };
+          error?: { message?: string };
+        } | null;
+        if (!upload.ok || !payload?.data?.id) {
+          throw new Error(payload?.error?.message ?? t("errors.generic"));
+        }
+        documentId = payload.data.id;
+      }
+      await apiClient.post(`/sales/${props.saleId}/contract/${action}`, {
+        ...(documentId ? { documentId } : {}),
+      });
       router.refresh();
     } catch (err) {
       setError(
-        err instanceof ApiClientError ? err.message : t("errors.generic"),
+        err instanceof ApiClientError
+          ? err.message
+          : err instanceof Error
+            ? err.message
+            : t("errors.generic"),
       );
     } finally {
       setBusy(null);
@@ -219,15 +249,25 @@ export function ContractSection(props: {
               {t("deals.contract.markSent")}
             </Button>
           ) : null}
-          {props.contractStatus === "GENERATED" ||
-          props.contractStatus === "SENT" ? (
-            <Button
-              size="sm"
-              loading={busy === "mark-signed"}
-              onClick={() => transition("mark-signed")}
-            >
-              {t("deals.contract.markSigned")}
-            </Button>
+          {props.contractStatus === "GENERATED" || props.contractStatus === "SENT" ? (
+            <>
+              <label className="flex items-center gap-2 text-xs text-[var(--color-foreground-muted)]">
+                {t("deals.clientPack.signedFile")}
+                <input
+                  ref={signedFileRef}
+                  type="file"
+                  accept="application/pdf,image/jpeg,image/png"
+                  className="text-xs"
+                />
+              </label>
+              <Button
+                size="sm"
+                loading={busy === "mark-signed"}
+                onClick={() => transition("mark-signed")}
+              >
+                {t("deals.contract.markSigned")}
+              </Button>
+            </>
           ) : null}
         </div>
       ) : null}

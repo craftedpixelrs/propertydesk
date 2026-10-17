@@ -4,9 +4,7 @@ import { notFound, redirect } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { loadUserContext } from "@/server/auth/context";
-import {
-  getConnectionDetail,
-} from "@/server/services/agencies/agencies.service";
+import { getConnectionDetail } from "@/server/services/agencies/agencies.service";
 import { listCommissionRules } from "@/server/services/commissions/rules.service";
 import { prisma } from "@/server/db/prisma";
 import { formatDate } from "@/lib/formatters";
@@ -82,7 +80,10 @@ export default async function AgencijaDetailPage({ params, searchParams }: PageP
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <div className="flex items-center gap-3">
-            <Link href="/agencije" className="text-sm text-[var(--color-brand-700)] hover:underline">
+            <Link
+              href="/agencije"
+              className="text-sm text-[var(--color-brand-700)] hover:underline"
+            >
               ← {t("nav.agencies")}
             </Link>
           </div>

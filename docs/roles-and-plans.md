@@ -46,9 +46,11 @@ organizacije?"**
 
 **UI ekrani:**
 
-- **Administracija → Uloge i dozvole (aplikacija i platforma)** — matrica
-  po roli; jasno razdvojeno „Platforma" (SUPER_ADMIN) i „Aplikacija" (org
-  role).
+- **Administracija → Uređivač uloga i dozvola (platforma · aplikacija ·
+  Property Desk)** (`/administracija/role`) — jedna matrica, tri sloja.
+  Resursi `platform`, `billing`, `user`, `session` su sloj A. Resursi
+  `pd_*` su sloj C. Sve ostalo, uključujući nove dozvole evidencije, je
+  sloj B (aplikacija). Tenant CRM ne dobija `pd_*` ključeve.
 - **Podešavanja → Korisnici** (unutar tenanta) — dodela **aplikacione**
   role članovima organizacije; NE dira subscription / plan.
 
@@ -404,7 +406,48 @@ Napomene:
 
 ## 1. Uređivanje rola i dozvola
 
-Stranica: **Administracija → Role i dozvole** (`/administracija/role`).
+Stranica: **Uređivač uloga i dozvola (platforma · aplikacija · Property
+Desk)** (`/administracija/role`).
+
+### 1.1 Nove dozvole evidencije (sloj B)
+
+Ove dozvole pokrivaju dosije, primopredaju, link kupca, konačni obračun,
+PDF provizije, pasuse u pismima i anonimizaciju. U editoru su u sloju
+**Aplikacija**. Podrazumevane vrednosti su u `roles.ts`. Dok super-admin
+ne sačuva ćeliju, važi ta podrazumevana vrednost. Override je po paru
+`(rola, dozvola)` u `role_permission_override` i važi samo u bazi tog
+okruženja: demo i staging dele demo bazu, produkcija (`my.`) ima svoju.
+
+Legenda: ✔ podrazumevano dozvoljeno. Prazno polje je zabranjeno dok se
+u editoru ne uključi.
+
+| Dozvola | Šta otvara | Vlasnik | Admin | Menadžer | Agent | Finansije | Posmatrač | Vlasnik agencije | Ostale agencijske | Super-admin |
+|---|---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+| `sale.dossier` | PDF dosije i ZIP dokumenata prodaje | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | | | ✔ |
+| `sale.handover` | Snimanje liste primopredaje. Čitanje ostaje `sale.read` | ✔ | ✔ | ✔ | | | | | | ✔ |
+| `sale.buyer_link` | Javni link `/p/kupac/[token]` | ✔ | ✔ | ✔ | | | | | | ✔ |
+| `sale.settlement` | Stavke konačnog obračuna (odbitak i doplata) | ✔ | ✔ | ✔ | | ✔ | | | | ✔ |
+| `commission.statement` | PDF obračun provizije, i za investitora i za agenciju | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ |
+| `organization.templates` | Dodatni pasus u pismima kupcu. Čitanje ostaje `organization.read` | ✔ | ✔ | | | | | ✔ | | ✔ |
+| `buyer.anonymize` | Brisanje ličnih podataka kupca | ✔ | ✔ | | | | | | | ✔ |
+
+Agencijske uloge vide `sale.*` kao zabranjeno. Prodaja ostaje kod
+investitora. Agencija i dalje skida svoj PDF provizije.
+
+Anonimizacija je uža od starog `organization.manage`: vlasnik agencije
+i dalje upravlja svojom organizacijom, a kupca investitora ne može da
+obriše. Finansije snimaju obračun i skidaju dosije, bez primopredaje i
+bez linka za kupca. Agent i posmatrač skidaju dosije, ne menjaju listu
+primopredaje.
+
+Na kartici prodaje dugmad prate iste dozvole. Kartica šablona pisama u
+Podešavanja → Organizacija traži `organization.templates`. Dugme
+Anonimizuj na kupcu traži `buyer.anonymize`.
+
+`demo.propertydesk.app` i `staging.propertydesk.app` serviraju ovu
+matricu iz iste demo baze. Izmena ćelije na jednom hostu vidi se na
+drugom čim istekne keš (oko 10 sekundi). `my.propertydesk.app` tu izmenu
+ne vidi.
 
 ### Kako sistem radi
 

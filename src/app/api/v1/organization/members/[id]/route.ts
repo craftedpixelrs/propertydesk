@@ -43,11 +43,7 @@ export const PATCH = apiHandler(
 
 export const DELETE = apiHandler({ paramsSchema }, async ({ params }) => {
   const ctx = await requirePermission("organization.members:manage");
-  await removeMember(
-    ctx.organization.organizationId,
-    params.id,
-    ctx.session.user.id,
-  );
+  await removeMember(ctx.organization.organizationId, params.id, ctx.session.user.id);
   return { data: { ok: true } };
 });
 

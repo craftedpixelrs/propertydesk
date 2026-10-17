@@ -7,13 +7,7 @@ import {
   listReservationRequests,
 } from "@/server/services/reservations/reservation-requests.service";
 
-const statusSchema = z.enum([
-  "PENDING",
-  "CONFIRMED",
-  "DECLINED",
-  "EXPIRED",
-  "ALL",
-]);
+const statusSchema = z.enum(["PENDING", "CONFIRMED", "DECLINED", "EXPIRED", "ALL"]);
 
 /**
  * GET /api/v1/reservation-requests — Faza 8.1 (A2).

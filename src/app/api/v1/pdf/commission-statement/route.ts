@@ -14,7 +14,7 @@ import { ApiError } from "@/lib/api/errors";
  * different endpoint (`agency.read`) if we add one later.
  */
 export const GET = apiHandler({}, async ({ searchParams }): Promise<Response> => {
-  const ctx = await requirePermission("commission.read");
+  const ctx = await requirePermission("commission.statement");
   const agencyOrganizationId = searchParams.get("agencyOrganizationId");
   if (!agencyOrganizationId) {
     throw new ApiError("BAD_REQUEST", "Nedostaje agencyOrganizationId.");
@@ -29,9 +29,7 @@ export const GET = apiHandler({}, async ({ searchParams }): Promise<Response> =>
     to,
   });
   return new NextResponse(new Uint8Array(buffer), {
-    headers: pdfResponseHeaders(
-      `obracun-provizije-${agencyOrganizationId.slice(0, 8)}`,
-    ),
+    headers: pdfResponseHeaders(`obracun-provizije-${agencyOrganizationId.slice(0, 8)}`),
   });
 });
 
@@ -49,7 +47,7 @@ function parseDate(v: string | null): Date | undefined {
  *       - pdf
  *     summary: List / read pdf
  *     description: |
- *       **Auth:** `requirePermission("commission.read")`
+ *       **Auth:** `requirePermission("commission.statement")`
  *     responses:
  *       "200":
  *         description: |

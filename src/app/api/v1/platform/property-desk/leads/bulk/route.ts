@@ -35,11 +35,7 @@ const bodySchema = z.object({
 
 export const POST = apiHandler({ bodySchema }, async ({ body }) => {
   const ctx = await requirePropertyDeskAccess();
-  const result = await bulkUpdateMarketingLeads(
-    ctx,
-    body,
-    ctx.session.user.id,
-  );
+  const result = await bulkUpdateMarketingLeads(ctx, body, ctx.session.user.id);
   return { data: result };
 });
 

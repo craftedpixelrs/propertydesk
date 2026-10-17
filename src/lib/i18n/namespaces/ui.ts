@@ -73,6 +73,13 @@ export const uiSr = {
     noRegistrations: "Nema prijava",
     noRegistrationsHint: "Prijavite kupca iz ponude.",
     myReservations: "Moje rezervacije",
+    workQueue: "Danas na redu",
+    workKind: {
+      installment: "Rata",
+      kyc: "KYC",
+      contract: "Ugovor",
+      reservation: "Rezervacija",
+    },
   },
 } as const;
 
@@ -148,5 +155,12 @@ export const uiEn: Leaves<typeof uiSr> = {
     noRegistrations: "No registrations",
     noRegistrationsHint: "Register a buyer from the offer.",
     myReservations: "My reservations",
+    workQueue: "Due today",
+    workKind: {
+      installment: "Installment",
+      kyc: "KYC",
+      contract: "Contract",
+      reservation: "Reservation",
+    },
   },
 };

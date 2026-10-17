@@ -16,13 +16,9 @@ export const INVESTOR_REQUIRED_PROFILE_FIELDS = [
   "website",
 ] as const;
 
-export type InvestorRequiredProfileField =
-  (typeof INVESTOR_REQUIRED_PROFILE_FIELDS)[number];
+export type InvestorRequiredProfileField = (typeof INVESTOR_REQUIRED_PROFILE_FIELDS)[number];
 
-export const INVESTOR_PROFILE_FIELD_LABEL: Record<
-  InvestorRequiredProfileField,
-  string
-> = {
+export const INVESTOR_PROFILE_FIELD_LABEL: Record<InvestorRequiredProfileField, string> = {
   displayName: "Prikazni naziv",
   legalName: "Pravni naziv",
   taxNumber: "PIB",
@@ -77,8 +73,7 @@ export const AGENCY_REQUIRED_PROFILE_FIELDS = [
   "email",
 ] as const;
 
-export type AgencyRequiredProfileField =
-  (typeof AGENCY_REQUIRED_PROFILE_FIELDS)[number];
+export type AgencyRequiredProfileField = (typeof AGENCY_REQUIRED_PROFILE_FIELDS)[number];
 
 export function missingAgencyProfileFields(
   profile: InvestorProfileFields | null | undefined,
@@ -94,9 +89,7 @@ export function isAgencyProfileComplete(
 }
 
 /** Accept `example.rs` by prefixing https:// so the URL check can run. */
-export function normalizeWebsite(
-  value: string | null | undefined,
-): string | null {
+export function normalizeWebsite(value: string | null | undefined): string | null {
   const raw = value?.trim() ?? "";
   if (!raw) return null;
   if (/^https?:\/\//i.test(raw)) return raw;

@@ -1,6 +1,8 @@
 import "server-only";
 import { getJob, registerJob } from "@/server/jobs";
 import { expireDueReservations } from "@/server/services/reservations.service";
+import { expireStaleReservationRequests } from "@/server/services/reservations/reservation-requests.service";
+import { runClientFollowUp } from "@/server/services/ops/client-followup";
 import { expireDueProtections } from "@/server/services/agencies/registrations.service";
 import { notifyBuyerProtectionsExpiringSoon } from "@/server/services/agencies/protection-jobs";
 import {
@@ -38,6 +40,19 @@ ensure("expire-reservations", () =>
   }),
 );
 
+ensure("expire-reservation-requests", () =>
+  registerJob({
+    name: "expire-reservation-requests",
+    description:
+      "Ističe javne zahteve za rezervaciju kojima je prošao rok, bez čekanja da neko otvori listu.",
+    suggestedCron: "*/15 * * * *",
+    run: async () => {
+      const { expired } = await expireStaleReservationRequests();
+      return { processed: expired, updated: expired, errors: 0 };
+    },
+  }),
+);
+
 ensure("expire-buyer-protection", () =>
   registerJob({
     name: "expire-buyer-protection",
@@ -71,16 +86,18 @@ ensure("due-soon-notifications", () =>
       "Obavesti odgovorne korisnike o ratama koje dospevaju u narednih 7 dana, kao i o kupcima čija zaštita ističe.",
     suggestedCron: "30 6 * * *",
     run: async () => {
-      const [installments, protections] = await Promise.all([
+      const [installments, protections, followUp] = await Promise.all([
         notifyDueSoonInstallments(),
         notifyBuyerProtectionsExpiringSoon(),
+        runClientFollowUp(),
       ]);
       return {
-        processed: installments.processed + protections.processed,
-        errors: installments.errors + protections.errors,
+        processed: installments.processed + protections.processed + followUp.processed,
+        errors: installments.errors + protections.errors + followUp.errors,
         details: {
           installments,
           protections,
+          followUp,
         },
       };
     },

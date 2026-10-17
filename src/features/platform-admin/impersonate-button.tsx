@@ -36,9 +36,7 @@ export function ImpersonateButton({
 
   async function handleImpersonate() {
     if (busy) return;
-    const confirmed = window.confirm(
-      t("admin.impersonate.confirm", { name: userName }),
-    );
+    const confirmed = window.confirm(t("admin.impersonate.confirm", { name: userName }));
     if (!confirmed) return;
 
     setBusy(true);
@@ -78,9 +76,7 @@ export function ImpersonateButton({
         <UserCog aria-hidden className="size-4" />
         {t("admin.impersonate.button")}
       </Button>
-      {error ? (
-        <span className="text-xs text-[var(--color-danger)]">{error}</span>
-      ) : null}
+      {error ? <span className="text-xs text-[var(--color-danger)]">{error}</span> : null}
     </div>
   );
 }

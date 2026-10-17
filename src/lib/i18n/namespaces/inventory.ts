@@ -71,8 +71,7 @@ export const inventorySr = {
     codeImmutable: "Šifra jedinice ne može se menjati posle kreiranja.",
     priceChangeReason: "Razlog promene cene",
     priceChangePlaceholder: "npr. korekcija zbog povećanja površine terase",
-    priceChangeHint:
-      "Beleži se u istoriju cena i audit trag. Obavezno kada menjaš osnovnu cenu.",
+    priceChangeHint: "Beleži se u istoriju cena i audit trag. Obavezno kada menjaš osnovnu cenu.",
     create: "Kreiraj jedinicu",
     noStatusTransitions:
       "Iz trenutnog statusa nije dozvoljena nijedna promena. Sistemski događaji (npr. otkaz rezervacije) mogu izmeniti status automatski.",
@@ -84,8 +83,7 @@ export const inventorySr = {
     referralTitle: "Vaši referral kodovi",
     referralBody:
       "Delite link ili QR kod sa kupcima. Otvaraju javni katalog projekata, bez prijave. Rezervacije preko tog linka pripisuju se Vašoj agenciji.",
-    empty:
-      "Za sada nemate aktivan pristup nijednom projektu. Kontaktirajte investitora.",
+    empty: "Za sada nemate aktivan pristup nijednom projektu. Kontaktirajte investitora.",
     viewUnits: "Pogledaj jedinice →",
     viewUnitsBtn: "Pogledaj jedinice",
     back: "← Ponuda",
@@ -110,8 +108,7 @@ export const inventorySr = {
       "Kratka šifra (npr. P-001). Jedinstvena po organizaciji. Ne menja se posle kreiranja.",
     projectName: "Naziv projekta",
     latitude: "Geo. širina",
-    latitudeHint:
-      "Popunjava se iz adrese ili klika na mapu. Možete i ručno.",
+    latitudeHint: "Popunjava se iz adrese ili klika na mapu. Možete i ručno.",
     longitude: "Geo. dužina",
     longitudeHint: "Decimalne stepene (npr. 20.4489).",
     addressNeedsCity: "Prvo unesite grad",
@@ -140,8 +137,7 @@ export const inventorySr = {
     micrositeHint:
       "Kada je uključeno, projekat je dostupan na /p/projekat/<slug> sa listom slobodnih jedinica.",
     micrositeSlug: "Slug javne stranice",
-    micrositeSlugHint:
-      "Opcionalno — ako je prazno, koristi se standardni slug projekta.",
+    micrositeSlugHint: "Opcionalno — ako je prazno, koristi se standardni slug projekta.",
     networkCatalog: "Vidljivo mreži agencija",
     networkCatalogHint:
       "Kada je uključeno, verifikovane agencije vide teaser (lokacija, raspon cena, broj slobodnih). Pun inventar ostaje samo za povezane agencije.",
@@ -149,13 +145,12 @@ export const inventorySr = {
     unspecified: "— nije određeno —",
     map: "Mapa",
     mapHint:
-      "Kliknite bilo gde na mapi — postavićemo tačno tu poziciju u polja „Geo. širina\" i „Geo. dužina\".",
+      'Kliknite bilo gde na mapi — postavićemo tačno tu poziciju u polja „Geo. širina" i „Geo. dužina".',
   },
   clone: {
     action: "Kloniraj projekat",
     bodyBefore: "Kopira strukturu iz",
-    bodyAfter:
-      "u novi projekat. Prodaje, rezervacije, kupci i uplate se ne kopiraju.",
+    bodyAfter: "u novi projekat. Prodaje, rezervacije, kupci i uplate se ne kopiraju.",
     newCode: "Šifra novog projekta",
     newName: "Naziv novog projekta",
     copyName: "{{name}} (kopija)",
@@ -184,10 +179,8 @@ export const inventorySr = {
     entranceCodeHint: "Kratka šifra ulaza (npr. 1, 2, A).",
     entranceNameHint: "Kako se ulaz zove/vidi (npr. Ulaz 1, Ulaz A).",
     newFloor: "Novi sprat — {{label}}",
-    floorLabelHint:
-      "Kako sprat piše (npr. PR za prizemlje, 1, 2, PK za potkrovlje, S za suteren).",
-    floorNumberHint:
-      "Numerička vrednost za sortiranje (npr. 0 za prizemlje, -1 za suteren).",
+    floorLabelHint: "Kako sprat piše (npr. PR za prizemlje, 1, 2, PK za potkrovlje, S za suteren).",
+    floorNumberHint: "Numerička vrednost za sortiranje (npr. 0 za prizemlje, -1 za suteren).",
   },
   map: {
     loading: "Učitavanje mape…",
@@ -288,6 +281,22 @@ export const inventorySr = {
     title: "Javni linkovi za kupca",
     showPrice: "Prikaži cenu na javnoj stranici",
     create: "Kreiraj link",
+    buyer: "Kupac",
+    buyerPlaceholder: "Ime kupca kome šaljete link",
+    buyerRequired: "Upišite kupca kome je link namenjen.",
+    duration: "Trajanje linka",
+    durationDays: "{{count}} dana",
+    durationCustom: "Drugi broj dana",
+    durationNone: "Bez roka",
+    durationCustomLabel: "Broj dana",
+    durationInvalid: "Trajanje mora biti između 1 i 365 dana.",
+    created: "Kreirano {{date}}",
+    expires: "Ističe {{date}}",
+    revokedAt: "Opozvano {{date}}",
+    lastViewed: "Poslednji pregled {{date}}",
+    showRevoked: "Prikaži opozvane",
+    hiddenRevoked: "{{count}} opozvanih je sakriveno",
+    emptyActive: "Nema aktivnih linkova. Opozvani su sakriveni.",
     empty:
       "Još nema deljenih linkova. Kada kreirate link, kupac može da otvori stranicu ponude bez logina.",
     revoked: "opozvan",
@@ -381,8 +390,7 @@ export const inventoryEn: Leaves<typeof inventorySr> = {
     referralTitle: "Your referral codes",
     referralBody:
       "Share the link or QR code with buyers. They open a public project catalog, without signing in. Reservations through that link are attributed to your agency.",
-    empty:
-      "You do not have active access to any project yet. Contact the investor.",
+    empty: "You do not have active access to any project yet. Contact the investor.",
     viewUnits: "View units →",
     viewUnitsBtn: "View units",
     back: "← Offer",
@@ -407,8 +415,7 @@ export const inventoryEn: Leaves<typeof inventorySr> = {
       "Short code (e.g. P-001). Unique per organization. Cannot be changed after creation.",
     projectName: "Project name",
     latitude: "Latitude",
-    latitudeHint:
-      "Filled from the address or a map click. You can also type it.",
+    latitudeHint: "Filled from the address or a map click. You can also type it.",
     longitude: "Longitude",
     longitudeHint: "Decimal degrees (e.g. 20.4489).",
     addressNeedsCity: "Enter the city first",
@@ -437,8 +444,7 @@ export const inventoryEn: Leaves<typeof inventorySr> = {
     micrositeHint:
       "When enabled, the project is available at /p/projekat/<slug> with a list of available units.",
     micrositeSlug: "Public page slug",
-    micrositeSlugHint:
-      "Optional — if empty, the standard project slug is used.",
+    micrositeSlugHint: "Optional — if empty, the standard project slug is used.",
     networkCatalog: "Visible to the agency network",
     networkCatalogHint:
       "When enabled, verified agencies see a teaser (location, price range, availability). Full inventory stays for connected agencies only.",
@@ -451,8 +457,7 @@ export const inventoryEn: Leaves<typeof inventorySr> = {
   clone: {
     action: "Clone project",
     bodyBefore: "Copies the structure from",
-    bodyAfter:
-      "into a new project. Sales, reservations, buyers and payments are not copied.",
+    bodyAfter: "into a new project. Sales, reservations, buyers and payments are not copied.",
     newCode: "New project code",
     newName: "New project name",
     copyName: "{{name}} (copy)",
@@ -483,8 +488,7 @@ export const inventoryEn: Leaves<typeof inventorySr> = {
     newFloor: "New floor — {{label}}",
     floorLabelHint:
       "How the floor is written (e.g. GF for ground floor, 1, 2, ATT for attic, B for basement).",
-    floorNumberHint:
-      "Numeric value for sorting (e.g. 0 for ground floor, -1 for basement).",
+    floorNumberHint: "Numeric value for sorting (e.g. 0 for ground floor, -1 for basement).",
   },
   map: {
     loading: "Loading map…",
@@ -585,6 +589,22 @@ export const inventoryEn: Leaves<typeof inventorySr> = {
     title: "Public links for the buyer",
     showPrice: "Show price on the public page",
     create: "Create link",
+    buyer: "Buyer",
+    buyerPlaceholder: "Name of the buyer this link is for",
+    buyerRequired: "Enter the buyer this link is for.",
+    duration: "Link duration",
+    durationDays: "{{count}} days",
+    durationCustom: "Other number of days",
+    durationNone: "No expiry",
+    durationCustomLabel: "Number of days",
+    durationInvalid: "Duration must be between 1 and 365 days.",
+    created: "Created {{date}}",
+    expires: "Expires {{date}}",
+    revokedAt: "Revoked {{date}}",
+    lastViewed: "Last viewed {{date}}",
+    showRevoked: "Show revoked",
+    hiddenRevoked: "{{count}} revoked hidden",
+    emptyActive: "No active links. Revoked ones are hidden.",
     empty:
       "No shared links yet. After you create a link, the buyer can open the offer page without signing in.",
     revoked: "revoked",

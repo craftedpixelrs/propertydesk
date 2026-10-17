@@ -54,10 +54,7 @@ export async function generateMetadata({ params, searchParams }: PageProps): Pro
     });
   const host = hostFromHeaders(await headers());
   const cover = site.project.coverImageUrl
-    ? absoluteCoverImageUrl(
-        site.project.coverImageUrl,
-        host ? `https://${host}` : "",
-      )
+    ? absoluteCoverImageUrl(site.project.coverImageUrl, host ? `https://${host}` : "")
     : undefined;
   return {
     title,
@@ -114,14 +111,14 @@ export default async function PublicProjectMicrosite({ params, searchParams }: P
               <img
                 src={site.organization.logoUrl}
                 alt={site.organization.name}
-                className="h-12 w-auto max-h-16 max-w-[200px] shrink-0 object-contain object-left sm:h-16 sm:max-w-[280px]"
+                className="h-12 max-h-16 w-auto max-w-[200px] shrink-0 object-contain object-left sm:h-16 sm:max-w-[280px]"
               />
             ) : null}
             <div className="min-w-0">
-              <div className="truncate text-xs uppercase tracking-wide text-neutral-500">
+              <div className="truncate text-xs tracking-wide text-neutral-500 uppercase">
                 {site.organization.name}
               </div>
-              <div className="truncate text-lg font-semibold leading-tight sm:text-xl">
+              <div className="truncate text-lg leading-tight font-semibold sm:text-xl">
                 {site.project.name}
               </div>
             </div>
@@ -185,14 +182,12 @@ export default async function PublicProjectMicrosite({ params, searchParams }: P
                 {site.project.publicDescription}
               </div>
             ) : (
-              <p className="text-neutral-500">
-                {t("marketing.public.contactInvestor")}
-              </p>
+              <p className="text-neutral-500">{t("marketing.public.contactInvestor")}</p>
             )}
           </div>
           {site.project.latitude != null && site.project.longitude != null ? (
             <div>
-              <h3 className="mb-2 text-sm font-semibold uppercase tracking-wide text-neutral-500">
+              <h3 className="mb-2 text-sm font-semibold tracking-wide text-neutral-500 uppercase">
                 {t("marketing.public.location")}
               </h3>
               <div className="overflow-hidden rounded-lg border border-neutral-200 bg-white">
@@ -208,10 +203,7 @@ export default async function PublicProjectMicrosite({ params, searchParams }: P
       </div>
 
       <div className="mx-auto max-w-6xl px-6 pb-10">
-        <PublicProjectUnitsCatalog
-          units={unitsWithTokens}
-          referralCode={referralCode}
-        />
+        <PublicProjectUnitsCatalog units={unitsWithTokens} referralCode={referralCode} />
       </div>
     </main>
   );

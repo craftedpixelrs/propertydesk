@@ -73,10 +73,12 @@ const superAdminCtx: PropertyDeskAccessContext = {
   teamMember: null,
 };
 
-function memberCtx(overrides: Partial<{
-  userId: string;
-  teamRole: "SETTER" | "CLOSER" | "OPERATIONS" | "MANAGER";
-}> = {}): PropertyDeskAccessContext {
+function memberCtx(
+  overrides: Partial<{
+    userId: string;
+    teamRole: "SETTER" | "CLOSER" | "OPERATIONS" | "MANAGER";
+  }> = {},
+): PropertyDeskAccessContext {
   return {
     session: {
       user: { id: overrides.userId ?? "u1", role: "user" },
@@ -141,8 +143,7 @@ beforeEach(() => {
     previousLevel: data.previousLevel ?? null,
     levelEnteredAt: data.levelEnteredAt ?? new Date(),
     assignedToUserId:
-      data.assignedTo?.connect?.id ??
-      (data.assignedTo?.disconnect ? null : undefined),
+      data.assignedTo?.connect?.id ?? (data.assignedTo?.disconnect ? null : undefined),
     lostReason: data.lostReason ?? null,
     priority: data.priority ?? "NORMAL",
     temperature: data.temperature ?? "COLD",
@@ -164,11 +165,7 @@ describe("createMarketingLead — duplicate email", () => {
 
     let caught: { code: string; message: string } | null = null;
     try {
-      await createMarketingLead(
-        superAdminCtx,
-        { email: "ana@primer.rs" },
-        "sa-user",
-      );
+      await createMarketingLead(superAdminCtx, { email: "ana@primer.rs" }, "sa-user");
     } catch (err) {
       caught = err as { code: string; message: string };
     }
@@ -182,11 +179,7 @@ describe("createMarketingLead — duplicate email", () => {
   it("normalizes email to lowercase before looking up duplicates", async () => {
     prismaMock.marketingLead.findUnique.mockResolvedValueOnce(null);
 
-    await createMarketingLead(
-      superAdminCtx,
-      { email: "  Ana@Primer.RS  " },
-      "sa-user",
-    );
+    await createMarketingLead(superAdminCtx, { email: "  Ana@Primer.RS  " }, "sa-user");
 
     expect(prismaMock.marketingLead.findUnique).toHaveBeenCalledWith({
       where: { email: "ana@primer.rs" },
@@ -251,8 +244,22 @@ describe("bulkUpdateMarketingLeads — scope + permission gates", () => {
   it("skips ids that fall outside the caller's scope filter and updates the rest", async () => {
     // Caller asked to update 3 ids but their scope filter only exposes 2.
     prismaMock.marketingLead.findMany.mockResolvedValueOnce([
-      { id: "l1", stage: "NEW", level: "SOURCING", previousLevel: null, levelEnteredAt: new Date(), assignedToUserId: null },
-      { id: "l2", stage: "NEW", level: "SOURCING", previousLevel: null, levelEnteredAt: new Date(), assignedToUserId: null },
+      {
+        id: "l1",
+        stage: "NEW",
+        level: "SOURCING",
+        previousLevel: null,
+        levelEnteredAt: new Date(),
+        assignedToUserId: null,
+      },
+      {
+        id: "l2",
+        stage: "NEW",
+        level: "SOURCING",
+        previousLevel: null,
+        levelEnteredAt: new Date(),
+        assignedToUserId: null,
+      },
     ]);
     permissionMock.buildMarketingLeadScopeFilter.mockResolvedValueOnce({
       assignedToUserId: "u1",
@@ -269,16 +276,21 @@ describe("bulkUpdateMarketingLeads — scope + permission gates", () => {
 
     expect(result).toEqual({ updated: 2, skipped: 1 });
     // Only the visible ids reached the update() call.
-    const updatedIds = prismaMock.marketingLead.update.mock.calls.map(
-      ([arg]) => arg.where.id,
-    );
+    const updatedIds = prismaMock.marketingLead.update.mock.calls.map(([arg]) => arg.where.id);
     expect(updatedIds.sort()).toEqual(["l1", "l2"]);
     expect(updatedIds).not.toContain("l3-out-of-scope");
   });
 
   it("counts a row as skipped when the new value matches the existing one", async () => {
     prismaMock.marketingLead.findMany.mockResolvedValueOnce([
-      { id: "l1", stage: "CONTACTED", level: "SOURCING", previousLevel: null, levelEnteredAt: new Date(), assignedToUserId: null },
+      {
+        id: "l1",
+        stage: "CONTACTED",
+        level: "SOURCING",
+        previousLevel: null,
+        levelEnteredAt: new Date(),
+        assignedToUserId: null,
+      },
     ]);
 
     const result = await bulkUpdateMarketingLeads(
@@ -474,12 +486,7 @@ describe("updateMarketingLead — forward-only pipeline", () => {
       return perm !== "pd_lead.reopen";
     });
 
-    await updateMarketingLead(
-      memberCtx({ teamRole: "SETTER" }),
-      "lead-1",
-      { stage: "DEMO" },
-      "u1",
-    );
+    await updateMarketingLead(memberCtx({ teamRole: "SETTER" }), "lead-1", { stage: "DEMO" }, "u1");
 
     const call = prismaMock.marketingLead.update.mock.calls[0]?.[0];
     expect(call?.data.stage).toBe("DEMO");
@@ -617,12 +624,7 @@ describe("updateMarketingLead — forward-only pipeline", () => {
     permissionMock.canWriteLead.mockResolvedValueOnce(false);
 
     await expect(
-      updateMarketingLead(
-        memberCtx({ teamRole: "SETTER" }),
-        "lead-1",
-        { note: "kasno" },
-        "u1",
-      ),
+      updateMarketingLead(memberCtx({ teamRole: "SETTER" }), "lead-1", { note: "kasno" }, "u1"),
     ).rejects.toMatchObject({ code: "FORBIDDEN" });
     expect(prismaMock.marketingLead.update).not.toHaveBeenCalled();
   });
@@ -736,12 +738,7 @@ describe("convertMarketingLead", () => {
       name: "Gradnja",
     });
 
-    await convertMarketingLead(
-      memberCtx({ teamRole: "CLOSER" }),
-      "lead-1",
-      "org-1",
-      "u1",
-    );
+    await convertMarketingLead(memberCtx({ teamRole: "CLOSER" }), "lead-1", "org-1", "u1");
 
     const call = prismaMock.marketingLead.update.mock.calls[0]?.[0];
     expect(call?.data.stage).toBe("WON");
@@ -761,12 +758,7 @@ describe("convertMarketingLead", () => {
       name: "Gradnja",
     });
 
-    await convertMarketingLead(
-      memberCtx({ teamRole: "OPERATIONS" }),
-      "lead-1",
-      "org-1",
-      "u1",
-    );
+    await convertMarketingLead(memberCtx({ teamRole: "OPERATIONS" }), "lead-1", "org-1", "u1");
 
     const call = prismaMock.marketingLead.update.mock.calls[0]?.[0];
     expect(call?.data.assignedTo).toBeUndefined();
@@ -897,4 +889,3 @@ describe("provisionMarketingLead", () => {
     expect(result.owner.email).toBe("ana@firma.rs");
   });
 });
-

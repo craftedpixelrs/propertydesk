@@ -19,9 +19,7 @@ export async function purgeExpiredDeletedDocuments(): Promise<{
   processed: number;
   errors: number;
 }> {
-  const cutoff = new Date(
-    Date.now() - DOCUMENT_STORAGE_RETENTION_DAYS * 24 * 60 * 60 * 1000,
-  );
+  const cutoff = new Date(Date.now() - DOCUMENT_STORAGE_RETENTION_DAYS * 24 * 60 * 60 * 1000);
 
   const candidates = await prisma.document.findMany({
     where: {

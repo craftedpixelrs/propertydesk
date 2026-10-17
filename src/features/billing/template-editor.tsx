@@ -113,9 +113,7 @@ export function TemplateEditor(props: Props) {
       } catch (err) {
         if (myRequestId !== requestIdRef.current) return;
         setPreviewError(
-          err instanceof ApiClientError
-            ? err.message
-            : t("admin.templates.previewFailed"),
+          err instanceof ApiClientError ? err.message : t("admin.templates.previewFailed"),
         );
       } finally {
         if (myRequestId === requestIdRef.current) {
@@ -174,9 +172,7 @@ export function TemplateEditor(props: Props) {
     setTestStatus({ kind: "sending" });
     try {
       await apiClient.post<{ sent: boolean; to: string }>(
-        `/billing/templates/${encodeURIComponent(
-          props.templateKey,
-        )}/test-send`,
+        `/billing/templates/${encodeURIComponent(props.templateKey)}/test-send`,
         {
           to: recipient,
           draft: { subject, bodyText, bodyHtml },
@@ -186,10 +182,7 @@ export function TemplateEditor(props: Props) {
     } catch (err) {
       setTestStatus({
         kind: "error",
-        message:
-          err instanceof ApiClientError
-            ? err.message
-            : t("admin.templates.testFailed"),
+        message: err instanceof ApiClientError ? err.message : t("admin.templates.testFailed"),
       });
     }
   }, [testTo, subject, bodyText, bodyHtml, props.templateKey, t]);
@@ -237,11 +230,7 @@ export function TemplateEditor(props: Props) {
               <span className="text-xs text-[var(--color-foreground-muted)]">
                 {t("admin.templates.subject")}
               </span>
-              <Input
-                value={subject}
-                onChange={(e) => setSubject(e.target.value)}
-                maxLength={500}
-              />
+              <Input value={subject} onChange={(e) => setSubject(e.target.value)} maxLength={500} />
             </label>
 
             <label className="grid gap-1 text-sm">
@@ -288,9 +277,7 @@ export function TemplateEditor(props: Props) {
         </div>
 
         <div className="rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] p-4">
-          <h3 className="mb-2 text-sm font-semibold">
-            {t("admin.templates.variables")}
-          </h3>
+          <h3 className="mb-2 text-sm font-semibold">{t("admin.templates.variables")}</h3>
           <p className="mb-3 text-xs text-[var(--color-foreground-muted)]">
             {t("admin.templates.variablesHint")}
           </p>
@@ -326,7 +313,7 @@ export function TemplateEditor(props: Props) {
           {/* Preview toolbar */}
           <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[var(--color-border)] p-3">
             <div className="flex items-center gap-2">
-              <span className="text-xs font-semibold uppercase tracking-wide text-[var(--color-foreground-muted)]">
+              <span className="text-xs font-semibold tracking-wide text-[var(--color-foreground-muted)] uppercase">
                 {t("admin.templates.preview")}
               </span>
               {previewLoading ? (
@@ -365,7 +352,7 @@ export function TemplateEditor(props: Props) {
 
           {/* Subject preview strip */}
           <div className="border-b border-[var(--color-border)] bg-[var(--color-surface-muted)] px-4 py-3 text-sm">
-            <div className="text-[11px] uppercase tracking-wide text-[var(--color-foreground-subtle)]">
+            <div className="text-[11px] tracking-wide text-[var(--color-foreground-subtle)] uppercase">
               {t("admin.templates.inboxSubject")}
             </div>
             <div className="mt-0.5 font-medium text-[var(--color-foreground)]">
@@ -406,7 +393,7 @@ export function TemplateEditor(props: Props) {
               {showPlain ? t("admin.templates.hidePlain") : t("admin.templates.showPlain")}
             </button>
             {showPlain ? (
-              <pre className="mt-2 max-h-64 overflow-auto whitespace-pre-wrap rounded-md border border-[var(--color-border)] bg-[var(--color-surface-muted)] p-3 font-mono text-[11px] text-[var(--color-foreground)]">
+              <pre className="mt-2 max-h-64 overflow-auto rounded-md border border-[var(--color-border)] bg-[var(--color-surface-muted)] p-3 font-mono text-[11px] whitespace-pre-wrap text-[var(--color-foreground)]">
                 {previewText || t("admin.dash")}
               </pre>
             ) : null}

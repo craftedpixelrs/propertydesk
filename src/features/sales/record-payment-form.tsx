@@ -9,14 +9,7 @@ import { useT } from "@/components/app/i18n-provider";
 import { apiClient, ApiClientError } from "@/lib/api-client";
 import type { TranslateFn } from "@/lib/i18n";
 
-const METHOD_VALUES = [
-  "BANK_TRANSFER",
-  "CASH",
-  "CARD",
-  "LOAN",
-  "COMPENSATION",
-  "OTHER",
-] as const;
+const METHOD_VALUES = ["BANK_TRANSFER", "CASH", "CARD", "LOAN", "COMPENSATION", "OTHER"] as const;
 
 function methodLabel(value: (typeof METHOD_VALUES)[number], t: TranslateFn): string {
   switch (value) {
@@ -113,11 +106,7 @@ export function RecordPaymentForm({ saleId, currency, installments }: Props) {
           <label className="block text-xs text-[var(--color-foreground-muted)]">
             {t("common.date")}
           </label>
-          <DateInput
-            value={paymentDate}
-            onChange={setPaymentDate}
-            className="h-10"
-          />
+          <DateInput value={paymentDate} onChange={setPaymentDate} className="h-10" />
         </div>
         <div>
           <label className="block text-xs text-[var(--color-foreground-muted)]">

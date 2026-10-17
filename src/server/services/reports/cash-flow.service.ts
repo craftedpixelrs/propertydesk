@@ -84,9 +84,7 @@ function endOfLocalDay(value: Date): Date {
   return new Date(value.getFullYear(), value.getMonth(), value.getDate(), 23, 59, 59, 999);
 }
 
-export function resolveCashFlowWindow(
-  filters: Pick<CashFlowFilters, "from" | "to" | "months">,
-): {
+export function resolveCashFlowWindow(filters: Pick<CashFlowFilters, "from" | "to" | "months">): {
   from: Date;
   to: Date;
   grain: CashFlowGrain;
@@ -232,8 +230,7 @@ export async function buildCashFlowProjection(
     row: { bucket: Date | string; currency: string; total: string | null },
     kind: "expected" | "received",
   ) {
-    const bucketDate =
-      row.bucket instanceof Date ? row.bucket : new Date(row.bucket);
+    const bucketDate = row.bucket instanceof Date ? row.bucket : new Date(row.bucket);
     const currency = row.currency;
     currencySet.add(currency);
     const key = keyOf(bucketDate, currency);
@@ -253,9 +250,7 @@ export async function buildCashFlowProjection(
     }
     if (kind === "expected") existing.expected = total.toString();
     else existing.received = total.toString();
-    existing.net = toDecimal(existing.received)
-      .sub(toDecimal(existing.expected))
-      .toString();
+    existing.net = toDecimal(existing.received).sub(toDecimal(existing.expected)).toString();
   }
 
   for (const row of expected) upsertBucket(row, "expected");

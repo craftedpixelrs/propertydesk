@@ -47,9 +47,7 @@ export function UnitStatusChanger({
       setReason("");
     } catch (err) {
       setError(
-        err instanceof ApiClientError
-          ? err.message
-          : t("inventory.units.statusChangeError"),
+        err instanceof ApiClientError ? err.message : t("inventory.units.statusChangeError"),
       );
     } finally {
       setLoading(false);
@@ -57,10 +55,7 @@ export function UnitStatusChanger({
   }
 
   return (
-    <form
-      className="grid grid-cols-1 gap-3 sm:grid-cols-[1fr_2fr_auto]"
-      onSubmit={onSubmit}
-    >
+    <form className="grid grid-cols-1 gap-3 sm:grid-cols-[1fr_2fr_auto]" onSubmit={onSubmit}>
       <select
         value={target}
         onChange={(e) => setTarget(e.target.value)}
@@ -84,7 +79,7 @@ export function UnitStatusChanger({
         {t("units.actions.changeStatus")}
       </Button>
       {error ? (
-        <div className="sm:col-span-3 rounded-md border border-red-200 bg-red-50 p-2 text-xs text-red-700">
+        <div className="rounded-md border border-red-200 bg-red-50 p-2 text-xs text-red-700 sm:col-span-3">
           {error}
         </div>
       ) : null}

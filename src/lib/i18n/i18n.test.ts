@@ -33,12 +33,13 @@ describe("t()", () => {
 
   it("covers billing lock-screen and trial-edit copy", () => {
     expect(t("admin.newOrg.trialDaysHintExpired")).toContain("Istekao");
+    expect(t("admin.newOrg.activatesAt")).toBe("Datum početka aktivacije");
+    expect(t("orgProfile.notYetActiveTitle")).toBe("Nalog još nije aktivan");
+    expect(t("admin.newOrg.activatesAt", undefined, "en")).toBe("Activation start date");
     expect(t("admin.orgBilling.issueInvoice")).toBe("Izdaj fakturu sada");
     expect(t("orgProfile.openUnpaidInvoice")).toBe("Otvori neplaćenu fakturu");
     expect(t("ops.subscription.trialEnded")).toBe("Probni period istekao:");
-    expect(t("auth.invitationAgencyFields")).toBe(
-      "Podaci agencije (sva polja sem sajta)",
-    );
+    expect(t("auth.invitationAgencyFields")).toBe("Podaci agencije (sva polja sem sajta)");
     expect(t("nav.catalog")).toBe("Katalog mreže");
     expect(t("partners.catalog.title")).toBe("Katalog mreže");
     expect(t("nav.catalog", undefined, "en")).toBe("Network catalog");
@@ -92,7 +93,9 @@ describe("localeFromRequest()", () => {
   function req(headers: Record<string, string>, cookie?: string) {
     return {
       headers: { get: (name: string) => headers[name.toLowerCase()] ?? null },
-      cookies: { get: (name: string) => (name === "pd_locale" && cookie ? { value: cookie } : undefined) },
+      cookies: {
+        get: (name: string) => (name === "pd_locale" && cookie ? { value: cookie } : undefined),
+      },
     };
   }
 

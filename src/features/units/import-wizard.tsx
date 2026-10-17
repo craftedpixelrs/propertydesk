@@ -63,7 +63,9 @@ export function ImportWizard({ projectId }: { projectId: string }) {
   const [parsed, setParsed] = useState<ParsedFile | null>(null);
   const [headerMap, setHeaderMap] = useState<Record<string, string | null>>({});
   const [validated, setValidated] = useState<ValidatedRow[] | null>(null);
-  const [summary, setSummary] = useState<{ total: number; ok: number; errors: number } | null>(null);
+  const [summary, setSummary] = useState<{ total: number; ok: number; errors: number } | null>(
+    null,
+  );
   const [commitResult, setCommitResult] = useState<{
     created: number;
     skipped: number;
@@ -85,10 +87,11 @@ export function ImportWizard({ projectId }: { projectId: string }) {
         binary += String.fromCharCode(...bytes.subarray(i, i + chunkSize));
       }
       const contentBase64 = btoa(binary);
-      const data = await apiClient.post<ParsedFile>(
-        `/projects/${projectId}/units/import`,
-        { action: "parse", fileName: file.name, contentBase64 },
-      );
+      const data = await apiClient.post<ParsedFile>(`/projects/${projectId}/units/import`, {
+        action: "parse",
+        fileName: file.name,
+        contentBase64,
+      });
       setParsed(data);
       const initialMap: Record<string, string | null> = {};
       for (const header of data.headers) {
@@ -97,11 +100,7 @@ export function ImportWizard({ projectId }: { projectId: string }) {
       setHeaderMap(initialMap);
       setStep("map");
     } catch (err) {
-      setError(
-        err instanceof ApiClientError
-          ? err.message
-          : t("inventory.import.parseError"),
-      );
+      setError(err instanceof ApiClientError ? err.message : t("inventory.import.parseError"));
     } finally {
       setLoading(false);
     }
@@ -112,19 +111,19 @@ export function ImportWizard({ projectId }: { projectId: string }) {
     setLoading(true);
     setError(null);
     try {
-      const result = await apiClient.post<{ rows: ValidatedRow[]; summary: { total: number; ok: number; errors: number } }>(
-        `/projects/${projectId}/units/import`,
-        { action: "validate", headerMap, rows: parsed.rows },
-      );
+      const result = await apiClient.post<{
+        rows: ValidatedRow[];
+        summary: { total: number; ok: number; errors: number };
+      }>(`/projects/${projectId}/units/import`, {
+        action: "validate",
+        headerMap,
+        rows: parsed.rows,
+      });
       setValidated(result.rows);
       setSummary(result.summary);
       setStep("preview");
     } catch (err) {
-      setError(
-        err instanceof ApiClientError
-          ? err.message
-          : t("inventory.import.validateError"),
-      );
+      setError(err instanceof ApiClientError ? err.message : t("inventory.import.validateError"));
     } finally {
       setLoading(false);
     }
@@ -135,18 +134,15 @@ export function ImportWizard({ projectId }: { projectId: string }) {
     setLoading(true);
     setError(null);
     try {
-      const res = await apiClient.post<typeof commitResult>(
-        `/projects/${projectId}/units/import`,
-        { action: "commit", headerMap, rows: parsed.rows },
-      );
+      const res = await apiClient.post<typeof commitResult>(`/projects/${projectId}/units/import`, {
+        action: "commit",
+        headerMap,
+        rows: parsed.rows,
+      });
       setCommitResult(res as NonNullable<typeof commitResult>);
       setStep("done");
     } catch (err) {
-      setError(
-        err instanceof ApiClientError
-          ? err.message
-          : t("inventory.import.commitError"),
-      );
+      setError(err instanceof ApiClientError ? err.message : t("inventory.import.commitError"));
     } finally {
       setLoading(false);
     }

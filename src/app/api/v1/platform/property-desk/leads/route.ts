@@ -21,16 +21,7 @@ const csv = (s: string | undefined) =>
 
 const querySchema = z.object({
   stage: z
-    .enum([
-      "NEW",
-      "CONTACTED",
-      "QUALIFIED",
-      "DEMO",
-      "PROPOSAL",
-      "WON",
-      "LOST",
-      "NURTURING",
-    ])
+    .enum(["NEW", "CONTACTED", "QUALIFIED", "DEMO", "PROPOSAL", "WON", "LOST", "NURTURING"])
     .optional(),
   audience: z.enum(["INVESTOR", "AGENCY", "OTHER"]).optional(),
   level: z.string().optional(),
@@ -62,13 +53,7 @@ const createBody = z.object({
   // Bogatija polja — sva opciona.
   companyName: z.string().trim().max(200).nullable().optional(),
   companyWebsite: z.string().trim().max(300).nullable().optional(),
-  companySize: z.coerce
-    .number()
-    .int()
-    .min(0)
-    .max(1000000)
-    .nullable()
-    .optional(),
+  companySize: z.coerce.number().int().min(0).max(1000000).nullable().optional(),
   budgetTier: z.enum(BUDGET_ENUM).optional(),
   budgetCurrency: z.string().trim().max(10).nullable().optional(),
   decisionMakerName: z.string().trim().max(200).nullable().optional(),
@@ -128,14 +113,11 @@ export const GET = apiHandler({}, async ({ searchParams }) => {
   return { data: result };
 });
 
-export const POST = apiHandler(
-  { bodySchema: createBody },
-  async ({ body }) => {
-    const ctx = await requirePropertyDeskAccess();
-    const lead = await createMarketingLead(ctx, body, ctx.session.user.id);
-    return { data: lead, status: 201 };
-  },
-);
+export const POST = apiHandler({ bodySchema: createBody }, async ({ body }) => {
+  const ctx = await requirePropertyDeskAccess();
+  const lead = await createMarketingLead(ctx, body, ctx.session.user.id);
+  return { data: lead, status: 201 };
+});
 
 /**
  * @swagger

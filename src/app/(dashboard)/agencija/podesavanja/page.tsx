@@ -66,7 +66,10 @@ export default async function AgencijaPodesavanjaPage() {
         <CardContent className="text-sm">
           <p className="text-[var(--color-foreground-muted)]">
             {t("partners.settings.connectionsHintPrefix")}{" "}
-            <Link href="/agencija/konekcije" className="text-[var(--color-brand-700)] hover:underline">
+            <Link
+              href="/agencija/konekcije"
+              className="text-[var(--color-brand-700)] hover:underline"
+            >
               {t("nav.connections")}
             </Link>
             .

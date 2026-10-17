@@ -12,7 +12,7 @@ resolution) works unchanged.
 |-------|---------|-------|
 | Public visitor (no login) | `/p/[token]` unit offer page | Form is only shown when the share link is active + the unit is `AVAILABLE`. |
 | Investor operator | `/rezervacije/zahtevi` | Lists all `PENDING`, `CONFIRMED`, `DECLINED`, `EXPIRED` requests for their organisation. Detail drawer shows the IPS QR PNG + reference. |
-| Cron | `POST /api/v1/jobs/expire-reservation-requests` | Every 15 minutes, marks past `expiresAt` rows as `EXPIRED` and releases the unit. |
+| Expiry | Cron `POST /api/v1/jobs/expire-reservation-requests` every 15 minutes, and also opening `/rezervacije/zahtevi` or `GET /api/v1/reservation-requests` | Past-due `PENDING` rows become `EXPIRED`. The unit returns to `AVAILABLE` only if no other live pending request remains. The applicant is not emailed. |
 
 ## Data model
 
@@ -70,10 +70,9 @@ Response:
 
 Follow-up:
 
-- `GET /api/v1/public/reservation-requests/:id/qr` → signed PNG URL
-  (5-minute lifetime) so the buyer can open the QR in the
-  confirmation email on any device without exposing a permanent
-  bucket URL.
+- `GET /api/v1/public/reservation-requests/:id/qr` serves the PNG
+  for the public confirmation page and the investor drawer. The
+  buyer email is plain text and does not attach this image.
 
 Investor-side:
 
@@ -81,16 +80,16 @@ Investor-side:
   (`status`, `unitId`, `q`).
 - `POST /api/v1/reservation-requests/:id/confirm` — verify the
   deposit has been received. Creates a `Reservation` for the same
-  unit + upserted `Buyer`. Unit `ON_HOLD → RESERVED`.
+  unit + upserted `Buyer`. The new reservation is `REQUESTED` and the
+  unit stays `ON_HOLD` until approval.
 - `POST /api/v1/reservation-requests/:id/decline` — with mandatory
   reason. Unit `ON_HOLD → AVAILABLE`.
 
 ## Rate limiting
 
-The public endpoint is rate-limited to **10 requests / hour / IP**
-via the shared `sensitiveActionLimiter`. Because the visitor is not
-authenticated, this is the only defence against bulk submissions —
-please leave it in place.
+The public endpoint allows **5 attempts / 10 minutes** per IP and
+token, plus **20 / hour** per token. Because the visitor is not
+authenticated, leave both limits in place.
 
 ## Who receives the deposit
 

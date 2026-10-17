@@ -84,9 +84,10 @@ export async function registerAgencyBuyer(
       },
     },
   };
-  const hasConflict = normalizedPhone || normalizedEmail
-    ? (await prisma.agencyBuyerRegistration.findFirst({ where: conflictWhere })) != null
-    : false;
+  const hasConflict =
+    normalizedPhone || normalizedEmail
+      ? (await prisma.agencyBuyerRegistration.findFirst({ where: conflictWhere })) != null
+      : false;
 
   // Create (or reuse) the buyer in the AGENCY's tenancy. Reusing keeps
   // duplicate agency-side records from piling up.
@@ -165,9 +166,7 @@ export async function registerAgencyBuyer(
     message: `${input.buyer.firstName} ${input.buyer.lastName} · ${project.name}`,
     actionUrl: "/agencije/registracije",
     entityId: registration.id,
-  }).catch((err) =>
-    logger.error("registration.notify_failed", { error: (err as Error)?.message }),
-  );
+  }).catch((err) => logger.error("registration.notify_failed", { error: (err as Error)?.message }));
 
   return { registrationId: registration.id, status: "PENDING" };
 }
@@ -239,10 +238,7 @@ export async function listRegistrationsForInvestor(input: ListRegistrationsInput
   return { items: rows, total };
 }
 
-async function loadRegistrationForInvestor(
-  investorOrganizationId: string,
-  registrationId: string,
-) {
+async function loadRegistrationForInvestor(investorOrganizationId: string, registrationId: string) {
   const row = await prisma.agencyBuyerRegistration.findFirst({
     where: { id: registrationId, investorOrganizationId },
   });

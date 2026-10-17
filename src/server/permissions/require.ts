@@ -6,10 +6,7 @@ import {
   type ActiveOrganizationContext,
   type AppSession,
 } from "@/server/auth/session";
-import {
-  organizationRoles,
-  type OrganizationRole,
-} from "@/server/permissions/roles";
+import { organizationRoles, type OrganizationRole } from "@/server/permissions/roles";
 import { type PermissionString } from "@/server/permissions/access-control";
 import { checkPermissionForRole } from "@/server/services/permissions/role-overrides.service";
 import {
@@ -50,9 +47,7 @@ async function checkOrgRolePermission(
   return checkPermissionForRole(role, permission);
 }
 
-async function checkPlatformRolePermission(
-  permission: PermissionString,
-): Promise<boolean> {
+async function checkPlatformRolePermission(permission: PermissionString): Promise<boolean> {
   // Platform permissions live on the SUPER_ADMIN role. We reuse the
   // override-aware checker so an operator could, in theory, narrow one of
   // the platform grants (though `setRolePermission` refuses to strip
@@ -68,27 +63,27 @@ async function checkPlatformRolePermission(
  *
  * Always throws `AuthError("FORBIDDEN")` on denial.
  */
-export async function requirePermission(
-  permission: PermissionString,
-): Promise<AuthorizedContext> {
+export async function requirePermission(permission: PermissionString): Promise<AuthorizedContext> {
   const session = await requireSession();
   const superAdmin = isSuperAdmin(session);
 
   const org = await getActiveOrganization(session);
   if (!org) {
+    throw new AuthError("NO_ACTIVE_ORGANIZATION", "Molimo izaberite aktivnu organizaciju.");
+  }
+
+  // Before the activation date the tenant is off entirely. Billing and
+  // export stay closed too. SUPER_ADMIN can still prepare the account.
+  if (org.activationPending && !superAdmin) {
     throw new AuthError(
-      "NO_ACTIVE_ORGANIZATION",
-      "Molimo izaberite aktivnu organizaciju.",
+      "ORGANIZATION_NOT_ACTIVE",
+      "Nalog još nije aktivan. Pristup počinje na zakazani datum.",
     );
   }
 
   // Enforce RESTRICTED mode: block anything not on the explicit allowlist.
   // SUPER_ADMIN is exempt so support can act on the tenant while it's frozen.
-  if (
-    org.organizationStatus === "RESTRICTED" &&
-    !superAdmin &&
-    org.organizationType !== "AGENCY"
-  ) {
+  if (org.organizationStatus === "RESTRICTED" && !superAdmin && org.organizationType !== "AGENCY") {
     const allowlist = await getRestrictedModeAllowlist();
     if (!allowlist.has(permission)) {
       throw new AuthError(
@@ -170,15 +165,9 @@ export async function requirePlatformPermission(
  * pre-loading data outside a permission-guarded route (e.g. resolving a
  * document owner). Throws on mismatch.
  */
-export function assertOrgMembership(
-  ctx: AuthorizedContext,
-  organizationId: string,
-): void {
+export function assertOrgMembership(ctx: AuthorizedContext, organizationId: string): void {
   if (ctx.isSuperAdmin) return;
   if (ctx.organization.organizationId !== organizationId) {
-    throw new AuthError(
-      "ORGANIZATION_ACCESS_DENIED",
-      "Podatak ne pripada Vašoj organizaciji.",
-    );
+    throw new AuthError("ORGANIZATION_ACCESS_DENIED", "Podatak ne pripada Vašoj organizaciji.");
   }
 }

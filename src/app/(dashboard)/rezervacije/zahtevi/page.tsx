@@ -97,21 +97,19 @@ export default async function ReservationRequestsPage({ searchParams }: PageProp
         </CardHeader>
         <CardContent>
           <div className="flex flex-wrap gap-2 text-sm">
-            {(["PENDING", "CONFIRMED", "DECLINED", "EXPIRED", "ALL"] as const).map(
-              (s) => (
-                <Link
-                  key={s}
-                  href={{ pathname: "/rezervacije/zahtevi", query: { status: s } }}
-                  className={`rounded-full border px-3 py-1 text-xs ${
-                    status === s
-                      ? "border-[var(--color-brand-600)] bg-[var(--color-brand-50)] text-[var(--color-brand-800)]"
-                      : "border-[var(--color-border)] hover:bg-[var(--color-surface-inset)]"
-                  }`}
-                >
-                  {s === "ALL" ? t("common.all") : requestStatusLabel(s, t)}
-                </Link>
-              ),
-            )}
+            {(["PENDING", "CONFIRMED", "DECLINED", "EXPIRED", "ALL"] as const).map((s) => (
+              <Link
+                key={s}
+                href={{ pathname: "/rezervacije/zahtevi", query: { status: s } }}
+                className={`rounded-full border px-3 py-1 text-xs ${
+                  status === s
+                    ? "border-[var(--color-brand-600)] bg-[var(--color-brand-50)] text-[var(--color-brand-800)]"
+                    : "border-[var(--color-border)] hover:bg-[var(--color-surface-inset)]"
+                }`}
+              >
+                {s === "ALL" ? t("common.all") : requestStatusLabel(s, t)}
+              </Link>
+            ))}
           </div>
         </CardContent>
       </Card>
@@ -125,14 +123,15 @@ export default async function ReservationRequestsPage({ searchParams }: PageProp
       ) : (
         <Card>
           <CardHeader className="flex-row items-center justify-between space-y-0">
-            <CardTitle className="text-sm">
-              {t("deals.requests.listTitle", { total })}
-            </CardTitle>
+            <CardTitle className="text-sm">{t("deals.requests.listTitle", { total })}</CardTitle>
           </CardHeader>
           <CardContent className="p-0">
             <div className="divide-y divide-[var(--color-border)]">
               {items.map((r) => (
-                <div key={r.id} className="flex flex-wrap items-start justify-between gap-4 px-5 py-4">
+                <div
+                  key={r.id}
+                  className="flex flex-wrap items-start justify-between gap-4 px-5 py-4"
+                >
                   <div className="space-y-1.5">
                     <div className="flex flex-wrap items-center gap-2">
                       <span className="font-medium">
@@ -181,7 +180,7 @@ export default async function ReservationRequestsPage({ searchParams }: PageProp
                       </div>
                     ) : null}
                     {r.notes ? (
-                      <p className="max-w-2xl text-xs italic text-[var(--color-foreground-muted)]">
+                      <p className="max-w-2xl text-xs text-[var(--color-foreground-muted)] italic">
                         “{r.notes}”
                       </p>
                     ) : null}
@@ -194,19 +193,13 @@ export default async function ReservationRequestsPage({ searchParams }: PageProp
                   </div>
                   <div className="flex flex-col items-end gap-2 text-right">
                     <div className="text-lg font-semibold">
-                      {formatMoney(
-                        r.depositAmount.toString(),
-                        r.currency as SupportedCurrency,
-                      )}
+                      {formatMoney(r.depositAmount.toString(), r.currency as SupportedCurrency)}
                     </div>
                     <code className="text-[10px] text-[var(--color-foreground-subtle)]">
                       {r.ipsReference}
                     </code>
                     {r.status === "PENDING" ? (
-                      <ReservationRequestActions
-                        requestId={r.id}
-                        canApprove={canApprove}
-                      />
+                      <ReservationRequestActions requestId={r.id} canApprove={canApprove} />
                     ) : r.decidedByUser?.name ? (
                       <span className="text-[10px] text-[var(--color-foreground-subtle)]">
                         {r.decidedByUser.name}

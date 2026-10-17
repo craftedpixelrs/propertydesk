@@ -57,10 +57,7 @@ export default async function TenantInvoicesPage({ searchParams }: PageProps) {
 
   return (
     <section className="space-y-4">
-      <Link
-        href="/dashboard"
-        className="text-sm text-[var(--color-brand-700)] hover:underline"
-      >
+      <Link href="/dashboard" className="text-sm text-[var(--color-brand-700)] hover:underline">
         {t("common.back")}
       </Link>
       <div className="flex flex-wrap items-center justify-between gap-2">
@@ -83,7 +80,7 @@ export default async function TenantInvoicesPage({ searchParams }: PageProps) {
       <Card>
         <CardContent className="p-0">
           <table className="w-full text-sm">
-            <thead className="text-left text-xs uppercase text-[var(--color-foreground-subtle)]">
+            <thead className="text-left text-xs text-[var(--color-foreground-subtle)] uppercase">
               <tr>
                 <th className="border-b border-[var(--color-border)] px-3 py-2">
                   {t("billing.columns.invoiceNumber")}
@@ -108,27 +105,51 @@ export default async function TenantInvoicesPage({ searchParams }: PageProps) {
             <tbody>
               {items.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-3 py-6 text-center text-[var(--color-foreground-muted)]">
+                  <td
+                    colSpan={6}
+                    className="px-3 py-6 text-center text-[var(--color-foreground-muted)]"
+                  >
                     {t("ops.invoices.empty")}
                   </td>
                 </tr>
               ) : (
                 items.map((inv) => (
-                  <tr key={inv.id} className="border-b border-[var(--color-border)] last:border-b-0">
+                  <tr
+                    key={inv.id}
+                    className="border-b border-[var(--color-border)] last:border-b-0"
+                  >
                     <td className="px-3 py-2 font-mono text-xs">
-                      <Link href={`/podesavanja/fakture/${inv.id}`} className="text-[var(--color-brand-700)] hover:underline">
+                      <Link
+                        href={`/podesavanja/fakture/${inv.id}`}
+                        className="text-[var(--color-brand-700)] hover:underline"
+                      >
                         {inv.invoiceNumber ?? t("ops.invoices.draftNumber")}
                       </Link>
                     </td>
                     <td className="px-3 py-2">
-                      <Badge tone={inv.status === "PAID" ? "success" : inv.status === "OVERDUE" ? "danger" : "info"}>
+                      <Badge
+                        tone={
+                          inv.status === "PAID"
+                            ? "success"
+                            : inv.status === "OVERDUE"
+                              ? "danger"
+                              : "info"
+                        }
+                      >
                         {invoiceStatusLabel(inv.status)}
                       </Badge>
                     </td>
-                    <td className="px-3 py-2 text-xs">{inv.issueDate ? formatDate(inv.issueDate) : "—"}</td>
-                    <td className="px-3 py-2 text-xs">{inv.dueDate ? formatDate(inv.dueDate) : "—"}</td>
+                    <td className="px-3 py-2 text-xs">
+                      {inv.issueDate ? formatDate(inv.issueDate) : "—"}
+                    </td>
+                    <td className="px-3 py-2 text-xs">
+                      {inv.dueDate ? formatDate(inv.dueDate) : "—"}
+                    </td>
                     <td className="px-3 py-2 text-right tabular-nums">
-                      {formatMoney(Number(inv.totalAmount.toString()), inv.currency as "EUR" | "RSD")}
+                      {formatMoney(
+                        Number(inv.totalAmount.toString()),
+                        inv.currency as "EUR" | "RSD",
+                      )}
                     </td>
                     <td className="px-3 py-2 text-right tabular-nums">
                       {formatMoney(Number(inv.amountDue.toString()), inv.currency as "EUR" | "RSD")}

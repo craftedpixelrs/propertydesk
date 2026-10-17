@@ -12,7 +12,12 @@ export interface StatCardProps {
 
 export function StatCard({ label, value, hint, icon, className }: StatCardProps) {
   return (
-    <Card className={cn("@container flex min-w-0 flex-col gap-2 px-4 py-3.5 sm:px-5 sm:py-4", className)}>
+    <Card
+      className={cn(
+        "@container flex min-w-0 flex-col gap-2 px-4 py-3.5 sm:px-5 sm:py-4",
+        className,
+      )}
+    >
       <div className="flex items-center gap-2.5">
         {icon ? (
           <div
@@ -22,11 +27,11 @@ export function StatCard({ label, value, hint, icon, className }: StatCardProps)
             {icon}
           </div>
         ) : null}
-        <div className="min-w-0 text-[13px] font-medium leading-snug text-[var(--color-foreground-muted)]">
+        <div className="min-w-0 text-[13px] leading-snug font-medium text-[var(--color-foreground-muted)]">
           {label}
         </div>
       </div>
-      <div className="min-w-0 text-[clamp(0.875rem,7.5cqi,1.35rem)] font-semibold leading-tight tracking-tight tabular-nums text-[var(--color-foreground)]">
+      <div className="min-w-0 text-[clamp(0.875rem,7.5cqi,1.35rem)] leading-tight font-semibold tracking-tight text-[var(--color-foreground)] tabular-nums">
         {value}
       </div>
       {hint ? (

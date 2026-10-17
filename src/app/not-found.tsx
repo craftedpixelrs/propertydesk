@@ -24,7 +24,7 @@ export default async function NotFound() {
       className="flex min-h-screen items-center justify-center bg-[var(--color-surface)] p-6"
     >
       <div className="max-w-md text-center">
-        <p className="text-xs font-semibold uppercase tracking-widest text-[var(--color-brand-700)]">
+        <p className="text-xs font-semibold tracking-widest text-[var(--color-brand-700)] uppercase">
           {t("pages.notFoundKicker")}
         </p>
         <h1 className="mt-2 text-3xl font-semibold text-[var(--color-foreground)]">

@@ -28,14 +28,17 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const t = createT(await resolveRequestLocale());
   const offer = await resolvePublicUnitOffer(token);
   if (!offer) {
-    return { title: t("marketing.public.offerUnavailable"), robots: { index: false, follow: false } };
+    return {
+      title: t("marketing.public.offerUnavailable"),
+      robots: { index: false, follow: false },
+    };
   }
   const title = `${offer.project.name} · ${offer.unit.code}`;
   const description = offer.unit.publicDescription ?? offer.project.publicDescription ?? undefined;
   const cover = offer.images.find((i) => i.isCover) ?? offer.images[0];
   const image = cover
     ? `/api/public/share/${token}/image/${cover.documentId}`
-    : offer.project.coverImageUrl ?? undefined;
+    : (offer.project.coverImageUrl ?? undefined);
   return {
     title,
     description,
@@ -69,15 +72,7 @@ export default async function PublicUnitOfferPage({ params }: PageProps) {
   return <OfferView offer={offer} token={token} t={t} />;
 }
 
-function OfferView({
-  offer,
-  token,
-  t,
-}: {
-  offer: PublicUnitOffer;
-  token: string;
-  t: TranslateFn;
-}) {
+function OfferView({ offer, token, t }: { offer: PublicUnitOffer; token: string; t: TranslateFn }) {
   const priceString =
     offer.showPrice && offer.unit.price
       ? formatMoney(offer.unit.price, offer.unit.currency as SupportedCurrency)
@@ -92,18 +87,16 @@ function OfferView({
             <img
               src={offer.organization.logoUrl}
               alt={offer.organization.name}
-              className="h-10 w-auto max-h-12 max-w-[200px] shrink-0 object-contain object-left sm:h-12 sm:max-w-[240px]"
+              className="h-10 max-h-12 w-auto max-w-[200px] shrink-0 object-contain object-left sm:h-12 sm:max-w-[240px]"
             />
           ) : null}
-          <div className="min-w-0 truncate text-sm font-semibold">
-            {offer.organization.name}
-          </div>
+          <div className="min-w-0 truncate text-sm font-semibold">{offer.organization.name}</div>
         </div>
       </header>
 
       <div className="mx-auto max-w-5xl space-y-6 px-4 py-6 sm:px-6">
         <div>
-          <div className="text-xs font-mono uppercase tracking-wide text-[var(--color-foreground-muted)]">
+          <div className="font-mono text-xs tracking-wide text-[var(--color-foreground-muted)] uppercase">
             {offer.project.name}
             {offer.project.city ? ` · ${offer.project.city}` : ""}
           </div>
@@ -186,10 +179,7 @@ function OfferView({
                 />
               ) : null}
               {offer.unit.orientation ? (
-                <InfoRow
-                  label={t("marketing.public.orientation")}
-                  value={offer.unit.orientation}
-                />
+                <InfoRow label={t("marketing.public.orientation")} value={offer.unit.orientation} />
               ) : null}
             </dl>
           </section>
@@ -237,7 +227,7 @@ function OfferView({
         {offer.unit.publicDescription ? (
           <section className="rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] p-4">
             <h2 className="text-sm font-semibold">{t("marketing.public.aboutUnit")}</h2>
-            <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed">
+            <p className="mt-2 text-sm leading-relaxed whitespace-pre-wrap">
               {offer.unit.publicDescription}
             </p>
           </section>
@@ -246,7 +236,7 @@ function OfferView({
         {offer.project.publicDescription ? (
           <section className="rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] p-4">
             <h2 className="text-sm font-semibold">{t("marketing.public.aboutProject")}</h2>
-            <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed">
+            <p className="mt-2 text-sm leading-relaxed whitespace-pre-wrap">
               {offer.project.publicDescription}
             </p>
           </section>
@@ -257,14 +247,11 @@ function OfferView({
             token={token}
             currency={offer.unit.currency}
             suggestedDeposit={suggestedDeposit(offer)}
-            organizationName={
-              offer.organization.name || t("organization.types.investor")
-            }
+            organizationName={offer.organization.name || t("organization.types.investor")}
             unitCode={offer.unit.code}
           />
         ) : null}
       </div>
-
     </main>
   );
 }
@@ -272,7 +259,7 @@ function OfferView({
 function InfoRow({ label, value }: { label: string; value: string }) {
   return (
     <>
-      <dt className="text-xs uppercase tracking-wide text-[var(--color-foreground-muted)]">
+      <dt className="text-xs tracking-wide text-[var(--color-foreground-muted)] uppercase">
         {label}
       </dt>
       <dd className="text-sm">{value}</dd>

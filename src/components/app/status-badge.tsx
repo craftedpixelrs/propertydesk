@@ -4,13 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { useT } from "@/components/app/i18n-provider";
 import type { TranslationKey } from "@/lib/i18n";
 
-export type EntityStatus =
-  | "TRIAL"
-  | "ACTIVE"
-  | "SUSPENDED"
-  | "CLOSED"
-  | "PAST_DUE"
-  | "CANCELED";
+export type EntityStatus = "TRIAL" | "ACTIVE" | "SUSPENDED" | "CLOSED" | "PAST_DUE" | "CANCELED";
 
 const statusMap: Record<
   EntityStatus,

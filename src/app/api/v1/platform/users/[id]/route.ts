@@ -17,12 +17,8 @@ const patchBody = z.object({
   propertyDeskTeam: z
     .object({
       member: z.boolean(),
-      teamRole: z
-        .enum(["SETTER", "CLOSER", "OPERATIONS", "MANAGER"])
-        .optional(),
-      leadScope: z
-        .enum(["OWN", "OWN_AND_UNASSIGNED", "TEAM", "ALL"])
-        .optional(),
+      teamRole: z.enum(["SETTER", "CLOSER", "OPERATIONS", "MANAGER"]).optional(),
+      leadScope: z.enum(["OWN", "OWN_AND_UNASSIGNED", "TEAM", "ALL"]).optional(),
       enabled: z.boolean().optional(),
     })
     .optional(),
@@ -32,11 +28,7 @@ export const PATCH = apiHandler(
   { bodySchema: patchBody, paramsSchema },
   async ({ body, params }) => {
     const ctx = await requireSuperAdmin();
-    const user = await updatePlatformUser(
-      params.id,
-      body,
-      ctx.session.user.id,
-    );
+    const user = await updatePlatformUser(params.id, body, ctx.session.user.id);
     return { data: user };
   },
 );

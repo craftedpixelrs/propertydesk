@@ -24,9 +24,7 @@ interface PageProps {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }
 
-function readParam(
-  raw: string | string[] | undefined,
-): string | undefined {
+function readParam(raw: string | string[] | undefined): string | undefined {
   if (Array.isArray(raw)) return raw[0];
   return raw;
 }
@@ -75,9 +73,7 @@ export default async function ProjektiPage({ searchParams }: PageProps) {
           <CardTitle className="text-sm">{t("common.filter")}</CardTitle>
         </CardHeader>
         <CardContent>
-          <ProjectsFilterBar
-            values={{ q: search ?? "", status: status ?? "" }}
-          />
+          <ProjectsFilterBar values={{ q: search ?? "", status: status ?? "" }} />
         </CardContent>
       </Card>
 
@@ -105,7 +101,7 @@ export default async function ProjektiPage({ searchParams }: PageProps) {
           {/* Desktop table */}
           <div className="hidden overflow-x-auto rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] md:block">
             <table className="min-w-full divide-y divide-[var(--color-border)] text-sm">
-              <thead className="bg-[var(--color-surface-inset)] text-left text-xs uppercase tracking-wide text-[var(--color-foreground-muted)]">
+              <thead className="bg-[var(--color-surface-inset)] text-left text-xs tracking-wide text-[var(--color-foreground-muted)] uppercase">
                 <tr>
                   <th className="px-4 py-3">{t("inventory.columns.code")}</th>
                   <th className="px-4 py-3">{t("projects.fields.name")}</th>

@@ -14,19 +14,16 @@ const bodySchema = z.object({
  * Investor confirms the deposit landed. Materialises a `Buyer` and
  * an `APPROVED` `Reservation` (attributing agency via referralCode).
  */
-export const POST = apiHandler(
-  { paramsSchema, bodySchema },
-  async ({ params, body }) => {
-    const ctx = await requirePermission("reservation.approve");
-    const result = await confirmReservationRequest({
-      organizationId: ctx.organization.organizationId,
-      actorUserId: ctx.session.user.id,
-      requestId: params.id,
-      buyerNotes: body.buyerNotes ?? null,
-    });
-    return { data: result };
-  },
-);
+export const POST = apiHandler({ paramsSchema, bodySchema }, async ({ params, body }) => {
+  const ctx = await requirePermission("reservation.approve");
+  const result = await confirmReservationRequest({
+    organizationId: ctx.organization.organizationId,
+    actorUserId: ctx.session.user.id,
+    requestId: params.id,
+    buyerNotes: body.buyerNotes ?? null,
+  });
+  return { data: result };
+});
 
 /**
  * @swagger

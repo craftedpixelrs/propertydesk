@@ -46,11 +46,13 @@ const RANK: Record<SubscriptionStatus, number> = {
   EXPIRED: 6,
 };
 
-export async function processOverdueSubscriptions(options: {
-  now?: Date;
-  organizationIds?: string[];
-  actorUserId?: string | null;
-} = {}): Promise<OverdueRunSummary> {
+export async function processOverdueSubscriptions(
+  options: {
+    now?: Date;
+    organizationIds?: string[];
+    actorUserId?: string | null;
+  } = {},
+): Promise<OverdueRunSummary> {
   const now = options.now ?? new Date();
   const summary: OverdueRunSummary = {
     subscriptionsConsidered: 0,
@@ -64,9 +66,7 @@ export async function processOverdueSubscriptions(options: {
   const subs = await prisma.organizationSubscription.findMany({
     where: {
       status: { in: ["PAYMENT_DUE", "PAST_DUE", "RESTRICTED"] },
-      ...(options.organizationIds
-        ? { organizationId: { in: options.organizationIds } }
-        : {}),
+      ...(options.organizationIds ? { organizationId: { in: options.organizationIds } } : {}),
     },
     include: { organization: { select: { profile: { select: { type: true } } } } },
   });
@@ -106,16 +106,10 @@ export async function processOverdueSubscriptions(options: {
 
       let target: SubscriptionStatus = sub.status;
       if (daysOverdue >= 0) target = "PAST_DUE";
-      if (
-        settings.automation.restrictAccess &&
-        daysOverdue >= settings.restrictedAfterDays
-      ) {
+      if (settings.automation.restrictAccess && daysOverdue >= settings.restrictedAfterDays) {
         target = "RESTRICTED";
       }
-      if (
-        settings.automation.suspend &&
-        daysOverdue >= settings.suspendedAfterDays
-      ) {
+      if (settings.automation.suspend && daysOverdue >= settings.suspendedAfterDays) {
         target = "SUSPENDED";
       }
 

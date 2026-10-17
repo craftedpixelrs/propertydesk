@@ -1,10 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import {
-  findSerbiaCity,
-  postalCodeForMunicipality,
-  suggestSerbiaPlaces,
-} from "./serbia";
+import { findSerbiaCity, postalCodeForMunicipality, suggestSerbiaPlaces } from "./serbia";
 
 describe("suggestSerbiaPlaces", () => {
   it("suggests cities as the user types", () => {

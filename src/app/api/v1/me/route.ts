@@ -4,18 +4,8 @@ import { apiHandler } from "@/lib/api/handler";
 import { getActiveOrganization, requireSession, isSuperAdmin } from "@/server/auth/session";
 import { prisma } from "@/server/db/prisma";
 import { cookies } from "next/headers";
-import {
-  DEFAULT_LOCALE,
-  LOCALE_COOKIE,
-  LOCALE_COOKIE_MAX_AGE,
-  parseLocale,
-} from "@/lib/i18n";
-import {
-  DEFAULT_THEME,
-  THEME_COOKIE,
-  THEME_COOKIE_MAX_AGE,
-  parseTheme,
-} from "@/lib/theme";
+import { DEFAULT_LOCALE, LOCALE_COOKIE, LOCALE_COOKIE_MAX_AGE, parseLocale } from "@/lib/i18n";
+import { DEFAULT_THEME, THEME_COOKIE, THEME_COOKIE_MAX_AGE, parseTheme } from "@/lib/theme";
 
 /**
  * Returns the current session's user, active organization context, and
@@ -31,10 +21,7 @@ const patchBodySchema = z
     name: z.string().min(2).max(80).optional(),
   })
   .refine(
-    (body) =>
-      body.locale !== undefined ||
-      body.theme !== undefined ||
-      body.name !== undefined,
+    (body) => body.locale !== undefined || body.theme !== undefined || body.name !== undefined,
     {
       message: "Potrebno je bar jedno polje.",
     },

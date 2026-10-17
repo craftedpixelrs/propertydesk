@@ -9,19 +9,16 @@ const bodySchema = z.object({
   reason: z.string().max(2000).optional(),
 });
 
-export const POST = apiHandler(
-  { paramsSchema, bodySchema },
-  async ({ params, body }) => {
-    const ctx = await requirePermission("agency.manage");
-    const updated = await rejectRegistration({
-      investorOrganizationId: ctx.organization.organizationId,
-      actorUserId: ctx.session.user.id,
-      registrationId: params.id,
-      reason: body.reason,
-    });
-    return { data: updated };
-  },
-);
+export const POST = apiHandler({ paramsSchema, bodySchema }, async ({ params, body }) => {
+  const ctx = await requirePermission("agency.manage");
+  const updated = await rejectRegistration({
+    investorOrganizationId: ctx.organization.organizationId,
+    actorUserId: ctx.session.user.id,
+    registrationId: params.id,
+    reason: body.reason,
+  });
+  return { data: updated };
+});
 
 /**
  * @swagger

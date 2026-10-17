@@ -22,10 +22,11 @@ Two implementations ship today:
 - **MANUAL** — a passthrough. Marks the record as `SENT` immediately.
   Used when the operator submits invoices via the SEF web portal
   themselves; we still track the record so the UI can show status.
-- **SERBIAN_SEF** — a stub that simulates `ACKNOWLEDGED`. The real HTTP
-  transport is scaffolded but currently disabled; wiring it up requires
-  the SEF API key + endpoint per environment (staging / production) and a
-  UBL 2.1 XML serializer for `Invoice`.
+- **SERBIAN_SEF** — transport is not wired. `submit` and `cancel` return
+  `FAILED` with a message to use the SEF portal. They must not return
+  `ACKNOWLEDGED`: that would record an invoice as accepted by the state
+  portal when nothing was sent. Leave the provider on `MANUAL` until the
+  HTTP client and UBL serializer exist.
 
 ## Turning it on
 
@@ -34,8 +35,9 @@ Two implementations ship today:
    The key is AES-256-GCM encrypted with `BILLING_SECRET_KEY` and stored
    as `sefApiKeyEncrypted`.
 2. Toggle "Elektronski računi" in `/administracija/naplata/podesavanja`.
-3. Choose the provider (`MANUAL` for now, `SERBIAN_SEF` once transport
-   is wired).
+3. Choose `MANUAL`. Do not choose `SERBIAN_SEF` until the transport
+   exists — that choice now fails the send instead of pretending it
+   succeeded.
 4. On the next invoice issuance, an `ElectronicInvoiceRecord` is created
    in `PENDING`.
 

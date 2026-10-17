@@ -23,11 +23,7 @@ import { toDecimal, sumMoney } from "@/lib/formatters/money";
 import { getDefaultBankAccount } from "../bank-accounts.service";
 import { getRawCompanyBillingProfile } from "../company-profile.service";
 import { resolveBillingSettings } from "../settings/resolved.service";
-import {
-  convertAmount,
-  getRateForDate,
-  DEFAULT_QUOTE_CURRENCY,
-} from "../exchange-rates/service";
+import { convertAmount, getRateForDate, DEFAULT_QUOTE_CURRENCY } from "../exchange-rates/service";
 import { allocateInvoiceNumber } from "./numbering.service";
 
 /**
@@ -37,7 +33,7 @@ import { allocateInvoiceNumber } from "./numbering.service";
  *
  *   DRAFT ──issue──▶ ISSUED ──send──▶ SENT
  *                       └──cancel──▶ CANCELED
- *                                     
+ *
  *   Any state (except CANCELED/PAID) → void via `voidInvoice` (SUPER_ADMIN)
  *
  * Financial columns (subtotal / total / amountDue) are immutable once the
@@ -154,9 +150,7 @@ export function buildCustomerSnapshot(
   };
 }
 
-export function buildBankAccountSnapshot(
-  account: BillingBankAccount,
-): BankAccountSnapshot {
+export function buildBankAccountSnapshot(account: BillingBankAccount): BankAccountSnapshot {
   return {
     bankName: account.bankName,
     accountNumber: account.accountNumber,
@@ -211,14 +205,10 @@ export async function createInvoiceDraft(
     getRawCompanyBillingProfile(),
   ]);
   if (!profile) {
-    throw DomainErrors.badRequest(
-      "Nije podešen izdavalac fakture (Company Billing Profile).",
-    );
+    throw DomainErrors.badRequest("Nije podešen izdavalac fakture (Company Billing Profile).");
   }
   if (!resolvedSettings.billingEnabled) {
-    throw DomainErrors.forbidden(
-      "Fakturisanje je isključeno za ovu organizaciju.",
-    );
+    throw DomainErrors.forbidden("Fakturisanje je isključeno za ovu organizaciju.");
   }
 
   const currency = input.currency ?? resolvedSettings.currency;
@@ -333,9 +323,7 @@ export async function issueInvoice(
   });
   if (!invoice) throw DomainErrors.notFound("Faktura");
   if (invoice.status !== "DRAFT") {
-    throw DomainErrors.invalidState(
-      `Fakturu nije moguće izdati iz stanja ${invoice.status}.`,
-    );
+    throw DomainErrors.invalidState(`Fakturu nije moguće izdati iz stanja ${invoice.status}.`);
   }
 
   const [profile, settings] = await Promise.all([
@@ -379,9 +367,7 @@ export async function issueInvoice(
   // can render both sides and auditors can reproduce the math. When no
   // conversion happens the FX fields stay `null`.
   // -----------------------------------------------------------------------
-  const shouldConvert =
-    settings.invoiceInRsd &&
-    invoice.currency !== DEFAULT_QUOTE_CURRENCY;
+  const shouldConvert = settings.invoiceInRsd && invoice.currency !== DEFAULT_QUOTE_CURRENCY;
 
   let fxData: {
     currency: string;
@@ -500,9 +486,7 @@ export async function issueInvoice(
               fxRateDate: fxData.fxRateDate,
               bankAccountId: fxData.bankAccount?.id ?? null,
               bankAccountSnapshot: fxData.bankAccount
-                ? (buildBankAccountSnapshot(
-                    fxData.bankAccount,
-                  ) as unknown as Prisma.InputJsonValue)
+                ? (buildBankAccountSnapshot(fxData.bankAccount) as unknown as Prisma.InputJsonValue)
                 : Prisma.JsonNull,
             }
           : {}),

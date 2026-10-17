@@ -57,9 +57,7 @@ export function CoverImageField({ value, projectId, onChange, error }: Props) {
       onChange(payload.data.coverImageUrl);
       if (inputRef.current) inputRef.current.value = "";
     } catch (err) {
-      setLocalError(
-        err instanceof Error ? err.message : t("inventory.form.coverUploadFailed"),
-      );
+      setLocalError(err instanceof Error ? err.message : t("inventory.form.coverUploadFailed"));
     } finally {
       setBusy(false);
     }
@@ -74,11 +72,7 @@ export function CoverImageField({ value, projectId, onChange, error }: Props) {
       {preview ? (
         <div className="overflow-hidden rounded-md border border-[var(--color-border)] bg-[var(--color-surface-inset)]">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={preview}
-            alt=""
-            className="h-48 w-full object-cover"
-          />
+          <img src={preview} alt="" className="h-48 w-full object-cover" />
         </div>
       ) : null}
       <div className="flex flex-wrap items-center gap-2">

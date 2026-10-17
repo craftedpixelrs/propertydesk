@@ -45,16 +45,9 @@ export const UNIT_IMPORT_TEMPLATE_COLUMNS: UnitImportField[] = [
   "externalReference",
 ];
 
-export const REQUIRED_IMPORT_FIELDS: UnitImportField[] = [
-  "code",
-  "type",
-  "totalArea",
-  "basePrice",
-];
+export const REQUIRED_IMPORT_FIELDS: UnitImportField[] = ["code", "type", "totalArea", "basePrice"];
 
-export function unitImportHeaderKey(
-  field: UnitImportField,
-): TranslationKey {
+export function unitImportHeaderKey(field: UnitImportField): TranslationKey {
   return `inventory.import.headers.${field}` as TranslationKey;
 }
 

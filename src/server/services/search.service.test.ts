@@ -27,10 +27,7 @@ vi.mock("@/server/services/property-desk/marketing-leads.service", () => ({
 
 import { requirePropertyDeskAccess } from "@/server/permissions/property-desk";
 import { listBuyers } from "@/server/services/buyers.service";
-import {
-  listAllOrganizations,
-  listAllUsers,
-} from "@/server/services/platform.service";
+import { listAllOrganizations, listAllUsers } from "@/server/services/platform.service";
 import { listProjects } from "@/server/services/projects.service";
 import { listMarketingLeads } from "@/server/services/property-desk/marketing-leads.service";
 import { listUnits } from "@/server/services/units.service";
@@ -63,9 +60,7 @@ function caller(overrides: Partial<SearchCaller> = {}): SearchCaller {
 describe("search scopes", () => {
   it("skips tenant search when there is no active organization", () => {
     expect(canSearchTenant(caller())).toBe(false);
-    expect(
-      canSearchTenant(caller({ activeOrganization: { id: "org-1" } })),
-    ).toBe(true);
+    expect(canSearchTenant(caller({ activeOrganization: { id: "org-1" } }))).toBe(true);
   });
 
   it("limits platform catalog search to SUPER_ADMIN", () => {
@@ -76,9 +71,7 @@ describe("search scopes", () => {
   it("allows lead search for SUPER_ADMIN and enabled PD team members", () => {
     expect(canSearchLeads(caller())).toBe(false);
     expect(canSearchLeads(caller({ isSuperAdmin: true }))).toBe(true);
-    expect(
-      canSearchLeads(caller({ propertyDeskTeam: { enabled: true } })),
-    ).toBe(true);
+    expect(canSearchLeads(caller({ propertyDeskTeam: { enabled: true } }))).toBe(true);
   });
 });
 

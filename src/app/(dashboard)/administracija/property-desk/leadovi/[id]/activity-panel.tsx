@@ -13,10 +13,7 @@ import type { TranslateFn, TranslationKey } from "@/lib/i18n";
 
 const ACTIVITY_KINDS = ["NOTE", "CALL", "EMAIL", "MEETING"] as const;
 
-const KIND_TONE: Record<
-  string,
-  "neutral" | "brand" | "info" | "success" | "warning"
-> = {
+const KIND_TONE: Record<string, "neutral" | "brand" | "info" | "success" | "warning"> = {
   CALL: "brand",
   EMAIL: "info",
   MEETING: "info",
@@ -45,9 +42,7 @@ interface Props {
 export function LeadActivityPanel({ leadId, items, canCreate }: Props) {
   const router = useRouter();
   const t = useT();
-  const [kind, setKind] = useState<"CALL" | "EMAIL" | "MEETING" | "NOTE">(
-    "NOTE",
-  );
+  const [kind, setKind] = useState<"CALL" | "EMAIL" | "MEETING" | "NOTE">("NOTE");
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
   const [busy, setBusy] = useState(false);
@@ -61,14 +56,11 @@ export function LeadActivityPanel({ leadId, items, canCreate }: Props) {
     setBusy(true);
     setErr(null);
     try {
-      await apiClient.post(
-        `/platform/property-desk/leads/${leadId}/activities`,
-        {
-          kind,
-          title: title.trim(),
-          body: body.trim() || null,
-        },
-      );
+      await apiClient.post(`/platform/property-desk/leads/${leadId}/activities`, {
+        kind,
+        title: title.trim(),
+        body: body.trim() || null,
+      });
       setTitle("");
       setBody("");
       router.refresh();
@@ -99,9 +91,7 @@ export function LeadActivityPanel({ leadId, items, canCreate }: Props) {
             <div className="flex flex-wrap items-center gap-2">
               <select
                 value={kind}
-                onChange={(e) =>
-                  setKind(e.target.value as typeof kind)
-                }
+                onChange={(e) => setKind(e.target.value as typeof kind)}
                 className="h-9 rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] px-2 text-sm"
                 disabled={busy}
               >
@@ -116,7 +106,7 @@ export function LeadActivityPanel({ leadId, items, canCreate }: Props) {
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder={t("admin.pdActivity.titlePlaceholder")}
-                className="h-9 flex-1 min-w-64 rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] px-2 text-sm"
+                className="h-9 min-w-64 flex-1 rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] px-2 text-sm"
                 disabled={busy}
               />
               <Button
@@ -146,13 +136,10 @@ export function LeadActivityPanel({ leadId, items, canCreate }: Props) {
         ) : (
           <ol className="relative border-l border-[var(--color-border)]">
             {items.map((item, i) => (
-              <li
-                key={item.id}
-                className={`relative pl-6 ${i > 0 ? "mt-4" : ""}`}
-              >
+              <li key={item.id} className={`relative pl-6 ${i > 0 ? "mt-4" : ""}`}>
                 <span
                   aria-hidden
-                  className="absolute left-[-6px] top-1.5 size-3 rounded-full bg-[var(--color-brand-500)] ring-4 ring-[var(--color-surface)]"
+                  className="absolute top-1.5 left-[-6px] size-3 rounded-full bg-[var(--color-brand-500)] ring-4 ring-[var(--color-surface)]"
                 />
                 <div className="flex flex-wrap items-center gap-2">
                   <Badge tone={KIND_TONE[item.kind] ?? "neutral"}>
@@ -161,7 +148,7 @@ export function LeadActivityPanel({ leadId, items, canCreate }: Props) {
                   <span className="text-sm font-medium">{item.title}</span>
                 </div>
                 {item.body ? (
-                  <div className="mt-1 whitespace-pre-line text-sm text-[var(--color-foreground-muted)]">
+                  <div className="mt-1 text-sm whitespace-pre-line text-[var(--color-foreground-muted)]">
                     {item.body}
                   </div>
                 ) : null}

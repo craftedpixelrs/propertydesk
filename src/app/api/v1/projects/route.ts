@@ -4,10 +4,7 @@ import { apiHandler } from "@/lib/api/handler";
 import { isStoredCoverImageUrl } from "@/lib/geo/cover-image";
 import { paginate } from "@/lib/api/query";
 import { requirePermission } from "@/server/permissions/require";
-import {
-  createProject,
-  listProjects,
-} from "@/server/services/projects.service";
+import { createProject, listProjects } from "@/server/services/projects.service";
 
 const createSchema = z
   .object({
@@ -21,20 +18,9 @@ const createSchema = z
     postalCode: z.string().max(20).optional(),
     latitude: z.number().min(-90).max(90).optional(),
     longitude: z.number().min(-180).max(180).optional(),
-    coverImageUrl: z
-      .string()
-      .max(500)
-      .refine(isStoredCoverImageUrl)
-      .optional(),
+    coverImageUrl: z.string().max(500).refine(isStoredCoverImageUrl).optional(),
     projectStatus: z
-      .enum([
-        "DRAFT",
-        "PRE_SALES",
-        "ACTIVE_SALES",
-        "CONSTRUCTION",
-        "COMPLETED",
-        "ARCHIVED",
-      ])
+      .enum(["DRAFT", "PRE_SALES", "ACTIVE_SALES", "CONSTRUCTION", "COMPLETED", "ARCHIVED"])
       .optional(),
     salesStartDate: z.coerce.date().optional(),
     constructionStartDate: z.coerce.date().optional(),
@@ -63,8 +49,7 @@ export const GET = apiHandler({}, async ({ query, searchParams }) => {
   const ctx = await requirePermission("project.read");
   const statusRaw = query.filters.status ?? searchParams.get("status");
   const status = statusRaw ? projectStatusFilter.parse(statusRaw) : undefined;
-  const activeOnly =
-    (query.filters.activeOnly ?? searchParams.get("activeOnly")) === "true";
+  const activeOnly = (query.filters.activeOnly ?? searchParams.get("activeOnly")) === "true";
   const { items, total } = await listProjects({
     organizationId: ctx.organization.organizationId,
     page: query.page,
@@ -74,27 +59,19 @@ export const GET = apiHandler({}, async ({ query, searchParams }) => {
     activeOnly,
     sort: query.sort,
   });
-  const { items: pageItems, pagination } = paginate(
-    items,
-    query.page,
-    query.pageSize,
-    total,
-  );
+  const { items: pageItems, pagination } = paginate(items, query.page, query.pageSize, total);
   return { data: pageItems, meta: { pagination } };
 });
 
-export const POST = apiHandler(
-  { bodySchema: createSchema },
-  async ({ body }) => {
-    const ctx = await requirePermission("project.create");
-    const project = await createProject({
-      organizationId: ctx.organization.organizationId,
-      actorUserId: ctx.session.user.id,
-      ...body,
-    });
-    return { data: project, status: 201 };
-  },
-);
+export const POST = apiHandler({ bodySchema: createSchema }, async ({ body }) => {
+  const ctx = await requirePermission("project.create");
+  const project = await createProject({
+    organizationId: ctx.organization.organizationId,
+    actorUserId: ctx.session.user.id,
+    ...body,
+  });
+  return { data: project, status: 201 };
+});
 
 /**
  * @swagger

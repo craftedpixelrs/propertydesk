@@ -66,9 +66,7 @@ function normalizePair(input: ExchangeRatePair) {
   const baseCurrency = (input.baseCurrency ?? DEFAULT_BASE_CURRENCY).toUpperCase();
   const quoteCurrency = (input.quoteCurrency ?? DEFAULT_QUOTE_CURRENCY).toUpperCase();
   if (baseCurrency === quoteCurrency) {
-    throw DomainErrors.badRequest(
-      "Osnovna i ciljana valuta ne mogu biti iste.",
-    );
+    throw DomainErrors.badRequest("Osnovna i ciljana valuta ne mogu biti iste.");
   }
   return { baseCurrency, quoteCurrency };
 }
@@ -101,9 +99,7 @@ export async function listExchangeRates(
  * exists, because that is a fatal condition for an issuer trying to bill
  * a domestic client.
  */
-export async function getRateForDate(
-  input: GetRateForDateInput,
-): Promise<ExchangeRate> {
+export async function getRateForDate(input: GetRateForDateInput): Promise<ExchangeRate> {
   const { baseCurrency, quoteCurrency } = normalizePair(input);
   const effective = toEffectiveDate(input.date ?? new Date());
   const rate = await prisma.exchangeRate.findFirst({
@@ -132,10 +128,7 @@ export async function getRateForDate(
  * Convert a money amount using the given rate. Rounds to 2 decimals — the
  * same precision as our invoice columns.
  */
-export function convertAmount(
-  amount: MoneyInput,
-  rate: MoneyInput,
-): Decimal {
+export function convertAmount(amount: MoneyInput, rate: MoneyInput): Decimal {
   return toDecimal(amount).times(toDecimal(rate)).toDecimalPlaces(2);
 }
 
@@ -183,10 +176,7 @@ export async function createExchangeRate(
 
     return created;
   } catch (err) {
-    if (
-      err instanceof Prisma.PrismaClientKnownRequestError &&
-      err.code === "P2002"
-    ) {
+    if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002") {
       throw DomainErrors.conflict(
         `Kurs za ${baseCurrency}/${quoteCurrency} na dan ${effectiveDate
           .toISOString()
@@ -197,10 +187,7 @@ export async function createExchangeRate(
   }
 }
 
-export async function deleteExchangeRate(
-  id: string,
-  actorUserId: string | null,
-): Promise<void> {
+export async function deleteExchangeRate(id: string, actorUserId: string | null): Promise<void> {
   const existing = await prisma.exchangeRate.findUnique({ where: { id } });
   if (!existing) throw DomainErrors.notFound("Kurs");
 

@@ -39,7 +39,7 @@ export default async function BillingGlobalSettingsPage() {
       const raw = formData.get(k);
       return raw == null ? undefined : Number(raw);
     };
-    const str = (k: string) => (formData.get(k)?.toString() || undefined);
+    const str = (k: string) => formData.get(k)?.toString() || undefined;
     await updateGlobalBillingSettings(
       {
         billingEnabled: bool("billingEnabled"),
@@ -103,12 +103,41 @@ export default async function BillingGlobalSettingsPage() {
             <CardTitle className="text-base">{t("admin.settingsPage.defaultsTitle")}</CardTitle>
           </CardHeader>
           <CardContent className="grid gap-3 md:grid-cols-2">
-            <Field label={t("admin.settingsPage.defaultCurrency")} name="defaultCurrency" defaultValue={s.defaultCurrency} />
-            <Field label={t("admin.settingsPage.trialDays")} name="defaultTrialDays" type="number" defaultValue={String(s.defaultTrialDays)} />
-            <Field label={t("admin.settingsPage.graceDays")} name="defaultGracePeriodDays" type="number" defaultValue={String(s.defaultGracePeriodDays)} />
-            <Field label={t("admin.settingsPage.dueDays")} name="defaultDueInDays" type="number" defaultValue={String(s.defaultDueInDays)} />
-            <Field label={t("admin.settingsPage.restrictAfter")} name="restrictedAfterDays" type="number" defaultValue={String(s.restrictedAfterDays)} />
-            <Field label={t("admin.settingsPage.suspendAfter")} name="suspendedAfterDays" type="number" defaultValue={String(s.suspendedAfterDays)} />
+            <Field
+              label={t("admin.settingsPage.defaultCurrency")}
+              name="defaultCurrency"
+              defaultValue={s.defaultCurrency}
+            />
+            <Field
+              label={t("admin.settingsPage.trialDays")}
+              name="defaultTrialDays"
+              type="number"
+              defaultValue={String(s.defaultTrialDays)}
+            />
+            <Field
+              label={t("admin.settingsPage.graceDays")}
+              name="defaultGracePeriodDays"
+              type="number"
+              defaultValue={String(s.defaultGracePeriodDays)}
+            />
+            <Field
+              label={t("admin.settingsPage.dueDays")}
+              name="defaultDueInDays"
+              type="number"
+              defaultValue={String(s.defaultDueInDays)}
+            />
+            <Field
+              label={t("admin.settingsPage.restrictAfter")}
+              name="restrictedAfterDays"
+              type="number"
+              defaultValue={String(s.restrictedAfterDays)}
+            />
+            <Field
+              label={t("admin.settingsPage.suspendAfter")}
+              name="suspendedAfterDays"
+              type="number"
+              defaultValue={String(s.suspendedAfterDays)}
+            />
             <Field
               label={t("admin.settingsPage.invoiceFormat")}
               name="invoiceNumberFormat"

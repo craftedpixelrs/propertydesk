@@ -16,9 +16,7 @@ import { expect, test } from "@playwright/test";
  * feature test.
  */
 test.describe("security flow", () => {
-  test("global security headers are present on every response", async ({
-    request,
-  }) => {
+  test("global security headers are present on every response", async ({ request }) => {
     const res = await request.get("/api/v1/health");
     expect(res.status()).toBe(200);
     const headers = res.headers();
@@ -67,9 +65,7 @@ test.describe("security flow", () => {
     }
   });
 
-  test("cron jobs reject calls without the CRON_SECRET header", async ({
-    request,
-  }) => {
+  test("cron jobs reject calls without the CRON_SECRET header", async ({ request }) => {
     const jobs = [
       "/api/v1/jobs/expire-reservations",
       "/api/v1/jobs/mark-installments-overdue",
@@ -82,9 +78,7 @@ test.describe("security flow", () => {
     }
   });
 
-  test("404 for a random unknown route does not leak framework details", async ({
-    request,
-  }) => {
+  test("404 for a random unknown route does not leak framework details", async ({ request }) => {
     const res = await request.get("/api/v1/does-not-exist");
     expect([404, 405]).toContain(res.status());
     // Dev mode injects React Server Component payloads that reference

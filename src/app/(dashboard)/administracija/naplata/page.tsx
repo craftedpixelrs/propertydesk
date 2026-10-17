@@ -144,9 +144,7 @@ export default async function BillingAdminHomePage() {
               {t("admin.billingHome.masterSwitch")}
             </div>
             <div className="mt-1 text-lg font-semibold">
-              {settings.billingEnabled
-                ? t("admin.billingHome.active")
-                : t("admin.billingHome.off")}
+              {settings.billingEnabled ? t("admin.billingHome.active") : t("admin.billingHome.off")}
             </div>
           </CardContent>
         </Card>

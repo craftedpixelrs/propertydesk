@@ -56,12 +56,7 @@ function permHelp(t: TranslateFn, perm: string): string | undefined {
 type RoleLayer = "platform" | "investor" | "agency" | "property_desk";
 type PermLayerFilter = "A" | "B" | "C" | "all";
 
-const PROPERTY_DESK_ROLES = new Set([
-  "SETTER",
-  "CLOSER",
-  "OPERATIONS",
-  "MANAGER",
-]);
+const PROPERTY_DESK_ROLES = new Set(["SETTER", "CLOSER", "OPERATIONS", "MANAGER"]);
 
 function classifyRole(role: string): RoleLayer {
   if (role === "SUPER_ADMIN") return "platform";
@@ -138,7 +133,6 @@ function layerMeta(t: TranslateFn, layer: RoleLayer) {
   };
 }
 
-
 export function RoleMatrixEditor({ matrix, groups }: Props) {
   const router = useRouter();
   const t = useT();
@@ -164,8 +158,7 @@ export function RoleMatrixEditor({ matrix, groups }: Props) {
         out[perm] = { ...base, pending: false };
         continue;
       }
-      const effective =
-        change.granted === "default" ? base.default : change.granted;
+      const effective = change.granted === "default" ? base.default : change.granted;
       out[perm] = {
         default: base.default,
         effective,
@@ -199,9 +192,7 @@ export function RoleMatrixEditor({ matrix, groups }: Props) {
 
   async function onSave() {
     setError(null);
-    const forThisRole = Array.from(pending.values()).filter(
-      (c) => c.role === selectedRole,
-    );
+    const forThisRole = Array.from(pending.values()).filter((c) => c.role === selectedRole);
     if (forThisRole.length === 0) return;
     startSave(async () => {
       try {
@@ -220,11 +211,7 @@ export function RoleMatrixEditor({ matrix, groups }: Props) {
         });
         router.refresh();
       } catch (err) {
-        setError(
-          err instanceof ApiClientError
-            ? err.message
-            : t("admin.saveFailed"),
-        );
+        setError(err instanceof ApiClientError ? err.message : t("admin.saveFailed"));
       }
     });
   }
@@ -252,18 +239,12 @@ export function RoleMatrixEditor({ matrix, groups }: Props) {
         });
         router.refresh();
       } catch (err) {
-        setError(
-          err instanceof ApiClientError
-            ? err.message
-            : t("admin.resetFailed"),
-        );
+        setError(err instanceof ApiClientError ? err.message : t("admin.resetFailed"));
       }
     });
   }
 
-  const pendingCount = Array.from(pending.values()).filter(
-    (c) => c.role === selectedRole,
-  ).length;
+  const pendingCount = Array.from(pending.values()).filter((c) => c.role === selectedRole).length;
 
   const groupedRoles = useMemo(() => {
     const buckets: Record<RoleLayer, string[]> = {
@@ -286,10 +267,7 @@ export function RoleMatrixEditor({ matrix, groups }: Props) {
     return groups.filter((g) => layerOfResource(g.resource) === layerFilter);
   }, [groups, layerFilter]);
 
-  const visiblePermCount = visibleGroups.reduce(
-    (n, g) => n + g.permissions.length,
-    0,
-  );
+  const visiblePermCount = visibleGroups.reduce((n, g) => n + g.permissions.length, 0);
 
   function selectRole(role: string) {
     setSelectedRole(role);
@@ -304,7 +282,7 @@ export function RoleMatrixEditor({ matrix, groups }: Props) {
     if (layerOfRole(selectedRole) === next) return;
     const first =
       next === "B"
-        ? groupedRoles.investor[0] ?? groupedRoles.agency[0]
+        ? (groupedRoles.investor[0] ?? groupedRoles.agency[0])
         : groupedRoles[roleLayer][0];
     if (first) setSelectedRole(first);
   }
@@ -416,16 +394,14 @@ export function RoleMatrixEditor({ matrix, groups }: Props) {
         className={`flex items-start gap-2 rounded-md border p-3 text-xs ${currentMeta.badgeClass}`}
         role="note"
       >
-        <span className="mt-0.5 shrink-0 rounded-sm border border-current/30 bg-white/50 px-1.5 py-0.5 font-semibold uppercase tracking-wide">
+        <span className="mt-0.5 shrink-0 rounded-sm border border-current/30 bg-white/50 px-1.5 py-0.5 font-semibold tracking-wide uppercase">
           {currentMeta.badgeLabel}
         </span>
         <div className="min-w-0">
           <div className="font-semibold">{currentMeta.title}</div>
           <p className="mt-0.5 leading-snug">{currentMeta.description}</p>
           {currentLayer === "property_desk" ? (
-            <p className="mt-1 text-[11px] italic opacity-80">
-              {t("admin.roleMatrix.pdNote")}
-            </p>
+            <p className="mt-1 text-[11px] italic opacity-80">{t("admin.roleMatrix.pdNote")}</p>
           ) : null}
         </div>
       </div>
@@ -449,14 +425,19 @@ export function RoleMatrixEditor({ matrix, groups }: Props) {
               <th className="w-40 px-3 py-2 text-left font-semibold">
                 {t("admin.roleMatrix.colCurrent")}
               </th>
-              <th className="w-64 px-3 py-2 text-left font-semibold">
-                {t("common.actions")}
-              </th>
+              <th className="w-64 px-3 py-2 text-left font-semibold">{t("common.actions")}</th>
             </tr>
           </thead>
           <tbody>
             {visibleGroups.map((group) => (
-              <GroupBlock key={group.resource} group={group} stagedCells={stagedCells} selectedRole={selectedRole} stageChange={stageChange} t={t} />
+              <GroupBlock
+                key={group.resource}
+                group={group}
+                stagedCells={stagedCells}
+                selectedRole={selectedRole}
+                stageChange={stageChange}
+                t={t}
+              />
             ))}
           </tbody>
         </table>
@@ -479,7 +460,7 @@ function GroupBlock({ group, stagedCells, selectedRole, stageChange, t }: GroupB
       <tr className="border-t border-[var(--color-border)] bg-[var(--color-surface-inset,#f9fafb)]">
         <td
           colSpan={4}
-          className="px-3 py-1.5 font-semibold text-xs uppercase tracking-wider text-[var(--color-foreground-muted)]"
+          className="px-3 py-1.5 text-xs font-semibold tracking-wider text-[var(--color-foreground-muted)] uppercase"
         >
           {resourceLabel(t, group.resource)}
         </td>
@@ -487,19 +468,13 @@ function GroupBlock({ group, stagedCells, selectedRole, stageChange, t }: GroupB
       {group.permissions.map((perm) => {
         const cell = stagedCells[perm];
         if (!cell) return null;
-        const isFrozen =
-          selectedRole === "SUPER_ADMIN" && perm.startsWith("platform.");
+        const isFrozen = selectedRole === "SUPER_ADMIN" && perm.startsWith("platform.");
         return (
-          <tr
-            key={`${group.resource}::${perm}`}
-            className="border-t border-[var(--color-border)]"
-          >
+          <tr key={`${group.resource}::${perm}`} className="border-t border-[var(--color-border)]">
             <td className="px-3 py-1.5 font-mono text-xs">
               <span className="inline-flex items-center">
                 {perm}
-                {permHelp(t, perm) ? (
-                  <PermissionHelp text={permHelp(t, perm)!} />
-                ) : null}
+                {permHelp(t, perm) ? <PermissionHelp text={permHelp(t, perm)!} /> : null}
               </span>
             </td>
             <td className="px-3 py-1.5">
@@ -520,14 +495,14 @@ function GroupBlock({ group, stagedCells, selectedRole, stageChange, t }: GroupB
                 />
               ) : null}
               {cell.pending ? (
-                <span className="ml-2 text-[10px] uppercase tracking-wide text-amber-700">
+                <span className="ml-2 text-[10px] tracking-wide text-amber-700 uppercase">
                   {t("admin.roleMatrix.pendingSave")}
                 </span>
               ) : null}
             </td>
             <td className="px-3 py-1.5">
               {isFrozen ? (
-                <span className="text-xs italic text-[var(--color-foreground-muted)]">
+                <span className="text-xs text-[var(--color-foreground-muted)] italic">
                   {t("admin.roleMatrix.frozen")}
                 </span>
               ) : (
@@ -598,7 +573,7 @@ function PermissionHelp({ text }: { text: string }) {
       aria-label={text}
       role="note"
       tabIndex={0}
-      className="ml-1.5 inline-flex size-3.5 cursor-help select-none items-center justify-center rounded-full border border-[var(--color-border)] align-middle text-[9px] font-semibold leading-none text-[var(--color-foreground-muted)] hover:bg-[var(--color-surface-inset)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-border)]"
+      className="ml-1.5 inline-flex size-3.5 cursor-help items-center justify-center rounded-full border border-[var(--color-border)] align-middle text-[9px] leading-none font-semibold text-[var(--color-foreground-muted)] select-none hover:bg-[var(--color-surface-inset)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-border)]"
     >
       ?
     </span>

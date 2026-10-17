@@ -3,10 +3,7 @@ import { CalendarCheck2 } from "lucide-react";
 
 import { BookingEmbed } from "@/features/marketing/booking-embed";
 import { PageHero } from "@/features/marketing/landing/page-hero";
-import {
-  buildLandingMetadata,
-  LandingJsonLd,
-} from "@/features/marketing/landing/landing-shell";
+import { buildLandingMetadata, LandingJsonLd } from "@/features/marketing/landing/landing-shell";
 import { createT } from "@/lib/i18n";
 import { resolveRequestLocale } from "@/lib/i18n/resolve-locale";
 

@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { loadUserContext } from "@/server/auth/context";
 import { getUnitById } from "@/server/services/units.service";
+import { getProjectById } from "@/server/services/projects.service";
 import { listDocuments } from "@/server/services/documents.service";
 import { listShareLinksForEntity } from "@/server/services/sharing/share-links.service";
 import { isDomainError } from "@/lib/errors";
@@ -13,6 +14,7 @@ import { createT, unitStatusLabel, unitTypeLabel } from "@/lib/i18n";
 import { UnitStatusChanger } from "@/features/units/unit-status-changer";
 import { PhotoGallery, type PhotoItem } from "@/features/documents/photo-gallery";
 import { UnitSharePanel } from "@/features/sharing/unit-share-panel";
+import { EditUnitDrawer } from "@/features/units/edit-unit-drawer";
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -36,6 +38,22 @@ export default async function UnitDetail({ params }: Props) {
   const canManageStatus = ctx.permissions.includes("inventory.status");
   const canEdit = ctx.permissions.includes("inventory.manage");
   const canManageDocs = ctx.permissions.includes("document.manage");
+
+  const structureProject = canEdit
+    ? await getProjectById(ctx.activeOrganization.id, unit.projectId)
+    : null;
+  const structure =
+    structureProject?.buildings.map((b) => ({
+      id: b.id,
+      code: b.code,
+      name: b.name,
+      entrances: b.entrances.map((e) => ({
+        id: e.id,
+        code: e.code,
+        name: e.name,
+        floors: e.floors.map((f) => ({ id: f.id, label: f.label })),
+      })),
+    })) ?? [];
 
   const [photosResult, shareLinks] = await Promise.all([
     listDocuments({
@@ -71,6 +89,9 @@ export default async function UnitDetail({ params }: Props) {
     viewCount: l.viewCount,
     lastViewedAt: l.lastViewedAt?.toISOString() ?? null,
     createdAt: l.createdAt.toISOString(),
+    forBuyerId: l.forBuyerId,
+    forBuyerName:
+      l.forBuyerName ?? (l.forBuyer ? `${l.forBuyer.firstName} ${l.forBuyer.lastName}` : null),
     publicUrl: `/p/${l.token}`,
   }));
 
@@ -78,11 +99,8 @@ export default async function UnitDetail({ params }: Props) {
     <div className="space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <div className="text-xs font-mono uppercase text-[var(--color-foreground-muted)]">
-            <Link
-              href={`/projekti/${unit.project.id}`}
-              className="hover:underline"
-            >
+          <div className="font-mono text-xs text-[var(--color-foreground-muted)] uppercase">
+            <Link href={`/projekti/${unit.project.id}`} className="hover:underline">
               {unit.project.name}
             </Link>{" "}
             · {unit.code}
@@ -100,29 +118,52 @@ export default async function UnitDetail({ params }: Props) {
         </div>
         <div className="flex flex-col items-end gap-2">
           <div className="text-right">
-            <div className="text-xs uppercase tracking-wide text-[var(--color-foreground-muted)]">
+            <div className="text-xs tracking-wide text-[var(--color-foreground-muted)] uppercase">
               {t("units.detail.pricing")}
             </div>
             <div className="text-2xl font-semibold tabular-nums">
-              {formatMoney(
-                unit.finalPrice ?? unit.basePrice,
-                unit.currency as "EUR" | "RSD",
-              )}
+              {formatMoney(unit.finalPrice ?? unit.basePrice, unit.currency as "EUR" | "RSD")}
             </div>
             {unit.pricePerSquareMeter ? (
               <div className="text-xs text-[var(--color-foreground-muted)]">
-                {formatMoney(
-                  unit.pricePerSquareMeter,
-                  unit.currency as "EUR" | "RSD",
-                )}
+                {formatMoney(unit.pricePerSquareMeter, unit.currency as "EUR" | "RSD")}
                 /m²
               </div>
             ) : null}
           </div>
           {canEdit ? (
-            <Button asChild variant="outline" size="sm">
-              <Link href={`/jedinice/${unit.id}/izmena`}>{t("inventory.units.edit")}</Link>
-            </Button>
+            <EditUnitDrawer
+              projectId={unit.projectId}
+              unitId={unit.id}
+              unitCode={unit.code}
+              structure={structure}
+              expectedVersion={unit.version}
+              initialValues={{
+                code: unit.code,
+                type: unit.type,
+                buildingId: unit.buildingId ?? "",
+                entranceId: unit.entranceId ?? "",
+                floorId: unit.floorId ?? "",
+                structure: unit.structure ?? "",
+                totalArea: unit.totalArea?.toString() ?? "",
+                internalArea: unit.internalArea?.toString() ?? "",
+                terraceArea: unit.terraceArea?.toString() ?? "",
+                gardenArea: unit.gardenArea?.toString() ?? "",
+                basePrice: unit.basePrice?.toString() ?? "",
+                finalPrice: unit.finalPrice?.toString() ?? "",
+                currency: unit.currency ?? "EUR",
+                vatRate: unit.vatRate?.toString() ?? "",
+                bedrooms: unit.bedrooms?.toString() ?? "",
+                bathrooms: unit.bathrooms?.toString() ?? "",
+                orientation: unit.orientation ?? "",
+                publicDescription: unit.publicDescription ?? "",
+                internalNotes: unit.internalNotes ?? "",
+              }}
+            >
+              <Button variant="outline" size="sm">
+                {t("inventory.units.edit")}
+              </Button>
+            </EditUnitDrawer>
           ) : null}
         </div>
       </div>
@@ -133,18 +174,13 @@ export default async function UnitDetail({ params }: Props) {
             <CardTitle>{t("units.detail.status")}</CardTitle>
             <div className="text-sm">
               {t("inventory.units.currentStatus")}{" "}
-              <span className="font-medium">
-                {unitStatusLabel(unit.status, t)}
-              </span>
+              <span className="font-medium">{unitStatusLabel(unit.status, t)}</span>
             </div>
           </div>
         </CardHeader>
         {canManageStatus ? (
           <CardContent>
-            <UnitStatusChanger
-              unitId={unit.id}
-              currentStatus={unit.status}
-            />
+            <UnitStatusChanger unitId={unit.id} currentStatus={unit.status} />
           </CardContent>
         ) : null}
       </Card>
@@ -157,7 +193,10 @@ export default async function UnitDetail({ params }: Props) {
           <CardContent className="grid grid-cols-2 gap-3 text-sm">
             <InfoRow label={t("units.fields.type")} value={unitTypeLabel(unit.type, t)} />
             <InfoRow label={t("units.columns.structure")} value={unit.structure ?? "—"} />
-            <InfoRow label={t("inventory.units.totalAreaShort")} value={`${unit.totalArea.toString()} m²`} />
+            <InfoRow
+              label={t("inventory.units.totalAreaShort")}
+              value={`${unit.totalArea.toString()} m²`}
+            />
             <InfoRow
               label={t("inventory.units.gross")}
               value={unit.internalArea ? `${unit.internalArea.toString()} m²` : "—"}
@@ -204,7 +243,7 @@ export default async function UnitDetail({ params }: Props) {
           <CardHeader>
             <CardTitle>{t("units.fields.publicDescription")}</CardTitle>
           </CardHeader>
-          <CardContent className="whitespace-pre-wrap text-sm">
+          <CardContent className="text-sm whitespace-pre-wrap">
             {unit.publicDescription}
           </CardContent>
         </Card>
@@ -243,9 +282,7 @@ export default async function UnitDetail({ params }: Props) {
                       {formatMoney(h.newBasePrice, h.currency as "EUR" | "RSD")}
                     </div>
                     {h.reason ? (
-                      <div className="text-xs text-[var(--color-foreground-muted)]">
-                        {h.reason}
-                      </div>
+                      <div className="text-xs text-[var(--color-foreground-muted)]">{h.reason}</div>
                     ) : null}
                   </div>
                   <div className="text-xs text-[var(--color-foreground-muted)]">
@@ -270,19 +307,13 @@ export default async function UnitDetail({ params }: Props) {
           ) : (
             <ul className="divide-y divide-[var(--color-border)] text-sm">
               {unit.statusHistory.map((h) => (
-                <li
-                  key={h.id}
-                  className="flex flex-wrap items-center justify-between gap-2 py-2"
-                >
+                <li key={h.id} className="flex flex-wrap items-center justify-between gap-2 py-2">
                   <div>
                     <div className="font-medium">
-                      {unitStatusLabel(h.previousStatus, t)} →{" "}
-                      {unitStatusLabel(h.newStatus, t)}
+                      {unitStatusLabel(h.previousStatus, t)} → {unitStatusLabel(h.newStatus, t)}
                     </div>
                     {h.reason ? (
-                      <div className="text-xs text-[var(--color-foreground-muted)]">
-                        {h.reason}
-                      </div>
+                      <div className="text-xs text-[var(--color-foreground-muted)]">{h.reason}</div>
                     ) : null}
                   </div>
                   <div className="text-xs text-[var(--color-foreground-muted)]">
@@ -301,7 +332,7 @@ export default async function UnitDetail({ params }: Props) {
 function InfoRow({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <div className="text-xs uppercase tracking-wide text-[var(--color-foreground-muted)]">
+      <div className="text-xs tracking-wide text-[var(--color-foreground-muted)] uppercase">
         {label}
       </div>
       <div className="mt-0.5">{value}</div>

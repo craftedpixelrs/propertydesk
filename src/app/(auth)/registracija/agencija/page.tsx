@@ -28,10 +28,7 @@ export default async function AgencyRegisterPage() {
 
       <p className="mt-6 text-center text-sm text-[var(--color-foreground-muted)]">
         {t("auth.agencyRegisterHaveAccount", undefined, locale)}{" "}
-        <Link
-          href="/sign-in"
-          className="font-medium text-[var(--color-brand-700)] hover:underline"
-        >
+        <Link href="/sign-in" className="font-medium text-[var(--color-brand-700)] hover:underline">
           {t("auth.signIn", undefined, locale)}
         </Link>
       </p>

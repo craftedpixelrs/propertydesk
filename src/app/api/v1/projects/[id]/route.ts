@@ -30,14 +30,7 @@ const patchSchema = z
       .nullable()
       .optional(),
     projectStatus: z
-      .enum([
-        "DRAFT",
-        "PRE_SALES",
-        "ACTIVE_SALES",
-        "CONSTRUCTION",
-        "COMPLETED",
-        "ARCHIVED",
-      ])
+      .enum(["DRAFT", "PRE_SALES", "ACTIVE_SALES", "CONSTRUCTION", "COMPLETED", "ARCHIVED"])
       .optional(),
     salesStartDate: z.coerce.date().nullable().optional(),
     constructionStartDate: z.coerce.date().nullable().optional(),
@@ -59,17 +52,14 @@ const patchSchema = z
       .nullable()
       .optional(),
   })
-  .refine(
-    (v) => {
-      // Both must be present together or both null/absent. `undefined`
-      // means "leave as-is" and doesn't participate in the check.
-      if (v.latitude === undefined && v.longitude === undefined) return true;
-      const lat = v.latitude ?? null;
-      const lng = v.longitude ?? null;
-      return (lat === null) === (lng === null);
-    },
-    "Geografske koordinate se moraju menjati u paru.",
-  );
+  .refine((v) => {
+    // Both must be present together or both null/absent. `undefined`
+    // means "leave as-is" and doesn't participate in the check.
+    if (v.latitude === undefined && v.longitude === undefined) return true;
+    const lat = v.latitude ?? null;
+    const lng = v.longitude ?? null;
+    return (lat === null) === (lng === null);
+  }, "Geografske koordinate se moraju menjati u paru.");
 
 const actionSchema = z.object({
   action: z.enum(["archive", "restore"]),
@@ -100,17 +90,9 @@ export const POST = apiHandler(
   async ({ params, body }) => {
     const ctx = await requirePermission("project.archive");
     if (body.action === "archive") {
-      await archiveProject(
-        ctx.organization.organizationId,
-        params.id,
-        ctx.session.user.id,
-      );
+      await archiveProject(ctx.organization.organizationId, params.id, ctx.session.user.id);
     } else {
-      await restoreProject(
-        ctx.organization.organizationId,
-        params.id,
-        ctx.session.user.id,
-      );
+      await restoreProject(ctx.organization.organizationId, params.id, ctx.session.user.id);
     }
     return { data: { ok: true } };
   },

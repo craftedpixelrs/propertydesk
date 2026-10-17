@@ -40,10 +40,7 @@ export class DomainError extends Error {
       cause?: unknown;
     },
   ) {
-    super(
-      message,
-      options?.cause instanceof Error ? { cause: options.cause } : undefined,
-    );
+    super(message, options?.cause instanceof Error ? { cause: options.cause } : undefined);
     this.name = "DomainError";
     this.code = code;
     this.fieldErrors = options?.fieldErrors;
@@ -53,22 +50,18 @@ export class DomainError extends Error {
 
 /** Convenience factories for the common domain errors. */
 export const DomainErrors = {
-  notFound: (what: string): DomainError =>
-    new DomainError("NOT_FOUND", `${what} nije pronađen.`),
+  notFound: (what: string): DomainError => new DomainError("NOT_FOUND", `${what} nije pronađen.`),
   conflict: (message: string): DomainError => new DomainError("CONFLICT", message),
   optimisticLock: (): DomainError =>
     new DomainError(
       "OPTIMISTIC_LOCK",
       "Podaci su izmenjeni u međuvremenu. Osvežite stranicu i pokušajte ponovo.",
     ),
-  quotaExceeded: (message: string): DomainError =>
-    new DomainError("QUOTA_EXCEEDED", message),
+  quotaExceeded: (message: string): DomainError => new DomainError("QUOTA_EXCEEDED", message),
   forbidden: (message = "Nemate ovlašćenje za ovu radnju."): DomainError =>
     new DomainError("FORBIDDEN", message),
-  invalidState: (message: string): DomainError =>
-    new DomainError("INVALID_STATE", message),
-  badRequest: (message: string): DomainError =>
-    new DomainError("BAD_REQUEST", message),
+  invalidState: (message: string): DomainError => new DomainError("INVALID_STATE", message),
+  badRequest: (message: string): DomainError => new DomainError("BAD_REQUEST", message),
   validation: (message: string, fieldErrors?: Record<string, string[]>) =>
     new DomainError("VALIDATION", message, { fieldErrors }),
 };

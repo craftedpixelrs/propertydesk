@@ -220,9 +220,7 @@ export async function previewBillingEmail(
 export async function getTemplateVariables(key: string): Promise<string[]> {
   const row = await prisma.billingEmailTemplate.findUnique({ where: { key } });
   if (row && Array.isArray(row.variables)) {
-    return (row.variables as unknown[]).filter(
-      (v): v is string => typeof v === "string",
-    );
+    return (row.variables as unknown[]).filter((v): v is string => typeof v === "string");
   }
   const fallback = DEFAULT_TEMPLATES.find((t) => t.key === key);
   return fallback ? [...fallback.variables] : [];

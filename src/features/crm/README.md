@@ -10,7 +10,7 @@ Routes:
   `normalizePhone`), an activity timeline, and the threaded
   `CommentThread` panel with `@mentions`.
 - `/zadaci` — task list. Task due dates surface in `/kalendar`.
-- `/kupci/novi`, `/kupci/[id]/izmena` — CRUD forms.
+- `/kupci/novi` — full-page create. Edit is the right-side drawer on `/kupci/[id]` (`/kupci/[id]/izmena` redirects there).
 
 Duplicate detection runs per organization on normalized phone/email
 so cosmetic differences don't create duplicate buyers.

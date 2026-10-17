@@ -18,7 +18,7 @@ export const DialogOverlay = React.forwardRef<
   <DialogPrimitive.Overlay
     ref={ref}
     className={cn(
-      "fixed inset-0 z-50 bg-[var(--color-overlay)] data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
+      "data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-50 bg-[var(--color-overlay)]",
       className,
     )}
     {...props}
@@ -35,7 +35,7 @@ export const DialogContent = React.forwardRef<
     <DialogPrimitive.Content
       ref={ref}
       className={cn(
-        "fixed left-1/2 top-1/2 z-50 grid w-[calc(100%-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 gap-4 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-6 shadow-[0_24px_64px_-24px_var(--color-shadow)] outline-none",
+        "fixed top-1/2 left-1/2 z-50 grid w-[calc(100%-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 gap-4 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-6 shadow-[0_24px_64px_-24px_var(--color-shadow)] outline-none",
         className,
       )}
       {...props}
@@ -51,7 +51,7 @@ function DialogCloseButton() {
   const t = useT();
   return (
     <DialogPrimitive.Close
-      className="absolute right-3 top-3 rounded-md p-1.5 text-[var(--color-foreground-muted)] hover:bg-[var(--color-surface-inset)]"
+      className="absolute top-3 right-3 rounded-md p-1.5 text-[var(--color-foreground-muted)] hover:bg-[var(--color-surface-inset)]"
       aria-label={t("common.close")}
     >
       <X className="size-4" />
@@ -66,10 +66,7 @@ export function DialogHeader({ className, ...props }: React.HTMLAttributes<HTMLD
 export function DialogFooter({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
   return (
     <div
-      className={cn(
-        "flex flex-col-reverse gap-2 sm:flex-row sm:justify-end",
-        className,
-      )}
+      className={cn("flex flex-col-reverse gap-2 sm:flex-row sm:justify-end", className)}
       {...props}
     />
   );
@@ -81,7 +78,10 @@ export const DialogTitle = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <DialogPrimitive.Title
     ref={ref}
-    className={cn("font-display text-xl font-semibold tracking-tight text-[var(--color-foreground)]", className)}
+    className={cn(
+      "font-display text-xl font-semibold tracking-tight text-[var(--color-foreground)]",
+      className,
+    )}
     {...props}
   />
 ));

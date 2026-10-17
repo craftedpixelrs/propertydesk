@@ -29,10 +29,7 @@ const ALLOWED_COMMISSION_TRANSITIONS: Record<CommissionStatus, CommissionStatus[
   CANCELED: [],
 };
 
-async function loadCommission(
-  investorOrganizationId: string,
-  commissionId: string,
-) {
+async function loadCommission(investorOrganizationId: string, commissionId: string) {
   const row = await prisma.commission.findFirst({
     where: { id: commissionId, investorOrganizationId },
   });
@@ -219,9 +216,7 @@ export async function listInvestorCommissions(input: ListInvestorCommissionsInpu
   const where: Prisma.CommissionWhereInput = {
     investorOrganizationId: input.investorOrganizationId,
     ...(input.status?.length ? { status: { in: input.status } } : {}),
-    ...(input.agencyOrganizationId
-      ? { agencyOrganizationId: input.agencyOrganizationId }
-      : {}),
+    ...(input.agencyOrganizationId ? { agencyOrganizationId: input.agencyOrganizationId } : {}),
   };
   const [total, rows] = await Promise.all([
     prisma.commission.count({ where }),

@@ -18,14 +18,11 @@ export function ManualMatchForm({ transactionId }: { transactionId: string }) {
     }
     setBusy(true);
     try {
-      const res = await fetch(
-        `/api/v1/billing/bank-statement/${transactionId}/match`,
-        {
-          method: "POST",
-          headers: { "content-type": "application/json" },
-          body: JSON.stringify({ invoiceRef: invoice.trim() }),
-        },
-      );
+      const res = await fetch(`/api/v1/billing/bank-statement/${transactionId}/match`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ invoiceRef: invoice.trim() }),
+      });
       if (!res.ok) {
         const j = await res.json().catch(() => ({}));
         alert(t("admin.errorPrefix", { message: j?.error?.message ?? res.statusText }));
@@ -42,14 +39,11 @@ export function ManualMatchForm({ transactionId }: { transactionId: string }) {
     if (!reason) return;
     setBusy(true);
     try {
-      const res = await fetch(
-        `/api/v1/billing/bank-statement/${transactionId}/ignore`,
-        {
-          method: "POST",
-          headers: { "content-type": "application/json" },
-          body: JSON.stringify({ reason }),
-        },
-      );
+      const res = await fetch(`/api/v1/billing/bank-statement/${transactionId}/ignore`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ reason }),
+      });
       if (!res.ok) {
         const j = await res.json().catch(() => ({}));
         alert(t("admin.errorPrefix", { message: j?.error?.message ?? res.statusText }));

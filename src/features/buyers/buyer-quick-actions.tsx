@@ -95,7 +95,11 @@ export function BuyerQuickActions({
     <Card>
       <CardContent className="space-y-3 p-4">
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-          <ActionButton icon={<Phone className="size-4" />} label={t("crm.actions.call")} href={`tel:${phone}`} />
+          <ActionButton
+            icon={<Phone className="size-4" />}
+            label={t("crm.actions.call")}
+            href={`tel:${phone}`}
+          />
           <ActionButton
             icon={<Mail className="size-4" />}
             label={t("common.email")}
@@ -197,11 +201,7 @@ export function BuyerQuickActions({
               placeholder={t("crm.actions.taskTitlePlaceholder")}
               className="h-10 w-full rounded-md border border-[var(--color-border)] px-3 text-sm"
             />
-            <DateTimeInput
-              value={taskDue}
-              onChange={setTaskDue}
-              className="h-10"
-            />
+            <DateTimeInput value={taskDue} onChange={setTaskDue} className="h-10" />
             <div className="flex justify-end">
               <Button
                 size="sm"
@@ -225,11 +225,7 @@ export function BuyerQuickActions({
 
         {panel === "viewing" ? (
           <div className="space-y-2 rounded-md border border-[var(--color-border)] p-3">
-            <DateTimeInput
-              value={viewingWhen}
-              onChange={setViewingWhen}
-              className="h-10"
-            />
+            <DateTimeInput value={viewingWhen} onChange={setViewingWhen} className="h-10" />
             <input
               value={viewingNote}
               onChange={(e) => setViewingNote(e.target.value)}
@@ -330,9 +326,7 @@ function ActionButton({
       <a
         href={href}
         className={className}
-        {...(external
-          ? { target: "_blank", rel: "noopener noreferrer" }
-          : {})}
+        {...(external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
       >
         {icon}
         {label}

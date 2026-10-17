@@ -59,7 +59,7 @@ export function UploadStatementForm() {
           className="h-10 rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-1 text-sm"
         />
       </label>
-      <div className="md:col-span-3 flex items-center justify-between gap-2">
+      <div className="flex items-center justify-between gap-2 md:col-span-3">
         {error ? <span className="text-sm text-[var(--color-danger)]">{error}</span> : null}
         {ok ? <span className="text-sm text-[var(--color-success)]">{ok}</span> : <span />}
         <Button type="submit" disabled={pending}>

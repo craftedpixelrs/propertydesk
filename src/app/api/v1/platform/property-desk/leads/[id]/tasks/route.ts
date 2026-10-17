@@ -27,14 +27,11 @@ export const GET = apiHandler({ paramsSchema }, async ({ params }) => {
   return { data: items };
 });
 
-export const POST = apiHandler(
-  { paramsSchema, bodySchema },
-  async ({ params, body }) => {
-    const ctx = await requirePropertyDeskAccess();
-    const task = await createLeadTask(ctx, { leadId: params.id, ...body });
-    return { data: task, status: 201 };
-  },
-);
+export const POST = apiHandler({ paramsSchema, bodySchema }, async ({ params, body }) => {
+  const ctx = await requirePropertyDeskAccess();
+  const task = await createLeadTask(ctx, { leadId: params.id, ...body });
+  return { data: task, status: 201 };
+});
 
 /**
  * @swagger

@@ -22,19 +22,16 @@ export const GET = apiHandler({}, async () => {
   return { data: { members, invitations } };
 });
 
-export const POST = apiHandler(
-  { bodySchema: inviteSchema },
-  async ({ body }) => {
-    const ctx = await requirePermission("organization.members:manage");
-    await inviteMember({
-      organizationId: ctx.organization.organizationId,
-      email: body.email,
-      role: body.role as (typeof ALL_ORG_ROLE_NAMES)[number],
-      actorUserId: ctx.session.user.id,
-    });
-    return { data: { ok: true }, status: 201 };
-  },
-);
+export const POST = apiHandler({ bodySchema: inviteSchema }, async ({ body }) => {
+  const ctx = await requirePermission("organization.members:manage");
+  await inviteMember({
+    organizationId: ctx.organization.organizationId,
+    email: body.email,
+    role: body.role as (typeof ALL_ORG_ROLE_NAMES)[number],
+    actorUserId: ctx.session.user.id,
+  });
+  return { data: { ok: true }, status: 201 };
+});
 
 /**
  * @swagger

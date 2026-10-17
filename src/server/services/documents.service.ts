@@ -4,11 +4,7 @@ import type { DocumentCategory, DocumentVisibility, Prisma } from "@prisma/clien
 import { prisma } from "@/server/db/prisma";
 import { DomainErrors } from "@/lib/errors";
 import { recordAudit } from "@/server/audit/audit";
-import {
-  storage,
-  assertAllowedMimeType,
-  MAX_UPLOAD_BYTES,
-} from "@/server/storage";
+import { storage, assertAllowedMimeType, MAX_UPLOAD_BYTES } from "@/server/storage";
 
 /**
  * DocumentService — thin wrapper around the storage abstraction that adds
@@ -127,9 +123,7 @@ export async function listDocuments(input: ListDocumentsInput) {
     deletedAt: null,
     ...(input.category ? { category: input.category } : {}),
     ...(input.imagesOnly ? { mimeType: { startsWith: "image/" } } : {}),
-    ...(input.excludeImages
-      ? { NOT: { mimeType: { startsWith: "image/" } } }
-      : {}),
+    ...(input.excludeImages ? { NOT: { mimeType: { startsWith: "image/" } } } : {}),
   };
   // The gallery uses (sortOrder ASC, createdAt DESC) so operator drag
   // ordering wins, but new uploads that keep the default sortOrder are
@@ -171,9 +165,7 @@ export async function setCoverImage(input: {
   });
   if (!doc) throw DomainErrors.notFound("Dokument");
   if (!doc.mimeType.startsWith("image/")) {
-    throw DomainErrors.badRequest(
-      "Naslovna slika mora biti slika (image/*).",
-    );
+    throw DomainErrors.badRequest("Naslovna slika mora biti slika (image/*).");
   }
 
   await prisma.$transaction([
@@ -229,9 +221,7 @@ export async function reorderDocuments(input: {
     select: { id: true },
   });
   if (docs.length !== input.orderedDocumentIds.length) {
-    throw DomainErrors.badRequest(
-      "Neki dokumenti ne pripadaju ovom entitetu.",
-    );
+    throw DomainErrors.badRequest("Neki dokumenti ne pripadaju ovom entitetu.");
   }
   await prisma.$transaction(
     input.orderedDocumentIds.map((id, index) =>
@@ -315,8 +305,7 @@ export async function getSignedDownloadUrl(input: {
 
   // Investor + platform callers can access their own org's documents.
   if (
-    (input.actor.organizationType === "INVESTOR" ||
-      input.actor.organizationType === "PLATFORM") &&
+    (input.actor.organizationType === "INVESTOR" || input.actor.organizationType === "PLATFORM") &&
     doc.organizationId === input.actor.organizationId
   ) {
     // INTERNAL is fine for these; further role gating is the API layer's job.

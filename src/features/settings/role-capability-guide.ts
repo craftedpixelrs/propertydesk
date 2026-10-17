@@ -1,8 +1,5 @@
 import type { PermissionString } from "@/server/permissions/access-control";
-import {
-  rolesForOrgType,
-  type OrganizationRole,
-} from "@/server/permissions/roles";
+import { rolesForOrgType, type OrganizationRole } from "@/server/permissions/roles";
 
 export const ORG_ROLE_LABEL: Record<string, string> = {
   INVESTOR_OWNER: "Vlasnik",
@@ -250,13 +247,9 @@ export function buildRoleCapabilityGuide(
     key,
     label: ORG_ROLE_LABEL[key] ?? key,
   }));
-  const defs =
-    orgType === "AGENCY" ? AGENCY_CAPABILITIES : INVESTOR_CAPABILITIES;
+  const defs = orgType === "AGENCY" ? AGENCY_CAPABILITIES : INVESTOR_CAPABILITIES;
 
-  const sectionMap = new Map<
-    string,
-    RoleCapabilityGuide["sections"][number]["rows"]
-  >();
+  const sectionMap = new Map<string, RoleCapabilityGuide["sections"][number]["rows"]>();
   for (const def of defs) {
     const rows = sectionMap.get(def.section) ?? [];
     const cells: Record<string, CapabilityLevel> = {};

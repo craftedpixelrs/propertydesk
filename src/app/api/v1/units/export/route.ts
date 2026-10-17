@@ -1,9 +1,6 @@
 import { apiHandler } from "@/lib/api/handler";
 import { requirePermission } from "@/server/permissions/require";
-import {
-  exportUnitsCsv,
-  exportUnitsXlsx,
-} from "@/server/services/units-import.service";
+import { exportUnitsCsv, exportUnitsXlsx } from "@/server/services/units-import.service";
 
 export const GET = apiHandler({}, async ({ searchParams, requestId }) => {
   const ctx = await requirePermission("inventory.export");
@@ -12,15 +9,11 @@ export const GET = apiHandler({}, async ({ searchParams, requestId }) => {
   const stamp = new Date().toISOString().slice(0, 10);
 
   if (format === "xlsx") {
-    const buf = await exportUnitsXlsx(
-      ctx.organization.organizationId,
-      projectId,
-    );
+    const buf = await exportUnitsXlsx(ctx.organization.organizationId, projectId);
     return new Response(buf as unknown as BodyInit, {
       status: 200,
       headers: {
-        "content-type":
-          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        "content-type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         "content-disposition": `attachment; filename="jedinice-${stamp}.xlsx"`,
         "x-request-id": requestId,
       },

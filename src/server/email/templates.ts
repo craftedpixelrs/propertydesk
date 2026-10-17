@@ -45,6 +45,7 @@ export function publicReservationRequestEmail(params: {
   projectName: string;
   expiresAt: Date;
   paymentLines: string[];
+  qrUrl?: string | null;
 }): EmailMessage {
   return {
     to: "",
@@ -58,6 +59,7 @@ export function publicReservationRequestEmail(params: {
       `Zahtev važi do: ${formatWhen(params.expiresAt)}`,
       ``,
       ...params.paymentLines,
+      ...(params.qrUrl ? [``, `IPS QR za uplatu: ${params.qrUrl}`] : []),
       ``,
       `Kad uplata stigne, investitor potvrđuje rezervaciju na Vaše ime.`,
     ]),
@@ -70,6 +72,7 @@ export function publicReservationConfirmedEmail(params: {
   projectName: string;
   expiresAt?: Date | null;
   paymentLines: string[];
+  qrUrl?: string | null;
 }): EmailMessage {
   return {
     to: "",
@@ -80,11 +83,10 @@ export function publicReservationConfirmedEmail(params: {
       `Vaša rezervacija je potvrđena.`,
       ``,
       `Jedinica: ${params.unitCode} (${params.projectName})`,
-      ...(params.expiresAt
-        ? [`Rezervacija važi do: ${formatWhen(params.expiresAt)}`]
-        : []),
+      ...(params.expiresAt ? [`Rezervacija važi do: ${formatWhen(params.expiresAt)}`] : []),
       ``,
       ...params.paymentLines,
+      ...(params.qrUrl ? [``, `IPS QR za uplatu: ${params.qrUrl}`] : []),
     ]),
   };
 }
@@ -407,11 +409,7 @@ export function agencyRegistrationApprovedEmail(params: {
       `Projekat: ${params.projectName}`,
       `Kupac: ${params.buyerName}`,
       ...(params.protectionEndsAt
-        ? [
-            `Zaštita važi do: ${params.protectionEndsAt.toLocaleDateString(
-              "sr-Latn-RS",
-            )}`,
-          ]
+        ? [`Zaštita važi do: ${params.protectionEndsAt.toLocaleDateString("sr-Latn-RS")}`]
         : []),
       ...(params.actionUrl ? [``, `Detalji: ${params.actionUrl}`] : []),
     ]),
@@ -515,6 +513,86 @@ export function trialExpiringEmail(params: {
       ``,
       `Da biste izbegli suspenziju, kontaktirajte administratora ili obnovite pretplatu.`,
       ...(params.actionUrl ? [``, `Detalji: ${params.actionUrl}`] : []),
+    ]),
+  };
+}
+
+function extraLines(extra?: string | null): string[] {
+  const text = extra?.trim();
+  return text ? ["", text] : [];
+}
+
+export function buyerInstallmentReminderEmail(params: {
+  buyerName: string;
+  unitCode: string;
+  projectName: string;
+  installmentName: string;
+  amount: string;
+  currency: string;
+  dueOn: string;
+  extra?: string | null;
+}): EmailMessage {
+  return {
+    to: "",
+    subject: `${APP_NAME}: Rata dospeva — ${params.unitCode}`,
+    text: layout([
+      `Poštovani/a ${params.buyerName},`,
+      ``,
+      `Podsećamo Vas da rata dospeva.`,
+      ``,
+      `Jedinica: ${params.unitCode} (${params.projectName})`,
+      `Rata: ${params.installmentName}`,
+      `Iznos: ${params.amount} ${params.currency}`,
+      `Rok: ${params.dueOn}`,
+      ...extraLines(params.extra),
+    ]),
+  };
+}
+
+export function buyerPaymentReceiptEmail(params: {
+  buyerName: string;
+  unitCode: string;
+  projectName: string;
+  amount: string;
+  currency: string;
+  reversed: boolean;
+  reason?: string | null;
+  extra?: string | null;
+}): EmailMessage {
+  return {
+    to: "",
+    subject: `${APP_NAME}: ${params.reversed ? "Storno uplate" : "Potvrda uplate"} — ${params.unitCode}`,
+    text: layout([
+      `Poštovani/a ${params.buyerName},`,
+      ``,
+      params.reversed ? `Evidentirali smo storno uplate.` : `Evidentirali smo Vašu uplatu.`,
+      ``,
+      `Jedinica: ${params.unitCode} (${params.projectName})`,
+      `Iznos: ${params.amount} ${params.currency}`,
+      ...(params.reversed && params.reason ? [`Razlog: ${params.reason}`] : []),
+      ...extraLines(params.extra),
+    ]),
+  };
+}
+
+export function buyerReservationExpiringEmail(params: {
+  buyerName: string;
+  unitCode: string;
+  projectName: string;
+  expiresOn: string;
+  extra?: string | null;
+}): EmailMessage {
+  return {
+    to: "",
+    subject: `${APP_NAME}: Rezervacija uskoro ističe — ${params.unitCode}`,
+    text: layout([
+      `Poštovani/a ${params.buyerName},`,
+      ``,
+      `Vaša rezervacija ističe za dva dana ili ranije.`,
+      ``,
+      `Jedinica: ${params.unitCode} (${params.projectName})`,
+      `Važi do: ${params.expiresOn}`,
+      ...extraLines(params.extra),
     ]),
   };
 }

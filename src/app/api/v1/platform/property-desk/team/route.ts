@@ -16,9 +16,7 @@ import {
 const createBody = z.object({
   userId: z.string().min(1),
   teamRole: z.enum(["SETTER", "CLOSER", "OPERATIONS", "MANAGER"]),
-  leadScope: z
-    .enum(["OWN", "OWN_AND_UNASSIGNED", "TEAM", "ALL"])
-    .optional(),
+  leadScope: z.enum(["OWN", "OWN_AND_UNASSIGNED", "TEAM", "ALL"]).optional(),
   notes: z.string().max(1000).optional().nullable(),
 });
 
@@ -37,10 +35,7 @@ export const GET = apiHandler({}, async ({ searchParams }) => {
     // The picker for `Add member` is only useful for callers that hold
     // `pd_team.add_member`. By default that's SUPER_ADMIN only.
     if (!(await hasPdPermission(ctx, "pd_team.add_member"))) {
-      throw new AuthError(
-        "FORBIDDEN",
-        "Nemate dozvolu za dodavanje članova tima.",
-      );
+      throw new AuthError("FORBIDDEN", "Nemate dozvolu za dodavanje članova tima.");
     }
     const users = await listAddablePlatformUsers();
     return { data: users };
@@ -51,15 +46,12 @@ export const GET = apiHandler({}, async ({ searchParams }) => {
   return { data: members };
 });
 
-export const POST = apiHandler(
-  { bodySchema: createBody },
-  async ({ body }) => {
-    const access = await requirePropertyDeskAccess();
-    const ctx = await requirePdPermission(access, "pd_team.add_member");
-    const member = await addTeamMember(body, ctx.session.user.id);
-    return { data: member, status: 201 };
-  },
-);
+export const POST = apiHandler({ bodySchema: createBody }, async ({ body }) => {
+  const access = await requirePropertyDeskAccess();
+  const ctx = await requirePdPermission(access, "pd_team.add_member");
+  const member = await addTeamMember(body, ctx.session.user.id);
+  return { data: member, status: 201 };
+});
 
 /**
  * @swagger

@@ -24,12 +24,10 @@ export const pagesSr = {
 export const pagesEn: Leaves<typeof pagesSr> = {
   errorKicker: "Something went wrong",
   errorTitle: "This page could not be loaded",
-  errorBody:
-    "Try again. If the problem continues, contact support and mention {{digest}}.",
+  errorBody: "Try again. If the problem continues, contact support and mention {{digest}}.",
   notFoundKicker: "Error 404",
   notFoundTitle: "Page not found",
-  notFoundBody:
-    "This page does not exist or has moved. Return to the dashboard to continue.",
+  notFoundBody: "This page does not exist or has moved. Return to the dashboard to continue.",
   forbiddenKicker: "Error 403",
   forbiddenTitle: "Access denied",
   forbiddenBody:

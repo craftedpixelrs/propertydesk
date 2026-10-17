@@ -37,11 +37,7 @@ type OpenForm =
   | { kind: "floor"; entranceId: string; entranceLabel: string }
   | null;
 
-export function StructureManager({
-  projectId,
-  buildings,
-  canManage,
-}: StructureManagerProps) {
+export function StructureManager({ projectId, buildings, canManage }: StructureManagerProps) {
   const t = useT();
   const router = useRouter();
   const [openForm, setOpenForm] = useState<OpenForm>(null);
@@ -71,10 +67,7 @@ export function StructureManager({
         buildings.map((b) => {
           const isOpen = expanded.has(b.id);
           return (
-            <div
-              key={b.id}
-              className="rounded-md border border-[var(--color-border)]"
-            >
+            <div key={b.id} className="rounded-md border border-[var(--color-border)]">
               <div className="flex items-center justify-between gap-2 p-3">
                 <button
                   type="button"
@@ -83,7 +76,7 @@ export function StructureManager({
                 >
                   <div className="font-medium">
                     {b.name}{" "}
-                    <span className="text-xs font-mono text-[var(--color-foreground-muted)]">
+                    <span className="font-mono text-xs text-[var(--color-foreground-muted)]">
                       ({b.code})
                     </span>
                   </div>
@@ -112,7 +105,7 @@ export function StructureManager({
                 ) : null}
               </div>
               {isOpen && b.entrances.length > 0 ? (
-                <div className="border-t border-[var(--color-border)] p-3 space-y-2">
+                <div className="space-y-2 border-t border-[var(--color-border)] p-3">
                   {b.entrances.map((e) => (
                     <div
                       key={e.id}
@@ -123,7 +116,7 @@ export function StructureManager({
                           <span className="font-medium">
                             {t("inventory.structure.entranceName", { name: e.name })}
                           </span>{" "}
-                          <span className="text-xs font-mono text-[var(--color-foreground-muted)]">
+                          <span className="font-mono text-xs text-[var(--color-foreground-muted)]">
                             ({e.code})
                           </span>
                           <div className="text-xs text-[var(--color-foreground-muted)]">
@@ -174,11 +167,7 @@ export function StructureManager({
 
       {canManage ? (
         <div>
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => setOpenForm({ kind: "building" })}
-          >
+          <Button type="button" variant="outline" onClick={() => setOpenForm({ kind: "building" })}>
             {t("inventory.structure.addBuildingShort")}
           </Button>
         </div>
@@ -267,11 +256,7 @@ function BuildingForm({
       });
       onCreated();
     } catch (err) {
-      setError(
-        err instanceof ApiClientError
-          ? err.message
-          : t("common.unexpectedError"),
-      );
+      setError(err instanceof ApiClientError ? err.message : t("common.unexpectedError"));
     } finally {
       setLoading(false);
     }
@@ -344,11 +329,7 @@ function EntranceForm({
       });
       onCreated();
     } catch (err) {
-      setError(
-        err instanceof ApiClientError
-          ? err.message
-          : t("common.unexpectedError"),
-      );
+      setError(err instanceof ApiClientError ? err.message : t("common.unexpectedError"));
     } finally {
       setLoading(false);
     }
@@ -415,11 +396,7 @@ function FloorForm({
       await apiClient.post(`/entrances/${entranceId}/floors`, payload);
       onCreated();
     } catch (err) {
-      setError(
-        err instanceof ApiClientError
-          ? err.message
-          : t("common.unexpectedError"),
-      );
+      setError(err instanceof ApiClientError ? err.message : t("common.unexpectedError"));
     } finally {
       setLoading(false);
     }
@@ -488,9 +465,7 @@ function ModalField({
         required={required}
         className="h-10 w-full rounded-md border border-[var(--color-border)] bg-white px-3 text-sm"
       />
-      {hint ? (
-        <p className="text-xs text-[var(--color-foreground-muted)]">{hint}</p>
-      ) : null}
+      {hint ? <p className="text-xs text-[var(--color-foreground-muted)]">{hint}</p> : null}
     </div>
   );
 }

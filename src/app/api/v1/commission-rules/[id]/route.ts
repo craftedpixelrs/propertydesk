@@ -38,7 +38,11 @@ export const PATCH = apiHandler(
         rate: body.rate ?? undefined,
         fixedAmount: body.fixedAmount ?? undefined,
         currency: body.currency,
-        validFrom: body.validFrom ? new Date(body.validFrom) : body.validFrom === null ? null : undefined,
+        validFrom: body.validFrom
+          ? new Date(body.validFrom)
+          : body.validFrom === null
+            ? null
+            : undefined,
         validTo: body.validTo ? new Date(body.validTo) : body.validTo === null ? null : undefined,
         internalNote: body.internalNote ?? undefined,
         agencyVisibleNote: body.agencyVisibleNote ?? undefined,

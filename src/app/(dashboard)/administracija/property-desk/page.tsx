@@ -16,10 +16,7 @@ import { StatCard } from "@/components/app/stat-card";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { formatDateTime } from "@/lib/formatters/date";
-import {
-  hasPdPermission,
-  requirePropertyDeskAccess,
-} from "@/server/permissions/property-desk";
+import { hasPdPermission, requirePropertyDeskAccess } from "@/server/permissions/property-desk";
 import {
   getHotLeads,
   getPipelineStats,
@@ -56,31 +53,26 @@ const STAGE_TONE: Record<
   NURTURING: "neutral",
 };
 
-const LEVEL_TONE: Record<
-  string,
-  "neutral" | "brand" | "info" | "success" | "warning" | "danger"
-> = {
-  SOURCING: "brand",
-  CLOSING: "info",
-  OPERATIONS: "success",
-  ARCHIVED: "neutral",
-};
+const LEVEL_TONE: Record<string, "neutral" | "brand" | "info" | "success" | "warning" | "danger"> =
+  {
+    SOURCING: "brand",
+    CLOSING: "info",
+    OPERATIONS: "success",
+    ARCHIVED: "neutral",
+  };
 
 export default async function PropertyDeskDashboardPage() {
   const ctx = await requirePropertyDeskAccess();
   const t = createT(await resolveRequestLocale());
-  const [stats, recent, hot, followUps, taskCounts, canReadTasks] =
-    await Promise.all([
-      getPipelineStats(ctx),
-      getRecentLeads(ctx, 8),
-      getHotLeads(ctx, 5),
-      getUpcomingFollowUps(ctx, 7, 8),
-      getLeadTaskCounts(ctx),
-      hasPdPermission(ctx, "pd_lead_task.read"),
-    ]);
-  const mineOpenTasks = canReadTasks
-    ? await listTasksForView(ctx, "MINE_OPEN", 8)
-    : [];
+  const [stats, recent, hot, followUps, taskCounts, canReadTasks] = await Promise.all([
+    getPipelineStats(ctx),
+    getRecentLeads(ctx, 8),
+    getHotLeads(ctx, 5),
+    getUpcomingFollowUps(ctx, 7, 8),
+    getLeadTaskCounts(ctx),
+    hasPdPermission(ctx, "pd_lead_task.read"),
+  ]);
+  const mineOpenTasks = canReadTasks ? await listTasksForView(ctx, "MINE_OPEN", 8) : [];
 
   const roleBadge = ctx.isSuperAdmin
     ? { label: "SUPER_ADMIN", tone: "brand" as const }
@@ -188,10 +180,7 @@ export default async function PropertyDeskDashboardPage() {
           <CardContent>
             <ul className="space-y-2 text-sm">
               {Object.entries(stats.byStage).map(([stage, count]) => (
-                <li
-                  key={stage}
-                  className="flex items-center justify-between"
-                >
+                <li key={stage} className="flex items-center justify-between">
                   <Link
                     href={`/administracija/property-desk/leadovi?stage=${stage}`}
                     className="flex items-center gap-2 hover:underline"
@@ -227,7 +216,7 @@ export default async function PropertyDeskDashboardPage() {
       <div className="grid gap-6 lg:grid-cols-2">
         <Card>
           <CardHeader className="flex items-center justify-between gap-3">
-            <CardTitle className="text-sm flex items-center gap-2">
+            <CardTitle className="flex items-center gap-2 text-sm">
               <Flame className="size-4 text-[var(--color-danger)]" />
               {t("admin.pdDash.hotLeads")}
             </CardTitle>
@@ -247,10 +236,7 @@ export default async function PropertyDeskDashboardPage() {
               <ul className="divide-y divide-[var(--color-border)]">
                 {hot.map((lead) => {
                   const fullName =
-                    [lead.firstName, lead.lastName]
-                      .filter(Boolean)
-                      .join(" ")
-                      .trim() || lead.email;
+                    [lead.firstName, lead.lastName].filter(Boolean).join(" ").trim() || lead.email;
                   return (
                     <li
                       key={lead.id}
@@ -272,9 +258,7 @@ export default async function PropertyDeskDashboardPage() {
                         <Badge tone={STAGE_TONE[lead.stage] ?? "neutral"}>
                           {t(`admin.pd.stage.${lead.stage}` as TranslationKey)}
                         </Badge>
-                        <span className="text-xs font-medium">
-                          {lead.leadScore}
-                        </span>
+                        <span className="text-xs font-medium">{lead.leadScore}</span>
                       </div>
                     </li>
                   );
@@ -286,7 +270,7 @@ export default async function PropertyDeskDashboardPage() {
 
         <Card>
           <CardHeader className="flex items-center justify-between gap-3">
-            <CardTitle className="text-sm flex items-center gap-2">
+            <CardTitle className="flex items-center gap-2 text-sm">
               <CalendarClock className="size-4" />
               {t("admin.pdDash.followUp7")}
             </CardTitle>
@@ -306,10 +290,7 @@ export default async function PropertyDeskDashboardPage() {
               <ul className="divide-y divide-[var(--color-border)]">
                 {followUps.map((lead) => {
                   const fullName =
-                    [lead.firstName, lead.lastName]
-                      .filter(Boolean)
-                      .join(" ")
-                      .trim() || lead.email;
+                    [lead.firstName, lead.lastName].filter(Boolean).join(" ").trim() || lead.email;
                   return (
                     <li
                       key={lead.id}
@@ -342,7 +323,7 @@ export default async function PropertyDeskDashboardPage() {
 
       <Card>
         <CardHeader className="flex items-center justify-between gap-3">
-          <CardTitle className="text-sm flex items-center gap-2">
+          <CardTitle className="flex items-center gap-2 text-sm">
             <Users className="size-4" />
             {t("admin.pdDash.recentLeads")}
           </CardTitle>
@@ -361,15 +342,9 @@ export default async function PropertyDeskDashboardPage() {
           ) : (
             <ul className="divide-y divide-[var(--color-border)]">
               {recent.map((lead) => {
-                const fullName = [lead.firstName, lead.lastName]
-                  .filter(Boolean)
-                  .join(" ")
-                  .trim();
+                const fullName = [lead.firstName, lead.lastName].filter(Boolean).join(" ").trim();
                 return (
-                  <li
-                    key={lead.id}
-                    className="grid gap-1 py-3 sm:grid-cols-[1fr_10rem_10rem]"
-                  >
+                  <li key={lead.id} className="grid gap-1 py-3 sm:grid-cols-[1fr_10rem_10rem]">
                     <div className="min-w-0">
                       <Link
                         href={`/administracija/property-desk/leadovi/${lead.id}`}
@@ -377,7 +352,7 @@ export default async function PropertyDeskDashboardPage() {
                       >
                         {fullName || lead.email}
                       </Link>
-                      <div className="text-xs text-[var(--color-foreground-muted)] truncate">
+                      <div className="truncate text-xs text-[var(--color-foreground-muted)]">
                         {lead.email}
                         {lead.city ? ` · ${lead.city}` : ""}
                         {lead.audience
@@ -404,7 +379,7 @@ export default async function PropertyDeskDashboardPage() {
       {canReadTasks ? (
         <Card>
           <CardHeader className="flex items-center justify-between gap-3">
-            <CardTitle className="text-sm flex items-center gap-2">
+            <CardTitle className="flex items-center gap-2 text-sm">
               <CheckSquare className="size-4" />
               {t("admin.pdDash.myOpenTasksCard")}
             </CardTitle>
@@ -417,18 +392,12 @@ export default async function PropertyDeskDashboardPage() {
             ) : (
               <ul className="divide-y divide-[var(--color-border)]">
                 {mineOpenTasks.map((task) => {
-                  const overdue =
-                    task.dueAt && task.dueAt.getTime() < Date.now();
+                  const overdue = task.dueAt && task.dueAt.getTime() < Date.now();
                   const leadName =
-                    [task.lead.firstName, task.lead.lastName]
-                      .filter(Boolean)
-                      .join(" ")
-                      .trim() || task.lead.email;
+                    [task.lead.firstName, task.lead.lastName].filter(Boolean).join(" ").trim() ||
+                    task.lead.email;
                   return (
-                    <li
-                      key={task.id}
-                      className="grid gap-1 py-3 sm:grid-cols-[1fr_10rem_9rem]"
-                    >
+                    <li key={task.id} className="grid gap-1 py-3 sm:grid-cols-[1fr_10rem_9rem]">
                       <div className="min-w-0">
                         <Link
                           href={`/administracija/property-desk/leadovi/${task.lead.id}`}

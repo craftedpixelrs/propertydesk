@@ -7,11 +7,7 @@ import { Button } from "@/components/ui/button";
 import { apiClient, ApiClientError } from "@/lib/api-client";
 import { useT } from "@/components/app/i18n-provider";
 
-export function ConnectionInvitationActions({
-  connectionId,
-}: {
-  connectionId: string;
-}) {
+export function ConnectionInvitationActions({ connectionId }: { connectionId: string }) {
   const t = useT();
   const router = useRouter();
   const [loading, setLoading] = useState<"ACCEPT" | "REJECT" | null>(null);

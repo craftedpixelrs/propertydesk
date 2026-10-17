@@ -11,19 +11,13 @@ import { normalizeDisplayName } from "@/server/services/account-name";
 export { normalizeDisplayName };
 
 export function assertNotImpersonating(session: AppSession): void {
-  const impersonatedBy = (session.session as { impersonatedBy?: string | null })
-    .impersonatedBy;
+  const impersonatedBy = (session.session as { impersonatedBy?: string | null }).impersonatedBy;
   if (impersonatedBy) {
-    throw DomainErrors.forbidden(
-      "Ne možete menjati nalog dok ste u impersonaciji.",
-    );
+    throw DomainErrors.forbidden("Ne možete menjati nalog dok ste u impersonaciji.");
   }
 }
 
-export async function updateOwnName(input: {
-  session: AppSession;
-  name: string;
-}) {
+export async function updateOwnName(input: { session: AppSession; name: string }) {
   assertNotImpersonating(input.session);
   const name = normalizeDisplayName(input.name);
   if (name.length < 2 || name.length > 80) {
@@ -109,10 +103,7 @@ export async function changeOwnPassword(input: {
   });
 }
 
-export async function requestOwnEmailChange(input: {
-  session: AppSession;
-  newEmail: string;
-}) {
+export async function requestOwnEmailChange(input: { session: AppSession; newEmail: string }) {
   assertNotImpersonating(input.session);
   const newEmail = input.newEmail.trim().toLowerCase();
   if (newEmail === input.session.user.email.toLowerCase()) {
@@ -134,9 +125,7 @@ export async function requestOwnEmailChange(input: {
     if (msg.toUpperCase().includes("CHANGE_EMAIL_DISABLED")) {
       throw DomainErrors.badRequest("Promena emaila nije dostupna.");
     }
-    throw DomainErrors.badRequest(
-      "Zahtev za promenu emaila nije poslat. Pokušajte ponovo.",
-    );
+    throw DomainErrors.badRequest("Zahtev za promenu emaila nije poslat. Pokušajte ponovo.");
   }
 
   await recordAudit({

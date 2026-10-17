@@ -10,15 +10,12 @@ import { listDocuments } from "@/server/services/documents.service";
 import { DomainError } from "@/lib/errors";
 import { formatDate, formatDateTime } from "@/lib/formatters";
 import { BuyerQuickActions } from "@/features/buyers/buyer-quick-actions";
+import { AnonymizeBuyerButton } from "@/features/buyers/anonymize-buyer-button";
+import { EditBuyerDrawer } from "@/features/buyers/edit-buyer-drawer";
 import { CommentThread } from "@/features/comments/comment-thread";
 import { KycPanel } from "@/features/buyers/kyc-panel";
 import type { DocumentItem } from "@/features/documents/document-list";
-import {
-  createT,
-  enumLabel,
-  type TranslateFn,
-  type TranslationKey,
-} from "@/lib/i18n";
+import { createT, enumLabel, type TranslateFn, type TranslationKey } from "@/lib/i18n";
 import type { ActivityType, BuyerStatus } from "@prisma/client";
 
 export const dynamic = "force-dynamic";
@@ -53,6 +50,7 @@ export default async function KupacDetaljPage({ params }: PageProps) {
   }
 
   const canManage = ctx.permissions.includes("lead.manage");
+  const canAnonymize = ctx.permissions.includes("buyer.anonymize");
   const canReserve = ctx.permissions.includes("reservation.create");
 
   const kycDocsResult = await listDocuments({
@@ -85,7 +83,10 @@ export default async function KupacDetaljPage({ params }: PageProps) {
     <div className="space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <Link href="/kupci" className="text-sm text-[var(--color-foreground-muted)] hover:underline">
+          <Link
+            href="/kupci"
+            className="text-sm text-[var(--color-foreground-muted)] hover:underline"
+          >
             ← {t("nav.customers")}
           </Link>
           <h1 className="mt-1 text-2xl font-semibold">
@@ -98,11 +99,44 @@ export default async function KupacDetaljPage({ params }: PageProps) {
             })}
           </p>
         </div>
-        {canManage ? (
-          <Button asChild variant="outline">
-            <Link href={`/kupci/${buyer.id}/izmena`}>{t("crm.buyers.editBuyer")}</Link>
-          </Button>
-        ) : null}
+        <div className="flex flex-wrap items-center gap-2">
+          {buyer.anonymizedAt ? (
+            <p className="text-sm text-[var(--color-foreground-muted)]">
+              {t("crm.buyers.anonymizedOn", { date: formatDate(buyer.anonymizedAt) })}
+            </p>
+          ) : canAnonymize ? (
+            <AnonymizeBuyerButton buyerId={buyer.id} />
+          ) : null}
+          {canManage && !buyer.anonymizedAt ? (
+            <EditBuyerDrawer
+              buyerId={buyer.id}
+              buyerName={`${buyer.firstName} ${buyer.lastName}`.trim()}
+              initialValues={{
+                firstName: buyer.firstName ?? "",
+                lastName: buyer.lastName ?? "",
+                phone: buyer.phone ?? "",
+                secondaryPhone: buyer.secondaryPhone ?? "",
+                email: buyer.email ?? "",
+                preferredContactMethod: buyer.preferredContactMethod ?? "ANY",
+                budgetMin: buyer.budgetMin?.toString() ?? "",
+                budgetMax: buyer.budgetMax?.toString() ?? "",
+                source: buyer.source ?? "",
+                notes: buyer.notes ?? "",
+                entityType: buyer.entityType ?? "NATURAL",
+                legalName: buyer.legalName ?? "",
+                jmbg: buyer.jmbg ?? "",
+                identityNumber: buyer.identityNumber ?? "",
+                taxId: buyer.taxId ?? "",
+                addressLine1: buyer.addressLine1 ?? "",
+                city: buyer.city ?? "",
+                postalCode: buyer.postalCode ?? "",
+                country: buyer.country ?? "",
+              }}
+            >
+              <Button variant="outline">{t("crm.buyers.editBuyer")}</Button>
+            </EditBuyerDrawer>
+          ) : null}
+        </div>
       </div>
 
       <BuyerQuickActions
@@ -135,11 +169,7 @@ export default async function KupacDetaljPage({ params }: PageProps) {
               <CardTitle className="text-sm">{t("crm.buyers.comments")}</CardTitle>
             </CardHeader>
             <CardContent>
-              <CommentThread
-                entityType="Buyer"
-                entityId={buyer.id}
-                currentUserId={ctx.user.id}
-              />
+              <CommentThread entityType="Buyer" entityId={buyer.id} currentUserId={ctx.user.id} />
             </CardContent>
           </Card>
 
@@ -258,7 +288,10 @@ export default async function KupacDetaljPage({ params }: PageProps) {
               ) : (
                 <ul className="space-y-2 text-sm">
                   {buyer.tasks.map((task) => (
-                    <li key={task.id} className="rounded-md border border-[var(--color-border)] p-2">
+                    <li
+                      key={task.id}
+                      className="rounded-md border border-[var(--color-border)] p-2"
+                    >
                       <div className="font-medium">{task.title}</div>
                       <div className="text-xs text-[var(--color-foreground-muted)]">
                         {t(`crm.tasks.status.${task.status}` as TranslationKey)} ·{" "}

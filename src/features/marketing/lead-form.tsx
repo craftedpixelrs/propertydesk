@@ -3,8 +3,8 @@
 import { useEffect, useRef, useState, useTransition } from "react";
 import { AlertCircle, CheckCircle2 } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { marketingCta } from "@/features/marketing/marketing-cta";
 import { useT } from "@/components/app/i18n-provider";
 import { COMPANY } from "@/lib/constants/app";
 import { cn } from "@/lib/utils";
@@ -31,12 +31,7 @@ import { cn } from "@/lib/utils";
 
 type Audience = "INVESTOR" | "AGENCY";
 
-type ProjectCount =
-  | "ZERO"
-  | "ONE_TWO"
-  | "THREE_FIVE"
-  | "SIX_TEN"
-  | "TEN_PLUS";
+type ProjectCount = "ZERO" | "ONE_TWO" | "THREE_FIVE" | "SIX_TEN" | "TEN_PLUS";
 
 interface FieldErrors {
   [field: string]: string[];
@@ -113,9 +108,7 @@ export function LeadForm() {
       phone: String(fd.get("phone") ?? "").trim(),
       companyName: String(fd.get("companyName") ?? "").trim() || undefined,
       audience: audienceValue as Audience,
-      projectCount:
-        (String(fd.get("projectCount") ?? "").trim() as ProjectCount) ||
-        undefined,
+      projectCount: (String(fd.get("projectCount") ?? "").trim() as ProjectCount) || undefined,
       city: String(fd.get("city") ?? "").trim() || undefined,
       note: String(fd.get("note") ?? "").trim() || undefined,
       consent: fd.get("consent") === "on",
@@ -133,26 +126,20 @@ export function LeadForm() {
         });
 
         // Envelope: `{ data, error, meta }` - see @/lib/api/response.
-        const json = (await res
-          .json()
-          .catch(() => null)) as
-          | {
-              data?: { ok?: boolean };
-              error?: {
-                code?: string;
-                message?: string;
-                fieldErrors?: FieldErrors;
-              };
-            }
-          | null;
+        const json = (await res.json().catch(() => null)) as {
+          data?: { ok?: boolean };
+          error?: {
+            code?: string;
+            message?: string;
+            fieldErrors?: FieldErrors;
+          };
+        } | null;
 
         if (!res.ok || !json || json.error) {
           const fields = json?.error?.fieldErrors;
           const message =
             json?.error?.message ??
-            (res.status === 429
-              ? t("marketing.lead.rateLimited")
-              : t("marketing.lead.sendFailed"));
+            (res.status === 429 ? t("marketing.lead.rateLimited") : t("marketing.lead.sendFailed"));
           setState({ kind: "error", message, fields });
           return;
         }
@@ -187,12 +174,12 @@ export function LeadForm() {
       <div className="container-app py-16 sm:py-20">
         <div className="mx-auto grid max-w-5xl gap-10 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:items-start">
           <div>
-            <div className="text-xs font-semibold uppercase tracking-wider text-[var(--color-brand-700)]">
+            <div className="text-xs font-semibold tracking-[0.18em] text-[#9a7430] uppercase">
               {t("marketing.lead.eyebrow")}
             </div>
             <h2
               id="lead-title"
-              className="mt-2 text-3xl font-semibold tracking-tight sm:text-4xl"
+              className="font-display mt-3 text-4xl font-semibold tracking-tight text-[#0b1020] sm:text-5xl"
             >
               {t("marketing.lead.title")}
             </h2>
@@ -252,13 +239,15 @@ export function LeadForm() {
                 ref={formRef}
                 onSubmit={onSubmit}
                 className="space-y-4"
-                aria-describedby={
-                  state.kind === "error" ? "lead-error" : undefined
-                }
+                aria-describedby={state.kind === "error" ? "lead-error" : undefined}
                 noValidate
               >
                 <div className="grid gap-4 sm:grid-cols-2">
-                  <Field label={t("marketing.lead.firstName")} required error={fieldError("firstName")}>
+                  <Field
+                    label={t("marketing.lead.firstName")}
+                    required
+                    error={fieldError("firstName")}
+                  >
                     <Input
                       name="firstName"
                       type="text"
@@ -340,8 +329,7 @@ export function LeadForm() {
 
                 <fieldset>
                   <legend className="mb-2 text-sm font-medium text-[var(--color-foreground)]">
-                    {t("marketing.lead.who")}{" "}
-                    <span className="text-[var(--color-danger)]">*</span>
+                    {t("marketing.lead.who")} <span className="text-[var(--color-danger)]">*</span>
                   </legend>
                   <div className="grid gap-2 sm:grid-cols-2">
                     {audienceOptions.map((opt) => {
@@ -350,10 +338,10 @@ export function LeadForm() {
                         <label
                           key={opt.value}
                           className={cn(
-                            "flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-3 text-sm transition",
+                            "flex cursor-pointer items-center gap-2 rounded-2xl border px-3 py-3 text-sm transition",
                             selected
-                              ? "border-[var(--color-brand-600)] bg-[var(--color-brand-50)] text-[var(--color-brand-700)]"
-                              : "border-[var(--color-border)] hover:border-[var(--color-brand-200)]",
+                              ? "border-[#0b1020] bg-[#0b1020] text-[#f7f3ea]"
+                              : "border-[var(--color-border)] bg-white hover:border-[#0b1020]/30",
                           )}
                         >
                           <input
@@ -362,7 +350,7 @@ export function LeadForm() {
                             value={opt.value}
                             checked={selected}
                             onChange={() => setAudience(opt.value)}
-                            className="accent-[var(--color-brand-600)]"
+                            className="accent-[#d6b26a]"
                             required
                           />
                           <span>{opt.label}</span>
@@ -385,7 +373,7 @@ export function LeadForm() {
                   <select
                     name="projectCount"
                     defaultValue=""
-                    className="block min-h-11 w-full rounded-md border border-[var(--color-border-strong)] bg-[var(--color-surface)] px-3 py-2 text-base text-[var(--color-foreground)] shadow-sm outline-none focus:border-[var(--color-brand-600)] focus:ring-2 focus:ring-[var(--color-brand-100)] sm:min-h-10 sm:text-sm"
+                    className="block min-h-11 w-full rounded-md border border-[var(--color-border-strong)] bg-[var(--color-surface)] px-3 py-2 text-base text-[var(--color-foreground)] shadow-sm outline-none focus:border-[#9a7430] focus:ring-2 focus:ring-[#f3e2bc] sm:min-h-10 sm:text-sm"
                   >
                     <option value="">{t("marketing.lead.select")}</option>
                     {projectCountOptions.map((opt) => (
@@ -405,7 +393,7 @@ export function LeadForm() {
                     name="note"
                     rows={3}
                     maxLength={2000}
-                    className="block w-full rounded-md border border-[var(--color-border-strong)] bg-[var(--color-surface)] px-3 py-2 text-base text-[var(--color-foreground)] shadow-sm outline-none placeholder:text-[var(--color-foreground-subtle)] focus:border-[var(--color-brand-600)] focus:ring-2 focus:ring-[var(--color-brand-100)] sm:text-sm"
+                    className="block w-full rounded-md border border-[var(--color-border-strong)] bg-[var(--color-surface)] px-3 py-2 text-base text-[var(--color-foreground)] shadow-sm outline-none placeholder:text-[var(--color-foreground-subtle)] focus:border-[#9a7430] focus:ring-2 focus:ring-[#f3e2bc] sm:text-sm"
                     placeholder={t("marketing.lead.notePh")}
                   />
                 </Field>
@@ -418,12 +406,7 @@ export function LeadForm() {
                 >
                   <label>
                     Website
-                    <input
-                      type="text"
-                      name="website"
-                      tabIndex={-1}
-                      autoComplete="off"
-                    />
+                    <input type="text" name="website" tabIndex={-1} autoComplete="off" />
                   </label>
                 </div>
 
@@ -432,20 +415,20 @@ export function LeadForm() {
                     type="checkbox"
                     name="consent"
                     required
-                    className="mt-0.5 h-4 w-4 accent-[var(--color-brand-600)]"
+                    className="mt-0.5 h-4 w-4 accent-[#9a7430]"
                   />
                   <span>
                     {t("marketing.lead.consent")}{" "}
                     <a
                       href="/privatnost"
-                      className="underline hover:text-[var(--color-brand-700)]"
+                      className="font-medium text-[#0b1020] underline decoration-[#d6b26a] decoration-2 underline-offset-4 hover:text-[#9a7430]"
                     >
                       {t("marketing.lead.consentPrivacy")}
                     </a>
                     . {t("marketing.lead.consentAfter")}{" "}
                     <a
                       href={`mailto:${COMPANY.email}`}
-                      className="underline hover:text-[var(--color-brand-700)]"
+                      className="font-medium text-[#0b1020] underline decoration-[#d6b26a] decoration-2 underline-offset-4 hover:text-[#9a7430]"
                     >
                       {COMPANY.email}
                     </a>
@@ -459,22 +442,24 @@ export function LeadForm() {
                     role="alert"
                     className="flex items-start gap-2 rounded-md border border-[var(--color-danger)]/30 bg-[var(--color-danger-bg)] p-3 text-sm text-[var(--color-danger)]"
                   >
-                    <AlertCircle
-                      aria-hidden
-                      className="mt-0.5 size-4 flex-none"
-                    />
+                    <AlertCircle aria-hidden className="mt-0.5 size-4 flex-none" />
                     <span>{state.message}</span>
                   </div>
                 ) : null}
 
-                <Button
+                <button
                   type="submit"
-                  size="lg"
-                  className="w-full"
-                  loading={isPending || state.kind === "submitting"}
+                  className={marketingCta("ink", "lg", "w-full")}
+                  disabled={isPending || state.kind === "submitting"}
                 >
+                  {isPending || state.kind === "submitting" ? (
+                    <span
+                      aria-hidden
+                      className="size-4 animate-spin rounded-full border-2 border-current border-r-transparent"
+                    />
+                  ) : null}
                   {t("marketing.lead.submit")}
-                </Button>
+                </button>
                 <p className="text-center text-[11px] text-[var(--color-foreground-subtle)]">
                   {t("marketing.lead.afterSubmit")}
                 </p>
@@ -509,9 +494,7 @@ function Field({
       <span className="flex items-baseline justify-between gap-2 font-medium text-[var(--color-foreground)]">
         <span>
           {label}
-          {required ? (
-            <span className="ml-1 text-[var(--color-danger)]">*</span>
-          ) : null}
+          {required ? <span className="ml-1 text-[var(--color-danger)]">*</span> : null}
         </span>
         {hint ? (
           <span className="text-[11px] font-normal text-[var(--color-foreground-subtle)]">
@@ -520,9 +503,7 @@ function Field({
         ) : null}
       </span>
       {children}
-      {error ? (
-        <span className="text-xs text-[var(--color-danger)]">{error}</span>
-      ) : null}
+      {error ? <span className="text-xs text-[var(--color-danger)]">{error}</span> : null}
     </label>
   );
 }

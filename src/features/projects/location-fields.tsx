@@ -31,12 +31,7 @@ function toOptions(items: GeoSuggestion[], prefix: string): SuggestOption[] {
   }));
 }
 
-export function LocationFields({
-  values,
-  setValue,
-  fieldErrors,
-  coordsLockRef,
-}: Props) {
+export function LocationFields({ values, setValue, fieldErrors, coordsLockRef }: Props) {
   const t = useT();
   const [cityOptions, setCityOptions] = useState<SuggestOption[]>([]);
   const [munOptions, setMunOptions] = useState<SuggestOption[]>([]);
@@ -106,11 +101,7 @@ export function LocationFields({
       .finally(() => setLoading(false));
   }
 
-  function debounce(
-    timer: MutableRefObject<number | null>,
-    fn: () => void,
-    ms = 220,
-  ) {
+  function debounce(timer: MutableRefObject<number | null>, fn: () => void, ms = 220) {
     if (timer.current) window.clearTimeout(timer.current);
     timer.current = window.setTimeout(fn, ms);
   }
@@ -198,9 +189,7 @@ export function LocationFields({
           loading={addressLoading}
           disabled={!(values.city ?? "").trim()}
           placeholder={
-            (values.city ?? "").trim()
-              ? undefined
-              : t("inventory.form.addressNeedsCity")
+            (values.city ?? "").trim() ? undefined : t("inventory.form.addressNeedsCity")
           }
           emptyLabel={t("inventory.form.noSuggestions")}
           onChange={(value) => setValue("address", value)}
@@ -219,9 +208,10 @@ export function LocationFields({
             void geocodeIfPossible();
           }}
           onQueryChange={(q) =>
-            debounce(addressTimer, () =>
-              fetchKind("address", q, setAddressOptions, addressCache, setAddressLoading),
-            280,
+            debounce(
+              addressTimer,
+              () => fetchKind("address", q, setAddressOptions, addressCache, setAddressLoading),
+              280,
             )
           }
           onSelect={(option) => {

@@ -8,15 +8,11 @@ describe("buildRoleCapabilityGuide", () => {
     const guide = buildRoleCapabilityGuide("INVESTOR", (role, perm) =>
       defaultAllowsPermission(role, perm),
     );
-    const members = guide.sections
-      .flatMap((s) => s.rows)
-      .find((r) => r.id === "members");
+    const members = guide.sections.flatMap((s) => s.rows).find((r) => r.id === "members");
     expect(members?.cells.INVESTOR_OWNER).toBe("yes");
     expect(members?.cells.SALES_AGENT).toBe("no");
 
-    const leads = guide.sections
-      .flatMap((s) => s.rows)
-      .find((r) => r.id === "leads");
+    const leads = guide.sections.flatMap((s) => s.rows).find((r) => r.id === "leads");
     expect(leads?.cells.SALES_AGENT).toBe("yes");
     expect(leads?.cells.FINANCE).toBe("no");
     expect(leads?.cells.INVESTOR_VIEWER).toBe("read");
@@ -26,15 +22,11 @@ describe("buildRoleCapabilityGuide", () => {
     const guide = buildRoleCapabilityGuide("AGENCY", (role, perm) =>
       defaultAllowsPermission(role, perm),
     );
-    const members = guide.sections
-      .flatMap((s) => s.rows)
-      .find((r) => r.id === "members");
+    const members = guide.sections.flatMap((s) => s.rows).find((r) => r.id === "members");
     expect(members?.cells.AGENCY_OWNER).toBe("yes");
     expect(members?.cells.AGENCY_AGENT).toBe("no");
 
-    const leads = guide.sections
-      .flatMap((s) => s.rows)
-      .find((r) => r.id === "leads");
+    const leads = guide.sections.flatMap((s) => s.rows).find((r) => r.id === "leads");
     expect(leads?.cells.AGENCY_AGENT).toBe("yes");
     expect(leads?.cells.AGENCY_VIEWER).toBe("read");
   });

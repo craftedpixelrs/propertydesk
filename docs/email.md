@@ -114,7 +114,8 @@ Do not give staging/demo the production Resend key if you can avoid it
 (create a second key, or use Resend’s test/sandbox). Cron jobs that
 email buyers (`overdue-installments`, reservation reminders) will fire
 on any env that has a real provider and a seeded calendar — disable or
-point them at fake `@primer.rs` / `@*.test` data on demo.
+point them at fake `@primer.rs` / `@*.test` data on demo. Due-installment
+mail goes to the salesperson on the sale, not to the buyer.
 
 ## What not to do
 
@@ -135,3 +136,6 @@ point them at fake `@primer.rs` / `@*.test` data on demo.
    (`/administracija/naplata/sabloni`) — subject prefixed `[TEST]`.
 5. On the VPS, `docker compose logs app` must **not** show
    `[email:console]` for that send.
+
+Do this on `my.` before handing a tenant to a client. Demo stays on
+`EMAIL_PROVIDER=console`.

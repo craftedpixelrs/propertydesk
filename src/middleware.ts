@@ -1,10 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import {
-  REFERRAL_COOKIE,
-  REFERRAL_COOKIE_MAX_AGE,
-  referralCodeFromUrl,
-} from "@/lib/referral";
+import { REFERRAL_COOKIE, REFERRAL_COOKIE_MAX_AGE, referralCodeFromUrl } from "@/lib/referral";
 import { isAppHost, NOINDEX_ROBOTS_TAG } from "@/lib/seo/hosts";
 
 /**
@@ -67,10 +63,7 @@ function resolveHost(request: NextRequest): string {
  * The only side effect of a leaked cookie is a mis-attributed
  * commission, which is a business concern rather than a security one.
  */
-function applyReferralCookie(
-  request: NextRequest,
-  response: NextResponse,
-): NextResponse {
+function applyReferralCookie(request: NextRequest, response: NextResponse): NextResponse {
   const clean = referralCodeFromUrl(
     request.nextUrl.pathname,
     request.nextUrl.searchParams.get("ref"),
@@ -101,6 +94,11 @@ export function middleware(request: NextRequest) {
   const host = resolveHost(request);
   const { pathname, search } = request.nextUrl;
 
+  // One indexable host. www duplicates the apex and splits ranking.
+  if (host === "www.propertydesk.app") {
+    return NextResponse.redirect(new URL(`https://propertydesk.app${pathname}${search}`), 308);
+  }
+
   const isAppSubdomain = isAppHost(host);
   if (!isAppSubdomain) return applyReferralCookie(request, passThrough(request));
 
@@ -108,9 +106,7 @@ export function middleware(request: NextRequest) {
     const signIn = request.nextUrl.clone();
     signIn.pathname = "/sign-in";
     signIn.search = search;
-    return applyNoIndex(
-      applyReferralCookie(request, NextResponse.redirect(signIn, 308)),
-    );
+    return applyNoIndex(applyReferralCookie(request, NextResponse.redirect(signIn, 308)));
   }
 
   const firstSegment = pathname.split("/", 2)[1] ?? "";
@@ -118,10 +114,7 @@ export function middleware(request: NextRequest) {
     return applyNoIndex(
       applyReferralCookie(
         request,
-        NextResponse.redirect(
-          new URL(`https://propertydesk.app${pathname}${search}`),
-          308,
-        ),
+        NextResponse.redirect(new URL(`https://propertydesk.app${pathname}${search}`), 308),
       ),
     );
   }
@@ -135,5 +128,7 @@ export const config = {
   // hop).
   matcher: [
     "/((?!_next/|api/|icons/|images/|.*\\..*|robots\\.txt|sitemap\\.xml|favicon\\.ico|opengraph-image|manifest).*)",
+    "/robots.txt",
+    "/sitemap.xml",
   ],
 };

@@ -56,9 +56,7 @@ export function ReportFiltersBar(props: {
     >
       {props.showProjectFilter !== false ? (
         <label className="flex flex-col gap-1 text-xs">
-          <span className="text-[var(--color-foreground-muted)]">
-            {t("units.columns.project")}
-          </span>
+          <span className="text-[var(--color-foreground-muted)]">{t("units.columns.project")}</span>
           <select
             name="projectId"
             value={projectId}

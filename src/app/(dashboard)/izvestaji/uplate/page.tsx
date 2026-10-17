@@ -59,10 +59,7 @@ export default async function PaymentsReportPage({ searchParams }: PageProps) {
 
   return (
     <div className="space-y-6">
-      <PageHeader
-        title={t("nav.payments")}
-        description={t("ops.reports.paymentsDesc")}
-      />
+      <PageHeader title={t("nav.payments")} description={t("ops.reports.paymentsDesc")} />
 
       <ReportFilters
         action="/izvestaji/uplate"
@@ -99,7 +96,6 @@ export default async function PaymentsReportPage({ searchParams }: PageProps) {
             : t("ops.reports.cashFlowDesc")
         }
       />
-
 
       <div className="grid gap-6 lg:grid-cols-2">
         <ChartCard

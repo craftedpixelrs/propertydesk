@@ -8,12 +8,7 @@ import { uploadDocument } from "@/server/services/documents.service";
 import { isSvgFile, sanitizeSvg } from "@/lib/images/svg";
 import { storage } from "@/server/storage";
 
-const LOGO_MIME = new Set([
-  "image/png",
-  "image/jpeg",
-  "image/webp",
-  "image/svg+xml",
-]);
+const LOGO_MIME = new Set(["image/png", "image/jpeg", "image/webp", "image/svg+xml"]);
 const MAX_LOGO_BYTES = 2 * 1024 * 1024;
 
 export type LogoVariant = "default" | "light";
@@ -96,8 +91,7 @@ export async function uploadOrganizationLogo(input: {
   await prisma.$transaction([
     prisma.organizationProfile.update({
       where: { organizationId: input.organizationId },
-      data:
-        variant === "light" ? { logoLightUrl: logoUrl } : { logoUrl },
+      data: variant === "light" ? { logoLightUrl: logoUrl } : { logoUrl },
     }),
     ...(variant === "default"
       ? [
@@ -116,9 +110,7 @@ export async function uploadOrganizationLogo(input: {
     organizationId: input.organizationId,
     actorUserId: input.actorUserId,
     previousValues:
-      variant === "light"
-        ? { logoLightUrl: previous.logoLightUrl }
-        : { logoUrl: previous.logoUrl },
+      variant === "light" ? { logoLightUrl: previous.logoLightUrl } : { logoUrl: previous.logoUrl },
     newValues:
       variant === "light"
         ? { logoLightUrl: logoUrl, documentId: doc.id }
@@ -150,8 +142,7 @@ export async function removeOrganizationLogo(input: {
   await prisma.$transaction([
     prisma.organizationProfile.update({
       where: { organizationId: input.organizationId },
-      data:
-        variant === "light" ? { logoLightUrl: null } : { logoUrl: null },
+      data: variant === "light" ? { logoLightUrl: null } : { logoUrl: null },
     }),
     ...(variant === "default"
       ? [
@@ -170,11 +161,8 @@ export async function removeOrganizationLogo(input: {
     organizationId: input.organizationId,
     actorUserId: input.actorUserId,
     previousValues:
-      variant === "light"
-        ? { logoLightUrl: previous.logoLightUrl }
-        : { logoUrl: previous.logoUrl },
-    newValues:
-      variant === "light" ? { logoLightUrl: null } : { logoUrl: null },
+      variant === "light" ? { logoLightUrl: previous.logoLightUrl } : { logoUrl: previous.logoUrl },
+    newValues: variant === "light" ? { logoLightUrl: null } : { logoUrl: null },
   });
 }
 
@@ -265,14 +253,8 @@ export async function loadOrganizationBranding(organizationId: string): Promise<
   const plan = org?.subscription?.plan;
   return {
     name: org?.profile?.displayName || org?.name || "",
-    logoUrl: withLogoCacheBust(
-      org?.profile?.logoUrl || org?.logo,
-      org?.profile?.updatedAt,
-    ),
-    logoLightUrl: withLogoCacheBust(
-      org?.profile?.logoLightUrl,
-      org?.profile?.updatedAt,
-    ),
+    logoUrl: withLogoCacheBust(org?.profile?.logoUrl || org?.logo, org?.profile?.updatedAt),
+    logoLightUrl: withLogoCacheBust(org?.profile?.logoLightUrl, org?.profile?.updatedAt),
     whiteLabel: planAllowsWhiteLabel(plan?.code, plan?.features),
   };
 }

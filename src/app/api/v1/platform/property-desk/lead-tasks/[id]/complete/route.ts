@@ -10,14 +10,11 @@ const bodySchema = z.object({
   completed: z.boolean(),
 });
 
-export const POST = apiHandler(
-  { paramsSchema, bodySchema },
-  async ({ params, body }) => {
-    const ctx = await requirePropertyDeskAccess();
-    const task = await completeLeadTask(ctx, params.id, body.completed);
-    return { data: task };
-  },
-);
+export const POST = apiHandler({ paramsSchema, bodySchema }, async ({ params, body }) => {
+  const ctx = await requirePropertyDeskAccess();
+  const task = await completeLeadTask(ctx, params.id, body.completed);
+  return { data: task };
+});
 
 /**
  * @swagger

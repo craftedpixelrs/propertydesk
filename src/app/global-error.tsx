@@ -3,14 +3,7 @@
 import * as Sentry from "@sentry/nextjs";
 import { useEffect, useMemo, useState } from "react";
 
-import {
-  DEFAULT_LOCALE,
-  LOCALE_COOKIE,
-  htmlLang,
-  parseLocale,
-  t,
-  type Locale,
-} from "@/lib/i18n";
+import { DEFAULT_LOCALE, LOCALE_COOKIE, htmlLang, parseLocale, t, type Locale } from "@/lib/i18n";
 
 /**
  * Root-level error boundary. Catches exceptions in the root layout —
@@ -50,9 +43,13 @@ export default function GlobalError({
     () => ({
       kicker: t("pages.globalErrorKicker", undefined, locale),
       title: t("pages.globalErrorTitle", undefined, locale),
-      body: t("pages.globalErrorBody", {
-        digest: error.digest ?? "—",
-      }, locale),
+      body: t(
+        "pages.globalErrorBody",
+        {
+          digest: error.digest ?? "—",
+        },
+        locale,
+      ),
       retry: t("common.retry", undefined, locale),
     }),
     [error.digest, locale],
@@ -67,16 +64,12 @@ export default function GlobalError({
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          fontFamily:
-            "system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, sans-serif",
+          fontFamily: "system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, sans-serif",
           backgroundColor: "#f8fafc",
           color: "#0f172a",
         }}
       >
-        <main
-          role="main"
-          style={{ maxWidth: 480, padding: 24, textAlign: "center" }}
-        >
+        <main role="main" style={{ maxWidth: 480, padding: 24, textAlign: "center" }}>
           <p
             style={{
               fontSize: 12,
@@ -88,12 +81,8 @@ export default function GlobalError({
           >
             {copy.kicker}
           </p>
-          <h1 style={{ marginTop: 8, fontSize: 24, fontWeight: 600 }}>
-            {copy.title}
-          </h1>
-          <p style={{ marginTop: 12, fontSize: 14, color: "#475569" }}>
-            {copy.body}
-          </p>
+          <h1 style={{ marginTop: 8, fontSize: 24, fontWeight: 600 }}>{copy.title}</h1>
+          <p style={{ marginTop: 12, fontSize: 14, color: "#475569" }}>{copy.body}</p>
           <div style={{ marginTop: 24 }}>
             <button
               type="button"

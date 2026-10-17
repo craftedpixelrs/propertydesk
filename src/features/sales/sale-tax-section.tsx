@@ -56,9 +56,7 @@ export function SaleTaxSection({
   const [editing, setEditing] = useState(false);
   const [mode, setMode] = useState<VatMode | "NULL">(vatMode ?? "NULL");
   const [payer, setPayer] = useState<TaxPayer>(taxPayer);
-  const [amountOverride, setAmountOverride] = useState<string>(
-    taxAmount ?? "",
-  );
+  const [amountOverride, setAmountOverride] = useState<string>(taxAmount ?? "");
   const [useOverride, setUseOverride] = useState<boolean>(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -80,11 +78,7 @@ export function SaleTaxSection({
       setEditing(false);
       router.refresh();
     } catch (err) {
-      setError(
-        err instanceof ApiClientError
-          ? err.message
-          : t("errors.unexpected"),
-      );
+      setError(err instanceof ApiClientError ? err.message : t("errors.unexpected"));
     } finally {
       setSaving(false);
     }
@@ -139,9 +133,7 @@ export function SaleTaxSection({
         >
           <option value="NULL">{t("deals.tax.mode.NULL")}</option>
           <option value="NEW_BUILD_10">{t("deals.tax.mode.NEW_BUILD_10")}</option>
-          <option value="SECONDARY_MARKET_2_5">
-            {t("deals.tax.mode.SECONDARY_MARKET_2_5")}
-          </option>
+          <option value="SECONDARY_MARKET_2_5">{t("deals.tax.mode.SECONDARY_MARKET_2_5")}</option>
           <option value="NONE">{t("deals.tax.mode.NONE")}</option>
         </select>
       </div>
@@ -203,12 +195,7 @@ export function SaleTaxSection({
         <Button size="sm" onClick={onSave} loading={saving}>
           {t("common.save")}
         </Button>
-        <Button
-          size="sm"
-          variant="outline"
-          onClick={() => setEditing(false)}
-          disabled={saving}
-        >
+        <Button size="sm" variant="outline" onClick={() => setEditing(false)} disabled={saving}>
           {t("deals.saleActions.dismiss")}
         </Button>
       </div>

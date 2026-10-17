@@ -152,9 +152,7 @@ export async function listNetworkCatalog(input: {
       priceMax: stats?.priceMax?.toFixed(2) ?? null,
       investor: {
         organizationId: project.organizationId,
-        displayName:
-          project.organization.profile?.displayName?.trim() ||
-          project.organization.name,
+        displayName: project.organization.profile?.displayName?.trim() || project.organization.name,
       },
       alreadyConnected: connected.has(project.organizationId),
       pendingRequest: pendingInvestors.has(project.organizationId),

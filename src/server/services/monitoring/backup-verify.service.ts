@@ -36,13 +36,7 @@ import { captureException } from "@/server/monitoring";
  * never thrown up the stack.
  */
 
-const CANDIDATE_EXTENSIONS = [
-  ".pgcustom",
-  ".dump",
-  ".pgdump",
-  ".tar",
-  ".backup",
-];
+const CANDIDATE_EXTENSIONS = [".pgcustom", ".dump", ".pgdump", ".tar", ".backup"];
 
 export interface BackupVerifyOutcome {
   status: SystemHealthCheckStatus;
@@ -106,9 +100,7 @@ async function performVerification(): Promise<BackupVerifyOutcome> {
     default:
       return {
         status: "FAIL",
-        message: `Nepoznat BACKUP_VERIFY_SOURCE: ${String(
-          serverEnv.BACKUP_VERIFY_SOURCE,
-        )}`,
+        message: `Nepoznat BACKUP_VERIFY_SOURCE: ${String(serverEnv.BACKUP_VERIFY_SOURCE)}`,
       };
   }
 }
@@ -122,8 +114,7 @@ async function verifyLocalBackup(): Promise<BackupVerifyOutcome> {
   if (!dir) {
     return {
       status: "FAIL",
-      message:
-        "BACKUP_VERIFY_LOCAL_DIR nije postavljen — nema gde da tražim pg_dump fajl.",
+      message: "BACKUP_VERIFY_LOCAL_DIR nije postavljen — nema gde da tražim pg_dump fajl.",
     };
   }
 
@@ -133,9 +124,7 @@ async function verifyLocalBackup(): Promise<BackupVerifyOutcome> {
   } catch (err) {
     return {
       status: "FAIL",
-      message: `Ne mogu da pročitam direktorijum '${dir}': ${
-        (err as Error)?.message ?? "unknown"
-      }`,
+      message: `Ne mogu da pročitam direktorijum '${dir}': ${(err as Error)?.message ?? "unknown"}`,
     };
   }
 
@@ -159,8 +148,7 @@ async function verifyLocalBackup(): Promise<BackupVerifyOutcome> {
   );
 
   const usable = withStats.filter(
-    (c): c is { name: string; full: string; mtimeMs: number; size: number } =>
-      Boolean(c),
+    (c): c is { name: string; full: string; mtimeMs: number; size: number } => Boolean(c),
   );
 
   if (usable.length === 0) {
@@ -202,8 +190,7 @@ async function verifyS3Backup(): Promise<BackupVerifyOutcome> {
   if (!bucket) {
     return {
       status: "FAIL",
-      message:
-        "BACKUP_VERIFY_S3_BUCKET nije postavljen — nema odakle da preuzmem pg_dump.",
+      message: "BACKUP_VERIFY_S3_BUCKET nije postavljen — nema odakle da preuzmem pg_dump.",
     };
   }
 
@@ -284,9 +271,10 @@ interface S3Helper {
 async function loadS3ClientOrNull(): Promise<S3Helper | null> {
   try {
     const s3Path = "@aws-sdk/client-s3";
-    const mod = (await import(/* webpackIgnore: true */ s3Path).catch(
-      () => null,
-    )) as Record<string, unknown> | null;
+    const mod = (await import(/* webpackIgnore: true */ s3Path).catch(() => null)) as Record<
+      string,
+      unknown
+    > | null;
     if (!mod) return null;
 
     const S3Client = mod.S3Client as new (opts: unknown) => {
@@ -342,9 +330,7 @@ async function loadS3ClientOrNull(): Promise<S3Helper | null> {
               };
             }
           }
-          continuationToken = res.IsTruncated
-            ? res.NextContinuationToken
-            : undefined;
+          continuationToken = res.IsTruncated ? res.NextContinuationToken : undefined;
         } while (continuationToken);
         return latest;
       },
@@ -357,10 +343,7 @@ async function loadS3ClientOrNull(): Promise<S3Helper | null> {
           throw new Error("S3 GetObject nije vratio čitljivo telo.");
         }
         const bytes = await res.Body.transformToByteArray();
-        const tmp = path.join(
-          os.tmpdir(),
-          `pd-backup-verify-${Date.now()}-${path.basename(key)}`,
-        );
+        const tmp = path.join(os.tmpdir(), `pd-backup-verify-${Date.now()}-${path.basename(key)}`);
         await fs.writeFile(tmp, Buffer.from(bytes));
         return tmp;
       },
@@ -418,8 +401,7 @@ function pgRestoreList(filePath: string): Promise<PgRestoreResult> {
       if (code === 0) {
         const tocEntries = stdout
           .split("\n")
-          .filter((line) => line.trim() && !line.startsWith(";"))
-          .length;
+          .filter((line) => line.trim() && !line.startsWith(";")).length;
         settle({ ok: true, tocEntries });
       } else {
         const lastLine =

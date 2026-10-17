@@ -61,14 +61,14 @@ export default async function PublicReferralCatalogPage({ params }: PageProps) {
             <img
               src={catalog.investorLogoUrl}
               alt={catalog.investorName}
-              className="h-12 w-auto max-h-16 max-w-[200px] shrink-0 object-contain object-left sm:h-16 sm:max-w-[280px]"
+              className="h-12 max-h-16 w-auto max-w-[200px] shrink-0 object-contain object-left sm:h-16 sm:max-w-[280px]"
             />
           ) : null}
           <div className="min-w-0">
-            <div className="truncate text-xs uppercase tracking-wide text-neutral-500">
+            <div className="truncate text-xs tracking-wide text-neutral-500 uppercase">
               {catalog.investorName}
             </div>
-            <h1 className="truncate text-lg font-semibold leading-tight sm:text-xl">
+            <h1 className="truncate text-lg leading-tight font-semibold sm:text-xl">
               {t("marketing.public.referralCatalogTitle")}
             </h1>
             <p className="mt-1 text-sm text-neutral-600">
@@ -116,9 +116,7 @@ export default async function PublicReferralCatalogPage({ params }: PageProps) {
                       {project.city ? ` · ${project.city}` : ""}
                     </p>
                     {project.description ? (
-                      <p className="line-clamp-3 text-sm text-neutral-600">
-                        {project.description}
-                      </p>
+                      <p className="line-clamp-3 text-sm text-neutral-600">{project.description}</p>
                     ) : null}
                     <p className="text-sm text-[var(--color-brand-700)]">
                       {t("marketing.public.viewProject")}

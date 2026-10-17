@@ -38,21 +38,13 @@ export function PlanDangerZone({
         await apiClient.post(`/platform/plans/${planId}/archive`, { action });
         router.refresh();
       } catch (err) {
-        setError(
-          err instanceof ApiClientError
-            ? err.message
-            : t("admin.operationFailed"),
-        );
+        setError(err instanceof ApiClientError ? err.message : t("admin.operationFailed"));
       }
     });
   }
 
   function callDelete() {
-    if (
-      !window.confirm(
-        t("admin.planDanger.confirm", { name: planName }),
-      )
-    ) {
+    if (!window.confirm(t("admin.planDanger.confirm", { name: planName }))) {
       return;
     }
     setError(null);
@@ -62,11 +54,7 @@ export function PlanDangerZone({
         router.push("/administracija/planovi");
         router.refresh();
       } catch (err) {
-        setError(
-          err instanceof ApiClientError
-            ? err.message
-            : t("admin.deleteFailed"),
-        );
+        setError(err instanceof ApiClientError ? err.message : t("admin.deleteFailed"));
       }
     });
   }
@@ -83,9 +71,7 @@ export function PlanDangerZone({
               {active ? t("admin.planDanger.archive") : t("admin.planDanger.restore")}
             </div>
             <p className="text-xs text-[var(--color-foreground-muted)]">
-              {active
-                ? t("admin.planDanger.archiveHint")
-                : t("admin.planDanger.restoreHint")}
+              {active ? t("admin.planDanger.archiveHint") : t("admin.planDanger.restoreHint")}
             </p>
           </div>
           <Button

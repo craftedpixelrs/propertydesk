@@ -48,13 +48,7 @@ export interface LoopsContactPayload {
    * Any additional key becomes a custom property on the Loops contact.
    * Undefined / null values are stripped before the request.
    */
-  [customProperty: string]:
-    | string
-    | number
-    | boolean
-    | null
-    | undefined
-    | Record<string, boolean>;
+  [customProperty: string]: string | number | boolean | null | undefined | Record<string, boolean>;
 }
 
 /**
@@ -125,10 +119,7 @@ export async function upsertLoopsContact(
   if (!res.ok) {
     // Log the raw upstream response to the server console; the user-
     // facing message stays generic to avoid leaking internals.
-    console.error(
-      `[loops] contact upsert failed (${res.status}) — body:`,
-      rawText,
-    );
+    console.error(`[loops] contact upsert failed (${res.status}) — body:`, rawText);
     throw new DomainError(
       "INTERNAL",
       "Trenutno ne možemo da primimo prijavu. Pokušajte ponovo za koji trenutak.",

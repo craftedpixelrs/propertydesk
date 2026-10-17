@@ -114,10 +114,7 @@ export async function getUnreadCount(userId: string): Promise<number> {
   return prisma.notification.count({ where: { userId, readAt: null } });
 }
 
-export async function markNotificationRead(
-  userId: string,
-  notificationId: string,
-): Promise<void> {
+export async function markNotificationRead(userId: string, notificationId: string): Promise<void> {
   const existing = await prisma.notification.findFirst({
     where: { id: notificationId, userId },
     select: { id: true, readAt: true },

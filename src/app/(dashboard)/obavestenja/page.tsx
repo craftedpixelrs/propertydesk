@@ -7,6 +7,7 @@ import { loadUserContext } from "@/server/auth/context";
 import { listNotifications } from "@/server/services/notifications.service";
 import { formatDateTime } from "@/lib/formatters";
 import { MarkAllReadButton } from "@/features/notifications/mark-all-read-button";
+import { notificationGlyph } from "@/features/notifications/notification-visual";
 import { cn } from "@/lib/utils";
 import { createT, type TranslationKey } from "@/lib/i18n";
 
@@ -87,8 +88,7 @@ export default async function ObavestenjaPage({ searchParams }: PageProps) {
 
       <div className="flex flex-wrap items-center gap-2">
         {CATEGORY_TABS.map((tab) => {
-          const active =
-            (tab.value === "ALL" && !category) || tab.value === category;
+          const active = (tab.value === "ALL" && !category) || tab.value === category;
           return (
             <Link
               key={tab.value}
@@ -116,9 +116,7 @@ export default async function ObavestenjaPage({ searchParams }: PageProps) {
               : "border-[var(--color-border)] text-[var(--color-foreground-muted)] hover:text-[var(--color-foreground)]",
           )}
         >
-          {unreadOnly
-            ? t("crm.notifications.unreadOnlyActive")
-            : t("crm.notifications.unreadOnly")}
+          {unreadOnly ? t("crm.notifications.unreadOnlyActive") : t("crm.notifications.unreadOnly")}
         </Link>
       </div>
 
@@ -131,19 +129,43 @@ export default async function ObavestenjaPage({ searchParams }: PageProps) {
       ) : (
         <div className="space-y-2">
           {items.map((n) => {
+            const { Icon, tile } = notificationGlyph(n.category);
             const content = (
-              <Card className={cn(!n.readAt && "border-[var(--color-brand-300)]")}>
+              <Card
+                className={cn(
+                  "border-l-2",
+                  n.readAt ? "border-l-transparent" : "border-l-[var(--color-brand-600)]",
+                )}
+              >
                 <CardContent className="py-3">
-                  <div className="flex items-start justify-between gap-2">
-                    <span className="font-medium">{n.title}</span>
-                    {!n.readAt ? (
-                      <span className="mt-1 size-2 flex-none rounded-full bg-[var(--color-brand-500)]" />
-                    ) : null}
+                  <div className="flex gap-3">
+                    <span
+                      className={cn(
+                        "mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-lg",
+                        tile,
+                      )}
+                    >
+                      <Icon aria-hidden className="size-4" />
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-baseline justify-between gap-3">
+                        <span className={cn(n.readAt ? "font-medium" : "font-semibold")}>
+                          {n.title}
+                        </span>
+                        <time
+                          dateTime={
+                            n.createdAt instanceof Date ? n.createdAt.toISOString() : n.createdAt
+                          }
+                          className="shrink-0 text-xs text-[var(--color-foreground-subtle)]"
+                        >
+                          {formatDateTime(n.createdAt)}
+                        </time>
+                      </div>
+                      <p className="mt-0.5 text-sm text-[var(--color-foreground-muted)]">
+                        {n.message}
+                      </p>
+                    </div>
                   </div>
-                  <p className="text-sm text-[var(--color-foreground-muted)]">{n.message}</p>
-                  <p className="mt-1 text-xs text-[var(--color-foreground-subtle)]">
-                    {formatDateTime(n.createdAt)}
-                  </p>
                 </CardContent>
               </Card>
             );

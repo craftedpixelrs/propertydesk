@@ -21,7 +21,7 @@ export const DropdownMenuContent = React.forwardRef<
       ref={ref}
       sideOffset={sideOffset}
       className={cn(
-        "z-50 min-w-56 overflow-hidden rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] p-1 shadow-md text-sm",
+        "z-50 min-w-56 overflow-hidden rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] p-1 text-sm shadow-md",
         className,
       )}
       {...props}
@@ -37,7 +37,7 @@ export const DropdownMenuItem = React.forwardRef<
   <DropdownMenuPrimitive.Item
     ref={ref}
     className={cn(
-      "relative flex cursor-pointer select-none items-center gap-2 rounded px-2 py-2 outline-none focus:bg-[var(--color-surface-inset)] data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
+      "relative flex cursor-pointer items-center gap-2 rounded px-2 py-2 outline-none select-none focus:bg-[var(--color-surface-inset)] data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
       inset && "pl-8",
       className,
     )}
@@ -53,7 +53,7 @@ export const DropdownMenuLabel = React.forwardRef<
   <DropdownMenuPrimitive.Label
     ref={ref}
     className={cn(
-      "px-2 py-1.5 text-xs font-semibold uppercase text-[var(--color-foreground-subtle)]",
+      "px-2 py-1.5 text-xs font-semibold text-[var(--color-foreground-subtle)] uppercase",
       className,
     )}
     {...props}
@@ -81,7 +81,7 @@ export const DropdownMenuCheckboxItem = React.forwardRef<
     ref={ref}
     checked={checked}
     className={cn(
-      "relative flex cursor-pointer select-none items-center rounded px-2 py-2 pl-8 outline-none focus:bg-[var(--color-surface-inset)]",
+      "relative flex cursor-pointer items-center rounded px-2 py-2 pl-8 outline-none select-none focus:bg-[var(--color-surface-inset)]",
       className,
     )}
     {...props}
@@ -103,7 +103,7 @@ export const DropdownMenuSubTrigger = React.forwardRef<
   <DropdownMenuPrimitive.SubTrigger
     ref={ref}
     className={cn(
-      "flex cursor-pointer select-none items-center gap-2 rounded px-2 py-2 outline-none focus:bg-[var(--color-surface-inset)]",
+      "flex cursor-pointer items-center gap-2 rounded px-2 py-2 outline-none select-none focus:bg-[var(--color-surface-inset)]",
       inset && "pl-8",
       className,
     )}
@@ -122,7 +122,7 @@ export const DropdownMenuSubContent = React.forwardRef<
   <DropdownMenuPrimitive.SubContent
     ref={ref}
     className={cn(
-      "z-50 min-w-48 overflow-hidden rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] p-1 shadow-md text-sm",
+      "z-50 min-w-48 overflow-hidden rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] p-1 text-sm shadow-md",
       className,
     )}
     {...props}

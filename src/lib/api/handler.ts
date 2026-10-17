@@ -35,8 +35,7 @@ interface HandlerOptions<TBody, TParams> {
 }
 
 type HandlerResult =
-  | Response
-  | { data: unknown; meta?: Omit<SuccessMeta, "requestId">; status?: number };
+  Response | { data: unknown; meta?: Omit<SuccessMeta, "requestId">; status?: number };
 
 export function apiHandler<TBody = unknown, TParams = Record<string, string>>(
   options: HandlerOptions<TBody, TParams>,
@@ -85,11 +84,7 @@ export function apiHandler<TBody = unknown, TParams = Record<string, string>>(
         return result;
       }
 
-      const response = ok(
-        result.data,
-        { ...(result.meta ?? {}), requestId },
-        result.status,
-      );
+      const response = ok(result.data, { ...(result.meta ?? {}), requestId }, result.status);
       response.headers.set("x-request-id", requestId);
       return response;
     } catch (err) {
@@ -121,26 +116,22 @@ function toApiError(err: unknown, locale: Locale): ApiError {
     });
   }
   if (err instanceof AuthError) {
-    const map: Record<
-      typeof err.code,
-      { code: ApiErrorCode; status: number }
-    > = {
+    const map: Record<typeof err.code, { code: ApiErrorCode; status: number }> = {
       UNAUTHENTICATED: { code: "UNAUTHENTICATED", status: 401 },
       FORBIDDEN: { code: "FORBIDDEN", status: 403 },
       NO_ACTIVE_ORGANIZATION: { code: "NO_ACTIVE_ORGANIZATION", status: 403 },
       ORGANIZATION_ACCESS_DENIED: { code: "ORGANIZATION_ACCESS_DENIED", status: 403 },
       ORGANIZATION_SUSPENDED: { code: "ORGANIZATION_SUSPENDED", status: 403 },
+      ORGANIZATION_NOT_ACTIVE: { code: "ORGANIZATION_NOT_ACTIVE", status: 403 },
       ORGANIZATION_RESTRICTED: { code: "ORGANIZATION_RESTRICTED", status: 402 },
       PLATFORM_ADMIN_REQUIRED: { code: "PLATFORM_ADMIN_REQUIRED", status: 403 },
+      TWO_FACTOR_SETUP_REQUIRED: { code: "TWO_FACTOR_SETUP_REQUIRED", status: 403 },
     };
     const mapped = map[err.code];
     return new ApiError(mapped.code, err.message, { statusCode: mapped.status });
   }
   if (err instanceof DomainError) {
-    const map: Record<
-      typeof err.code,
-      { code: ApiErrorCode; status: number }
-    > = {
+    const map: Record<typeof err.code, { code: ApiErrorCode; status: number }> = {
       VALIDATION: { code: "VALIDATION_ERROR", status: 422 },
       NOT_FOUND: { code: "NOT_FOUND", status: 404 },
       CONFLICT: { code: "CONFLICT", status: 409 },
@@ -165,10 +156,7 @@ function toApiError(err: unknown, locale: Locale): ApiError {
  * Convenience: reject unsupported HTTP methods with a proper envelope.
  */
 export function methodNotAllowed(requestId: string = randomUUID()): Response {
-  return fail(
-    new ApiError("METHOD_NOT_ALLOWED", "Ova metoda nije podržana."),
-    requestId,
-  );
+  return fail(new ApiError("METHOD_NOT_ALLOWED", "Ova metoda nije podržana."), requestId);
 }
 
 export type { HandlerResult };

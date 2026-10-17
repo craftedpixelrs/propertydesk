@@ -66,10 +66,7 @@ export function useRequiredUserContext(): ClientUserContext {
 
 export function usePermissions() {
   const ctx = useUserContext();
-  const set = useMemo(
-    () => new Set(ctx?.permissions ?? []),
-    [ctx?.permissions],
-  );
+  const set = useMemo(() => new Set(ctx?.permissions ?? []), [ctx?.permissions]);
   return useMemo(
     () => ({
       has: (perm: PermissionString): boolean => {
@@ -98,9 +95,7 @@ export function usePermissions() {
  * ```
  */
 export function usePdPermission(
-  perm: `pd_${string}` extends PermissionString
-    ? PermissionString
-    : PermissionString,
+  perm: `pd_${string}` extends PermissionString ? PermissionString : PermissionString,
 ): boolean {
   const { has } = usePermissions();
   return has(perm);

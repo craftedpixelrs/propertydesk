@@ -34,7 +34,7 @@ export function ErrorState({ title, description, onRetry, className }: ErrorStat
           {title ?? t("errors.generic")}
         </h3>
         {description ? (
-          <p className="text-sm text-[var(--color-foreground-muted)] mt-1">{description}</p>
+          <p className="mt-1 text-sm text-[var(--color-foreground-muted)]">{description}</p>
         ) : null}
       </div>
       {onRetry ? (

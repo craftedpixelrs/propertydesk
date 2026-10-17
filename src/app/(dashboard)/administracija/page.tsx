@@ -9,6 +9,11 @@ import { getSession, isSuperAdmin } from "@/server/auth/session";
 import { loadPlatformDashboard } from "@/server/services/dashboard/dashboard.service";
 import { createT } from "@/lib/i18n";
 import { resolveRequestLocale } from "@/lib/i18n/resolve-locale";
+import { TwoFactorPolicyCard } from "@/features/platform-admin/two-factor-policy-card";
+import {
+  getTwoFactorRequired,
+  userHasTwoFactor,
+} from "@/server/services/security/two-factor-policy";
 
 export const dynamic = "force-dynamic";
 
@@ -28,9 +33,14 @@ export default async function PlatformAdminOverviewPage() {
 
   const data = await loadPlatformDashboard();
   const t = createT(await resolveRequestLocale());
+  const [twoFactorRequired, callerEnabled] = await Promise.all([
+    getTwoFactorRequired(),
+    userHasTwoFactor(session.user.id),
+  ]);
 
   return (
     <div className="space-y-6">
+      <TwoFactorPolicyCard required={twoFactorRequired} callerEnabled={callerEnabled} />
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
         <StatCard
           label={t("admin.organizations")}
@@ -120,9 +130,7 @@ export default async function PlatformAdminOverviewPage() {
               {data.organizationsByType.map((row) => (
                 <li key={row.type} className="flex items-center justify-between">
                   <span>
-                    {row.type === "INVESTOR"
-                      ? t("admin.investors")
-                      : t("admin.agencies")}
+                    {row.type === "INVESTOR" ? t("admin.investors") : t("admin.agencies")}
                   </span>
                   <span className="font-medium">{row.count}</span>
                 </li>
@@ -144,10 +152,7 @@ export default async function PlatformAdminOverviewPage() {
           ) : (
             <ul className="divide-y divide-[var(--color-border)]">
               {data.recentAudit.map((row) => (
-                <li
-                  key={row.id}
-                  className="grid gap-1 py-3 sm:grid-cols-[10rem_1fr_10rem]"
-                >
+                <li key={row.id} className="grid gap-1 py-3 sm:grid-cols-[10rem_1fr_10rem]">
                   <span className="text-xs text-[var(--color-foreground-muted)]">
                     {formatDateTime(row.createdAt)}
                   </span>

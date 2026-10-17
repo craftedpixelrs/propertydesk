@@ -67,7 +67,11 @@ export const PAGE_GUIDES: PageGuideDef[] = [
   { key: "agents", prefixes: ["/agencija/agenti"], steps: 3 },
   { key: "connections", prefixes: ["/agencija/konekcije"], steps: 4 },
   { key: "settingsAccount", prefixes: ["/podesavanja/profil"], steps: 3 },
-  { key: "settingsOrg", prefixes: ["/podesavanja/organizacija", "/agencija/podesavanja"], steps: 3 },
+  {
+    key: "settingsOrg",
+    prefixes: ["/podesavanja/organizacija", "/agencija/podesavanja"],
+    steps: 3,
+  },
   { key: "settingsMembers", prefixes: ["/podesavanja/korisnici"], steps: 3 },
   { key: "settingsSubscription", prefixes: ["/podesavanja/pretplata"], steps: 3 },
   { key: "settingsInvoices", prefixes: ["/podesavanja/fakture"], steps: 3 },

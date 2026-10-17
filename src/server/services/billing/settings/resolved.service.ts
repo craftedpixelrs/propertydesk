@@ -68,7 +68,12 @@ const DEFAULT_REMINDER_SCHEDULE: BillingReminderStage[] = [
   { offsetDays: -3, templateKey: "reminder.pre_due", channel: "both", label: "3 dana pre isteka" },
   { offsetDays: 0, templateKey: "reminder.due_day", channel: "both", label: "Dan dospeća" },
   { offsetDays: 3, templateKey: "reminder.post_due", channel: "both", label: "3 dana posle" },
-  { offsetDays: 7, templateKey: "reminder.final_notice", channel: "both", label: "7 dana posle (poslednja opomena)" },
+  {
+    offsetDays: 7,
+    templateKey: "reminder.final_notice",
+    channel: "both",
+    label: "7 dana posle (poslednja opomena)",
+  },
 ];
 
 const DEFAULT_RESTRICTED_PERMISSIONS = [
@@ -232,8 +237,7 @@ export async function resolveBillingSettings(
         merged.electronicInvoiceEnabled = override.electronicInvoiceEnabled;
       if (override.electronicInvoiceProvider != null)
         merged.electronicInvoiceProvider = override.electronicInvoiceProvider;
-      if (override.invoiceFooterNote != null)
-        merged.invoiceFooterNote = override.invoiceFooterNote;
+      if (override.invoiceFooterNote != null) merged.invoiceFooterNote = override.invoiceFooterNote;
       if (override.invoiceInRsd != null) merged.invoiceInRsd = override.invoiceInRsd;
       const rs = parseReminderSchedule(override.reminderSchedule);
       if (rs) merged.reminderSchedule = rs;

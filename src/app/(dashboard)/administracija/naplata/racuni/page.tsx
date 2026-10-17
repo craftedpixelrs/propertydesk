@@ -60,7 +60,7 @@ export default async function BankAccountsPage() {
         </CardHeader>
         <CardContent className="p-0">
           <table className="w-full text-sm">
-            <thead className="text-left text-xs uppercase text-[var(--color-foreground-subtle)]">
+            <thead className="text-left text-xs text-[var(--color-foreground-subtle)] uppercase">
               <tr>
                 <th className="border-b border-[var(--color-border)] px-3 py-2">
                   {t("admin.bankAccounts.bank")}
@@ -83,7 +83,10 @@ export default async function BankAccountsPage() {
             <tbody>
               {accounts.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-3 py-6 text-center text-[var(--color-foreground-muted)]">
+                  <td
+                    colSpan={6}
+                    className="px-3 py-6 text-center text-[var(--color-foreground-muted)]"
+                  >
                     {t("admin.bankAccounts.empty")}
                   </td>
                 </tr>
@@ -136,7 +139,11 @@ export default async function BankAccountsPage() {
               required
               placeholder={t("admin.bankAccounts.accountPlaceholder")}
             />
-            <F name="iban" label={t("admin.bankAccounts.iban")} placeholder={t("admin.bankAccounts.ibanPlaceholder")} />
+            <F
+              name="iban"
+              label={t("admin.bankAccounts.iban")}
+              placeholder={t("admin.bankAccounts.ibanPlaceholder")}
+            />
             <F name="swiftBic" label={t("admin.bankAccounts.swift")} />
             <label className="grid gap-1 text-sm">
               <span className="text-xs text-[var(--color-foreground-muted)]">
@@ -157,7 +164,7 @@ export default async function BankAccountsPage() {
               <input type="checkbox" name="isDefault" className="size-4" />
               <span>{t("admin.bankAccounts.isDefault")}</span>
             </label>
-            <div className="md:col-span-2 flex justify-end">
+            <div className="flex justify-end md:col-span-2">
               <Button type="submit">{t("common.add")}</Button>
             </div>
           </form>

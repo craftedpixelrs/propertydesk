@@ -101,8 +101,13 @@ export function NewBuyerForm({
         payload.postalCode = values.postalCode || null;
         payload.country = values.country || null;
         await apiClient.patch(`/buyers/${buyerId}`, payload);
-        router.push(`/kupci/${buyerId}`);
-        router.refresh();
+        if (variant === "embedded") {
+          onCancel?.();
+          router.refresh();
+        } else {
+          router.push(`/kupci/${buyerId}`);
+          router.refresh();
+        }
       } else {
         const payload: Record<string, unknown> = {
           firstName: values.firstName,
@@ -140,233 +145,233 @@ export function NewBuyerForm({
 
   const form = (
     <>
-        {duplicates.length > 0 ? (
-          <div className="mb-4 rounded-md border border-amber-300 bg-amber-50 p-3 text-sm">
-            <p className="font-medium text-amber-800">{t("crm.form.duplicatesTitle")}</p>
-            <ul className="mt-1 space-y-1">
-              {duplicates.map((d) => (
-                <li key={d.id}>
-                  <Link href={`/kupci/${d.id}`} className="text-amber-900 underline">
-                    {d.firstName} {d.lastName} · {d.phone}
-                  </Link>{" "}
-                  <span className="text-xs text-amber-700">
-                    (
-                    {d.matchedOn
-                      .map((m) =>
-                        m === "phone" ? t("crm.form.matchedPhone") : t("crm.form.matchedEmail"),
-                      )
-                      .join(", ")}
+      {duplicates.length > 0 ? (
+        <div className="mb-4 rounded-md border border-amber-300 bg-amber-50 p-3 text-sm">
+          <p className="font-medium text-amber-800">{t("crm.form.duplicatesTitle")}</p>
+          <ul className="mt-1 space-y-1">
+            {duplicates.map((d) => (
+              <li key={d.id}>
+                <Link href={`/kupci/${d.id}`} className="text-amber-900 underline">
+                  {d.firstName} {d.lastName} · {d.phone}
+                </Link>{" "}
+                <span className="text-xs text-amber-700">
+                  (
+                  {d.matchedOn
+                    .map((m) =>
+                      m === "phone" ? t("crm.form.matchedPhone") : t("crm.form.matchedEmail"),
                     )
-                  </span>
-                </li>
-              ))}
-            </ul>
-            <p className="mt-1 text-xs text-amber-700">{t("crm.form.duplicatesHint")}</p>
+                    .join(", ")}
+                  )
+                </span>
+              </li>
+            ))}
+          </ul>
+          <p className="mt-1 text-xs text-amber-700">{t("crm.form.duplicatesHint")}</p>
+        </div>
+      ) : null}
+
+      <form className="grid grid-cols-1 gap-4 sm:grid-cols-2" onSubmit={onSubmit}>
+        <Field
+          label={t("crm.form.firstName")}
+          name="firstName"
+          required
+          value={values.firstName}
+          onChange={setValue}
+          errors={fieldErrors.firstName}
+        />
+        <Field
+          label={t("crm.form.lastName")}
+          name="lastName"
+          required
+          value={values.lastName}
+          onChange={setValue}
+          errors={fieldErrors.lastName}
+        />
+        <Field
+          label={t("common.phone")}
+          name="phone"
+          required
+          value={values.phone}
+          onChange={setValue}
+          onBlur={checkDuplicates}
+          errors={fieldErrors.phone}
+        />
+        <Field
+          label={t("crm.form.secondaryPhone")}
+          name="secondaryPhone"
+          value={values.secondaryPhone}
+          onChange={setValue}
+        />
+        <Field
+          label={t("common.email")}
+          name="email"
+          type="email"
+          value={values.email}
+          onChange={setValue}
+          onBlur={checkDuplicates}
+          errors={fieldErrors.email}
+        />
+        <div className="space-y-1">
+          <label className="text-sm font-medium" htmlFor="preferredContactMethod">
+            {t("crm.form.preferredContact")}
+          </label>
+          <select
+            id="preferredContactMethod"
+            value={values.preferredContactMethod ?? "ANY"}
+            onChange={(e) => setValue("preferredContactMethod", e.target.value)}
+            className="h-11 w-full rounded-md border border-[var(--color-border)] bg-white px-3 text-sm"
+          >
+            {contactMethods.map((o) => (
+              <option key={o.value} value={o.value}>
+                {o.label}
+              </option>
+            ))}
+          </select>
+        </div>
+        <Field
+          label={t("crm.form.budgetMin")}
+          name="budgetMin"
+          type="number"
+          value={values.budgetMin}
+          onChange={setValue}
+        />
+        <Field
+          label={t("crm.form.budgetMax")}
+          name="budgetMax"
+          type="number"
+          value={values.budgetMax}
+          onChange={setValue}
+        />
+        <Field
+          label={t("crm.form.source")}
+          name="source"
+          value={values.source}
+          onChange={setValue}
+        />
+        <div className="space-y-1 sm:col-span-2">
+          <label className="text-sm font-medium" htmlFor="notes">
+            {t("crm.form.note")}
+          </label>
+          <textarea
+            id="notes"
+            value={values.notes ?? ""}
+            onChange={(e) => setValue("notes", e.target.value)}
+            className="min-h-24 w-full rounded-md border border-[var(--color-border)] bg-white px-3 py-2 text-sm"
+          />
+        </div>
+
+        {isEdit ? (
+          <div className="space-y-3 rounded-md border border-[var(--color-border)] bg-[var(--color-surface-muted)]/30 p-4 sm:col-span-2">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-sm font-semibold">{t("crm.form.identityTitle")}</h3>
+                <p className="text-xs text-[var(--color-foreground-muted)]">
+                  {t("crm.form.identityHint")}
+                </p>
+              </div>
+              <div className="space-y-1">
+                <label className="text-xs font-medium" htmlFor="entityType">
+                  {t("crm.form.entityType")}
+                </label>
+                <select
+                  id="entityType"
+                  value={values.entityType ?? "NATURAL"}
+                  onChange={(e) => setValue("entityType", e.target.value)}
+                  className="h-9 rounded-md border border-[var(--color-border)] bg-white px-2 text-sm"
+                >
+                  <option value="NATURAL">{t("crm.form.naturalPerson")}</option>
+                  <option value="LEGAL">{t("crm.form.legalPerson")}</option>
+                </select>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              {values.entityType === "LEGAL" ? (
+                <>
+                  <Field
+                    label={t("crm.form.legalName")}
+                    name="legalName"
+                    value={values.legalName}
+                    onChange={setValue}
+                    errors={fieldErrors.legalName}
+                  />
+                  <Field
+                    label={t("crm.form.taxId")}
+                    name="taxId"
+                    value={values.taxId}
+                    onChange={setValue}
+                    errors={fieldErrors.taxId}
+                  />
+                </>
+              ) : (
+                <>
+                  <Field
+                    label={t("crm.form.jmbg")}
+                    name="jmbg"
+                    value={values.jmbg}
+                    onChange={setValue}
+                    errors={fieldErrors.jmbg}
+                  />
+                  <Field
+                    label={t("crm.form.identityNumber")}
+                    name="identityNumber"
+                    value={values.identityNumber}
+                    onChange={setValue}
+                    errors={fieldErrors.identityNumber}
+                  />
+                </>
+              )}
+              <Field
+                label={t("crm.form.address")}
+                name="addressLine1"
+                value={values.addressLine1}
+                onChange={setValue}
+                errors={fieldErrors.addressLine1}
+              />
+              <Field
+                label={t("crm.form.city")}
+                name="city"
+                value={values.city}
+                onChange={setValue}
+                errors={fieldErrors.city}
+              />
+              <Field
+                label={t("crm.form.postalCode")}
+                name="postalCode"
+                value={values.postalCode}
+                onChange={setValue}
+                errors={fieldErrors.postalCode}
+              />
+              <Field
+                label={t("crm.form.country")}
+                name="country"
+                value={values.country}
+                onChange={setValue}
+                errors={fieldErrors.country}
+              />
+            </div>
           </div>
         ) : null}
 
-        <form className="grid grid-cols-1 gap-4 sm:grid-cols-2" onSubmit={onSubmit}>
-          <Field
-            label={t("crm.form.firstName")}
-            name="firstName"
-            required
-            value={values.firstName}
-            onChange={setValue}
-            errors={fieldErrors.firstName}
-          />
-          <Field
-            label={t("crm.form.lastName")}
-            name="lastName"
-            required
-            value={values.lastName}
-            onChange={setValue}
-            errors={fieldErrors.lastName}
-          />
-          <Field
-            label={t("common.phone")}
-            name="phone"
-            required
-            value={values.phone}
-            onChange={setValue}
-            onBlur={checkDuplicates}
-            errors={fieldErrors.phone}
-          />
-          <Field
-            label={t("crm.form.secondaryPhone")}
-            name="secondaryPhone"
-            value={values.secondaryPhone}
-            onChange={setValue}
-          />
-          <Field
-            label={t("common.email")}
-            name="email"
-            type="email"
-            value={values.email}
-            onChange={setValue}
-            onBlur={checkDuplicates}
-            errors={fieldErrors.email}
-          />
-          <div className="space-y-1">
-            <label className="text-sm font-medium" htmlFor="preferredContactMethod">
-              {t("crm.form.preferredContact")}
-            </label>
-            <select
-              id="preferredContactMethod"
-              value={values.preferredContactMethod ?? "ANY"}
-              onChange={(e) => setValue("preferredContactMethod", e.target.value)}
-              className="h-11 w-full rounded-md border border-[var(--color-border)] bg-white px-3 text-sm"
-            >
-              {contactMethods.map((o) => (
-                <option key={o.value} value={o.value}>
-                  {o.label}
-                </option>
-              ))}
-            </select>
+        {error ? (
+          <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700 sm:col-span-2">
+            {error}
           </div>
-          <Field
-            label={t("crm.form.budgetMin")}
-            name="budgetMin"
-            type="number"
-            value={values.budgetMin}
-            onChange={setValue}
-          />
-          <Field
-            label={t("crm.form.budgetMax")}
-            name="budgetMax"
-            type="number"
-            value={values.budgetMax}
-            onChange={setValue}
-          />
-          <Field
-            label={t("crm.form.source")}
-            name="source"
-            value={values.source}
-            onChange={setValue}
-          />
-          <div className="space-y-1 sm:col-span-2">
-            <label className="text-sm font-medium" htmlFor="notes">
-              {t("crm.form.note")}
-            </label>
-            <textarea
-              id="notes"
-              value={values.notes ?? ""}
-              onChange={(e) => setValue("notes", e.target.value)}
-              className="min-h-24 w-full rounded-md border border-[var(--color-border)] bg-white px-3 py-2 text-sm"
-            />
-          </div>
+        ) : null}
 
-          {isEdit ? (
-            <div className="space-y-3 rounded-md border border-[var(--color-border)] bg-[var(--color-surface-muted)]/30 p-4 sm:col-span-2">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-sm font-semibold">{t("crm.form.identityTitle")}</h3>
-                  <p className="text-xs text-[var(--color-foreground-muted)]">
-                    {t("crm.form.identityHint")}
-                  </p>
-                </div>
-                <div className="space-y-1">
-                  <label className="text-xs font-medium" htmlFor="entityType">
-                    {t("crm.form.entityType")}
-                  </label>
-                  <select
-                    id="entityType"
-                    value={values.entityType ?? "NATURAL"}
-                    onChange={(e) => setValue("entityType", e.target.value)}
-                    className="h-9 rounded-md border border-[var(--color-border)] bg-white px-2 text-sm"
-                  >
-                    <option value="NATURAL">{t("crm.form.naturalPerson")}</option>
-                    <option value="LEGAL">{t("crm.form.legalPerson")}</option>
-                  </select>
-                </div>
-              </div>
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                {values.entityType === "LEGAL" ? (
-                  <>
-                    <Field
-                      label={t("crm.form.legalName")}
-                      name="legalName"
-                      value={values.legalName}
-                      onChange={setValue}
-                      errors={fieldErrors.legalName}
-                    />
-                    <Field
-                      label={t("crm.form.taxId")}
-                      name="taxId"
-                      value={values.taxId}
-                      onChange={setValue}
-                      errors={fieldErrors.taxId}
-                    />
-                  </>
-                ) : (
-                  <>
-                    <Field
-                      label={t("crm.form.jmbg")}
-                      name="jmbg"
-                      value={values.jmbg}
-                      onChange={setValue}
-                      errors={fieldErrors.jmbg}
-                    />
-                    <Field
-                      label={t("crm.form.identityNumber")}
-                      name="identityNumber"
-                      value={values.identityNumber}
-                      onChange={setValue}
-                      errors={fieldErrors.identityNumber}
-                    />
-                  </>
-                )}
-                <Field
-                  label={t("crm.form.address")}
-                  name="addressLine1"
-                  value={values.addressLine1}
-                  onChange={setValue}
-                  errors={fieldErrors.addressLine1}
-                />
-                <Field
-                  label={t("crm.form.city")}
-                  name="city"
-                  value={values.city}
-                  onChange={setValue}
-                  errors={fieldErrors.city}
-                />
-                <Field
-                  label={t("crm.form.postalCode")}
-                  name="postalCode"
-                  value={values.postalCode}
-                  onChange={setValue}
-                  errors={fieldErrors.postalCode}
-                />
-                <Field
-                  label={t("crm.form.country")}
-                  name="country"
-                  value={values.country}
-                  onChange={setValue}
-                  errors={fieldErrors.country}
-                />
-              </div>
-            </div>
-          ) : null}
-
-          {error ? (
-            <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700 sm:col-span-2">
-              {error}
-            </div>
-          ) : null}
-
-          <FormActions sticky={variant === "embedded"} className="sm:col-span-2">
-            <Button
-              variant="outline"
-              type="button"
-              onClick={() => (onCancel ? onCancel() : router.back())}
-              disabled={loading}
-            >
-              {t("common.cancel")}
-            </Button>
-            <Button type="submit" loading={loading}>
-              {isEdit ? t("common.saveChanges") : t("common.save")}
-            </Button>
-          </FormActions>
-        </form>
+        <FormActions sticky={variant === "embedded"} className="sm:col-span-2">
+          <Button
+            variant="outline"
+            type="button"
+            onClick={() => (onCancel ? onCancel() : router.back())}
+            disabled={loading}
+          >
+            {t("common.cancel")}
+          </Button>
+          <Button type="submit" loading={loading}>
+            {isEdit ? t("common.saveChanges") : t("common.save")}
+          </Button>
+        </FormActions>
+      </form>
     </>
   );
 

@@ -17,7 +17,10 @@ const ACTIVITY_TYPES = [
 
 function parseCsvList(raw: string | null): ActivityType[] | undefined {
   if (!raw) return undefined;
-  const values = raw.split(",").map((s) => s.trim().toUpperCase()).filter(Boolean);
+  const values = raw
+    .split(",")
+    .map((s) => s.trim().toUpperCase())
+    .filter(Boolean);
   const filtered = values.filter((v): v is ActivityType =>
     (ACTIVITY_TYPES as readonly string[]).includes(v),
   );

@@ -188,9 +188,9 @@ describe("isPermittedWithOverrides", () => {
   it("SUPER_ADMIN can revoke update_classification for OPERATIONS via override", () => {
     overrides.set(cacheKey("OPERATIONS", "pd_lead.update_classification"), false);
     expect(defaultAllowsPermission("OPERATIONS", "pd_lead.update_classification")).toBe(true);
-    expect(
-      isPermittedWithOverrides("OPERATIONS", "pd_lead.update_classification", overrides),
-    ).toBe(false);
+    expect(isPermittedWithOverrides("OPERATIONS", "pd_lead.update_classification", overrides)).toBe(
+      false,
+    );
   });
 
   it("unknown role never grants any permission", () => {

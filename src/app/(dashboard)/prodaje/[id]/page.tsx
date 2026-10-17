@@ -7,19 +7,21 @@ import { loadUserContext } from "@/server/auth/context";
 import { getSaleById } from "@/server/services/sales/sales.service";
 import { listDocuments } from "@/server/services/documents.service";
 import { listContractTemplates } from "@/server/services/sales/contracts.service";
+import { getSaleHandover } from "@/server/services/sales/handover.service";
 import { DomainError } from "@/lib/errors";
-import { formatDate, formatDateTime, formatMoney } from "@/lib/formatters";
+import { formatDate, formatDateTime, formatMoney, sumMoney } from "@/lib/formatters";
 import type { SupportedCurrency } from "@/lib/constants/app";
 import { SaleActions } from "@/features/sales/sale-actions";
 import { RecordPaymentForm } from "@/features/sales/record-payment-form";
 import { PaymentRowActions } from "@/features/sales/payment-row-actions";
 import { ContractSection } from "@/features/sales/contract-section";
 import { SaleTaxSection } from "@/features/sales/sale-tax-section";
+import { FinalSettlement } from "@/features/sales/final-settlement";
+import { HandoverPanel } from "@/features/sales/handover-panel";
+import { BuyerLinkButton } from "@/features/sales/buyer-link-button";
+import { isContractFullyPaid, isSettlementStatus } from "@/lib/sales/settlement";
 import { CommentThread } from "@/features/comments/comment-thread";
-import {
-  DocumentList,
-  type DocumentItem,
-} from "@/features/documents/document-list";
+import { DocumentList, type DocumentItem } from "@/features/documents/document-list";
 import { createT, enumLabel, type TranslateFn } from "@/lib/i18n";
 
 export const dynamic = "force-dynamic";
@@ -89,16 +91,19 @@ export default async function ProdajaDetaljPage({ params }: PageProps) {
 
   const currency = sale.currency as SupportedCurrency;
   const canManage = ctx.permissions.includes("sale.manage");
+  const canDossier = ctx.permissions.includes("sale.dossier");
+  const canHandover = ctx.permissions.includes("sale.handover");
+  const canBuyerLink = ctx.permissions.includes("sale.buyer_link");
+  const canSettlement = ctx.permissions.includes("sale.settlement");
   const canManagePayments = ctx.permissions.includes("payment.manage");
   const canManageDocs = ctx.permissions.includes("document.manage");
 
-  const paidTotal = sale.payments
-    .filter((p) => !p.reversedAt)
-    .reduce((acc, p) => acc + Number(p.amount.toString()), 0);
+  const paidMoney = sumMoney(sale.payments.filter((p) => !p.reversedAt).map((p) => p.amount));
+  const paidTotal = Number(paidMoney.toString());
   const finalPrice = Number(sale.finalPrice.toString());
   const remaining = Math.max(0, finalPrice - paidTotal);
 
-  const [saleDocsResult, unitDocsResult, contractTemplates] = await Promise.all([
+  const [saleDocsResult, unitDocsResult, contractTemplates, handover] = await Promise.all([
     listDocuments({
       organizationId: ctx.activeOrganization.id,
       entityType: "Sale",
@@ -118,6 +123,7 @@ export default async function ProdajaDetaljPage({ params }: PageProps) {
       organizationId: ctx.activeOrganization.id,
       activeOnly: true,
     }),
+    getSaleHandover(ctx.activeOrganization.id, sale.id),
   ]);
   const saleDocuments: DocumentItem[] = saleDocsResult.items.map((d) => ({
     id: d.id,
@@ -158,7 +164,17 @@ export default async function ProdajaDetaljPage({ params }: PageProps) {
             {sale.buyer.lastName}
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
+          {canDossier ? (
+            <Button asChild variant="outline" size="sm">
+              <a href={`/api/v1/pdf/sale-summary/${sale.id}`}>{t("deals.clientPack.dossier")}</a>
+            </Button>
+          ) : null}
+          {canDossier ? (
+            <Button asChild variant="outline" size="sm">
+              <a href={`/api/v1/sales/${sale.id}/documents-zip`}>{t("deals.clientPack.zip")}</a>
+            </Button>
+          ) : null}
           {sale.paymentPlan ? (
             <Button asChild variant="outline" size="sm">
               <Link href={`/prodaje/${sale.id}/plan-placanja`}>{t("deals.paymentPlan")}</Link>
@@ -201,7 +217,10 @@ export default async function ProdajaDetaljPage({ params }: PageProps) {
                     : t("deals.sourceInternal")
                 }
               />
-              <Row label={t("deals.listPrice")} value={formatMoney(sale.listPrice.toString(), currency)} />
+              <Row
+                label={t("deals.listPrice")}
+                value={formatMoney(sale.listPrice.toString(), currency)}
+              />
               {sale.discountType ? (
                 <Row
                   label={t("deals.discount")}
@@ -247,6 +266,60 @@ export default async function ProdajaDetaljPage({ params }: PageProps) {
             </CardContent>
           </Card>
 
+          {isSettlementStatus(sale.status) ? (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-sm">{t("deals.settlement.title")}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <FinalSettlement
+                  saleId={sale.id}
+                  currency={currency}
+                  contracted={sale.finalPrice.toString()}
+                  paid={paidMoney.toString()}
+                  editable={canSettlement && isContractFullyPaid(sale.finalPrice, paidMoney)}
+                  remainingLabel={
+                    isContractFullyPaid(sale.finalPrice, paidMoney)
+                      ? null
+                      : formatMoney(remaining, currency)
+                  }
+                  lines={sale.settlementLines.map((line) => ({
+                    id: line.id,
+                    kind: line.kind,
+                    presetCode: line.presetCode,
+                    label: line.label,
+                    amount: line.amount.toString(),
+                    note: line.note,
+                  }))}
+                />
+              </CardContent>
+            </Card>
+          ) : null}
+
+          {sale.status !== "DRAFT" && sale.status !== "CANCELED" ? (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-sm">{t("deals.clientPack.handoverTitle")}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <HandoverPanel
+                  saleId={sale.id}
+                  canManage={canHandover}
+                  initial={{
+                    keysHanded: handover?.keysHanded ?? false,
+                    meterElectricity: handover?.meterElectricity ?? "",
+                    meterWater: handover?.meterWater ?? "",
+                    meterHeating: handover?.meterHeating ?? "",
+                    defects: handover?.defects ?? "",
+                    attendees: handover?.attendees ?? "",
+                    completedAt: handover?.completedAt?.toISOString() ?? null,
+                    completedByName: handover?.completedByUser?.name ?? null,
+                  }}
+                />
+              </CardContent>
+            </Card>
+          ) : null}
+
           <Card>
             <CardHeader>
               <CardTitle className="text-sm">{t("nav.documents")}</CardTitle>
@@ -254,7 +327,7 @@ export default async function ProdajaDetaljPage({ params }: PageProps) {
             <CardContent className="space-y-5">
               <section className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-xs font-semibold uppercase tracking-wide text-[var(--color-foreground-muted)]">
+                  <h3 className="text-xs font-semibold tracking-wide text-[var(--color-foreground-muted)] uppercase">
                     {t("deals.sales.saleDocuments")}
                   </h3>
                   <span className="text-xs text-[var(--color-foreground-muted)]">
@@ -274,7 +347,7 @@ export default async function ProdajaDetaljPage({ params }: PageProps) {
               </section>
               <section className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-xs font-semibold uppercase tracking-wide text-[var(--color-foreground-muted)]">
+                  <h3 className="text-xs font-semibold tracking-wide text-[var(--color-foreground-muted)] uppercase">
                     {t("deals.sales.unitDocuments")}
                   </h3>
                   <Link
@@ -316,11 +389,7 @@ export default async function ProdajaDetaljPage({ params }: PageProps) {
                 </span>
                 <span>
                   {t("deals.remainingLabel")}:{" "}
-                  <strong
-                    className={
-                      remaining > 0 ? "text-amber-700" : "text-emerald-700"
-                    }
-                  >
+                  <strong className={remaining > 0 ? "text-amber-700" : "text-emerald-700"}>
                     {formatMoney(remaining, currency)}
                   </strong>
                 </span>
@@ -334,7 +403,7 @@ export default async function ProdajaDetaljPage({ params }: PageProps) {
               ) : (
                 <div className="overflow-x-auto">
                   <table className="min-w-full divide-y divide-[var(--color-border)] text-sm">
-                    <thead className="text-left text-xs uppercase tracking-wide text-[var(--color-foreground-muted)]">
+                    <thead className="text-left text-xs tracking-wide text-[var(--color-foreground-muted)] uppercase">
                       <tr>
                         <th className="py-2 pr-3">{t("common.date")}</th>
                         <th className="py-2 pr-3">{t("common.amount")}</th>
@@ -350,15 +419,16 @@ export default async function ProdajaDetaljPage({ params }: PageProps) {
                           <td className="py-2 pr-3 font-medium">
                             {formatMoney(p.amount.toString(), currency)}
                           </td>
-                          <td className="py-2 pr-3">
-                            {paymentMethodLabel(p.paymentMethod, t)}
-                          </td>
+                          <td className="py-2 pr-3">{paymentMethodLabel(p.paymentMethod, t)}</td>
                           <td className="py-2 pr-3 text-xs text-[var(--color-foreground-muted)]">
                             {p.referenceNumber ?? "—"}
                           </td>
                           <td className="py-2 pr-3 text-right">
                             {canManagePayments ? (
-                              <PaymentRowActions paymentId={p.id} reversed={Boolean(p.reversedAt)} />
+                              <PaymentRowActions
+                                paymentId={p.id}
+                                reversed={Boolean(p.reversedAt)}
+                              />
                             ) : p.reversedAt ? (
                               <span className="text-xs text-[var(--color-foreground-muted)]">
                                 {t("deals.reversed")}
@@ -396,11 +466,7 @@ export default async function ProdajaDetaljPage({ params }: PageProps) {
               <CardTitle className="text-sm">{t("deals.comments")}</CardTitle>
             </CardHeader>
             <CardContent>
-              <CommentThread
-                entityType="Sale"
-                entityId={sale.id}
-                currentUserId={ctx.user.id}
-              />
+              <CommentThread entityType="Sale" entityId={sale.id} currentUserId={ctx.user.id} />
             </CardContent>
           </Card>
 
@@ -421,7 +487,12 @@ export default async function ProdajaDetaljPage({ params }: PageProps) {
                         <span className="text-[var(--color-foreground-muted)]"> · {h.reason}</span>
                       ) : null}
                     </span>
-                    <span className="text-xs text-[var(--color-foreground-subtle)]">
+                    <span className="text-right text-xs text-[var(--color-foreground-subtle)]">
+                      {h.changedByUser?.name ? (
+                        <span className="block text-[var(--color-foreground-muted)]">
+                          {h.changedByUser.name}
+                        </span>
+                      ) : null}
                       {formatDateTime(h.changedAt)}
                     </span>
                   </li>
@@ -436,13 +507,16 @@ export default async function ProdajaDetaljPage({ params }: PageProps) {
             <CardHeader>
               <CardTitle className="text-sm">{t("common.actions")}</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="space-y-3">
               <SaleActions
                 saleId={sale.id}
                 status={sale.status}
                 version={sale.version}
                 canManage={canManage}
               />
+              {canBuyerLink && sale.status !== "DRAFT" && sale.status !== "CANCELED" ? (
+                <BuyerLinkButton saleId={sale.id} />
+              ) : null}
             </CardContent>
           </Card>
 

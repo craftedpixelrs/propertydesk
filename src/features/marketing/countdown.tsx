@@ -15,6 +15,8 @@ import { cn } from "@/lib/utils";
 export interface CountdownProps {
   targetIso: string;
   className?: string;
+  /** `onDark` is for the ink hero, where the cells sit on a night background. */
+  tone?: "default" | "onDark";
 }
 
 interface Parts {
@@ -45,7 +47,7 @@ function computeParts(targetIso: string): Parts {
   };
 }
 
-export function Countdown({ targetIso, className }: CountdownProps) {
+export function Countdown({ targetIso, className, tone = "default" }: CountdownProps) {
   const t = useT();
   const [parts, setParts] = useState<Parts>(PLACEHOLDER);
 
@@ -66,21 +68,33 @@ export function Countdown({ targetIso, className }: CountdownProps) {
 
   return (
     <div
-      className={cn(
-        "grid grid-cols-4 gap-2 sm:gap-3 text-center",
-        className,
-      )}
+      className={cn("grid grid-cols-4 gap-2 text-center sm:gap-3", className)}
       aria-label={t("marketing.countdown.aria")}
     >
       {cells.map((c) => (
         <div
           key={c.label}
-          className="rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] px-2 py-3 sm:px-4 sm:py-4 shadow-sm"
+          className={cn(
+            "rounded-xl px-2 py-3 sm:px-4 sm:py-4",
+            tone === "onDark"
+              ? "border border-white/10 bg-white/[0.06] shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]"
+              : "border border-[var(--color-border)] bg-[var(--color-surface)] shadow-sm",
+          )}
         >
-          <div className="font-display text-2xl font-semibold tabular-nums text-[var(--color-foreground)] sm:text-3xl">
+          <div
+            className={cn(
+              "font-display text-2xl font-semibold tabular-nums sm:text-3xl",
+              tone === "onDark" ? "text-[#f6f1e7]" : "text-[var(--color-foreground)]",
+            )}
+          >
             {c.value}
           </div>
-          <div className="mt-0.5 text-[10px] sm:text-xs font-medium uppercase tracking-wider text-[var(--color-foreground-muted)]">
+          <div
+            className={cn(
+              "mt-0.5 text-[10px] font-medium tracking-wider uppercase sm:text-xs",
+              tone === "onDark" ? "text-white/55" : "text-[var(--color-foreground-muted)]",
+            )}
+          >
             {c.label}
           </div>
         </div>

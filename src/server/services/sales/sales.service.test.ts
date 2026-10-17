@@ -21,12 +21,8 @@ describe("computeFinalPrice", () => {
   });
 
   it("rejects a percentage discount outside 0-100", () => {
-    expect(() => computeFinalPrice("100", "PERCENTAGE", "150")).toThrow(
-      /procentima mora biti/i,
-    );
-    expect(() => computeFinalPrice("100", "PERCENTAGE", "-1")).toThrow(
-      /procentima mora biti/i,
-    );
+    expect(() => computeFinalPrice("100", "PERCENTAGE", "150")).toThrow(/procentima mora biti/i);
+    expect(() => computeFinalPrice("100", "PERCENTAGE", "-1")).toThrow(/procentima mora biti/i);
   });
 
   it("rejects a fixed discount that would drive the final price below zero", () => {

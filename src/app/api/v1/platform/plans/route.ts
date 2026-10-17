@@ -1,10 +1,7 @@
 import { z } from "zod";
 import { apiHandler } from "@/lib/api/handler";
 import { requireSuperAdmin } from "@/server/permissions/require";
-import {
-  createSaaSPlan,
-  listSaaSPlans,
-} from "@/server/services/platform.service";
+import { createSaaSPlan, listSaaSPlans } from "@/server/services/platform.service";
 
 const createSchema = z.object({
   code: z
@@ -38,14 +35,11 @@ export const GET = apiHandler({}, async () => {
   return { data: plans };
 });
 
-export const POST = apiHandler(
-  { bodySchema: createSchema },
-  async ({ body }) => {
-    const ctx = await requireSuperAdmin();
-    const plan = await createSaaSPlan(body, ctx.session.user.id);
-    return { data: plan, status: 201 };
-  },
-);
+export const POST = apiHandler({ bodySchema: createSchema }, async ({ body }) => {
+  const ctx = await requireSuperAdmin();
+  const plan = await createSaaSPlan(body, ctx.session.user.id);
+  return { data: plan, status: 201 };
+});
 
 /**
  * @swagger

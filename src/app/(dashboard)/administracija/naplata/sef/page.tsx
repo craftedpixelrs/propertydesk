@@ -43,7 +43,7 @@ export default async function SefPage() {
         <CardHeader>
           <CardTitle className="text-base">{t("admin.sef.config")}</CardTitle>
         </CardHeader>
-        <CardContent className="grid gap-3 md:grid-cols-2 text-sm">
+        <CardContent className="grid gap-3 text-sm md:grid-cols-2">
           <div>
             <div className="text-xs text-[var(--color-foreground-muted)]">
               {t("admin.sef.activeProvider")}
@@ -83,7 +83,7 @@ export default async function SefPage() {
         </CardHeader>
         <CardContent className="p-0">
           <table className="w-full text-sm">
-            <thead className="text-left text-xs uppercase text-[var(--color-foreground-subtle)]">
+            <thead className="text-left text-xs text-[var(--color-foreground-subtle)] uppercase">
               <tr>
                 <th className="border-b border-[var(--color-border)] px-3 py-2">
                   {t("admin.sef.invoice")}
@@ -108,7 +108,10 @@ export default async function SefPage() {
             <tbody>
               {records.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-3 py-6 text-center text-[var(--color-foreground-muted)]">
+                  <td
+                    colSpan={6}
+                    className="px-3 py-6 text-center text-[var(--color-foreground-muted)]"
+                  >
                     {t("admin.sef.empty")}
                   </td>
                 </tr>
@@ -127,7 +130,9 @@ export default async function SefPage() {
                     <td className="px-3 py-2">
                       <Badge
                         tone={
-                          r.status === "ACKNOWLEDGED" || r.status === "DELIVERED" || r.status === "SENT"
+                          r.status === "ACKNOWLEDGED" ||
+                          r.status === "DELIVERED" ||
+                          r.status === "SENT"
                             ? "success"
                             : r.status === "FAILED" || r.status === "REJECTED"
                               ? "danger"
@@ -137,7 +142,9 @@ export default async function SefPage() {
                         {r.status}
                       </Badge>
                     </td>
-                    <td className="px-3 py-2 text-xs">{r.sentAt ? formatDateTime(r.sentAt) : t("admin.dash")}</td>
+                    <td className="px-3 py-2 text-xs">
+                      {r.sentAt ? formatDateTime(r.sentAt) : t("admin.dash")}
+                    </td>
                     <td className="px-3 py-2 text-right tabular-nums">{r.attempts}</td>
                     <td className="px-3 py-2 text-xs text-[var(--color-foreground-muted)]">
                       {r.errorMessage ?? t("admin.dash")}

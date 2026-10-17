@@ -66,7 +66,7 @@ export function ResetPasswordForm({ token }: { token: string }) {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
         />
-        <p className="text-xs text-[var(--color-foreground-muted)] mt-1">
+        <p className="mt-1 text-xs text-[var(--color-foreground-muted)]">
           {t("auth.weakPasswordHint")}
         </p>
       </div>

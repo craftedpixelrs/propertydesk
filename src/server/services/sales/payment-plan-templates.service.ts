@@ -106,15 +106,10 @@ async function assertProjectBelongsToOrg(
  * org-level defaults (projectId=NULL). Sorted so project templates
  * come first, then org defaults, then by name.
  */
-export async function listTemplates(input: {
-  organizationId: string;
-  projectId?: string | null;
-}) {
+export async function listTemplates(input: { organizationId: string; projectId?: string | null }) {
   const where: Prisma.PaymentPlanTemplateWhereInput = {
     organizationId: input.organizationId,
-    ...(input.projectId
-      ? { OR: [{ projectId: input.projectId }, { projectId: null }] }
-      : {}),
+    ...(input.projectId ? { OR: [{ projectId: input.projectId }, { projectId: null }] } : {}),
   };
   return prisma.paymentPlanTemplate.findMany({
     where,
@@ -126,10 +121,7 @@ export async function listTemplates(input: {
   });
 }
 
-export async function getTemplate(input: {
-  organizationId: string;
-  templateId: string;
-}) {
+export async function getTemplate(input: { organizationId: string; templateId: string }) {
   const tmpl = await prisma.paymentPlanTemplate.findFirst({
     where: { id: input.templateId, organizationId: input.organizationId },
     include: {
@@ -209,8 +201,7 @@ export async function updateTemplate(input: UpdateTemplateInput) {
   });
   if (!existing) throw DomainErrors.notFound("Šablon");
 
-  const nextProjectId =
-    input.projectId === undefined ? existing.projectId : input.projectId;
+  const nextProjectId = input.projectId === undefined ? existing.projectId : input.projectId;
   if (input.items) assertItems(input.items);
 
   const updated = await prisma.$transaction(async (tx) => {
@@ -248,9 +239,7 @@ export async function updateTemplate(input: UpdateTemplateInput) {
       data: {
         name: input.name?.trim() ?? undefined,
         description:
-          input.description === undefined
-            ? undefined
-            : input.description?.trim() || null,
+          input.description === undefined ? undefined : input.description?.trim() || null,
         projectId: input.projectId === undefined ? undefined : nextProjectId,
         isDefault: input.isDefault ?? undefined,
       },
@@ -412,15 +401,11 @@ export async function applyTemplateToDraft(input: {
   const rawAmounts = template.items.map((it) =>
     finalPrice.times(toDecimal(it.percentage)).dividedBy(100).toDecimalPlaces(2),
   );
-  const derived = rawAmounts.reduce<Decimal>(
-    (acc, d) => acc.plus(d),
-    new Decimal(0),
-  );
+  const derived = rawAmounts.reduce<Decimal>((acc, d) => acc.plus(d), new Decimal(0));
   const delta = finalPrice.minus(derived);
   if (!delta.isZero() && rawAmounts.length > 0) {
-    rawAmounts[rawAmounts.length - 1] = rawAmounts[rawAmounts.length - 1]!
-      .plus(delta)
-      .toDecimalPlaces(2);
+    rawAmounts[rawAmounts.length - 1] =
+      rawAmounts[rawAmounts.length - 1]!.plus(delta).toDecimalPlaces(2);
   }
 
   const rows: ResolvedTemplateRow[] = template.items.map((it, idx) => {
@@ -472,8 +457,7 @@ export async function addInstallmentToExistingPlan(input: AddInstallmentInput) {
   if (amt.lte(0)) {
     throw DomainErrors.badRequest("Iznos rate mora biti pozitivan.");
   }
-  const dueDate =
-    input.dueDate instanceof Date ? input.dueDate : new Date(input.dueDate);
+  const dueDate = input.dueDate instanceof Date ? input.dueDate : new Date(input.dueDate);
   if (Number.isNaN(dueDate.getTime())) {
     throw DomainErrors.badRequest("Neispravan datum dospeća.");
   }

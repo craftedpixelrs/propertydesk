@@ -1,8 +1,4 @@
-import {
-  COOKIE_CONSENT_EVENT,
-  COOKIE_CONSENT_KEY,
-  type CookieConsent,
-} from "@/lib/constants/app";
+import { COOKIE_CONSENT_EVENT, COOKIE_CONSENT_KEY, type CookieConsent } from "@/lib/constants/app";
 
 export function readCookieConsent(): CookieConsent | null {
   if (typeof window === "undefined") return null;

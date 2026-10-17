@@ -61,7 +61,10 @@ export function MockupFrame({
   const resolvedLabel = label ?? t("marketing.mockup.comingSoon");
   if (variant === "mobile") {
     if (src) {
-      const dims = { width: width ?? DEFAULT_MOBILE_SIZE.width, height: height ?? DEFAULT_MOBILE_SIZE.height };
+      const dims = {
+        width: width ?? DEFAULT_MOBILE_SIZE.width,
+        height: height ?? DEFAULT_MOBILE_SIZE.height,
+      };
       return (
         <div
           className={cn(
@@ -92,10 +95,10 @@ export function MockupFrame({
           className,
         )}
       >
-        <div className="absolute left-1/2 top-1 z-10 h-1.5 w-16 -translate-x-1/2 rounded-full bg-[var(--color-foreground)]/80" />
-        <div className="flex h-full w-full items-center justify-center rounded-[1.5rem] bg-gradient-to-br from-[var(--color-brand-50)] via-white to-[var(--color-surface-inset)] p-4 text-center">
+        <div className="absolute top-1 left-1/2 z-10 h-1.5 w-16 -translate-x-1/2 rounded-full bg-[var(--color-foreground)]/80" />
+        <div className="flex h-full w-full items-center justify-center rounded-[1.5rem] bg-gradient-to-br from-[#f7f3ea] via-white to-[#efe8d8] p-4 text-center">
           <div className="space-y-2">
-            <div className="mx-auto h-8 w-8 rounded-md bg-[var(--color-brand-600)]/10" />
+            <div className="mx-auto h-8 w-8 rounded-md bg-[#0b1020]/10" />
             <div className="text-xs font-medium text-[var(--color-foreground-muted)]">
               {resolvedLabel}
             </div>
@@ -106,7 +109,10 @@ export function MockupFrame({
   }
 
   if (src) {
-    const dims = { width: width ?? DEFAULT_DESKTOP_SIZE.width, height: height ?? DEFAULT_DESKTOP_SIZE.height };
+    const dims = {
+      width: width ?? DEFAULT_DESKTOP_SIZE.width,
+      height: height ?? DEFAULT_DESKTOP_SIZE.height,
+    };
     return (
       <div
         className={cn(
@@ -117,7 +123,7 @@ export function MockupFrame({
       >
         <Image
           src={src}
-            alt={alt ?? t("marketing.mockup.desktopAlt")}
+          alt={alt ?? t("marketing.mockup.desktopAlt")}
           width={dims.width}
           height={dims.height}
           priority={priority}
@@ -145,9 +151,9 @@ export function MockupFrame({
           my.propertydesk.app
         </span>
       </div>
-      <div className="flex aspect-[16/10] items-center justify-center bg-gradient-to-br from-[var(--color-brand-50)] via-white to-[var(--color-surface-inset)]">
+      <div className="flex aspect-[16/10] items-center justify-center bg-gradient-to-br from-[#f7f3ea] via-white to-[#efe8d8]">
         <div className="space-y-3 text-center">
-          <div className="mx-auto h-12 w-12 rounded-lg bg-[var(--color-brand-600)]/10" />
+          <div className="mx-auto h-12 w-12 rounded-lg bg-[#0b1020]/10" />
           <div className="text-sm font-medium text-[var(--color-foreground-muted)]">
             {resolvedLabel}
           </div>

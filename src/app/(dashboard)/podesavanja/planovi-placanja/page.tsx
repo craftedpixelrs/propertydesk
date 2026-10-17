@@ -16,10 +16,7 @@ export default async function PaymentPlanTemplatesPage() {
   const ctx = await loadUserContext();
   if (!ctx) redirect("/sign-in");
   if (!ctx.activeOrganization) redirect("/podesavanja");
-  if (
-    ctx.activeOrganization.type !== "INVESTOR" ||
-    !ctx.permissions.includes("payment.manage")
-  ) {
+  if (ctx.activeOrganization.type !== "INVESTOR" || !ctx.permissions.includes("payment.manage")) {
     redirect("/podesavanja");
   }
 
@@ -51,7 +48,5 @@ export default async function PaymentPlanTemplatesPage() {
     })),
   }));
 
-  return (
-    <PaymentPlanTemplatesManager templates={templates} projects={projects} />
-  );
+  return <PaymentPlanTemplatesManager templates={templates} projects={projects} />;
 }

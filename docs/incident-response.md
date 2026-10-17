@@ -4,7 +4,7 @@
 
 | SEV | Meaning | Example |
 |-----|---------|---------|
-| SEV 1 | Site down or tenant data corruption. | 5xx on `/api/v1/ready`, DB unreachable, cross-tenant leak reported. |
+| SEV 1 | Site down or tenant data corruption. | 5xx on `/api/v1/health/ready`, DB unreachable, cross-tenant leak reported. |
 | SEV 2 | Major feature broken for many tenants. | Payments not recording, reservations cannot be approved. |
 | SEV 3 | Single tenant affected or minor bug. | One tenant sees stale count in dashboard. |
 
@@ -29,7 +29,7 @@ if the incident lasts longer than 2 hours.
 
 ### 3. Diagnose
 
-- Check `/api/v1/health` and `/api/v1/ready`.
+- Check `/api/v1/health` and `/api/v1/health/ready`.
 - Read structured logs — `logger.error` fields include `requestId`,
   `route`, `userId`, `organizationId`, and (for jobs) `job`.
 - Sentry: filter by tag `route:` or by `requestId` correlator.

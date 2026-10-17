@@ -16,9 +16,7 @@ const KIND_LABEL: Record<DepositPayeeKind, string> = {
 };
 
 /** Plain-text lines for buyer emails (kapara / avans). */
-export function paymentInstructionLines(
-  payment: DepositPaymentInstructions,
-): string[] {
+export function paymentInstructionLines(payment: DepositPaymentInstructions): string[] {
   const lines = [
     "Uplata kapare / avansa:",
     `Primalac: ${payment.recipientName} (${KIND_LABEL[payment.kind]})`,
@@ -27,9 +25,7 @@ export function paymentInstructionLines(
     lines.push(`Tekući račun: ${payment.accountNumber}`);
     if (payment.bankName) lines.push(`Banka: ${payment.bankName}`);
   } else {
-    lines.push(
-      "Broj računa još nije unet kod primaoca. Kontaktirajte ga za uplatu.",
-    );
+    lines.push("Broj računa još nije unet kod primaoca. Kontaktirajte ga za uplatu.");
   }
   lines.push(`Iznos: ${payment.amount} ${payment.currency}`);
   lines.push(`Poziv na broj: ${payment.reference}`);

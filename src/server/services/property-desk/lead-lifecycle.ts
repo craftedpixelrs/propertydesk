@@ -1,8 +1,4 @@
-import type {
-  MarketingLeadLevel,
-  MarketingLeadStage,
-  PropertyDeskTeamRole,
-} from "@prisma/client";
+import type { MarketingLeadLevel, MarketingLeadStage, PropertyDeskTeamRole } from "@prisma/client";
 
 /**
  * Property Desk pipeline lifecycle — single source of truth.
@@ -53,10 +49,7 @@ export const ROLE_LEVELS: Record<PropertyDeskTeamRole, MarketingLeadLevel[]> = {
  *
  * Kad promena nije u ovoj mapi, servis zahteva `pd_lead.reopen` + razlog.
  */
-export const FORWARD_TRANSITIONS: Record<
-  MarketingLeadStage,
-  MarketingLeadStage[]
-> = {
+export const FORWARD_TRANSITIONS: Record<MarketingLeadStage, MarketingLeadStage[]> = {
   NEW: ["CONTACTED", "NURTURING", "LOST"],
   CONTACTED: ["QUALIFIED", "NURTURING", "LOST"],
   QUALIFIED: ["DEMO", "NURTURING", "LOST"],
@@ -78,10 +71,7 @@ export function computeLevel(stage: MarketingLeadStage): MarketingLeadLevel {
  * Da li je prelaz `from → to` unutar forward pravila. Vraća `true` i
  * kada je `from === to` (no-op se ne smatra reopen-om).
  */
-export function isForwardTransition(
-  from: MarketingLeadStage,
-  to: MarketingLeadStage,
-): boolean {
+export function isForwardTransition(from: MarketingLeadStage, to: MarketingLeadStage): boolean {
   if (from === to) return true;
   return FORWARD_TRANSITIONS[from].includes(to);
 }
@@ -116,18 +106,13 @@ export function nextAllowedStages(
  * Skup svih level-a koji ova rola prirodno pokriva (bez override-a).
  * Koristi se u `buildMarketingLeadScopeFilter` da filtrira listu.
  */
-export function levelsForRole(
-  role: PropertyDeskTeamRole,
-): MarketingLeadLevel[] {
+export function levelsForRole(role: PropertyDeskTeamRole): MarketingLeadLevel[] {
   return ROLE_LEVELS[role];
 }
 
 /**
  * `true` ako promena stage-a menja i level (auto-unassign trigger).
  */
-export function stageChangeCrossesLevel(
-  from: MarketingLeadStage,
-  to: MarketingLeadStage,
-): boolean {
+export function stageChangeCrossesLevel(from: MarketingLeadStage, to: MarketingLeadStage): boolean {
   return STAGE_TO_LEVEL[from] !== STAGE_TO_LEVEL[to];
 }

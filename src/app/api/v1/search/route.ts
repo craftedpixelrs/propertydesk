@@ -3,11 +3,7 @@ import { z } from "zod";
 import { apiHandler } from "@/lib/api/handler";
 import { loadUserContext } from "@/server/auth/context";
 import { ApiError } from "@/lib/api/errors";
-import {
-  runGlobalSearch,
-  toSearchCaller,
-  type SearchHit,
-} from "@/server/services/search.service";
+import { runGlobalSearch, toSearchCaller, type SearchHit } from "@/server/services/search.service";
 
 /**
  * Global command-palette search endpoint.

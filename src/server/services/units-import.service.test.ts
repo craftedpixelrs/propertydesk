@@ -27,7 +27,13 @@ const map: HeaderMap = {
 describe("validateRows", () => {
   it("accepts a well-formed row", () => {
     const row = validateRows(map, [
-      { code: "A1", type: "APARTMENT", status: "AVAILABLE", totalArea: "56.5", basePrice: "125000" },
+      {
+        code: "A1",
+        type: "APARTMENT",
+        status: "AVAILABLE",
+        totalArea: "56.5",
+        basePrice: "125000",
+      },
     ])[0]!;
     expect(row.ok).toBe(true);
     expect(row.data?.code).toBe("A1");

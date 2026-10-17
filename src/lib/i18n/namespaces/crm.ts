@@ -7,8 +7,7 @@ export const crmSr = {
     title: "Kupci",
     subtitle: "Baza kupaca i zainteresovanih klijenata.",
     newBuyer: "Novi kupac",
-    newSubtitle:
-      "Dodajte novog kupca u bazu. Sistem će Vas upozoriti na moguće duplikate.",
+    newSubtitle: "Dodajte novog kupca u bazu. Sistem će Vas upozoriti na moguće duplikate.",
     searchPlaceholder: "Pretraga po imenu, telefonu, email-u…",
     searchAria: "Pretraga kupaca po imenu, telefonu ili email-u",
     statusAria: "Filter po statusu kupca",
@@ -19,11 +18,15 @@ export const crmSr = {
     created: "Kreiran",
     reservationCol: "Rezervacija",
     editBuyer: "Izmeni kupca",
+    anonymize: "Anonimizuj kupca",
+    anonymizeConfirm:
+      "Brišu se ime, kontakt, JMBG, komentari, beleške i KYC dokumenti ovog kupca. Iznosi prodaje i ugovori ostaju zbog čuvanja računa. Ovo se ne može poništiti.",
+    anonymizedOn: "Lični podaci su uklonjeni {{date}}.",
     editSubtitle:
       "Sve izmene se beleže u audit trag. Telefon/email su normalizovani za detekciju duplikata.",
     statusAssigned: "Status: {{status}} · Zadužen: {{name}}",
     mySubtitle:
-      "Kupci koje je Vaša agencija evidentirala. Prijave zaštite kreirajte iz kartice projekta u „Ponudi\".",
+      'Kupci koje je Vaša agencija evidentirala. Prijave zaštite kreirajte iz kartice projekta u „Ponudi".',
     myEmpty: "Još niste evidentirali kupce.",
     total: "Ukupno: {{count}}",
     registerOnProject: "Prijavi na projekat",
@@ -33,8 +36,7 @@ export const crmSr = {
     activities: "Aktivnosti",
     noActivities: "Nema zabeleženih aktivnosti.",
     comments: "Komentari",
-    kycHint:
-      "Provera identiteta i pratećih dokumenata pre prelaska prodaje u „Ugovorena\".",
+    kycHint: 'Provera identiteta i pratećih dokumenata pre prelaska prodaje u „Ugovorena".',
     contact: "Kontakt",
     secondaryPhone: "Sekundarni",
     source: "Izvor",
@@ -100,8 +102,7 @@ export const crmSr = {
     save: "Sačuvaj KYC status",
     documentsTitle: "Priloženi dokumenti (KYC)",
     emptyTitle: "Nema priloženih KYC dokumenata",
-    emptyDescription:
-      "Otpremite skenove lične karte, poreske potvrde ili drugih KYC dokumenata.",
+    emptyDescription: "Otpremite skenove lične karte, poreske potvrde ili drugih KYC dokumenata.",
     idFrontNatural: "Lična karta (lice)",
     idBackNatural: "Lična karta (poleđina)",
     addressProofNatural: "Potvrda prebivališta / računa",
@@ -248,6 +249,10 @@ export const crmEn: Leaves<typeof crmSr> = {
     created: "Created",
     reservationCol: "Reservation",
     editBuyer: "Edit buyer",
+    anonymize: "Anonymise buyer",
+    anonymizeConfirm:
+      "This removes the name, contact details, national ID, comments, notes and KYC files for this buyer. Sale amounts and contracts stay for accounting retention. This cannot be undone.",
+    anonymizedOn: "Personal data was removed on {{date}}.",
     editSubtitle:
       "Every change is written to the audit trail. Phone and email are normalized for duplicate detection.",
     statusAssigned: "Status: {{status}} · Assigned: {{name}}",
@@ -262,8 +267,7 @@ export const crmEn: Leaves<typeof crmSr> = {
     activities: "Activities",
     noActivities: "No recorded activities.",
     comments: "Comments",
-    kycHint:
-      "Identity and supporting-document check before a sale moves to Contracted.",
+    kycHint: "Identity and supporting-document check before a sale moves to Contracted.",
     contact: "Contact",
     secondaryPhone: "Secondary",
     source: "Source",
@@ -329,8 +333,7 @@ export const crmEn: Leaves<typeof crmSr> = {
     save: "Save KYC status",
     documentsTitle: "Attached documents (KYC)",
     emptyTitle: "No KYC documents attached",
-    emptyDescription:
-      "Upload scans of the ID card, tax certificate, or other KYC documents.",
+    emptyDescription: "Upload scans of the ID card, tax certificate, or other KYC documents.",
     idFrontNatural: "ID card (front)",
     idBackNatural: "ID card (back)",
     addressProofNatural: "Proof of address / utility bill",

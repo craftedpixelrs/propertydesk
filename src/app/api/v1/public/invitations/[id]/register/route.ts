@@ -32,25 +32,22 @@ const bodySchema = z.object({
  * Creates a verified credential account for the invited email, then
  * accepts the invitation. The client signs in afterwards.
  */
-export const POST = apiHandler(
-  { paramsSchema, bodySchema },
-  async ({ req, params, body }) => {
-    enforceRateLimit({
-      req,
-      scope: "public.invitation.register",
-      callerId: params.id,
-      options: { windowMs: 10 * 60_000, max: 8 },
-    });
+export const POST = apiHandler({ paramsSchema, bodySchema }, async ({ req, params, body }) => {
+  enforceRateLimit({
+    req,
+    scope: "public.invitation.register",
+    callerId: params.id,
+    options: { windowMs: 10 * 60_000, max: 8 },
+  });
 
-    const result = await registerFromInvitation({
-      invitationId: params.id,
-      name: body.name,
-      password: body.password,
-      agencyProfile: body.agencyProfile,
-    });
-    return { data: result, status: 201 };
-  },
-);
+  const result = await registerFromInvitation({
+    invitationId: params.id,
+    name: body.name,
+    password: body.password,
+    agencyProfile: body.agencyProfile,
+  });
+  return { data: result, status: 201 };
+});
 
 /**
  * @swagger

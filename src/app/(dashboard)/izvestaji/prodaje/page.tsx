@@ -16,10 +16,7 @@ import {
 } from "@/features/reports/report-filters";
 import { requirePermission } from "@/server/permissions/require";
 import { prisma } from "@/server/db/prisma";
-import {
-  buildSalesReport,
-  buildSalesTrend,
-} from "@/server/services/reports/reports.service";
+import { buildSalesReport, buildSalesTrend } from "@/server/services/reports/reports.service";
 import { computeProjectPnl } from "@/server/services/projects/pnl.service";
 import { TrendLine } from "@/components/charts/trend-line";
 import { formatDate, formatMoney } from "@/lib/formatters";
@@ -67,9 +64,7 @@ export default async function SalesReportPage({ searchParams }: PageProps) {
 
   // Merge trend points into one row per bucket for Recharts. Each currency
   // becomes its own line and its own numeric key on the row.
-  const trendBucketLabels = Array.from(
-    new Set(trend.points.map((p) => p.bucketLabel)),
-  ).sort();
+  const trendBucketLabels = Array.from(new Set(trend.points.map((p) => p.bucketLabel))).sort();
   const trendData = trendBucketLabels.map((label) => {
     const row: { key: string; label: string; [k: string]: number | string } = {
       key: label,
@@ -93,10 +88,7 @@ export default async function SalesReportPage({ searchParams }: PageProps) {
 
   return (
     <div className="space-y-6">
-      <PageHeader
-        title={t("nav.sales")}
-        description={t("ops.reports.salesDesc")}
-      />
+      <PageHeader title={t("nav.sales")} description={t("ops.reports.salesDesc")} />
 
       <ReportFilters
         action="/izvestaji/prodaje"
@@ -130,11 +122,7 @@ export default async function SalesReportPage({ searchParams }: PageProps) {
         isEmpty={trendData.length === 0}
         height={280}
       >
-        <TrendLine
-          buckets={trendData}
-          series={trendSeries}
-          yTickFormat="compact"
-        />
+        <TrendLine buckets={trendData} series={trendSeries} yTickFormat="compact" />
       </ChartCard>
 
       <div className="grid gap-6 lg:grid-cols-2">
@@ -264,9 +252,7 @@ export default async function SalesReportPage({ searchParams }: PageProps) {
                     </td>
                     <td
                       className={`py-1.5 text-right font-semibold ${
-                        Number(r.netMargin) >= 0
-                          ? "text-emerald-700"
-                          : "text-rose-700"
+                        Number(r.netMargin) >= 0 ? "text-emerald-700" : "text-rose-700"
                       }`}
                     >
                       {formatMoney(r.netMargin, r.currency as SupportedCurrency)}

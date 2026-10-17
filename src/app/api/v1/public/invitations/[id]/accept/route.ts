@@ -32,9 +32,7 @@ const bodySchema = z
  *
  * Logged-in user whose email matches the invitation joins the org.
  */
-export const POST = apiHandler(
-  { paramsSchema, bodySchema },
-  async ({ req, params, body }) => {
+export const POST = apiHandler({ paramsSchema, bodySchema }, async ({ req, params, body }) => {
   enforceRateLimit({
     req,
     scope: "public.invitation.accept",

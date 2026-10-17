@@ -117,9 +117,7 @@ export function FloorPlanViewer({ view, canManage = false }: Props) {
                     stroke={STATUS_STROKE[area.unitStatus]}
                     strokeWidth={isHover ? 0.6 : 0.35}
                     onMouseEnter={() => setHovered(area)}
-                    onMouseLeave={() =>
-                      setHovered((cur) => (cur?.id === area.id ? null : cur))
-                    }
+                    onMouseLeave={() => setHovered((cur) => (cur?.id === area.id ? null : cur))}
                     style={{
                       transition: "stroke-width 120ms ease-out",
                       cursor: "pointer",
@@ -131,7 +129,7 @@ export function FloorPlanViewer({ view, canManage = false }: Props) {
           })}
         </svg>
         {hovered ? (
-          <div className="pointer-events-none absolute left-2 top-2 rounded-md bg-white/95 px-2 py-1 text-xs shadow">
+          <div className="pointer-events-none absolute top-2 left-2 rounded-md bg-white/95 px-2 py-1 text-xs shadow">
             <div className="font-semibold">{hovered.unitCode}</div>
             <div className="text-[var(--color-foreground-muted)]">
               {unitStatusLabel(hovered.unitStatus, t)}

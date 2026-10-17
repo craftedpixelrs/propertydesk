@@ -34,14 +34,10 @@ const adapter = new PrismaPg({ connectionString });
 const prisma = new PrismaClient({ adapter });
 
 const DEFAULT_PASSWORD = "PropertyDesk!2026";
-const SUPER_ADMIN_EMAIL =
-  process.env.SEED_SUPER_ADMIN_EMAIL ?? "admin@propertydesk.test";
-const SUPER_ADMIN_PASSWORD =
-  process.env.SEED_SUPER_ADMIN_PASSWORD ?? DEFAULT_PASSWORD;
+const SUPER_ADMIN_EMAIL = process.env.SEED_SUPER_ADMIN_EMAIL ?? "admin@propertydesk.test";
+const SUPER_ADMIN_PASSWORD = process.env.SEED_SUPER_ADMIN_PASSWORD ?? DEFAULT_PASSWORD;
 const SEED_MODE =
-  process.argv.includes("--platform") || process.env.SEED_MODE === "platform"
-    ? "platform"
-    : "full";
+  process.argv.includes("--platform") || process.env.SEED_MODE === "platform" ? "platform" : "full";
 
 async function upsertPlan(
   code: string,
@@ -107,10 +103,7 @@ async function ensureUser(input: {
 }) {
   const existing = await prisma.user.findUnique({ where: { email: input.email } });
   if (existing) {
-    if (
-      input.platformRole &&
-      existing.role !== input.platformRole
-    ) {
+    if (input.platformRole && existing.role !== input.platformRole) {
       await prisma.user.update({
         where: { id: existing.id },
         data: { role: input.platformRole },
@@ -172,9 +165,7 @@ async function ensureTenant(spec: TenantSpec) {
   const isAgency = spec.type === "AGENCY";
   const orgStatus = isAgency ? "ACTIVE" : "TRIAL";
   const subStatus = isAgency ? "ACTIVE" : "TRIAL";
-  const trialEndsAt = isAgency
-    ? null
-    : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+  const trialEndsAt = isAgency ? null : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
 
   let org = await prisma.organization.findUnique({ where: { slug: spec.slug } });
   if (!org) {
@@ -193,9 +184,7 @@ async function ensureTenant(spec: TenantSpec) {
         status: orgStatus,
         paymentAccountNumber: spec.paymentAccountNumber ?? null,
         paymentBankName: spec.paymentBankName ?? null,
-        ...(isAgency
-          ? { verificationStatus: "VERIFIED" as const, verifiedAt: new Date() }
-          : {}),
+        ...(isAgency ? { verificationStatus: "VERIFIED" as const, verifiedAt: new Date() } : {}),
       },
     });
     await prisma.organizationSubscription.create({
@@ -341,14 +330,13 @@ async function seedBilling(mode: "platform" | "full"): Promise<void> {
   // (see `/administracija/naplata/sabloni`). The seed script deliberately
   // does not import that module to avoid pulling in Next.js "server-only"
   // guards during a plain Node run.
-  console.log("Billing: bank accounts + company profile ready. Templates will seed on first admin visit.");
+  console.log(
+    "Billing: bank accounts + company profile ready. Templates will seed on first admin visit.",
+  );
 }
 
 async function main() {
-  if (
-    process.env.NODE_ENV === "production" &&
-    process.env.ALLOW_SEED_IN_PRODUCTION !== "true"
-  ) {
+  if (process.env.NODE_ENV === "production" && process.env.ALLOW_SEED_IN_PRODUCTION !== "true") {
     console.error(
       "Refusing to run seed in production. Set ALLOW_SEED_IN_PRODUCTION=true to override.",
     );

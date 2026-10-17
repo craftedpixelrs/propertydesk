@@ -123,8 +123,8 @@ export async function updateGlobalBillingSettings(
     data.reminderSchedule = (input.reminderSchedule ?? []) as Prisma.InputJsonValue;
   }
   if (input.restrictedModeAllowedPermissions !== undefined) {
-    data.restrictedModeAllowedPermissions =
-      (input.restrictedModeAllowedPermissions ?? []) as Prisma.InputJsonValue;
+    data.restrictedModeAllowedPermissions = (input.restrictedModeAllowedPermissions ??
+      []) as Prisma.InputJsonValue;
   }
 
   const updated = await prisma.globalBillingSettings.update({

@@ -32,10 +32,8 @@ export function enforceRateLimit(input: {
   const key = rateLimitKey(input.scope, caller);
   const result = rateLimit(key, input.options);
   if (!result.allowed) {
-    throw new ApiError(
-      "RATE_LIMITED",
-      "Previše zahteva. Pokušajte ponovo za koji trenutak.",
-      { statusCode: 429 },
-    );
+    throw new ApiError("RATE_LIMITED", "Previše zahteva. Pokušajte ponovo za koji trenutak.", {
+      statusCode: 429,
+    });
   }
 }

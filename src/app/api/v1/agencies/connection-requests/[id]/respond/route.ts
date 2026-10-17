@@ -14,30 +14,27 @@ const bodySchema = z.object({
   reason: z.string().max(2000).optional(),
 });
 
-export const POST = apiHandler(
-  { paramsSchema, bodySchema },
-  async ({ params, body }) => {
-    const ctx = await requirePermission("agency.manage");
-    if (ctx.organization.organizationType !== "INVESTOR") {
-      throw DomainErrors.forbidden("Samo investitor može obraditi zahtev.");
-    }
-    if (body.action === "ACCEPT") {
-      const result = await acceptConnectionRequest({
-        investorOrganizationId: ctx.organization.organizationId,
-        actorUserId: ctx.session.user.id,
-        requestId: params.id,
-      });
-      return { data: result };
-    }
-    const updated = await rejectConnectionRequest({
+export const POST = apiHandler({ paramsSchema, bodySchema }, async ({ params, body }) => {
+  const ctx = await requirePermission("agency.manage");
+  if (ctx.organization.organizationType !== "INVESTOR") {
+    throw DomainErrors.forbidden("Samo investitor može obraditi zahtev.");
+  }
+  if (body.action === "ACCEPT") {
+    const result = await acceptConnectionRequest({
       investorOrganizationId: ctx.organization.organizationId,
       actorUserId: ctx.session.user.id,
       requestId: params.id,
-      reason: body.reason,
     });
-    return { data: updated };
-  },
-);
+    return { data: result };
+  }
+  const updated = await rejectConnectionRequest({
+    investorOrganizationId: ctx.organization.organizationId,
+    actorUserId: ctx.session.user.id,
+    requestId: params.id,
+    reason: body.reason,
+  });
+  return { data: updated };
+});
 
 /**
  * @swagger

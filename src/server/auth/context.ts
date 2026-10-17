@@ -5,6 +5,7 @@ import type { OrganizationRole } from "@/server/permissions/roles";
 import { organizationRoles } from "@/server/permissions/roles";
 import type { PermissionString } from "@/server/permissions/access-control";
 import { prisma } from "@/server/db/prisma";
+import { getTwoFactorRequired } from "@/server/services/security/two-factor-policy";
 import { DEFAULT_LOCALE, parseLocale, type Locale } from "@/lib/i18n";
 import { getActiveOrganization, getSession, isSuperAdmin } from "@/server/auth/session";
 import { getPropertyDeskTeamMember } from "@/server/permissions/property-desk";
@@ -42,6 +43,8 @@ export interface UserContext {
     type: "INVESTOR" | "AGENCY" | null;
     role: OrganizationRole | null;
     status: "TRIAL" | "ACTIVE" | "RESTRICTED" | "SUSPENDED" | "CLOSED" | null;
+    activationPending: boolean;
+    activatesAt: string | null;
   } | null;
   /**
    * Property Desk internal-team membership. `null` for regular users and
@@ -55,6 +58,10 @@ export interface UserContext {
   } | null;
   /** Snapshot of allowed permissions for the current caller in the active org. */
   permissions: PermissionString[];
+  /** True after the user confirmed a TOTP code. */
+  twoFactorEnabled: boolean;
+  /** Platform rule: nobody may use the app until they enroll. */
+  twoFactorRequired: boolean;
 }
 
 const ALL_PERMISSIONS: PermissionString[] = ALL_PERMS;
@@ -120,11 +127,7 @@ export function requireTenantPage(
   if (opts.orgType && ctx.activeOrganization.type !== opts.orgType) {
     redirect("/dashboard");
   }
-  if (
-    opts.permission &&
-    !ctx.isSuperAdmin &&
-    !ctx.permissions.includes(opts.permission)
-  ) {
+  if (opts.permission && !ctx.isSuperAdmin && !ctx.permissions.includes(opts.permission)) {
     redirect("/dashboard");
   }
 }
@@ -142,14 +145,15 @@ export async function loadUserContext(): Promise<UserContext | null> {
 
   const superAdmin = isSuperAdmin(session);
 
-  const [pdTeam, userRow] = await Promise.all([
+  const [pdTeam, userRow, twoFactorRequired] = await Promise.all([
     getPropertyDeskTeamMember(session.user.id).catch(() => null),
     prisma.user
       .findUnique({
         where: { id: session.user.id },
-        select: { locale: true },
+        select: { locale: true, twoFactorEnabled: true },
       })
       .catch(() => null),
+    getTwoFactorRequired().catch(() => false),
   ]);
   const locale = parseLocale(userRow?.locale) ?? DEFAULT_LOCALE;
 
@@ -158,7 +162,9 @@ export async function loadUserContext(): Promise<UserContext | null> {
     superAdmin,
     pdTeam?.enabled ? pdTeam.teamRole : null,
   );
-  if (
+  if (!superAdmin && activeOrg?.activationPending) {
+    permissions = [];
+  } else if (
     !superAdmin &&
     activeOrg?.organizationStatus === "RESTRICTED" &&
     activeOrg.organizationType !== "AGENCY"
@@ -191,6 +197,8 @@ export async function loadUserContext(): Promise<UserContext | null> {
           type: activeOrg.organizationType,
           role: activeOrg.organizationRole,
           status: activeOrg.organizationStatus,
+          activationPending: activeOrg.activationPending,
+          activatesAt: activeOrg.activatesAt,
         }
       : null,
     propertyDeskTeam: pdTeam
@@ -201,5 +209,7 @@ export async function loadUserContext(): Promise<UserContext | null> {
         }
       : null,
     permissions,
+    twoFactorEnabled: Boolean(userRow?.twoFactorEnabled),
+    twoFactorRequired,
   };
 }

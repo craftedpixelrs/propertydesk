@@ -29,23 +29,20 @@ export const GET = apiHandler({}, async ({ searchParams }) => {
   return { data: items };
 });
 
-export const POST = apiHandler(
-  { bodySchema: createSchema },
-  async ({ body }) => {
-    const ctx = await requirePermission("sale.manage");
-    const created = await createContractTemplate({
-      organizationId: ctx.organization.organizationId,
-      actorUserId: ctx.session.user.id,
-      kind: body.kind,
-      name: body.name,
-      description: body.description ?? null,
-      contentHtml: body.contentHtml,
-      variables: body.variables ?? null,
-      isActive: body.isActive,
-    });
-    return { data: created, status: 201 };
-  },
-);
+export const POST = apiHandler({ bodySchema: createSchema }, async ({ body }) => {
+  const ctx = await requirePermission("sale.manage");
+  const created = await createContractTemplate({
+    organizationId: ctx.organization.organizationId,
+    actorUserId: ctx.session.user.id,
+    kind: body.kind,
+    name: body.name,
+    description: body.description ?? null,
+    contentHtml: body.contentHtml,
+    variables: body.variables ?? null,
+    isActive: body.isActive,
+  });
+  return { data: created, status: 201 };
+});
 
 /**
  * @swagger

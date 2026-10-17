@@ -49,11 +49,7 @@ export function ConnectionStatusActions({
         </Button>
       ) : null}
       {status === "SUSPENDED" ? (
-        <Button
-          size="sm"
-          onClick={() => run("REACTIVATE")}
-          loading={loading === "REACTIVATE"}
-        >
+        <Button size="sm" onClick={() => run("REACTIVATE")} loading={loading === "REACTIVATE"}>
           {t("partners.connectionActions.reactivate")}
         </Button>
       ) : null}

@@ -15,8 +15,8 @@ export async function MarketingFooter() {
   const t = createT(await resolveRequestLocale());
   const year = new Date().getFullYear();
   return (
-    <footer className="border-t border-[var(--color-border)] bg-[var(--color-surface-muted)]">
-      <div className="container-app grid gap-8 py-10 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 md:py-12">
+    <footer className="border-t border-white/10 bg-[#0b1020] text-[#f7f3ea]">
+      <div className="container-app grid gap-8 py-10 sm:grid-cols-2 md:grid-cols-3 md:py-12 lg:grid-cols-5">
         <div className="space-y-3">
           <div className="flex items-center gap-2 font-semibold tracking-tight">
             <Image
@@ -28,45 +28,38 @@ export async function MarketingFooter() {
             />
             <span className="font-display text-lg font-semibold tracking-tight">{APP_NAME}</span>
           </div>
-          <p className="max-w-xs text-sm leading-relaxed text-[var(--color-foreground-muted)]">
+          <p className="max-w-xs text-sm leading-relaxed text-white/65">
             {t("marketing.footer.blurb")}
           </p>
         </div>
 
         <div>
-          <div className="text-xs font-semibold uppercase tracking-wider text-[var(--color-foreground-subtle)]">
+          <div className="text-xs font-semibold tracking-wider text-white/45 uppercase">
             {t("marketing.nav.product")}
           </div>
           <ul className="mt-3 space-y-2 text-sm">
             <li>
-              <a
-                href="/#mogucnosti"
-                className="text-[var(--color-foreground-muted)] hover:text-[var(--color-foreground)]"
-              >
+              <a href="/#mogucnosti" className="text-white/65 hover:text-white">
                 {t("marketing.nav.features")}
               </a>
             </li>
             <li>
-              <a
-                href="/#cenovnik"
-                className="text-[var(--color-foreground-muted)] hover:text-[var(--color-foreground)]"
-              >
+              <a href="/#cenovnik" className="text-white/65 hover:text-white">
                 {t("marketing.nav.pricing")}
               </a>
             </li>
             <li>
-              <a
-                href="/#faq"
-                className="text-[var(--color-foreground-muted)] hover:text-[var(--color-foreground)]"
-              >
+              <a href="/#faq" className="text-white/65 hover:text-white">
                 {t("marketing.nav.faqLong")}
               </a>
             </li>
             <li>
-              <Link
-                href="/pomoc"
-                className="text-[var(--color-foreground-muted)] hover:text-[var(--color-foreground)]"
-              >
+              <Link href="/blog" className="text-white/65 hover:text-white">
+                {t("marketing.nav.blog")}
+              </Link>
+            </li>
+            <li>
+              <Link href="/pomoc" className="text-white/65 hover:text-white">
                 {t("marketing.footer.help")}
               </Link>
             </li>
@@ -74,16 +67,13 @@ export async function MarketingFooter() {
         </div>
 
         <div>
-          <div className="text-xs font-semibold uppercase tracking-wider text-[var(--color-foreground-subtle)]">
+          <div className="text-xs font-semibold tracking-wider text-white/45 uppercase">
             {t("marketing.nav.solutions")}
           </div>
           <ul className="mt-3 space-y-2 text-sm">
             {SOLUTION_LINKS.map((r) => (
               <li key={r.slug}>
-                <Link
-                  href={`/${r.slug}`}
-                  className="text-[var(--color-foreground-muted)] hover:text-[var(--color-foreground)]"
-                >
+                <Link href={`/${r.slug}`} className="text-white/65 hover:text-white">
                   {t(r.labelKey)}
                 </Link>
               </li>
@@ -92,39 +82,27 @@ export async function MarketingFooter() {
         </div>
 
         <div>
-          <div className="text-xs font-semibold uppercase tracking-wider text-[var(--color-foreground-subtle)]">
+          <div className="text-xs font-semibold tracking-wider text-white/45 uppercase">
             {t("marketing.nav.contact")}
           </div>
           <ul className="mt-3 space-y-2 text-sm">
             <li>
-              <Link
-                href="/o-nama"
-                className="text-[var(--color-foreground-muted)] hover:text-[var(--color-foreground)]"
-              >
+              <Link href="/o-nama" className="text-white/65 hover:text-white">
                 {t("marketing.footer.about")}
               </Link>
             </li>
             <li>
-              <a
-                href={`mailto:${COMPANY.email}`}
-                className="text-[var(--color-foreground-muted)] hover:text-[var(--color-foreground)]"
-              >
+              <a href={`mailto:${COMPANY.email}`} className="text-white/65 hover:text-white">
                 {COMPANY.email}
               </a>
             </li>
             <li>
-              <a
-                href={`tel:${COMPANY.phoneTel}`}
-                className="text-[var(--color-foreground-muted)] hover:text-[var(--color-foreground)]"
-              >
+              <a href={`tel:${COMPANY.phoneTel}`} className="text-white/65 hover:text-white">
                 {COMPANY.phoneDisplay}
               </a>
             </li>
             <li>
-              <Link
-                href="/demo"
-                className="text-[var(--color-foreground-muted)] hover:text-[var(--color-foreground)]"
-              >
+              <Link href="/demo" className="text-white/65 hover:text-white">
                 {t("marketing.footer.bookDemo")}
               </Link>
             </li>
@@ -132,45 +110,34 @@ export async function MarketingFooter() {
         </div>
 
         <div>
-          <div className="text-xs font-semibold uppercase tracking-wider text-[var(--color-foreground-subtle)]">
+          <div className="text-xs font-semibold tracking-wider text-white/45 uppercase">
             {t("marketing.nav.app")}
           </div>
           <ul className="mt-3 space-y-2 text-sm">
-            <li className="flex items-center gap-2 text-[var(--color-foreground-muted)]">
+            <li className="flex items-center gap-2 text-white/65">
               <span>{t("marketing.footer.signIn")}</span>
-              <span className="rounded-full bg-[var(--color-surface-inset)] px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[var(--color-foreground-subtle)]">
+              <span className="rounded-full bg-white/10 px-1.5 py-0.5 text-[10px] font-semibold tracking-wide text-[#f3e2bc] uppercase">
                 {t("common.comingSoon")}
               </span>
             </li>
-            <li className="text-xs text-[var(--color-foreground-subtle)]">
-              {t("marketing.footer.launchDate")}
-            </li>
+            <li className="text-xs text-white/45">{t("marketing.footer.launchDate")}</li>
           </ul>
         </div>
       </div>
 
-      <div className="border-t border-[var(--color-border)]">
-        <div className="container-app flex flex-col items-start justify-between gap-3 py-4 text-xs text-[var(--color-foreground-subtle)] sm:flex-row sm:items-center">
+      <div className="border-t border-white/10">
+        <div className="container-app flex flex-col items-start justify-between gap-3 py-4 text-xs text-white/45 sm:flex-row sm:items-center">
           <div>
             © {year} {APP_NAME}. {t("marketing.footer.rights")}
           </div>
           <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-            <Link
-              href="/privatnost"
-              className="text-[var(--color-foreground-muted)] hover:text-[var(--color-foreground)]"
-            >
+            <Link href="/privatnost" className="text-white/65 hover:text-white">
               {t("marketing.footer.privacy")}
             </Link>
-            <Link
-              href="/uslovi"
-              className="text-[var(--color-foreground-muted)] hover:text-[var(--color-foreground)]"
-            >
+            <Link href="/uslovi" className="text-white/65 hover:text-white">
               {t("marketing.footer.terms")}
             </Link>
-            <Link
-              href="/impresum"
-              className="text-[var(--color-foreground-muted)] hover:text-[var(--color-foreground)]"
-            >
+            <Link href="/impresum" className="text-white/65 hover:text-white">
               {t("marketing.footer.imprint")}
             </Link>
             <CookieSettingsButton />
@@ -179,7 +146,7 @@ export async function MarketingFooter() {
               href={COMPANY.operatorUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 text-[var(--color-foreground-muted)] transition-colors hover:text-[var(--color-foreground)]"
+              className="inline-flex items-center gap-1.5 text-white/65 transition-colors hover:text-white"
               aria-label={t("marketing.footer.poweredByAria")}
             >
               <span>{t("marketing.footer.poweredBy")}</span>
@@ -188,7 +155,7 @@ export async function MarketingFooter() {
                 alt="CraftedPixel"
                 width={162}
                 height={33}
-                className="h-4 w-auto"
+                className="h-4 w-auto brightness-0 invert"
               />
             </a>
           </div>

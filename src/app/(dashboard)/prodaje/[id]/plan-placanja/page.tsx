@@ -110,7 +110,7 @@ export default async function PlanPlacanjaPage({ params }: PageProps) {
             })()}
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-[var(--color-border)] text-sm">
-                <thead className="text-left text-xs uppercase tracking-wide text-[var(--color-foreground-muted)]">
+                <thead className="text-left text-xs tracking-wide text-[var(--color-foreground-muted)] uppercase">
                   <tr>
                     <th className="py-2 pr-3">#</th>
                     <th className="py-2 pr-3">{t("deals.installmentName")}</th>
@@ -132,9 +132,7 @@ export default async function PlanPlacanjaPage({ params }: PageProps) {
                       <td className="py-2 pr-3 text-right">
                         {formatMoney(i.paidAmount.toString(), currency)}
                       </td>
-                      <td className="py-2 pr-3">
-                        {installmentLabel(i.status, t)}
-                      </td>
+                      <td className="py-2 pr-3">{installmentLabel(i.status, t)}</td>
                     </tr>
                   ))}
                 </tbody>

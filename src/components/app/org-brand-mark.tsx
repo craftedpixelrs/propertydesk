@@ -21,7 +21,7 @@ export function OrgBrandMark({
   const showOrg = Boolean(branding?.whiteLabel && branding.logoUrl);
   if (!showOrg) {
     return (
-      <span className="truncate font-display text-[1.05rem] font-semibold tracking-tight">
+      <span className="font-display truncate text-[1.05rem] font-semibold tracking-tight">
         {APP_NAME}
       </span>
     );

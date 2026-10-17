@@ -18,18 +18,19 @@ describe("ElectronicInvoiceProvider registry", () => {
     expect(result.errorMessage ?? null).toBeNull();
   });
 
-  it("SERBIAN_SEF stub simulates ACKNOWLEDGED submission", async () => {
+  it("SERBIAN_SEF fails closed until the real transport exists", async () => {
     const provider = getProvider("SERBIAN_SEF");
     expect(provider.type).toBe("SERBIAN_SEF");
     const result = await provider.submit(context);
-    expect(result.status).toBe("ACKNOWLEDGED");
-    expect(result.providerReference).toContain("sef:");
+    expect(result.status).toBe("FAILED");
+    expect(result.errorMessage).toMatch(/SEF/);
+    expect(result.providerReference ?? null).toBeNull();
   });
 
-  it("SERBIAN_SEF stub cancel returns REJECTED with the reason", async () => {
+  it("SERBIAN_SEF cancel does not pretend the portal rejected the invoice", async () => {
     const provider = getProvider("SERBIAN_SEF");
     const result = await provider.cancel!(context, "duplicate");
-    expect(result.status).toBe("REJECTED");
-    expect(result.responsePayload).toMatchObject({ reason: "duplicate" });
+    expect(result.status).toBe("FAILED");
+    expect(result.responsePayload).toMatchObject({ reason: "duplicate", simulated: false });
   });
 });

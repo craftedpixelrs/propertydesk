@@ -20,10 +20,7 @@ const adapter = new PrismaPg({ connectionString });
 const prisma = new PrismaClient({ adapter });
 
 async function main() {
-  if (
-    process.env.NODE_ENV === "production" &&
-    process.env.ALLOW_SEED_IN_PRODUCTION !== "true"
-  ) {
+  if (process.env.NODE_ENV === "production" && process.env.ALLOW_SEED_IN_PRODUCTION !== "true") {
     console.error("Refusing to run cleanup in production without ALLOW_SEED_IN_PRODUCTION=true");
     process.exit(1);
   }

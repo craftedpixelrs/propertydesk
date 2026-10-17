@@ -90,15 +90,8 @@ export async function generateViewport(): Promise<Viewport> {
   };
 }
 
-export default async function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  const [locale, theme] = await Promise.all([
-    resolveRequestLocale(),
-    resolveRequestTheme(),
-  ]);
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const [locale, theme] = await Promise.all([resolveRequestLocale(), resolveRequestTheme()]);
   return (
     <html
       lang={htmlLang(locale)}
@@ -109,7 +102,7 @@ export default async function RootLayout({
     >
       <body suppressHydrationWarning>
         <a href="#main-content" className="skip-link">
-            {t("common.skipToContent", undefined, locale)}
+          {t("common.skipToContent", undefined, locale)}
         </a>
         <Providers locale={locale} theme={theme}>
           {children}

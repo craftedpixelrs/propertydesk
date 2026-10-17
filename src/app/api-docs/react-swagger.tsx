@@ -29,8 +29,7 @@ export function ReactSwagger({ url }: { url: string }) {
       // swallows load errors in Node and can leave SwaggerUIBundle undefined.
       const mod = await import("swagger-ui-dist/swagger-ui-bundle.js");
       const SwaggerUIBundle =
-        (mod as { default?: typeof mod.SwaggerUIBundle }).default ??
-        mod.SwaggerUIBundle;
+        (mod as { default?: typeof mod.SwaggerUIBundle }).default ?? mod.SwaggerUIBundle;
 
       if (cancelled || !containerRef.current || !SwaggerUIBundle) return;
 
@@ -50,16 +49,13 @@ export function ReactSwagger({ url }: { url: string }) {
         tryItOutEnabled: true,
         withCredentials: true,
         syntaxHighlight: { activate: true, theme: "agate" },
-        requestInterceptor: (req: { url: string }) => {
+        requestInterceptor: <T extends { url: string }>(req: T): T => {
           if (typeof window === "undefined" || !req.url) return req;
           try {
             const parsed = new URL(req.url, window.location.origin);
             // Absolute same-origin when server is "/". Leave cross-origin
             // picks (prod / localhost absolute) untouched.
-            if (
-              parsed.origin === window.location.origin ||
-              req.url.startsWith("/")
-            ) {
+            if (parsed.origin === window.location.origin || req.url.startsWith("/")) {
               req.url = parsed.href;
             }
           } catch {

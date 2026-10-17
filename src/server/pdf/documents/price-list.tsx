@@ -56,7 +56,11 @@ export function PriceListPdf(data: PriceListPdfData) {
         {cols.map((c) => (
           <Text
             key={c.key}
-            style={[pdfStyles.th, { flex: c.flex } as never, c.key === "price" ? { textAlign: "right" as const } : {}]}
+            style={[
+              pdfStyles.th,
+              { flex: c.flex } as never,
+              c.key === "price" ? { textAlign: "right" as const } : {},
+            ]}
           >
             {c.label}
           </Text>
@@ -69,11 +73,7 @@ export function PriceListPdf(data: PriceListPdfData) {
         </View>
       ) : (
         data.units.map((u, idx) => (
-          <View
-            key={`${u.code}-${idx}`}
-            style={pdfStyles.row}
-            wrap={false}
-          >
+          <View key={`${u.code}-${idx}`} style={pdfStyles.row} wrap={false}>
             <Text style={[pdfStyles.td, { flex: 1.4 } as never]}>{u.code}</Text>
             <Text style={[pdfStyles.td, { flex: 1.1 } as never]}>{u.type}</Text>
             <Text style={[pdfStyles.td, { flex: 0.9 } as never]}>{u.area} m²</Text>

@@ -28,11 +28,13 @@ export interface SendRunSummary {
   errorDetails: Array<{ invoiceId: string; error: string }>;
 }
 
-export async function sendIssuedInvoices(options: {
-  now?: Date;
-  organizationIds?: string[];
-  actorUserId?: string | null;
-} = {}): Promise<SendRunSummary> {
+export async function sendIssuedInvoices(
+  options: {
+    now?: Date;
+    organizationIds?: string[];
+    actorUserId?: string | null;
+  } = {},
+): Promise<SendRunSummary> {
   const now = options.now ?? new Date();
   const summary: SendRunSummary = {
     invoicesConsidered: 0,
@@ -45,9 +47,7 @@ export async function sendIssuedInvoices(options: {
   const invoices = await prisma.invoice.findMany({
     where: {
       status: "ISSUED",
-      ...(options.organizationIds
-        ? { organizationId: { in: options.organizationIds } }
-        : {}),
+      ...(options.organizationIds ? { organizationId: { in: options.organizationIds } } : {}),
     },
     include: {
       organization: {

@@ -32,6 +32,7 @@ export type AuditAction =
   | "organization.suspended"
   | "organization.reactivated"
   | "organization.closed"
+  | "organization.exported"
   | "organization.member_invited"
   | "organization.invitee_registered"
   | "organization.member_joined"
@@ -84,6 +85,7 @@ export type AuditAction =
   | "buyer.updated"
   | "buyer.assigned"
   | "buyer.archived"
+  | "buyer.anonymized"
   | "task.created"
   | "task.updated"
   | "task.completed"
@@ -191,6 +193,11 @@ export type AuditAction =
   | "sale.contract_sent"
   | "sale.contract_signed"
   | "sale.contract_canceled"
+  | "sale.settlement_line_added"
+  | "sale.settlement_line_removed"
+  | "sale.handover_saved"
+  | "sale.handover_completed"
+  | "organization.message_templates_saved"
   | "reservation_request.created"
   | "reservation_request.confirmed"
   | "reservation_request.declined"
@@ -199,7 +206,15 @@ export type AuditAction =
   | "project.cloned"
   | "project.microsite_toggled"
   | "buyer.kyc_updated"
+  | "share_link.created"
+  | "share_link.revoked"
   | "agency.referral_generated"
+  | "agency.referral_rotated"
+  | "document.set_cover"
+  | "document.reordered"
+  | "onboarding.dismissed"
+  | "onboarding.resurfaced"
+  | "sale.tax_updated"
   | "system.backup_verified"
   | "system.backup_verify_failed"
   // Property Desk internal team + marketing pipeline
@@ -276,9 +291,7 @@ export async function recordAudit(input: RecordAuditInput): Promise<void> {
       try {
         const hdrs = await headers();
         ipAddress ??=
-          hdrs.get("x-forwarded-for")?.split(",")[0]?.trim() ??
-          hdrs.get("x-real-ip") ??
-          null;
+          hdrs.get("x-forwarded-for")?.split(",")[0]?.trim() ?? hdrs.get("x-real-ip") ?? null;
         userAgent ??= hdrs.get("user-agent") ?? null;
       } catch {
         // headers() is only available inside a request scope; ignore otherwise.
@@ -294,11 +307,8 @@ export async function recordAudit(input: RecordAuditInput): Promise<void> {
         actorUserId: input.actorUserId ?? null,
         impersonatedByUserId: input.impersonatedByUserId ?? null,
         previousValues:
-          (redactSensitive(input.previousValues) as Prisma.InputJsonValue) ??
-          undefined,
-        newValues:
-          (redactSensitive(input.newValues) as Prisma.InputJsonValue) ??
-          undefined,
+          (redactSensitive(input.previousValues) as Prisma.InputJsonValue) ?? undefined,
+        newValues: (redactSensitive(input.newValues) as Prisma.InputJsonValue) ?? undefined,
         metadata: (input.metadata as Prisma.InputJsonValue) ?? undefined,
         ipAddress,
         userAgent,

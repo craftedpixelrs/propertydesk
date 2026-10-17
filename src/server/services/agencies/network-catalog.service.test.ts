@@ -22,9 +22,9 @@ describe("listNetworkCatalog", () => {
       type: "INVESTOR",
       status: "ACTIVE",
     });
-    await expect(
-      listNetworkCatalog({ agencyOrganizationId: "inv-1" }),
-    ).rejects.toThrow(/samo agencijama/i);
+    await expect(listNetworkCatalog({ agencyOrganizationId: "inv-1" })).rejects.toThrow(
+      /samo agencijama/i,
+    );
   });
 
   it("returns teasers without inventing unit rows", async () => {

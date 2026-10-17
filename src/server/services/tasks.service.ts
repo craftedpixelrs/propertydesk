@@ -26,14 +26,7 @@ import { taskAssignedEmail } from "@/server/email/templates";
  * if we can resolve their email, an email.
  */
 
-export type TaskView =
-  | "mine"
-  | "today"
-  | "overdue"
-  | "upcoming"
-  | "completed"
-  | "team"
-  | "all";
+export type TaskView = "mine" | "today" | "overdue" | "upcoming" | "completed" | "team" | "all";
 
 export interface ListTasksInput {
   organizationId: string;
@@ -138,10 +131,7 @@ export async function listTasks(input: ListTasksInput) {
     prisma.task.count({ where }),
     prisma.task.findMany({
       where,
-      orderBy:
-        input.view === "completed"
-          ? [{ completedAt: "desc" }]
-          : [{ dueAt: "asc" }],
+      orderBy: input.view === "completed" ? [{ completedAt: "desc" }] : [{ dueAt: "asc" }],
       skip: (input.page - 1) * input.pageSize,
       take: input.pageSize,
       include: {
@@ -154,10 +144,7 @@ export async function listTasks(input: ListTasksInput) {
 }
 
 /** Counts for the view tab badges. */
-export async function getTaskViewCounts(input: {
-  organizationId: string;
-  currentUserId: string;
-}) {
+export async function getTaskViewCounts(input: { organizationId: string; currentUserId: string }) {
   const base = { ...input, page: 1, pageSize: 1 };
   const [today, overdue, upcoming, mine, completed, team] = await Promise.all([
     prisma.task.count({ where: buildTaskViewWhere({ ...base, view: "today" }) }),

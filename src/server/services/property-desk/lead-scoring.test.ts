@@ -18,9 +18,7 @@ describe("computeLeadScore", () => {
 
   it("does not add company points if only one of name/website is present", () => {
     expect(computeLeadScore({ companyName: "Acme" })).toBe(0);
-    expect(
-      computeLeadScore({ companyWebsite: "https://acme.rs" }),
-    ).toBe(0);
+    expect(computeLeadScore({ companyWebsite: "https://acme.rs" })).toBe(0);
   });
 
   it("company size steps are 10 (>=10) and 20 (>=50), not additive", () => {

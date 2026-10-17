@@ -64,19 +64,22 @@ export const GET = apiHandler({ paramsSchema }, async ({ params }) => {
   return { data: buyer };
 });
 
-export const PATCH = apiHandler({ paramsSchema, bodySchema: patchSchema }, async ({ params, body }) => {
-  const ctx = await requirePermission("lead.manage");
-  const { updated } = await updateBuyer({
-    organizationId: ctx.organization.organizationId,
-    actorUserId: ctx.session.user.id,
-    buyerId: params.id,
-    patch: {
-      ...body,
-      email: body.email === "" ? null : body.email,
-    },
-  });
-  return { data: updated };
-});
+export const PATCH = apiHandler(
+  { paramsSchema, bodySchema: patchSchema },
+  async ({ params, body }) => {
+    const ctx = await requirePermission("lead.manage");
+    const { updated } = await updateBuyer({
+      organizationId: ctx.organization.organizationId,
+      actorUserId: ctx.session.user.id,
+      buyerId: params.id,
+      patch: {
+        ...body,
+        email: body.email === "" ? null : body.email,
+      },
+    });
+    return { data: updated };
+  },
+);
 
 /**
  * @swagger

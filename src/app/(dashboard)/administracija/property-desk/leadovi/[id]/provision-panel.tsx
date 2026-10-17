@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { belgradeDateString } from "@/lib/billing/activation";
 import { apiClient, ApiClientError } from "@/lib/api-client";
 import { useT } from "@/components/app/i18n-provider";
 import type { TranslationKey } from "@/lib/i18n";
@@ -79,15 +80,15 @@ export function LeadProvisionPanel(props: Props) {
   const t = useT();
 
   const fullName = [firstName, lastName].filter(Boolean).join(" ").trim();
-  const defaultOrgName = companyName?.trim() || fullName || email.split("@")[0];
+  const defaultOrgName = companyName?.trim() || fullName || email.split("@")[0] || email;
   const audienceLocked = audience === "INVESTOR" || audience === "AGENCY";
   const orgType = audience === "AGENCY" ? "AGENCY" : "INVESTOR";
   const ownerRoleLabel =
-    orgType === "AGENCY" ? t("admin.pdProvision.ownerAgency") : t("admin.pdProvision.ownerInvestor");
+    orgType === "AGENCY"
+      ? t("admin.pdProvision.ownerAgency")
+      : t("admin.pdProvision.ownerInvestor");
 
-  const [mode, setMode] = useState<"existing" | "new">(
-    canCreateNewOrg ? "new" : "existing",
-  );
+  const [mode, setMode] = useState<"existing" | "new">(canCreateNewOrg ? "new" : "existing");
   const [convertOrg, setConvertOrg] = useState("");
 
   const [orgName, setOrgName] = useState(defaultOrgName);
@@ -102,6 +103,7 @@ export function LeadProvisionPanel(props: Props) {
   const [orgWebsite, setOrgWebsite] = useState(companyWebsite ?? "");
   const [planCode, setPlanCode] = useState(plans[0]?.code ?? "");
   const [trialDays, setTrialDays] = useState("30");
+  const [activatesAt, setActivatesAt] = useState(() => belgradeDateString(new Date()));
   const [ownerName, setOwnerName] = useState(fullName || email);
   const [ownerEmail, setOwnerEmail] = useState(email);
   const [ownerPassword, setOwnerPassword] = useState("");
@@ -118,7 +120,9 @@ export function LeadProvisionPanel(props: Props) {
         <CardContent className="space-y-2 p-4">
           <h3 className="text-sm font-semibold">{t("admin.pdProvision.tenantOrg")}</h3>
           <p className="text-sm">
-            {t("admin.pdProvision.linked", { name: linked?.name ?? t("admin.pdProvision.linkedFallback") })}
+            {t("admin.pdProvision.linked", {
+              name: linked?.name ?? t("admin.pdProvision.linkedFallback"),
+            })}
           </p>
         </CardContent>
       </Card>
@@ -138,11 +142,7 @@ export function LeadProvisionPanel(props: Props) {
       });
       onConverted(convertOrg);
     } catch (err) {
-      onError(
-        err instanceof ApiClientError
-          ? err.message
-          : t("admin.pdProvision.linkFailed"),
-      );
+      onError(err instanceof ApiClientError ? err.message : t("admin.pdProvision.linkFailed"));
     } finally {
       onBusy(false);
     }
@@ -150,9 +150,7 @@ export function LeadProvisionPanel(props: Props) {
 
   async function createNew() {
     if (!audienceLocked) {
-      onError(
-        t("admin.pdProvision.audienceFirst"),
-      );
+      onError(t("admin.pdProvision.audienceFirst"));
       return;
     }
     if (ownerPassword.trim().length < 10) {
@@ -183,6 +181,7 @@ export function LeadProvisionPanel(props: Props) {
           website: orgWebsite.trim() || null,
           planCode: orgType === "AGENCY" ? "partner" : planCode,
           trialDays: orgType === "AGENCY" ? 0 : Number.parseInt(trialDays, 10) || 30,
+          activatesAt: orgType === "AGENCY" ? null : activatesAt || null,
           owner: {
             name: ownerName.trim(),
             email: ownerEmail.trim(),
@@ -192,11 +191,7 @@ export function LeadProvisionPanel(props: Props) {
       });
       onConverted(result.organization.id, result.owner.email);
     } catch (err) {
-      onError(
-        err instanceof ApiClientError
-          ? err.message
-          : t("admin.pdProvision.createFailed"),
-      );
+      onError(err instanceof ApiClientError ? err.message : t("admin.pdProvision.createFailed"));
     } finally {
       onBusy(false);
     }
@@ -262,12 +257,7 @@ export function LeadProvisionPanel(props: Props) {
                 ))}
               </select>
             </label>
-            <Button
-              type="button"
-              size="sm"
-              onClick={linkExisting}
-              disabled={busy || !convertOrg}
-            >
+            <Button type="button" size="sm" onClick={linkExisting} disabled={busy || !convertOrg}>
               {t("admin.pdProvision.linkOrg")}
             </Button>
           </div>
@@ -302,7 +292,9 @@ export function LeadProvisionPanel(props: Props) {
                 />
               </label>
               <label className="block">
-                <span className="mb-1 block text-xs font-medium">{t("admin.pdProvision.slug")}</span>
+                <span className="mb-1 block text-xs font-medium">
+                  {t("admin.pdProvision.slug")}
+                </span>
                 <input
                   value={slug}
                   onChange={(e) => setSlug(slugify(e.target.value))}
@@ -322,7 +314,9 @@ export function LeadProvisionPanel(props: Props) {
                 />
               </label>
               <label className="block">
-                <span className="mb-1 block text-xs font-medium">{t("admin.pdProvision.city")}</span>
+                <span className="mb-1 block text-xs font-medium">
+                  {t("admin.pdProvision.city")}
+                </span>
                 <input
                   value={orgCity}
                   onChange={(e) => setOrgCity(e.target.value)}
@@ -336,9 +330,7 @@ export function LeadProvisionPanel(props: Props) {
                 </span>
                 <input
                   value={orgCountry}
-                  onChange={(e) =>
-                    setOrgCountry(e.target.value.toUpperCase().slice(0, 2))
-                  }
+                  onChange={(e) => setOrgCountry(e.target.value.toUpperCase().slice(0, 2))}
                   className={inputClass}
                   disabled={busy || !audienceLocked}
                   maxLength={2}
@@ -357,7 +349,9 @@ export function LeadProvisionPanel(props: Props) {
                 />
               </label>
               <label className="block">
-                <span className="mb-1 block text-xs font-medium">{t("admin.pdProvision.phone")}</span>
+                <span className="mb-1 block text-xs font-medium">
+                  {t("admin.pdProvision.phone")}
+                </span>
                 <input
                   value={orgPhone}
                   onChange={(e) => setOrgPhone(e.target.value)}
@@ -366,7 +360,9 @@ export function LeadProvisionPanel(props: Props) {
                 />
               </label>
               <label className="block md:col-span-2">
-                <span className="mb-1 block text-xs font-medium">{t("admin.pdProvision.website")}</span>
+                <span className="mb-1 block text-xs font-medium">
+                  {t("admin.pdProvision.website")}
+                </span>
                 <input
                   value={orgWebsite}
                   onChange={(e) => setOrgWebsite(e.target.value)}
@@ -375,50 +371,70 @@ export function LeadProvisionPanel(props: Props) {
                 />
               </label>
               {orgType === "AGENCY" ? (
-                <p className="md:col-span-2 text-sm text-[var(--color-foreground-muted)]">
+                <p className="text-sm text-[var(--color-foreground-muted)] md:col-span-2">
                   {t("admin.pdProvision.agencyPartnerNote")}
                 </p>
               ) : (
                 <>
-              <label className="block">
-                <span className="mb-1 block text-xs font-medium">{t("admin.pdProvision.plan")}</span>
-                <select
-                  value={planCode}
-                  onChange={(e) => setPlanCode(e.target.value)}
-                  className={inputClass}
-                  disabled={busy || !audienceLocked}
-                >
-                  {plans.length === 0 ? (
-                    <option value="">{t("admin.pdProvision.noPlans")}</option>
-                  ) : (
-                    plans.filter((p) => p.code !== "partner").map((p) => (
-                      <option key={p.code} value={p.code}>
-                        {p.name}
-                      </option>
-                    ))
-                  )}
-                </select>
-              </label>
-              <label className="block">
-                <span className="mb-1 block text-xs font-medium">
-                  {t("admin.pdProvision.trialDays")}
-                </span>
-                <input
-                  type="number"
-                  min={0}
-                  max={365}
-                  value={trialDays}
-                  onChange={(e) => setTrialDays(e.target.value)}
-                  className={inputClass}
-                  disabled={busy || !audienceLocked}
-                />
-              </label>
+                  <label className="block">
+                    <span className="mb-1 block text-xs font-medium">
+                      {t("admin.pdProvision.plan")}
+                    </span>
+                    <select
+                      value={planCode}
+                      onChange={(e) => setPlanCode(e.target.value)}
+                      className={inputClass}
+                      disabled={busy || !audienceLocked}
+                    >
+                      {plans.length === 0 ? (
+                        <option value="">{t("admin.pdProvision.noPlans")}</option>
+                      ) : (
+                        plans
+                          .filter((p) => p.code !== "partner")
+                          .map((p) => (
+                            <option key={p.code} value={p.code}>
+                              {p.name}
+                            </option>
+                          ))
+                      )}
+                    </select>
+                  </label>
+                  <label className="block">
+                    <span className="mb-1 block text-xs font-medium">
+                      {t("admin.pdProvision.trialDays")}
+                    </span>
+                    <input
+                      type="number"
+                      min={0}
+                      max={365}
+                      value={trialDays}
+                      onChange={(e) => setTrialDays(e.target.value)}
+                      className={inputClass}
+                      disabled={busy || !audienceLocked}
+                    />
+                  </label>
+                  <label className="block">
+                    <span className="mb-1 block text-xs font-medium">
+                      {t("admin.pdProvision.activatesAt")}
+                    </span>
+                    <input
+                      type="date"
+                      value={activatesAt}
+                      onChange={(e) => setActivatesAt(e.target.value)}
+                      className={inputClass}
+                      disabled={busy || !audienceLocked}
+                      required
+                    />
+                    <span className="mt-1 block text-xs text-[var(--color-foreground-muted)]">
+                      {t("admin.pdProvision.activatesAtHint")}
+                    </span>
+                  </label>
                 </>
               )}
             </div>
 
             <div className="rounded-md border border-[var(--color-border)] p-3">
-              <h4 className="text-xs font-semibold uppercase tracking-wide text-[var(--color-foreground-muted)]">
+              <h4 className="text-xs font-semibold tracking-wide text-[var(--color-foreground-muted)] uppercase">
                 {t("admin.pdProvision.ownerHeading", { role: ownerRoleLabel })}
               </h4>
               <p className="mt-1 mb-3 text-xs text-[var(--color-foreground-muted)]">
@@ -426,7 +442,9 @@ export function LeadProvisionPanel(props: Props) {
               </p>
               <div className="grid gap-3 md:grid-cols-2">
                 <label className="block">
-                  <span className="mb-1 block text-xs font-medium">{t("admin.pdProvision.ownerName")}</span>
+                  <span className="mb-1 block text-xs font-medium">
+                    {t("admin.pdProvision.ownerName")}
+                  </span>
                   <input
                     value={ownerName}
                     onChange={(e) => setOwnerName(e.target.value)}
@@ -435,7 +453,9 @@ export function LeadProvisionPanel(props: Props) {
                   />
                 </label>
                 <label className="block">
-                  <span className="mb-1 block text-xs font-medium">{t("admin.pdProvision.ownerEmail")}</span>
+                  <span className="mb-1 block text-xs font-medium">
+                    {t("admin.pdProvision.ownerEmail")}
+                  </span>
                   <input
                     type="email"
                     value={ownerEmail}

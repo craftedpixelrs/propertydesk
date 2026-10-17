@@ -47,7 +47,7 @@ export default async function BankStatementsPage() {
         </CardHeader>
         <CardContent className="p-0">
           <table className="w-full text-sm">
-            <thead className="text-left text-xs uppercase text-[var(--color-foreground-subtle)]">
+            <thead className="text-left text-xs text-[var(--color-foreground-subtle)] uppercase">
               <tr>
                 <th className="border-b border-[var(--color-border)] px-3 py-2">
                   {t("common.date")}
@@ -72,7 +72,10 @@ export default async function BankStatementsPage() {
             <tbody>
               {imports.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-3 py-6 text-center text-[var(--color-foreground-muted)]">
+                  <td
+                    colSpan={6}
+                    className="px-3 py-6 text-center text-[var(--color-foreground-muted)]"
+                  >
                     {t("admin.statements.emptyImports")}
                   </td>
                 </tr>
@@ -106,7 +109,7 @@ export default async function BankStatementsPage() {
             </p>
           ) : (
             <table className="w-full text-sm">
-              <thead className="text-left text-xs uppercase text-[var(--color-foreground-subtle)]">
+              <thead className="text-left text-xs text-[var(--color-foreground-subtle)] uppercase">
                 <tr>
                   <th className="border-b border-[var(--color-border)] px-3 py-2">
                     {t("common.date")}

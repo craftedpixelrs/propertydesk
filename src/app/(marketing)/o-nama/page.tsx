@@ -2,12 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Mail, Phone } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
+import { marketingCta } from "@/features/marketing/marketing-cta";
 import { COMPANY } from "@/lib/constants/app";
-import {
-  buildLandingMetadata,
-  LandingJsonLd,
-} from "@/features/marketing/landing/landing-shell";
+import { buildLandingMetadata, LandingJsonLd } from "@/features/marketing/landing/landing-shell";
 import { createT } from "@/lib/i18n";
 import { resolveRequestLocale } from "@/lib/i18n/resolve-locale";
 
@@ -29,10 +26,10 @@ export default async function AboutPage() {
   return (
     <>
       <article className="container-app max-w-3xl py-14 sm:py-16">
-        <p className="text-xs font-semibold uppercase tracking-wider text-[var(--color-brand-700)]">
+        <p className="text-xs font-semibold tracking-[0.18em] text-[#9a7430] uppercase">
           {t("marketing.about.eyebrow")}
         </p>
-        <h1 className="mt-2 text-3xl font-semibold tracking-tight sm:text-4xl">
+        <h1 className="font-display mt-3 text-4xl font-semibold tracking-tight text-[#0b1020] sm:text-5xl">
           {t("marketing.about.title")}
         </h1>
         <p className="mt-4 text-base leading-relaxed text-[var(--color-foreground-muted)]">
@@ -40,18 +37,14 @@ export default async function AboutPage() {
         </p>
 
         <section className="mt-10 space-y-3">
-          <h2 className="text-lg font-semibold tracking-tight">
-            {t("marketing.about.whoTitle")}
-          </h2>
+          <h2 className="text-lg font-semibold tracking-tight">{t("marketing.about.whoTitle")}</h2>
           <p className="text-sm leading-relaxed text-[var(--color-foreground-muted)]">
             {t("marketing.about.whoBody")}
           </p>
         </section>
 
         <section className="mt-8 space-y-3">
-          <h2 className="text-lg font-semibold tracking-tight">
-            {t("marketing.about.whyTitle")}
-          </h2>
+          <h2 className="text-lg font-semibold tracking-tight">{t("marketing.about.whyTitle")}</h2>
           <p className="text-sm leading-relaxed text-[var(--color-foreground-muted)]">
             {t("marketing.about.whyBody")}
           </p>
@@ -68,7 +61,7 @@ export default async function AboutPage() {
             <li>
               <a
                 href={`mailto:${COMPANY.email}`}
-                className="inline-flex items-center gap-1.5 font-medium text-[var(--color-brand-700)] hover:underline"
+                className="inline-flex items-center gap-1.5 font-medium text-[#0b1020] underline decoration-[#d6b26a] decoration-2 underline-offset-4 hover:text-[#9a7430]"
               >
                 <Mail aria-hidden className="size-4" />
                 {COMPANY.email}
@@ -77,7 +70,7 @@ export default async function AboutPage() {
             <li>
               <a
                 href={`tel:${COMPANY.phoneTel}`}
-                className="inline-flex items-center gap-1.5 font-medium text-[var(--color-brand-700)] hover:underline"
+                className="inline-flex items-center gap-1.5 font-medium text-[#0b1020] underline decoration-[#d6b26a] decoration-2 underline-offset-4 hover:text-[#9a7430]"
               >
                 <Phone aria-hidden className="size-4" />
                 {COMPANY.phoneDisplay}
@@ -85,12 +78,12 @@ export default async function AboutPage() {
             </li>
           </ul>
           <div className="mt-6 flex flex-wrap gap-2">
-            <Button asChild size="sm">
-              <Link href="/demo">{t("marketing.header.bookDemo")}</Link>
-            </Button>
-            <Button asChild size="sm" variant="outline">
-              <Link href="/impresum">{t("marketing.nav.imprint")}</Link>
-            </Button>
+            <Link href="/demo" className={marketingCta("ink", "sm")}>
+              {t("marketing.header.bookDemo")}
+            </Link>
+            <Link href="/impresum" className={marketingCta("outline", "sm")}>
+              {t("marketing.nav.imprint")}
+            </Link>
           </div>
         </section>
       </article>

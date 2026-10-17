@@ -81,9 +81,7 @@ export function ReservationActions({
             size="sm"
             variant="outline"
             loading={busy}
-            onClick={() =>
-              act("cancel", { reason: t("deals.reservationActions.cancelReason") })
-            }
+            onClick={() => act("cancel", { reason: t("deals.reservationActions.cancelReason") })}
           >
             {t("common.cancel")}
           </Button>

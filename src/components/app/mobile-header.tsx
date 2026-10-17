@@ -17,12 +17,12 @@ export function MobileHeader({
   branding?: OrgBranding | null;
 }) {
   return (
-    <header className="sticky top-0 z-30 flex h-14 items-center justify-between gap-2 border-b border-[var(--color-border)] bg-[color-mix(in_oklab,var(--color-surface)_92%,transparent)] px-4 shadow-[0_8px_24px_-18px_rgba(15,23,42,0.4)] backdrop-blur-md safe-top md:hidden">
+    <header className="safe-top sticky top-0 z-30 flex h-14 items-center justify-between gap-2 border-b border-[var(--color-border)] bg-[color-mix(in_oklab,var(--color-surface)_92%,transparent)] px-4 shadow-[0_8px_24px_-18px_rgba(15,23,42,0.4)] backdrop-blur-md md:hidden">
       <div className="min-w-0 text-sm font-semibold text-[var(--color-foreground)]">
         <OrgBrandMark branding={branding} compact />
       </div>
       <div className="flex min-w-0 items-center gap-1">
-        <div className="min-w-0 max-w-[45vw]">
+        <div className="max-w-[45vw] min-w-0">
           <OrganizationSwitcher />
         </div>
         {lockNav ? null : (

@@ -33,13 +33,7 @@ import type { PermissionString } from "@/server/permissions/access-control";
  */
 
 export type NavGroup =
-  | "overview"
-  | "property"
-  | "crm"
-  | "deals"
-  | "finance"
-  | "network"
-  | "library";
+  "overview" | "property" | "crm" | "deals" | "finance" | "network" | "library";
 
 export const NAV_GROUP_ORDER: NavGroup[] = [
   "overview",
@@ -73,38 +67,37 @@ export const NAV_GROUP_LABEL: Record<
 export interface NavItem {
   key: string;
   group: NavGroup;
-  labelKey:
-    | `nav.${
-        | "dashboard"
-        | "home"
-        | "projects"
-        | "inventory"
-        | "customers"
-        | "leads"
-        | "activities"
-        | "tasks"
-        | "reservations"
-        | "calendar"
-        | "sales"
-        | "paymentPlans"
-        | "payments"
-        | "agencies"
-        | "agents"
-        | "agencyRegistrations"
-        | "offer"
-        | "myBuyers"
-        | "myReservations"
-        | "myCommissions"
-        | "connections"
-        | "catalog"
-        | "commissions"
-        | "documents"
-        | "reports"
-        | "settings"
-        | "signOut"
-        | "more"
-        | "platformAdmin"
-        | "propertyDesk"}`;
+  labelKey: `nav.${
+    | "dashboard"
+    | "home"
+    | "projects"
+    | "inventory"
+    | "customers"
+    | "leads"
+    | "activities"
+    | "tasks"
+    | "reservations"
+    | "calendar"
+    | "sales"
+    | "paymentPlans"
+    | "payments"
+    | "agencies"
+    | "agents"
+    | "agencyRegistrations"
+    | "offer"
+    | "myBuyers"
+    | "myReservations"
+    | "myCommissions"
+    | "connections"
+    | "catalog"
+    | "commissions"
+    | "documents"
+    | "reports"
+    | "settings"
+    | "signOut"
+    | "more"
+    | "platformAdmin"
+    | "propertyDesk"}`;
   href: string;
   icon: LucideIcon;
   /** Required permission to see the item. `undefined` == always visible. */
@@ -123,7 +116,13 @@ export interface NavItem {
 }
 
 export const navigation: NavItem[] = [
-  { key: "dashboard", group: "overview", labelKey: "nav.dashboard", href: "/dashboard", icon: Home },
+  {
+    key: "dashboard",
+    group: "overview",
+    labelKey: "nav.dashboard",
+    href: "/dashboard",
+    icon: Home,
+  },
   {
     key: "projects",
     group: "property",
@@ -349,28 +348,20 @@ export interface NavContext {
 // Nav keys that are safe for a SUPER_ADMIN without an active organization.
 // Tenant dashboard is hidden: `/dashboard` always redirects SUPER_ADMIN
 // to `/administracija`.
-const PLATFORM_ONLY_SAFE_KEYS = new Set([
-  "platform-admin",
-]);
+const PLATFORM_ONLY_SAFE_KEYS = new Set(["platform-admin"]);
 
 // Nav keys that a Property Desk team member without a tenant sees.
 // Dashboard and tenant Settings are omitted: both just bounce them
 // (settings → /dashboard → property-desk).
-const PD_ONLY_SAFE_KEYS = new Set([
-  "property-desk",
-]);
+const PD_ONLY_SAFE_KEYS = new Set(["property-desk"]);
 
-export function filterNavigation(
-  items: NavItem[],
-  ctx: NavContext,
-): NavItem[] {
+export function filterNavigation(items: NavItem[], ctx: NavContext): NavItem[] {
   const superAdminWithoutOrg = ctx.isSuperAdmin && !ctx.organizationType;
   // A user whose only relationship to the platform is Property Desk team
   // membership (not SUPER_ADMIN, not a tenant member). They shouldn't see
   // any tenant-scoped items — those would all bounce them back to
   // `/dashboard` anyway.
-  const pdOnlyUser =
-    !ctx.isSuperAdmin && !ctx.organizationType && ctx.hasPropertyDeskAccess;
+  const pdOnlyUser = !ctx.isSuperAdmin && !ctx.organizationType && ctx.hasPropertyDeskAccess;
   return items.filter((item) => {
     if (item.platformOnly && !ctx.isSuperAdmin) return false;
     if (item.pdTeamOnly && (ctx.isSuperAdmin || !ctx.hasPropertyDeskAccess)) {
@@ -390,10 +381,7 @@ export function filterNavigation(
     if (pdOnlyUser && !PD_ONLY_SAFE_KEYS.has(item.key)) {
       return false;
     }
-    if (
-      item.orgTypes &&
-      (!ctx.organizationType || !item.orgTypes.includes(ctx.organizationType))
-    ) {
+    if (item.orgTypes && (!ctx.organizationType || !item.orgTypes.includes(ctx.organizationType))) {
       return false;
     }
     if (item.permission && !ctx.hasPermission(item.permission)) return false;

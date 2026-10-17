@@ -3,7 +3,7 @@
 import { CalendarCheck2, PhoneCall, Video, Mail, ExternalLink, ArrowRight } from "lucide-react";
 
 import { GOOGLE_APPOINTMENT_URL } from "@/lib/constants/app";
-import { Button } from "@/components/ui/button";
+import { marketingCta } from "@/features/marketing/marketing-cta";
 import { useT } from "@/components/app/i18n-provider";
 
 /**
@@ -82,20 +82,16 @@ export function BookingEmbed({
   const isEmbeddable = hasUrl && isEmbeddableSchedulesUrl(url);
 
   return (
-    <section
-      id={anchorId}
-      aria-labelledby={`${anchorId}-title`}
-      className="scroll-mt-20"
-    >
+    <section id={anchorId} aria-labelledby={`${anchorId}-title`} className="scroll-mt-20">
       <div className="container-app py-14 sm:py-20">
         <div className="max-w-2xl">
-          <div className="inline-flex items-center gap-2 rounded-full border border-[var(--color-brand-200)] bg-[var(--color-brand-50)] px-3 py-1 text-xs font-semibold uppercase tracking-wider text-[var(--color-brand-700)]">
+          <div className="inline-flex items-center gap-2 rounded-full border border-[#d6b26a]/40 bg-[#f7f3ea] px-3 py-1 text-xs font-semibold tracking-[0.16em] text-[#9a7430] uppercase">
             <CalendarCheck2 aria-hidden className="size-3.5" />
             {t("marketing.booking.eyebrow")}
           </div>
           <h2
             id={`${anchorId}-title`}
-            className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl"
+            className="font-display mt-3 text-4xl font-semibold tracking-tight text-[#0b1020] sm:text-5xl"
           >
             {resolvedTitle}
           </h2>
@@ -123,9 +119,7 @@ export function BookingEmbed({
 
         {!hideFeatures ? (
           <ul className="mt-6 grid gap-3 text-sm text-[var(--color-foreground-muted)] sm:grid-cols-2 lg:grid-cols-4">
-            <FeatureLi icon={CalendarCheck2}>
-              {t("marketing.booking.liveSlots")}
-            </FeatureLi>
+            <FeatureLi icon={CalendarCheck2}>{t("marketing.booking.liveSlots")}</FeatureLi>
             <FeatureLi icon={Mail}>{t("marketing.booking.emailConfirm")}</FeatureLi>
             <FeatureLi icon={Video}>{t("marketing.booking.videoLink")}</FeatureLi>
             <FeatureLi icon={PhoneCall}>
@@ -152,13 +146,7 @@ export function BookingEmbed({
  * Google directly (with all the confirmation email + video call
  * bells and whistles).
  */
-function BookingShareLinkCard({
-  url,
-  size,
-}: {
-  url: string;
-  size: "hero" | "compact";
-}) {
+function BookingShareLinkCard({ url, size }: { url: string; size: "hero" | "compact" }) {
   const t = useT();
   return (
     <div
@@ -166,15 +154,15 @@ function BookingShareLinkCard({
     >
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-0 -z-0 bg-gradient-to-br from-[var(--color-brand-50)] via-white to-[var(--color-brand-50)]"
+        className="pointer-events-none absolute inset-0 -z-0 bg-gradient-to-br from-[#f7f3ea] via-white to-[#f3e2bc]/40"
       />
       <div
         aria-hidden
-        className="pointer-events-none absolute -top-24 left-1/2 -z-0 h-56 w-[32rem] -translate-x-1/2 rounded-full bg-[var(--color-brand-200)]/50 blur-3xl"
+        className="pointer-events-none absolute -top-24 left-1/2 -z-0 h-56 w-[32rem] -translate-x-1/2 rounded-full bg-[#d6b26a]/30 blur-3xl"
       />
       <span
         aria-hidden
-        className="relative z-10 grid h-16 w-16 place-items-center rounded-full bg-[var(--color-brand-600)] text-white shadow-lg shadow-[var(--color-brand-700)]/20"
+        className="relative z-10 grid size-16 place-items-center rounded-full bg-[#0b1020] text-[#f3e2bc]"
       >
         <CalendarCheck2 className="size-7" />
       </span>
@@ -191,17 +179,13 @@ function BookingShareLinkCard({
           href={url}
           target="_blank"
           rel="noopener noreferrer"
-          style={{ color: "#ffffff" }}
-          className="inline-flex h-12 items-center justify-center gap-2 rounded-md bg-[var(--color-brand-600)] px-6 text-base font-semibold shadow-lg shadow-[var(--color-brand-700)]/20 transition hover:bg-[var(--color-brand-700)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand-600)] focus-visible:ring-offset-2"
+          className={marketingCta("ink", "lg")}
         >
           <CalendarCheck2 aria-hidden className="size-4" />
           {t("marketing.booking.openCalendar")}
           <ArrowRight aria-hidden className="size-4" />
         </a>
-        <a
-          href="tel:+381654363142"
-          className="inline-flex h-12 items-center justify-center gap-2 rounded-md border border-[var(--color-border-strong)] bg-white px-6 text-base font-semibold text-[var(--color-foreground)] transition hover:bg-[var(--color-brand-50)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand-600)] focus-visible:ring-offset-2"
-        >
+        <a href="tel:+381654363142" className={marketingCta("outline", "lg")}>
           <PhoneCall aria-hidden className="size-4" />
           {t("marketing.common.callUs")}
         </a>
@@ -222,7 +206,7 @@ function BookingFallback({ size }: { size: "hero" | "compact" }) {
     >
       <span
         aria-hidden
-        className="grid h-14 w-14 place-items-center rounded-full bg-[var(--color-brand-50)] text-[var(--color-brand-700)]"
+        className="grid h-14 w-14 place-items-center rounded-full bg-[#0b1020] text-[#f3e2bc]"
       >
         <CalendarCheck2 className="size-6" />
       </span>
@@ -235,15 +219,13 @@ function BookingFallback({ size }: { size: "hero" | "compact" }) {
         </p>
       </div>
       <div className="flex flex-col gap-2 sm:flex-row">
-        <Button asChild size="md">
-          <a href="#prijava">{t("marketing.booking.leaveContact")}</a>
-        </Button>
-        <Button asChild size="md" variant="outline">
-          <a href="tel:+381654363142" className="gap-2">
-            <PhoneCall aria-hidden className="size-4" />
-            {t("marketing.common.callUs")}
-          </a>
-        </Button>
+        <a href="#prijava" className={marketingCta("ink", "md")}>
+          {t("marketing.booking.leaveContact")}
+        </a>
+        <a href="tel:+381654363142" className={marketingCta("outline", "md")}>
+          <PhoneCall aria-hidden className="size-4" />
+          {t("marketing.common.callUs")}
+        </a>
       </div>
     </div>
   );
@@ -258,7 +240,7 @@ function FeatureLi({
 }) {
   return (
     <li className="flex items-start gap-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-3">
-      <Icon aria-hidden className="mt-0.5 size-4 text-[var(--color-brand-700)]" />
+      <Icon aria-hidden className="mt-0.5 size-4 text-[#9a7430]" />
       <span>{children}</span>
     </li>
   );

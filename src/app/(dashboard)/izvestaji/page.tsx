@@ -1,13 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import {
-  Building2,
-  Handshake,
-  Users,
-  BadgeCheck,
-  Wallet,
-  Store,
-} from "lucide-react";
+import { Building2, Handshake, Users, BadgeCheck, Wallet, Store } from "lucide-react";
 
 import { PageHeader } from "@/components/app/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -69,14 +62,16 @@ export default async function ReportsIndexPage() {
   const isInvestor = ctx.activeOrganization.type === "INVESTOR";
   const items = isInvestor
     ? REPORTS
-    : REPORTS.filter((r) => !r.href.endsWith("/prodaje") && !r.href.endsWith("/agencije") && !r.href.endsWith("/uplate"));
+    : REPORTS.filter(
+        (r) =>
+          !r.href.endsWith("/prodaje") &&
+          !r.href.endsWith("/agencije") &&
+          !r.href.endsWith("/uplate"),
+      );
 
   return (
     <div className="space-y-6">
-      <PageHeader
-        title={t("nav.reports")}
-        description={t("ops.reports.subtitle")}
-      />
+      <PageHeader title={t("nav.reports")} description={t("ops.reports.subtitle")} />
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {items.map((r) => (
           <Link key={r.href} href={r.href}>

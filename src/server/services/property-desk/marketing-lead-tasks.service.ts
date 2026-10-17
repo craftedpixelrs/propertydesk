@@ -86,12 +86,7 @@ export async function listTasksForLead(
 // Global list (dashboard views)
 // -----------------------------------------------------------------------------
 
-export type TaskView =
-  | "MINE_OPEN"
-  | "MINE_OVERDUE"
-  | "OPEN"
-  | "OVERDUE"
-  | "ALL";
+export type TaskView = "MINE_OPEN" | "MINE_OVERDUE" | "OPEN" | "OVERDUE" | "ALL";
 
 export async function listTasksForView(
   ctx: PropertyDeskAccessContext,
@@ -101,8 +96,7 @@ export async function listTasksForView(
   if (!(await hasPdPermission(ctx, "pd_lead_task.read"))) {
     throw new DomainError("FORBIDDEN", "Nemate dozvolu za čitanje taskova.");
   }
-  const leadFilter =
-    (await buildMarketingLeadScopeFilter(ctx)) as Prisma.MarketingLeadWhereInput;
+  const leadFilter = (await buildMarketingLeadScopeFilter(ctx)) as Prisma.MarketingLeadWhereInput;
 
   const now = new Date();
   const where: Prisma.MarketingLeadTaskWhereInput = { lead: leadFilter };
@@ -134,11 +128,7 @@ export async function listTasksForView(
 
   return prisma.marketingLeadTask.findMany({
     where,
-    orderBy: [
-      { completedAt: "asc" },
-      { dueAt: "asc" },
-      { createdAt: "desc" },
-    ],
+    orderBy: [{ completedAt: "asc" }, { dueAt: "asc" }, { createdAt: "desc" }],
     take: Math.min(200, Math.max(1, limit)),
     include: TASK_INCLUDE,
   });
@@ -153,8 +143,7 @@ export async function getLeadTaskCounts(
   if (!(await hasPdPermission(ctx, "pd_lead_task.read"))) {
     return { mineOpen: 0, mineOverdue: 0, teamOverdue: 0 };
   }
-  const leadFilter =
-    (await buildMarketingLeadScopeFilter(ctx)) as Prisma.MarketingLeadWhereInput;
+  const leadFilter = (await buildMarketingLeadScopeFilter(ctx)) as Prisma.MarketingLeadWhereInput;
   const meId = ctx.isSuperAdmin ? ctx.session.user.id : ctx.teamMember.userId;
   const now = new Date();
 
@@ -221,14 +210,8 @@ export async function createLeadTask(
       : input.assignedToUserId;
 
   // Assigning to someone other than yourself requires pd_lead_task.assign.
-  if (
-    assignedToUserId !== meTeamUserId &&
-    !(await hasPdPermission(ctx, "pd_lead_task.assign"))
-  ) {
-    throw new DomainError(
-      "FORBIDDEN",
-      "Nemate dozvolu za dodelu taska drugom članu tima.",
-    );
+  if (assignedToUserId !== meTeamUserId && !(await hasPdPermission(ctx, "pd_lead_task.assign"))) {
+    throw new DomainError("FORBIDDEN", "Nemate dozvolu za dodelu taska drugom članu tima.");
   }
 
   return prisma.marketingLeadTask.create({
@@ -272,9 +255,7 @@ export async function updateLeadTask(
     throw new DomainError("FORBIDDEN", "Nemate dozvolu za izmenu taska.");
   }
 
-  const meTeamUserId = ctx.isSuperAdmin
-    ? ctx.session.user.id
-    : ctx.teamMember.userId;
+  const meTeamUserId = ctx.isSuperAdmin ? ctx.session.user.id : ctx.teamMember.userId;
 
   if (
     input.assignedToUserId !== undefined &&
@@ -282,10 +263,7 @@ export async function updateLeadTask(
     input.assignedToUserId !== meTeamUserId &&
     !(await hasPdPermission(ctx, "pd_lead_task.assign"))
   ) {
-    throw new DomainError(
-      "FORBIDDEN",
-      "Nemate dozvolu za dodelu taska drugom članu tima.",
-    );
+    throw new DomainError("FORBIDDEN", "Nemate dozvolu za dodelu taska drugom članu tima.");
   }
 
   const data: Prisma.MarketingLeadTaskUpdateInput = {};
@@ -325,10 +303,7 @@ export async function completeLeadTask(
     throw new DomainError("FORBIDDEN", "Nemate pristup ovom lead-u.");
   }
   if (!(await hasPdPermission(ctx, "pd_lead_task.complete"))) {
-    throw new DomainError(
-      "FORBIDDEN",
-      "Nemate dozvolu za obeležavanje taska kao završenog.",
-    );
+    throw new DomainError("FORBIDDEN", "Nemate dozvolu za obeležavanje taska kao završenog.");
   }
 
   const meId = ctx.session.user.id;

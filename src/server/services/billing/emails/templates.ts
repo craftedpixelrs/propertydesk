@@ -83,13 +83,7 @@ Ukoliko imate pitanja, kontaktirajte nas na {{supportEmail}}.
 Srdačan pozdrav,
 Tim PropertyDesk`,
     bodyHtml: `<p style="margin:0 0 16px 0;color:#0f172a;font-size:15px;line-height:1.6;">Poštovani <strong>{{organizationName}}</strong>, zahvaljujemo Vam na registraciji! Vaš PropertyDesk nalog je spreman i sve funkcionalnosti su dostupne bez ograničenja tokom probnog perioda.</p>`,
-    variables: [
-      "organizationName",
-      "trialEndsAt",
-      "daysRemaining",
-      "supportEmail",
-      "appUrl",
-    ],
+    variables: ["organizationName", "trialEndsAt", "daysRemaining", "supportEmail", "appUrl"],
   },
   {
     key: "subscription.trial_ending",
@@ -103,12 +97,7 @@ Vaš probni period ističe {{trialEndsAt}}. Kako biste nastavili sa nesmetanim r
 Sa poštovanjem,
 Tim PropertyDesk`,
     bodyHtml: `<p style="margin:0 0 16px 0;color:#0f172a;font-size:15px;line-height:1.6;">Poštovani <strong>{{organizationName}}</strong>, Vaš probni period se privodi kraju. Kako biste nastavili sa nesmetanim radom, molimo Vas da odaberete plan pre isteka.</p>`,
-    variables: [
-      "organizationName",
-      "trialEndsAt",
-      "daysRemaining",
-      "appUrl",
-    ],
+    variables: ["organizationName", "trialEndsAt", "daysRemaining", "appUrl"],
   },
   {
     key: "subscription.activated",
@@ -123,13 +112,7 @@ Hvala Vam na poverenju.
 
 Tim PropertyDesk`,
     bodyHtml: `<p style="margin:0 0 16px 0;color:#0f172a;font-size:15px;line-height:1.6;">Poštovani <strong>{{organizationName}}</strong>, uspešno ste aktivirali svoju pretplatu. Hvala Vam na poverenju.</p>`,
-    variables: [
-      "organizationName",
-      "planName",
-      "billingCycle",
-      "nextBillingDate",
-      "appUrl",
-    ],
+    variables: ["organizationName", "planName", "billingCycle", "nextBillingDate", "appUrl"],
   },
   {
     key: "subscription.plan_changed",
@@ -231,12 +214,7 @@ Obaveštavamo Vas da je faktura {{invoiceNumber}} otkazana. Razlog: {{reason}}.
 
 Tim PropertyDesk`,
     bodyHtml: `<p style="margin:0 0 16px 0;color:#0f172a;font-size:15px;line-height:1.6;">Poštovani <strong>{{organizationName}}</strong>, obaveštavamo Vas da je navedena faktura otkazana.</p>`,
-    variables: [
-      "organizationName",
-      "invoiceNumber",
-      "reason",
-      "appUrl",
-    ],
+    variables: ["organizationName", "invoiceNumber", "reason", "appUrl"],
   },
   {
     key: "reminder.pre_due",
@@ -340,12 +318,7 @@ Za nastavak rada molimo Vas da izvršite uplatu. Nakon evidentiranja uplate, pri
 
 Tim PropertyDesk`,
     bodyHtml: `<p style="margin:0 0 16px 0;color:#0f172a;font-size:15px;line-height:1.6;">Poštovani <strong>{{organizationName}}</strong>, Vaš pristup PropertyDesk platformi je privremeno ograničen zbog neizmirenih obaveza.</p>`,
-    variables: [
-      "organizationName",
-      "amountDue",
-      "currency",
-      "appUrl",
-    ],
+    variables: ["organizationName", "amountDue", "currency", "appUrl"],
   },
   {
     key: "subscription.suspended",
@@ -358,14 +331,13 @@ Vaša pretplata je suspendovana. Kontaktirajte {{supportEmail}} za nastavak sara
 
 Tim PropertyDesk`,
     bodyHtml: `<p style="margin:0 0 16px 0;color:#0f172a;font-size:15px;line-height:1.6;">Poštovani <strong>{{organizationName}}</strong>, Vaša pretplata je suspendovana. Za nastavak saradnje molimo Vas da nas kontaktirate.</p>`,
-    variables: [
-      "organizationName",
-      "supportEmail",
-    ],
+    variables: ["organizationName", "supportEmail"],
   },
 ];
 
-export const ALL_TEMPLATE_KEYS = DEFAULT_TEMPLATES.map((t) => t.key) as readonly BillingTemplateKey[];
+export const ALL_TEMPLATE_KEYS = DEFAULT_TEMPLATES.map(
+  (t) => t.key,
+) as readonly BillingTemplateKey[];
 
 // -----------------------------------------------------------------------------
 // Structural layout definitions per key
@@ -388,8 +360,7 @@ interface TemplateLayout {
  */
 export const TEMPLATE_LAYOUTS: Record<BillingTemplateKey, TemplateLayout> = {
   "subscription.trial_started": {
-    preheader:
-      "Vaš probni period je aktivan do {{trialEndsAt}} — sve funkcionalnosti dostupne.",
+    preheader: "Vaš probni period je aktivan do {{trialEndsAt}} — sve funkcionalnosti dostupne.",
     badge: { label: "Probni period aktivan", tone: "info" },
     title: "Dobrodošli u PropertyDesk",
     keyValues: [
@@ -400,8 +371,7 @@ export const TEMPLATE_LAYOUTS: Record<BillingTemplateKey, TemplateLayout> = {
     footerNote: "Sve funkcionalnosti su dostupne tokom probnog perioda.",
   },
   "subscription.trial_ending": {
-    preheader:
-      "Vaš probni period ističe {{trialEndsAt}} — odaberite plan da nastavite.",
+    preheader: "Vaš probni period ističe {{trialEndsAt}} — odaberite plan da nastavite.",
     badge: { label: "Probni period ističe", tone: "warning" },
     title: "Probni period se približava kraju",
     keyValues: [
@@ -412,8 +382,7 @@ export const TEMPLATE_LAYOUTS: Record<BillingTemplateKey, TemplateLayout> = {
     cta: { label: "Odaberi plan", href: "{{appUrl}}/podesavanja/pretplata" },
   },
   "subscription.activated": {
-    preheader:
-      "Plan {{planName}} je aktiviran — sledeća naplata: {{nextBillingDate}}.",
+    preheader: "Plan {{planName}} je aktiviran — sledeća naplata: {{nextBillingDate}}.",
     badge: { label: "Aktivirano", tone: "success" },
     title: "Pretplata je uspešno aktivirana",
     keyValues: [
@@ -457,8 +426,7 @@ export const TEMPLATE_LAYOUTS: Record<BillingTemplateKey, TemplateLayout> = {
       label: "Otvori fakturu",
       href: "{{appUrl}}/podesavanja/fakture/{{invoiceId}}",
     },
-    footerNote:
-      "PDF sa detaljima šaljemo u zasebnoj poruci u naredna 24h.",
+    footerNote: "PDF sa detaljima šaljemo u zasebnoj poruci u naredna 24h.",
   },
   "invoice.sent": {
     preheader:
@@ -477,8 +445,7 @@ export const TEMPLATE_LAYOUTS: Record<BillingTemplateKey, TemplateLayout> = {
     },
   },
   "invoice.paid": {
-    preheader:
-      "Uplata za fakturu {{invoiceNumber}} je evidentirana — {{amountPaid}} {{currency}}.",
+    preheader: "Uplata za fakturu {{invoiceNumber}} je evidentirana — {{amountPaid}} {{currency}}.",
     badge: { label: "Plaćeno", tone: "success" },
     title: "Uplata je evidentirana",
     keyValues: [
@@ -493,8 +460,7 @@ export const TEMPLATE_LAYOUTS: Record<BillingTemplateKey, TemplateLayout> = {
     footerNote: "Hvala Vam na blagovremenoj uplati.",
   },
   "invoice.canceled": {
-    preheader:
-      "Faktura {{invoiceNumber}} je otkazana — {{reason}}.",
+    preheader: "Faktura {{invoiceNumber}} je otkazana — {{reason}}.",
     badge: { label: "Otkazano", tone: "muted" },
     title: "Faktura {{invoiceNumber}} je otkazana",
     keyValues: [
@@ -522,8 +488,7 @@ export const TEMPLATE_LAYOUTS: Record<BillingTemplateKey, TemplateLayout> = {
     },
   },
   "reminder.due_day": {
-    preheader:
-      "Faktura {{invoiceNumber}} dospeva danas — {{amountDue}} {{currency}}.",
+    preheader: "Faktura {{invoiceNumber}} dospeva danas — {{amountDue}} {{currency}}.",
     badge: { label: "Dospeva danas", tone: "warning" },
     title: "Faktura dospeva danas",
     keyValues: [
@@ -555,8 +520,7 @@ export const TEMPLATE_LAYOUTS: Record<BillingTemplateKey, TemplateLayout> = {
     },
   },
   "reminder.final_notice": {
-    preheader:
-      "POSLEDNJA OPOMENA: faktura {{invoiceNumber}} — pristup će biti ograničen.",
+    preheader: "POSLEDNJA OPOMENA: faktura {{invoiceNumber}} — pristup će biti ograničen.",
     badge: { label: "Poslednja opomena", tone: "danger" },
     title: "Poslednja opomena za fakturu {{invoiceNumber}}",
     keyValues: [
@@ -574,8 +538,7 @@ export const TEMPLATE_LAYOUTS: Record<BillingTemplateKey, TemplateLayout> = {
     },
   },
   "subscription.restricted": {
-    preheader:
-      "Vaš pristup je ograničen — otvorene stavke {{amountDue}} {{currency}}.",
+    preheader: "Vaš pristup je ograničen — otvorene stavke {{amountDue}} {{currency}}.",
     badge: { label: "Pristup ograničen", tone: "danger" },
     title: "Pristup je privremeno ograničen",
     keyValues: [
@@ -596,8 +559,7 @@ export const TEMPLATE_LAYOUTS: Record<BillingTemplateKey, TemplateLayout> = {
     },
   },
   "subscription.suspended": {
-    preheader:
-      "Vaša pretplata je suspendovana — kontaktirajte {{supportEmail}}.",
+    preheader: "Vaša pretplata je suspendovana — kontaktirajte {{supportEmail}}.",
     badge: { label: "Suspendovano", tone: "danger" },
     title: "Pretplata je suspendovana",
     keyValues: [
@@ -628,11 +590,9 @@ const VARIABLE_RE = /\{\{\s*([a-zA-Z][a-zA-Z0-9_]*)\s*\}\}/g;
  * HTML-escaped when the surrounding template appears to contain HTML
  * markup so operator-supplied data can never break out of a tag.
  */
-export function safeSubstitute(
-  template: string,
-  variables: Record<string, string>,
-): string {
-  const looksLikeHtml = template.startsWith("<") || template.includes("<p") || template.includes("&");
+export function safeSubstitute(template: string, variables: Record<string, string>): string {
+  const looksLikeHtml =
+    template.startsWith("<") || template.includes("<p") || template.includes("&");
   return template.replace(VARIABLE_RE, (_match, name: string) => {
     if (Object.prototype.hasOwnProperty.call(variables, name)) {
       return escapeHtmlWhereNeeded(variables[name] ?? "", looksLikeHtml);
@@ -646,10 +606,7 @@ export function safeSubstitute(
  * values (e.g. CTA `href`) where the caller has already promised to
  * pass URL-safe values. Never use for user-generated content.
  */
-function substituteRaw(
-  template: string,
-  variables: Record<string, string>,
-): string {
+function substituteRaw(template: string, variables: Record<string, string>): string {
   return template.replace(VARIABLE_RE, (_match, name: string) => {
     if (Object.prototype.hasOwnProperty.call(variables, name)) {
       return variables[name] ?? "";
@@ -712,20 +669,13 @@ export function composeBillingEmailHtml(
     parts.push(renderKeyValue(substitutedRows));
   }
   if (layout.callout) {
-    parts.push(
-      renderCallout(
-        safeSubstitute(layout.callout.text, variables),
-        layout.callout.tone,
-      ),
-    );
+    parts.push(renderCallout(safeSubstitute(layout.callout.text, variables), layout.callout.tone));
   }
 
   return wrapBillingEmail({
     preheader: safeSubstitute(layout.preheader, variables),
     title: safeSubstitute(layout.title, variables),
-    badge: layout.badge
-      ? { label: layout.badge.label, tone: layout.badge.tone }
-      : undefined,
+    badge: layout.badge ? { label: layout.badge.label, tone: layout.badge.tone } : undefined,
     contentHtml: parts.join("\n"),
     cta: layout.cta
       ? {
@@ -733,9 +683,7 @@ export function composeBillingEmailHtml(
           href: substituteRaw(layout.cta.href, variables),
         }
       : undefined,
-    footerNote: layout.footerNote
-      ? safeSubstitute(layout.footerNote, variables)
-      : undefined,
+    footerNote: layout.footerNote ? safeSubstitute(layout.footerNote, variables) : undefined,
     supportEmail: variables.supportEmail,
   });
 }

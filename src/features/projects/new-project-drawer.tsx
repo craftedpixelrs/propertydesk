@@ -26,12 +26,7 @@ export function NewProjectDrawer({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState(false);
 
   return (
-    <Drawer
-      direction="right"
-      open={open}
-      onOpenChange={setOpen}
-      shouldScaleBackground={false}
-    >
+    <Drawer direction="right" open={open} onOpenChange={setOpen} shouldScaleBackground={false}>
       <DrawerTrigger asChild>{children}</DrawerTrigger>
       <DrawerContent side="right">
         <DrawerHeader className="flex shrink-0 flex-row items-start justify-between gap-3 border-b border-[var(--color-border)] p-4 pr-3">

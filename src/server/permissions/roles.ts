@@ -15,15 +15,16 @@ import { ac } from "./access-control";
 // -----------------------------------------------------------------------------
 
 export const INVESTOR_OWNER = ac.newRole({
-  organization: ["manage", "members:manage", "suspend", "read"],
+  organization: ["manage", "members:manage", "suspend", "read", "export", "templates"],
   project: ["create", "read", "update", "delete", "archive"],
   inventory: ["read", "manage", "price", "status", "reopen_sold", "import", "export", "bulk"],
   lead: ["read", "manage"],
   reservation: ["create", "approve", "cancel", "read"],
-  sale: ["read", "manage"],
+  sale: ["read", "manage", "dossier", "handover", "buyer_link", "settlement"],
+  buyer: ["anonymize"],
   payment: ["read", "manage"],
   agency: ["manage", "customer:register", "read"],
-  commission: ["read", "manage"],
+  commission: ["read", "manage", "statement"],
   document: ["read", "manage"],
   report: ["read"],
   audit: ["read"],
@@ -35,15 +36,16 @@ export const INVESTOR_OWNER = ac.newRole({
 });
 
 export const INVESTOR_ADMIN = ac.newRole({
-  organization: ["manage", "members:manage", "read"],
+  organization: ["manage", "members:manage", "read", "export", "templates"],
   project: ["create", "read", "update", "delete", "archive"],
   inventory: ["read", "manage", "price", "status", "reopen_sold", "import", "export", "bulk"],
   lead: ["read", "manage"],
   reservation: ["create", "approve", "cancel", "read"],
-  sale: ["read", "manage"],
+  sale: ["read", "manage", "dossier", "handover", "buyer_link", "settlement"],
+  buyer: ["anonymize"],
   payment: ["read", "manage"],
   agency: ["manage", "customer:register", "read"],
-  commission: ["read", "manage"],
+  commission: ["read", "manage", "statement"],
   document: ["read", "manage"],
   report: ["read"],
   audit: ["read"],
@@ -60,10 +62,10 @@ export const SALES_MANAGER = ac.newRole({
   inventory: ["read", "manage", "price", "status", "export", "bulk"],
   lead: ["read", "manage"],
   reservation: ["create", "approve", "cancel", "read"],
-  sale: ["read", "manage"],
+  sale: ["read", "manage", "dossier", "handover", "buyer_link", "settlement"],
   payment: ["read"],
   agency: ["read", "customer:register"],
-  commission: ["read"],
+  commission: ["read", "statement"],
   document: ["read", "manage"],
   report: ["read"],
 });
@@ -74,10 +76,10 @@ export const SALES_AGENT = ac.newRole({
   inventory: ["read"],
   lead: ["read", "manage"],
   reservation: ["create", "read"],
-  sale: ["read"],
+  sale: ["read", "dossier"],
   payment: ["read"],
   agency: ["read"],
-  commission: ["read"],
+  commission: ["read", "statement"],
   document: ["read"],
 });
 
@@ -86,9 +88,9 @@ export const FINANCE = ac.newRole({
   project: ["read"],
   inventory: ["read", "price", "export"],
   reservation: ["read"],
-  sale: ["read"],
+  sale: ["read", "dossier", "settlement"],
   payment: ["read", "manage"],
-  commission: ["read", "manage"],
+  commission: ["read", "manage", "statement"],
   document: ["read"],
   report: ["read"],
   billing: ["read", "subscription.read", "invoice.read", "payment.read"],
@@ -100,10 +102,10 @@ export const INVESTOR_VIEWER = ac.newRole({
   inventory: ["read"],
   lead: ["read"],
   reservation: ["read"],
-  sale: ["read"],
+  sale: ["read", "dossier"],
   payment: ["read"],
   agency: ["read"],
-  commission: ["read"],
+  commission: ["read", "statement"],
   document: ["read"],
   report: ["read"],
 });
@@ -113,13 +115,13 @@ export const INVESTOR_VIEWER = ac.newRole({
 // -----------------------------------------------------------------------------
 
 export const AGENCY_OWNER = ac.newRole({
-  organization: ["manage", "members:manage", "read"],
+  organization: ["manage", "members:manage", "read", "export", "templates"],
   project: ["read"],
   inventory: ["read"],
   lead: ["read", "manage"],
   reservation: ["create", "read"],
   agency: ["read", "customer:register"],
-  commission: ["read"],
+  commission: ["read", "statement"],
   document: ["read"],
   report: ["read"],
   billing: ["read", "subscription.read", "invoice.read", "payment.read"],
@@ -128,13 +130,13 @@ export const AGENCY_OWNER = ac.newRole({
 });
 
 export const AGENCY_ADMIN = ac.newRole({
-  organization: ["members:manage", "read"],
+  organization: ["members:manage", "read", "export"],
   project: ["read"],
   inventory: ["read"],
   lead: ["read", "manage"],
   reservation: ["create", "read"],
   agency: ["read", "customer:register"],
-  commission: ["read"],
+  commission: ["read", "statement"],
   document: ["read"],
   report: ["read"],
   invitation: ["create", "cancel"],
@@ -148,7 +150,7 @@ export const AGENCY_AGENT = ac.newRole({
   lead: ["read", "manage"],
   reservation: ["create", "read"],
   agency: ["customer:register", "read"],
-  commission: ["read"],
+  commission: ["read", "statement"],
   document: ["read"],
 });
 
@@ -159,7 +161,7 @@ export const AGENCY_VIEWER = ac.newRole({
   lead: ["read"],
   reservation: ["read"],
   agency: ["read"],
-  commission: ["read"],
+  commission: ["read", "statement"],
   document: ["read"],
 });
 
@@ -168,15 +170,16 @@ export const AGENCY_VIEWER = ac.newRole({
 // -----------------------------------------------------------------------------
 
 export const SUPER_ADMIN = ac.newRole({
-  organization: ["manage", "members:manage", "suspend", "read"],
+  organization: ["manage", "members:manage", "suspend", "read", "export", "templates"],
   project: ["create", "read", "update", "delete", "archive"],
   inventory: ["read", "manage", "price", "status", "reopen_sold", "import", "export", "bulk"],
   lead: ["read", "manage"],
   reservation: ["create", "approve", "cancel", "read"],
-  sale: ["read", "manage"],
+  sale: ["read", "manage", "dossier", "handover", "buyer_link", "settlement"],
+  buyer: ["anonymize"],
   payment: ["read", "manage"],
   agency: ["manage", "customer:register", "read"],
-  commission: ["read", "manage"],
+  commission: ["read", "manage", "statement"],
   document: ["read", "manage"],
   report: ["read"],
   audit: ["read"],
@@ -254,13 +257,7 @@ export const SUPER_ADMIN = ac.newRole({
 export const SETTER = ac.newRole({
   // Setter prihvata dolazne lead-ove i vodi ih do kvalifikacije. Radi
   // isključivo u SOURCING levelu; ne sme reopen (to je MANAGER+SA).
-  pd_lead: [
-    "view_own",
-    "create",
-    "update_stage",
-    "update_details",
-    "update_classification",
-  ],
+  pd_lead: ["view_own", "create", "update_stage", "update_details", "update_classification"],
   pd_lead_activity: ["read", "create"],
   pd_lead_task: ["read", "create", "complete"],
   pd_report: ["pipeline"],
@@ -284,13 +281,7 @@ export const CLOSER = ac.newRole({
 export const OPERATIONS = ac.newRole({
   // Operativa preuzima WON (L3): veže postojeći tenant ili pravi novi
   // org + vlasnika (INVESTOR_OWNER / AGENCY_OWNER) iz lead-a.
-  pd_lead: [
-    "view_own",
-    "update_stage",
-    "update_details",
-    "update_classification",
-    "convert",
-  ],
+  pd_lead: ["view_own", "update_stage", "update_details", "update_classification", "convert"],
   pd_lead_activity: ["read", "create"],
   pd_lead_task: ["read", "create", "complete"],
   pd_report: ["pipeline"],
@@ -375,9 +366,7 @@ export type PropertyDeskRole = keyof typeof propertyDeskTeamRoles;
 export const INVESTOR_ROLE_NAMES = Object.keys(investorRoles) as InvestorRole[];
 export const AGENCY_ROLE_NAMES = Object.keys(agencyRoles) as AgencyRole[];
 export const ALL_ORG_ROLE_NAMES = Object.keys(organizationRoles) as OrganizationRole[];
-export const PROPERTY_DESK_ROLE_NAMES = Object.keys(
-  propertyDeskTeamRoles,
-) as PropertyDeskRole[];
+export const PROPERTY_DESK_ROLE_NAMES = Object.keys(propertyDeskTeamRoles) as PropertyDeskRole[];
 
 /**
  * Given an organization type, return the roles valid for that org.

@@ -20,9 +20,7 @@ test.describe("public offer", () => {
   });
 
   test("image endpoint returns 404 for unknown token", async ({ request }) => {
-    const res = await request.get(
-      "/api/public/share/not-a-real-token/image/not-a-real-doc",
-    );
+    const res = await request.get("/api/public/share/not-a-real-token/image/not-a-real-doc");
     expect(res.status()).toBe(404);
   });
 

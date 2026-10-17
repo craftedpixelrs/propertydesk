@@ -11,15 +11,7 @@ const patchSchema = z.object({
   entranceId: z.string().min(1).nullable().optional(),
   floorId: z.string().min(1).nullable().optional(),
   type: z
-    .enum([
-      "APARTMENT",
-      "GARAGE",
-      "PARKING_SPACE",
-      "STORAGE",
-      "COMMERCIAL",
-      "HOUSE",
-      "OTHER",
-    ])
+    .enum(["APARTMENT", "GARAGE", "PARKING_SPACE", "STORAGE", "COMMERCIAL", "HOUSE", "OTHER"])
     .optional(),
   structure: z.string().max(20).nullable().optional(),
   roomCount: z.number().min(0).max(20).nullable().optional(),

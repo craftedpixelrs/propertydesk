@@ -20,21 +20,18 @@ const bodySchema = z.object({
   reason: z.string().max(500).optional(),
 });
 
-export const POST = apiHandler(
-  { bodySchema, paramsSchema },
-  async ({ params, body }) => {
-    const ctx = await requirePermission("inventory.status");
-    const updated = await changeUnitStatus({
-      organizationId: ctx.organization.organizationId,
-      actorUserId: ctx.session.user.id,
-      unitId: params.id,
-      newStatus: body.newStatus,
-      reason: body.reason,
-      allowOverride: ctx.isSuperAdmin,
-    });
-    return { data: updated };
-  },
-);
+export const POST = apiHandler({ bodySchema, paramsSchema }, async ({ params, body }) => {
+  const ctx = await requirePermission("inventory.status");
+  const updated = await changeUnitStatus({
+    organizationId: ctx.organization.organizationId,
+    actorUserId: ctx.session.user.id,
+    unitId: params.id,
+    newStatus: body.newStatus,
+    reason: body.reason,
+    allowOverride: ctx.isSuperAdmin,
+  });
+  return { data: updated };
+});
 
 /**
  * @swagger

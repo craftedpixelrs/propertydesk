@@ -19,23 +19,16 @@ interface ProblemSolutionGridProps {
  * landing pages. Each row is one pain-point on the left and the
  * corresponding platform capability on the right.
  */
-export async function ProblemSolutionGrid({
-  title,
-  subtitle,
-  items,
-}: ProblemSolutionGridProps) {
+export async function ProblemSolutionGrid({ title, subtitle, items }: ProblemSolutionGridProps) {
   const t = createT(await resolveRequestLocale());
 
   return (
-    <section
-      aria-labelledby="ps-title"
-      className="bg-white"
-    >
+    <section aria-labelledby="ps-title" className="bg-white">
       <div className="container-app py-16 sm:py-20">
         <div className="max-w-3xl">
           <h2
             id="ps-title"
-            className="text-3xl font-semibold tracking-tight sm:text-4xl"
+            className="font-display text-4xl font-semibold tracking-tight text-[#0b1020] sm:text-5xl"
           >
             {title ?? t("marketing.cta.title")}
           </h2>
@@ -50,9 +43,11 @@ export async function ProblemSolutionGrid({
           {items.map((it, i) => (
             <div
               key={i}
+              data-reveal=""
+              style={{ "--pd-delay": `${i * 70}ms` } as React.CSSProperties}
               className="grid gap-3 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5 shadow-sm sm:grid-cols-2 sm:p-6"
             >
-              <div className="flex items-start gap-3 sm:pr-4 sm:border-r sm:border-[var(--color-border)]">
+              <div className="flex items-start gap-3 sm:border-r sm:border-[var(--color-border)] sm:pr-4">
                 <span
                   aria-hidden
                   className="grid h-9 w-9 flex-none place-items-center rounded-lg bg-red-50 text-red-600"
@@ -60,7 +55,7 @@ export async function ProblemSolutionGrid({
                   <AlertTriangle className="size-4" />
                 </span>
                 <div>
-                  <div className="text-xs font-semibold uppercase tracking-wider text-red-600">
+                  <div className="text-xs font-semibold tracking-wider text-red-600 uppercase">
                     {t("marketing.common.problem")}
                   </div>
                   <p className="mt-1 text-sm leading-relaxed text-[var(--color-foreground)]">
@@ -71,12 +66,12 @@ export async function ProblemSolutionGrid({
               <div className="flex items-start gap-3 sm:pl-4">
                 <span
                   aria-hidden
-                  className="grid h-9 w-9 flex-none place-items-center rounded-lg bg-[var(--color-brand-50)] text-[var(--color-brand-700)]"
+                  className="grid size-9 flex-none place-items-center rounded-lg bg-[#0b1020] text-[#f3e2bc]"
                 >
                   <CheckCircle2 className="size-4" />
                 </span>
                 <div>
-                  <div className="text-xs font-semibold uppercase tracking-wider text-[var(--color-brand-700)]">
+                  <div className="text-xs font-semibold tracking-[0.16em] text-[#9a7430] uppercase">
                     PropertyDesk
                   </div>
                   <p className="mt-1 text-sm leading-relaxed text-[var(--color-foreground)]">

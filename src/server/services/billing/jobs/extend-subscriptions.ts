@@ -22,7 +22,9 @@ export interface ExtendReconcileSummary {
   skipped: number;
 }
 
-export async function reconcileSubscriptionExtensions(now: Date = new Date()): Promise<ExtendReconcileSummary> {
+export async function reconcileSubscriptionExtensions(
+  now: Date = new Date(),
+): Promise<ExtendReconcileSummary> {
   const summary: ExtendReconcileSummary = {
     considered: 0,
     extended: 0,
@@ -88,10 +90,7 @@ export async function reconcileSubscriptionExtensions(now: Date = new Date()): P
           },
         });
         // Advance the subscription only if it hasn't already passed this point.
-        if (
-          !inv.subscription!.currentPeriodEnd ||
-          inv.subscription!.currentPeriodEnd < to
-        ) {
+        if (!inv.subscription!.currentPeriodEnd || inv.subscription!.currentPeriodEnd < to) {
           await tx.organizationSubscription.update({
             where: { id: inv.subscription!.id },
             data: {
@@ -99,8 +98,7 @@ export async function reconcileSubscriptionExtensions(now: Date = new Date()): P
               currentPeriodEnd: to,
               nextBillingDate: to,
               status:
-                inv.subscription!.status === "SUSPENDED" ||
-                inv.subscription!.status === "CANCELED"
+                inv.subscription!.status === "SUSPENDED" || inv.subscription!.status === "CANCELED"
                   ? inv.subscription!.status
                   : "ACTIVE",
             },

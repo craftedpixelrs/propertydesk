@@ -14,19 +14,16 @@ const paramsSchema = z.object({ id: z.string().min(1) });
  * Streams a Serbian A4 sale-summary PDF: sale, buyer, agency, payment plan
  * with running paid/outstanding totals, and payment history.
  */
-export const GET = apiHandler(
-  { paramsSchema },
-  async ({ params }): Promise<Response> => {
-    const ctx = await requirePermission("sale.read");
-    const buffer = await renderSaleSummaryPdf({
-      organizationId: ctx.organization.organizationId,
-      saleId: params.id,
-    });
-    return new NextResponse(new Uint8Array(buffer), {
-      headers: pdfResponseHeaders(`prodaja-${params.id.slice(0, 8)}`),
-    });
-  },
-);
+export const GET = apiHandler({ paramsSchema }, async ({ params }): Promise<Response> => {
+  const ctx = await requirePermission("sale.dossier");
+  const buffer = await renderSaleSummaryPdf({
+    organizationId: ctx.organization.organizationId,
+    saleId: params.id,
+  });
+  return new NextResponse(new Uint8Array(buffer), {
+    headers: pdfResponseHeaders(`prodaja-${params.id.slice(0, 8)}`),
+  });
+});
 
 /**
  * @swagger
@@ -36,7 +33,7 @@ export const GET = apiHandler(
  *       - pdf
  *     summary: List / read pdf
  *     description: |
- *       **Auth:** `requirePermission("sale.read")`
+ *       **Auth:** `requirePermission("sale.dossier")`
  *     parameters:
  *       - in: path
  *         name: id

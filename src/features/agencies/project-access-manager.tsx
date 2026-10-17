@@ -158,11 +158,7 @@ export function ProjectAccessManager({
           {error ? <p className="text-sm text-red-600">{error}</p> : null}
           {candidates.length > 0 ? (
             <div className="flex justify-end">
-              <Button
-                onClick={grant}
-                disabled={!selectedProjectId}
-                loading={loading}
-              >
+              <Button onClick={grant} disabled={!selectedProjectId} loading={loading}>
                 {t("partners.access.grant")}
               </Button>
             </div>
@@ -182,7 +178,7 @@ export function ProjectAccessManager({
           ) : (
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-[var(--color-border)] text-sm">
-                <thead className="bg-[var(--color-surface-inset)] text-left text-xs uppercase tracking-wide text-[var(--color-foreground-muted)]">
+                <thead className="bg-[var(--color-surface-inset)] text-left text-xs tracking-wide text-[var(--color-foreground-muted)] uppercase">
                   <tr>
                     <th className="px-4 py-3">{t("units.columns.project")}</th>
                     <th className="px-4 py-3">{t("common.statusLabel")}</th>
@@ -207,9 +203,7 @@ export function ProjectAccessManager({
                             type="checkbox"
                             checked={a.canViewPrices}
                             disabled={pendingAccessId === a.id}
-                            onChange={(e) =>
-                              patchAccess(a.id, { canViewPrices: e.target.checked })
-                            }
+                            onChange={(e) => patchAccess(a.id, { canViewPrices: e.target.checked })}
                           />
                           {t("partners.access.showPrices")}
                         </label>

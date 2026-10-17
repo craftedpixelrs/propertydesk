@@ -16,13 +16,9 @@ describe("login lockout policy", () => {
       level = nextLoginLockLevel(level);
       expect(loginLockDurationMs(level)).toBe(expected * 60 * 1000);
     }
-    expect(nextLoginLockLevel(LOGIN_LOCK_MAX_TIMED_LEVEL)).toBe(
-      LOGIN_LOCK_SUSPENDED_LEVEL,
-    );
+    expect(nextLoginLockLevel(LOGIN_LOCK_MAX_TIMED_LEVEL)).toBe(LOGIN_LOCK_SUSPENDED_LEVEL);
     expect(loginLockDurationMs(LOGIN_LOCK_SUSPENDED_LEVEL)).toBeNull();
-    expect(nextLoginLockLevel(LOGIN_LOCK_SUSPENDED_LEVEL)).toBe(
-      LOGIN_LOCK_SUSPENDED_LEVEL,
-    );
+    expect(nextLoginLockLevel(LOGIN_LOCK_SUSPENDED_LEVEL)).toBe(LOGIN_LOCK_SUSPENDED_LEVEL);
   });
 
   it("treats level 6 as always locked", () => {

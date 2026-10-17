@@ -54,7 +54,7 @@ export function BottomNav({
 
   return (
     <nav
-      className="fixed inset-x-0 bottom-0 z-40 flex gap-0.5 border-t border-[var(--color-border)] bg-[color-mix(in_oklab,var(--color-surface)_92%,transparent)] px-1 pt-1 shadow-[0_-10px_30px_-18px_rgba(15,23,42,0.35)] backdrop-blur-md safe-bottom md:hidden"
+      className="safe-bottom fixed inset-x-0 bottom-0 z-40 flex gap-0.5 border-t border-[var(--color-border)] bg-[color-mix(in_oklab,var(--color-surface)_92%,transparent)] px-1 pt-1 shadow-[0_-10px_30px_-18px_rgba(15,23,42,0.35)] backdrop-blur-md md:hidden"
       aria-label={t("a11y.bottomNavigation")}
     >
       {primaryItems.map((item) => {
@@ -83,8 +83,8 @@ export function BottomNav({
         className={cn(
           "mx-0.5 flex min-h-14 min-w-0 flex-1 flex-col items-center justify-center gap-0.5 rounded-xl px-1 py-1.5 text-[11px] font-medium",
           pathname === "/more" ||
-          pathname.startsWith("/more/") ||
-          activeNavHref(pathname, primaryItems) == null
+            pathname.startsWith("/more/") ||
+            activeNavHref(pathname, primaryItems) == null
             ? "bg-[var(--color-brand-50)] text-[var(--color-brand-800)]"
             : "text-[var(--color-foreground-muted)]",
         )}

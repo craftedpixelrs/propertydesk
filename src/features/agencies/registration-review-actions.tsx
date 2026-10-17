@@ -7,11 +7,7 @@ import { Button } from "@/components/ui/button";
 import { apiClient, ApiClientError } from "@/lib/api-client";
 import { useT } from "@/components/app/i18n-provider";
 
-export function RegistrationReviewActions({
-  registrationId,
-}: {
-  registrationId: string;
-}) {
+export function RegistrationReviewActions({ registrationId }: { registrationId: string }) {
   const t = useT();
   const router = useRouter();
   const [loading, setLoading] = useState<"APPROVE" | "REJECT" | null>(null);

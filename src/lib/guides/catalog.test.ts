@@ -6,9 +6,7 @@ import { PAGE_GUIDES, resolvePageGuide } from "./catalog";
 
 describe("resolvePageGuide", () => {
   it("picks the more specific agency registrations route", () => {
-    expect(resolvePageGuide("/agencije/registracije")?.key).toBe(
-      "agencyRegistrations",
-    );
+    expect(resolvePageGuide("/agencije/registracije")?.key).toBe("agencyRegistrations");
     expect(resolvePageGuide("/agencije")?.key).toBe("agencies");
   });
 
@@ -43,12 +41,8 @@ describe("resolvePageGuide", () => {
       expect(t(titleKey)).not.toBe(titleKey);
       expect(t(titleKey, undefined, "en")).not.toBe(titleKey);
       for (let i = 1; i <= guide.steps; i++) {
-        const stepTitle = `guides.${guide.key}.s${i}Title` as Parameters<
-          typeof t
-        >[0];
-        const stepBody = `guides.${guide.key}.s${i}Body` as Parameters<
-          typeof t
-        >[0];
+        const stepTitle = `guides.${guide.key}.s${i}Title` as Parameters<typeof t>[0];
+        const stepBody = `guides.${guide.key}.s${i}Body` as Parameters<typeof t>[0];
         expect(t(stepTitle)).not.toBe(stepTitle);
         expect(t(stepBody)).not.toBe(stepBody);
         expect(t(stepTitle, undefined, "en")).not.toBe(stepTitle);

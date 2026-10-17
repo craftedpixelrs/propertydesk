@@ -24,7 +24,7 @@ export const GET = apiHandler({ paramsSchema }, async ({ req, params }) => {
     req,
     scope: "public.share.image",
     callerId: `${params.token}:${params.documentId}`,
-    options: { windowMs: 60_000, maxHits: 120 },
+    options: { windowMs: 60_000, max: 120 },
   });
 
   const resolved = await resolveShareImage({

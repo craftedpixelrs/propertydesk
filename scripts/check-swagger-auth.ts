@@ -1,8 +1,6 @@
 import { readFileSync } from "node:fs";
 
-const j = JSON.parse(
-  readFileSync(new URL("../public/api-docs.json", import.meta.url), "utf8"),
-);
+const j = JSON.parse(readFileSync(new URL("../public/api-docs.json", import.meta.url), "utf8"));
 
 let withAuth = 0;
 let without = 0;
@@ -23,8 +21,7 @@ for (const [path, methods] of Object.entries(j.paths || {}) as [
       const label = match[1]!;
       const kind = label.startsWith("requirePermission")
         ? "permission"
-        : label.startsWith("requireSuperAdmin") ||
-            label.startsWith("requirePlatform")
+        : label.startsWith("requireSuperAdmin") || label.startsWith("requirePlatform")
           ? "platform"
           : label.startsWith("CRON")
             ? "cron"

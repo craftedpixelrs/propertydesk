@@ -82,9 +82,7 @@ export interface UpdateUnitInput {
   actorUserId: string;
   unitId: string;
   expectedVersion?: number;
-  patch: Partial<
-    Omit<CreateUnitInput, "organizationId" | "actorUserId" | "projectId" | "code">
-  >;
+  patch: Partial<Omit<CreateUnitInput, "organizationId" | "actorUserId" | "projectId" | "code">>;
   priceChangeReason?: string;
 }
 
@@ -118,17 +116,9 @@ function pricePerSquareMeter(
   return price.div(area).toDecimalPlaces(2);
 }
 
-const ALLOWED_UNIT_SORT_FIELDS = new Set([
-  "createdAt",
-  "code",
-  "status",
-  "basePrice",
-  "totalArea",
-]);
+const ALLOWED_UNIT_SORT_FIELDS = new Set(["createdAt", "code", "status", "basePrice", "totalArea"]);
 
-function resolveUnitOrderBy(
-  sort: ListUnitsInput["sort"],
-): Prisma.UnitOrderByWithRelationInput {
+function resolveUnitOrderBy(sort: ListUnitsInput["sort"]): Prisma.UnitOrderByWithRelationInput {
   if (!sort || !ALLOWED_UNIT_SORT_FIELDS.has(sort.field)) {
     return { createdAt: "desc" };
   }
@@ -254,9 +244,7 @@ export async function createUnit(input: CreateUnitInput) {
     select: { id: true },
   });
   if (dup) {
-    throw DomainErrors.conflict(
-      `Jedinica sa šifrom "${input.code}" već postoji u ovom projektu.`,
-    );
+    throw DomainErrors.conflict(`Jedinica sa šifrom "${input.code}" već postoji u ovom projektu.`);
   }
 
   const basePrice = new Decimal(input.basePrice);
@@ -320,19 +308,19 @@ export async function updateUnit(input: UpdateUnitInput) {
   });
   if (!existing) throw DomainErrors.notFound("Jedinica");
 
-  if (
-    input.expectedVersion != null &&
-    existing.version !== input.expectedVersion
-  ) {
+  if (input.expectedVersion != null && existing.version !== input.expectedVersion) {
     throw DomainErrors.optimisticLock();
   }
 
   const priceChanged =
-    (input.patch.basePrice != null &&
-      !new Decimal(input.patch.basePrice).eq(existing.basePrice)) ||
+    (input.patch.basePrice != null && !new Decimal(input.patch.basePrice).eq(existing.basePrice)) ||
     (input.patch.finalPrice != null &&
       (existing.finalPrice == null ||
         !new Decimal(input.patch.finalPrice).eq(existing.finalPrice)));
+
+  if (priceChanged && !input.priceChangeReason?.trim()) {
+    throw DomainErrors.badRequest("Razlog promene cene je obavezan.");
+  }
 
   const newBase =
     input.patch.basePrice != null
@@ -354,18 +342,13 @@ export async function updateUnit(input: UpdateUnitInput) {
       where: { id: input.unitId },
       data: {
         // Use `!== undefined` (not `??`) so explicit `null` clears nullable fields.
-        buildingId:
-          input.patch.buildingId !== undefined ? input.patch.buildingId : undefined,
-        entranceId:
-          input.patch.entranceId !== undefined ? input.patch.entranceId : undefined,
+        buildingId: input.patch.buildingId !== undefined ? input.patch.buildingId : undefined,
+        entranceId: input.patch.entranceId !== undefined ? input.patch.entranceId : undefined,
         floorId: input.patch.floorId !== undefined ? input.patch.floorId : undefined,
         type: input.patch.type ?? undefined,
-        structure:
-          input.patch.structure !== undefined ? input.patch.structure : undefined,
-        roomCount:
-          input.patch.roomCount !== undefined ? input.patch.roomCount : undefined,
-        totalArea:
-          input.patch.totalArea != null ? new Decimal(input.patch.totalArea) : undefined,
+        structure: input.patch.structure !== undefined ? input.patch.structure : undefined,
+        roomCount: input.patch.roomCount !== undefined ? input.patch.roomCount : undefined,
+        totalArea: input.patch.totalArea != null ? new Decimal(input.patch.totalArea) : undefined,
         internalArea:
           input.patch.internalArea !== undefined
             ? input.patch.internalArea != null
@@ -384,10 +367,8 @@ export async function updateUnit(input: UpdateUnitInput) {
               ? new Decimal(input.patch.gardenArea)
               : null
             : undefined,
-        orientation:
-          input.patch.orientation !== undefined ? input.patch.orientation : undefined,
-        basePrice:
-          input.patch.basePrice != null ? new Decimal(input.patch.basePrice) : undefined,
+        orientation: input.patch.orientation !== undefined ? input.patch.orientation : undefined,
+        basePrice: input.patch.basePrice != null ? new Decimal(input.patch.basePrice) : undefined,
         finalPrice:
           input.patch.finalPrice !== undefined
             ? toDecimalOrNull(input.patch.finalPrice)
@@ -397,20 +378,14 @@ export async function updateUnit(input: UpdateUnitInput) {
         vatRate:
           input.patch.vatRate !== undefined ? toDecimalOrNull(input.patch.vatRate) : undefined,
         vatIncluded: input.patch.vatIncluded ?? undefined,
-        bedrooms:
-          input.patch.bedrooms !== undefined ? input.patch.bedrooms : undefined,
-        bathrooms:
-          input.patch.bathrooms !== undefined ? input.patch.bathrooms : undefined,
+        bedrooms: input.patch.bedrooms !== undefined ? input.patch.bedrooms : undefined,
+        bathrooms: input.patch.bathrooms !== undefined ? input.patch.bathrooms : undefined,
         hasTerrace: input.patch.hasTerrace ?? undefined,
         hasGarden: input.patch.hasGarden ?? undefined,
         publicDescription:
-          input.patch.publicDescription !== undefined
-            ? input.patch.publicDescription
-            : undefined,
+          input.patch.publicDescription !== undefined ? input.patch.publicDescription : undefined,
         internalNotes:
-          input.patch.internalNotes !== undefined
-            ? input.patch.internalNotes
-            : undefined,
+          input.patch.internalNotes !== undefined ? input.patch.internalNotes : undefined,
         isVisibleToAgencies: input.patch.isVisibleToAgencies ?? undefined,
         version: { increment: 1 },
       },
@@ -543,10 +518,12 @@ export async function archiveUnit(input: {
   if (existing.archivedAt) {
     throw DomainErrors.invalidState("Jedinica je već arhivirana.");
   }
-  if (existing.status === "RESERVED" || existing.status === "CONTRACTED" || existing.status === "SOLD") {
-    throw DomainErrors.invalidState(
-      "Ne možete arhivirati jedinicu u aktivnom prodajnom procesu.",
-    );
+  if (
+    existing.status === "RESERVED" ||
+    existing.status === "CONTRACTED" ||
+    existing.status === "SOLD"
+  ) {
+    throw DomainErrors.invalidState("Ne možete arhivirati jedinicu u aktivnom prodajnom procesu.");
   }
   await prisma.unit.update({
     where: { id: input.unitId },

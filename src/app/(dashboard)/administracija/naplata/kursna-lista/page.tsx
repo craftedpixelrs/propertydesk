@@ -1,9 +1,6 @@
 import { requireSuperAdmin } from "@/server/permissions/require";
 import { listExchangeRates } from "@/server/services/billing/exchange-rates/service";
-import {
-  ExchangeRateEditor,
-  type ExchangeRateRow,
-} from "@/features/billing/exchange-rate-editor";
+import { ExchangeRateEditor, type ExchangeRateRow } from "@/features/billing/exchange-rate-editor";
 import { createT } from "@/lib/i18n";
 import { resolveRequestLocale } from "@/lib/i18n/resolve-locale";
 

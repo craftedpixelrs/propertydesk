@@ -98,16 +98,12 @@ export function buildImportTemplateCsv(locale: Locale = DEFAULT_LOCALE): string 
     csvEscape(unitImportHeader(col, locale)),
   ).join(",");
   const lines = UNIT_IMPORT_TEMPLATE_SAMPLE.map((row) =>
-    UNIT_IMPORT_TEMPLATE_COLUMNS.map((col) => csvEscape(row[col] ?? "")).join(
-      ",",
-    ),
+    UNIT_IMPORT_TEMPLATE_COLUMNS.map((col) => csvEscape(row[col] ?? "")).join(","),
   );
   return `\uFEFF${[header, ...lines].join("\r\n")}\r\n`;
 }
 
-export async function buildImportTemplateXlsx(
-  locale: Locale = DEFAULT_LOCALE,
-): Promise<Buffer> {
+export async function buildImportTemplateXlsx(locale: Locale = DEFAULT_LOCALE): Promise<Buffer> {
   const wb = new ExcelJS.Workbook();
   const ws = wb.addWorksheet(locale === "en" ? "Units" : "Jedinice");
   ws.columns = UNIT_IMPORT_TEMPLATE_COLUMNS.map((key) => {
@@ -142,16 +138,11 @@ export interface ParsedFile {
   rows: Record<string, string>[];
 }
 
-export async function parseFile(
-  fileName: string,
-  buffer: Buffer,
-): Promise<ParsedFile> {
+export async function parseFile(fileName: string, buffer: Buffer): Promise<ParsedFile> {
   const lower = fileName.toLowerCase();
   if (lower.endsWith(".csv")) return parseCsv(buffer);
   if (lower.endsWith(".xlsx") || lower.endsWith(".xls")) return parseXlsx(buffer);
-  throw DomainErrors.badRequest(
-    "Podržani formati su .csv i .xlsx",
-  );
+  throw DomainErrors.badRequest("Podržani formati su .csv i .xlsx");
 }
 
 function parseCsv(buffer: Buffer): ParsedFile {
@@ -162,9 +153,7 @@ function parseCsv(buffer: Buffer): ParsedFile {
     dynamicTyping: false,
   });
   if (result.errors.length > 0) {
-    throw DomainErrors.badRequest(
-      `CSV nije validan: ${result.errors[0]?.message}`,
-    );
+    throw DomainErrors.badRequest(`CSV nije validan: ${result.errors[0]?.message}`);
   }
   const rows = (result.data as Record<string, string>[]) ?? [];
   const headers = (result.meta.fields ?? []).map((h) => String(h).trim());
@@ -276,10 +265,7 @@ function pick(
   return undefined;
 }
 
-export function validateRows(
-  headerMap: HeaderMap,
-  rows: Record<string, string>[],
-): ValidatedRow[] {
+export function validateRows(headerMap: HeaderMap, rows: Record<string, string>[]): ValidatedRow[] {
   const seenCodes = new Set<string>();
   return rows.map((raw, index) => {
     const errors: string[] = [];
@@ -297,7 +283,8 @@ export function validateRows(
     }
 
     const totalArea = num(pick(raw, headerMap, "totalArea"));
-    if (totalArea == null || totalArea <= 0) errors.push("Ukupna površina mora biti pozitivan broj.");
+    if (totalArea == null || totalArea <= 0)
+      errors.push("Ukupna površina mora biti pozitivan broj.");
 
     const basePrice = num(pick(raw, headerMap, "basePrice"));
     if (basePrice == null || basePrice < 0) errors.push("Osnovna cena mora biti nenegativan broj.");
@@ -367,9 +354,7 @@ export async function commitRows(input: {
   });
   if (!project) throw DomainErrors.notFound("Projekat");
   if (project.archivedAt) {
-    throw DomainErrors.invalidState(
-      "Ne možete uvoziti jedinice u arhivirani projekat.",
-    );
+    throw DomainErrors.invalidState("Ne možete uvoziti jedinice u arhivirani projekat.");
   }
 
   // Preload the project's structural tree so we can resolve buildingCode /
@@ -497,10 +482,7 @@ export async function commitRows(input: {
 // Export
 // -----------------------------------------------------------------------------
 
-export async function exportUnitsCsv(
-  organizationId: string,
-  projectId?: string,
-): Promise<string> {
+export async function exportUnitsCsv(organizationId: string, projectId?: string): Promise<string> {
   const units = await prisma.unit.findMany({
     where: { organizationId, ...(projectId ? { projectId } : {}) },
     include: {
@@ -532,10 +514,7 @@ export async function exportUnitsCsv(
   return Papa.unparse(rows, { header: true });
 }
 
-export async function exportUnitsXlsx(
-  organizationId: string,
-  projectId?: string,
-): Promise<Buffer> {
+export async function exportUnitsXlsx(organizationId: string, projectId?: string): Promise<Buffer> {
   const units = await prisma.unit.findMany({
     where: { organizationId, ...(projectId ? { projectId } : {}) },
     include: {

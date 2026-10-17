@@ -26,30 +26,24 @@ export interface QuotaSnapshot {
   usage: Record<QuotaResource, number>;
 }
 
-export async function loadQuotaSnapshot(
-  organizationId: string,
-): Promise<QuotaSnapshot> {
-  const [subscription, projectsCount, unitsCount, membersCount, agenciesCount] =
-    await Promise.all([
-      prisma.organizationSubscription.findUnique({
-        where: { organizationId },
-        include: { plan: true },
-      }),
-      prisma.project.count({
-        where: { organizationId, archivedAt: null },
-      }),
-      prisma.unit.count({ where: { organizationId, archivedAt: null } }),
-      prisma.member.count({ where: { organizationId } }),
-      prisma.agencyConnection.count({
-        where: {
-          OR: [
-            { investorOrganizationId: organizationId },
-            { agencyOrganizationId: organizationId },
-          ],
-          status: { in: ["INVITED", "ACTIVE"] },
-        },
-      }),
-    ]);
+export async function loadQuotaSnapshot(organizationId: string): Promise<QuotaSnapshot> {
+  const [subscription, projectsCount, unitsCount, membersCount, agenciesCount] = await Promise.all([
+    prisma.organizationSubscription.findUnique({
+      where: { organizationId },
+      include: { plan: true },
+    }),
+    prisma.project.count({
+      where: { organizationId, archivedAt: null },
+    }),
+    prisma.unit.count({ where: { organizationId, archivedAt: null } }),
+    prisma.member.count({ where: { organizationId } }),
+    prisma.agencyConnection.count({
+      where: {
+        OR: [{ investorOrganizationId: organizationId }, { agencyOrganizationId: organizationId }],
+        status: { in: ["INVITED", "ACTIVE"] },
+      },
+    }),
+  ]);
 
   const plan = subscription?.plan ?? null;
 

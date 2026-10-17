@@ -140,12 +140,7 @@ export default async function InventoryReportPage({ searchParams }: PageProps) {
               isEmpty={stackedData.length === 0}
               height={280}
             >
-              <CategoryBars
-                data={stackedData}
-                series={stackedSeries}
-                stacked
-                colorPerBar={false}
-              />
+              <CategoryBars data={stackedData} series={stackedSeries} stacked colorPerBar={false} />
             </ChartCard>
           </div>
         );

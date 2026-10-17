@@ -1,10 +1,7 @@
 import { z } from "zod";
 import { apiHandler } from "@/lib/api/handler";
 import { requireSuperAdmin } from "@/server/permissions/require";
-import {
-  deleteSaaSPlan,
-  updateSaaSPlan,
-} from "@/server/services/platform.service";
+import { deleteSaaSPlan, updateSaaSPlan } from "@/server/services/platform.service";
 
 const paramsSchema = z.object({ id: z.string().min(1) });
 

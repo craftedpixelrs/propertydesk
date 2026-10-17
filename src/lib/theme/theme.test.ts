@@ -42,16 +42,13 @@ describe("themeFromRequest()", () => {
     return {
       headers: { get: (name: string) => headers[name.toLowerCase()] ?? null },
       cookies: {
-        get: (name: string) =>
-          name === "pd_theme" && cookie ? { value: cookie } : undefined,
+        get: (name: string) => (name === "pd_theme" && cookie ? { value: cookie } : undefined),
       },
     };
   }
 
   it("prefers x-pd-theme over cookie", () => {
-    expect(themeFromRequest(req({ "x-pd-theme": "dark" }, "light"))).toBe(
-      "dark",
-    );
+    expect(themeFromRequest(req({ "x-pd-theme": "dark" }, "light"))).toBe("dark");
   });
 
   it("falls back to cookie then light", () => {

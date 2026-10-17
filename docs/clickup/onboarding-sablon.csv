@@ -1,0 +1,10 @@
+Task Name,Status,Priority,Due Date,Tags,Description
+"ONBOARDING ŠABLON — dupliraj posle WON",TO DO,high,2026-09-28,"sablon,onboarding","Dupliraj ceo ovaj task (i subtaskove ručno) za svaki WON. Ime: Onboard · {firma}. Due = WON + 2 dana. Čekiraj PD sync na leadu."
+"WON+0: tenant postoji plan Starter/Growth trial 30d",TO DO,urgent,2026-09-28,"sablon","Lead konvertovan u PD. Plan i trialEndsAt vidljivi. Oni su se ulogovali."
+"WON+2: org profil + logo (osnovni i svetli)",TO DO,high,2026-09-28,"sablon","Podešavanja → Organizacija. Dark tema koristi svetli logo."
+"WON+3: uvoz njihovog Excela (sediš ti)",TO DO,urgent,2026-09-28,"sablon","Cilj <45 min do prve jedinice. P0 sa tog fajla ide u Bagovi."
+"WON+7: prva rezervacija ili kupac",TO DO,high,2026-09-28,"sablon","Ako nisu uradili — poziv 20 min. Ne novi feature."
+"WON+14: pozovi 1 agenciju (ako nije A6)",TO DO,normal,2026-09-28,"sablon","Mi sedimo na pozivu. Partner nalog €0."
+"WON+14: health check #1",TO DO,high,2026-09-28,"sablon","Šta si radio u PD ove nedelje? Gde si zapao?"
+"WON+28: health check #2 + ponuda godišnjeg",TO DO,high,2026-09-28,"sablon","Godišnji Starter posle 2 nedelje korišćenja. Datum pretplate mora da stoji. Nije večiti trial."
+"WON+30: faktura ili pisano produženje jednom",TO DO,urgent,2026-09-28,"sablon","Naplata lista. IPS QR. Poziv 5 dana pre RESTRICTED."

@@ -56,9 +56,38 @@ export interface ListReservationsInput {
   buyerId?: string;
   projectId?: string;
   sourceType?: ReservationSource;
+  /** Buyer name, phone, email, unit code, or project name. */
+  search?: string;
+}
+
+function reservationSearchWhere(raw: string | undefined): Prisma.ReservationWhereInput | undefined {
+  const tokens = (raw ?? "").trim().split(/\s+/).filter(Boolean).slice(0, 6);
+  if (tokens.length === 0) return undefined;
+
+  return {
+    AND: tokens.map((token) => {
+      const digits = token.replace(/\D/g, "");
+      const or: Prisma.ReservationWhereInput[] = [
+        { buyer: { firstName: { contains: token, mode: "insensitive" } } },
+        { buyer: { lastName: { contains: token, mode: "insensitive" } } },
+        { buyer: { email: { contains: token, mode: "insensitive" } } },
+        { buyer: { phone: { contains: token, mode: "insensitive" } } },
+        { unit: { code: { contains: token, mode: "insensitive" } } },
+        { project: { name: { contains: token, mode: "insensitive" } } },
+      ];
+      if (digits.length >= 3) {
+        or.push(
+          { buyer: { phone: { contains: digits } } },
+          { buyer: { normalizedPhone: { contains: digits } } },
+        );
+      }
+      return { OR: or };
+    }),
+  };
 }
 
 export async function listReservations(input: ListReservationsInput) {
+  const search = reservationSearchWhere(input.search);
   const where: Prisma.ReservationWhereInput = {
     organizationId: input.organizationId,
     ...(input.status?.length ? { status: { in: input.status } } : {}),
@@ -66,6 +95,7 @@ export async function listReservations(input: ListReservationsInput) {
     ...(input.buyerId ? { buyerId: input.buyerId } : {}),
     ...(input.projectId ? { projectId: input.projectId } : {}),
     ...(input.sourceType ? { sourceType: input.sourceType } : {}),
+    ...(search ?? {}),
   };
 
   const [total, rows] = await Promise.all([
@@ -111,12 +141,15 @@ export interface ReservationBoardColumn {
 export async function listReservationsBoard(input: {
   organizationId: string;
   projectId?: string;
+  search?: string;
   perColumnLimit?: number;
 }): Promise<ReservationBoardColumn[]> {
   const per = Math.min(Math.max(input.perColumnLimit ?? 50, 1), 200);
+  const search = reservationSearchWhere(input.search);
   const baseWhere: Prisma.ReservationWhereInput = {
     organizationId: input.organizationId,
     ...(input.projectId ? { projectId: input.projectId } : {}),
+    ...(search ?? {}),
   };
   const statuses: ReservationStatus[] = [
     "REQUESTED",
@@ -222,9 +255,7 @@ export async function createReservation(input: CreateReservationInput) {
         throw DomainErrors.invalidState("Jedinica je arhivirana.");
       }
       if (unit.status !== "AVAILABLE" && unit.status !== "ON_HOLD") {
-        throw DomainErrors.invalidState(
-          "Jedinica trenutno nije dostupna za rezervaciju.",
-        );
+        throw DomainErrors.invalidState("Jedinica trenutno nije dostupna za rezervaciju.");
       }
 
       // Application-level guard (belt-and-suspenders with the unique index).
@@ -254,8 +285,7 @@ export async function createReservation(input: CreateReservationInput) {
           agencyOrganizationId: input.agencyOrganizationId ?? null,
           agencyAgentUserId: input.agencyAgentUserId ?? null,
           status: "REQUESTED",
-          reservationAmount:
-            input.reservationAmount != null ? input.reservationAmount : null,
+          reservationAmount: input.reservationAmount != null ? input.reservationAmount : null,
           currency: input.currency ?? "EUR",
           notes: input.notes ?? null,
           referralCode: input.referralCode ?? null,
@@ -367,10 +397,7 @@ async function transition(input: {
       return { id: existing.id, status: existing.status, alreadyInState: true };
     }
 
-    if (
-      input.expectedVersion != null &&
-      existing.version !== input.expectedVersion
-    ) {
+    if (input.expectedVersion != null && existing.version !== input.expectedVersion) {
       throw DomainErrors.optimisticLock();
     }
 
@@ -404,9 +431,7 @@ async function transition(input: {
 
     if (input.unitStatus) {
       if (!input.actorUserId) {
-        throw DomainErrors.badRequest(
-          "Nedostaje korisnik za promenu statusa jedinice.",
-        );
+        throw DomainErrors.badRequest("Nedostaje korisnik za promenu statusa jedinice.");
       }
       await changeUnitStatus({
         organizationId: input.organizationId,
@@ -539,9 +564,7 @@ export async function convertReservation(input: {
   responsibleUserId?: string | null;
 }) {
   // Lazy import to avoid a circular dependency between reservations and sales.
-  const { createSaleFromReservation } = await import(
-    "@/server/services/sales/sales.service"
-  );
+  const { createSaleFromReservation } = await import("@/server/services/sales/sales.service");
   return createSaleFromReservation({
     organizationId: input.organizationId,
     actorUserId: input.actorUserId,
@@ -664,7 +687,12 @@ async function notifyReservationParticipants(
 
   const map: Record<
     ReservationEvent,
-    { title: string; category: "RESERVATION"; message: string; email: ReturnType<typeof reservationRequestedEmail> | null }
+    {
+      title: string;
+      category: "RESERVATION";
+      message: string;
+      email: ReturnType<typeof reservationRequestedEmail> | null;
+    }
   > = {
     created: {
       title: "Nova rezervacija",

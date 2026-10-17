@@ -17,16 +17,13 @@ export default async function SettingsLayout({ children }: { children: ReactNode
   const t = createT(ctx.user.locale);
   const org = ctx.activeOrganization;
   const isInvestor = org?.type === "INVESTOR";
-  const can = (perm: PermissionString) =>
-    ctx.isSuperAdmin || ctx.permissions.includes(perm);
+  const can = (perm: PermissionString) => ctx.isSuperAdmin || ctx.permissions.includes(perm);
 
   return (
     <div className="space-y-6">
       <PageHeader
         title={t("nav.settings")}
-        description={
-          org ? t("ops.settings.orgName", { name: org.name }) : t("ops.settings.noOrg")
-        }
+        description={org ? t("ops.settings.orgName", { name: org.name }) : t("ops.settings.noOrg")}
       />
       <nav
         className="flex flex-wrap gap-2 border-b border-[var(--color-border)] pb-3"

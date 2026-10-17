@@ -33,41 +33,36 @@ const bodySchema = z.object({
  * for the recipient. We do, however, record an audit row so we can
  * reconstruct who sent what and when.
  */
-export const POST = apiHandler(
-  { paramsSchema, bodySchema },
-  async ({ params, body }) => {
-    const ctx = await requireSuperAdmin();
+export const POST = apiHandler({ paramsSchema, bodySchema }, async ({ params, body }) => {
+  const ctx = await requireSuperAdmin();
 
-    const recipient = body.to ?? ctx.session.user.email;
-    if (!recipient) {
-      throw DomainErrors.badRequest(
-        "Nedostaje email adresa za slanje test poruke.",
-      );
-    }
+  const recipient = body.to ?? ctx.session.user.email;
+  if (!recipient) {
+    throw DomainErrors.badRequest("Nedostaje email adresa za slanje test poruke.");
+  }
 
-    const rendered = await previewBillingEmail(params.key, {
-      variables: body.variables,
-      draft: body.draft,
-    });
+  const rendered = await previewBillingEmail(params.key, {
+    variables: body.variables,
+    draft: body.draft,
+  });
 
-    await sendEmail({
-      to: recipient,
-      subject: `[TEST] ${rendered.subject}`,
-      text: rendered.text,
-      html: rendered.html,
-    });
+  await sendEmail({
+    to: recipient,
+    subject: `[TEST] ${rendered.subject}`,
+    text: rendered.text,
+    html: rendered.html,
+  });
 
-    await recordAudit({
-      action: "billing.email_template_test_sent",
-      entityType: "BillingEmailTemplate",
-      entityId: params.key,
-      actorUserId: ctx.session.user.id,
-      newValues: { to: recipient, subject: rendered.subject },
-    });
+  await recordAudit({
+    action: "billing.email_template_test_sent",
+    entityType: "BillingEmailTemplate",
+    entityId: params.key,
+    actorUserId: ctx.session.user.id,
+    newValues: { to: recipient, subject: rendered.subject },
+  });
 
-    return { data: { sent: true, to: recipient } };
-  },
-);
+  return { data: { sent: true, to: recipient } };
+});
 
 /**
  * @swagger

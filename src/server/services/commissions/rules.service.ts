@@ -82,9 +82,7 @@ async function assertTenantOwnership(input: CreateCommissionRuleInput): Promise<
     if (!unit) throw DomainErrors.notFound("Jedinica");
   }
   if (!input.agencyConnectionId && !input.projectId && !input.unitId) {
-    throw DomainErrors.badRequest(
-      "Pravilo mora referencirati konekciju, projekat ili jedinicu.",
-    );
+    throw DomainErrors.badRequest("Pravilo mora referencirati konekciju, projekat ili jedinicu.");
   }
 }
 
@@ -140,11 +138,12 @@ export async function updateCommissionRule(input: UpdateCommissionRuleInput) {
   if (!existing) throw DomainErrors.notFound("Pravilo provizije");
 
   const nextCalc = input.patch.calculationType ?? existing.calculationType;
-  const nextRate = input.patch.rate !== undefined ? input.patch.rate : existing.rate?.toNumber() ?? null;
+  const nextRate =
+    input.patch.rate !== undefined ? input.patch.rate : (existing.rate?.toNumber() ?? null);
   const nextFixed =
     input.patch.fixedAmount !== undefined
       ? input.patch.fixedAmount
-      : existing.fixedAmount?.toNumber() ?? null;
+      : (existing.fixedAmount?.toNumber() ?? null);
   validatePayload(nextCalc, nextRate, nextFixed);
 
   const updated = await prisma.agencyCommissionRule.update({
@@ -152,8 +151,7 @@ export async function updateCommissionRule(input: UpdateCommissionRuleInput) {
     data: {
       calculationType: input.patch.calculationType ?? undefined,
       rate: input.patch.rate !== undefined ? input.patch.rate : undefined,
-      fixedAmount:
-        input.patch.fixedAmount !== undefined ? input.patch.fixedAmount : undefined,
+      fixedAmount: input.patch.fixedAmount !== undefined ? input.patch.fixedAmount : undefined,
       currency: input.patch.currency ?? undefined,
       validFrom: input.patch.validFrom !== undefined ? input.patch.validFrom : undefined,
       validTo: input.patch.validTo !== undefined ? input.patch.validTo : undefined,

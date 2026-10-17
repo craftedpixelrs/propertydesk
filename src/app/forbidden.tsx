@@ -24,7 +24,7 @@ export default async function Forbidden() {
       className="flex min-h-screen items-center justify-center bg-[var(--color-surface)] p-6"
     >
       <div className="max-w-md text-center">
-        <p className="text-xs font-semibold uppercase tracking-widest text-red-600">
+        <p className="text-xs font-semibold tracking-widest text-red-600 uppercase">
           {t("pages.forbiddenKicker")}
         </p>
         <h1 className="mt-2 text-3xl font-semibold text-[var(--color-foreground)]">

@@ -117,16 +117,12 @@ export function toAgencyUnitDto(
     floorPlanUrl: flags.canViewFloorPlans ? unit.floorPlanUrl : null,
     building: unit.building?.name ?? unit.building?.code ?? null,
     entrance: unit.entrance?.name ?? unit.entrance?.code ?? null,
-    floor:
-      unit.floor?.label ??
-      (unit.floor?.number != null ? String(unit.floor.number) : null),
+    floor: unit.floor?.label ?? (unit.floor?.number != null ? String(unit.floor.number) : null),
     price: flags.canViewPrices
       ? {
           base: unit.basePrice.toString(),
           final: unit.finalPrice ? unit.finalPrice.toString() : null,
-          perSquareMeter: unit.pricePerSquareMeter
-            ? unit.pricePerSquareMeter.toString()
-            : null,
+          perSquareMeter: unit.pricePerSquareMeter ? unit.pricePerSquareMeter.toString() : null,
           currency: unit.currency,
         }
       : null,

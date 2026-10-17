@@ -14,6 +14,7 @@ export const DEFAULT_RESTRICTED_ALLOWLIST: PermissionString[] = [
   "billing.invoice.read",
   "billing.payment.read",
   "document.read",
+  "organization.export",
 ];
 
 let restrictedCache: { at: number; set: Set<string> } | null = null;
@@ -32,15 +33,16 @@ export async function getRestrictedModeAllowlist(): Promise<Set<string>> {
     });
     if (gbs && Array.isArray(gbs.restrictedModeAllowedPermissions)) {
       const parsed = gbs.restrictedModeAllowedPermissions as unknown[];
-      const stringPerms = parsed.filter(
-        (v): v is string => typeof v === "string" && v.length > 0,
-      );
+      const stringPerms = parsed.filter((v): v is string => typeof v === "string" && v.length > 0);
       if (stringPerms.length > 0) list = stringPerms;
     }
   } catch {
     // Settings table missing during migrations — keep defaults.
   }
   const set = new Set<string>(list);
+  // Always, even when billing settings replace the default list.
+  // The terms promise an export while the account is restricted.
+  set.add("organization.export");
   restrictedCache = { at: now, set };
   return set;
 }

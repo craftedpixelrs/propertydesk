@@ -122,11 +122,7 @@ export async function applyAllocations(
       new Prisma.Decimal(0),
       new Prisma.Decimal(invoice.totalAmount.toString()).minus(nextPaid),
     );
-    const nextStatus = nextDue.eq(0)
-      ? "PAID"
-      : nextPaid.gt(0)
-        ? "PARTIALLY_PAID"
-        : invoice.status;
+    const nextStatus = nextDue.eq(0) ? "PAID" : nextPaid.gt(0) ? "PARTIALLY_PAID" : invoice.status;
 
     const written = await tx.invoice.update({
       where: { id: invoice.id },
@@ -142,9 +138,7 @@ export async function applyAllocations(
   }
 
   if (!input.allowOverpay && totalAllocated.gt(input.paymentAmount)) {
-    throw DomainErrors.badRequest(
-      "Zbir alokacija je veći od iznosa uplate.",
-    );
+    throw DomainErrors.badRequest("Zbir alokacija je veći od iznosa uplate.");
   }
 
   return { updatedInvoices: updated, totalAllocated };

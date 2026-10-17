@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { loadUserContext } from "@/server/auth/context";
 import { listAgencyCommissions } from "@/server/services/commissions/commissions.service";
+import { prisma } from "@/server/db/prisma";
 import { formatDate } from "@/lib/formatters";
 import { createT, type TranslateFn, type TranslationKey } from "@/lib/i18n";
 
@@ -36,6 +37,13 @@ export default async function MojeProvizijePage() {
     page: 1,
     pageSize: 50,
   });
+  const investorIds = [...new Set(items.map((row) => row.investorOrganizationId))];
+  const investors = investorIds.length
+    ? await prisma.organization.findMany({
+        where: { id: { in: investorIds } },
+        select: { id: true, name: true },
+      })
+    : [];
 
   return (
     <div className="space-y-6">
@@ -45,6 +53,20 @@ export default async function MojeProvizijePage() {
           {t("partners.myCommissions.subtitle")}
         </p>
       </div>
+
+      {investors.length ? (
+        <div className="flex flex-wrap gap-3 text-sm">
+          {investors.map((investor) => (
+            <a
+              key={investor.id}
+              className="text-[var(--color-brand-700)] hover:underline"
+              href={`/api/v1/pdf/agency-commission-statement?investorOrganizationId=${investor.id}`}
+            >
+              {t("deals.clientPack.commissionPdf")} · {investor.name}
+            </a>
+          ))}
+        </div>
+      ) : null}
 
       <Card>
         <CardHeader>
@@ -58,7 +80,7 @@ export default async function MojeProvizijePage() {
           ) : (
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-[var(--color-border)] text-sm">
-                <thead className="bg-[var(--color-surface-inset)] text-left text-xs uppercase tracking-wide text-[var(--color-foreground-muted)]">
+                <thead className="bg-[var(--color-surface-inset)] text-left text-xs tracking-wide text-[var(--color-foreground-muted)] uppercase">
                   <tr>
                     <th className="px-4 py-3">{t("partners.sale")}</th>
                     <th className="px-4 py-3">{t("common.statusLabel")}</th>
@@ -72,9 +94,7 @@ export default async function MojeProvizijePage() {
                   {items.map((c) => (
                     <tr key={c.id}>
                       <td className="px-4 py-3 font-mono text-xs">{c.saleId}</td>
-                      <td className="px-4 py-3 text-xs">
-                        {commissionStatusLabel(c.status, t)}
-                      </td>
+                      <td className="px-4 py-3 text-xs">{commissionStatusLabel(c.status, t)}</td>
                       <td className="px-4 py-3 text-xs">
                         {c.calculationType === "PERCENTAGE"
                           ? t("partners.percentageRate", { rate: c.rate ?? "—" })
@@ -83,7 +103,7 @@ export default async function MojeProvizijePage() {
                       <td className="px-4 py-3 text-right tabular-nums">
                         {c.baseAmount} {c.currency}
                       </td>
-                      <td className="px-4 py-3 text-right tabular-nums font-medium">
+                      <td className="px-4 py-3 text-right font-medium tabular-nums">
                         {c.amount} {c.currency}
                       </td>
                       <td className="px-4 py-3 text-[var(--color-foreground-muted)]">

@@ -34,9 +34,7 @@ test.describe("investor flow", () => {
   ];
 
   for (const route of investorRoutes) {
-    test(`redirects anonymous visitor from ${route} to /sign-in`, async ({
-      page,
-    }) => {
+    test(`redirects anonymous visitor from ${route} to /sign-in`, async ({ page }) => {
       await page.goto(route);
       await expect(page).toHaveURL(/\/sign-in(\?|$)/);
     });
@@ -47,9 +45,7 @@ test.describe("investor flow", () => {
     await expect(page.getByRole("heading", { name: "Prijava" })).toBeVisible();
     await expect(page.getByText("Email adresa")).toBeVisible();
     await expect(page.getByLabel("Lozinka", { exact: true })).toBeVisible();
-    await expect(
-      page.getByRole("button", { name: "Prijava" }),
-    ).toBeVisible();
+    await expect(page.getByRole("button", { name: "Prijava" })).toBeVisible();
   });
 
   test("unknown investor sub-route shows the Serbian 404", async ({ page }) => {
@@ -58,9 +54,7 @@ test.describe("investor flow", () => {
     // Either the app redirects unauthenticated users OR shows a not-found
     // — both are acceptable for security-flow: no tenant data must leak.
     const url = page.url();
-    const notFoundVisible = await page
-      .getByText(/Stranica nije pronađena|Prijava/)
-      .count();
+    const notFoundVisible = await page.getByText(/Stranica nije pronađena|Prijava/).count();
     expect(notFoundVisible).toBeGreaterThan(0);
     expect(url).not.toContain("undefined");
   });

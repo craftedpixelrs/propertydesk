@@ -1,96 +1,100 @@
 "use client";
 
-import { Rocket, ArrowRight } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 
-import {
-  LANDING_IMAGES,
-  LAUNCH_DATE_ISO,
-  LAUNCH_DATE_LABEL,
-} from "@/lib/constants/app";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { LANDING_IMAGES, LAUNCH_DATE_ISO, LAUNCH_DATE_LABEL } from "@/lib/constants/app";
+import { marketingCta } from "@/features/marketing/marketing-cta";
 import { MockupFrame } from "@/features/marketing/mockup-frame";
 import { Countdown } from "@/features/marketing/countdown";
 import { useT } from "@/components/app/i18n-provider";
 
 /**
- * Hero section - first thing anonymous visitors see.
- *
- * The CTA hierarchy targets fast-moving B2B qualified visitors:
- *   - Primary   → `#zakazivanje` (Google Calendar Appointment embed on the
- *                 same page + on the dedicated `/demo` route)
- *
- * Login is intentionally NOT in the hero - it lives in the top-right
- * header only, and is disabled until 15.10.2026 anyway.
+ * Opening band. Ink background and a serif headline so the landing
+ * reads as a property brand, not a generic light SaaS template.
+ * Login stays in the header until 15.10.2026.
  */
 export function Hero() {
   const t = useT();
 
   return (
     <section
-      className="relative overflow-hidden"
+      className="relative overflow-hidden bg-[#0b1020] text-white"
       aria-labelledby="hero-title"
     >
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-b from-[var(--color-brand-50)]/70 via-white to-white"
+        className="pd-glow pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,rgba(214,178,106,0.28),transparent_48%),radial-gradient(ellipse_at_85%_110%,rgba(214,178,106,0.16),transparent_42%)]"
       />
       <div
         aria-hidden
-        className="pointer-events-none absolute -top-32 left-1/2 -z-10 h-72 w-[36rem] -translate-x-1/2 rounded-full bg-[var(--color-brand-200)]/40 blur-3xl"
+        className="pointer-events-none absolute inset-0 [background-image:linear-gradient(rgba(255,255,255,0.08)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.08)_1px,transparent_1px)] [mask-image:radial-gradient(ellipse_at_center,black,transparent_75%)] [background-size:72px_72px] opacity-[0.18]"
       />
 
-      <div className="container-app grid gap-10 py-12 sm:py-20 lg:grid-cols-[minmax(0,6fr)_minmax(0,6fr)] lg:gap-14 lg:py-24">
+      <div className="container-app relative grid items-center gap-12 py-16 sm:py-20 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] lg:gap-10 lg:py-24">
         <div className="max-w-2xl">
-          <div className="flex flex-wrap items-center gap-2">
-            <Badge tone="brand" className="gap-1.5">
-              <Rocket aria-hidden className="size-3.5" />
-              {t("marketing.hero.launchBadge", { date: LAUNCH_DATE_LABEL })}
-            </Badge>
-            <Badge tone="success">{t("marketing.hero.earlyAccessBadge")}</Badge>
-          </div>
+          <p className="pd-rise inline-flex items-center gap-2 rounded-full border border-[#d6b26a]/40 bg-[#d6b26a]/10 px-3 py-1 text-xs font-semibold tracking-wide text-[#f3e2bc]">
+            <span className="size-1.5 rounded-full bg-[#d6b26a]" />
+            {t("marketing.hero.launchBadge", { date: LAUNCH_DATE_LABEL })}
+          </p>
 
           <h1
             id="hero-title"
-            className="mt-5 text-balance text-3xl font-semibold leading-[1.08] text-[var(--color-foreground)] sm:text-5xl lg:text-[3.5rem]"
+            className="pd-rise font-display mt-6 text-4xl leading-[1.05] font-semibold tracking-[-0.03em] text-balance text-[#f7f3ea] sm:text-6xl lg:text-[4.25rem]"
+            style={{ animationDelay: "80ms" }}
           >
             {t("marketing.hero.title")}
           </h1>
 
-          <p className="mt-4 max-w-xl text-pretty text-base leading-relaxed text-[var(--color-foreground-muted)] sm:mt-5 sm:text-lg">
+          <p
+            className="pd-rise mt-5 max-w-xl text-base leading-relaxed text-pretty text-white/70 sm:text-lg"
+            style={{ animationDelay: "150ms" }}
+          >
             {t("marketing.hero.subtitle")}
           </p>
 
-          <div className="mt-7 flex flex-col items-stretch gap-3 sm:mt-8 sm:flex-row sm:items-center">
-            <Button asChild size="lg" className="w-full sm:w-auto">
-              <a href="#zakazivanje">
-                {t("marketing.hero.bookDemo")}
-                <ArrowRight aria-hidden className="size-4" />
-              </a>
-            </Button>
+          <div
+            className="pd-rise mt-8 flex flex-col items-stretch gap-3 sm:flex-row sm:items-center"
+            style={{ animationDelay: "220ms" }}
+          >
+            <a href="#zakazivanje" className={marketingCta("cream", "lg", "w-full sm:w-auto")}>
+              {t("marketing.hero.bookDemo")}
+              <ArrowRight aria-hidden className="size-4" />
+            </a>
+            <a href="#cenovnik" className={marketingCta("quietDark", "lg", "w-full sm:w-auto")}>
+              {t("marketing.nav.pricing")}
+            </a>
           </div>
 
-          <p className="mt-4 text-xs text-[var(--color-foreground-subtle)]">
+          <p className="pd-rise mt-4 text-sm text-[#f3e2bc]/90" style={{ animationDelay: "300ms" }}>
+            {t("marketing.hero.earlyAccessBadge")}
+          </p>
+          <p className="pd-rise mt-1 text-xs text-white/45" style={{ animationDelay: "340ms" }}>
             {t("marketing.hero.noObligation")}
           </p>
 
-          <div className="mt-10">
-            <div className="mb-2 text-xs font-medium uppercase tracking-wider text-[var(--color-foreground-subtle)]">
+          <div className="pd-rise mt-10" style={{ animationDelay: "400ms" }}>
+            <div className="mb-3 text-[11px] font-semibold tracking-[0.16em] text-white/45 uppercase">
               {t("marketing.hero.countdownLabel")}
             </div>
-            <Countdown targetIso={LAUNCH_DATE_ISO} className="max-w-md" />
+            <Countdown targetIso={LAUNCH_DATE_ISO} tone="onDark" className="max-w-md" />
           </div>
         </div>
 
-        <div className="flex items-center justify-center lg:justify-end">
-          <MockupFrame
-            variant="desktop"
-            src={LANDING_IMAGES.heroDesktop?.src}
-            width={LANDING_IMAGES.heroDesktop?.width}
-            height={LANDING_IMAGES.heroDesktop?.height}
-            alt={t("marketing.hero.mockupAlt")}
-            priority
+        <div className="pd-rise relative min-w-0" style={{ animationDelay: "200ms" }}>
+          <div
+            aria-hidden
+            className="absolute -inset-6 -z-10 rounded-[2rem] bg-[#d6b26a]/10 blur-2xl"
           />
+          <div className="pd-float rounded-[1.4rem] border border-white/10 bg-white/[0.04] p-2 shadow-[0_30px_80px_-30px_rgba(0,0,0,0.7)] sm:p-3">
+            <MockupFrame
+              variant="desktop"
+              src={LANDING_IMAGES.heroDesktop?.src}
+              width={LANDING_IMAGES.heroDesktop?.width}
+              height={LANDING_IMAGES.heroDesktop?.height}
+              alt={t("marketing.hero.mockupAlt")}
+              priority
+            />
+          </div>
         </div>
       </div>
     </section>

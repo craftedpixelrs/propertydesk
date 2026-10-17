@@ -1,14 +1,7 @@
 "use client";
 
 import * as React from "react";
-import {
-  Cell,
-  Legend,
-  Pie,
-  PieChart,
-  ResponsiveContainer,
-  Tooltip,
-} from "recharts";
+import { Cell, Legend, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
 
 import { chartBrandScale, pickColor } from "./palette";
 
@@ -48,10 +41,7 @@ export function StatusDonut({
     [data, hideZero],
   );
 
-  const total = React.useMemo(
-    () => filtered.reduce((sum, d) => sum + d.value, 0),
-    [filtered],
-  );
+  const total = React.useMemo(() => filtered.reduce((sum, d) => sum + d.value, 0), [filtered]);
 
   return (
     <ResponsiveContainer width="100%" height="100%">
@@ -68,15 +58,9 @@ export function StatusDonut({
           isAnimationActive={false}
         >
           {filtered.map((d, i) => (
-            <Cell
-              key={d.key}
-              fill={d.color ?? pickColor(i, chartBrandScale)}
-            />
+            <Cell key={d.key} fill={d.color ?? pickColor(i, chartBrandScale)} />
           ))}
-          <Label
-            centerLabel={centerLabel}
-            centerValue={centerValue ?? numberFmt.format(total)}
-          />
+          <Label centerLabel={centerLabel} centerValue={centerValue ?? numberFmt.format(total)} />
         </Pie>
         <Tooltip
           contentStyle={{
@@ -84,7 +68,7 @@ export function StatusDonut({
             border: "1px solid var(--color-border)",
             fontSize: 12,
           }}
-          formatter={(value: number) => numberFmt.format(value)}
+          formatter={(value) => numberFmt.format(Number(value ?? 0))}
         />
         <Legend
           verticalAlign="bottom"

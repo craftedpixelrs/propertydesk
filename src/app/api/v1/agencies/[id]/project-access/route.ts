@@ -24,25 +24,22 @@ export const GET = apiHandler({ paramsSchema }, async ({ params }) => {
   return { data: detail.projectAccess };
 });
 
-export const POST = apiHandler(
-  { paramsSchema, bodySchema },
-  async ({ params, body }) => {
-    const ctx = await requirePermission("agency.manage");
-    const grant = await grantProjectAccess({
-      investorOrganizationId: ctx.organization.organizationId,
-      actorUserId: ctx.session.user.id,
-      connectionId: params.id,
-      projectId: body.projectId,
-      canViewPrices: body.canViewPrices,
-      canViewFloorPlans: body.canViewFloorPlans,
-      canRequestReservations: body.canRequestReservations,
-      showOnlyAgencyVisibleUnits: body.showOnlyAgencyVisibleUnits,
-      accessStartsAt: body.accessStartsAt ? new Date(body.accessStartsAt) : null,
-      accessEndsAt: body.accessEndsAt ? new Date(body.accessEndsAt) : null,
-    });
-    return { data: grant, status: 201 };
-  },
-);
+export const POST = apiHandler({ paramsSchema, bodySchema }, async ({ params, body }) => {
+  const ctx = await requirePermission("agency.manage");
+  const grant = await grantProjectAccess({
+    investorOrganizationId: ctx.organization.organizationId,
+    actorUserId: ctx.session.user.id,
+    connectionId: params.id,
+    projectId: body.projectId,
+    canViewPrices: body.canViewPrices,
+    canViewFloorPlans: body.canViewFloorPlans,
+    canRequestReservations: body.canRequestReservations,
+    showOnlyAgencyVisibleUnits: body.showOnlyAgencyVisibleUnits,
+    accessStartsAt: body.accessStartsAt ? new Date(body.accessStartsAt) : null,
+    accessEndsAt: body.accessEndsAt ? new Date(body.accessEndsAt) : null,
+  });
+  return { data: grant, status: 201 };
+});
 
 /**
  * @swagger

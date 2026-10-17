@@ -54,14 +54,12 @@ export default async function ZadaciPage({ searchParams }: PageProps) {
   requireTenantPage(ctx, { permission: "lead.read" });
   const t = createT(ctx.user.locale);
 
-  const canSeeTeam =
-    ctx.isSuperAdmin || ctx.permissions.includes("organization.members:manage");
+  const canSeeTeam = ctx.isSuperAdmin || ctx.permissions.includes("organization.members:manage");
   const views = canSeeTeam ? [...BASE_VIEWS, TEAM_VIEW] : BASE_VIEWS;
 
   const sp = await searchParams;
   const rawView = readParam(sp.view) as TaskView | undefined;
-  const view: TaskView =
-    rawView && views.some((v) => v.key === rawView) ? rawView : "mine";
+  const view: TaskView = rawView && views.some((v) => v.key === rawView) ? rawView : "mine";
 
   const [{ items }, counts] = await Promise.all([
     listTasks({
@@ -91,10 +89,7 @@ export default async function ZadaciPage({ searchParams }: PageProps) {
           </p>
         </div>
         {canManage ? (
-          <NewTaskDrawer
-            canAssign={canSeeTeam}
-            currentUserId={ctx.user.id}
-          >
+          <NewTaskDrawer canAssign={canSeeTeam} currentUserId={ctx.user.id}>
             <Button type="button">{t("crm.tasks.newTask")}</Button>
           </NewTaskDrawer>
         ) : null}
@@ -144,9 +139,7 @@ export default async function ZadaciPage({ searchParams }: PageProps) {
               task.status !== "COMPLETED" &&
               task.status !== "CANCELED" &&
               new Date(task.dueAt) < new Date();
-            const buyerName = task.buyer
-              ? `${task.buyer.firstName} ${task.buyer.lastName}`
-              : null;
+            const buyerName = task.buyer ? `${task.buyer.firstName} ${task.buyer.lastName}` : null;
             return (
               <Card key={task.id}>
                 <CardContent className="flex flex-wrap items-center justify-between gap-3 py-3">

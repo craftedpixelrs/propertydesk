@@ -32,9 +32,7 @@ const CYR_TO_LAT: Record<string, string> = {
 };
 
 function transliterateSerbianCyrillic(value: string): string {
-  return [...value]
-    .map((char) => CYR_TO_LAT[char] ?? char)
-    .join("");
+  return [...value].map((char) => CYR_TO_LAT[char] ?? char).join("");
 }
 
 export function normalizeGeoQuery(value: string): string {

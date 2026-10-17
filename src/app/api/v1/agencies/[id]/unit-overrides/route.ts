@@ -10,20 +10,17 @@ const bodySchema = z.object({
   visible: z.boolean(),
 });
 
-export const POST = apiHandler(
-  { paramsSchema, bodySchema },
-  async ({ params, body }) => {
-    const ctx = await requirePermission("agency.manage");
-    const override = await setUnitOverride({
-      investorOrganizationId: ctx.organization.organizationId,
-      actorUserId: ctx.session.user.id,
-      connectionId: params.id,
-      unitId: body.unitId,
-      visible: body.visible,
-    });
-    return { data: override, status: 201 };
-  },
-);
+export const POST = apiHandler({ paramsSchema, bodySchema }, async ({ params, body }) => {
+  const ctx = await requirePermission("agency.manage");
+  const override = await setUnitOverride({
+    investorOrganizationId: ctx.organization.organizationId,
+    actorUserId: ctx.session.user.id,
+    connectionId: params.id,
+    unitId: body.unitId,
+    visible: body.visible,
+  });
+  return { data: override, status: 201 };
+});
 
 /**
  * @swagger

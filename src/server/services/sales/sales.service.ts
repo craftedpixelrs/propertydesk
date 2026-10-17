@@ -125,10 +125,7 @@ export function computeFinalPrice(
   return result.toDecimalPlaces(2);
 }
 
-async function assertNoActiveSale(
-  tx: Prisma.TransactionClient,
-  unitId: string,
-): Promise<void> {
+async function assertNoActiveSale(tx: Prisma.TransactionClient, unitId: string): Promise<void> {
   const active = await tx.sale.findFirst({
     where: { unitId, status: { not: "CANCELED" } },
     select: { id: true },
@@ -279,6 +276,7 @@ export async function getSaleById(organizationId: string, saleId: string) {
       paymentPlan: { include: { installments: { orderBy: { sequenceNumber: "asc" } } } },
       payments: { orderBy: { paymentDate: "desc" } },
       commission: true,
+      settlementLines: { orderBy: { createdAt: "asc" } },
       statusHistory: {
         orderBy: { changedAt: "desc" },
         include: { changedByUser: { select: { id: true, name: true } } },
@@ -294,11 +292,7 @@ export async function getSaleById(organizationId: string, saleId: string) {
 // -----------------------------------------------------------------------------
 
 export async function createSale(input: CreateSaleInput) {
-  const finalPrice = computeFinalPrice(
-    input.listPrice,
-    input.discountType,
-    input.discountValue,
-  );
+  const finalPrice = computeFinalPrice(input.listPrice, input.discountType, input.discountValue);
   const listPriceDecimal = toDecimal(input.listPrice).toDecimalPlaces(2);
   const currency = input.currency ?? "EUR";
 
@@ -353,9 +347,7 @@ export async function createSale(input: CreateSaleInput) {
         });
         if (!reservation) throw DomainErrors.notFound("Rezervacija");
         if (reservation.status !== "APPROVED") {
-          throw DomainErrors.invalidState(
-            "Rezervacija mora biti odobrena pre kreiranja prodaje.",
-          );
+          throw DomainErrors.invalidState("Rezervacija mora biti odobrena pre kreiranja prodaje.");
         }
       }
 
@@ -374,8 +366,7 @@ export async function createSale(input: CreateSaleInput) {
             "INTERNAL",
           agencyOrganizationId:
             input.agencyOrganizationId ?? reservation?.agencyOrganizationId ?? null,
-          agencyAgentUserId:
-            input.agencyAgentUserId ?? reservation?.agencyAgentUserId ?? null,
+          agencyAgentUserId: input.agencyAgentUserId ?? reservation?.agencyAgentUserId ?? null,
           responsibleUserId: input.responsibleUserId ?? input.actorUserId,
           status: "DRAFT",
           listPrice: listPriceDecimal.toString(),
@@ -437,11 +428,7 @@ export async function createSale(input: CreateSaleInput) {
 // -----------------------------------------------------------------------------
 
 export async function createSaleFromReservation(input: CreateFromReservationInput) {
-  const finalPrice = computeFinalPrice(
-    input.listPrice,
-    input.discountType,
-    input.discountValue,
-  );
+  const finalPrice = computeFinalPrice(input.listPrice, input.discountType, input.discountValue);
   const listPriceDecimal = toDecimal(input.listPrice).toDecimalPlaces(2);
 
   const { sale } = await prisma
@@ -466,9 +453,7 @@ export async function createSaleFromReservation(input: CreateFromReservationInpu
       });
       if (!reservation) throw DomainErrors.notFound("Rezervacija");
       if (reservation.status !== "APPROVED") {
-        throw DomainErrors.invalidState(
-          "Rezervacija mora biti odobrena pre konverzije u prodaju.",
-        );
+        throw DomainErrors.invalidState("Rezervacija mora biti odobrena pre konverzije u prodaju.");
       }
 
       // Row-lock the unit — same pattern as `createReservation` / `createSale`.
@@ -597,10 +582,7 @@ async function transitionSale(input: {
     if (existing.status === input.target) {
       return { id: existing.id, status: existing.status, alreadyInState: true };
     }
-    if (
-      input.expectedVersion != null &&
-      existing.version !== input.expectedVersion
-    ) {
+    if (input.expectedVersion != null && existing.version !== input.expectedVersion) {
       throw DomainErrors.optimisticLock();
     }
     const allowed = ALLOWED_SALE_TRANSITIONS[existing.status] ?? [];
@@ -930,9 +912,9 @@ export async function updateSaleTaxSettings(input: UpdateSaleTaxInput) {
     nextTaxAmount = null;
   } else if (input.taxAmount !== undefined && input.taxAmount !== null) {
     try {
-      nextTaxAmount = new Prisma.Decimal(
-        input.taxAmount as Prisma.Decimal.Value,
-      ).toDecimalPlaces(2);
+      nextTaxAmount = new Prisma.Decimal(input.taxAmount as Prisma.Decimal.Value).toDecimalPlaces(
+        2,
+      );
     } catch {
       throw DomainErrors.badRequest("Iznos poreza nije validan.");
     }
@@ -947,8 +929,7 @@ export async function updateSaleTaxSettings(input: UpdateSaleTaxInput) {
     nextTaxAmount = computed.taxAmount;
   }
 
-  const nextTaxPayer: SaleTaxPayer =
-    input.taxPayer ?? sale.taxPayer ?? "BUYER";
+  const nextTaxPayer: SaleTaxPayer = input.taxPayer ?? sale.taxPayer ?? "BUYER";
 
   const updated = await prisma.sale.update({
     where: { id: sale.id },

@@ -96,7 +96,7 @@ See [`docs/backup.md`](./backup.md).
 ## Post-deploy smoke checks
 
 1. `curl -f https://<host>/api/v1/health` returns `200`.
-2. `curl -f https://<host>/api/v1/ready` returns `200` with `db:"ok"`.
+2. `curl -f https://<host>/api/v1/health/ready` returns `200` with `db:"ok"`.
 3. Sign in (production: super-admin; local/demo seed:
    `vlasnik@gradnjaplus.test`) and verify the dashboard loads.
 4. Trigger `POST /api/v1/jobs/expire-reservations` with `x-cron-secret`

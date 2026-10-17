@@ -10,19 +10,16 @@ const bodySchema = z.object({
   note: z.string().max(2000).optional().nullable(),
 });
 
-export const POST = apiHandler(
-  { paramsSchema, bodySchema },
-  async ({ params, body }) => {
-    const ctx = await requireSuperAdmin();
-    const updated = await setAgencyVerification({
-      organizationId: params.id,
-      actorUserId: ctx.session.user.id,
-      status: body.status,
-      note: body.note,
-    });
-    return { data: updated };
-  },
-);
+export const POST = apiHandler({ paramsSchema, bodySchema }, async ({ params, body }) => {
+  const ctx = await requireSuperAdmin();
+  const updated = await setAgencyVerification({
+    organizationId: params.id,
+    actorUserId: ctx.session.user.id,
+    status: body.status,
+    note: body.note,
+  });
+  return { data: updated };
+});
 
 /**
  * @swagger

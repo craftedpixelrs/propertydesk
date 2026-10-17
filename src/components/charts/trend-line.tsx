@@ -93,11 +93,11 @@ export function TrendLine({
             border: "1px solid var(--color-border)",
             fontSize: 12,
           }}
-          formatter={(value: number, name: string) =>
-            tooltipFormatter
-              ? tooltipFormatter(value, name)
-              : numberFmt.format(value)
-          }
+          formatter={(value, name) => {
+            const num = Number(value ?? 0);
+            const label = typeof name === "string" ? name : String(name ?? "");
+            return tooltipFormatter ? tooltipFormatter(num, label) : numberFmt.format(num);
+          }}
         />
         <Legend wrapperStyle={{ fontSize: 12 }} iconType="circle" />
         {series.map((s, i) => (

@@ -16,11 +16,7 @@ import { prisma } from "@/server/db/prisma";
  * their query cost.
  */
 
-export type CalendarEventType =
-  | "reservation-expiry"
-  | "payment-due"
-  | "task"
-  | "sale-handover";
+export type CalendarEventType = "reservation-expiry" | "payment-due" | "task" | "sale-handover";
 
 export interface CalendarEvent {
   id: string;
@@ -41,12 +37,9 @@ export interface LoadCalendarEventsInput {
   types?: CalendarEventType[];
 }
 
-export async function loadCalendarEvents(
-  input: LoadCalendarEventsInput,
-): Promise<CalendarEvent[]> {
+export async function loadCalendarEvents(input: LoadCalendarEventsInput): Promise<CalendarEvent[]> {
   const { organizationId, from, to } = input;
-  const enabled = (t: CalendarEventType) =>
-    !input.types || input.types.includes(t);
+  const enabled = (t: CalendarEventType) => !input.types || input.types.includes(t);
 
   const [reservations, installments, tasks, sales] = await Promise.all([
     enabled("reservation-expiry")
@@ -61,7 +54,7 @@ export async function loadCalendarEvents(
             expiresAt: true,
             status: true,
             unit: { select: { code: true } },
-            buyer: { select: { firstName: true, lastName: true } },
+            buyer: { select: { firstName: true, lastName: true, email: true } },
           },
         })
       : Promise.resolve([]),
@@ -84,7 +77,7 @@ export async function loadCalendarEvents(
                   select: {
                     id: true,
                     unit: { select: { code: true } },
-                    buyer: { select: { firstName: true, lastName: true } },
+                    buyer: { select: { firstName: true, lastName: true, email: true } },
                   },
                 },
               },
@@ -119,7 +112,7 @@ export async function loadCalendarEvents(
             id: true,
             plannedHandoverDate: true,
             unit: { select: { code: true } },
-            buyer: { select: { firstName: true, lastName: true } },
+            buyer: { select: { firstName: true, lastName: true, email: true } },
           },
         })
       : Promise.resolve([]),
@@ -134,11 +127,13 @@ export async function loadCalendarEvents(
       type: "reservation-expiry",
       date: r.expiresAt.toISOString(),
       title: r.unit?.code ?? "—",
-      subtitle: r.buyer
-        ? `${r.buyer.firstName} ${r.buyer.lastName}`
-        : undefined,
+      subtitle: r.buyer ? `${r.buyer.firstName} ${r.buyer.lastName}` : undefined,
       href: `/rezervacije/${r.id}`,
-      meta: { status: r.status, unitCode: r.unit?.code ?? "—" },
+      meta: {
+        status: r.status,
+        unitCode: r.unit?.code ?? "—",
+        buyerEmail: r.buyer?.email ?? null,
+      },
     });
   }
 
@@ -159,6 +154,7 @@ export async function loadCalendarEvents(
         amount: inst.amount.toString(),
         currency: inst.paymentPlan?.currency ?? null,
         status: inst.status,
+        buyerEmail: sale?.buyer?.email ?? null,
       },
     });
   }
@@ -182,11 +178,9 @@ export async function loadCalendarEvents(
       type: "sale-handover",
       date: sale.plannedHandoverDate.toISOString(),
       title: sale.unit?.code ?? "—",
-      subtitle: sale.buyer
-        ? `${sale.buyer.firstName} ${sale.buyer.lastName}`
-        : undefined,
+      subtitle: sale.buyer ? `${sale.buyer.firstName} ${sale.buyer.lastName}` : undefined,
       href: `/prodaje/${sale.id}`,
-      meta: { unitCode: sale.unit?.code ?? "—" },
+      meta: { unitCode: sale.unit?.code ?? "—", buyerEmail: sale.buyer?.email ?? null },
     });
   }
 

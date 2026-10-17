@@ -47,9 +47,7 @@ export async function listOrganizationsForUser(
       where,
       include: {
         profile: true,
-        members: isSuperAdmin
-          ? false
-          : { where: { userId }, select: { role: true } },
+        members: isSuperAdmin ? false : { where: { userId }, select: { role: true } },
       },
       orderBy: { createdAt: "desc" },
       skip: (page - 1) * pageSize,
@@ -65,9 +63,7 @@ export async function listOrganizationsForUser(
     status: org.profile?.status ?? null,
     memberRole: isSuperAdmin
       ? null
-      : (
-          (org as unknown as { members: { role: string }[] }).members?.[0]?.role ?? null
-        ),
+      : ((org as unknown as { members: { role: string }[] }).members?.[0]?.role ?? null),
     createdAt: org.createdAt,
   }));
 

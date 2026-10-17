@@ -43,8 +43,31 @@ const CITY_ROWS: CityRow[] = [
       ["Mladenovac", "11400", 44.44, 20.7],
     ],
   ],
-  ["Novi Sad", 45.2671, 19.8335, "21000", [["Novi Sad", "21000"], ["Petrovaradin", "21131"], ["Beočin", "21300"], ["Sremski Karlovci", "21205"]]],
-  ["Niš", 43.3209, 21.8958, "18000", [["Medijana", "18000"], ["Palilula", "18000"], ["Pantelej", "18000"], ["Crveni Krst", "18000"], ["Niška Banja", "18205"]]],
+  [
+    "Novi Sad",
+    45.2671,
+    19.8335,
+    "21000",
+    [
+      ["Novi Sad", "21000"],
+      ["Petrovaradin", "21131"],
+      ["Beočin", "21300"],
+      ["Sremski Karlovci", "21205"],
+    ],
+  ],
+  [
+    "Niš",
+    43.3209,
+    21.8958,
+    "18000",
+    [
+      ["Medijana", "18000"],
+      ["Palilula", "18000"],
+      ["Pantelej", "18000"],
+      ["Crveni Krst", "18000"],
+      ["Niška Banja", "18205"],
+    ],
+  ],
   ["Kragujevac", 44.0128, 20.9114, "34000"],
   ["Subotica", 46.1003, 19.6651, "24000"],
   ["Zrenjanin", 45.3816, 20.3868, "23000"],
@@ -215,8 +238,7 @@ export function suggestSerbiaPlaces(
     if (place.kind !== kind) return false;
     if (kind === "municipality" && cityNorm) {
       return (
-        normalizeGeoQuery(place.city) === cityNorm ||
-        normalizeGeoQuery(place.name) === cityNorm
+        normalizeGeoQuery(place.city) === cityNorm || normalizeGeoQuery(place.name) === cityNorm
       );
     }
     return true;
@@ -242,16 +264,12 @@ export function findSerbiaCity(name: string): SerbiaPlace | null {
   const q = normalizeGeoQuery(name);
   if (!q) return null;
   return (
-    SERBIA_PLACES.find(
-      (place) => place.kind === "city" && normalizeGeoQuery(place.name) === q,
-    ) ?? null
+    SERBIA_PLACES.find((place) => place.kind === "city" && normalizeGeoQuery(place.name) === q) ??
+    null
   );
 }
 
-export function postalCodeForMunicipality(
-  municipality: string,
-  city?: string,
-): string | null {
+export function postalCodeForMunicipality(municipality: string, city?: string): string | null {
   const q = normalizeGeoQuery(municipality);
   if (!q) return null;
   const cityNorm = city ? normalizeGeoQuery(city) : "";
@@ -262,8 +280,6 @@ export function postalCodeForMunicipality(
         normalizeGeoQuery(place.name) === q &&
         (!cityNorm || normalizeGeoQuery(place.city) === cityNorm),
     ) ??
-    SERBIA_PLACES.find(
-      (place) => place.kind === "city" && normalizeGeoQuery(place.name) === q,
-    );
+    SERBIA_PLACES.find((place) => place.kind === "city" && normalizeGeoQuery(place.name) === q);
   return match?.postalCode ?? null;
 }

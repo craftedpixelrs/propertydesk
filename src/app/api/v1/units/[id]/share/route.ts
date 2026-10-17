@@ -12,6 +12,9 @@ const paramsSchema = z.object({ id: z.string().min(1) });
 const createBody = z.object({
   showPrice: z.boolean().optional(),
   expiresAt: z.coerce.date().nullable().optional(),
+  expiresInDays: z.number().int().min(1).max(365).nullable().optional(),
+  forBuyerId: z.string().min(1).nullable().optional(),
+  forBuyerName: z.string().trim().min(2).max(120),
 });
 
 /**
@@ -33,14 +36,22 @@ export const POST = apiHandler(
       entityId: params.id,
       showPrice: body.showPrice,
       expiresAt: body.expiresAt,
+      expiresInDays: body.expiresInDays,
+      forBuyerId: body.forBuyerId,
+      forBuyerName: body.forBuyerName,
     });
     return {
       data: {
         id: link.id,
         token: link.token,
         showPrice: link.showPrice,
-        expiresAt: link.expiresAt,
-        createdAt: link.createdAt,
+        expiresAt: link.expiresAt?.toISOString() ?? null,
+        revokedAt: link.revokedAt?.toISOString() ?? null,
+        viewCount: link.viewCount,
+        lastViewedAt: link.lastViewedAt?.toISOString() ?? null,
+        createdAt: link.createdAt.toISOString(),
+        forBuyerId: link.forBuyerId,
+        forBuyerName: link.forBuyerName,
         publicUrl: `/p/${link.token}`,
       },
       status: 201,
@@ -64,11 +75,14 @@ export const GET = apiHandler({ paramsSchema }, async ({ params }) => {
       id: l.id,
       token: l.token,
       showPrice: l.showPrice,
-      expiresAt: l.expiresAt,
-      revokedAt: l.revokedAt,
+      expiresAt: l.expiresAt?.toISOString() ?? null,
+      revokedAt: l.revokedAt?.toISOString() ?? null,
       viewCount: l.viewCount,
-      lastViewedAt: l.lastViewedAt,
-      createdAt: l.createdAt,
+      lastViewedAt: l.lastViewedAt?.toISOString() ?? null,
+      createdAt: l.createdAt.toISOString(),
+      forBuyerId: l.forBuyerId,
+      forBuyerName:
+        l.forBuyerName ?? (l.forBuyer ? `${l.forBuyer.firstName} ${l.forBuyer.lastName}` : null),
       publicUrl: `/p/${l.token}`,
     })),
   };

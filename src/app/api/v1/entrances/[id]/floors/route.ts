@@ -12,19 +12,16 @@ const bodySchema = z.object({
   floorPlanUrl: z.string().url().optional(),
 });
 
-export const POST = apiHandler(
-  { paramsSchema, bodySchema },
-  async ({ params, body }) => {
-    const ctx = await requirePermission("inventory.manage");
-    const f = await createFloor({
-      organizationId: ctx.organization.organizationId,
-      actorUserId: ctx.session.user.id,
-      entranceId: params.id,
-      ...body,
-    });
-    return { data: f, status: 201 };
-  },
-);
+export const POST = apiHandler({ paramsSchema, bodySchema }, async ({ params, body }) => {
+  const ctx = await requirePermission("inventory.manage");
+  const f = await createFloor({
+    organizationId: ctx.organization.organizationId,
+    actorUserId: ctx.session.user.id,
+    entranceId: params.id,
+    ...body,
+  });
+  return { data: f, status: 201 };
+});
 
 /**
  * @swagger

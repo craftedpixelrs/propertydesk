@@ -10,10 +10,18 @@ export interface ZodIssueLike {
   code?: string;
   expected?: unknown;
   origin?: string;
-  minimum?: number;
-  maximum?: number;
+  // Zod 4 widens `minimum` / `maximum` to `number | bigint` for the
+  // `too_small` / `too_big` issue variants. Numeric i18n copy still
+  // formats bigints just fine.
+  minimum?: number | bigint;
+  maximum?: number | bigint;
   format?: string;
   exact?: boolean;
+}
+
+function toNumber(value: number | bigint | undefined): number {
+  if (value === undefined) return 0;
+  return typeof value === "bigint" ? Number(value) : value;
 }
 
 function looksLikeZodEnglish(message: string): boolean {
@@ -46,33 +54,35 @@ export function messageForZodIssue(issue: ZodIssueLike, locale: Locale): string 
   }
 
   if (code === "too_small") {
+    const min = toNumber(issue.minimum);
     if (issue.origin === "string") {
-      if (issue.minimum === 1 && !issue.exact) {
+      if (min === 1 && !issue.exact) {
         return t("validation.required", undefined, locale);
       }
       if (issue.exact) {
-        return t("validation.exactLength", { n: issue.minimum ?? 0 }, locale);
+        return t("validation.exactLength", { n: min }, locale);
       }
-      return t("validation.minLength", { min: issue.minimum ?? 0 }, locale);
+      return t("validation.minLength", { min }, locale);
     }
     if (issue.origin === "number") {
-      return t("validation.minNumber", { min: issue.minimum ?? 0 }, locale);
+      return t("validation.minNumber", { min }, locale);
     }
     if (issue.origin === "array") {
-      return t("validation.minItems", { min: issue.minimum ?? 0 }, locale);
+      return t("validation.minItems", { min }, locale);
     }
     return t("validation.tooShort", undefined, locale);
   }
 
   if (code === "too_big") {
+    const max = toNumber(issue.maximum);
     if (issue.origin === "string") {
       if (issue.exact) {
-        return t("validation.exactLength", { n: issue.maximum ?? 0 }, locale);
+        return t("validation.exactLength", { n: max }, locale);
       }
-      return t("validation.maxLength", { max: issue.maximum ?? 0 }, locale);
+      return t("validation.maxLength", { max }, locale);
     }
     if (issue.origin === "number") {
-      return t("validation.maxNumber", { max: issue.maximum ?? 0 }, locale);
+      return t("validation.maxNumber", { max }, locale);
     }
     return t("validation.tooLong", undefined, locale);
   }
@@ -102,10 +112,7 @@ export function messageForZodIssue(issue: ZodIssueLike, locale: Locale): string 
  * response still in the client). Already-localized copy is left alone.
  */
 export function localizeZodMessage(message: string, locale: Locale): string {
-  if (
-    message.includes("received undefined") ||
-    message.includes("received null")
-  ) {
+  if (message.includes("received undefined") || message.includes("received null")) {
     return t("validation.required", undefined, locale);
   }
   if (message.startsWith("Too small: expected string to have >=1")) {

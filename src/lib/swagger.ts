@@ -24,12 +24,12 @@ export const getApiDocs = () =>
           "",
           "Svi endpointi vraćaju standardni envelope:",
           "```json",
-          "{ \"data\": ..., \"meta\": { \"requestId\": \"...\", \"pagination?\": {...} } }",
+          '{ "data": ..., "meta": { "requestId": "...", "pagination?": {...} } }',
           "```",
           "",
           "Sve greške idu kroz:",
           "```json",
-          "{ \"error\": { \"code\": \"...\", \"message\": \"...\", \"requestId\": \"...\", \"fieldErrors?\": { \"field\": [\"poruka\"] } } }",
+          '{ "error": { "code": "...", "message": "...", "requestId": "...", "fieldErrors?": { "field": ["poruka"] } } }',
           "```",
         ].join("\n"),
         contact: {
@@ -131,8 +131,10 @@ export const getApiDocs = () =>
                       "NO_ACTIVE_ORGANIZATION",
                       "ORGANIZATION_ACCESS_DENIED",
                       "ORGANIZATION_SUSPENDED",
+                      "ORGANIZATION_NOT_ACTIVE",
                       "ORGANIZATION_RESTRICTED",
                       "PLATFORM_ADMIN_REQUIRED",
+                      "TWO_FACTOR_SETUP_REQUIRED",
                       "VALIDATION_ERROR",
                       "NOT_FOUND",
                       "CONFLICT",
@@ -153,8 +155,7 @@ export const getApiDocs = () =>
                   requestId: {
                     type: "string",
                     format: "uuid",
-                    description:
-                      "Korelacioni ID za logove (istovetan `x-request-id` header-u).",
+                    description: "Korelacioni ID za logove (istovetan `x-request-id` header-u).",
                   },
                   fieldErrors: {
                     type: "object",
@@ -162,8 +163,7 @@ export const getApiDocs = () =>
                       type: "array",
                       items: { type: "string" },
                     },
-                    description:
-                      "Po polju — mapirane Zod greške. Samo za 422 VALIDATION_ERROR.",
+                    description: "Po polju — mapirane Zod greške. Samo za 422 VALIDATION_ERROR.",
                   },
                 },
               },
@@ -210,8 +210,7 @@ export const getApiDocs = () =>
           RequestIdHeader: {
             type: "string",
             format: "uuid",
-            description:
-              "Client-supplied `x-request-id`. Ako nedostaje, server generiše UUID.",
+            description: "Client-supplied `x-request-id`. Ako nedostaje, server generiše UUID.",
           },
         },
         parameters: {
@@ -314,8 +313,7 @@ export const getApiDocs = () =>
             },
           },
           RateLimited: {
-            description:
-              "429 — previše zahteva. Pogledaj `Retry-After` header (u sekundama).",
+            description: "429 — previše zahteva. Pogledaj `Retry-After` header (u sekundama).",
             headers: {
               "Retry-After": {
                 schema: { type: "integer" },

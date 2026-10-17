@@ -146,7 +146,7 @@ export function CategoryBars({
             border: "1px solid var(--color-border)",
             fontSize: 12,
           }}
-          formatter={(value: number) => numberFmt.format(value)}
+          formatter={(value) => numberFmt.format(Number(value ?? 0))}
         />
         {resolvedSeries.length > 1 || !colorPerBar ? (
           <Legend wrapperStyle={{ fontSize: 12 }} iconType="circle" />
@@ -163,10 +163,7 @@ export function CategoryBars({
           >
             {colorPerBar && resolvedSeries.length === 1
               ? data.map((d, i) => (
-                  <Cell
-                    key={d.key}
-                    fill={d.color ?? pickColor(i, chartBrandScale)}
-                  />
+                  <Cell key={d.key} fill={d.color ?? pickColor(i, chartBrandScale)} />
                 ))
               : null}
           </Bar>

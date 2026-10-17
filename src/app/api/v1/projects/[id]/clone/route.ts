@@ -7,14 +7,8 @@ import { cloneProjectStructure } from "@/server/services/projects/clone.service"
 const paramsSchema = z.object({ id: z.string().min(1) });
 
 const bodySchema = z.object({
-  newProjectCode: z
-    .string()
-    .trim()
-    .min(1, "Šifra novog projekta je obavezna."),
-  newProjectName: z
-    .string()
-    .trim()
-    .min(1, "Naziv novog projekta je obavezan."),
+  newProjectCode: z.string().trim().min(1, "Šifra novog projekta je obavezna."),
+  newProjectName: z.string().trim().min(1, "Naziv novog projekta je obavezan."),
   newProjectSlug: z.string().trim().optional(),
   copyBuildings: z.boolean().optional(),
   copyEntrances: z.boolean().optional(),
@@ -23,26 +17,23 @@ const bodySchema = z.object({
   copyCosts: z.boolean().optional(),
 });
 
-export const POST = apiHandler(
-  { paramsSchema, bodySchema },
-  async ({ params, body }) => {
-    const ctx = await requirePermission("project.create");
-    const data = await cloneProjectStructure({
-      organizationId: ctx.organization.organizationId,
-      actorUserId: ctx.session.user.id,
-      sourceProjectId: params.id,
-      newProjectCode: body.newProjectCode,
-      newProjectName: body.newProjectName,
-      newProjectSlug: body.newProjectSlug,
-      copyBuildings: body.copyBuildings,
-      copyEntrances: body.copyEntrances,
-      copyFloors: body.copyFloors,
-      copyUnitsAsAvailable: body.copyUnitsAsAvailable,
-      copyCosts: body.copyCosts,
-    });
-    return { data, status: 201 };
-  },
-);
+export const POST = apiHandler({ paramsSchema, bodySchema }, async ({ params, body }) => {
+  const ctx = await requirePermission("project.create");
+  const data = await cloneProjectStructure({
+    organizationId: ctx.organization.organizationId,
+    actorUserId: ctx.session.user.id,
+    sourceProjectId: params.id,
+    newProjectCode: body.newProjectCode,
+    newProjectName: body.newProjectName,
+    newProjectSlug: body.newProjectSlug,
+    copyBuildings: body.copyBuildings,
+    copyEntrances: body.copyEntrances,
+    copyFloors: body.copyFloors,
+    copyUnitsAsAvailable: body.copyUnitsAsAvailable,
+    copyCosts: body.copyCosts,
+  });
+  return { data, status: 201 };
+});
 
 /**
  * @swagger

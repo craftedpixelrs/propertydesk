@@ -29,9 +29,7 @@ export function AddInstallmentButton({ saleId, currency }: Props) {
   const [open, setOpen] = React.useState(false);
   const [label, setLabel] = React.useState("");
   const [amount, setAmount] = React.useState("");
-  const [dueDate, setDueDate] = React.useState(
-    () => new Date().toISOString().slice(0, 10),
-  );
+  const [dueDate, setDueDate] = React.useState(() => new Date().toISOString().slice(0, 10));
   const [notes, setNotes] = React.useState("");
   const [busy, setBusy] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
@@ -67,9 +65,7 @@ export function AddInstallmentButton({ saleId, currency }: Props) {
       setOpen(false);
       router.refresh();
     } catch (err) {
-      setError(
-        err instanceof ApiClientError ? err.message : t("deals.plan.addFailed"),
-      );
+      setError(err instanceof ApiClientError ? err.message : t("deals.plan.addFailed"));
     } finally {
       setBusy(false);
     }
@@ -136,11 +132,7 @@ export function AddInstallmentButton({ saleId, currency }: Props) {
                 <label className="block text-xs text-[var(--color-foreground-muted)]">
                   {t("deals.plan.dueDateLabel")}
                 </label>
-                <DateInput
-                  value={dueDate}
-                  onChange={setDueDate}
-                  className="h-10"
-                />
+                <DateInput value={dueDate} onChange={setDueDate} className="h-10" />
               </div>
               <div>
                 <label className="block text-xs text-[var(--color-foreground-muted)]">
@@ -154,12 +146,7 @@ export function AddInstallmentButton({ saleId, currency }: Props) {
               </div>
             </div>
             <div className="flex items-center justify-end gap-2 border-t border-[var(--color-border)] px-4 py-3">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setOpen(false)}
-                disabled={busy}
-              >
+              <Button variant="outline" size="sm" onClick={() => setOpen(false)} disabled={busy}>
                 {t("common.cancel")}
               </Button>
               <Button size="sm" onClick={submit} loading={busy}>

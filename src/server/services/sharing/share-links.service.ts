@@ -52,9 +52,7 @@ async function assertUnitVisibleToOrg(input: {
 
   if (input.organizationType === "INVESTOR") {
     if (unit.organizationId !== input.organizationId) {
-      throw DomainErrors.forbidden(
-        "Ova jedinica ne pripada vašoj organizaciji.",
-      );
+      throw DomainErrors.forbidden("Ova jedinica ne pripada vašoj organizaciji.");
     }
     return { unitOrganizationId: unit.organizationId };
   }
@@ -95,6 +93,10 @@ export interface CreateShareLinkInput {
   entityId: string;
   showPrice?: boolean;
   expiresAt?: Date | null;
+  /** Days until the public page stops opening. Null means no expiry. */
+  expiresInDays?: number | null;
+  forBuyerId?: string | null;
+  forBuyerName?: string | null;
 }
 
 export async function createShareLink(input: CreateShareLinkInput) {
@@ -103,6 +105,22 @@ export async function createShareLink(input: CreateShareLinkInput) {
     organizationType: input.organizationType,
     unitId: input.entityId,
   });
+
+  const forBuyerName = input.forBuyerName?.trim() || null;
+  let forBuyerId: string | null = null;
+  if (input.forBuyerId) {
+    const buyer = await prisma.buyer.findFirst({
+      where: { id: input.forBuyerId, organizationId: input.organizationId },
+      select: { id: true },
+    });
+    if (!buyer) throw DomainErrors.notFound("Kupac");
+    forBuyerId = buyer.id;
+  }
+
+  const expiresAt =
+    input.expiresInDays != null && input.expiresInDays > 0
+      ? new Date(Date.now() + input.expiresInDays * 24 * 60 * 60 * 1000)
+      : (input.expiresAt ?? null);
 
   const link = await prisma.shareLink.create({
     data: {
@@ -115,7 +133,9 @@ export async function createShareLink(input: CreateShareLinkInput) {
       token: generateToken(),
       createdByUserId: input.actorUserId,
       showPrice: input.showPrice ?? true,
-      expiresAt: input.expiresAt ?? null,
+      expiresAt,
+      forBuyerId,
+      forBuyerName,
     },
   });
 
@@ -129,6 +149,7 @@ export async function createShareLink(input: CreateShareLinkInput) {
       target: `${input.entityType}:${input.entityId}`,
       showPrice: link.showPrice,
       expiresAt: link.expiresAt,
+      forBuyerName: link.forBuyerName,
     },
   });
 
@@ -178,6 +199,9 @@ export async function listShareLinksForEntity(input: {
     },
     orderBy: { createdAt: "desc" },
     take: 50,
+    include: {
+      forBuyer: { select: { id: true, firstName: true, lastName: true } },
+    },
   });
 }
 
@@ -230,12 +254,7 @@ export interface PublicUnitOffer {
   images: PublicUnitOfferImage[];
 }
 
-const PUBLICLY_VISIBLE_STATUSES = new Set([
-  "AVAILABLE",
-  "ON_HOLD",
-  "RESERVED",
-  "DEPOSIT_PAID",
-]);
+const PUBLICLY_VISIBLE_STATUSES = new Set(["AVAILABLE", "ON_HOLD", "RESERVED", "DEPOSIT_PAID"]);
 
 /**
  * Resolve a public share token into a whitelisted offer payload.
@@ -245,9 +264,7 @@ const PUBLICLY_VISIBLE_STATUSES = new Set([
  * Consumers render a generic 404 in all four cases so a probe cannot
  * distinguish "wrong token" from "expired token".
  */
-export async function resolvePublicUnitOffer(
-  token: string,
-): Promise<PublicUnitOffer | null> {
+export async function resolvePublicUnitOffer(token: string): Promise<PublicUnitOffer | null> {
   if (!token || token.length > 128) return null;
 
   const link = await prisma.shareLink.findUnique({
@@ -327,9 +344,7 @@ export async function resolvePublicUnitOffer(
   if (!unit) return null;
   if (!PUBLICLY_VISIBLE_STATUSES.has(unit.status)) return null;
 
-  const price = link.showPrice
-    ? (unit.finalPrice ?? unit.basePrice).toString()
-    : null;
+  const price = link.showPrice ? (unit.finalPrice ?? unit.basePrice).toString() : null;
 
   return {
     token,
@@ -346,10 +361,8 @@ export async function resolvePublicUnitOffer(
       address: unit.project.address,
       city: unit.project.city,
       coverImageUrl: unit.project.coverImageUrl,
-      latitude:
-        unit.project.latitude != null ? Number(unit.project.latitude) : null,
-      longitude:
-        unit.project.longitude != null ? Number(unit.project.longitude) : null,
+      latitude: unit.project.latitude != null ? Number(unit.project.latitude) : null,
+      longitude: unit.project.longitude != null ? Number(unit.project.longitude) : null,
       publicDescription: unit.project.description ?? null,
     },
     unit: {
@@ -625,10 +638,8 @@ export async function resolvePublicProjectSite(
       address: project.address,
       city: project.city,
       coverImageUrl: project.coverImageUrl,
-      latitude:
-        project.latitude != null ? Number(project.latitude) : null,
-      longitude:
-        project.longitude != null ? Number(project.longitude) : null,
+      latitude: project.latitude != null ? Number(project.latitude) : null,
+      longitude: project.longitude != null ? Number(project.longitude) : null,
       publicDescription: project.description ?? null,
     },
     units: units.map((u) => ({
@@ -693,9 +704,7 @@ export async function ensureUnitShareLinkForMicrosite(input: {
     createdByUserId = owner?.userId ?? null;
   }
   if (!createdByUserId) {
-    throw DomainErrors.invalidState(
-      "Nije moguće objaviti jedinicu: organizacija nema vlasnika.",
-    );
+    throw DomainErrors.invalidState("Nije moguće objaviti jedinicu: organizacija nema vlasnika.");
   }
 
   const created = await prisma.shareLink.create({

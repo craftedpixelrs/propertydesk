@@ -91,9 +91,7 @@ function assertTemplateContent(html: string): void {
     throw DomainErrors.badRequest("Sadržaj ugovora ne sme biti prazan.");
   }
   if (trimmed.length > 200_000) {
-    throw DomainErrors.badRequest(
-      "Sadržaj ugovora je prevelik (max 200 000 karaktera).",
-    );
+    throw DomainErrors.badRequest("Sadržaj ugovora je prevelik (max 200 000 karaktera).");
   }
 }
 
@@ -173,15 +171,10 @@ export async function updateContractTemplate(
     data: {
       kind: input.kind ?? undefined,
       name: input.name?.trim() ?? undefined,
-      description:
-        input.description === undefined
-          ? undefined
-          : input.description?.trim() || null,
+      description: input.description === undefined ? undefined : input.description?.trim() || null,
       contentHtml: input.contentHtml ?? undefined,
       variables:
-        input.variables === undefined
-          ? undefined
-          : ((input.variables ?? []) as unknown as object),
+        input.variables === undefined ? undefined : ((input.variables ?? []) as unknown as object),
       isActive: input.isActive ?? undefined,
     },
   });
@@ -307,15 +300,21 @@ async function buildPlaceholders(input: {
 
   const buyerFullName =
     sale.buyer.entityType === "LEGAL"
-      ? (sale.buyer.legalName || `${sale.buyer.firstName} ${sale.buyer.lastName}`)
+      ? sale.buyer.legalName || `${sale.buyer.firstName} ${sale.buyer.lastName}`
       : `${sale.buyer.firstName} ${sale.buyer.lastName}`;
   const buyerIdentity =
     sale.buyer.entityType === "LEGAL"
-      ? (sale.buyer.taxId ? `PIB ${sale.buyer.taxId}` : "")
-      : (sale.buyer.jmbg ? `JMBG ${sale.buyer.jmbg}` : "");
+      ? sale.buyer.taxId
+        ? `PIB ${sale.buyer.taxId}`
+        : ""
+      : sale.buyer.jmbg
+        ? `JMBG ${sale.buyer.jmbg}`
+        : "";
   const buyerAddress = [
     sale.buyer.addressLine1,
-    sale.buyer.postalCode ? `${sale.buyer.postalCode} ${sale.buyer.city ?? ""}` : sale.buyer.city ?? "",
+    sale.buyer.postalCode
+      ? `${sale.buyer.postalCode} ${sale.buyer.city ?? ""}`
+      : (sale.buyer.city ?? ""),
     sale.buyer.country,
   ]
     .filter(Boolean)
@@ -341,7 +340,9 @@ async function buildPlaceholders(input: {
     "unit.code": sale.unit.code,
     "unit.address": [
       sale.project.address,
-      sale.project.postalCode ? `${sale.project.postalCode} ${sale.project.city ?? ""}` : sale.project.city ?? "",
+      sale.project.postalCode
+        ? `${sale.project.postalCode} ${sale.project.city ?? ""}`
+        : (sale.project.city ?? ""),
     ]
       .filter(Boolean)
       .join(", "),
@@ -357,19 +358,20 @@ async function buildPlaceholders(input: {
     "sale.preContractDate": fmtDate(sale.preContractDate),
     "sale.plannedHandoverDate": fmtDate(sale.plannedHandoverDate),
 
-    "tax.mode": sale.vatMode ? VAT_MODE_LABELS[sale.vatMode] ?? sale.vatMode : "",
+    "tax.mode": sale.vatMode ? (VAT_MODE_LABELS[sale.vatMode] ?? sale.vatMode) : "",
     "tax.amount": fmtMoney(sale.taxAmount?.toString() ?? null),
     "tax.payer": sale.taxPayer === "SELLER" ? "prodavac" : "kupac",
 
     "plan.installments": installmentsHtml,
 
-    "investor.legalName":
-      orgProfile?.legalName || org.name,
+    "investor.legalName": orgProfile?.legalName || org.name,
     "investor.pib": orgProfile?.taxNumber ?? "",
     "investor.registrationNumber": orgProfile?.registrationNumber ?? "",
     "investor.address": [
       orgProfile?.address,
-      orgProfile?.postalCode ? `${orgProfile.postalCode} ${orgProfile.city ?? ""}` : orgProfile?.city ?? "",
+      orgProfile?.postalCode
+        ? `${orgProfile.postalCode} ${orgProfile.city ?? ""}`
+        : (orgProfile?.city ?? ""),
     ]
       .filter(Boolean)
       .join(", "),
@@ -511,6 +513,7 @@ export async function markContractSigned(input: {
   organizationId: string;
   actorUserId: string;
   saleId: string;
+  documentId: string;
 }) {
   const sale = await prisma.sale.findFirst({
     where: { id: input.saleId, organizationId: input.organizationId },
@@ -519,6 +522,19 @@ export async function markContractSigned(input: {
   if (!sale) throw DomainErrors.notFound("Prodaja");
   if (sale.contractStatus === "NONE") {
     throw DomainErrors.invalidState("Prvo generišite ugovor.");
+  }
+  const signedFile = await prisma.document.findFirst({
+    where: {
+      id: input.documentId,
+      organizationId: input.organizationId,
+      entityType: "Sale",
+      entityId: sale.id,
+      deletedAt: null,
+    },
+    select: { id: true },
+  });
+  if (!signedFile) {
+    throw DomainErrors.badRequest("Potpisan ugovor mora biti priložen kao dokument ove prodaje.");
   }
   const updated = await prisma.sale.update({
     where: { id: sale.id },
@@ -537,6 +553,7 @@ export async function markContractSigned(input: {
     newValues: {
       contractStatus: updated.contractStatus,
       contractSignedAt: updated.contractSignedAt,
+      documentId: signedFile.id,
     },
   });
   return updated;

@@ -39,9 +39,7 @@ export interface ReferralCatalog {
   projects: ReferralCatalogProject[];
 }
 
-export async function resolveReferralCatalog(
-  rawCode: string,
-): Promise<ReferralCatalog | null> {
+export async function resolveReferralCatalog(rawCode: string): Promise<ReferralCatalog | null> {
   const code = sanitizeReferralCode(rawCode);
   if (!code) return null;
 
@@ -92,11 +90,9 @@ export async function resolveReferralCatalog(
 
   return {
     code,
-    investorName:
-      connection.investor.profile?.displayName ?? connection.investor.name,
+    investorName: connection.investor.profile?.displayName ?? connection.investor.name,
     investorLogoUrl: connection.investor.profile?.logoUrl ?? null,
-    agencyName:
-      connection.agency.profile?.displayName ?? connection.agency.name,
+    agencyName: connection.agency.profile?.displayName ?? connection.agency.name,
     projects,
   };
 }

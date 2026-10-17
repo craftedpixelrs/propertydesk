@@ -1,6 +1,7 @@
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { admin, organization } from "better-auth/plugins";
+import { twoFactor } from "better-auth/plugins/two-factor";
 import { nextCookies } from "better-auth/next-js";
 
 import { prisma } from "@/server/db/prisma";
@@ -13,10 +14,7 @@ import {
   changeEmailConfirmationEmail,
 } from "@/server/auth/email";
 import { ac } from "@/server/permissions/access-control";
-import {
-  organizationRoles,
-  platformRoles,
-} from "@/server/permissions/roles";
+import { organizationRoles, platformRoles } from "@/server/permissions/roles";
 
 /**
  * Better Auth configuration.
@@ -128,8 +126,7 @@ export const auth = betterAuth({
             if (
               lock &&
               (lock.loginLockLevel >= 6 ||
-                (lock.loginLockedUntil &&
-                  lock.loginLockedUntil.getTime() > Date.now()))
+                (lock.loginLockedUntil && lock.loginLockedUntil.getTime() > Date.now()))
             ) {
               throw new Error("LOGIN_LOCKED");
             }
@@ -203,6 +200,9 @@ export const auth = betterAuth({
       defaultRole: "user", // ignored — we only mark specific users as SUPER_ADMIN
       adminRoles: ["SUPER_ADMIN"],
       impersonationSessionDuration: 60 * 60, // 1h
+    }),
+    twoFactor({
+      issuer: "PropertyDesk",
     }),
     nextCookies(), // must remain last per Better Auth docs
   ],

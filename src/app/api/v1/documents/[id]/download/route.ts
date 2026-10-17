@@ -10,9 +10,7 @@ const paramsSchema = z.object({ id: z.string().min(1) });
 
 export const GET = apiHandler({ paramsSchema }, async ({ params }) => {
   const ctx = await requirePermission("document.read");
-  const orgType = ctx.isSuperAdmin
-    ? "PLATFORM"
-    : ctx.organization.organizationType ?? "INVESTOR";
+  const orgType = ctx.isSuperAdmin ? "PLATFORM" : (ctx.organization.organizationType ?? "INVESTOR");
   const { doc, url } = await getSignedDownloadUrl({
     actor: {
       organizationId: ctx.organization.organizationId,

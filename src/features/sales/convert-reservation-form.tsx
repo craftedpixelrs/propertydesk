@@ -32,17 +32,14 @@ export function ConvertReservationForm({
     setBusy(true);
     setError(null);
     try {
-      const res = await apiClient.post<{ id: string }>(
-        `/reservations/${reservationId}/convert`,
-        {
-          listPrice,
-          discountType: discountType || null,
-          discountValue: discountValue ? discountValue : null,
-          currency: defaultCurrency,
-          depositAmount: deposit || null,
-          notes: notes || null,
-        },
-      );
+      const res = await apiClient.post<{ id: string }>(`/reservations/${reservationId}/convert`, {
+        listPrice,
+        discountType: discountType || null,
+        discountValue: discountValue ? discountValue : null,
+        currency: defaultCurrency,
+        depositAmount: deposit || null,
+        notes: notes || null,
+      });
       router.push(`/prodaje/${res.id}`);
     } catch (err) {
       setError(err instanceof ApiClientError ? err.message : t("errors.generic"));

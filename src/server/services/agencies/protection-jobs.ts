@@ -11,9 +11,11 @@ import { buyerProtectionExpiredEmail } from "@/server/email/templates";
  * This one emits one notification per registration whose protection ends
  * within `windowDays` — idempotent across runs via notification lookup.
  */
-export async function notifyBuyerProtectionsExpiringSoon(input: {
-  windowDays?: number;
-} = {}): Promise<{ processed: number; errors: number }> {
+export async function notifyBuyerProtectionsExpiringSoon(
+  input: {
+    windowDays?: number;
+  } = {},
+): Promise<{ processed: number; errors: number }> {
   const windowDays = input.windowDays ?? 3;
   const now = new Date();
   const boundary = new Date(now.getTime() + windowDays * 24 * 60 * 60 * 1000);

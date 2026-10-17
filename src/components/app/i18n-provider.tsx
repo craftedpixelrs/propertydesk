@@ -21,10 +21,7 @@ import {
   type TranslationKey,
 } from "@/lib/i18n";
 
-type Translate = (
-  key: TranslationKey,
-  vars?: Record<string, string | number>,
-) => string;
+type Translate = (key: TranslationKey, vars?: Record<string, string | number>) => string;
 
 interface I18nContextValue {
   locale: Locale;
@@ -63,15 +60,9 @@ export function I18nProvider({
     [router],
   );
 
-  const t = useCallback<Translate>(
-    (key, vars) => translate(key, vars, locale),
-    [locale],
-  );
+  const t = useCallback<Translate>((key, vars) => translate(key, vars, locale), [locale]);
 
-  const value = useMemo(
-    () => ({ locale, setLocale, t }),
-    [locale, setLocale, t],
-  );
+  const value = useMemo(() => ({ locale, setLocale, t }), [locale, setLocale, t]);
 
   return <I18nContext.Provider value={value}>{children}</I18nContext.Provider>;
 }

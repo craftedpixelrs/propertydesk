@@ -8,7 +8,7 @@ Detaljan operativni tok je u [`demo-tok.md`](./demo-tok.md).
 [`prezentacija-funkcionalnosti.html`](./prezentacija-funkcionalnosti.html)
 u browseru (`F` = fullscreen, `←`/`→` / Space = navigacija).
 
-Verzija: **v1** · Datum lansiranja: **01.09.2026.**
+Verzija: **v1** · Datum lansiranja: **15.10.2026.**
 
 ---
 
@@ -50,18 +50,23 @@ Verzija: **v1** · Datum lansiranja: **01.09.2026.**
 - Buyer protection (agencijska): 60 dana ekskluziva, drugoj agenciji
   daje anonimizovan `CONFLICT_REVIEW`.
 - @mentions u komentarima na kupca i prodaju — in-app notifikacija.
-- Anonimizacija (GDPR) — briše lične podatke, zadržava statistiku.
+- Anonimizacija (GDPR) — `POST /buyers/:id/anonymize` (vlasnik/admin)
+  skida ime, kontakt, JMBG, komentare i KYC fajlove. Iznosi prodaje i
+  ugovori ostaju. JSON izvoz organizacije je u Podešavanja → Organizacija
+  i radi i kad je nalog ograničen.
 
 ## 3. Rezervacije
 
-- **Interna rezervacija** — iz detalja jedinice ili kupca, TTL 7
-  dana (podesivo).
-- **Online rezervacija sa kaparom** (Faza 8) — javna forma na
-  `/p/[token]`, IPS QR PNG za kaparu automatski generisan, TTL 48h,
-  rate-limit 10 zahteva/sat/IP.
-- Statusi: `AKTIVNA`, `KONVERTOVANA`, `ISTEKLA`, `OTKAZANA`.
-- Automatski cron `expire-reservations` (15 min) + podsetnici 2
-  dana pre isteka.
+- **Interna rezervacija** — iz detalja jedinice ili kupca. Rok (podrazumevano
+  14 dana) kreće od odobrenja, ne od kreiranja.
+- **Online rezervacija sa kaparom** — javna forma na `/p/[token]`, IPS QR
+  na stranici (email je tekst), TTL 48h, 5 pokušaja / 10 min po IP i
+  20 / sat po tokenu.
+- Statusi u aplikaciji: `Na čekanju`, `Odobrena`, `Konvertovana`, `Istekla`, `Otkazana`.
+- Cron `expire-reservations` (15 min) gleda samo odobrene. Mail o isteku ide članu
+  tima. Dva dana pre isteka `due-soon-notifications` šalje pismo kupcu i pravi zadatak.
+- Javni zahtev ističe i preko cron-a `expire-reservation-requests` (15 min). Email
+  kupcu sadrži link ka IPS QR slici.
 - Kanban tabla (`/rezervacije?view=board`) — drag&drop između
   kolona sa FSM validacijom na serveru.
 - Race-condition sigurnost: partial unique index u bazi ne dozvoljava
@@ -77,8 +82,18 @@ Verzija: **v1** · Datum lansiranja: **01.09.2026.**
   `NONE`. Automatski obračun `taxAmount` i propagacija u ugovor.
 - **Generator ugovora u PDF-u** (Faza 8) — reusable HTML šabloni sa
   `{{var}}` placeholder-ima, kind `PRE_CONTRACT` / `CONTRACT`,
-  status flow `NONE → GENERATED → SENT → SIGNED`.
+  status flow `NONE → GENERATED → SENT → SIGNED`. Potpis traži priložen
+  dokument te prodaje (`documentId`).
+- **Dosije** — PDF rezime prodaje (uplate, primopredaja, konačni obračun)
+  i ZIP svih dokumenata prodaje.
+- **Primopredaja** — lista: ključevi, brojila, nedostaci, prisutni.
+  Fotografije ostaju dokumenti prodaje.
+- **Stranica kupca** `/p/kupac/[token]` — bez naloga: rate, uputstvo za
+  uplatu, IPS QR kad je valuta RSD, dokumenti vidljivi kupcu, dokaz uplate.
+- Istorija statusa prodaje prikazuje ko je promenio status.
+- Promena cene jedinice na serveru traži razlog.
 - Kanban tabla za prodaje.
+- **Konačan obračun** — na prodaji `PAID` ili `HANDED_OVER`, kad je ugovorena cena uplaćena. Odbitak (npr. keramika koju kupac ne uzima) i doplata (npr. parking) ne menjaju `finalPrice`, plan otplate ni evidentirane uplate. Razlika je dug kupca ili povraćaj. Dozvola `sale.settlement` (vlasnik, admin, menadžer prodaje, finansije). Dosije i ZIP su `sale.dossier`. Primopredaja je `sale.handover`, link kupca `sale.buyer_link`. PDF provizije je `commission.statement`. Pasusi u pismima su `organization.templates`. Anonimizacija kupca je `buyer.anonymize`. Sve je u sloju Aplikacija uređivača uloga (`/administracija/role`). Vidi [`permissions.md`](./permissions.md) i [`roles-and-plans.md`](./roles-and-plans.md).
 - Optimističko zaključavanje na Sale, Unit, Reservation.
 
 ## 5. Plan otplate i uplate
@@ -94,8 +109,12 @@ Verzija: **v1** · Datum lansiranja: **01.09.2026.**
 - Ručna realokacija po rati (kad kupac napiše "ovo za ratu 3").
 - Storniranje uplate — kreira paired negativnu alokaciju, ništa se
   ne briše, obavezan razlog.
-- Cron `mark-installments-overdue` (dnevno) + email podsetnici 3
-  nivoa (3 dana pre, na dan, 7 dana posle).
+- Cron `mark-installments-overdue` menja status. `due-soon-notifications`
+  šalje jedan podsetnik prodavcu na prodaji za rate u narednih 7 dana
+  i, u istom poslu, pismo kupcu (rata, istek rezervacije) plus zadatak
+  visokog prioriteta. Potvrda uplate kupcu ide odmah pri evidentiranju
+  ili stornu. Svako pismo se šalje jednom (`BuyerNotice`). Dodatni pasus
+  se uređuje u Podešavanja → Organizacija.
 
 ## 6. Agencijski portal
 
@@ -204,7 +223,8 @@ Verzija: **v1** · Datum lansiranja: **01.09.2026.**
 - **Datumi u formama** — `DateInput` prati jezik UI-ja (`dd.mm.yyyy`
   / `mm/dd/yyyy`). Headeri šablona uvoza jedinica isto prate jezik.
 - **Public share linkovi** (`/p/[token]`) — 192-bit token, opciono
-  sakrivanje cena, opciono expiry, opozivanje trenutno.
+  sakrivanje cena, opciono expiry, opozivanje trenutno. Isti mehanizam
+  za prodaju daje `/p/kupac/[token]`.
 - **Javna ponuda jedinice** — brand, foto galerija, floor plan,
   opciono kapara sa IPS QR-om.
 - **Public microsite** projekta (Faza 8).
@@ -218,20 +238,21 @@ Verzija: **v1** · Datum lansiranja: **01.09.2026.**
 - **Zadaci** — Moji / Danas / Prekoračeni / Nadolazeći / Završeni;
   vlasnik i admin vide **Tim**. Prioritet, dodela kolegi, kupac opcion.
   Kreiranje: `/zadaci` → Novi zadatak, ili brza akcija na kartici kupca.
-- Auto-generisani zadaci (rezervacija ističe, rata dospela) **nisu**
-  u kodu — samo ručno kreiranje.
+  `due-soon-notifications` sam pravi zadatak za ratu u narednih 7 dana
+  i za odobrenu rezervaciju koja ističe u naredna 2 dana (`sourceKey`,
+  jednom).
 
 ## 12. SaaS naplata (za investitorske plate)
 
 - Plans: Starter, Growth, Scale + custom Enterprise.
 - Cikli: mesečno / kvartalno / polugodišnje / godišnje.
-- Trial 30 dana + trial-expiration email.
+- Trial: broj dana od **datuma početka aktivacije** (ponoć, Beograd). Pre tog datuma nalog članovima nije dostupan uopšte. Posle isteka trial-a ide u ograničen režim + trial-expiration email.
 - Automatska generacija faktura + slanje sa **IPS QR** kodom.
 - FIFO alokacija SaaS uplata; postpaid transitions
   (`PAYMENT_DUE → PAST_DUE → RESTRICTED → SUSPENDED`).
 - **Bankarski izvodi** — CSV/XLSX upload, 5-signal matcher
   automatski povezuje uplate sa fakturama.
-- **SEF integracija** (stub — pripremljeno za produkciju).
+- **SEF** — `SERBIAN_SEF` vraća `FAILED` i ne beleži prihvat. Produkcijski transport nije uključen; ostavite `MANUAL` i portal.
 - 14 gotovih email šablona (izdavanje, podsetnik, prekid, reactivate).
 
 ## 13. Multi-tenant + platforma
@@ -250,11 +271,11 @@ Verzija: **v1** · Datum lansiranja: **01.09.2026.**
 
 ## 14. Automatizacija (cron jobs)
 
-- `expire-reservations` (15 min)
-- `expire-reservation-requests` (15 min, Faza 8)
+- `expire-reservations` (15 min) — samo odobrene; mail dodeljenom članu
+- `expire-reservation-requests` (15 min) — javni PENDING zahtevi kojima je prošao rok
 - `expire-buyer-protection` (hourly)
 - `mark-installments-overdue` (dnevno 01:15)
-- `due-soon-notifications` (dnevno 07:00)
+- `due-soon-notifications` (dnevno 07:00) — podsetnik prodavcu, pismo kupcu, zadatak iz roka
 - `trial-expiration-notifications` (dnevno 06:30)
 - `backup-verify` (nedeljno pon 03:00, Faza 8)
 - `purge-deleted-documents` (dnevno 04:00) — objekat sa S3/local se
@@ -273,7 +294,7 @@ Verzija: **v1** · Datum lansiranja: **01.09.2026.**
   `SystemHealthCheck` red, email alert nakon 2 uzastopna FAIL-a.
 - **`/administracija/monitoring`** — timeline zdravstvenih provera,
   ručno pokretanje "Pokreni proveru sada".
-- Health endpoints: `/api/v1/health`, `/api/v1/ready` (sa DB ping).
+- Health endpoints: `/api/v1/health`, `/api/v1/health/ready` (sa DB ping).
 
 ## 16. Sigurnost
 
@@ -308,8 +329,7 @@ Verzija: **v1** · Datum lansiranja: **01.09.2026.**
 
 - **IPS QR** — NBS specifikacija, na SaaS fakturama i na online
   rezervacijama sa kaparom (Faza 8).
-- **SEF** (stub) — Sistem elektronskih faktura Srbije,
-  produkcijski gateway pripremljen.
+- **SEF** — slanje iz aplikacije nije uključeno. `SERBIAN_SEF` ne sme da vrati lažni prihvat.
 - **S3-kompatibilan storage** — StorageProvider abstraction
   (Local disk / AWS S3 / Cloudflare R2 / MinIO / Wasabi).
   Brisanje u app-u je soft-delete; objekat ostaje u bucketu 45 dana,

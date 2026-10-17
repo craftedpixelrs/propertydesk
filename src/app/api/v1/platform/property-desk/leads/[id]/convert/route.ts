@@ -1,10 +1,7 @@
 import { z } from "zod";
 
 import { apiHandler } from "@/lib/api/handler";
-import {
-  requirePdPermission,
-  requirePropertyDeskAccess,
-} from "@/server/permissions/property-desk";
+import { requirePdPermission, requirePropertyDeskAccess } from "@/server/permissions/property-desk";
 import {
   convertMarketingLead,
   provisionMarketingLead,
@@ -22,10 +19,7 @@ const bodySchema = z
           .string()
           .trim()
           .max(60)
-          .regex(
-            /^[a-z0-9-]*$/,
-            "Slug može sadržati samo mala slova, brojeve i crticu.",
-          )
+          .regex(/^[a-z0-9-]*$/, "Slug može sadržati samo mala slova, brojeve i crticu.")
           .optional()
           .nullable(),
         legalName: z.string().max(200).optional().nullable(),
@@ -40,6 +34,11 @@ const bodySchema = z
         country: z.string().max(2).optional().nullable(),
         planCode: z.string().min(1).max(60),
         trialDays: z.number().int().min(0).max(365).optional().nullable(),
+        activatesAt: z
+          .string()
+          .regex(/^\d{4}-\d{2}-\d{2}$/)
+          .optional()
+          .nullable(),
         owner: z.object({
           name: z.string().trim().min(1).max(120),
           email: z.string().trim().email().max(254),
@@ -48,40 +47,28 @@ const bodySchema = z
       })
       .optional(),
   })
-  .refine(
-    (body) => Boolean(body.organizationId) !== Boolean(body.createOrganization),
-    {
-      message:
-        "Pošaljite organizationId ili createOrganization — tačno jedno.",
-    },
-  );
+  .refine((body) => Boolean(body.organizationId) !== Boolean(body.createOrganization), {
+    message: "Pošaljite organizationId ili createOrganization — tačno jedno.",
+  });
 
-export const POST = apiHandler(
-  { paramsSchema, bodySchema },
-  async ({ params, body }) => {
-    const access = await requirePropertyDeskAccess();
-    const ctx = await requirePdPermission(access, "pd_lead.convert");
-    const actorUserId = ctx.session.user.id;
+export const POST = apiHandler({ paramsSchema, bodySchema }, async ({ params, body }) => {
+  const access = await requirePropertyDeskAccess();
+  const ctx = await requirePdPermission(access, "pd_lead.convert");
+  const actorUserId = ctx.session.user.id;
 
-    if (body.createOrganization) {
-      const result = await provisionMarketingLead(
-        ctx,
-        params.id,
-        body.createOrganization,
-        actorUserId,
-      );
-      return { data: result };
-    }
-
-    const lead = await convertMarketingLead(
+  if (body.createOrganization) {
+    const result = await provisionMarketingLead(
       ctx,
       params.id,
-      body.organizationId!,
+      body.createOrganization,
       actorUserId,
     );
-    return { data: { lead, organization: null, owner: null } };
-  },
-);
+    return { data: result };
+  }
+
+  const lead = await convertMarketingLead(ctx, params.id, body.organizationId!, actorUserId);
+  return { data: { lead, organization: null, owner: null } };
+});
 
 /**
  * @swagger

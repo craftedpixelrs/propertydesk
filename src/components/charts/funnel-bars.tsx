@@ -40,7 +40,15 @@ export function FunnelBars({
 }: FunnelBarsProps) {
   const top = data[0]?.value ?? 0;
 
-  const renderLabel = (props: { value?: number; x?: number; y?: number; height?: number; width?: number }) => {
+  const renderLabel = (props: {
+    value?: unknown;
+    x?: string | number;
+    y?: string | number;
+    height?: string | number;
+    width?: string | number;
+  }) => {
+    const toNum = (v: string | number | undefined) =>
+      typeof v === "number" ? v : v != null ? Number(v) || 0 : 0;
     const value = typeof props.value === "number" ? props.value : 0;
     let text = numberFmt.format(value);
     if (showConversionOfFirst && top > 0 && data[0] && value !== top) {
@@ -49,8 +57,8 @@ export function FunnelBars({
     }
     return (
       <text
-        x={(props.x ?? 0) + (props.width ?? 0) - 8}
-        y={(props.y ?? 0) + (props.height ?? 0) / 2}
+        x={toNum(props.x) + toNum(props.width) - 8}
+        y={toNum(props.y) + toNum(props.height) / 2}
         textAnchor="end"
         dominantBaseline="middle"
         style={{
@@ -88,7 +96,7 @@ export function FunnelBars({
             border: "1px solid var(--color-border)",
             fontSize: 12,
           }}
-          formatter={(value: number) => numberFmt.format(value)}
+          formatter={(value) => numberFmt.format(Number(value ?? 0))}
         />
         <Bar dataKey="value" radius={[4, 4, 4, 4]} isAnimationActive={false}>
           {data.map((d, i) => (

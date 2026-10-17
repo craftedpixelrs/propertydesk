@@ -27,12 +27,30 @@ export const marketingSr = {
     reservations: "Rezervacije i uplate",
     commissions: "Provizije agencija",
     bookDemo: "Zakažite demo",
+    blog: "Blog",
     about: "O nama",
     help: "Pomoć",
     privacy: "Privatnost",
     terms: "Uslovi",
     imprint: "Impresum",
     company: "Kompanija",
+    resources: "Resursi",
+    productIntro: "Jedan tok za zalihu, cenu, rezervaciju, ugovor i uplatu.",
+    personasIntro: "Investitor vodi projekat. Agencija nudi jedinice koje sme.",
+    resourcesIntro: "Tekstovi, pomoć i cene, pre demo poziva.",
+    featuresBody: "Zaliha, status stana, cena i dokumenta na jednom mestu.",
+    newBuildBody: "Prodaja novogradnje od oglasa i rezervacije do primopredaje.",
+    reservationsBody: "Rezervacija stana, IPS QR za kaparu i evidencija uplata.",
+    crmBody: "CRM za investitore: kupac, KYC i jedinica pre potpisa.",
+    excelBody: "Excel tabela za prodaju stanova, zamenjena jednim cenovnikom.",
+    investorsBody: "Softver za investitore: projekat, agencije i uplate.",
+    agenciesBody: "Softver za agencije: jedinice koje smete da nudite.",
+    commissionsBody: "Provizija agencije za nekretnine, zaključana na dan ugovora.",
+    blogBody: "Cenovnik, kapara, ugovor, primopredaja i uplate.",
+    helpBody: "Šta je spremno danas, a šta stiže posle 15.10.",
+    pricingBody: "Starter, Growth i Scale. Cene u evrima.",
+    faqBody: "Kratki odgovori pre nego što zakažete demo.",
+    aboutBody: "Ko stoji iza PropertyDesk-a.",
   },
 
   header: {
@@ -43,7 +61,7 @@ export const marketingSr = {
 
   footer: {
     blurb:
-      "Operativni sistem za prodaju novogradnje - projekti, kupci, rezervacije, uplate i provizije agencija na jednom mestu.",
+      "Softver za prodaju novogradnje. Projekti, kupci, rezervacije, uplate i provizije agencija na jednom mestu.",
     bookDemo: "Zakaži 25-minutni demo",
     signIn: "Prijava na nalog",
     launchDate: "Zvanično lansiranje: 15.10.2026.",
@@ -62,8 +80,7 @@ export const marketingSr = {
 
   cookies: {
     title: "Kolačići na ovom sajtu",
-    body:
-      "Neophodni kolačići čuvaju jezik. Google Analytics učitavamo samo ako prihvatite. Možete promeniti izbor u bilo kom trenutku.",
+    body: "Neophodni kolačići čuvaju jezik. Google Analytics učitavamo samo ako prihvatite. Možete promeniti izbor u bilo kom trenutku.",
     accept: "Prihvatam",
     reject: "Samo neophodni",
     privacyLink: "Politika privatnosti",
@@ -87,8 +104,7 @@ export const marketingSr = {
     metaDescription:
       "PropertyDesk razvija CraftedPixel. Softver za investitore i agencije koje prodaju novogradnju u Srbiji. Kontakt: hello@propertydesk.app.",
     title: "Gradimo alat koji zamenjuje Excel i Viber u prodaji novogradnje.",
-    lead:
-      "PropertyDesk je proizvod firme CraftedPixel. Nismo strani CRM prilagođen Srbiji — sistem je od početka pravljen za lokalni tok: rezervacija, kapara, ugovor, rate, provizija.",
+    lead: "PropertyDesk je proizvod firme CraftedPixel. Nismo strani CRM prilagođen Srbiji — sistem je od početka pravljen za lokalni tok: rezervacija, kapara, ugovor, rate, provizija.",
     whoTitle: "Ko smo",
     whoBody:
       "Iza proizvoda stoji Marko Banović i CraftedPixel, softverska firma iz Srbije. Radimo sa investitorima i agencijama koje i dalje vode zalihe u Excelu i rezervacije u Viber grupama. PropertyDesk je odgovor na te iste probleme.",
@@ -106,8 +122,7 @@ export const marketingSr = {
     metaDescription:
       "Šta PropertyDesk radi danas, šta dolazi posle lansiranja, i detaljan vodič za operatere.",
     title: "Šta radi danas, a šta još nije živo",
-    lead:
-      "Pre demoa ili prijave, evo iskreno šta možete da očekujete. Detaljan vodič za svaki modul je u Help Centeru.",
+    lead: "Pre demoa ili prijave, evo iskreno šta možete da očekujete. Detaljan vodič za svaki modul je u Help Centeru.",
     worksTitle: "U upotrebi",
     works1: "Projekti, jedinice, cene, uvoz iz Excel-a i PDF cenovnik.",
     works2: "CRM kupaca sa KYC checklist-om i zaštitom kupca.",
@@ -116,8 +131,7 @@ export const marketingSr = {
     works5: "HTML šabloni ugovora i predugovora u PDF-u.",
     works6: "Provizije agencija, javni sajt projekta i izveštaji.",
     laterTitle: "Još nije automatski",
-    laterIntro:
-      "Ovo je na roadmapu ili se radi ručno. Ne tvrdimo da je već gotovo.",
+    laterIntro: "Ovo je na roadmapu ili se radi ručno. Ne tvrdimo da je već gotovo.",
     later1:
       "Automatsko slanje faktura u SEF — arhitektura postoji, pravi transport još nije uključen. Do tada status pratite preko SEF portala.",
     later2: "Editor poligona na spratu — pregled slike sprata postoji, crtanje jedinica još ne.",
@@ -146,13 +160,12 @@ export const marketingSr = {
     earlyAccessBadge: "Rani pristup: 30 dana besplatno + 50% na naredna 3 meseca",
     title: "Operativni sistem za prodaju novogradnje.",
     subtitle:
-      "Jedna platforma za investitore i partnerske agencije - od projekta i zaliha, preko rezervacija i ugovora, do uplata i provizija. Sve na srpskom, sa IPS QR za kaparu i fakture.",
+      "Softver za prodaju novogradnje za investitore i partnerske agencije. Od projekta i zaliha, preko rezervacije stana i ugovora, do uplata i provizija. Sve na srpskom, sa IPS QR za kaparu.",
     bookDemo: "Zakažite 25-minutni demo",
     watchVideo: "Pogledajte demo od 3 minuta",
     noObligation: "Bez obaveze. Direktno iz kalendara, bez čekanja.",
     countdownLabel: "Do zvaničnog lansiranja",
-    mockupAlt:
-      "Kontrolna tabla PropertyDesk sa projektima, jedinicama, rezervacijama i uplatama",
+    mockupAlt: "Kontrolna tabla PropertyDesk sa projektima, jedinicama, rezervacijama i uplatama",
   },
 
   countdown: {
@@ -169,8 +182,7 @@ export const marketingSr = {
     desktopAlt: "PropertyDesk kontrolna tabla",
     mobileAria: "Prikaz mobilnog interfejsa PropertyDesk - {{label}}",
     desktopAria: "Prikaz desktop interfejsa PropertyDesk - {{label}}",
-    desktopHint:
-      "Ovde će biti prikaz kontrolne table sa projektima, prodajama i uplatama.",
+    desktopHint: "Ovde će biti prikaz kontrolne table sa projektima, prodajama i uplatama.",
   },
 
   video: {
@@ -310,12 +322,10 @@ export const marketingSr = {
       "Vodite prodajni tim, projekte i zalihe. Kontrolišete kojim agencijama otvarate ponudu, pod kojim uslovima i sa kakvom provizijom.",
     investor1:
       "Zalihe stanova, garaža i lokala kroz više projekata (uvoz iz Excel-a, klon projekta)",
-    investor2:
-      "CRM sa KYC-em (JMBG, PIB, LK), detekcijom duplikata i @mentions komentarima",
+    investor2: "CRM sa KYC-em (JMBG, PIB, LK), detekcijom duplikata i @mentions komentarima",
     investor3: "Online rezervacija sa IPS QR kaparom - kupac plaća skeniranjem",
     investor4: "Generator ugovora i predugovora u PDF-u sa svim placeholder-ima",
-    investor5:
-      "Cash-flow projekcija 12 meseci, marža po projektu i vreme do prodaje",
+    investor5: "Cash-flow projekcija 12 meseci, marža po projektu i vreme do prodaje",
     investor6: "Javni sajt projekta (microsite) sa mapom i dostupnim jedinicama",
     investor7: "Kontrola pristupa i provizija za partnerske agencije",
     agencyEyebrow: "Za agencije za nekretnine",
@@ -407,29 +417,24 @@ export const marketingSr = {
   bonuses: {
     until: "Sve prijave do 15.10.2026.",
     title: "Šta tačno dobijate prijavom pre lansiranja",
-    leadStrong:
-      "Prvih 30 dana besplatno. Nakon toga 50% popusta na naredna tri meseca.",
+    leadStrong: "Prvih 30 dana besplatno. Nakon toga 50% popusta na naredna tri meseca.",
     leadRest:
       "Uz to, dobijate paket bonusa koji Vam skida ceo teret prvog postavljanja i uvođenja tima u sistem - bez dodatne naplate.",
     trialTitle: "Prvih 30 dana besplatno",
-    trialBody:
-      "Kompletan pristup planu bez obaveze plaćanja, na Vašim realnim podacima.",
+    trialBody: "Kompletan pristup planu bez obaveze plaćanja, na Vašim realnim podacima.",
     discountTitle: "50% popusta na naredna 3 meseca",
     discountBody: "Polovina cene odabranog paketa u tri meseca nakon isteka trial-a.",
     excelTitle: "Besplatan uvoz prve Excel tabele",
     excelBody: "Vaš postojeći cenovnik / lista jedinica ubaci se u sistem umesto Vas.",
     setupTitle: "Besplatno podešavanje jednog projekta",
-    setupBody:
-      "Zajedno modelujemo strukturu Vašeg projekta (objekti, ulazi, spratovi, jedinice).",
+    setupBody: "Zajedno modelujemo strukturu Vašeg projekta (objekti, ulazi, spratovi, jedinice).",
     onboardingTitle: "Onboarding za ceo tim",
-    onboardingBody:
-      "60-minutna sesija u kojoj Vaš prodajni tim prolazi kroz sistem sa nama.",
+    onboardingBody: "60-minutna sesija u kojoj Vaš prodajni tim prolazi kroz sistem sa nama.",
     supportTitle: "Prioritetna podrška",
     supportBody:
       "Odgovor na Vaše prijave u okviru istog radnog dana - direktna komunikacija sa timom.",
     lockTitle: "Zaključana cena paketa 12 meseci",
-    lockBody:
-      "Cena se ne menja godinu dana - bez poskupljenja u toku prve godine korišćenja.",
+    lockBody: "Cena se ne menja godinu dana - bez poskupljenja u toku prve godine korišćenja.",
     footnote:
       "Rana ponuda važi za sve koji zakažu demo ili se prijave putem forme do 15.10.2026. Nakon lansiranja standardni cenovnik.",
   },
@@ -474,17 +479,13 @@ export const marketingSr = {
     wpTitle: "WordPress plugin",
     wpBody: "Auto-sync projekata, jedinica i cena sa sajtom - bez ručnog održavanja.",
     aiTitle: "AI asistent za sajtove",
-    aiBody:
-      "Chat widget kao jedan <script> tag - odgovara na pitanja o Vašim jedinicama 24/7.",
+    aiBody: "Chat widget kao jedan <script> tag - odgovara na pitanja o Vašim jedinicama 24/7.",
     qualifyTitle: "Automatska kvalifikacija upita",
-    qualifyBody:
-      "AI čita zahtev kupca i predlaže 3 najbolje jedinice iz Vašeg inventara.",
+    qualifyBody: "AI čita zahtev kupca i predlaže 3 najbolje jedinice iz Vašeg inventara.",
     leadsTitle: "Integracije za lead-ove",
-    leadsBody:
-      "Meta i Google forme, WhatsApp / Viber inbox, email drip - sve u istom pipeline-u.",
+    leadsBody: "Meta i Google forme, WhatsApp / Viber inbox, email drip - sve u istom pipeline-u.",
     signTitle: "Elektronski potpis",
-    signBody:
-      "Predugovori i ugovori online, sa vremenskim žigom i pravnom snagom u Srbiji.",
+    signBody: "Predugovori i ugovori online, sa vremenskim žigom i pravnom snagom u Srbiji.",
     marketTitle: "Marketplace investitor - agencija",
     marketBody:
       "Prvi sloj je u proizvodu: besplatna registracija agencije, opt-in teaser katalog i zahtev za saradnju. Pun inventar i dalje ide samo posle konekcije.",
@@ -524,8 +525,7 @@ export const marketingSr = {
     subtitleAfter: "nakon lansiranja 15.10.2026.",
     perk1: "Bez obaveze - sve dok Vi ne odlučite drugačije.",
     perk2: "Podaci ostaju u EU, brišu se na Vaš zahtev.",
-    perk3:
-      "Obuka je nezavisna od aplikacije - koristi Vam i ako izaberete drugu platformu.",
+    perk3: "Obuka je nezavisna od aplikacije - koristi Vam i ako izaberete drugu platformu.",
     successTitle: "Hvala Vam na prijavi!",
     successBody:
       "Javljamo se u roku od 2 radna dana radi dogovora za demo i obuku. Do tada, slobodno pogledajte ostatak stranice.",
@@ -550,8 +550,7 @@ export const marketingSr = {
     projects610: "6–10 projekata",
     projects10: "10+ projekata",
     note: "Napomena",
-    notePh:
-      "Recite nam ukratko šta prodajete i koje su Vaše najveće prepreke trenutno.",
+    notePh: "Recite nam ukratko šta prodajete i koje su Vaše najveće prepreke trenutno.",
     consent:
       "Saglasan/a sam da PropertyDesk koristi ove podatke isključivo radi kontaktiranja u vezi sa ranim pristupom, demoom i obukom, u skladu sa",
     consentPrivacy: "Politikom privatnosti",
@@ -572,10 +571,9 @@ export const marketingSr = {
 
   landing: {
     home: "Početna",
-    metaHomeTitle:
-      "{{name}} - Softver za prodaju novogradnje | Investitori i agencije",
+    metaHomeTitle: "Softver za prodaju novogradnje u Srbiji | {{name}}",
     metaHomeDescription:
-      "Softver za investitore i agencije koje prodaju novogradnju: projekti, KYC kupaca, online rezervacija sa IPS QR kaparom, generator ugovora u PDF-u, planovi otplate, uplate, provizije, referral kod za agencije, javni sajt projekta, cash-flow projekcija i izveštaji. IPS QR, PDV 10%/2.5%, EUR/RSD. Lansiranje 15.10.2026 - prijave do lansiranja dobijaju 30 dana besplatno + 50% na naredna 3 meseca.",
+      "Softver za prodaju novogradnje u Srbiji: projekti, kupci, rezervacije sa IPS QR, ugovori, uplate i provizije. Lansiranje 15.10.2026.",
     softwareDescription:
       "Multi-tenant SaaS platforma za investitore u nekretnine i partnerske agencije. Projekti, jedinice, kupci, rezervacije, prodaje, planovi otplate, uplate, provizije, dokumenti i izveštaji - sa IPS QR za kaparu i fakture.",
     ogAlt: "PropertyDesk - operativni sistem za prodaju novogradnje",
@@ -601,13 +599,13 @@ export const marketingSr = {
         "Standardni demo traje 25 minuta putem video poziva. Podsetnik dobijate e-mailom sa linkom za sastanak. Ako Vam ne odgovara video poziv, uvek Vas možemo pozvati telefonom.",
     },
     investors: {
-      metaTitle: "Softver za investitore u novogradnju",
+      metaTitle: "Softver za investitore",
       metaDescription:
-        "PropertyDesk je operativni sistem za investitore u novogradnju - projekti, jedinice, rezervacije, prodaje, uplate i provizije agencija na jednom mestu. Zamenite Excel i Viber grupe jasnim tokom, u realnom vremenu.",
+        "Softver za investitore u novogradnju: projekti, zaliha, rezervacija stana, ugovor, uplate i provizija agencije. Jedno mesto umesto Excela i Vibera.",
       eyebrow: "Za investitore",
       title: "Vodite više projekata bez Excela, Vibera i haosa",
       subtitle:
-        "PropertyDesk je centralni sistem za investitore koji istovremeno prodaju direktno i preko partnerskih agencija. Projekti, jedinice, rezervacije, prodaje, uplate, provizije - jedna platforma, sve pod kontrolom.",
+        "Softver za investitore koji prodaju direktno i preko partnerskih agencija. Projekti, jedinice, rezervacije, prodaje, uplate i provizije ostaju na jednoj platformi.",
       gridTitle: "10 stvari koje investitori žele da reše sa softverom",
       gridSubtitle:
         "Ovo su najčešći problemi koje čujemo od investitora sa 50 do 1.000 jedinica pod prodajom. Svaki od njih PropertyDesk rešava direktno, iz kutije.",
@@ -633,9 +631,9 @@ export const marketingSr = {
       s10: "Centralno skladište dokumenata vezano za projekat, jedinicu, kupca ili prodaju - sa Vašim brendom. KYC checklist na kupcu blokira ugovor dok LK, adresa i (za pravna lica) poreska potvrda nisu potvrđene.",
     },
     agencies: {
-      metaTitle: "PropertyDesk za agencije za nekretnine",
+      metaTitle: "Softver za agencije za nekretnine",
       metaDescription:
-        "Real-time pristup inventaru investitora, rezervacije u par klikova, automatske provizije i portal sa Vašim brendom. PropertyDesk daje agencijama za nekretnine sve što treba za prodaju novogradnje - bez čekanja na email potvrde investitora.",
+        "Softver za agencije za nekretnine: katalog investitora u realnom vremenu, rezervacija stana i provizija vidljiva do isplate.",
       eyebrow: "Za agencije",
       title: "Prodajte novogradnju iz kataloga koji je uvek ažuran",
       subtitle:
@@ -643,8 +641,7 @@ export const marketingSr = {
       gridTitle: "Zašto se agencije bore sa novogradnjom",
       gridSubtitle:
         "Ako radite sa više investitora, verovatno svakom danu izgubite sat na provere dostupnosti i cenovnika. PropertyDesk uklanja to vreme.",
-      ctaTitle:
-        "Sledeći put kada Vas kupac pita za slobodne stanove - odgovorite odmah.",
+      ctaTitle: "Sledeći put kada Vas kupac pita za slobodne stanove - odgovorite odmah.",
       ctaSubtitle:
         "Priključite se pilot programu za agencije. Prvih 30 dana besplatno, sa aktivnim inventarom Vaših investitora - bez integracija na Vašoj strani.",
       p1: "Nemate uvid u aktuelan cenovnik investitora - klijentu prodajete stan koji je već rezervisan.",
@@ -661,13 +658,13 @@ export const marketingSr = {
       s6: "Direktan pristup katalogu - odgovarate klijentu u realnom vremenu i zakazujete termin obilaska. Javni sajt projekta možete deliti kupcu jednim linkom.",
     },
     newBuild: {
-      metaTitle: "Softver za prodaju novogradnje u Srbiji",
+      metaTitle: "Prodaja novogradnje",
       metaDescription:
-        "Prodaja stanova u fazi izgradnje uključuje projekte, cenovnike, rezervacije, ugovore, planove otplate i provizije agencija. PropertyDesk povezuje sve učesnike - investitora, prodajni tim, agencije, kupce - u jednom sistemu na srpskom.",
+        "Prodaja novogradnje od cenovnika i rezervacije do ugovora, uplata i primopredaje. Jedan tok za investitora i agencije u Srbiji.",
       eyebrow: "Prodaja novogradnje",
-      title: "Kompletan operativni sistem za prodaju stanova u novogradnji",
+      title: "Prodaja novogradnje od cenovnika do primopredaje",
       subtitle:
-        "Od projekta i cenovnika, preko rezervacija i ugovora, do uplata i provizija - PropertyDesk pokriva ceo tok prodaje novogradnje u Srbiji. Sve na srpskom, sa IPS QR za kaparu i fakture.",
+        "Prodaja novogradnje ide od projekta i cene, preko rezervacije stana i ugovora, do uplata i primopredaje. PropertyDesk drži taj tok na srpskom, sa IPS QR za kaparu.",
       gridTitle: "Zašto Excel i Google Sheets ne rade za novogradnju",
       gridSubtitle:
         "Prodaja u fazi izgradnje ima kompleksne, vremenski razvučene tokove koje generički alati ne razumeju. PropertyDesk je pravljen za tačno taj scenario.",
@@ -683,7 +680,7 @@ export const marketingSr = {
     crm: {
       metaTitle: "CRM za investitore u novogradnju",
       metaDescription:
-        "HubSpot, Pipedrive i Salesforce nisu pravljeni za prodaju novogradnje. PropertyDesk je namenski CRM za investitore - povezuje kupca sa konkretnom jedinicom, ratom, ugovorom i agencijom - bez pretvaranja stanova u 'deal-ove'.",
+        "CRM za investitore u novogradnju vezuje kupca za stan, ratu, ugovor i agenciju. Bez pretvaranja stana u generički deal.",
       eyebrow: "CRM za novogradnju",
       title: "CRM koji razume da prodajete stanove, ne 'deal-ove'",
       subtitle:
@@ -701,11 +698,11 @@ export const marketingSr = {
       s4: "Svaka agencija ima svoj login sa pravima videti samo ono što joj Vi dopustite - stanovi, cene, provizije.",
     },
     excel: {
-      metaTitle: "Alternativa Excelu za prodaju novogradnje",
+      metaTitle: "Excel tabela za prodaju stanova",
       metaDescription:
-        "Ako Vaš prodajni tim još uvek vodi projekte u Excel tabelama, ovo je Vaš prvi korak dalje. PropertyDesk uvozi Vaš postojeći Excel i pretvara ga u kolaborativan sistem sa istorijom, pravima pristupa i real-time statusima jedinica.",
+        "Excel tabela za prodaju stanova puca kad više ljudi menja cenu i status. Jedan cenovnik, trag izmene i status koji vidi ceo tim.",
       eyebrow: "Alternativa Excelu",
-      title: "Iz Excela u sistem koji ne puca kad tim raste",
+      title: "Excel tabela za prodaju stanova, dok je tim mali",
       subtitle:
         "PropertyDesk uvozi Vaše postojeće cenovnike i liste jedinica, dodaje slojeve prava pristupa, istorije i notifikacija - i daje Vam sistem u kojem svaki član tima vidi tačno ono što treba, u realnom vremenu.",
       gridTitle: "5 razloga zbog kojih Excel počinje da Vas usporava",
@@ -726,13 +723,13 @@ export const marketingSr = {
       s5: "Besplatan uvoz Vaše prve Excel tabele - mi radimo mapiranje, vi samo pošaljete fajl.",
     },
     reservations: {
-      metaTitle: "Rezervacije i uplate za novogradnju",
+      metaTitle: "Rezervacija stana",
       metaDescription:
-        "Jedna aktivna rezervacija po jedinici, automatski istek, konverzija u prodaju u par klikova. Uplate se FIFO alociraju na najstarije otvorene rate uz podršku za EUR/RSD i IPS QR - bez ručnog uparivanja bankovnih izvoda.",
+        "Rezervacija stana bez duplog holda, IPS QR za kaparu i evidencija uplata po ratama. Kurs unosi tim. Slanje u SEF ostaje ručno.",
       eyebrow: "Rezervacije i uplate",
-      title: "Rezervacije bez duplih zaključavanja, uplate bez ručnog uparivanja",
+      title: "Rezervacija stana bez duplog holda",
       subtitle:
-        "PropertyDesk štiti tok od prve rezervacije do poslednje rate - jasan status svake jedinice, automatska alokacija uplata, srpski standardi (EUR/RSD, IPS QR) iz kutije.",
+        "Rezervacija stana ostaje jedna po jedinici. Evidencija uplata ide na rate, kurs EUR/RSD unosite vi, a IPS QR stoji na kapari. Slanje u SEF nije automatsko.",
       gridTitle: "Gde se najčešće gubi novac u prodaji novogradnje",
       gridSubtitle:
         "Rezervacije koje se zaborave, uplate koje se ne poklope, kupci koji zakasne bez podsetnika - svaki od ovih scenarija je meseca prihoda.",
@@ -741,18 +738,18 @@ export const marketingSr = {
       p2: "Zaboravite da rezervacija ističe - stan je 'blokiran' mesec dana bez akcije.",
       s2: "Rezervacija ističe sama i jedinica se oslobađa. Tim dobija obaveštenje kad istekne. Podsetnik pre isteka, kupcu, još nije uključen.",
       p3: "Uplate stižu u različitim valutama i preko različitih računa - ručno uparivanje traje danima.",
-      s3: "FIFO alokacija na otvorene rate, konverzija EUR/RSD po dnevnom kursu, uvoz bankovnih izvoda.",
+      s3: "FIFO alokacija na otvorene rate, konverzija EUR/RSD po kursu koji unesete, uvoz bankovnih izvoda.",
       p4: "Jedna uplata se deli na više prodaja (ili jedan kupac ima više stanova) - kako to rasporediti?",
       s4: "Deljenje uplate na više prodaja, ručna realokacija, potpuna transparentnost istorije uplate.",
       p5: "Za srpske kupce potreban je IPS QR - a strane platforme to ne podržavaju.",
       s5: "Ugrađen IPS QR na profakturama i kaparama. Automatsko slanje u SEF je u pripremi — do tada status pratite preko SEF portala.",
     },
     commissions: {
-      metaTitle: "Automatske provizije agencija za nekretnine",
+      metaTitle: "Provizija agencije za nekretnine",
       metaDescription:
-        "Pravila po projektu, jedinici i agenciji. Snapshot iznosa provizije u trenutku ugovora - bez kasnijih izmena i nesporazuma. Jasan tok od izračunavanja do isplate, sa portalom za svaku partnersku agenciju.",
+        "Provizija agencije za nekretnine po pravilu projekta. Iznos se zaključava na dan ugovora i ostaje vidljiv agenciji do isplate.",
       eyebrow: "Provizije agencija",
-      title: "Provizije koje se same računaju i same isplaćuju",
+      title: "Provizija agencije za nekretnine, zaključana na ugovor",
       subtitle:
         "Definišete pravila jednom - PropertyDesk primenjuje ih na svaku novu prodaju, čuva snapshot u trenutku ugovora i vodi agenciju kroz jasan tok od izračunavanja do isplate. Bez tabela i bez trvenja.",
       gridTitle: "4 klasična problema koja gube saradnje sa agencijama",
@@ -794,8 +791,7 @@ export const marketingSr = {
     orientation: "Orijentacija",
     contact: "Kontakt",
     areaM2: "{{value}} m²",
-    footerPrivate:
-      "Ova ponuda je privatna. Iznos i dostupnost mogu se promeniti bez najave.",
+    footerPrivate: "Ova ponuda je privatna. Iznos i dostupnost mogu se promeniti bez najave.",
     emDash: "—",
     referralCatalogTitle: "Ponuda projekata",
     referralCatalogVia: "Preporuka agencije {{agency}}",
@@ -827,6 +823,59 @@ export const marketingSr = {
     keywords:
       "PropertyDesk,softver za investitore u nekretnine,CRM za nekretnine,prodaja novogradnje,upravljanje projektima nekretnina,rezervacije stanova,plan otplate,provizije agencija,IPS QR,Srbija",
   },
+
+  sales: {
+    eyebrow: "Zašto sada",
+    title: "Excel i Viber drže prodaju dok je mala. Posle toga prave štetu.",
+    subtitle:
+      "Jedan cenovnik, jedna rezervacija i jedna provizija. To je razlika između tabele koju niko ne veruje i sistema u kom status stana vidi ceo tim.",
+    excelTitle: "Excel",
+    excelBody:
+      "Cenovnik se grana u više fajlova. Niko ne zna koja je cena važeća, a promena nema trag ko ju je uneo i kada.",
+    viberTitle: "Viber",
+    viberBody:
+      "Agencija rezerviše stan porukom. Druga agencija uradi isto. Dupla rezervacija se vidi tek kad kupac već čeka ugovor.",
+    deskTitle: "PropertyDesk",
+    deskBody:
+      "Jedna aktivna rezervacija po stanu, IPS QR za kaparu, ugovor iz šablona i provizija zaključana u trenutku potpisa.",
+    excelLink: "Pogledajte alternativu Excelu",
+  },
+
+  anchors: {
+    related: "Povezano",
+    software: "Softver za prodaju novogradnje",
+    newBuild: "Prodaja novogradnje",
+    investors: "Softver za investitore",
+    agencies: "Softver za agencije za nekretnine",
+    crm: "CRM za investitore",
+    excel: "Excel tabela za prodaju stanova",
+    reservation: "Rezervacija stana",
+    commission: "Provizija agencije za nekretnine",
+    handover: "Primopredaja stana",
+    share: "Javni link za ponudu stana",
+    payments: "Evidencija uplata za stanove",
+    choose: "Kako izabrati softver za prodaju novogradnje",
+  },
+
+  blog: {
+    eyebrow: "Iz prakse",
+    title: "Kako se vodi prodaja novogradnje",
+    subtitle:
+      "Tekstovi za investitore i agencije: cenovnik, kapara, provizija i provera kupca. Bez izmišljenih referenci, sa linkovima ka onome što sistem stvarno radi.",
+    read: "Pročitajte članak",
+    minutes: "{{count}} min čitanja",
+    progressLeft: "Ostalo {{count}} min",
+    progressDone: "Pročitano",
+    progressAria: "Napredak čitanja",
+    related: "Povezani tekstovi",
+    all: "Svi članci",
+    indexLabel: "Blog",
+    metaTitle: "Blog o prodaji novogradnje",
+    metaDescription:
+      "Vodiči za prodaju novogradnje: cenovnik, rezervacija, IPS kapara, ugovor, primopredaja, javni link i evidencija uplata.",
+    byline: "Marko Banović",
+    homeTitle: "Šta investitori pitaju pre nego što pređu sa Excela",
+  },
 } as const;
 
 export const marketingEn: Leaves<typeof marketingSr> = {
@@ -855,12 +904,30 @@ export const marketingEn: Leaves<typeof marketingSr> = {
     reservations: "Reservations and payments",
     commissions: "Agency commissions",
     bookDemo: "Book a demo",
+    blog: "Blog",
     about: "About",
     help: "Help",
     privacy: "Privacy",
     terms: "Terms",
     imprint: "Legal notice",
     company: "Company",
+    resources: "Resources",
+    productIntro: "One path for stock, price, reservation, contract, and payment.",
+    personasIntro: "The investor runs the project. The agency offers the units it may sell.",
+    resourcesIntro: "Articles, help, and prices, before the demo call.",
+    featuresBody: "Stock, unit status, price, and documents in one place.",
+    newBuildBody: "New-build sales, from the listing and the reservation through to handover.",
+    reservationsBody: "A unit reservation, an IPS QR deposit, and a payment record.",
+    crmBody: "A CRM for investors: the buyer, KYC, and the unit before signing.",
+    excelBody: "An Excel sheet for unit sales, replaced by one price list.",
+    investorsBody: "Software for investors: the project, the agencies, and the payments.",
+    agenciesBody: "Software for agencies: the units you may offer.",
+    commissionsBody: "An agency commission, locked on contract day.",
+    blogBody: "Price lists, deposits, contracts, handover, and payments.",
+    helpBody: "What is ready today, and what arrives after 15 October.",
+    pricingBody: "Starter, Growth, and Scale. Prices in euros.",
+    faqBody: "Short answers before you book a demo.",
+    aboutBody: "Who is behind PropertyDesk.",
   },
 
   header: {
@@ -871,7 +938,7 @@ export const marketingEn: Leaves<typeof marketingSr> = {
 
   footer: {
     blurb:
-      "The operating system for new-build sales — projects, buyers, reservations, payments and agency commissions in one place.",
+      "Software for new-build sales. Projects, buyers, reservations, payments and agency commissions in one place.",
     bookDemo: "Book a 25-minute demo",
     signIn: "Sign in",
     launchDate: "Official launch: 15.10.2026.",
@@ -890,8 +957,7 @@ export const marketingEn: Leaves<typeof marketingSr> = {
 
   cookies: {
     title: "Cookies on this site",
-    body:
-      "Necessary cookies store your language. We load Google Analytics only if you accept. You can change this at any time.",
+    body: "Necessary cookies store your language. We load Google Analytics only if you accept. You can change this at any time.",
     accept: "Accept",
     reject: "Necessary only",
     privacyLink: "Privacy policy",
@@ -915,8 +981,7 @@ export const marketingEn: Leaves<typeof marketingSr> = {
     metaDescription:
       "PropertyDesk is built by CraftedPixel. Software for investors and agencies selling new builds in Serbia. Contact: hello@propertydesk.app.",
     title: "We are building the tool that replaces Excel and Viber in new-build sales.",
-    lead:
-      "PropertyDesk is a CraftedPixel product. We are not a foreign CRM adapted for Serbia — the system was built from the start for the local flow: reservation, deposit, contract, installments, commission.",
+    lead: "PropertyDesk is a CraftedPixel product. We are not a foreign CRM adapted for Serbia — the system was built from the start for the local flow: reservation, deposit, contract, installments, commission.",
     whoTitle: "Who we are",
     whoBody:
       "Behind the product are Marko Banović and CraftedPixel, a software company in Serbia. We work with investors and agencies that still run inventory in Excel and reservations in Viber groups. PropertyDesk is the answer to those same problems.",
@@ -934,8 +999,7 @@ export const marketingEn: Leaves<typeof marketingSr> = {
     metaDescription:
       "What PropertyDesk does today, what comes after launch, and a detailed operator guide.",
     title: "What works today, and what is not live yet",
-    lead:
-      "Before a demo or an application, here is an honest picture of what to expect. The detailed guide for every module is in the Help Center.",
+    lead: "Before a demo or an application, here is an honest picture of what to expect. The detailed guide for every module is in the Help Center.",
     worksTitle: "In use",
     works1: "Projects, units, prices, Excel import and a PDF price list.",
     works2: "Buyer CRM with a KYC checklist and buyer protection.",
@@ -944,8 +1008,7 @@ export const marketingEn: Leaves<typeof marketingSr> = {
     works5: "HTML templates for contracts and pre-contracts as PDF.",
     works6: "Agency commissions, a public project site and reports.",
     laterTitle: "Not automatic yet",
-    laterIntro:
-      "These are on the roadmap or done manually. We do not claim they are finished.",
+    laterIntro: "These are on the roadmap or done manually. We do not claim they are finished.",
     later1:
       "Automatic invoice submission to SEF — the architecture exists, the real transport is not enabled. Until then you track status via the SEF portal.",
     later2: "Floor-plan polygon editor — the floor image viewer exists, drawing units does not.",
@@ -974,13 +1037,12 @@ export const marketingEn: Leaves<typeof marketingSr> = {
     earlyAccessBadge: "Early access: 30 days free + 50% off the next 3 months",
     title: "The operating system for new-build sales.",
     subtitle:
-      "One platform for investors and partner agencies — from projects and inventory, through reservations and contracts, to payments and commissions. Built for Serbia, with IPS QR for deposits and invoices.",
+      "Software for new-build sales, for investors and partner agencies. From the project and the stock, through the reservation and the contract, to payments and commissions. Built for Serbia, with an IPS QR for the deposit.",
     bookDemo: "Book a 25-minute demo",
     watchVideo: "Watch the 3-minute demo",
     noObligation: "No obligation. Book straight from the calendar, no waiting.",
     countdownLabel: "Until official launch",
-    mockupAlt:
-      "PropertyDesk dashboard with projects, units, reservations and payments",
+    mockupAlt: "PropertyDesk dashboard with projects, units, reservations and payments",
   },
 
   countdown: {
@@ -997,8 +1059,7 @@ export const marketingEn: Leaves<typeof marketingSr> = {
     desktopAlt: "PropertyDesk dashboard",
     mobileAria: "PropertyDesk mobile interface preview - {{label}}",
     desktopAria: "PropertyDesk desktop interface preview - {{label}}",
-    desktopHint:
-      "A dashboard preview with projects, sales and payments will appear here.",
+    desktopHint: "A dashboard preview with projects, sales and payments will appear here.",
   },
 
   video: {
@@ -1244,11 +1305,9 @@ export const marketingEn: Leaves<typeof marketingSr> = {
     excelTitle: "Free import of the first Excel file",
     excelBody: "Your existing price list / unit list is loaded into the system for you.",
     setupTitle: "Free setup of one project",
-    setupBody:
-      "We model your project structure together (buildings, entrances, floors, units).",
+    setupBody: "We model your project structure together (buildings, entrances, floors, units).",
     onboardingTitle: "Onboarding for the whole team",
-    onboardingBody:
-      "A 60-minute session where your sales team walks through the system with us.",
+    onboardingBody: "A 60-minute session where your sales team walks through the system with us.",
     supportTitle: "Priority support",
     supportBody:
       "A reply to your tickets the same business day — direct communication with the team.",
@@ -1298,17 +1357,14 @@ export const marketingEn: Leaves<typeof marketingSr> = {
     wpTitle: "WordPress plugin",
     wpBody: "Auto-sync of projects, units and prices with the website — no manual upkeep.",
     aiTitle: "AI assistant for websites",
-    aiBody:
-      "A chat widget as a single <script> tag — answers questions about your units 24/7.",
+    aiBody: "A chat widget as a single <script> tag — answers questions about your units 24/7.",
     qualifyTitle: "Automatic lead qualification",
-    qualifyBody:
-      "AI reads the buyer request and suggests the 3 best units from your inventory.",
+    qualifyBody: "AI reads the buyer request and suggests the 3 best units from your inventory.",
     leadsTitle: "Lead integrations",
     leadsBody:
       "Meta and Google forms, WhatsApp / Viber inbox, email drip — all in the same pipeline.",
     signTitle: "Electronic signature",
-    signBody:
-      "Pre-contracts and contracts online, with a timestamp and legal force in Serbia.",
+    signBody: "Pre-contracts and contracts online, with a timestamp and legal force in Serbia.",
     marketTitle: "Investor–agency marketplace",
     marketBody:
       "The first slice is live: free agency signup, an opt-in teaser catalogue, and a connection request. Full inventory still opens only after a connection.",
@@ -1395,9 +1451,9 @@ export const marketingEn: Leaves<typeof marketingSr> = {
 
   landing: {
     home: "Home",
-    metaHomeTitle: "{{name}} - Software for new-build sales | Investors and agencies",
+    metaHomeTitle: "New-build sales software in Serbia | {{name}}",
     metaHomeDescription:
-      "Software for investors and agencies selling new builds: projects, buyer KYC, online reservation with IPS QR deposit, PDF contract generator, payment plans, payments, commissions, agency referral codes, public project site, cash-flow projection and reports. IPS QR, VAT 10%/2.5%, EUR/RSD. Launch 15.10.2026 — applications before launch get 30 days free + 50% off the next 3 months.",
+      "Software for new-build sales in Serbia: projects, buyers, IPS QR reservations, contracts, payments and commissions. Launch 15.10.2026.",
     softwareDescription:
       "A multi-tenant SaaS platform for real-estate investors and partner agencies. Projects, units, buyers, reservations, sales, payment plans, payments, commissions, documents and reports — with IPS QR for deposits and invoices.",
     ogAlt: "PropertyDesk - the operating system for new-build sales",
@@ -1423,13 +1479,13 @@ export const marketingEn: Leaves<typeof marketingSr> = {
         "A standard demo lasts 25 minutes on a video call. You get an email reminder with the meeting link. If a video call does not work, we can always call you.",
     },
     investors: {
-      metaTitle: "Software for new-build investors",
+      metaTitle: "Software for investors",
       metaDescription:
-        "PropertyDesk is the operating system for new-build investors — projects, units, reservations, sales, payments and agency commissions in one place. Replace Excel and Viber groups with a clear, real-time flow.",
+        "Software for new-build investors: projects, stock, a unit reservation, the contract, payments and the agency commission. One place instead of Excel and Viber.",
       eyebrow: "For investors",
       title: "Run multiple projects without Excel, Viber and chaos",
       subtitle:
-        "PropertyDesk is the central system for investors who sell both directly and through partner agencies. Projects, units, reservations, sales, payments, commissions — one platform, everything under control.",
+        "Software for investors who sell directly and through partner agencies. Projects, units, reservations, sales, payments and commissions stay on one platform.",
       gridTitle: "10 things investors want software to solve",
       gridSubtitle:
         "These are the most common problems we hear from investors with 50 to 1,000 units for sale. PropertyDesk solves each of them out of the box.",
@@ -1455,9 +1511,9 @@ export const marketingEn: Leaves<typeof marketingSr> = {
       s10: "A central document store tied to the project, unit, buyer or sale — with your brand. A KYC checklist on the buyer blocks the contract until ID, address and (for companies) the tax certificate are confirmed.",
     },
     agencies: {
-      metaTitle: "PropertyDesk for real-estate agencies",
+      metaTitle: "Software for estate agencies",
       metaDescription:
-        "Real-time access to the investor's inventory, reservations in a few clicks, automatic commissions and a portal with your brand. PropertyDesk gives agencies everything they need to sell new builds — without waiting for email confirmations from the investor.",
+        "Software for estate agencies: the investor catalogue in real time, a unit reservation, and a commission you can see through to payout.",
       eyebrow: "For agencies",
       title: "Sell new builds from a catalogue that is always current",
       subtitle:
@@ -1482,13 +1538,13 @@ export const marketingEn: Leaves<typeof marketingSr> = {
       s6: "Direct catalogue access — you answer the client in real time and book a viewing. You can share the public project site with the buyer as a single link.",
     },
     newBuild: {
-      metaTitle: "Software for new-build sales in Serbia",
+      metaTitle: "New-build sales",
       metaDescription:
-        "Selling apartments during construction includes projects, price lists, reservations, contracts, payment plans and agency commissions. PropertyDesk connects every participant — investor, sales team, agencies, buyers — in one Serbian-language system.",
+        "New-build sales from the price list and the reservation through to the contract, payments and handover. One path for the investor and the agencies in Serbia.",
       eyebrow: "New-build sales",
-      title: "A complete operating system for selling new-build apartments",
+      title: "New-build sales, from the price list to handover",
       subtitle:
-        "From the project and price list, through reservations and contracts, to payments and commissions — PropertyDesk covers the full new-build sales flow in Serbia. Built for Serbia, with IPS QR for deposits and invoices.",
+        "New-build sales run from the project and the price, through the reservation and the contract, to payments and handover. PropertyDesk keeps that path in Serbian, with an IPS QR for the deposit.",
       gridTitle: "Why Excel and Google Sheets fail for new builds",
       gridSubtitle:
         "Sales during construction have complex, long-running flows that generic tools do not understand. PropertyDesk is built for exactly that scenario.",
@@ -1504,7 +1560,7 @@ export const marketingEn: Leaves<typeof marketingSr> = {
     crm: {
       metaTitle: "CRM for new-build investors",
       metaDescription:
-        "HubSpot, Pipedrive and Salesforce were not built for new-build sales. PropertyDesk is a purpose-built CRM for investors — it ties the buyer to a specific unit, installment, contract and agency — without turning apartments into 'deals'.",
+        "A CRM for new-build investors ties the buyer to the apartment, the installment, the contract and the agency. Without turning the unit into a generic deal.",
       eyebrow: "CRM for new builds",
       title: "A CRM that understands you sell apartments, not 'deals'",
       subtitle:
@@ -1522,11 +1578,11 @@ export const marketingEn: Leaves<typeof marketingSr> = {
       s4: "Each agency has its own login with rights to see only what you allow — apartments, prices, commissions.",
     },
     excel: {
-      metaTitle: "An Excel alternative for new-build sales",
+      metaTitle: "An Excel sheet for selling apartments",
       metaDescription:
-        "If your sales team still runs projects in Excel, this is the first step forward. PropertyDesk imports your existing Excel and turns it into a collaborative system with history, access rights and real-time unit statuses.",
+        "An Excel sheet for selling apartments breaks when several people change the price and the status. One price list, a change trail, and a status the whole team sees.",
       eyebrow: "Excel alternative",
-      title: "From Excel to a system that does not break as the team grows",
+      title: "An Excel sheet for selling apartments, while the team is small",
       subtitle:
         "PropertyDesk imports your existing price lists and unit lists, adds access rights, history and notifications — and gives you a system where every team member sees exactly what they need, in real time.",
       gridTitle: "5 reasons Excel starts slowing you down",
@@ -1547,13 +1603,13 @@ export const marketingEn: Leaves<typeof marketingSr> = {
       s5: "Free import of your first Excel file — we do the mapping, you just send the file.",
     },
     reservations: {
-      metaTitle: "Reservations and payments for new builds",
+      metaTitle: "Apartment reservation",
       metaDescription:
-        "One active reservation per unit, automatic expiry, conversion to a sale in a few clicks. Payments are FIFO-allocated to the oldest open installments with EUR/RSD and IPS QR — no manual bank-statement matching.",
+        "An apartment reservation without a double hold, an IPS QR for the deposit, and a payment record by installment. Your team enters the rate. Sending to SEF stays manual.",
       eyebrow: "Reservations and payments",
-      title: "Reservations without double locks, payments without manual matching",
+      title: "An apartment reservation without a double hold",
       subtitle:
-        "PropertyDesk protects the flow from the first reservation to the last installment — a clear status for every unit, automatic payment allocation, Serbian standards (EUR/RSD, IPS QR) out of the box.",
+        "One reservation per apartment. Payments are recorded against installments, you enter the EUR/RSD rate, and the IPS QR sits on the deposit. Sending to SEF is not automatic.",
       gridTitle: "Where money is most often lost in new-build sales",
       gridSubtitle:
         "Forgotten reservations, unmatched payments, late buyers with no reminder — each of these scenarios is a month of revenue.",
@@ -1562,18 +1618,18 @@ export const marketingEn: Leaves<typeof marketingSr> = {
       p2: "You forget the reservation expires — the apartment is 'blocked' for a month with no action.",
       s2: "A reservation expires on its own and the unit is released. The team is notified when it expires. A pre-expiry reminder to the buyer is not switched on yet.",
       p3: "Payments arrive in different currencies and via different accounts — manual matching takes days.",
-      s3: "FIFO allocation to open installments, EUR/RSD conversion at the daily rate, bank-statement import.",
+      s3: "FIFO allocation to open installments, EUR/RSD conversion at the rate you enter, and bank-statement import.",
       p4: "One payment is split across several sales (or one buyer has several apartments) — how do you allocate it?",
       s4: "Split a payment across sales, manual reallocation, full payment-history transparency.",
       p5: "Serbian buyers need IPS QR — and foreign platforms do not support that.",
       s5: "Built-in IPS QR on proformas and deposits. Automatic SEF submission is in preparation — until then you track status via the SEF portal.",
     },
     commissions: {
-      metaTitle: "Automatic real-estate agency commissions",
+      metaTitle: "Estate-agency commission",
       metaDescription:
-        "Rules per project, unit and agency. A commission-amount snapshot at contract time — no later changes or disputes. A clear flow from calculation to payout, with a portal for every partner agency.",
+        "An estate-agency commission from the project rule. The amount locks on contract day and stays visible to the agency until it is paid.",
       eyebrow: "Agency commissions",
-      title: "Commissions that calculate and pay themselves",
+      title: "An estate-agency commission, locked on the contract",
       subtitle:
         "You define the rules once — PropertyDesk applies them to every new sale, stores a snapshot at contract time and walks the agency through a clear flow from calculation to payout. No spreadsheets and no friction.",
       gridTitle: "4 classic problems that lose agency partnerships",
@@ -1615,8 +1671,7 @@ export const marketingEn: Leaves<typeof marketingSr> = {
     orientation: "Orientation",
     contact: "Contact",
     areaM2: "{{value}} m²",
-    footerPrivate:
-      "This offer is private. Price and availability may change without notice.",
+    footerPrivate: "This offer is private. Price and availability may change without notice.",
     emDash: "—",
     referralCatalogTitle: "Project offer",
     referralCatalogVia: "Recommended by {{agency}}",
@@ -1647,5 +1702,58 @@ export const marketingEn: Leaves<typeof marketingSr> = {
       "Multi-tenant platform for developers and partner agencies, with IPS QR for deposits and invoices.",
     keywords:
       "PropertyDesk,software for real-estate developers,real-estate CRM,new-build sales,property project management,apartment reservations,payment plan,agency commissions,IPS QR,e-invoices,Serbia",
+  },
+
+  sales: {
+    eyebrow: "Why now",
+    title: "Excel and Viber hold a sale together while it is small. After that they create damage.",
+    subtitle:
+      "One price list, one reservation and one commission. That is the difference between a spreadsheet nobody trusts and a system where the whole team sees the unit status.",
+    excelTitle: "Excel",
+    excelBody:
+      "The price list forks into several files. Nobody knows which price is current, and a change has no record of who entered it or when.",
+    viberTitle: "Viber",
+    viberBody:
+      "An agency reserves a unit in a chat. Another agency does the same. The double booking shows up only when the buyer is already waiting for a contract.",
+    deskTitle: "PropertyDesk",
+    deskBody:
+      "One active reservation per unit, an IPS QR for the deposit, a contract from a template, and a commission locked at the moment of signing.",
+    excelLink: "See the Excel alternative",
+  },
+
+  anchors: {
+    related: "Related",
+    software: "New-build sales software",
+    newBuild: "New-build sales",
+    investors: "Software for investors",
+    agencies: "Software for estate agencies",
+    crm: "CRM for investors",
+    excel: "An Excel sheet for selling units",
+    reservation: "Apartment reservation",
+    commission: "Estate-agency commission",
+    handover: "Apartment handover",
+    share: "A public link for a unit offer",
+    payments: "A payment record for apartments",
+    choose: "How to choose new-build sales software",
+  },
+
+  blog: {
+    eyebrow: "From the work",
+    title: "How new-build sales are actually run",
+    subtitle:
+      "Notes for developers and agencies: price lists, deposits, commissions and buyer checks. No invented references, with links to what the product actually does.",
+    read: "Read the article",
+    minutes: "{{count}} min read",
+    progressLeft: "{{count}} min left",
+    progressDone: "Finished",
+    progressAria: "Reading progress",
+    related: "Related articles",
+    all: "All articles",
+    indexLabel: "Blog",
+    metaTitle: "Blog on new-build sales",
+    metaDescription:
+      "Guides for new-build sales: price lists, reservations, IPS deposits, contracts, handover, public links and payment records.",
+    byline: "Marko Banović",
+    homeTitle: "What developers ask before they leave Excel",
   },
 };

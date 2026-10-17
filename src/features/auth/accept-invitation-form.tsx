@@ -21,11 +21,7 @@ export interface AcceptInvitationView {
   investorName?: string | null;
 }
 
-export function AcceptInvitationForm({
-  invitation,
-}: {
-  invitation: AcceptInvitationView;
-}) {
+export function AcceptInvitationForm({ invitation }: { invitation: AcceptInvitationView }) {
   const { t, locale } = useI18n();
   const router = useRouter();
   const { data: session, isPending } = useSession();
@@ -33,9 +29,7 @@ export function AcceptInvitationForm({
   const [name, setName] = useState("");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
-  const [agencyDisplayName, setAgencyDisplayName] = useState(
-    invitation.organizationName,
-  );
+  const [agencyDisplayName, setAgencyDisplayName] = useState(invitation.organizationName);
   const [agencyLegalName, setAgencyLegalName] = useState("");
   const [agencyTaxNumber, setAgencyTaxNumber] = useState("");
   const [agencyRegistrationNumber, setAgencyRegistrationNumber] = useState("");
@@ -85,9 +79,7 @@ export function AcceptInvitationForm({
     try {
       await acceptAsCurrentUser();
     } catch (err) {
-      setError(
-        err instanceof ApiClientError ? err.message : t("errors.generic"),
-      );
+      setError(err instanceof ApiClientError ? err.message : t("errors.generic"));
     } finally {
       setSubmitting(false);
     }
@@ -133,9 +125,7 @@ export function AcceptInvitationForm({
       }
       await acceptAsCurrentUser();
     } catch (err) {
-      setError(
-        err instanceof ApiClientError ? err.message : t("errors.generic"),
-      );
+      setError(err instanceof ApiClientError ? err.message : t("errors.generic"));
     } finally {
       setSubmitting(false);
     }
@@ -156,9 +146,7 @@ export function AcceptInvitationForm({
       }
       await acceptAsCurrentUser();
     } catch (err) {
-      setError(
-        err instanceof ApiClientError ? err.message : t("errors.generic"),
-      );
+      setError(err instanceof ApiClientError ? err.message : t("errors.generic"));
     } finally {
       setSubmitting(false);
     }
@@ -200,9 +188,7 @@ export function AcceptInvitationForm({
           />
         </div>
         <div>
-          <Label htmlFor="agency-registrationNumber">
-            {t("ops.org.registrationNumber")}
-          </Label>
+          <Label htmlFor="agency-registrationNumber">{t("ops.org.registrationNumber")}</Label>
           <Input
             id="agency-registrationNumber"
             required
@@ -251,11 +237,7 @@ export function AcceptInvitationForm({
   }
 
   if (isPending) {
-    return (
-      <p className="text-sm text-[var(--color-foreground-muted)]">
-        {t("common.loading")}
-      </p>
-    );
+    return <p className="text-sm text-[var(--color-foreground-muted)]">{t("common.loading")}</p>;
   }
 
   return (
@@ -306,13 +288,7 @@ export function AcceptInvitationForm({
         <form onSubmit={(e) => void handleRegister(e)} className="space-y-4" noValidate>
           <div>
             <Label htmlFor="invite-email">{t("auth.email")}</Label>
-            <Input
-              id="invite-email"
-              type="email"
-              value={invitation.email}
-              readOnly
-              disabled
-            />
+            <Input id="invite-email" type="email" value={invitation.email} readOnly disabled />
           </div>
           <div>
             <Label htmlFor="invite-name">{t("auth.fullName")}</Label>
@@ -372,13 +348,7 @@ export function AcceptInvitationForm({
         <form onSubmit={(e) => void handleSignIn(e)} className="space-y-4" noValidate>
           <div>
             <Label htmlFor="signin-email">{t("auth.email")}</Label>
-            <Input
-              id="signin-email"
-              type="email"
-              value={invitation.email}
-              readOnly
-              disabled
-            />
+            <Input id="signin-email" type="email" value={invitation.email} readOnly disabled />
           </div>
           <div>
             <Label htmlFor="signin-password">{t("auth.password")}</Label>

@@ -100,9 +100,7 @@ export async function registerAgency(
     });
   }
   if (!isAgencyProfileComplete(profile)) {
-    throw DomainErrors.validation(
-      "Popunite sva obavezna polja agencije (sve sem sajta).",
-    );
+    throw DomainErrors.validation("Popunite sva obavezna polja agencije (sve sem sajta).");
   }
 
   const existingUser = await prisma.user.findFirst({
@@ -110,9 +108,7 @@ export async function registerAgency(
     select: { id: true },
   });
   if (existingUser) {
-    throw DomainErrors.conflict(
-      "Nalog sa ovom adresom već postoji. Prijavite se.",
-    );
+    throw DomainErrors.conflict("Nalog sa ovom adresom već postoji. Prijavite se.");
   }
 
   const existingProfileEmail = await prisma.organizationProfile.findFirst({
@@ -120,9 +116,7 @@ export async function registerAgency(
     select: { id: true },
   });
   if (existingProfileEmail) {
-    throw DomainErrors.conflict(
-      "Agencija sa ovom email adresom već postoji. Prijavite se.",
-    );
+    throw DomainErrors.conflict("Agencija sa ovom email adresom već postoji. Prijavite se.");
   }
 
   const existingPib = await prisma.organizationProfile.findFirst({
@@ -142,9 +136,7 @@ export async function registerAgency(
     where: { code: AGENCY_PARTNER_PLAN_CODE },
   });
   if (!plan?.active) {
-    throw DomainErrors.invalidState(
-      "Partner plan nije dostupan. Kontaktirajte podršku.",
-    );
+    throw DomainErrors.invalidState("Partner plan nije dostupan. Kontaktirajte podršku.");
   }
 
   const hashed = await hashCredentialPassword(password);

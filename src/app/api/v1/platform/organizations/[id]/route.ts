@@ -5,12 +5,12 @@ import {
   getOrganizationForPlatformAdmin,
   updateOrganizationByPlatformAdmin,
 } from "@/server/services/platform.service";
-import { remainingTrialDays } from "@/server/services/subscriptions/trial-days";
+import { belgradeDateString } from "@/lib/billing/activation";
+import { originalTrialDays, remainingTrialDays } from "@/server/services/subscriptions/trial-days";
 
 const paramsSchema = z.object({ id: z.string().min(1) });
 
-const emptyToNull = (value: unknown) =>
-  value === "" || value === undefined ? null : value;
+const emptyToNull = (value: unknown) => (value === "" || value === undefined ? null : value);
 
 const updateSchema = z.object({
   name: z.string().min(2).max(120),
@@ -34,10 +34,16 @@ const updateSchema = z.object({
   planCode: z.string().min(1).max(60),
   status: z.enum(["TRIAL", "ACTIVE", "RESTRICTED", "SUSPENDED", "CLOSED"]).optional(),
   trialDays: z.number().int().min(0).max(365).optional().nullable(),
+  activatesAt: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/)
+    .optional()
+    .nullable(),
 });
 
 function toFormPayload(org: Awaited<ReturnType<typeof getOrganizationForPlatformAdmin>>) {
   const trialEndsAt = org.subscription?.trialEndsAt ?? null;
+  const trialStartsAt = org.subscription?.trialStartsAt ?? null;
 
   return {
     id: org.id,
@@ -57,8 +63,11 @@ function toFormPayload(org: Awaited<ReturnType<typeof getOrganizationForPlatform
     website: org.profile?.website ?? "",
     planCode: org.subscription?.plan.code ?? "trial",
     status: org.profile?.status ?? "TRIAL",
-    trialDays: remainingTrialDays(trialEndsAt),
+    trialDays: trialStartsAt
+      ? originalTrialDays(trialStartsAt, trialEndsAt)
+      : remainingTrialDays(trialEndsAt),
     trialEndsAt: trialEndsAt?.toISOString() ?? null,
+    activatesAt: trialStartsAt ? belgradeDateString(trialStartsAt) : null,
   };
 }
 
@@ -72,11 +81,7 @@ export const PATCH = apiHandler(
   { bodySchema: updateSchema, paramsSchema },
   async ({ body, params }) => {
     const ctx = await requireSuperAdmin();
-    const org = await updateOrganizationByPlatformAdmin(
-      params.id,
-      body,
-      ctx.session.user.id,
-    );
+    const org = await updateOrganizationByPlatformAdmin(params.id, body, ctx.session.user.id);
     return { data: toFormPayload(org) };
   },
 );

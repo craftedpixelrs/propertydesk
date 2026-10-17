@@ -4,18 +4,13 @@ import { notFound } from "next/navigation";
 import { NewOrganizationForm } from "@/features/platform-admin/new-organization-form";
 import { AgencyVerificationActions } from "@/features/platform-admin/agency-verification-actions";
 import { requireSuperAdmin } from "@/server/permissions/require";
-import {
-  getOrganizationForPlatformAdmin,
-  listSaaSPlans,
-} from "@/server/services/platform.service";
+import { getOrganizationForPlatformAdmin, listSaaSPlans } from "@/server/services/platform.service";
 import { DomainError } from "@/lib/errors";
 import { Button } from "@/components/ui/button";
 import { createT, type TranslationKey } from "@/lib/i18n";
 import { resolveRequestLocale } from "@/lib/i18n/resolve-locale";
-import {
-  originalTrialDays,
-  remainingTrialDays,
-} from "@/server/services/subscriptions/trial-days";
+import { belgradeDateString } from "@/lib/billing/activation";
+import { originalTrialDays, remainingTrialDays } from "@/server/services/subscriptions/trial-days";
 
 export const dynamic = "force-dynamic";
 
@@ -65,7 +60,7 @@ export default async function EditOrganizationPage({
         </Button>
       </div>
       {org.profile?.type === "AGENCY" ? (
-        <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-4 space-y-2">
+        <div className="space-y-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-4">
           <p className="text-sm font-medium">{t("admin.verification.title")}</p>
           <p className="text-sm text-[var(--color-foreground-muted)]">
             {t("admin.verification.status")}:{" "}
@@ -101,9 +96,12 @@ export default async function EditOrganizationPage({
           website: org.profile?.website ?? "",
           planCode: currentPlanCode ?? planOptions[0]?.code ?? "trial",
           status: org.profile?.status ?? "TRIAL",
-          trialDays: remainingTrialDays(trialEndsAt) ?? undefined,
+          trialDays: trialStartsAt
+            ? (originalTrialDays(trialStartsAt, trialEndsAt) ?? undefined)
+            : (remainingTrialDays(trialEndsAt) ?? undefined),
           trialEndsAt: trialEndsAt?.toISOString() ?? null,
           originalTrialDays: originalTrialDays(trialStartsAt, trialEndsAt),
+          activatesAt: trialStartsAt ? belgradeDateString(trialStartsAt) : "",
         }}
       />
     </section>

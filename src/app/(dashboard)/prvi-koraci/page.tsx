@@ -6,10 +6,7 @@ import { PageHeader } from "@/components/app/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { loadUserContext } from "@/server/auth/context";
-import {
-  loadOnboardingState,
-  type OnboardingStepKey,
-} from "@/server/services/onboarding.service";
+import { loadOnboardingState, type OnboardingStepKey } from "@/server/services/onboarding.service";
 import { createT, type TranslationKey } from "@/lib/i18n";
 
 export const dynamic = "force-dynamic";
@@ -35,9 +32,7 @@ export default async function OnboardingPage() {
   const t = createT(ctx.user.locale);
 
   const state = await loadOnboardingState(ctx.activeOrganization.id);
-  const percent = Math.round(
-    (state.completedCount / state.totalCount) * 100,
-  );
+  const percent = Math.round((state.completedCount / state.totalCount) * 100);
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">

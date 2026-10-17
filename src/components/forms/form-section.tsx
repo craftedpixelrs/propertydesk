@@ -21,7 +21,7 @@ export function FormSection({ title, description, children, className }: FormSec
             <h3 className="text-base font-semibold text-[var(--color-foreground)]">{title}</h3>
           ) : null}
           {description ? (
-            <p className="text-sm text-[var(--color-foreground-muted)] mt-1">{description}</p>
+            <p className="mt-1 text-sm text-[var(--color-foreground-muted)]">{description}</p>
           ) : null}
         </div>
       ) : null}
@@ -50,21 +50,21 @@ export function FormField({ label, htmlFor, hint, error, required, children }: F
     <div>
       <label
         htmlFor={htmlFor}
-        className="block text-sm font-medium text-[var(--color-foreground)] mb-1.5"
+        className="mb-1.5 block text-sm font-medium text-[var(--color-foreground)]"
       >
         {label}
         {required ? (
-          <span aria-hidden className="text-[var(--color-danger)] ml-0.5">
+          <span aria-hidden className="ml-0.5 text-[var(--color-danger)]">
             *
           </span>
         ) : null}
       </label>
       {children}
       {hint && !error ? (
-        <p className="text-xs text-[var(--color-foreground-muted)] mt-1">{hint}</p>
+        <p className="mt-1 text-xs text-[var(--color-foreground-muted)]">{hint}</p>
       ) : null}
       {error ? (
-        <p role="alert" className="text-xs text-[var(--color-danger)] mt-1">
+        <p role="alert" className="mt-1 text-xs text-[var(--color-danger)]">
           {error}
         </p>
       ) : null}

@@ -61,12 +61,11 @@ Every one must exit 0.
 ## Post-deploy smoke
 
 - [ ] `curl -f https://<host>/api/v1/health` → 200
-- [ ] `curl -f https://<host>/api/v1/ready` → 200 with `db:"ok"`
+- [ ] `curl -f https://<host>/api/v1/health/ready` → 200 with `db:"ok"`
 - [ ] Sign in and open the dashboard.
 - [ ] Trigger `POST /api/v1/jobs/expire-reservations` with the cron
-      secret → 200.
-- [ ] Trigger `POST /api/v1/jobs/expire-reservation-requests` with the
-      cron secret → 200.
+      secret → 200. Public reservation requests are not a cron job:
+      they expire when someone opens `/rezervacije/zahtevi`.
 - [ ] Trigger `POST /api/v1/jobs/backup-verify` with the cron secret
       → 200. `/administracija/monitoring` should show a fresh row.
 - [ ] Trigger `POST /api/v1/jobs/purge-deleted-documents` with the
@@ -79,8 +78,8 @@ Every one must exit 0.
 - [ ] Trigger a client error on any page (e.g. `throw` in devtools
       inside a Server Action) → appears in Sentry within 1 minute.
 - [ ] Open a public share link and reservation form (`/p/[token]`):
-      submitting the form returns the deposit IPS QR image inline and
-      the row shows up in `/rezervacije/zahtevi`.
+      the confirmation page shows the deposit IPS QR (the email is
+      text only) and the row shows up in `/rezervacije/zahtevi`.
 - [ ] Open the agency referral URL (`/p/r/<code>`): catalog or
       project, **no sign-in**. Cookie `pd_ref` is set. A later
       reservation on `/p/[token]` carries the code.

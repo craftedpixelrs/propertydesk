@@ -56,9 +56,7 @@ export default async function ProvizijePage() {
       agency: { select: { name: true } },
     },
   });
-  const connectionNames = new Map(
-    connections.map((c) => [c.id, c.agency.name] as const),
-  );
+  const connectionNames = new Map(connections.map((c) => [c.id, c.agency.name] as const));
 
   const projects = await prisma.project.findMany({
     where: { organizationId: ctx.activeOrganization.id },
@@ -94,7 +92,7 @@ export default async function ProvizijePage() {
           ) : (
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-[var(--color-border)] text-sm">
-                <thead className="bg-[var(--color-surface-inset)] text-left text-xs uppercase tracking-wide text-[var(--color-foreground-muted)]">
+                <thead className="bg-[var(--color-surface-inset)] text-left text-xs tracking-wide text-[var(--color-foreground-muted)] uppercase">
                   <tr>
                     <th className="px-4 py-3">{t("partners.sale")}</th>
                     <th className="px-4 py-3">{t("organization.types.agency")}</th>
@@ -115,7 +113,15 @@ export default async function ProvizijePage() {
                           {c.sale?.unit?.code ?? "—"}
                         </Link>
                       </td>
-                      <td className="px-4 py-3">{c.agency.name}</td>
+                      <td className="px-4 py-3">
+                        <div>{c.agency.name}</div>
+                        <a
+                          className="text-xs text-[var(--color-brand-700)] hover:underline"
+                          href={`/api/v1/pdf/commission-statement?agencyOrganizationId=${c.agency.id}`}
+                        >
+                          {t("deals.clientPack.commissionPdf")}
+                        </a>
+                      </td>
                       <td className="px-4 py-3">{commissionStatusLabel(c.status, t)}</td>
                       <td className="px-4 py-3 text-right font-medium">
                         {formatMoney(
@@ -128,10 +134,7 @@ export default async function ProvizijePage() {
                       </td>
                       <td className="px-4 py-3 text-right">
                         {canManage ? (
-                          <CommissionRowActions
-                            commissionId={c.id}
-                            status={c.status}
-                          />
+                          <CommissionRowActions commissionId={c.id} status={c.status} />
                         ) : null}
                       </td>
                     </tr>
@@ -157,7 +160,7 @@ export default async function ProvizijePage() {
           ) : (
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-[var(--color-border)] text-sm">
-                <thead className="bg-[var(--color-surface-inset)] text-left text-xs uppercase tracking-wide text-[var(--color-foreground-muted)]">
+                <thead className="bg-[var(--color-surface-inset)] text-left text-xs tracking-wide text-[var(--color-foreground-muted)] uppercase">
                   <tr>
                     <th className="px-4 py-3">{t("organization.types.agency")}</th>
                     <th className="px-4 py-3">{t("units.columns.project")}</th>
@@ -172,11 +175,13 @@ export default async function ProvizijePage() {
                     <tr key={r.id}>
                       <td className="px-4 py-3">
                         {r.agencyConnectionId
-                          ? connectionNames.get(r.agencyConnectionId) ?? "—"
+                          ? (connectionNames.get(r.agencyConnectionId) ?? "—")
                           : t("common.all")}
                       </td>
                       <td className="px-4 py-3">
-                        {r.projectId ? projectNames.get(r.projectId) ?? "—" : t("partners.allProjectsShort")}
+                        {r.projectId
+                          ? (projectNames.get(r.projectId) ?? "—")
+                          : t("partners.allProjectsShort")}
                       </td>
                       <td className="px-4 py-3">
                         {r.unitId

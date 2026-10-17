@@ -11,9 +11,7 @@ import { listMembers } from "@/server/services/organization-admin.service";
  * `lead.read` is granted to every role that can see buyers.
  */
 export const GET = apiHandler({}, async () => {
-  const ctx = await requirePermission("lead.read").catch(() =>
-    requirePermission("sale.read"),
-  );
+  const ctx = await requirePermission("lead.read").catch(() => requirePermission("sale.read"));
   const members = await listMembers(ctx.organization.organizationId);
   const items = members
     .filter((m) => !m.deactivatedAt)

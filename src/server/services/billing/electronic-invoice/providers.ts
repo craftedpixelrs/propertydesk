@@ -33,7 +33,10 @@ export interface ElectronicInvoiceSubmitResult {
 export interface ElectronicInvoiceProvider {
   readonly type: ElectronicInvoiceProviderType;
   submit(context: ElectronicInvoiceContext): Promise<ElectronicInvoiceSubmitResult>;
-  cancel?(context: ElectronicInvoiceContext, reason: string): Promise<ElectronicInvoiceSubmitResult>;
+  cancel?(
+    context: ElectronicInvoiceContext,
+    reason: string,
+  ): Promise<ElectronicInvoiceSubmitResult>;
 }
 
 class ManualElectronicInvoiceProvider implements ElectronicInvoiceProvider {
@@ -48,33 +51,35 @@ class ManualElectronicInvoiceProvider implements ElectronicInvoiceProvider {
   }
 }
 
+const SEF_NOT_WIRED =
+  "Automatsko slanje u SEF nije uključeno. Pošaljite fakturu ručno preko SEF portala i ostavite provajdera na MANUAL.";
+
 /**
- * Serbian SEF provider stub.
+ * Serbian SEF provider.
  *
- * The real transport requires an API key configured via
- * `CompanyBillingProfile.sefApiKeyEncrypted` and env-specific base URLs. For
- * now we simulate a successful accept: this keeps the retry loop working and
- * lets the UI exercise all state transitions until the transport is wired up.
+ * Transport is not wired. Submit and cancel fail closed: they must not
+ * report ACKNOWLEDGED, because that would look like the state portal
+ * accepted an invoice that was never sent.
  */
 class SerbianSefProvider implements ElectronicInvoiceProvider {
   readonly type = "SERBIAN_SEF" as const;
   async submit(context: ElectronicInvoiceContext): Promise<ElectronicInvoiceSubmitResult> {
-    // TODO(billing/sef): call SEF `/api/publicApi/sales-invoice/ubl` with
-    // the encrypted API key. Retry with exponential backoff. Persist the
-    // response envelope in `responsePayload`.
     return {
-      status: "ACKNOWLEDGED",
-      providerReference: `sef:pending:${context.invoice.id}`,
-      responsePayload: { simulated: true },
-      errorMessage: null,
+      status: "FAILED",
+      providerReference: null,
+      responsePayload: { simulated: false, invoiceId: context.invoice.id },
+      errorMessage: SEF_NOT_WIRED,
     };
   }
-  async cancel(context: ElectronicInvoiceContext, reason: string): Promise<ElectronicInvoiceSubmitResult> {
+  async cancel(
+    context: ElectronicInvoiceContext,
+    reason: string,
+  ): Promise<ElectronicInvoiceSubmitResult> {
     return {
-      status: "REJECTED",
+      status: "FAILED",
       providerReference: context.record?.providerReference ?? null,
-      responsePayload: { simulated: true, reason },
-      errorMessage: null,
+      responsePayload: { simulated: false, reason },
+      errorMessage: SEF_NOT_WIRED,
     };
   }
 }

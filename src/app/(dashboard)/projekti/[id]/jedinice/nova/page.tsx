@@ -43,7 +43,7 @@ export default async function NewUnitPage({ params }: Props) {
   return (
     <div className="mx-auto max-w-2xl space-y-4">
       <div>
-        <div className="text-xs font-mono uppercase text-[var(--color-foreground-muted)]">
+        <div className="font-mono text-xs text-[var(--color-foreground-muted)] uppercase">
           {project.code} · {project.name}
         </div>
         <h1 className="text-2xl font-semibold">{t("units.newUnit")}</h1>

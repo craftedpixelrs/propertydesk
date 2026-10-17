@@ -29,15 +29,12 @@ export function ReferralCards({ cards: initialCards, baseUrl }: Props) {
   async function rotate(connectionId: string) {
     setBusyId(connectionId);
     try {
-      const result = await apiClient.post<{ referralCode: string }>(
-        "/agency/referral/rotate",
-        { connectionId },
-      );
+      const result = await apiClient.post<{ referralCode: string }>("/agency/referral/rotate", {
+        connectionId,
+      });
       setCards((prev) =>
         prev.map((c) =>
-          c.connectionId === connectionId
-            ? { ...c, referralCode: result.referralCode }
-            : c,
+          c.connectionId === connectionId ? { ...c, referralCode: result.referralCode } : c,
         ),
       );
       router.refresh();
@@ -131,7 +128,7 @@ function ReferralCard({
             <p className="text-[var(--color-foreground-muted)]">
               {t("partners.referral.shareHint")}
             </p>
-            <div className="break-all rounded border border-[var(--color-border)] bg-[var(--color-surface-muted)]/50 p-2 font-mono text-[10px]">
+            <div className="rounded border border-[var(--color-border)] bg-[var(--color-surface-muted)]/50 p-2 font-mono text-[10px] break-all">
               {url}
             </div>
           </div>

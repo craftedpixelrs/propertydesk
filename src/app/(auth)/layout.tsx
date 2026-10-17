@@ -30,7 +30,7 @@ export default async function AuthLayout({ children }: { children: ReactNode }) 
     <main className="grid min-h-dvh grid-cols-1 bg-[var(--color-surface-muted)] lg:grid-cols-2">
       <BrandingPanel locale={locale} />
 
-      <section className="flex min-h-dvh flex-col justify-center overflow-y-auto px-4 py-10 sm:px-6 safe-top safe-bottom">
+      <section className="safe-top safe-bottom flex min-h-dvh flex-col justify-center overflow-y-auto px-4 py-10 sm:px-6">
         <div className="mx-auto w-full max-w-lg">
           <div className="mb-6 flex items-center justify-center lg:hidden">
             <BrandLockup size="md" />
@@ -68,7 +68,9 @@ function BrandLockup({ size }: { size: "md" | "lg" }) {
         priority
         className={`${markClass} object-contain`}
       />
-      <span className={`${nameClass} font-display font-semibold tracking-tight text-[var(--color-brand-900)]`}>
+      <span
+        className={`${nameClass} font-display font-semibold tracking-tight text-[var(--color-brand-900)]`}
+      >
         {APP_NAME}
       </span>
     </span>
@@ -83,7 +85,10 @@ function BrandingPanel({ locale }: { locale: Locale }) {
   ];
 
   return (
-    <aside aria-hidden className="relative hidden overflow-hidden lg:flex lg:flex-col lg:justify-between">
+    <aside
+      aria-hidden
+      className="relative hidden overflow-hidden lg:flex lg:flex-col lg:justify-between"
+    >
       <Image
         src={AUTH_IMAGES.hero.src}
         alt=""
@@ -102,7 +107,7 @@ function BrandingPanel({ locale }: { locale: Locale }) {
       </div>
 
       <div className="relative z-10 px-10 pb-10">
-        <h2 className="max-w-md text-3xl font-semibold leading-tight tracking-tight text-[var(--color-brand-900)]">
+        <h2 className="max-w-md text-3xl leading-tight font-semibold tracking-tight text-[var(--color-brand-900)]">
           {t("auth.brandingTitle", undefined, locale)}
         </h2>
         <p className="mt-3 max-w-md text-sm text-[var(--color-foreground-muted)]">

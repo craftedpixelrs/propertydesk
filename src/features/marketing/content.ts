@@ -18,10 +18,10 @@ export const FAQ_ITEMS: FaqItem[] = [
   {
     question: "Kada se lansira PropertyDesk?",
     answer:
-      "Zvanično lansiranje je 01.09.2026. Do tada je otvorena rana prijava - svi koji se prijave putem forme na ovoj stranici dobijaju obaveštenje pre javnog puštanja.",
+      "Zvanično lansiranje je 15.10.2026. Do tada je otvorena rana prijava - svi koji se prijave putem forme na ovoj stranici dobijaju obaveštenje pre javnog puštanja.",
   },
   {
-    question: "Kako funkcioniše rana ponuda za prijave do 01.09.2026.?",
+    question: "Kako funkcioniše rana ponuda za prijave do 15.10.2026.?",
     answer:
       "Prvih 30 dana besplatno. Nakon toga 50% popusta na naredna tri meseca. Uz to: besplatan uvoz prve Excel tabele, besplatno podešavanje jednog projekta, onboarding za tim, prioritetna podrška i zaključana cena paketa 12 meseci - bez poskupljenja u toku prve godine.",
   },
@@ -166,7 +166,7 @@ export const FEATURES: FeatureItem[] = [
     icon: "bell",
     title: "Automatizacija, podsetnici i @mentions",
     description:
-      "Email podsetnici za dospele rate, obaveštenja u aplikaciji, komentari sa @mentions na kupcima i prodajama - bez ručnog praćenja i Viber grupa.",
+      "Obaveštenje prodajnom timu kad rata dospeva, komentari sa @mentions na kupcima i prodajama. Podsetnik ide zaposlenom, ne kupcu.",
   },
 ];
 

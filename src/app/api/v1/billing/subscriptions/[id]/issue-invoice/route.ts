@@ -9,22 +9,16 @@ import { issueSubscriptionInvoiceNow } from "@/server/services/billing/invoices/
 const paramsSchema = z.object({ id: z.string().min(1) });
 const bodySchema = z.object({}).optional();
 
-export const POST = apiHandler(
-  { paramsSchema, bodySchema },
-  async ({ params }) => {
-    const ctx = await requireSuperAdmin();
-    const sub = await prisma.organizationSubscription.findUnique({
-      where: { id: params.id },
-      select: { organizationId: true },
-    });
-    if (!sub) throw new ApiError("NOT_FOUND", "Pretplata nije pronađena.");
-    const invoice = await issueSubscriptionInvoiceNow(
-      sub.organizationId,
-      ctx.session.user.id,
-    );
-    return { data: invoice };
-  },
-);
+export const POST = apiHandler({ paramsSchema, bodySchema }, async ({ params }) => {
+  const ctx = await requireSuperAdmin();
+  const sub = await prisma.organizationSubscription.findUnique({
+    where: { id: params.id },
+    select: { organizationId: true },
+  });
+  if (!sub) throw new ApiError("NOT_FOUND", "Pretplata nije pronađena.");
+  const invoice = await issueSubscriptionInvoiceNow(sub.organizationId, ctx.session.user.id);
+  return { data: invoice };
+});
 
 /**
  * @swagger

@@ -15,7 +15,11 @@ import { ApiClient } from "@/lib/api-client/client";
  * can resolve.
  */
 const browserBaseUrl = "/api/v1";
-const serverBaseUrl = `${publicEnv.NEXT_PUBLIC_APP_URL.replace(/\/$/, "")}/api/v1`;
+const serverOrigin = (process.env.BETTER_AUTH_URL || publicEnv.NEXT_PUBLIC_APP_URL).replace(
+  /\/$/,
+  "",
+);
+const serverBaseUrl = `${serverOrigin}/api/v1`;
 
 export const apiClient = new ApiClient({
   baseUrl: typeof window === "undefined" ? serverBaseUrl : browserBaseUrl,

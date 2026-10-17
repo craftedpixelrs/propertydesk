@@ -69,7 +69,7 @@ export default async function DokumentiPage() {
           <CardContent>
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-[var(--color-border)] text-sm">
-                <thead className="text-left text-xs uppercase tracking-wide text-[var(--color-foreground-muted)]">
+                <thead className="text-left text-xs tracking-wide text-[var(--color-foreground-muted)] uppercase">
                   <tr>
                     <th className="py-2 pr-3">{t("ops.documents.name")}</th>
                     <th className="py-2 pr-3">{t("ops.documents.category")}</th>
@@ -84,9 +84,7 @@ export default async function DokumentiPage() {
                     <tr key={d.id}>
                       <td className="py-2 pr-3 font-medium">{d.originalFileName}</td>
                       <td className="py-2 pr-3">{categoryLabel(d.category)}</td>
-                      <td className="py-2 pr-3 text-xs">
-                        {visibilityLabel(d.visibility)}
-                      </td>
+                      <td className="py-2 pr-3 text-xs">{visibilityLabel(d.visibility)}</td>
                       <td className="py-2 pr-3">{d.uploadedByUser.name ?? "—"}</td>
                       <td className="py-2 pr-3">{formatDate(d.createdAt)}</td>
                       <td className="py-2 pr-3 text-right">

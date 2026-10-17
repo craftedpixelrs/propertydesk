@@ -85,8 +85,16 @@ function buildFields(t: TranslateFn): Field[] {
       })),
     },
     { name: "salesStartDate", label: t("inventory.form.salesStartDate"), type: "date" },
-    { name: "constructionStartDate", label: t("projects.fields.constructionStartDate"), type: "date" },
-    { name: "expectedCompletionDate", label: t("inventory.projects.expectedCompletion"), type: "date" },
+    {
+      name: "constructionStartDate",
+      label: t("projects.fields.constructionStartDate"),
+      type: "date",
+    },
+    {
+      name: "expectedCompletionDate",
+      label: t("inventory.projects.expectedCompletion"),
+      type: "date",
+    },
     {
       name: "defaultCurrency",
       label: t("projects.fields.defaultCurrency"),
@@ -241,8 +249,13 @@ export function NewProjectForm({
 
       if (isEdit && projectId) {
         await apiClient.patch<{ id: string }>(`/projects/${projectId}`, payload);
-        router.push(`/projekti/${projectId}`);
-        router.refresh();
+        if (variant === "embedded") {
+          onCancel?.();
+          router.refresh();
+        } else {
+          router.push(`/projekti/${projectId}`);
+          router.refresh();
+        }
       } else {
         const project = await apiClient.post<{ id: string }>("/projects", payload);
         router.push(`/projekti/${project.id}`);
@@ -260,163 +273,163 @@ export function NewProjectForm({
   }
 
   const form = (
-        <form className="grid grid-cols-1 gap-4" onSubmit={onSubmit}>
-          {fields.map((f) => {
-            if (LOCATION_FIELD_NAMES.has(f.name)) {
-              if (f.name !== "city") return null;
-              return (
-                <LocationFields
-                  key="location"
-                  values={values}
-                  setValue={setValue}
-                  fieldErrors={fieldErrors}
-                  coordsLockRef={coordsLockRef}
-                />
-              );
-            }
-            if (f.name === "coverImageUrl") {
-              return (
-                <CoverImageField
-                  key="cover"
-                  value={values.coverImageUrl ?? ""}
-                  projectId={projectId}
-                  onChange={(url) => setValue("coverImageUrl", url)}
-                  error={fieldErrors.coverImageUrl}
-                />
-              );
-            }
-            const disabled = isEdit && f.immutable;
-            if (f.type === "checkbox") {
-              const checked = values[f.name] === "true";
-              return (
-                <div key={f.name} className="space-y-1">
-                  <label className="flex items-center gap-2 text-sm font-medium">
-                    <input
-                      id={f.name}
-                      name={f.name}
-                      type="checkbox"
-                      checked={checked}
-                      onChange={(e) => setValue(f.name, e.target.checked ? "true" : "false")}
-                      disabled={disabled}
-                    />
-                    <span>{f.label}</span>
-                  </label>
-                  {f.hint ? (
-                    <p className="text-xs text-[var(--color-foreground-muted)]">{f.hint}</p>
-                  ) : null}
-                  {fieldErrors[f.name]?.map((msg, idx) => (
-                    <p key={idx} className="text-xs text-red-600">
-                      {msg}
-                    </p>
-                  ))}
-                </div>
-              );
-            }
-            return (
-              <div key={f.name} className="space-y-1">
-                <label className="text-sm font-medium" htmlFor={f.name}>
-                  {f.label}
-                  {f.required ? <span className="text-red-500">*</span> : null}
-                </label>
-                {f.type === "textarea" ? (
-                  <textarea
-                    id={f.name}
-                    name={f.name}
-                    value={values[f.name] ?? ""}
-                    onChange={(e) => setValue(f.name, e.target.value)}
-                    disabled={disabled}
-                    className="min-h-24 w-full rounded-md border border-[var(--color-border)] bg-white px-3 py-2 text-sm disabled:bg-neutral-100 disabled:text-neutral-500"
-                  />
-                ) : f.type === "select" ? (
-                  <select
-                    id={f.name}
-                    name={f.name}
-                    value={values[f.name] ?? ""}
-                    onChange={(e) => setValue(f.name, e.target.value)}
-                    disabled={disabled}
-                    className="h-11 w-full rounded-md border border-[var(--color-border)] bg-white px-3 text-sm disabled:bg-neutral-100 disabled:text-neutral-500"
-                  >
-                    <option value="">{t("inventory.form.selectPlaceholder")}</option>
-                    {f.options?.map((o) => (
-                      <option key={o.value} value={o.value}>
-                        {o.label}
-                      </option>
-                    ))}
-                  </select>
-                ) : f.type === "date" ? (
-                  <DateInput
-                    id={f.name}
-                    name={f.name}
-                    value={values[f.name] ?? ""}
-                    onChange={(iso) => setValue(f.name, iso)}
-                    disabled={disabled}
-                    className="h-11"
-                  />
-                ) : (
-                  <input
-                    id={f.name}
-                    name={f.name}
-                    type={f.type ?? "text"}
-                    value={values[f.name] ?? ""}
-                    onChange={(e) => setValue(f.name, e.target.value)}
-                    disabled={disabled}
-                    className="h-11 w-full rounded-md border border-[var(--color-border)] bg-white px-3 text-sm disabled:bg-neutral-100 disabled:text-neutral-500"
-                  />
-                )}
-                {f.hint ? (
-                  <p className="text-xs text-[var(--color-foreground-muted)]">{f.hint}</p>
-                ) : null}
-                {fieldErrors[f.name]?.map((msg, idx) => (
-                  <p key={idx} className="text-xs text-red-600">
-                    {msg}
-                  </p>
-                ))}
-              </div>
-            );
-          })}
-          <div className="space-y-1">
-            <div className="text-sm font-medium">{t("inventory.form.map")}</div>
-            <p className="text-xs text-[var(--color-foreground-muted)]">
-              {t("inventory.form.mapHint")}
-            </p>
-            <ProjectMap
-              latitude={
-                values.latitude && !Number.isNaN(Number(values.latitude))
-                  ? Number(values.latitude)
-                  : null
-              }
-              longitude={
-                values.longitude && !Number.isNaN(Number(values.longitude))
-                  ? Number(values.longitude)
-                  : null
-              }
-              onPick={({ latitude, longitude }) => {
-                coordsLockRef.current = true;
-                setValue("latitude", latitude.toFixed(6));
-                setValue("longitude", longitude.toFixed(6));
-              }}
+    <form className="grid grid-cols-1 gap-4" onSubmit={onSubmit}>
+      {fields.map((f) => {
+        if (LOCATION_FIELD_NAMES.has(f.name)) {
+          if (f.name !== "city") return null;
+          return (
+            <LocationFields
+              key="location"
+              values={values}
+              setValue={setValue}
+              fieldErrors={fieldErrors}
+              coordsLockRef={coordsLockRef}
             />
-          </div>
-
-          {error ? (
-            <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
-              {error}
+          );
+        }
+        if (f.name === "coverImageUrl") {
+          return (
+            <CoverImageField
+              key="cover"
+              value={values.coverImageUrl ?? ""}
+              projectId={projectId}
+              onChange={(url) => setValue("coverImageUrl", url)}
+              error={fieldErrors.coverImageUrl}
+            />
+          );
+        }
+        const disabled = isEdit && f.immutable;
+        if (f.type === "checkbox") {
+          const checked = values[f.name] === "true";
+          return (
+            <div key={f.name} className="space-y-1">
+              <label className="flex items-center gap-2 text-sm font-medium">
+                <input
+                  id={f.name}
+                  name={f.name}
+                  type="checkbox"
+                  checked={checked}
+                  onChange={(e) => setValue(f.name, e.target.checked ? "true" : "false")}
+                  disabled={disabled}
+                />
+                <span>{f.label}</span>
+              </label>
+              {f.hint ? (
+                <p className="text-xs text-[var(--color-foreground-muted)]">{f.hint}</p>
+              ) : null}
+              {fieldErrors[f.name]?.map((msg, idx) => (
+                <p key={idx} className="text-xs text-red-600">
+                  {msg}
+                </p>
+              ))}
             </div>
-          ) : null}
-          <FormActions sticky={variant === "embedded"}>
-            <Button
-              variant="outline"
-              type="button"
-              onClick={() => (onCancel ? onCancel() : router.back())}
-              disabled={loading}
-            >
-              {t("inventory.discard")}
-            </Button>
-            <Button type="submit" loading={loading}>
-              {isEdit ? t("common.saveChanges") : t("common.save")}
-            </Button>
-          </FormActions>
-        </form>
+          );
+        }
+        return (
+          <div key={f.name} className="space-y-1">
+            <label className="text-sm font-medium" htmlFor={f.name}>
+              {f.label}
+              {f.required ? <span className="text-red-500">*</span> : null}
+            </label>
+            {f.type === "textarea" ? (
+              <textarea
+                id={f.name}
+                name={f.name}
+                value={values[f.name] ?? ""}
+                onChange={(e) => setValue(f.name, e.target.value)}
+                disabled={disabled}
+                className="min-h-24 w-full rounded-md border border-[var(--color-border)] bg-white px-3 py-2 text-sm disabled:bg-neutral-100 disabled:text-neutral-500"
+              />
+            ) : f.type === "select" ? (
+              <select
+                id={f.name}
+                name={f.name}
+                value={values[f.name] ?? ""}
+                onChange={(e) => setValue(f.name, e.target.value)}
+                disabled={disabled}
+                className="h-11 w-full rounded-md border border-[var(--color-border)] bg-white px-3 text-sm disabled:bg-neutral-100 disabled:text-neutral-500"
+              >
+                <option value="">{t("inventory.form.selectPlaceholder")}</option>
+                {f.options?.map((o) => (
+                  <option key={o.value} value={o.value}>
+                    {o.label}
+                  </option>
+                ))}
+              </select>
+            ) : f.type === "date" ? (
+              <DateInput
+                id={f.name}
+                name={f.name}
+                value={values[f.name] ?? ""}
+                onChange={(iso) => setValue(f.name, iso)}
+                disabled={disabled}
+                className="h-11"
+              />
+            ) : (
+              <input
+                id={f.name}
+                name={f.name}
+                type={f.type ?? "text"}
+                value={values[f.name] ?? ""}
+                onChange={(e) => setValue(f.name, e.target.value)}
+                disabled={disabled}
+                className="h-11 w-full rounded-md border border-[var(--color-border)] bg-white px-3 text-sm disabled:bg-neutral-100 disabled:text-neutral-500"
+              />
+            )}
+            {f.hint ? (
+              <p className="text-xs text-[var(--color-foreground-muted)]">{f.hint}</p>
+            ) : null}
+            {fieldErrors[f.name]?.map((msg, idx) => (
+              <p key={idx} className="text-xs text-red-600">
+                {msg}
+              </p>
+            ))}
+          </div>
+        );
+      })}
+      <div className="space-y-1">
+        <div className="text-sm font-medium">{t("inventory.form.map")}</div>
+        <p className="text-xs text-[var(--color-foreground-muted)]">
+          {t("inventory.form.mapHint")}
+        </p>
+        <ProjectMap
+          latitude={
+            values.latitude && !Number.isNaN(Number(values.latitude))
+              ? Number(values.latitude)
+              : null
+          }
+          longitude={
+            values.longitude && !Number.isNaN(Number(values.longitude))
+              ? Number(values.longitude)
+              : null
+          }
+          onPick={({ latitude, longitude }) => {
+            coordsLockRef.current = true;
+            setValue("latitude", latitude.toFixed(6));
+            setValue("longitude", longitude.toFixed(6));
+          }}
+        />
+      </div>
+
+      {error ? (
+        <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+          {error}
+        </div>
+      ) : null}
+      <FormActions sticky={variant === "embedded"}>
+        <Button
+          variant="outline"
+          type="button"
+          onClick={() => (onCancel ? onCancel() : router.back())}
+          disabled={loading}
+        >
+          {t("inventory.discard")}
+        </Button>
+        <Button type="submit" loading={loading}>
+          {isEdit ? t("common.saveChanges") : t("common.save")}
+        </Button>
+      </FormActions>
+    </form>
   );
 
   if (variant === "embedded") return form;

@@ -21,12 +21,7 @@ interface PropertyDeskDocumentProps {
 export function PropertyDeskDocument(props: PropertyDeskDocumentProps) {
   const issued = props.issuedAt ?? new Date();
   return (
-    <Document
-      title={props.title}
-      author={APP_NAME}
-      creator={APP_NAME}
-      producer={APP_NAME}
-    >
+    <Document title={props.title} author={APP_NAME} creator={APP_NAME} producer={APP_NAME}>
       <Page size="A4" style={pdfStyles.page} wrap>
         <View style={pdfStyles.header} fixed>
           <Text style={pdfStyles.brandName}>{APP_NAME}</Text>
@@ -45,11 +40,7 @@ export function PropertyDeskDocument(props: PropertyDeskDocumentProps) {
 
         <View style={pdfStyles.footer} fixed>
           <Text>{APP_NAME} — dokument generisan automatski.</Text>
-          <Text
-            render={({ pageNumber, totalPages }) =>
-              `Strana ${pageNumber} / ${totalPages}`
-            }
-          />
+          <Text render={({ pageNumber, totalPages }) => `Strana ${pageNumber} / ${totalPages}`} />
         </View>
       </Page>
     </Document>

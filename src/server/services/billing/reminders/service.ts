@@ -27,11 +27,13 @@ export interface RemindersRunSummary {
   errorDetails: Array<{ invoiceId: string; error: string }>;
 }
 
-export async function sendDueReminders(options: {
-  now?: Date;
-  organizationIds?: string[];
-  actorUserId?: string | null;
-} = {}): Promise<RemindersRunSummary> {
+export async function sendDueReminders(
+  options: {
+    now?: Date;
+    organizationIds?: string[];
+    actorUserId?: string | null;
+  } = {},
+): Promise<RemindersRunSummary> {
   const now = options.now ?? new Date();
   const summary: RemindersRunSummary = {
     invoicesConsidered: 0,
@@ -45,9 +47,7 @@ export async function sendDueReminders(options: {
     where: {
       status: { in: ["ISSUED", "SENT", "PARTIALLY_PAID", "OVERDUE"] },
       dueDate: { not: null },
-      ...(options.organizationIds
-        ? { organizationId: { in: options.organizationIds } }
-        : {}),
+      ...(options.organizationIds ? { organizationId: { in: options.organizationIds } } : {}),
     },
     include: {
       organization: {
@@ -173,11 +173,13 @@ export async function sendDueReminders(options: {
 export function pickReminderStage(
   dueDate: Date,
   now: Date,
-  schedule: Array<{ offsetDays: number; templateKey: string; channel: "email" | "notification" | "both" }>,
+  schedule: Array<{
+    offsetDays: number;
+    templateKey: string;
+    channel: "email" | "notification" | "both";
+  }>,
 ): { offsetDays: number; templateKey: string; channel: "email" | "notification" | "both" } | null {
-  const daysFromDue = Math.floor(
-    (now.getTime() - dueDate.getTime()) / (24 * 60 * 60 * 1000),
-  );
+  const daysFromDue = Math.floor((now.getTime() - dueDate.getTime()) / (24 * 60 * 60 * 1000));
   // We iterate offsets in ascending order (most negative to most positive)
   // and pick the largest offset whose day has arrived (offsetDays <= daysFromDue).
   const sorted = [...schedule].sort((a, b) => a.offsetDays - b.offsetDays);

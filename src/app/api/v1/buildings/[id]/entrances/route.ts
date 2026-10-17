@@ -11,19 +11,16 @@ const bodySchema = z.object({
   sortOrder: z.number().int().min(0).optional(),
 });
 
-export const POST = apiHandler(
-  { paramsSchema, bodySchema },
-  async ({ params, body }) => {
-    const ctx = await requirePermission("inventory.manage");
-    const e = await createEntrance({
-      organizationId: ctx.organization.organizationId,
-      actorUserId: ctx.session.user.id,
-      buildingId: params.id,
-      ...body,
-    });
-    return { data: e, status: 201 };
-  },
-);
+export const POST = apiHandler({ paramsSchema, bodySchema }, async ({ params, body }) => {
+  const ctx = await requirePermission("inventory.manage");
+  const e = await createEntrance({
+    organizationId: ctx.organization.organizationId,
+    actorUserId: ctx.session.user.id,
+    buildingId: params.id,
+    ...body,
+  });
+  return { data: e, status: 201 };
+});
 
 /**
  * @swagger

@@ -48,6 +48,8 @@ describe("seo policy", () => {
     expect(urls).toContain(`${MARKETING_URL}/demo`);
     expect(urls).toContain(`${MARKETING_URL}/za-investitore`);
     expect(urls).toContain(`${MARKETING_URL}/o-nama`);
+    expect(urls).toContain(`${MARKETING_URL}/blog`);
+    expect(urls).toContain(`${MARKETING_URL}/blog/ips-qr-kapara-online-rezervacija-stana`);
     expect(urls).toContain(`${MARKETING_URL}/privatnost`);
     expect(urls.every((url) => !url.includes("#"))).toBe(true);
     expect(urls.every((url) => url.startsWith(MARKETING_URL))).toBe(true);

@@ -47,9 +47,7 @@ describe("investor profile completeness", () => {
 describe("agency profile completeness", () => {
   it("requires every field except website", () => {
     expect(isAgencyProfileComplete(complete)).toBe(true);
-    expect(missingAgencyProfileFields({ ...complete, website: null })).toEqual(
-      [],
-    );
+    expect(missingAgencyProfileFields({ ...complete, website: null })).toEqual([]);
     expect(
       missingAgencyProfileFields({
         ...complete,

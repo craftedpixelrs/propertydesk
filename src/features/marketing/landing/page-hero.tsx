@@ -1,8 +1,7 @@
 import type { LucideIcon } from "lucide-react";
 import { ArrowRight, PlayCircle } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { marketingCta } from "@/features/marketing/marketing-cta";
 import { createT } from "@/lib/i18n";
 import { resolveRequestLocale } from "@/lib/i18n/resolve-locale";
 
@@ -45,55 +44,51 @@ export async function PageHero({
 
   return (
     <section
-      className="relative overflow-hidden border-b border-[var(--color-border)]"
+      className="relative overflow-hidden bg-[#0b1020] text-white"
       aria-labelledby="page-hero-title"
     >
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-b from-[var(--color-brand-50)]/70 via-white to-white"
-      />
-      <div
-        aria-hidden
-        className="pointer-events-none absolute -top-32 left-1/2 -z-10 h-72 w-[36rem] -translate-x-1/2 rounded-full bg-[var(--color-brand-200)]/40 blur-3xl"
+        className="pd-glow pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(214,178,106,0.22),transparent_52%),radial-gradient(ellipse_at_bottom,rgba(214,178,106,0.1),transparent_46%)]"
       />
 
-      <div className="container-app py-12 sm:py-20 lg:py-24">
-        <div className="mx-auto max-w-3xl text-center">
-          <Badge tone="brand" className="gap-1.5">
+      <div className="container-app relative py-16 sm:py-20 lg:py-24">
+        <div className="pd-rise mx-auto max-w-3xl text-center">
+          <p className="inline-flex items-center gap-2 rounded-full border border-[#d6b26a]/40 bg-[#d6b26a]/10 px-3 py-1 text-xs font-semibold tracking-wide text-[#f3e2bc]">
             {Icon ? <Icon aria-hidden className="size-3.5" /> : null}
             {eyebrow}
-          </Badge>
+          </p>
           <h1
             id="page-hero-title"
-            className="mt-4 text-balance text-3xl font-semibold leading-[1.08] text-[var(--color-foreground)] sm:text-5xl lg:text-[3.5rem]"
+            className="font-display mt-5 text-4xl leading-[1.05] font-semibold tracking-[-0.03em] text-balance text-[#f7f3ea] sm:text-6xl"
           >
             {title}
           </h1>
-          <p className="mx-auto mt-4 max-w-2xl text-pretty text-base leading-relaxed text-[var(--color-foreground-muted)] sm:mt-5 sm:text-lg">
+          <p className="mx-auto mt-5 max-w-2xl text-base leading-relaxed text-pretty text-white/70 sm:text-lg">
             {subtitle}
           </p>
 
           <div className="mt-7 flex flex-col items-stretch justify-center gap-3 sm:mt-8 sm:flex-row sm:items-center">
-            <Button asChild size="lg" className="w-full sm:w-auto">
-              <a href={resolvedPrimary.href}>
-                {resolvedPrimary.label}
-                <ArrowRight aria-hidden className="size-4" />
-              </a>
-            </Button>
+            <a
+              href={resolvedPrimary.href}
+              className={marketingCta("cream", "lg", "w-full sm:w-auto")}
+            >
+              {resolvedPrimary.label}
+              <ArrowRight aria-hidden className="size-4" />
+            </a>
             {resolvedSecondary ? (
-              <Button asChild size="lg" variant="outline" className="w-full gap-2 sm:w-auto">
-                <a href={resolvedSecondary.href}>
-                  <PlayCircle aria-hidden className="size-4" />
-                  {resolvedSecondary.label}
-                </a>
-              </Button>
+              <a
+                href={resolvedSecondary.href}
+                className={marketingCta("outlineDark", "lg", "w-full sm:w-auto")}
+              >
+                <PlayCircle aria-hidden className="size-4" />
+                {resolvedSecondary.label}
+              </a>
             ) : null}
           </div>
 
           {resolvedFootnote ? (
-            <p className="mt-4 text-xs text-[var(--color-foreground-subtle)]">
-              {resolvedFootnote}
-            </p>
+            <p className="mt-4 text-xs text-white/45">{resolvedFootnote}</p>
           ) : null}
         </div>
       </div>

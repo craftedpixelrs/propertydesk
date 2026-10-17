@@ -23,17 +23,9 @@ type SharedProps = Omit<InputProps, "type" | "value" | "onChange" | "defaultValu
  * Date field that shows `DD.MM.YYYY` in Serbian and `MM/DD/YYYY` in English.
  * Parent state stays ISO `yyyy-MM-dd`, so a language switch reformats the same day.
  */
-export function DateInput({
-  value,
-  onChange,
-  name,
-  className,
-  ...props
-}: SharedProps) {
+export function DateInput({ value, onChange, name, className, ...props }: SharedProps) {
   const { locale } = useI18n();
-  const [text, setText] = useState(() =>
-    value ? formatDateInputValue(value, locale) : "",
-  );
+  const [text, setText] = useState(() => (value ? formatDateInputValue(value, locale) : ""));
 
   useEffect(() => {
     setText(value ? formatDateInputValue(value, locale) : "");
@@ -78,17 +70,9 @@ export function DateInput({
  * Date+time field. Value stays `yyyy-MM-ddTHH:mm`.
  * Serbian: `DD.MM.YYYY HH:mm`. English: `MM/DD/YYYY HH:mm`.
  */
-export function DateTimeInput({
-  value,
-  onChange,
-  name,
-  className,
-  ...props
-}: SharedProps) {
+export function DateTimeInput({ value, onChange, name, className, ...props }: SharedProps) {
   const { locale } = useI18n();
-  const [text, setText] = useState(() =>
-    value ? formatDateTimeInputValue(value, locale) : "",
-  );
+  const [text, setText] = useState(() => (value ? formatDateTimeInputValue(value, locale) : ""));
 
   useEffect(() => {
     setText(value ? formatDateTimeInputValue(value, locale) : "");

@@ -2,11 +2,7 @@
 
 import type { ReservationStatus } from "@prisma/client";
 
-import {
-  type BoardColumn,
-  type DropResult,
-  KanbanBoard,
-} from "@/features/board/kanban-board";
+import { type BoardColumn, type DropResult, KanbanBoard } from "@/features/board/kanban-board";
 import { useT } from "@/components/app/i18n-provider";
 import { formatDate } from "@/lib/formatters";
 import { enumLabel } from "@/lib/i18n";
@@ -60,21 +56,21 @@ export function ReservationsBoard({ columns, canApprove, canManageSales }: Props
   const t = useT();
   const byStatus = new Map(columns.map((c) => [c.status, c] as const));
 
-  const board: BoardColumn<ReservationBoardCard & { createdAt: string; expiresAt: string | null }>[] =
-    COLUMN_ORDER.map((status) => {
-      const col = byStatus.get(status);
-      return {
-        status,
-        title: enumLabel("reservation", status, t),
-        total: col?.total ?? 0,
-        cards: (col?.cards ?? []) as (ReservationBoardCard & {
-          createdAt: string;
-          expiresAt: string | null;
-        })[],
-        hint:
-          status === "CONVERTED" ? t("deals.reservations.convertHint") : undefined,
-      };
-    });
+  const board: BoardColumn<
+    ReservationBoardCard & { createdAt: string; expiresAt: string | null }
+  >[] = COLUMN_ORDER.map((status) => {
+    const col = byStatus.get(status);
+    return {
+      status,
+      title: enumLabel("reservation", status, t),
+      total: col?.total ?? 0,
+      cards: (col?.cards ?? []) as (ReservationBoardCard & {
+        createdAt: string;
+        expiresAt: string | null;
+      })[],
+      hint: status === "CONVERTED" ? t("deals.reservations.convertHint") : undefined,
+    };
+  });
 
   return (
     <KanbanBoard
@@ -85,16 +81,12 @@ export function ReservationsBoard({ columns, canApprove, canManageSales }: Props
       renderCard={(c) => (
         <div className="space-y-1">
           <div className="flex items-center justify-between gap-2">
-            <span className="font-semibold text-[var(--color-foreground)]">
-              {c.unitCode}
-            </span>
+            <span className="font-semibold text-[var(--color-foreground)]">{c.unitCode}</span>
             <span className="text-[10px] text-[var(--color-foreground-muted)]">
               {formatDate(c.createdAt)}
             </span>
           </div>
-          <div className="text-xs text-[var(--color-foreground-muted)]">
-            {c.projectName}
-          </div>
+          <div className="text-xs text-[var(--color-foreground-muted)]">{c.projectName}</div>
           <div className="truncate text-xs">{c.buyerName}</div>
           {c.expiresAt ? (
             <div className="text-[10px] text-[var(--color-foreground-muted)]">

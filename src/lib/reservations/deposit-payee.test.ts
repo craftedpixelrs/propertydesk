@@ -1,9 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import {
-  formatPayeeName,
-  paymentInstructionLines,
-} from "./deposit-payee";
+import { formatPayeeName, paymentInstructionLines } from "./deposit-payee";
 
 describe("paymentInstructionLines", () => {
   it("prints the agency account when the payee is an agency", () => {
@@ -38,8 +35,8 @@ describe("paymentInstructionLines", () => {
 
 describe("formatPayeeName", () => {
   it("prefers the legal name", () => {
-    expect(
-      formatPayeeName({ legalName: "Gradnja Plus d.o.o.", displayName: "GP" }),
-    ).toBe("Gradnja Plus d.o.o.");
+    expect(formatPayeeName({ legalName: "Gradnja Plus d.o.o.", displayName: "GP" })).toBe(
+      "Gradnja Plus d.o.o.",
+    );
   });
 });

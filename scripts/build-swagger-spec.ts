@@ -14,12 +14,19 @@
 import { writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+// Keep the .ts extension explicit — this file is executed by
+// `node --experimental-strip-types`, not through tsc. The runtime
+// resolves the module directly from source.
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore ts(5097) — allowed at runtime via experimental strip-types
 import { getApiDocs } from "../src/lib/swagger.ts";
 
 const ROOT = resolve(fileURLToPath(new URL("..", import.meta.url)));
 const OUT_PATH = resolve(ROOT, "public", "api-docs.json");
 
-const spec = getApiDocs();
+const spec = getApiDocs() as { paths?: Record<string, unknown> };
 writeFileSync(OUT_PATH, JSON.stringify(spec, null, 2), "utf8");
 
-console.log(`[swagger] spec written to ${OUT_PATH} (${Object.keys(spec.paths || {}).length} paths)`);
+console.log(
+  `[swagger] spec written to ${OUT_PATH} (${Object.keys(spec.paths ?? {}).length} paths)`,
+);

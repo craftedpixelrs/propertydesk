@@ -42,26 +42,19 @@ export function CloneProjectDialog({ projectId, sourceCode, sourceName }: Props)
     setError(null);
     setLoading(true);
     try {
-      const result = await apiClient.post<CloneResult>(
-        `/projects/${projectId}/clone`,
-        {
-          newProjectCode: code,
-          newProjectName: name,
-          copyBuildings,
-          copyEntrances: copyBuildings && copyEntrances,
-          copyFloors: copyBuildings && copyEntrances && copyFloors,
-          copyUnitsAsAvailable: copyUnits,
-          copyCosts,
-        },
-      );
+      const result = await apiClient.post<CloneResult>(`/projects/${projectId}/clone`, {
+        newProjectCode: code,
+        newProjectName: name,
+        copyBuildings,
+        copyEntrances: copyBuildings && copyEntrances,
+        copyFloors: copyBuildings && copyEntrances && copyFloors,
+        copyUnitsAsAvailable: copyUnits,
+        copyCosts,
+      });
       router.push(`/projekti/${result.newProjectId}`);
       router.refresh();
     } catch (err) {
-      setError(
-        err instanceof ApiClientError
-          ? err.message
-          : t("inventory.clone.error"),
-      );
+      setError(err instanceof ApiClientError ? err.message : t("inventory.clone.error"));
     } finally {
       setLoading(false);
     }
@@ -112,7 +105,7 @@ export function CloneProjectDialog({ projectId, sourceCode, sourceName }: Props)
         </div>
 
         <div className="space-y-2 rounded-md border border-[var(--color-border)] bg-[var(--color-surface-muted)]/40 p-3">
-          <p className="text-xs font-semibold uppercase tracking-wide text-[var(--color-foreground-muted)]">
+          <p className="text-xs font-semibold tracking-wide text-[var(--color-foreground-muted)] uppercase">
             {t("inventory.clone.whatToCopy")}
           </p>
           <label className="flex items-center gap-2 text-sm">

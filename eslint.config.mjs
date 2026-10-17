@@ -33,10 +33,7 @@ export default [
       sourceType: "module",
     },
     rules: {
-      "no-unused-vars": [
-        "warn",
-        { argsIgnorePattern: "^_", varsIgnorePattern: "^_" },
-      ],
+      "no-unused-vars": ["warn", { argsIgnorePattern: "^_", varsIgnorePattern: "^_" }],
       "no-var": "error",
       "prefer-const": "warn",
       eqeqeq: ["warn", "smart"],

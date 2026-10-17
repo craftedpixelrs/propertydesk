@@ -14,10 +14,7 @@ import { UnlockLoginButton } from "@/features/platform-admin/unlock-login-button
 import { isLoginCurrentlyLocked } from "@/server/auth/login-lockout";
 import { AddUserDialog } from "@/features/platform-admin/add-user-dialog";
 import { UsersFilterBar } from "@/features/platform-admin/users-filter-bar";
-import {
-  ALL_ORG_ROLE_NAMES,
-  PROPERTY_DESK_ROLE_NAMES,
-} from "@/server/permissions/roles";
+import { ALL_ORG_ROLE_NAMES, PROPERTY_DESK_ROLE_NAMES } from "@/server/permissions/roles";
 import Link from "next/link";
 import type { OrganizationType, PropertyDeskTeamRole } from "@prisma/client";
 import { createT, type TranslationKey } from "@/lib/i18n";
@@ -46,14 +43,7 @@ const PD_ROLE_KEY: Record<string, TranslationKey> = {
   MANAGER: "admin.pd.teamRole.MANAGER",
 };
 
-const FILTER_QUERY_KEYS = [
-  "q",
-  "organizationId",
-  "orgType",
-  "role",
-  "status",
-  "platform",
-] as const;
+const FILTER_QUERY_KEYS = ["q", "organizationId", "orgType", "role", "status", "platform"] as const;
 
 function parseRoleFilter(raw: string | undefined): {
   role?: string;
@@ -96,9 +86,7 @@ export default async function PlatformUsersPage({ searchParams }: PageProps) {
       ? params.status
       : undefined;
   const platform =
-    params.platform === "SUPER_ADMIN" || params.platform === "user"
-      ? params.platform
-      : undefined;
+    params.platform === "SUPER_ADMIN" || params.platform === "user" ? params.platform : undefined;
 
   const ctx = await requireSuperAdmin();
   const currentUserId = ctx.session.user.id;
@@ -130,9 +118,7 @@ export default async function PlatformUsersPage({ searchParams }: PageProps) {
     <section className="space-y-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h2 className="text-lg font-semibold">
-            {t("admin.usersPage.title", { total })}
-          </h2>
+          <h2 className="text-lg font-semibold">{t("admin.usersPage.title", { total })}</h2>
           <p className="text-xs text-[var(--color-foreground-muted)]">
             {t("admin.usersPage.intro1")}
           </p>
@@ -178,7 +164,7 @@ export default async function PlatformUsersPage({ searchParams }: PageProps) {
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
-                <thead className="text-left text-xs uppercase text-[var(--color-foreground-subtle)]">
+                <thead className="text-left text-xs text-[var(--color-foreground-subtle)] uppercase">
                   <tr>
                     <th className="border-b border-[var(--color-border)] px-4 py-2">
                       {t("admin.usersPage.colUser")}
@@ -254,9 +240,7 @@ export default async function PlatformUsersPage({ searchParams }: PageProps) {
                           {u.propertyDeskTeam ? (
                             <div className="space-y-1">
                               <Badge
-                                tone={
-                                  u.propertyDeskTeam.enabled ? "info" : "warning"
-                                }
+                                tone={u.propertyDeskTeam.enabled ? "info" : "warning"}
                                 title={t("admin.usersPage.pdBadgeTitle")}
                               >
                                 {t(
@@ -280,13 +264,8 @@ export default async function PlatformUsersPage({ searchParams }: PageProps) {
                           ) : (
                             <ul className="space-y-1">
                               {u.memberships.map((m) => (
-                                <li
-                                  key={`${u.id}-${m.organizationId}`}
-                                  className="text-xs"
-                                >
-                                  <span className="font-medium">
-                                    {m.organizationName}
-                                  </span>
+                                <li key={`${u.id}-${m.organizationId}`} className="text-xs">
+                                  <span className="font-medium">{m.organizationName}</span>
                                   {" · "}
                                   <span className="font-mono text-[var(--color-foreground-muted)]">
                                     {m.role}
@@ -307,36 +286,31 @@ export default async function PlatformUsersPage({ searchParams }: PageProps) {
                         </td>
                         <td className="px-4 py-2 align-top">
                           <div className="flex flex-col gap-1">
-                          {u.banned ? (
-                            <Badge tone="danger">{t("admin.usersPage.banned")}</Badge>
-                          ) : u.emailVerified ? (
-                            <Badge tone="success">{t("admin.usersPage.verified")}</Badge>
-                          ) : (
-                            <Badge tone="warning">{t("admin.usersPage.unverified")}</Badge>
-                          )}
-                          {u.loginLockLevel >= 6 ? (
-                            <Badge tone="danger">{t("admin.usersPage.loginSuspended")}</Badge>
-                          ) : isLoginCurrentlyLocked(
-                              u.loginLockLevel,
-                              u.loginLockedUntil,
-                            ) ? (
-                            <Badge tone="warning">
-                              {t("admin.usersPage.loginLocked", {
-                                level: u.loginLockLevel,
-                              })}
-                            </Badge>
-                          ) : u.loginLockLevel > 0 ? (
-                            <Badge tone="warning">
-                              {t("admin.usersPage.loginLockLadder", {
-                                level: u.loginLockLevel,
-                              })}
-                            </Badge>
-                          ) : null}
+                            {u.banned ? (
+                              <Badge tone="danger">{t("admin.usersPage.banned")}</Badge>
+                            ) : u.emailVerified ? (
+                              <Badge tone="success">{t("admin.usersPage.verified")}</Badge>
+                            ) : (
+                              <Badge tone="warning">{t("admin.usersPage.unverified")}</Badge>
+                            )}
+                            {u.loginLockLevel >= 6 ? (
+                              <Badge tone="danger">{t("admin.usersPage.loginSuspended")}</Badge>
+                            ) : isLoginCurrentlyLocked(u.loginLockLevel, u.loginLockedUntil) ? (
+                              <Badge tone="warning">
+                                {t("admin.usersPage.loginLocked", {
+                                  level: u.loginLockLevel,
+                                })}
+                              </Badge>
+                            ) : u.loginLockLevel > 0 ? (
+                              <Badge tone="warning">
+                                {t("admin.usersPage.loginLockLadder", {
+                                  level: u.loginLockLevel,
+                                })}
+                              </Badge>
+                            ) : null}
                           </div>
                         </td>
-                        <td className="px-4 py-2 text-xs align-top">
-                          {formatDate(u.createdAt)}
-                        </td>
+                        <td className="px-4 py-2 align-top text-xs">{formatDate(u.createdAt)}</td>
                         <td className="px-4 py-2 text-right align-top">
                           <div className="inline-flex flex-col items-end gap-1">
                             <EditUserDialog
@@ -354,10 +328,7 @@ export default async function PlatformUsersPage({ searchParams }: PageProps) {
                             {u.loginLockLevel > 0 ||
                             u.loginFailedAttempts > 0 ||
                             u.loginLockedUntil ? (
-                              <UnlockLoginButton
-                                userId={u.id}
-                                userName={u.name}
-                              />
+                              <UnlockLoginButton userId={u.id} userName={u.name} />
                             ) : null}
                             <ImpersonateButton
                               userId={u.id}

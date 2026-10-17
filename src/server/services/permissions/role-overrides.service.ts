@@ -90,10 +90,7 @@ export const ALL_PERMISSIONS: PermissionString[] = (() => {
 // -----------------------------------------------------------------------------
 
 interface RoleAuthorize {
-  authorize: (
-    req: Record<string, string[]>,
-    connector?: "AND" | "OR",
-  ) => { success: boolean };
+  authorize: (req: Record<string, string[]>, connector?: "AND" | "OR") => { success: boolean };
 }
 
 function roleDefById(role: RoleName): RoleAuthorize | null {
@@ -103,20 +100,13 @@ function roleDefById(role: RoleName): RoleAuthorize | null {
   if ((platformRoles as unknown as Record<string, RoleAuthorize>)[role]) {
     return (platformRoles as unknown as Record<string, RoleAuthorize>)[role]!;
   }
-  if (
-    (propertyDeskTeamRoles as unknown as Record<string, RoleAuthorize>)[role]
-  ) {
-    return (propertyDeskTeamRoles as unknown as Record<string, RoleAuthorize>)[
-      role
-    ]!;
+  if ((propertyDeskTeamRoles as unknown as Record<string, RoleAuthorize>)[role]) {
+    return (propertyDeskTeamRoles as unknown as Record<string, RoleAuthorize>)[role]!;
   }
   return null;
 }
 
-export function defaultAllowsPermission(
-  role: RoleName,
-  permission: PermissionString,
-): boolean {
+export function defaultAllowsPermission(role: RoleName, permission: PermissionString): boolean {
   const def = roleDefById(role);
   if (!def) return false;
   // SUPER_ADMIN doesn't necessarily authorize every string via `.authorize`
@@ -256,9 +246,7 @@ function assertKnownRole(role: string): asserts role is RoleName {
   }
 }
 
-function assertKnownPermission(
-  permission: string,
-): asserts permission is PermissionString {
+function assertKnownPermission(permission: string): asserts permission is PermissionString {
   if (!(ALL_PERMISSIONS as string[]).includes(permission)) {
     throw DomainErrors.badRequest(`Nepoznata dozvola: ${permission}`);
   }

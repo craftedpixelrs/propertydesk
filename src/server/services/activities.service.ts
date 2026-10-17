@@ -92,10 +92,7 @@ export async function listActivities(input: ListActivitiesInput) {
 }
 
 /** Verify the buyer belongs to the org before attaching an activity to it. */
-export async function assertBuyerInOrg(
-  organizationId: string,
-  buyerId: string,
-): Promise<void> {
+export async function assertBuyerInOrg(organizationId: string, buyerId: string): Promise<void> {
   const buyer = await prisma.buyer.findFirst({
     where: { id: buyerId, organizationId },
     select: { id: true },

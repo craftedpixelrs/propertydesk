@@ -55,7 +55,11 @@ model User {
   loginLockLevel      Int       @default(0)
   loginLockedUntil    DateTime?
 
+  /// Better Auth two-factor plugin. True only after the user confirms a TOTP code.
+  twoFactorEnabled Boolean @default(false)
+
   accounts         Account[]
+  twoFactor        TwoFactor?
   sessions         Session[]
   memberships      Member[]
   invitationsSent  Invitation[] @relation("InvitationInviter")
@@ -78,18 +82,20 @@ model User {
   reservationsAsAgent      Reservation[]              @relation("ReservationAgencyAgent")
   reservationStatusChanges ReservationStatusHistory[] @relation("ReservationStatusChangedBy")
 
-  agencyConnectionsInvited    AgencyConnection[]        @relation("AgencyConnectionInviter")
-  agencyConnectionsSuspended  AgencyConnection[]        @relation("AgencyConnectionSuspender")
-  agencyRegistrationsAsAgent  AgencyBuyerRegistration[] @relation("AgencyRegistrationAgent")
-  agencyRegistrationsReviewed AgencyBuyerRegistration[] @relation("AgencyRegistrationReviewer")
-  organizationProfilesVerified OrganizationProfile[]    @relation("OrganizationVerifier")
-  agencyConnectionRequestsCreated AgencyConnectionRequest[] @relation("ConnectionRequestCreator")
+  agencyConnectionsInvited         AgencyConnection[]        @relation("AgencyConnectionInviter")
+  agencyConnectionsSuspended       AgencyConnection[]        @relation("AgencyConnectionSuspender")
+  agencyRegistrationsAsAgent       AgencyBuyerRegistration[] @relation("AgencyRegistrationAgent")
+  agencyRegistrationsReviewed      AgencyBuyerRegistration[] @relation("AgencyRegistrationReviewer")
+  organizationProfilesVerified     OrganizationProfile[]     @relation("OrganizationVerifier")
+  agencyConnectionRequestsCreated  AgencyConnectionRequest[] @relation("ConnectionRequestCreator")
   agencyConnectionRequestsReviewed AgencyConnectionRequest[] @relation("ConnectionRequestReviewer")
 
-  salesResponsible   Sale[]              @relation("SaleResponsible")
-  salesCreated       Sale[]              @relation("SaleCreator")
-  salesAsAgencyAgent Sale[]              @relation("SaleAgencyAgent")
-  saleStatusChanges  SaleStatusHistory[] @relation("SaleStatusChangedBy")
+  salesResponsible       Sale[]               @relation("SaleResponsible")
+  salesCreated           Sale[]               @relation("SaleCreator")
+  salesAsAgencyAgent     Sale[]               @relation("SaleAgencyAgent")
+  saleStatusChanges      SaleStatusHistory[]  @relation("SaleStatusChangedBy")
+  saleSettlementLines    SaleSettlementLine[] @relation("SaleSettlementCreator")
+  saleHandoversCompleted SaleHandover[]       @relation("SaleHandoverCompleter")
 
   paymentsCreated  Payment[] @relation("PaymentCreator")
   paymentsReversed Payment[] @relation("PaymentReverser")
@@ -110,13 +116,13 @@ model User {
   billingJobRuns               BillingJobRun[]
 
   // Property Desk internal team (marketing / SaaS sales)
-  propertyDeskTeam             PropertyDeskTeamMember?      @relation("PropertyDeskTeamMember")
-  propertyDeskTeamCreated      PropertyDeskTeamMember[]     @relation("PropertyDeskTeamCreator")
-  marketingLeadsAssigned       MarketingLead[]              @relation("MarketingLeadAssignee")
-  marketingLeadActivities      MarketingLeadActivity[]      @relation("MarketingLeadActivityActor")
-  marketingLeadTasksCreated    MarketingLeadTask[]          @relation("MarketingLeadTaskCreator")
-  marketingLeadTasksAssigned   MarketingLeadTask[]          @relation("MarketingLeadTaskAssignee")
-  marketingLeadTasksCompleted  MarketingLeadTask[]          @relation("MarketingLeadTaskCompleter")
+  propertyDeskTeam            PropertyDeskTeamMember?  @relation("PropertyDeskTeamMember")
+  propertyDeskTeamCreated     PropertyDeskTeamMember[] @relation("PropertyDeskTeamCreator")
+  marketingLeadsAssigned      MarketingLead[]          @relation("MarketingLeadAssignee")
+  marketingLeadActivities     MarketingLeadActivity[]  @relation("MarketingLeadActivityActor")
+  marketingLeadTasksCreated   MarketingLeadTask[]      @relation("MarketingLeadTaskCreator")
+  marketingLeadTasksAssigned  MarketingLeadTask[]      @relation("MarketingLeadTaskAssignee")
+  marketingLeadTasksCompleted MarketingLeadTask[]      @relation("MarketingLeadTaskCompleter")
 
   @@index([email])
   @@index([loginLockLevel])
@@ -180,6 +186,30 @@ model Verification {
   @@map("verification")
 }
 
+/// TOTP secret and backup codes. One row per user.
+model TwoFactor {
+  id                      String    @id
+  userId                  String    @unique
+  secret                  String
+  backupCodes             String
+  verified                Boolean   @default(false)
+  failedVerificationCount Int       @default(0)
+  lockedUntil             DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("two_factor")
+}
+
+/// Singleton (`id = "default"`). Super admin turns mandatory 2FA on or off.
+model PlatformSecuritySettings {
+  id                String   @id
+  twoFactorRequired Boolean  @default(false)
+  updatedAt         DateTime @updatedAt
+
+  @@map("platform_security_settings")
+}
+
 // =============================================================================
 // Better Auth — organization plugin tables
 // =============================================================================
@@ -199,36 +229,40 @@ model Organization {
   subscription OrganizationSubscription?
   auditLogs    AuditLog[]
 
-  projects                  Project[]
-  units                     Unit[]
-  unitPriceHistory          UnitPriceHistory[]
-  unitStatusHistory         UnitStatusHistory[]
-  buyers                    Buyer[]
-  activities                Activity[]
-  tasks                     Task[]
-  reservations              Reservation[]
-  reservationStatusHistory  ReservationStatusHistory[]
-  agencyConnectionsAsInv    AgencyConnection[]         @relation("InvestorConnections")
-  agencyConnectionsAsAgency AgencyConnection[]         @relation("AgencyConnections")
-  agencyRegistrationsAsInv  AgencyBuyerRegistration[]  @relation("InvestorAgencyRegistrations")
-  agencyRegistrationsAsAgy  AgencyBuyerRegistration[]  @relation("AgencyAgencyRegistrations")
-  agencyCommissionRules     AgencyCommissionRule[]
-  agencyConnectionRequestsAsInv AgencyConnectionRequest[] @relation("InvestorConnectionRequests")
-  agencyConnectionRequestsAsAgy AgencyConnectionRequest[] @relation("AgencyConnectionRequests")
-  sales                     Sale[]
-  saleStatusHistory         SaleStatusHistory[]
-  paymentPlans              PaymentPlan[]
-  paymentPlanTemplates      PaymentPlanTemplate[]
-  saleContractTemplates     SaleContractTemplate[]
-  reservationRequests       ReservationRequest[]
-  payments                  Payment[]
-  documents                 Document[]
-  shareLinks                ShareLink[]
-  comments                  Comment[]
-  floorPlanAreas            FloorPlanArea[]
-  commissionsAsInvestor     Commission[]               @relation("CommissionInvestor")
-  commissionsAsAgency       Commission[]               @relation("CommissionAgency")
-  notifications             Notification[]
+  projects                      Project[]
+  units                         Unit[]
+  unitPriceHistory              UnitPriceHistory[]
+  unitStatusHistory             UnitStatusHistory[]
+  buyers                        Buyer[]
+  activities                    Activity[]
+  tasks                         Task[]
+  reservations                  Reservation[]
+  reservationStatusHistory      ReservationStatusHistory[]
+  agencyConnectionsAsInv        AgencyConnection[]         @relation("InvestorConnections")
+  agencyConnectionsAsAgency     AgencyConnection[]         @relation("AgencyConnections")
+  agencyRegistrationsAsInv      AgencyBuyerRegistration[]  @relation("InvestorAgencyRegistrations")
+  agencyRegistrationsAsAgy      AgencyBuyerRegistration[]  @relation("AgencyAgencyRegistrations")
+  agencyCommissionRules         AgencyCommissionRule[]
+  agencyConnectionRequestsAsInv AgencyConnectionRequest[]  @relation("InvestorConnectionRequests")
+  agencyConnectionRequestsAsAgy AgencyConnectionRequest[]  @relation("AgencyConnectionRequests")
+  sales                         Sale[]
+  saleStatusHistory             SaleStatusHistory[]
+  saleSettlementLines           SaleSettlementLine[]
+  saleHandovers                 SaleHandover[]
+  buyerNotices                  BuyerNotice[]
+  messageTemplates              OrgMessageTemplate[]
+  paymentPlans                  PaymentPlan[]
+  paymentPlanTemplates          PaymentPlanTemplate[]
+  saleContractTemplates         SaleContractTemplate[]
+  reservationRequests           ReservationRequest[]
+  payments                      Payment[]
+  documents                     Document[]
+  shareLinks                    ShareLink[]
+  comments                      Comment[]
+  floorPlanAreas                FloorPlanArea[]
+  commissionsAsInvestor         Commission[]               @relation("CommissionInvestor")
+  commissionsAsAgency           Commission[]               @relation("CommissionAgency")
+  notifications                 Notification[]
 
   billingSettings           OrganizationBillingSettings?
   invoices                  Invoice[]
@@ -240,7 +274,7 @@ model Organization {
   billingSequences          BillingSequence[]
 
   // Marketing leads that were converted into this tenant organization.
-  marketingLeadsConverted   MarketingLead[]            @relation("MarketingLeadConvertedTo")
+  marketingLeadsConverted MarketingLead[] @relation("MarketingLeadConvertedTo")
 
   @@map("organization")
 }
@@ -593,6 +627,15 @@ enum SaleDiscountType {
   FIXED
 }
 
+/// Handover adjustment on a fully paid sale. A deduction lowers the
+/// settlement (buyer declines something included in the price). A
+/// surcharge raises it (buyer pays for an extra). The contracted
+/// `Sale.finalPrice` is not rewritten.
+enum SaleSettlementLineKind {
+  DEDUCTION
+  SURCHARGE
+}
+
 /// Whether an operator has generated a contract for this sale and if the
 /// buyer has signed it. Used to gate CONTRACTED → PAID transitions in the
 /// investor UI and to power the "Ugovor" section on the sale detail page.
@@ -855,8 +898,8 @@ enum MarketingLeadActivityKind {
 // =============================================================================
 
 model OrganizationProfile {
-  id                    String             @id @default(cuid())
-  organizationId        String             @unique
+  id                    String                         @id @default(cuid())
+  organizationId        String                         @unique
   type                  OrganizationType
   legalName             String
   displayName           String
@@ -865,7 +908,7 @@ model OrganizationProfile {
   address               String?
   city                  String?
   postalCode            String?
-  country               String?            @default("RS")
+  country               String?                        @default("RS")
   phone                 String?
   email                 String?
   website               String?
@@ -878,7 +921,7 @@ model OrganizationProfile {
   // buyer gets a plain reference number only.
   paymentAccountNumber  String?
   paymentBankName       String?
-  status                OrganizationStatus @default(TRIAL)
+  status                OrganizationStatus             @default(TRIAL)
   // Tracks the /prvi-koraci onboarding wizard. `completedAt` is stamped
   // when the operator finishes the last step; `dismissedAt` is a soft
   // hide flag used while the operator would rather not see the
@@ -893,8 +936,8 @@ model OrganizationProfile {
   verifiedAt            DateTime?
   verifiedByUserId      String?
   verificationNote      String?
-  createdAt             DateTime           @default(now())
-  updatedAt             DateTime           @updatedAt
+  createdAt             DateTime                       @default(now())
+  updatedAt             DateTime                       @updatedAt
 
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   verifiedByUser User?        @relation("OrganizationVerifier", fields: [verifiedByUserId], references: [id], onDelete: SetNull)
@@ -1054,18 +1097,18 @@ model Project {
   organization  Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   createdByUser User         @relation("ProjectCreator", fields: [createdByUserId], references: [id], onDelete: Restrict)
 
-  buildings             Building[]
-  units                 Unit[]
-  buyerInterests        BuyerInterest[]
-  activities            Activity[]
-  tasks                 Task[]
-  reservations          Reservation[]
-  sales                 Sale[]
-  agencyProjectAccess        AgencyProjectAccess[]
-  agencyRegistrations        AgencyBuyerRegistration[]
-  agencyCommissionRules      AgencyCommissionRule[]
-  agencyConnectionRequests   AgencyConnectionRequest[]
-  paymentPlanTemplates       PaymentPlanTemplate[]
+  buildings                Building[]
+  units                    Unit[]
+  buyerInterests           BuyerInterest[]
+  activities               Activity[]
+  tasks                    Task[]
+  reservations             Reservation[]
+  sales                    Sale[]
+  agencyProjectAccess      AgencyProjectAccess[]
+  agencyRegistrations      AgencyBuyerRegistration[]
+  agencyCommissionRules    AgencyCommissionRule[]
+  agencyConnectionRequests AgencyConnectionRequest[]
+  paymentPlanTemplates     PaymentPlanTemplate[]
 
   @@unique([organizationId, code])
   @@unique([organizationId, slug])
@@ -1286,6 +1329,9 @@ model Buyer {
   createdAt              DateTime      @default(now())
   updatedAt              DateTime      @updatedAt
   archivedAt             DateTime?
+  /// Set when personal data (name, contact, JMBG, KYC files, comments)
+  /// has been stripped. Sales amounts stay for statutory retention.
+  anonymizedAt           DateTime?
 
   // B1 — KYC / legal-entity support. `entityType=LEGAL` unlocks
   // `legalName` + `taxId` (PIB); NATURAL uses `jmbg` /
@@ -1304,12 +1350,14 @@ model Buyer {
   assignedUser User?        @relation("BuyerAssignee", fields: [assignedUserId], references: [id], onDelete: SetNull)
 
   kycChecklist        BuyerKycChecklist?
+  notices             BuyerNotice[]
   interests           BuyerInterest[]
   activities          Activity[]
   tasks               Task[]
   reservations        Reservation[]
   sales               Sale[]
   agencyRegistrations AgencyBuyerRegistration[]
+  shareLinks          ShareLink[]
 
   @@index([organizationId, status])
   @@index([organizationId, normalizedPhone])
@@ -1391,6 +1439,8 @@ model Task {
   status          TaskStatus   @default(OPEN)
   completedAt     DateTime?
   createdByUserId String
+  /// Stable key so cron jobs can create a task once (`reservation-expiry:<id>`).
+  sourceKey       String?
   createdAt       DateTime     @default(now())
   updatedAt       DateTime     @updatedAt
 
@@ -1400,6 +1450,7 @@ model Task {
   project       Project?     @relation(fields: [projectId], references: [id], onDelete: SetNull)
   createdByUser User         @relation("TaskCreator", fields: [createdByUserId], references: [id], onDelete: Restrict)
 
+  @@unique([organizationId, sourceKey])
   @@index([organizationId, status, dueAt])
   @@index([assignedUserId, status, dueAt])
   @@map("task")
@@ -1549,19 +1600,19 @@ model AgencyUnitAccessOverride {
 }
 
 model AgencyConnectionRequest {
-  id                     String                         @id @default(cuid())
+  id                     String                        @id @default(cuid())
   agencyOrganizationId   String
   investorOrganizationId String
   projectId              String?
   message                String?
-  status                 AgencyConnectionRequestStatus  @default(PENDING)
+  status                 AgencyConnectionRequestStatus @default(PENDING)
   createdByUserId        String
   reviewedByUserId       String?
   reviewedAt             DateTime?
   rejectionReason        String?
   resultingConnectionId  String?
-  createdAt              DateTime                       @default(now())
-  updatedAt              DateTime                       @updatedAt
+  createdAt              DateTime                      @default(now())
+  updatedAt              DateTime                      @updatedAt
 
   agency              Organization      @relation("AgencyConnectionRequests", fields: [agencyOrganizationId], references: [id], onDelete: Cascade)
   investor            Organization      @relation("InvestorConnectionRequests", fields: [investorOrganizationId], references: [id], onDelete: Cascade)
@@ -1691,10 +1742,12 @@ model Sale {
   createdByUser   User         @relation("SaleCreator", fields: [createdByUserId], references: [id], onDelete: Restrict)
   agencyAgentUser User?        @relation("SaleAgencyAgent", fields: [agencyAgentUserId], references: [id], onDelete: SetNull)
 
-  paymentPlan   PaymentPlan?
-  payments      Payment[]
-  commission    Commission?
-  statusHistory SaleStatusHistory[]
+  paymentPlan     PaymentPlan?
+  payments        Payment[]
+  commission      Commission?
+  statusHistory   SaleStatusHistory[]
+  settlementLines SaleSettlementLine[]
+  handover        SaleHandover?
 
   @@index([organizationId, status])
   @@index([unitId, status])
@@ -1718,6 +1771,81 @@ model SaleStatusHistory {
 
   @@index([saleId, changedAt])
   @@map("sale_status_history")
+}
+
+model SaleSettlementLine {
+  id              String                 @id @default(cuid())
+  organizationId  String
+  saleId          String
+  kind            SaleSettlementLineKind
+  presetCode      String?
+  label           String
+  amount          Decimal                @db.Decimal(14, 2)
+  note            String?
+  createdByUserId String
+  createdAt       DateTime               @default(now())
+  updatedAt       DateTime               @updatedAt
+
+  organization  Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  sale          Sale         @relation(fields: [saleId], references: [id], onDelete: Cascade)
+  createdByUser User         @relation("SaleSettlementCreator", fields: [createdByUserId], references: [id], onDelete: Restrict)
+
+  @@index([saleId, createdAt])
+  @@map("sale_settlement_line")
+}
+
+/// Checklist recorded when a unit is handed over. Photos live as Sale documents.
+model SaleHandover {
+  id                String    @id @default(cuid())
+  organizationId    String
+  saleId            String    @unique
+  keysHanded        Boolean   @default(false)
+  meterElectricity  String?
+  meterWater        String?
+  meterHeating      String?
+  defects           String?
+  attendees         String?
+  completedAt       DateTime?
+  completedByUserId String?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  sale            Sale         @relation(fields: [saleId], references: [id], onDelete: Cascade)
+  completedByUser User?        @relation("SaleHandoverCompleter", fields: [completedByUserId], references: [id], onDelete: SetNull)
+
+  @@map("sale_handover")
+}
+
+/// Idempotency log for emails sent to buyers (they are not app users).
+model BuyerNotice {
+  id             String   @id @default(cuid())
+  organizationId String
+  buyerId        String
+  kind           String
+  entityId       String
+  sentAt         DateTime @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  buyer        Buyer        @relation(fields: [buyerId], references: [id], onDelete: Cascade)
+
+  @@unique([kind, entityId])
+  @@index([organizationId, buyerId])
+  @@map("buyer_notice")
+}
+
+/// Optional extra paragraph the firm appends to buyer emails.
+model OrgMessageTemplate {
+  id             String   @id @default(cuid())
+  organizationId String
+  key            String
+  body           String
+  updatedAt      DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, key])
+  @@map("org_message_template")
 }
 
 model PaymentPlan {
@@ -1879,15 +2007,20 @@ model ShareLink {
   showPrice       Boolean   @default(true)
   expiresAt       DateTime?
   revokedAt       DateTime?
+  /// Buyer this link was made for. Name is kept even if the buyer row changes.
+  forBuyerId      String?
+  forBuyerName    String?
   viewCount       Int       @default(0)
   lastViewedAt    DateTime?
   createdAt       DateTime  @default(now())
 
   organization        Organization         @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   createdByUser       User                 @relation("ShareLinkCreator", fields: [createdByUserId], references: [id], onDelete: Restrict)
+  forBuyer            Buyer?               @relation(fields: [forBuyerId], references: [id], onDelete: SetNull)
   reservationRequests ReservationRequest[]
 
   @@index([organizationId, entityType, entityId])
+  @@index([forBuyerId])
   @@map("share_link")
 }
 
@@ -2563,66 +2696,66 @@ model PropertyDeskTeamMember {
 /// travels through a light-weight pipeline (`stage`) and can eventually be
 /// converted into a tenant `Organization` once the deal is won.
 model MarketingLead {
-  id                       String                @id @default(cuid())
-  email                    String                @unique
-  firstName                String?
-  lastName                 String?
-  phone                    String?
-  audience                 MarketingLeadAudience @default(OTHER)
-  city                     String?
-  projectCount             Int?
-  note                     String?
-  source                   String?
-  utmSource                String?
-  utmMedium                String?
-  utmCampaign              String?
-  utmTerm                  String?
-  utmContent               String?
-  consent                  Boolean               @default(false)
-  stage                    MarketingLeadStage    @default(NEW)
+  id                      String                @id @default(cuid())
+  email                   String                @unique
+  firstName               String?
+  lastName                String?
+  phone                   String?
+  audience                MarketingLeadAudience @default(OTHER)
+  city                    String?
+  projectCount            Int?
+  note                    String?
+  source                  String?
+  utmSource               String?
+  utmMedium               String?
+  utmCampaign             String?
+  utmTerm                 String?
+  utmContent              String?
+  consent                 Boolean               @default(false)
+  stage                   MarketingLeadStage    @default(NEW)
   // Level je „nadgrupa“ stage-a i eksplicitno se čuva zbog vidljivosti
   // i indeksa. Uvek prati `stage` kroz `computeLevel(stage)` u
   // src/server/services/property-desk/lead-lifecycle.ts.
-  level                    MarketingLeadLevel    @default(SOURCING)
-  previousLevel            MarketingLeadLevel?
-  levelEnteredAt           DateTime              @default(now())
+  level                   MarketingLeadLevel    @default(SOURCING)
+  previousLevel           MarketingLeadLevel?
+  levelEnteredAt          DateTime              @default(now())
   // Klasifikacija (setovana ručno ili preko landing forme).
-  priority                 LeadPriority          @default(NORMAL)
-  temperature              LeadTemperature       @default(COLD)
-  timelineHorizon          LeadTimeline          @default(UNDECIDED)
-  nextFollowUpAt           DateTime?
+  priority                LeadPriority          @default(NORMAL)
+  temperature             LeadTemperature       @default(COLD)
+  timelineHorizon         LeadTimeline          @default(UNDECIDED)
+  nextFollowUpAt          DateTime?
   // Deterministički lead-score 0–100 (see lead-scoring.ts).
-  leadScore                Int                   @default(0)
+  leadScore               Int                   @default(0)
   // Firma / organizacija za koju lead radi.
-  companyName              String?
-  companyWebsite           String?
-  companySize              Int?
+  companyName             String?
+  companyWebsite          String?
+  companySize             Int?
   // Novac.
-  budgetTier               LeadBudgetTier        @default(UNKNOWN)
-  budgetCurrency           String?               @default("EUR")
+  budgetTier              LeadBudgetTier        @default(UNKNOWN)
+  budgetCurrency          String?               @default("EUR")
   // Donosilac odluke i preferirani kanal kontakta.
-  decisionMakerName        String?
-  decisionMakerTitle       String?
-  preferredContact         LeadContactChannel?
-  bestContactHour          String?
-  preferredLanguage        String?               @default("sr")
+  decisionMakerName       String?
+  decisionMakerTitle      String?
+  preferredContact        LeadContactChannel?
+  bestContactHour         String?
+  preferredLanguage       String?               @default("sr")
   // Konkurencija / trenutno stanje kod klijenta.
-  competitor               String?
-  painPoint                String?
+  competitor              String?
+  painPoint               String?
   // Geo.
-  country                  String?               @default("RS")
-  region                   String?
-  assignedToUserId         String?
-  convertedOrganizationId  String?
-  convertedAt              DateTime?
-  lostReason               String?
-  createdAt                DateTime              @default(now())
-  updatedAt                DateTime              @updatedAt
+  country                 String?               @default("RS")
+  region                  String?
+  assignedToUserId        String?
+  convertedOrganizationId String?
+  convertedAt             DateTime?
+  lostReason              String?
+  createdAt               DateTime              @default(now())
+  updatedAt               DateTime              @updatedAt
 
-  assignedTo             User?         @relation("MarketingLeadAssignee", fields: [assignedToUserId], references: [id], onDelete: SetNull)
-  convertedOrganization  Organization? @relation("MarketingLeadConvertedTo", fields: [convertedOrganizationId], references: [id], onDelete: SetNull)
-  activities             MarketingLeadActivity[]
-  tasks                  MarketingLeadTask[]
+  assignedTo            User?                   @relation("MarketingLeadAssignee", fields: [assignedToUserId], references: [id], onDelete: SetNull)
+  convertedOrganization Organization?           @relation("MarketingLeadConvertedTo", fields: [convertedOrganizationId], references: [id], onDelete: SetNull)
+  activities            MarketingLeadActivity[]
+  tasks                 MarketingLeadTask[]
 
   @@index([stage])
   @@index([level, priority])
@@ -2640,18 +2773,18 @@ model MarketingLead {
 /// Namerno je odvojen od tenant `Activity` modela: taj je organization-scoped,
 /// dok je marketing timeline platformski (Sloj C).
 model MarketingLeadActivity {
-  id            String                    @id @default(cuid())
-  leadId        String
-  kind          MarketingLeadActivityKind
-  title         String
-  body          String?                   @db.Text
-  actorUserId   String?
-  occurredAt    DateTime                  @default(now())
-  metadata      Json?
-  createdAt     DateTime                  @default(now())
+  id          String                    @id @default(cuid())
+  leadId      String
+  kind        MarketingLeadActivityKind
+  title       String
+  body        String?                   @db.Text
+  actorUserId String?
+  occurredAt  DateTime                  @default(now())
+  metadata    Json?
+  createdAt   DateTime                  @default(now())
 
-  lead    MarketingLead @relation(fields: [leadId], references: [id], onDelete: Cascade)
-  actor   User?         @relation("MarketingLeadActivityActor", fields: [actorUserId], references: [id], onDelete: SetNull)
+  lead  MarketingLead @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  actor User?         @relation("MarketingLeadActivityActor", fields: [actorUserId], references: [id], onDelete: SetNull)
 
   @@index([leadId, occurredAt(sort: Desc)])
   @@index([kind])

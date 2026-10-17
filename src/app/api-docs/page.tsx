@@ -4,8 +4,7 @@ import { ReactSwagger } from "./react-swagger";
 
 export const metadata: Metadata = {
   title: "API Docs",
-  description:
-    "Interaktivna dokumentacija PropertyDesk REST API-ja (OpenAPI 3.1).",
+  description: "Interaktivna dokumentacija PropertyDesk REST API-ja (OpenAPI 3.1).",
   robots: { index: false, follow: false },
 };
 

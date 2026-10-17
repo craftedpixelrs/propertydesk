@@ -8,9 +8,7 @@ import {
 } from "@/server/services/property-desk/marketing-lead-tasks.service";
 
 const querySchema = z.object({
-  view: z
-    .enum(["MINE_OPEN", "MINE_OVERDUE", "OPEN", "OVERDUE", "ALL"])
-    .default("MINE_OPEN"),
+  view: z.enum(["MINE_OPEN", "MINE_OVERDUE", "OPEN", "OVERDUE", "ALL"]).default("MINE_OPEN"),
   counts: z.enum(["1", "0"]).optional(),
   limit: z.coerce.number().int().min(1).max(200).optional(),
 });

@@ -62,15 +62,9 @@ export interface BuyerContactInput {
   country?: string | null;
 }
 
-const ALLOWED_BUYER_SORT_FIELDS = new Set([
-  "createdAt",
-  "lastName",
-  "status",
-]);
+const ALLOWED_BUYER_SORT_FIELDS = new Set(["createdAt", "lastName", "status"]);
 
-function resolveBuyerOrderBy(
-  sort: ListBuyersInput["sort"],
-): Prisma.BuyerOrderByWithRelationInput {
+function resolveBuyerOrderBy(sort: ListBuyersInput["sort"]): Prisma.BuyerOrderByWithRelationInput {
   if (!sort || !ALLOWED_BUYER_SORT_FIELDS.has(sort.field)) {
     return { createdAt: "desc" };
   }
@@ -292,13 +286,10 @@ export async function updateBuyer(input: UpdateBuyerInput) {
       firstName: patch.firstName ?? undefined,
       lastName: patch.lastName ?? undefined,
       email: patch.email !== undefined ? patch.email : undefined,
-      normalizedEmail:
-        patch.email !== undefined ? normalizeEmail(patch.email) : undefined,
+      normalizedEmail: patch.email !== undefined ? normalizeEmail(patch.email) : undefined,
       phone: patch.phone ?? undefined,
       normalizedPhone:
-        patch.phone !== undefined
-          ? normalizePhone(patch.phone) ?? patch.phone
-          : undefined,
+        patch.phone !== undefined ? (normalizePhone(patch.phone) ?? patch.phone) : undefined,
       secondaryPhone: patch.secondaryPhone !== undefined ? patch.secondaryPhone : undefined,
       preferredContactMethod: patch.preferredContactMethod ?? undefined,
       budgetMin: patch.budgetMin !== undefined ? toDecimalOrNull(patch.budgetMin) : undefined,
@@ -317,11 +308,9 @@ export async function updateBuyer(input: UpdateBuyerInput) {
       entityType: patch.entityType ?? undefined,
       legalName: patch.legalName !== undefined ? patch.legalName : undefined,
       jmbg: patch.jmbg !== undefined ? patch.jmbg : undefined,
-      identityNumber:
-        patch.identityNumber !== undefined ? patch.identityNumber : undefined,
+      identityNumber: patch.identityNumber !== undefined ? patch.identityNumber : undefined,
       taxId: patch.taxId !== undefined ? patch.taxId : undefined,
-      addressLine1:
-        patch.addressLine1 !== undefined ? patch.addressLine1 : undefined,
+      addressLine1: patch.addressLine1 !== undefined ? patch.addressLine1 : undefined,
       city: patch.city !== undefined ? patch.city : undefined,
       postalCode: patch.postalCode !== undefined ? patch.postalCode : undefined,
       country: patch.country !== undefined ? patch.country : undefined,
@@ -379,5 +368,152 @@ export async function archiveBuyer(input: {
     entityId: input.buyerId,
     organizationId: input.organizationId,
     actorUserId: input.actorUserId,
+  });
+}
+
+const ANON_BODY = "[uklonjeno anonimizacijom]";
+
+/**
+ * Strip personal data from a buyer. Sale amounts, unit links and
+ * generated contracts stay — those are kept for statutory accounting.
+ * The audit row records that a wipe happened, not the old JMBG or phone.
+ */
+export async function anonymizeBuyer(input: {
+  organizationId: string;
+  actorUserId: string;
+  buyerId: string;
+}) {
+  const existing = await prisma.buyer.findFirst({
+    where: { id: input.buyerId, organizationId: input.organizationId },
+  });
+  if (!existing) throw DomainErrors.notFound("Kupac");
+  if (existing.anonymizedAt) {
+    throw DomainErrors.invalidState("Kupac je već anonimizovan.");
+  }
+
+  const now = new Date();
+  const phone = `anon-${existing.id}`;
+  const requestOr: Prisma.ReservationRequestWhereInput[] = [];
+  if (existing.email) {
+    requestOr.push({
+      email: { equals: existing.email, mode: "insensitive" },
+    });
+  }
+  if (existing.phone) {
+    requestOr.push({ phone: existing.phone });
+  }
+
+  await prisma.$transaction(async (tx) => {
+    await tx.buyer.update({
+      where: { id: existing.id },
+      data: {
+        firstName: "Anonimni",
+        lastName: "kupac",
+        email: null,
+        normalizedEmail: null,
+        phone,
+        normalizedPhone: phone,
+        secondaryPhone: null,
+        notes: null,
+        source: null,
+        jmbg: null,
+        identityNumber: null,
+        taxId: null,
+        legalName: null,
+        addressLine1: null,
+        city: null,
+        postalCode: null,
+        country: null,
+        budgetMin: null,
+        budgetMax: null,
+        desiredAreaMin: null,
+        desiredAreaMax: null,
+        desiredRoomCounts: [],
+        desiredUnitTypes: [],
+        status: "ARCHIVED",
+        archivedAt: existing.archivedAt ?? now,
+        anonymizedAt: now,
+      },
+    });
+
+    await tx.buyerKycChecklist.updateMany({
+      where: { buyerId: existing.id },
+      data: {
+        notes: null,
+        idFrontOk: false,
+        idBackOk: false,
+        addressProofOk: false,
+        taxCertOk: false,
+      },
+    });
+
+    await tx.buyerInterest.updateMany({
+      where: { buyerId: existing.id },
+      data: { note: null },
+    });
+
+    await tx.comment.updateMany({
+      where: {
+        organizationId: input.organizationId,
+        entityType: "Buyer",
+        entityId: existing.id,
+      },
+      data: { body: ANON_BODY, deletedAt: now },
+    });
+
+    await tx.activity.updateMany({
+      where: { organizationId: input.organizationId, buyerId: existing.id },
+      data: { description: "Sadržaj uklonjen anonimizacijom kupca." },
+    });
+
+    await tx.document.updateMany({
+      where: {
+        organizationId: input.organizationId,
+        entityType: "Buyer",
+        entityId: existing.id,
+        deletedAt: null,
+      },
+      data: { deletedAt: now, originalFileName: "uklonjeno" },
+    });
+
+    await tx.reservation.updateMany({
+      where: { organizationId: input.organizationId, buyerId: existing.id },
+      data: { notes: null },
+    });
+
+    await tx.agencyBuyerRegistration.updateMany({
+      where: {
+        investorOrganizationId: input.organizationId,
+        buyerId: existing.id,
+      },
+      data: { conflictNotes: null, rejectionReason: null },
+    });
+
+    if (requestOr.length > 0) {
+      await tx.reservationRequest.updateMany({
+        where: { organizationId: input.organizationId, OR: requestOr },
+        data: {
+          firstName: "Anonimni",
+          lastName: "kupac",
+          email: `anon-${existing.id}@anonimizovano.invalid`,
+          phone,
+          notes: null,
+        },
+      });
+    }
+  });
+
+  await recordAudit({
+    action: "buyer.anonymized",
+    entityType: "Buyer",
+    entityId: existing.id,
+    organizationId: input.organizationId,
+    actorUserId: input.actorUserId,
+    previousValues: {
+      hadEmail: Boolean(existing.email),
+      hadJmbg: Boolean(existing.jmbg),
+      hadTaxId: Boolean(existing.taxId),
+    },
+    newValues: { anonymizedAt: now.toISOString() },
   });
 }

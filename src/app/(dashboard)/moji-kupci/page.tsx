@@ -44,9 +44,7 @@ export default async function MojiKupciPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-sm">
-            {t("crm.buyers.total", { count: total })}
-          </CardTitle>
+          <CardTitle className="text-sm">{t("crm.buyers.total", { count: total })}</CardTitle>
         </CardHeader>
         <CardContent className="p-0">
           {items.length === 0 ? (
@@ -56,7 +54,7 @@ export default async function MojiKupciPage() {
           ) : (
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-[var(--color-border)] text-sm">
-                <thead className="bg-[var(--color-surface-inset)] text-left text-xs uppercase tracking-wide text-[var(--color-foreground-muted)]">
+                <thead className="bg-[var(--color-surface-inset)] text-left text-xs tracking-wide text-[var(--color-foreground-muted)] uppercase">
                   <tr>
                     <th className="px-4 py-3">{t("auth.fullName")}</th>
                     <th className="px-4 py-3">{t("common.phone")}</th>

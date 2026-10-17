@@ -39,8 +39,7 @@ function splitHandlers(src: string): Partial<Record<Method, string>> {
     const m = matches[i]!;
     const method = m[1]!.toLowerCase() as Method;
     const start = m.index ?? 0;
-    const end =
-      i + 1 < matches.length ? (matches[i + 1]!.index ?? src.length) : src.length;
+    const end = i + 1 < matches.length ? (matches[i + 1]!.index ?? src.length) : src.length;
     out[method] = src.slice(start, end);
   }
   return out;
@@ -50,14 +49,13 @@ function detectAuth(handler: string, relPath: string, fullSrc: string): MethodAu
   if (/requirePermission\s*\(\s*permissionForEntity/.test(handler)) {
     return {
       kind: "permission",
-      label:
-        'requirePermission(permissionForEntity(...)) — Buyer→"lead.read", Sale→"sale.read"',
+      label: 'requirePermission(permissionForEntity(...)) — Buyer→"lead.read", Sale→"sale.read"',
     };
   }
 
-  const perms = [
-    ...handler.matchAll(/requirePermission\(\s*["']([^"']+)["']\s*\)/g),
-  ].map((m) => m[1]!);
+  const perms = [...handler.matchAll(/requirePermission\(\s*["']([^"']+)["']\s*\)/g)].map(
+    (m) => m[1]!,
+  );
 
   if (perms.length === 1) {
     return { kind: "permission", label: `requirePermission("${perms[0]}")` };
@@ -76,9 +74,7 @@ function detectAuth(handler: string, relPath: string, fullSrc: string): MethodAu
       label: "requireSuperAdmin() — platform SUPER_ADMIN",
     };
   }
-  const platformPerm = handler.match(
-    /requirePlatformPermission\(\s*["']([^"']+)["']\s*\)/,
-  );
+  const platformPerm = handler.match(/requirePlatformPermission\(\s*["']([^"']+)["']\s*\)/);
   if (platformPerm) {
     return {
       kind: "platform",
@@ -100,10 +96,7 @@ function detectAuth(handler: string, relPath: string, fullSrc: string): MethodAu
     };
   }
 
-  if (
-    /(^|\/)(public|health|docs)(\/|$)/.test(relPath) ||
-    /\/marketing\//.test(relPath)
-  ) {
+  if (/(^|\/)(public|health|docs)(\/|$)/.test(relPath) || /\/marketing\//.test(relPath)) {
     if (/enforceRateLimit/.test(handler)) {
       return { kind: "public", label: "javno + rate-limit (bez sesije)" };
     }
@@ -156,10 +149,7 @@ function annotateMethodBody(body: string, auth: MethodAuth): string {
       return ` *     description: |\n${authLine}\n${descIndent}${cleaned}`;
     });
   } else if (/^ \*     summary:/m.test(b)) {
-    b = b.replace(
-      /^( \*     summary:.*\n)/m,
-      `$1 *     description: |\n${authLine}\n`,
-    );
+    b = b.replace(/^( \*     summary:.*\n)/m, `$1 *     description: |\n${authLine}\n`);
   } else if (/^ \*     tags:\s*\n(?: \*       - .+\n)+/m.test(b)) {
     b = b.replace(
       /^( \*     tags:\s*\n(?: \*       - .+\n)+)/m,
@@ -167,10 +157,7 @@ function annotateMethodBody(body: string, auth: MethodAuth): string {
     );
   } else if (/^ \*     tags:\s*\[/m.test(b)) {
     // Compact form: ` *     tags: [auth]`
-    b = b.replace(
-      /^( \*     tags:\s*\[.*\]\s*\n)/m,
-      `$1 *     description: |\n${authLine}\n`,
-    );
+    b = b.replace(/^( \*     tags:\s*\[.*\]\s*\n)/m, `$1 *     description: |\n${authLine}\n`);
   } else {
     b = ` *     description: |\n${authLine}\n` + b;
   }
@@ -207,9 +194,7 @@ function annotateSwaggerBlock(
 }
 
 /** Find the JSDoc block that contains `@swagger` (may have prose before the tag). */
-function findSwaggerBlock(
-  src: string,
-): { start: number; end: number; block: string } | null {
+function findSwaggerBlock(src: string): { start: number; end: number; block: string } | null {
   const tag = src.search(/^\s*\*\s*@swagger\b/m);
   if (tag < 0) return null;
 
@@ -250,10 +235,7 @@ async function main() {
     const methodAuth: Partial<Record<Method, MethodAuth>> = {};
     const reportMethods: Record<string, string> = {};
 
-    for (const [method, body] of Object.entries(handlers) as [
-      Method,
-      string,
-    ][]) {
+    for (const [method, body] of Object.entries(handlers) as [Method, string][]) {
       const auth = detectAuth(body, relPosix, src);
       methodAuth[method] = auth;
       reportMethods[method] = auth.label;
@@ -271,11 +253,7 @@ async function main() {
 
     if (newBlockLf !== blockLf) {
       const newBlock = useCrlf ? newBlockLf.replace(/\n/g, "\r\n") : newBlockLf;
-      writeFileSync(
-        abs,
-        src.slice(0, found.start) + newBlock + src.slice(found.end),
-        "utf8",
-      );
+      writeFileSync(abs, src.slice(0, found.start) + newBlock + src.slice(found.end), "utf8");
       updated++;
     }
     report.push({ file: relPosix, methods: reportMethods });

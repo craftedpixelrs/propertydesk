@@ -1,9 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import {
-  organizationLogoPublicPath,
-  parseLogoVariant,
-} from "./organization-logo.service";
+import { organizationLogoPublicPath, parseLogoVariant } from "./organization-logo.service";
 
 describe("parseLogoVariant", () => {
   it("treats light as the only explicit variant", () => {
@@ -16,9 +13,7 @@ describe("parseLogoVariant", () => {
 
 describe("organizationLogoPublicPath", () => {
   it("keeps the default logo on the unadorned public route", () => {
-    expect(organizationLogoPublicPath("org_1")).toBe(
-      "/api/v1/public/organization-logo/org_1",
-    );
+    expect(organizationLogoPublicPath("org_1")).toBe("/api/v1/public/organization-logo/org_1");
   });
 
   it("puts the light mark behind a query param", () => {

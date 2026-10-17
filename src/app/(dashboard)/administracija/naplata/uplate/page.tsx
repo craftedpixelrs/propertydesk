@@ -36,7 +36,7 @@ export default async function BillingPaymentsPage() {
       <Card>
         <CardContent className="p-0">
           <table className="w-full text-sm">
-            <thead className="text-left text-xs uppercase text-[var(--color-foreground-subtle)]">
+            <thead className="text-left text-xs text-[var(--color-foreground-subtle)] uppercase">
               <tr>
                 <th className="border-b border-[var(--color-border)] px-3 py-2">
                   {t("common.date")}
@@ -61,7 +61,10 @@ export default async function BillingPaymentsPage() {
             <tbody>
               {payments.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-3 py-6 text-center text-[var(--color-foreground-muted)]">
+                  <td
+                    colSpan={6}
+                    className="px-3 py-6 text-center text-[var(--color-foreground-muted)]"
+                  >
                     {t("admin.paymentsPage.empty")}
                   </td>
                 </tr>
@@ -78,7 +81,9 @@ export default async function BillingPaymentsPage() {
                     </td>
                     <td className="px-3 py-2 text-xs">
                       {p.allocations.length === 0 ? (
-                        <span className="text-[var(--color-foreground-muted)]">{t("admin.dash")}</span>
+                        <span className="text-[var(--color-foreground-muted)]">
+                          {t("admin.dash")}
+                        </span>
                       ) : (
                         p.allocations.map((a) => (
                           <Link
@@ -92,7 +97,15 @@ export default async function BillingPaymentsPage() {
                       )}
                     </td>
                     <td className="px-3 py-2">
-                      <Badge tone={p.status === "COMPLETED" ? "success" : p.status === "REVERSED" ? "danger" : "warning"}>
+                      <Badge
+                        tone={
+                          p.status === "COMPLETED"
+                            ? "success"
+                            : p.status === "REVERSED"
+                              ? "danger"
+                              : "warning"
+                        }
+                      >
                         {t(`billing.paymentStatus.${p.status}` as TranslationKey)}
                       </Badge>
                     </td>

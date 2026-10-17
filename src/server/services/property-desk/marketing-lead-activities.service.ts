@@ -1,10 +1,6 @@
 import "server-only";
 
-import type {
-  MarketingLeadActivity,
-  MarketingLeadActivityKind,
-  Prisma,
-} from "@prisma/client";
+import type { MarketingLeadActivity, MarketingLeadActivityKind, Prisma } from "@prisma/client";
 
 import { prisma } from "@/server/db/prisma";
 import { DomainError } from "@/lib/errors";
@@ -50,10 +46,7 @@ export async function listLeadActivities(
     throw new DomainError("FORBIDDEN", "Nemate pristup ovom lead-u.");
   }
   if (!(await hasPdPermission(ctx, "pd_lead_activity.read"))) {
-    throw new DomainError(
-      "FORBIDDEN",
-      "Nemate dozvolu za pregled timeline-a.",
-    );
+    throw new DomainError("FORBIDDEN", "Nemate dozvolu za pregled timeline-a.");
   }
 
   return prisma.marketingLeadActivity.findMany({
@@ -68,10 +61,7 @@ export async function listLeadActivities(
 // -----------------------------------------------------------------------------
 
 export interface CreateManualActivityInput {
-  kind: Extract<
-    MarketingLeadActivityKind,
-    "CALL" | "EMAIL" | "MEETING" | "NOTE"
-  >;
+  kind: Extract<MarketingLeadActivityKind, "CALL" | "EMAIL" | "MEETING" | "NOTE">;
   title: string;
   body?: string | null;
   occurredAt?: Date;
@@ -91,10 +81,7 @@ export async function recordManualActivity(
     throw new DomainError("FORBIDDEN", "Nemate pristup ovom lead-u.");
   }
   if (!(await hasPdPermission(ctx, "pd_lead_activity.create"))) {
-    throw new DomainError(
-      "FORBIDDEN",
-      "Nemate dozvolu za unos aktivnosti.",
-    );
+    throw new DomainError("FORBIDDEN", "Nemate dozvolu za unos aktivnosti.");
   }
 
   const actorUserId = ctx.session.user.id;
@@ -120,10 +107,7 @@ export async function recordManualActivity(
 
 export interface SystemActivityInput {
   leadId: string;
-  kind: Extract<
-    MarketingLeadActivityKind,
-    "STAGE_CHANGE" | "ASSIGNMENT" | "CONVERSION" | "SYSTEM"
-  >;
+  kind: Extract<MarketingLeadActivityKind, "STAGE_CHANGE" | "ASSIGNMENT" | "CONVERSION" | "SYSTEM">;
   title: string;
   body?: string | null;
   actorUserId?: string | null;

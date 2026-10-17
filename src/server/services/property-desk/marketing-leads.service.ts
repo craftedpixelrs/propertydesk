@@ -127,14 +127,9 @@ export async function listMarketingLeads(
       },
     });
   }
-  if (
-    typeof input.followUpWithinDays === "number" &&
-    input.followUpWithinDays > 0
-  ) {
+  if (typeof input.followUpWithinDays === "number" && input.followUpWithinDays > 0) {
     const now = new Date();
-    const until = new Date(
-      now.getTime() + input.followUpWithinDays * 24 * 60 * 60 * 1000,
-    );
+    const until = new Date(now.getTime() + input.followUpWithinDays * 24 * 60 * 60 * 1000);
     filters.push({
       nextFollowUpAt: { gte: now, lte: until },
     });
@@ -236,9 +231,7 @@ export interface UpdateLeadClassificationInput {
   nextFollowUpAt?: Date | null;
 }
 
-export interface UpdateLeadInput
-  extends UpdateLeadDetailsInput,
-    UpdateLeadClassificationInput {
+export interface UpdateLeadInput extends UpdateLeadDetailsInput, UpdateLeadClassificationInput {
   stage?: MarketingLeadStage;
   assignedToUserId?: string | null;
   /** Obavezan kada tranzicija nije forward. */
@@ -317,15 +310,11 @@ export async function updateMarketingLead(
   }
 
   // ---- Stage change: forward-only, ili reopen sa razlogom ------------------
-  const stageChanges =
-    input.stage !== undefined && input.stage !== existing.stage;
+  const stageChanges = input.stage !== undefined && input.stage !== existing.stage;
   let reopenReason: string | null = null;
   if (stageChanges) {
     if (!(await hasPdPermission(ctx, "pd_lead.update_stage"))) {
-      throw new DomainError(
-        "FORBIDDEN",
-        "Nemate dozvolu za promenu faze lead-a.",
-      );
+      throw new DomainError("FORBIDDEN", "Nemate dozvolu za promenu faze lead-a.");
     }
     const forward = isForwardTransition(existing.stage, input.stage!);
     if (!forward) {
@@ -351,8 +340,7 @@ export async function updateMarketingLead(
   // `pd_lead.reassign`. Dodela drugom / oduzimanje tuđeg i dalje traži reassign.
   if (input.assignedToUserId !== undefined) {
     const isSelfClaim =
-      existing.assignedToUserId === null &&
-      input.assignedToUserId === actorUserId;
+      existing.assignedToUserId === null && input.assignedToUserId === actorUserId;
     if (!isSelfClaim && !(await hasPdPermission(ctx, "pd_lead.reassign"))) {
       throw new DomainError(
         "FORBIDDEN",
@@ -364,22 +352,11 @@ export async function updateMarketingLead(
   // ---- Details / classification permissions -------------------------------
   const touchesDetails = DETAIL_KEYS.some((k) => input[k] !== undefined);
   if (touchesDetails && !(await hasPdPermission(ctx, "pd_lead.update_details"))) {
-    throw new DomainError(
-      "FORBIDDEN",
-      "Nemate dozvolu za uređivanje detalja lead-a.",
-    );
+    throw new DomainError("FORBIDDEN", "Nemate dozvolu za uređivanje detalja lead-a.");
   }
-  const touchesClassification = CLASSIFICATION_KEYS.some(
-    (k) => input[k] !== undefined,
-  );
-  if (
-    touchesClassification &&
-    !(await hasPdPermission(ctx, "pd_lead.update_classification"))
-  ) {
-    throw new DomainError(
-      "FORBIDDEN",
-      "Nemate dozvolu za klasifikaciju lead-a.",
-    );
+  const touchesClassification = CLASSIFICATION_KEYS.some((k) => input[k] !== undefined);
+  if (touchesClassification && !(await hasPdPermission(ctx, "pd_lead.update_classification"))) {
+    throw new DomainError("FORBIDDEN", "Nemate dozvolu za klasifikaciju lead-a.");
   }
 
   const data: Prisma.MarketingLeadUpdateInput = {};
@@ -413,10 +390,7 @@ export async function updateMarketingLead(
   if (input.note !== undefined) data.note = input.note;
   if (input.lostReason !== undefined) data.lostReason = input.lostReason;
   if (input.audience !== undefined) {
-    if (
-      isAudienceLocked(existing.audience) &&
-      input.audience !== existing.audience
-    ) {
+    if (isAudienceLocked(existing.audience) && input.audience !== existing.audience) {
       throw new DomainError(
         "INVALID_STATE",
         "Publika je zaključana nakon što je postavljena na Investitor ili Agencija.",
@@ -452,9 +426,7 @@ export async function updateMarketingLead(
   if (input.nextFollowUpAt !== undefined) data.nextFollowUpAt = input.nextFollowUpAt;
 
   // Recompute score kad god se dira ijedno polje koje ulazi u formulu.
-  const touchesScore = Object.keys(input).some((k) =>
-    SCORE_KEYS.has(k as keyof UpdateLeadInput),
-  );
+  const touchesScore = Object.keys(input).some((k) => SCORE_KEYS.has(k as keyof UpdateLeadInput));
   if (touchesScore) {
     const merged = {
       stage: input.stage ?? existing.stage,
@@ -475,9 +447,7 @@ export async function updateMarketingLead(
   // ---- Post-update side effects ------------------------------------------
   if (stageChanges) {
     await recordAudit({
-      action: reopenReason
-        ? "marketing_lead.reopened"
-        : "marketing_lead.stage_changed",
+      action: reopenReason ? "marketing_lead.reopened" : "marketing_lead.stage_changed",
       entityType: "MarketingLead",
       entityId: updated.id,
       actorUserId,
@@ -493,9 +463,7 @@ export async function updateMarketingLead(
         : `Faza: ${existing.stage} → ${updated.stage}`,
       body:
         reopenReason ??
-        (updated.stage === "LOST" && updated.lostReason
-          ? `Razlog: ${updated.lostReason}`
-          : null),
+        (updated.stage === "LOST" && updated.lostReason ? `Razlog: ${updated.lostReason}` : null),
       actorUserId,
       metadata: {
         from: existing.stage,
@@ -584,9 +552,7 @@ export function isAudienceLocked(audience: MarketingLeadAudience): boolean {
 }
 
 /** Super Admin i Operations smeju iz L3 da naprave tenant org + vlasnika. */
-export function canCreateTenantFromLead(
-  ctx: PropertyDeskAccessContext,
-): boolean {
+export function canCreateTenantFromLead(ctx: PropertyDeskAccessContext): boolean {
   if (ctx.isSuperAdmin) return true;
   return ctx.teamMember.teamRole === "OPERATIONS";
 }
@@ -609,10 +575,7 @@ export async function convertMarketingLead(
     );
   }
   if (!(await hasPdPermission(ctx, "pd_lead.convert"))) {
-    throw new DomainError(
-      "FORBIDDEN",
-      "Nemate dozvolu za konverziju lead-a u organizaciju.",
-    );
+    throw new DomainError("FORBIDDEN", "Nemate dozvolu za konverziju lead-a u organizaciju.");
   }
   const org = await prisma.organization.findUnique({
     where: { id: organizationId },
@@ -622,10 +585,7 @@ export async function convertMarketingLead(
     throw new DomainError("NOT_FOUND", "Organizacija ne postoji.");
   }
   if (existing.stage === "WON" && existing.convertedOrganizationId) {
-    throw new DomainError(
-      "INVALID_STATE",
-      "Lead je već konvertovan u organizaciju.",
-    );
+    throw new DomainError("INVALID_STATE", "Lead je već konvertovan u organizaciju.");
   }
 
   const now = new Date();
@@ -698,6 +658,7 @@ export interface ProvisionLeadOrganizationInput {
   country?: string | null;
   planCode: string;
   trialDays?: number | null;
+  activatesAt?: string | null;
   owner: {
     name: string;
     email: string;
@@ -707,7 +668,7 @@ export interface ProvisionLeadOrganizationInput {
 
 export interface ProvisionLeadResult {
   lead: MarketingLead;
-  organization: { id: string; name: string; slug: string };
+  organization: { id: string; name: string; slug: string | null };
   owner: { id: string; email: string; name: string };
 }
 
@@ -729,10 +690,7 @@ export async function provisionMarketingLead(
     );
   }
   if (!(await hasPdPermission(ctx, "pd_lead.convert"))) {
-    throw new DomainError(
-      "FORBIDDEN",
-      "Nemate dozvolu za konverziju lead-a u organizaciju.",
-    );
+    throw new DomainError("FORBIDDEN", "Nemate dozvolu za konverziju lead-a u organizaciju.");
   }
 
   const existing = await prisma.marketingLead.findUnique({ where: { id } });
@@ -747,10 +705,7 @@ export async function provisionMarketingLead(
     );
   }
   if (existing.stage === "WON" && existing.convertedOrganizationId) {
-    throw new DomainError(
-      "INVALID_STATE",
-      "Lead je već konvertovan u organizaciju.",
-    );
+    throw new DomainError("INVALID_STATE", "Lead je već konvertovan u organizaciju.");
   }
   if (existing.level !== "OPERATIONS" && existing.stage !== "WON") {
     throw new DomainError(
@@ -773,9 +728,7 @@ export async function provisionMarketingLead(
     throw new DomainError("VALIDATION", "Naziv organizacije je obavezan.");
   }
 
-  const slug = await uniqueOrganizationSlug(
-    input.slug?.trim() || slugifyOrg(name),
-  );
+  const slug = await uniqueOrganizationSlug(input.slug?.trim() || slugifyOrg(name));
   const legalName = (input.legalName?.trim() || name).slice(0, 200);
   const displayName = (input.displayName?.trim() || name).slice(0, 120);
   const ownerName = input.owner.name.trim();
@@ -804,6 +757,7 @@ export async function provisionMarketingLead(
       country: asCountryCode(input.country ?? existing.country),
       planCode: input.planCode,
       trialDays: input.trialDays ?? 30,
+      activatesAt: input.activatesAt ?? null,
       status: "TRIAL",
     },
     actorUserId,
@@ -820,12 +774,7 @@ export async function provisionMarketingLead(
     actorUserId,
   );
 
-  const lead = await convertMarketingLead(
-    ctx,
-    id,
-    created.org.id,
-    actorUserId,
-  );
+  const lead = await convertMarketingLead(ctx, id, created.org.id, actorUserId);
 
   return {
     lead,
@@ -916,10 +865,7 @@ export async function createMarketingLead(
   actorUserId: string,
 ): Promise<MarketingLead> {
   if (!(await hasPdPermission(ctx, "pd_lead.create"))) {
-    throw new DomainError(
-      "FORBIDDEN",
-      "Nemate dozvolu za kreiranje marketing lead-a.",
-    );
+    throw new DomainError("FORBIDDEN", "Nemate dozvolu za kreiranje marketing lead-a.");
   }
 
   const email = input.email.trim().toLowerCase();
@@ -942,19 +888,14 @@ export async function createMarketingLead(
     input.assignedToUserId !== null &&
     !(await hasPdPermission(ctx, "pd_lead.reassign"))
   ) {
-    throw new DomainError(
-      "FORBIDDEN",
-      "Nemate dozvolu za dodelu lead-a drugom članu tima.",
-    );
+    throw new DomainError("FORBIDDEN", "Nemate dozvolu za dodelu lead-a drugom članu tima.");
   }
 
   // Ako pozivalac ne prosleđuje assignedTo, dodeli samog sebe (osim ako je
   // SUPER_ADMIN — u tom slučaju ostavi neraspoređeno, jer SA nije član tima).
   const defaultAssignee = ctx.isSuperAdmin ? null : ctx.teamMember.userId;
   const assignedToUserId =
-    input.assignedToUserId === undefined
-      ? defaultAssignee
-      : input.assignedToUserId;
+    input.assignedToUserId === undefined ? defaultAssignee : input.assignedToUserId;
 
   const leadScore = computeLeadScore({
     stage: "NEW",
@@ -1051,38 +992,25 @@ export async function bulkUpdateMarketingLeads(
   actorUserId: string,
 ): Promise<BulkUpdateResult> {
   if (!(await hasPdPermission(ctx, "pd_lead.bulk"))) {
-    throw new DomainError(
-      "FORBIDDEN",
-      "Nemate dozvolu za bulk operacije nad lead-ovima.",
-    );
+    throw new DomainError("FORBIDDEN", "Nemate dozvolu za bulk operacije nad lead-ovima.");
   }
   if (input.action.kind === "assign") {
     if (!(await hasPdPermission(ctx, "pd_lead.reassign"))) {
-      throw new DomainError(
-        "FORBIDDEN",
-        "Nemate dozvolu za preraspoređivanje lead-ova.",
-      );
+      throw new DomainError("FORBIDDEN", "Nemate dozvolu za preraspoređivanje lead-ova.");
     }
   } else {
     if (!(await hasPdPermission(ctx, "pd_lead.update_stage"))) {
-      throw new DomainError(
-        "FORBIDDEN",
-        "Nemate dozvolu za promenu faze lead-ova.",
-      );
+      throw new DomainError("FORBIDDEN", "Nemate dozvolu za promenu faze lead-ova.");
     }
   }
   if (input.ids.length === 0) return { updated: 0, skipped: 0 };
   if (input.ids.length > 200) {
-    throw new DomainError(
-      "BAD_REQUEST",
-      "Bulk operacija podržava do 200 lead-ova odjednom.",
-    );
+    throw new DomainError("BAD_REQUEST", "Bulk operacija podržava do 200 lead-ova odjednom.");
   }
 
   // Filtriraj samo lead-ove koje pozivalac stvarno sme da vidi. Sve što
   // ne prođe ide u `skipped` — nikad ne editujemo van scope-a.
-  const scopeFilter =
-    (await buildMarketingLeadScopeFilter(ctx)) as Prisma.MarketingLeadWhereInput;
+  const scopeFilter = (await buildMarketingLeadScopeFilter(ctx)) as Prisma.MarketingLeadWhereInput;
   const visible = await prisma.marketingLead.findMany({
     where: { AND: [{ id: { in: input.ids } }, scopeFilter] },
   });
@@ -1106,9 +1034,7 @@ export async function bulkUpdateMarketingLeads(
       await recordSystemActivity({
         leadId: lead.id,
         kind: "ASSIGNMENT",
-        title: after.assignedToUserId
-          ? "Lead dodeljen (bulk)"
-          : "Lead vraćen u pool (bulk)",
+        title: after.assignedToUserId ? "Lead dodeljen (bulk)" : "Lead vraćen u pool (bulk)",
         actorUserId,
         metadata: {
           bulk: true,
@@ -1120,10 +1046,7 @@ export async function bulkUpdateMarketingLeads(
       if (lead.stage === input.action.stage) continue;
       // Poštuj forward-only pravilo i u bulk-u — pozivalac koji nema
       // reopen ne može da vraća/preskače stage-ove bez razloga.
-      if (
-        !canReopen &&
-        !isForwardTransition(lead.stage, input.action.stage)
-      ) {
+      if (!canReopen && !isForwardTransition(lead.stage, input.action.stage)) {
         skipped += 1;
         continue;
       }
@@ -1204,9 +1127,7 @@ export async function bulkUpdateMarketingLeads(
 // Reports / dashboards
 // -----------------------------------------------------------------------------
 
-export async function getPipelineStats(
-  ctx: PropertyDeskAccessContext,
-): Promise<{
+export async function getPipelineStats(ctx: PropertyDeskAccessContext): Promise<{
   byStage: Record<MarketingLeadStage, number>;
   byLevel: Record<MarketingLeadLevel, number>;
   byAudience: Record<MarketingLeadAudience, number>;
@@ -1307,19 +1228,14 @@ export async function getHotLeads(
   ctx: PropertyDeskAccessContext,
   limit = 5,
 ): Promise<MarketingLeadWithAssignee[]> {
-  const scope = (await buildMarketingLeadScopeFilter(
-    ctx,
-  )) as Prisma.MarketingLeadWhereInput;
+  const scope = (await buildMarketingLeadScopeFilter(ctx)) as Prisma.MarketingLeadWhereInput;
   return prisma.marketingLead.findMany({
     where: {
       AND: [
         scope,
         { level: { in: ["SOURCING", "CLOSING", "OPERATIONS"] } },
         {
-          OR: [
-            { temperature: "HOT" },
-            { priority: { in: ["HIGH", "URGENT"] } },
-          ],
+          OR: [{ temperature: "HOT" }, { priority: { in: ["HIGH", "URGENT"] } }],
         },
       ],
     },
@@ -1343,9 +1259,7 @@ export async function getUpcomingFollowUps(
 ): Promise<MarketingLeadWithAssignee[]> {
   const now = new Date();
   const until = new Date(now.getTime() + days * 24 * 60 * 60 * 1000);
-  const scope = (await buildMarketingLeadScopeFilter(
-    ctx,
-  )) as Prisma.MarketingLeadWhereInput;
+  const scope = (await buildMarketingLeadScopeFilter(ctx)) as Prisma.MarketingLeadWhereInput;
   return prisma.marketingLead.findMany({
     where: {
       AND: [

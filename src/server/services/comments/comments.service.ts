@@ -47,10 +47,7 @@ function parseMentions(body: string): string[] {
   return Array.from(ids);
 }
 
-async function verifyOrgMembers(
-  organizationId: string,
-  userIds: string[],
-): Promise<string[]> {
+async function verifyOrgMembers(organizationId: string, userIds: string[]): Promise<string[]> {
   if (userIds.length === 0) return [];
   const members = await prisma.member.findMany({
     where: { organizationId, userId: { in: userIds } },
@@ -169,13 +166,8 @@ export async function createComment(input: {
     throw DomainErrors.validation("Komentar je predugačak (max 4000 znakova).");
   }
 
-  const mentionCandidates = parseMentions(trimmed).filter(
-    (id) => id !== input.actorUserId,
-  );
-  const verifiedMentions = await verifyOrgMembers(
-    input.organizationId,
-    mentionCandidates,
-  );
+  const mentionCandidates = parseMentions(trimmed).filter((id) => id !== input.actorUserId);
+  const verifiedMentions = await verifyOrgMembers(input.organizationId, mentionCandidates);
 
   const created = await prisma.comment.create({
     data: {

@@ -9,18 +9,15 @@ export function SocialProof() {
   const t = useT();
 
   return (
-    <section
-      aria-labelledby="proof-title"
-      className="bg-white"
-    >
-      <div className="container-app py-16 sm:py-20">
+    <section aria-labelledby="proof-title" className="bg-white">
+      <div className="container-app py-16 sm:py-24">
         <div className="max-w-3xl">
-          <div className="text-xs font-semibold uppercase tracking-wider text-[var(--color-brand-700)]">
+          <div className="text-xs font-semibold tracking-[0.18em] text-[#9a7430] uppercase">
             {t("marketing.proof.eyebrow")}
           </div>
           <h2
             id="proof-title"
-            className="mt-2 text-3xl font-semibold tracking-tight sm:text-4xl"
+            className="font-display mt-3 text-4xl font-semibold tracking-tight text-[#0b1020] sm:text-5xl"
           >
             {t("marketing.proof.title")}
           </h2>
@@ -30,7 +27,7 @@ export function SocialProof() {
         </div>
 
         <div className="mt-10">
-          <div className="mb-3 text-xs font-semibold uppercase tracking-wider text-[var(--color-foreground-subtle)]">
+          <div className="mb-3 text-xs font-semibold tracking-wider text-[var(--color-foreground-subtle)] uppercase">
             {t("marketing.proof.pilots")}
           </div>
           <div className="rounded-2xl border border-dashed border-[var(--color-border)] bg-[var(--color-surface-muted)] px-5 py-6 sm:px-8">
@@ -39,7 +36,7 @@ export function SocialProof() {
             </p>
             <a
               href="/demo"
-              className="mt-4 inline-flex text-sm font-semibold text-[var(--color-brand-700)] hover:underline"
+              className="mt-4 inline-flex text-sm font-semibold text-[#0b1020] underline decoration-[#d6b26a] decoration-2 underline-offset-4 hover:text-[#9a7430]"
             >
               {t("marketing.proof.pilotsCta")}
             </a>
@@ -58,21 +55,19 @@ export function SocialProof() {
 function FounderCard() {
   const t = useT();
   return (
-    <article className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-6 shadow-sm sm:p-8">
+    <article className="rounded-3xl border border-[var(--color-border)] bg-[#f7f3ea] p-6 sm:p-8">
       <div className="flex flex-col gap-6 sm:flex-row sm:items-start">
         <div
           aria-hidden
-          className="grid h-28 w-28 flex-none place-items-center overflow-hidden rounded-2xl bg-gradient-to-br from-[var(--color-brand-500)] to-[var(--color-brand-800)] text-4xl font-bold text-white ring-1 ring-[var(--color-border)]"
+          className="font-display grid h-28 w-28 flex-none place-items-center overflow-hidden rounded-2xl bg-[#0b1020] text-4xl text-[#f3e2bc]"
         >
           MB
         </div>
         <div className="min-w-0">
-          <div className="text-xs font-semibold uppercase tracking-wider text-[var(--color-brand-700)]">
+          <div className="text-xs font-semibold tracking-[0.16em] text-[#9a7430] uppercase">
             {t("marketing.proof.founder")}
           </div>
-          <h3 className="mt-1 text-xl font-bold text-[var(--color-foreground)]">
-            Marko Banović
-          </h3>
+          <h3 className="font-display mt-1 text-2xl font-semibold text-[#0b1020]">Marko Banović</h3>
           <p className="mt-3 text-sm leading-relaxed text-[var(--color-foreground-muted)]">
             {t("marketing.proof.founderBio")}
           </p>
@@ -80,7 +75,7 @@ function FounderCard() {
             <li>
               <a
                 href={`mailto:${COMPANY.email}`}
-                className="inline-flex items-center gap-1.5 font-medium text-[var(--color-brand-700)] hover:underline"
+                className="inline-flex items-center gap-1.5 font-medium text-[#0b1020] underline decoration-[#d6b26a] decoration-2 underline-offset-4 hover:text-[#9a7430]"
               >
                 <Mail aria-hidden className="size-4" />
                 {COMPANY.email}
@@ -89,7 +84,7 @@ function FounderCard() {
             <li>
               <a
                 href="tel:+381654363142"
-                className="inline-flex items-center gap-1.5 font-medium text-[var(--color-brand-700)] hover:underline"
+                className="inline-flex items-center gap-1.5 font-medium text-[#0b1020] underline decoration-[#d6b26a] decoration-2 underline-offset-4 hover:text-[#9a7430]"
               >
                 <Phone aria-hidden className="size-4" />
                 +381 65 43 63 142
@@ -105,37 +100,35 @@ function FounderCard() {
 function CompanyCard() {
   const t = useT();
   return (
-    <article className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-brand-50)] p-6 shadow-sm sm:p-8">
+    <article className="rounded-3xl bg-[#0b1020] p-6 text-[#f7f3ea] sm:p-8">
       <div className="flex items-start gap-3">
         <span
           aria-hidden
-          className="grid h-10 w-10 flex-none place-items-center rounded-lg bg-[var(--color-brand-600)] text-white"
+          className="grid size-10 flex-none place-items-center rounded-xl bg-[#d6b26a]/20 text-[#f3e2bc]"
         >
           <Building2 className="size-5" />
         </span>
         <div>
-          <div className="text-xs font-semibold uppercase tracking-wider text-[var(--color-brand-700)]">
+          <div className="text-xs font-semibold tracking-[0.16em] text-[#d6b26a] uppercase">
             {t("marketing.proof.behind")}
           </div>
-          <h3 className="mt-1 text-xl font-bold text-[var(--color-foreground)]">
-            CraftedPixel
-          </h3>
+          <h3 className="font-display mt-1 text-2xl font-semibold">CraftedPixel</h3>
         </div>
       </div>
-      <p className="mt-4 text-sm leading-relaxed text-[var(--color-foreground-muted)]">
+      <p className="mt-4 text-sm leading-relaxed text-white/65">
         {t("marketing.proof.companyBio")}
       </p>
-      <div className="mt-5 flex flex-wrap items-center gap-3 text-xs text-[var(--color-foreground-muted)]">
+      <div className="mt-5 flex flex-wrap items-center gap-3 text-xs text-white/70">
         <span className="inline-flex items-center gap-1.5">
-          <ShieldCheck aria-hidden className="size-4 text-[var(--color-brand-700)]" />
+          <ShieldCheck aria-hidden className="size-4 text-[#d6b26a]" />
           {t("marketing.proof.dataEu")}
         </span>
         <span className="inline-flex items-center gap-1.5">
-          <ShieldCheck aria-hidden className="size-4 text-[var(--color-brand-700)]" />
+          <ShieldCheck aria-hidden className="size-4 text-[#d6b26a]" />
           {t("marketing.proof.encryption")}
         </span>
         <span className="inline-flex items-center gap-1.5">
-          <ShieldCheck aria-hidden className="size-4 text-[var(--color-brand-700)]" />
+          <ShieldCheck aria-hidden className="size-4 text-[#d6b26a]" />
           {t("marketing.proof.audit")}
         </span>
       </div>

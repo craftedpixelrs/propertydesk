@@ -51,8 +51,7 @@ export const LOOPS_FORM_ID = publicEnv.NEXT_PUBLIC_LOOPS_FORM_ID ?? "";
  * `BookingEmbed` component renders a fallback CTA pointing to the lead
  * form. Server + client safe.
  */
-export const GOOGLE_APPOINTMENT_URL =
-  publicEnv.NEXT_PUBLIC_GOOGLE_APPOINTMENT_URL ?? "";
+export const GOOGLE_APPOINTMENT_URL = publicEnv.NEXT_PUBLIC_GOOGLE_APPOINTMENT_URL ?? "";
 
 /**
  * Public URL of the product overview video (YouTube or `.mp4`). Empty
@@ -66,6 +65,12 @@ export const PRODUCT_VIDEO_URL = publicEnv.NEXT_PUBLIC_PRODUCT_VIDEO_URL ?? "";
  * If you change it, also update the FAQ and offer banner copy.
  */
 export const LAUNCH_DATE_ISO = "2026-10-15";
+
+/**
+ * Stable "last updated" date for sitemap `lastmod`. Do not use
+ * `new Date()` per request — that tells Google every crawl is a new edit.
+ */
+export const MARKETING_CONTENT_UPDATED = "2026-10-03";
 
 /**
  * Human-readable launch date used across marketing copy. Kept next to

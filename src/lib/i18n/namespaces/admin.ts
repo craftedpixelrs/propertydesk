@@ -13,10 +13,19 @@ export const adminSr = {
   users: "Korisnici",
   plans: "Planovi",
   rolesNav: "Uloge i dozvole (aplikacija i platforma)",
-  rolesNavTitle:
-    "Sloj A — Platforma (SUPER_ADMIN) i Sloj B — Aplikacione uloge u organizaciji",
+  rolesNavTitle: "Sloj A — Platforma (SUPER_ADMIN) i Sloj B — Aplikacione uloge u organizaciji",
   audit: "Revizija",
   monitoring: "Monitoring",
+  twoFactorPolicy: {
+    title: "Obavezna dvofaktorska prijava",
+    hint: "Kad je uključeno, nijedan korisnik ne može da nastavi dok ne podesi 2FA na svom nalogu.",
+    on: "Obavezno za sve korisnike",
+    off: "Nije obavezno",
+    enable: "Učini obaveznim",
+    disable: "Isključi obavezu",
+    needOwn: "Prvo uključite 2FA na svom nalogu, pa tek onda obavezu za ostale.",
+    saved: "Pravilo je sačuvano.",
+  },
   propertyDeskTeam: "Property Desk (tim)",
   propertyDeskTeamTitle:
     "Property Desk operativni tim: marketing pipeline, tim i lead-ovi za SaaS.",
@@ -84,8 +93,7 @@ export const adminSr = {
   openCount: "({{count}} otvorenih)",
   statusHint: "Status: {{status}}",
   durationSeconds: "{{seconds}}s",
-  jobResult:
-    "{{processed}} obr., {{success}} usp., {{errors}} gr., {{skipped}} pres.",
+  jobResult: "{{processed}} obr., {{success}} usp., {{errors}} gr., {{skipped}} pres.",
   jobTriggerWithUser: "{{trigger}} ({{email}})",
   confidencePct: "({{pct}}%)",
   defaultSuffix: " · podrazumevan",
@@ -233,7 +241,7 @@ export const adminSr = {
     subtitle:
       "SaaS planovi koje organizacije mogu da izaberu pri aktivaciji. Ekonomski parametri se koriste u fakturisanju, kvote se koriste za ograničenje broja projekata, jedinica, članova, itd.",
     newPlan: "+ Novi plan",
-    empty: "Još uvek nema kreiranih planova. Kliknite „Novi plan\" da napravite prvi.",
+    empty: 'Još uvek nema kreiranih planova. Kliknite „Novi plan" da napravite prvi.',
     maxProjects: "Aktivnih projekata: {{value}}",
     maxUnits: "Jedinica: {{value}}",
     maxUsers: "Korisnika: {{value}}",
@@ -252,7 +260,7 @@ export const adminSr = {
     intro1:
       "Ekran uređuje tri sloja autorizacije: Sloj A — Platforma (rola SUPER_ADMIN: pristup celoj platformi), Sloj B — Aplikacija (org role poput SALES_MANAGER, AGENCY_ADMIN: šta član radi unutar svoje organizacije) i Sloj C — Property Desk (interni SaaS tim: SETTER / CLOSER / OPERATIONS / MANAGER — dozvole nad pd_* resursima). Sva tri sloja se uređuju sa istog mesta: promeni rolu u padajućem meniju i onda ćeliju u tabeli.",
     intro2:
-      "Podrazumevane dozvole dolaze iz koda (fajl roles.ts). Sve izmene se pamte u bazi kao „override\" i mogu se u svakom trenutku vratiti na podrazumevano.",
+      'Podrazumevane dozvole dolaze iz koda (fajl roles.ts). Sve izmene se pamte u bazi kao „override" i mogu se u svakom trenutku vratiti na podrazumevano.',
     legendAllowed: "Dozvoljeno (podrazumevano)",
     legendDenied: "Zabranjeno (podrazumevano)",
     legendOverride: "Ručno postavljeno (override) — možeš vratiti na podrazumevano.",
@@ -327,15 +335,14 @@ export const adminSr = {
     role: "Uloga",
     assignPd: "Property Desk tim (interni marketing SaaS-a)",
     platformAdmin: "Platformski SUPER_ADMIN",
-    needOne:
-      "Izaberite bar jedno: organizaciju, Property Desk tim, ili SUPER_ADMIN.",
+    needOne: "Izaberite bar jedno: organizaciju, Property Desk tim, ili SUPER_ADMIN.",
     success: "Korisnik je dodat.",
     failed: "Dodavanje korisnika nije uspelo.",
   },
 
   impersonate: {
     confirm:
-      "Ulogovaćete se kao \"{{name}}\". Sve radnje u sledećih 60 min biće upisane u revizijski zapis pod Vašim imenom kao pokretačem. Nastaviti?",
+      'Ulogovaćete se kao "{{name}}". Sve radnje u sledećih 60 min biće upisane u revizijski zapis pod Vašim imenom kao pokretačem. Nastaviti?',
     failed: "Impersonacija nije uspela.",
     title: "Uloguj se kao ovaj korisnik",
     button: "Uloguj se kao",
@@ -372,7 +379,7 @@ export const adminSr = {
     public: "Javno dostupan",
     publicHint: "Prikazuje se na javnoj stranici sa cenama.",
     recommended: "Preporučeno",
-    recommendedHint: "Dobija „preporučeno\" oznaku u prikazu planova.",
+    recommendedHint: 'Dobija „preporučeno" oznaku u prikazu planova.',
     abandon: "Odustani",
     create: "Kreiraj plan",
   },
@@ -387,15 +394,14 @@ export const adminSr = {
     archiveBtn: "Arhiviraj",
     restoreBtn: "Vrati u upotrebu",
     deleteTitle: "Trajno obriši",
-    deleteOk:
-      "Ovaj plan nema pretplata ni faktura — može se obrisati trajno. Nema povratka.",
+    deleteOk: "Ovaj plan nema pretplata ni faktura — može se obrisati trajno. Nema povratka.",
     deleteBlocked:
       "Ne može se obrisati: {{subs}} pretplata i {{invoices}} istorijskih faktura koriste ovaj plan. Umesto brisanja, arhivirajte.",
     deleteBtn: "Trajno obriši",
     deleteTitleOk: "Trajno obriši plan",
     deleteTitleBlocked: "Plan ima referencirane pretplate ili fakture.",
     confirm:
-      "Obrisati plan „{{name}}\" trajno? Ova akcija je nepovratna. Ako plan ima istoriju, koristite arhiviranje umesto brisanja.",
+      'Obrisati plan „{{name}}" trajno? Ova akcija je nepovratna. Ako plan ima istoriju, koristite arhiviranje umesto brisanja.',
   },
 
   newOrg: {
@@ -417,12 +423,14 @@ export const adminSr = {
     website: "Sajt",
     contactEmail: "Kontakt email",
     trialDays: "Trajanje probnog perioda (dana)",
-    trialDaysHintActive:
-      "Preostalo do {{date}}. Promena broja dana pomera kraj perioda od danas.",
+    trialDaysHintActive: "Kraj perioda {{date}}. Broj dana važi od datuma početka aktivacije.",
     trialDaysHintExpired:
-      "Istekao {{date}}. Prvobitno {{days}} dana. Unesite nove dane da produžite od danas.",
+      "Istekao {{date}}. Prvobitno {{days}} dana. Novi broj dana kreće od datuma početka aktivacije.",
     trialDaysHintNone:
-      "Nema sačuvanog probnog perioda. Unesite dane da ga pokrenete.",
+      "Nema sačuvanog kraja. Unesite dane — računaju se od datuma početka aktivacije.",
+    activatesAt: "Datum početka aktivacije",
+    activatesAtHint:
+      "Pre ovog datuma članovi ne mogu da koriste nalog. Probni period se računa od ponoći tog dana (Beograd).",
     agencyPartnerNote:
       "Agencija nema pretplatu. Besplatan je partner portal — vidi projekte tek kad je investitor pozove.",
     create: "Kreiraj organizaciju",
@@ -453,8 +461,7 @@ export const adminSr = {
     deny: "Zabrani",
     defaultBtn: "Podrazumevano",
     defaultTitle: "Ukloni override, vrati na podrazumevano",
-    resetConfirm:
-      "Vratiti sve dozvole role „{{role}}\" na podrazumevane vrednosti?",
+    resetConfirm: 'Vratiti sve dozvole role „{{role}}" na podrazumevane vrednosti?',
     layers: {
       platformTitle: "Platformski sloj (nalog · pretplata)",
       platformDesc:
@@ -484,6 +491,7 @@ export const adminSr = {
     project: "Projekti",
     inventory: "Jedinice / zalihe",
     lead: "Kupci / lidovi (tenant)",
+    buyer: "Kupci · lični podaci",
     reservation: "Rezervacije",
     sale: "Prodaje",
     payment: "Uplate",
@@ -509,28 +517,25 @@ export const adminSr = {
     organization: {
       manage:
         "Uređivanje osnovnih podataka i podešavanja organizacije (naziv, brendiranje, konfiguracija).",
-      "members:manage":
-        "Pozivanje i uklanjanje članova organizacije i dodela njihovih rola.",
-      suspend:
-        "Privremeno suspendovanje (zaključavanje) organizacije i njenog pristupa.",
+      "members:manage": "Pozivanje i uklanjanje članova organizacije i dodela njihovih rola.",
+      suspend: "Privremeno suspendovanje (zaključavanje) organizacije i njenog pristupa.",
       read: "Pregled podataka i podešavanja organizacije.",
+      export: "Preuzimanje JSON izvoza podataka organizacije.",
+      templates: "Dodatni pasusi u pismima koja idu kupcu.",
     },
     project: {
       create: "Kreiranje novih projekata.",
       read: "Pregled projekata i njihovih detalja.",
       update: "Izmena podataka postojećeg projekta.",
       delete: "Trajno brisanje projekta.",
-      archive:
-        "Arhiviranje projekta — sklanja se iz aktivnog prikaza bez brisanja podataka.",
+      archive: "Arhiviranje projekta — sklanja se iz aktivnog prikaza bez brisanja podataka.",
     },
     inventory: {
       read: "Pregled jedinica i trenutnog stanja zaliha.",
-      manage:
-        "Puno upravljanje jedinicama (kreiranje, izmena i brisanje) — krovna dozvola.",
+      manage: "Puno upravljanje jedinicama (kreiranje, izmena i brisanje) — krovna dozvola.",
       price: "Izmena cena jedinica bez pomeranja jedinice kroz prodajni tok.",
       status: "Promena statusa jedinice (dostupna, rezervisana, prodata i sl.).",
-      reopen_sold:
-        "Ponovno otvaranje već prodate jedinice i njeno vraćanje u prodaju.",
+      reopen_sold: "Ponovno otvaranje već prodate jedinice i njeno vraćanje u prodaju.",
       import: "Uvoz jedinica iz fajla (Excel/CSV).",
       export: "Izvoz jedinica u fajl.",
       bulk: "Masovne izmene nad više jedinica odjednom.",
@@ -538,6 +543,9 @@ export const adminSr = {
     lead: {
       read: "Pregled kupaca i potencijalnih kupaca (lidova).",
       manage: "Kreiranje i izmena kupaca/lidova i njihovih podataka.",
+    },
+    buyer: {
+      anonymize: "Brisanje ličnih podataka kupca, uz zadržan trag da je anonimizacija urađena.",
     },
     reservation: {
       create: "Kreiranje nove rezervacije nad jedinicom.",
@@ -548,6 +556,10 @@ export const adminSr = {
     sale: {
       read: "Pregled prodaja i njihovih detalja.",
       manage: "Upravljanje prodajama (kreiranje, izmena, storniranje).",
+      dossier: "Dosije prodaje (PDF) i ZIP svih dokumenata te prodaje.",
+      handover: "Upis liste primopredaje (ključevi, brojila, nedostaci, prisutni).",
+      buyer_link: "Pravljenje javnog linka na kome kupac vidi rate i šalje dokaz uplate.",
+      settlement: "Stavke konačnog obračuna (umanjenja i uvećanja).",
     },
     payment: {
       read: "Pregled uplata.",
@@ -561,6 +573,7 @@ export const adminSr = {
     commission: {
       read: "Pregled provizija.",
       manage: "Obračun i izmena provizija.",
+      statement: "PDF obračun provizije za investitora ili agenciju.",
     },
     document: {
       read: "Pregled dokumenata (ugovori, aneksi, PDF-ovi).",
@@ -573,12 +586,9 @@ export const adminSr = {
       read: "Pregled revizijskog dnevnika (audit log).",
     },
     platform: {
-      "organization:manage":
-        "Upravljanje svim organizacijama na platformi (super-admin).",
-      impersonate:
-        "Preuzimanje identiteta drugog korisnika radi podrške i dijagnostike.",
-      "user:manage":
-        "Upravljanje korisničkim nalozima na nivou cele platforme.",
+      "organization:manage": "Upravljanje svim organizacijama na platformi (super-admin).",
+      impersonate: "Preuzimanje identiteta drugog korisnika radi podrške i dijagnostike.",
+      "user:manage": "Upravljanje korisničkim nalozima na nivou cele platforme.",
     },
     billing: {
       read: "Pregled sopstvene naplate (pretplata i fakture tenanta).",
@@ -606,8 +616,7 @@ export const adminSr = {
       jobs: { run: "Ručno pokretanje automatskih poslova naplate." },
       template: { manage: "Upravljanje šablonima (email/dokument) u naplati." },
       profile: {
-        manage:
-          "Upravljanje profilom izdavaoca (podaci firme za fakturisanje).",
+        manage: "Upravljanje profilom izdavaoca (podaci firme za fakturisanje).",
       },
       bankaccount: { manage: "Upravljanje bankovnim računima za naplatu." },
     },
@@ -617,8 +626,7 @@ export const adminSr = {
       "set-role": "Interno (Better Auth): dodela role korisniku.",
       ban: "Interno (Better Auth): banovanje korisnika.",
       impersonate: "Interno (Better Auth): preuzimanje identiteta korisnika.",
-      "impersonate-admins":
-        "Interno (Better Auth): preuzimanje identiteta administratora.",
+      "impersonate-admins": "Interno (Better Auth): preuzimanje identiteta administratora.",
       delete: "Interno (Better Auth): brisanje korisnika.",
       "set-password": "Interno (Better Auth): postavljanje lozinke korisnika.",
       "set-email": "Interno (Better Auth): postavljanje email adrese korisnika.",
@@ -744,7 +752,7 @@ export const adminSr = {
   settingsPage: {
     title: "Globalna podešavanja naplate",
     subtitle:
-      "Ova podešavanja važe za sve organizacije, sem ako pojedinačna organizacija ima override. Master prekidač \"Naplata aktivna\" onemogućava sve automatske poslove.",
+      'Ova podešavanja važe za sve organizacije, sem ako pojedinačna organizacija ima override. Master prekidač "Naplata aktivna" onemogućava sve automatske poslove.',
     togglesTitle: "Prekidači automatizacije",
     invoiceInRsd: "Fakturiši u dinarskoj protivvrednosti (podrazumevano)",
     defaultsTitle: "Podrazumevane vrednosti",
@@ -799,8 +807,7 @@ export const adminSr = {
     match: "Upari",
     ignore: "Ignoriši",
     ignoreReason: "Razlog za ignorisanje?",
-    importedOk:
-      "Uvezeno {{count}} transakcija. Uparivanje se pokreće automatski u pozadini.",
+    importedOk: "Uvezeno {{count}} transakcija. Uparivanje se pokreće automatski u pozadini.",
   },
 
   templates: {
@@ -839,7 +846,7 @@ export const adminSr = {
     showPlain: "Prikaži plain-text verziju",
     sendTest: "Pošalji test poruku",
     sendTestHint:
-      "Šalje se sa trenutnim (nesnimljenim) sadržajem i mock varijablama. Naslov će biti obeležen sa oznakom \"[TEST]\".",
+      'Šalje se sa trenutnim (nesnimljenim) sadržajem i mock varijablama. Naslov će biti obeležen sa oznakom "[TEST]".',
     emailAddress: "Email adresa",
     emailPlaceholder: "ime@primer.rs",
     sendTestBtn: "Pošalji test",
@@ -892,8 +899,7 @@ export const adminSr = {
     sefKey: "SEF API ključ",
     sefKeySet: "Postavljen ({{masked}})",
     sefKeyUnset: "Nije postavljen",
-    sefKeyHint:
-      "Ostavi prazno da zadržiš postojeći ključ. Sačuvano se šifruje AES-256-GCM.",
+    sefKeyHint: "Ostavi prazno da zadržiš postojeći ključ. Sačuvano se šifruje AES-256-GCM.",
     fieldRequired: "{{field}} je obavezno.",
   },
 
@@ -923,9 +929,9 @@ export const adminSr = {
   exchangeRates: {
     title: "Kursna lista (EUR / RSD)",
     subtitle:
-      "Ručno održavana lista srednjeg kursa. Prilikom izdavanja fakture domaćem klijentu (organizacije sa uključenom opcijom „Fakturiši u dinarskoj protivvrednosti\"), sistem uzima najnoviji kurs čiji je datum važenja pre ili jednak datumu izdavanja fakture.",
+      'Ručno održavana lista srednjeg kursa. Prilikom izdavanja fakture domaćem klijentu (organizacije sa uključenom opcijom „Fakturiši u dinarskoj protivvrednosti"), sistem uzima najnoviji kurs čiji je datum važenja pre ili jednak datumu izdavanja fakture.',
     nbsNote:
-      "Napomena: automatsko povlačenje sa NBS-a nije aktivno. Ako kasnije uključimo integraciju, ovde će se pojavljivati i redovi sa izvorom „NBS\".",
+      'Napomena: automatsko povlačenje sa NBS-a nije aktivno. Ako kasnije uključimo integraciju, ovde će se pojavljivati i redovi sa izvorom „NBS".',
     effectiveDate: "Datum važenja",
     rateLabel: "1 EUR = ? RSD",
     ratePlaceholder: "npr. 117.25",
@@ -936,8 +942,7 @@ export const adminSr = {
     colSource: "Izvor",
     colNote: "Napomena",
     colAction: "Akcija",
-    empty:
-      "Nema unetih kurseva. Dodajte prvi kurs kako biste omogućili dinarske fakture.",
+    empty: "Nema unetih kurseva. Dodajte prvi kurs kako biste omogućili dinarske fakture.",
     sourceManual: "Ručno",
     sourceNbs: "NBS",
     invalidRate: "Kurs mora biti pozitivan broj (npr. 117.25).",
@@ -1074,7 +1079,7 @@ export const adminSr = {
     byAudience: "Po publici",
     hotLeads: "Hot lead-ovi",
     all: "Svi",
-    noHot: "Nema „hot\" lead-ova u vašem opsegu.",
+    noHot: 'Nema „hot" lead-ova u vašem opsegu.',
     followUp7: "Follow-up narednih 7 dana",
     noFollowUp: "Nema zakazanih follow-up-ova u narednih 7 dana.",
     recentLeads: "Poslednji lead-ovi",
@@ -1121,7 +1126,7 @@ export const adminSr = {
     allStages: "— sve faze —",
     allAudiences: "— sve publike —",
     allPriorities: "— svi prioriteti —",
-    allGrades: "— svi „grade\" —",
+    allGrades: '— svi „grade" —',
     allTimelines: "— svi timeline-ovi —",
     allOwners: "— svi vlasnici —",
     assignedToMe: "Meni dodeljeno",
@@ -1134,11 +1139,11 @@ export const adminSr = {
     overdueTask: "Overdue task",
     sourcePlaceholder: "Izvor (npr. landing, manual)",
     handoffTitle: "Predaja uspela",
-    handoffLost:
-      "Lead je označen kao izgubljen i arhiviran. Više nije u tvom aktivnom pipeline-u.",
+    handoffLost: "Lead je označen kao izgubljen i arhiviran. Više nije u tvom aktivnom pipeline-u.",
     handoffWon:
       "Lead je konvertovan i prešao u L3 Operations. Handover je uspeo — više nije u tvom pipeline-u.",
-    handoffOther: "Lead je prebačen u fazu „{{stage}}”{{level}} i predat sledećem timu u pool. To je uspešna predaja, ne greška.",
+    handoffOther:
+      "Lead je prebačen u fazu „{{stage}}”{{level}} i predat sledećem timu u pool. To je uspešna predaja, ne greška.",
     handoffLevel: " ({{level}})",
     hideMessage: "Sakrij poruku",
   },
@@ -1203,10 +1208,10 @@ export const adminSr = {
   },
 
   pdEditor: {
-    stageChanged: "Faza promenjena na „{{stage}}\".",
+    stageChanged: 'Faza promenjena na „{{stage}}".',
     pickStage: "Odaberite ciljni stage.",
     reopenReasonRequired: "Razlog vraćanja je obavezan (minimum 3 znaka).",
-    stageReopened: "Faza vraćena/skočila na „{{stage}}\".",
+    stageReopened: 'Faza vraćena/skočila na „{{stage}}".',
     assigneeSaved: "Dodela sačuvana.",
     claimed: "Lead je tvoj.",
     classificationSaved: "Klasifikacija sačuvana.",
@@ -1271,8 +1276,7 @@ export const adminSr = {
     unassigned: "— Neraspoređeno —",
     saveOwner: "Sačuvaj vlasnika",
     assignedToYouLong: "Lead je dodeljen tebi.",
-    assignedOther:
-      "Dodeljen: {{name}}. Preraspodela zahteva pd_lead.reassign.",
+    assignedOther: "Dodeljen: {{name}}. Preraspodela zahteva pd_lead.reassign.",
     otherMember: "drugom članu",
     ownershipHint:
       "Kad lead pređe u sledeći level, sistem ga automatski vraća u pool (neraspoređen). Bilo ko u tom levelu može da ga uzme sebi — dodela drugom članu ostaje menadžerska.",
@@ -1314,12 +1318,12 @@ export const adminSr = {
 
   pdProvision: {
     tenantOrg: "Tenant organizacija",
-    linked: "Lead je vezan za {{name}}. Vlasnik dalje upravlja članovima i pristupom iz svog naloga.",
+    linked:
+      "Lead je vezan za {{name}}. Vlasnik dalje upravlja članovima i pristupom iz svog naloga.",
     linkedFallback: "organizaciju",
     pickExisting: "Izaberite postojeću organizaciju.",
     linkFailed: "Povezivanje sa organizacijom nije uspelo.",
-    audienceFirst:
-      "Prvo postavite publiku na Investitor ili Agencija — polje se zatim zaključava.",
+    audienceFirst: "Prvo postavite publiku na Investitor ili Agencija — polje se zatim zaključava.",
     passwordMin: "Lozinka vlasnika mora imati najmanje 10 karaktera.",
     pickPlan: "Izaberite paket (plan).",
     createFailed: "Kreiranje organizacije nije uspelo.",
@@ -1337,7 +1341,8 @@ export const adminSr = {
     linkOrg: "Veži za organizaciju",
     audienceWarn:
       "Publika mora biti Investitor ili Agencija pre kreiranja organizacije. Postavite je u kartici Kontakt — nakon toga se zaključava.",
-    typeLocked: "Tip organizacije je zaključan prema publici: {{type}}. Vlasnik dobija ulogu {{role}}.",
+    typeLocked:
+      "Tip organizacije je zaključan prema publici: {{type}}. Vlasnik dobija ulogu {{role}}.",
     orgName: "Naziv organizacije",
     slug: "Slug",
     legalName: "Pravni naziv",
@@ -1349,13 +1354,14 @@ export const adminSr = {
     plan: "Paket",
     noPlans: "— nema aktivnih planova —",
     trialDays: "Probni period (dana)",
+    activatesAt: "Datum početka aktivacije",
+    activatesAtHint: "Pre ovog datuma nalog nije aktivan. Dani trial-a kreću od tog datuma.",
     agencyPartnerNote:
       "Agencija se kreira bez paketa i bez trial-a. Pristup investitorovim projektima ide samo preko poziva.",
     ownerAgency: "Vlasnik agencije",
     ownerInvestor: "Vlasnik (investitor)",
     ownerHeading: "Vlasnik naloga · {{role}}",
-    ownerHint:
-      "On se prijavljuje ovim nalogom i dalje sam dodaje članove sa potrebnim pristupom.",
+    ownerHint: "On se prijavljuje ovim nalogom i dalje sam dodaje članove sa potrebnim pristupom.",
     ownerName: "Ime",
     ownerEmail: "E-mail",
     ownerPassword: "Početna lozinka (min. 10 karaktera)",
@@ -1442,9 +1448,18 @@ export const adminEn: Leaves<typeof adminSr> = {
     "Layer A — Platform (SUPER_ADMIN) and Layer B — application roles in the organization",
   audit: "Audit",
   monitoring: "Monitoring",
+  twoFactorPolicy: {
+    title: "Mandatory two-factor sign-in",
+    hint: "When this is on, no user can continue until they set up 2FA on their account.",
+    on: "Required for every user",
+    off: "Not required",
+    enable: "Make it required",
+    disable: "Turn the requirement off",
+    needOwn: "Turn on 2FA on your own account first, then require it for everyone else.",
+    saved: "Rule saved.",
+  },
   propertyDeskTeam: "Property Desk (team)",
-  propertyDeskTeamTitle:
-    "Property Desk operations team: marketing pipeline, team, and SaaS leads.",
+  propertyDeskTeamTitle: "Property Desk operations team: marketing pipeline, team, and SaaS leads.",
   leads: "Leads",
   team: "Team",
   system: "system",
@@ -1509,13 +1524,11 @@ export const adminEn: Leaves<typeof adminSr> = {
   openCount: "({{count}} open)",
   statusHint: "Status: {{status}}",
   durationSeconds: "{{seconds}}s",
-  jobResult:
-    "{{processed}} proc., {{success}} ok, {{errors}} err., {{skipped}} skip.",
+  jobResult: "{{processed}} proc., {{success}} ok, {{errors}} err., {{skipped}} skip.",
   jobTriggerWithUser: "{{trigger}} ({{email}})",
   confidencePct: "({{pct}}%)",
   defaultSuffix: " · default",
-  importedTx:
-    "Imported {{count}} transactions. Matching starts automatically in the background.",
+  importedTx: "Imported {{count}} transactions. Matching starts automatically in the background.",
   rateDisplay: "1 {{base}} = {{rate}} {{quote}}",
   convertedOrg: "· converted to organization {{id}}",
   duePrefix: "Due: {{date}}",
@@ -1760,7 +1773,7 @@ export const adminEn: Leaves<typeof adminSr> = {
 
   impersonate: {
     confirm:
-      "You will sign in as \"{{name}}\". All actions in the next 60 minutes will be written to the audit log with you as the initiator. Continue?",
+      'You will sign in as "{{name}}". All actions in the next 60 minutes will be written to the audit log with you as the initiator. Continue?',
     failed: "Impersonation failed.",
     title: "Sign in as this user",
     button: "Sign in as",
@@ -1843,10 +1856,14 @@ export const adminEn: Leaves<typeof adminSr> = {
     contactEmail: "Contact email",
     trialDays: "Trial length (days)",
     trialDaysHintActive:
-      "Remaining until {{date}}. Changing the number moves the end date from today.",
+      "Period ends {{date}}. The number of days is counted from the activation date.",
     trialDaysHintExpired:
-      "Expired on {{date}}. Originally {{days}} days. Enter new days to extend from today.",
-    trialDaysHintNone: "No trial is stored. Enter days to start one.",
+      "Expired on {{date}}. Originally {{days}} days. A new number of days starts from the activation date.",
+    trialDaysHintNone:
+      "No end date is stored. Enter days — they are counted from the activation date.",
+    activatesAt: "Activation start date",
+    activatesAtHint:
+      "Members cannot use the account before this date. The trial is counted from midnight that day (Belgrade).",
     agencyPartnerNote:
       "Agencies have no subscription. This is a free partner portal — they see projects only after an investor invites them.",
     create: "Create organization",
@@ -1907,6 +1924,7 @@ export const adminEn: Leaves<typeof adminSr> = {
     project: "Projects",
     inventory: "Units / inventory",
     lead: "Buyers / leads (tenant)",
+    buyer: "Buyers · personal data",
     reservation: "Reservations",
     sale: "Sales",
     payment: "Payments",
@@ -1930,12 +1948,12 @@ export const adminEn: Leaves<typeof adminSr> = {
 
   permHelp: {
     organization: {
-      manage:
-        "Edit the organization’s basic data and settings (name, branding, configuration).",
-      "members:manage":
-        "Invite and remove organization members and assign their roles.",
+      manage: "Edit the organization’s basic data and settings (name, branding, configuration).",
+      "members:manage": "Invite and remove organization members and assign their roles.",
       suspend: "Temporarily suspend (lock) the organization and its access.",
       read: "View organization data and settings.",
+      export: "Download the organization data as JSON.",
+      templates: "Extra paragraphs in emails sent to the buyer.",
     },
     project: {
       create: "Create new projects.",
@@ -1958,6 +1976,9 @@ export const adminEn: Leaves<typeof adminSr> = {
       read: "View buyers and prospective buyers (leads).",
       manage: "Create and edit buyers/leads and their data.",
     },
+    buyer: {
+      anonymize: "Erase a buyer’s personal data and keep a record that the erasure happened.",
+    },
     reservation: {
       create: "Create a new reservation on a unit.",
       approve: "Approve a reservation waiting for confirmation.",
@@ -1967,6 +1988,11 @@ export const adminEn: Leaves<typeof adminSr> = {
     sale: {
       read: "View sales and their details.",
       manage: "Manage sales (create, edit, reverse).",
+      dossier: "Sale dossier (PDF) and a ZIP of that sale’s documents.",
+      handover: "Record the handover checklist (keys, meters, defects, attendees).",
+      buyer_link:
+        "Create the public link where the buyer sees installments and sends proof of payment.",
+      settlement: "Final settlement lines (deductions and surcharges).",
     },
     payment: {
       read: "View payments.",
@@ -1980,6 +2006,7 @@ export const adminEn: Leaves<typeof adminSr> = {
     commission: {
       read: "View commissions.",
       manage: "Calculate and edit commissions.",
+      statement: "PDF commission statement for the developer or the agency.",
     },
     document: {
       read: "View documents (contracts, annexes, PDFs).",
@@ -2056,18 +2083,14 @@ export const adminEn: Leaves<typeof adminSr> = {
         "Deactivate / reactivate a team member. A deactivated member loses access to the Property Desk area.",
     },
     pd_lead: {
-      view_own:
-        "View leads within their own `leadScope` (mine + unassigned, by assignment).",
-      view_team:
-        "View all leads in the pipeline, regardless of `leadScope` (manager visibility).",
+      view_own: "View leads within their own `leadScope` (mine + unassigned, by assignment).",
+      view_team: "View all leads in the pipeline, regardless of `leadScope` (manager visibility).",
       create: "Manually create a new marketing lead.",
       reassign:
         "Change a lead’s owner — move it between team members. Claiming a free (unassigned) lead for yourself does not require this permission.",
       update_stage: "Move a lead through the pipeline (NEW → … → WON/LOST).",
-      update_details:
-        "Edit a lead’s contact fields (name/phone/city/audience/source/notes).",
-      convert:
-        "Convert a lead into a real tenant organization (`stage=WON` + organization link).",
+      update_details: "Edit a lead’s contact fields (name/phone/city/audience/source/notes).",
+      convert: "Convert a lead into a real tenant organization (`stage=WON` + organization link).",
       delete: "Permanently delete a lead from the database.",
       bulk: "Bulk operations on a lead selection (assign, stage change, mark LOST).",
     },
@@ -2213,8 +2236,7 @@ export const adminEn: Leaves<typeof adminSr> = {
     match: "Match",
     ignore: "Ignore",
     ignoreReason: "Reason for ignoring?",
-    importedOk:
-      "Imported {{count}} transactions. Matching starts automatically in the background.",
+    importedOk: "Imported {{count}} transactions. Matching starts automatically in the background.",
   },
 
   templates: {
@@ -2222,11 +2244,9 @@ export const adminEn: Leaves<typeof adminSr> = {
     subtitle:
       "All templates use a shared branded layout and a safe variable whitelist. Inactive templates do not block sending — the built-in default is used instead.",
     groupSubscription: "Subscription",
-    groupSubscriptionDesc:
-      "Subscription lifecycle — trial, activation, changes, restrictions.",
+    groupSubscriptionDesc: "Subscription lifecycle — trial, activation, changes, restrictions.",
     groupInvoice: "Invoice",
-    groupInvoiceDesc:
-      "Events for individual invoices — issue, PDF, payment, reversal.",
+    groupInvoiceDesc: "Events for individual invoices — issue, PDF, payment, reversal.",
     groupReminder: "Reminder",
     groupReminderDesc:
       "Automatic reminders for unpaid invoices — from a gentle note to a final notice.",
@@ -2253,7 +2273,7 @@ export const adminEn: Leaves<typeof adminSr> = {
     showPlain: "Show plain-text version",
     sendTest: "Send a test message",
     sendTestHint:
-      "Sent with the current (unsaved) content and mock variables. The subject will be marked with \"[TEST]\".",
+      'Sent with the current (unsaved) content and mock variables. The subject will be marked with "[TEST]".',
     emailAddress: "Email address",
     emailPlaceholder: "name@example.com",
     sendTestBtn: "Send test",
@@ -2350,8 +2370,7 @@ export const adminEn: Leaves<typeof adminSr> = {
     colSource: "Source",
     colNote: "Note",
     colAction: "Action",
-    empty:
-      "No rates yet. Add the first rate to enable dinar invoices.",
+    empty: "No rates yet. Add the first rate to enable dinar invoices.",
     sourceManual: "Manual",
     sourceNbs: "NBS",
     invalidRate: "The rate must be a positive number (e.g. 117.25).",
@@ -2548,8 +2567,7 @@ export const adminEn: Leaves<typeof adminSr> = {
     overdueTask: "Overdue task",
     sourcePlaceholder: "Source (e.g. landing, manual)",
     handoffTitle: "Handoff succeeded",
-    handoffLost:
-      "The lead was marked lost and archived. It is no longer in your active pipeline.",
+    handoffLost: "The lead was marked lost and archived. It is no longer in your active pipeline.",
     handoffWon:
       "The lead was converted and moved to L3 Operations. The handoff succeeded — it is no longer in your pipeline.",
     handoffOther:
@@ -2629,8 +2647,7 @@ export const adminEn: Leaves<typeof adminSr> = {
     contactSaved: "Contact & decision saved.",
     qualificationSaved: "Qualification saved.",
     markedLost: "Marked as lost.",
-    orgCreated:
-      "Organization created. Owner {{email}} can sign in and add more members.",
+    orgCreated: "Organization created. Owner {{email}} can sign in and add more members.",
     leadLinked: "The lead is linked to an organization.",
     stage: "Stage:",
     score: "Score",
@@ -2733,8 +2750,7 @@ export const adminEn: Leaves<typeof adminSr> = {
     linkedFallback: "an organization",
     pickExisting: "Choose an existing organization.",
     linkFailed: "Could not link to the organization.",
-    audienceFirst:
-      "Set audience to Investor or Agency first — the field then locks.",
+    audienceFirst: "Set audience to Investor or Agency first — the field then locks.",
     passwordMin: "The owner password must be at least 10 characters.",
     pickPlan: "Choose a plan.",
     createFailed: "Could not create the organization.",
@@ -2765,13 +2781,14 @@ export const adminEn: Leaves<typeof adminSr> = {
     plan: "Plan",
     noPlans: "— no active plans —",
     trialDays: "Trial period (days)",
+    activatesAt: "Activation start date",
+    activatesAtHint: "The account is off before this date. Trial days start from it.",
     agencyPartnerNote:
       "The agency is created without a plan or trial. Access to an investor’s projects comes only from an invite.",
     ownerAgency: "Agency owner",
     ownerInvestor: "Owner (investor)",
     ownerHeading: "Account owner · {{role}}",
-    ownerHint:
-      "They sign in with this account and add further members with the access they need.",
+    ownerHint: "They sign in with this account and add further members with the access they need.",
     ownerName: "Name",
     ownerEmail: "Email",
     ownerPassword: "Initial password (min. 10 characters)",

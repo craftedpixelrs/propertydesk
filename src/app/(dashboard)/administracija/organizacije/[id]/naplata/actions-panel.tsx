@@ -43,14 +43,11 @@ export function SubscriptionActionsPanel(props: SubscriptionActionsPanelProps) {
   async function post(action: string, body: Record<string, unknown>) {
     setBusy(true);
     try {
-      const res = await fetch(
-        `/api/v1/billing/subscriptions/${props.subscriptionId}/${action}`,
-        {
-          method: "POST",
-          headers: { "content-type": "application/json" },
-          body: JSON.stringify(body),
-        },
-      );
+      const res = await fetch(`/api/v1/billing/subscriptions/${props.subscriptionId}/${action}`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(body),
+      });
       if (!res.ok) {
         const j = await res.json().catch(() => ({}));
         alert(
@@ -125,17 +122,18 @@ export function SubscriptionActionsPanel(props: SubscriptionActionsPanelProps) {
           <Button
             disabled={busy || !props.canIssueInvoice}
             onClick={() => post("issue-invoice", {})}
-            title={
-              props.canIssueInvoice
-                ? undefined
-                : t("admin.orgBilling.issueInvoiceDone")
-            }
+            title={props.canIssueInvoice ? undefined : t("admin.orgBilling.issueInvoiceDone")}
           >
             {t("admin.orgBilling.issueInvoice")}
           </Button>
         </div>
 
-        <ChangePlanForm plans={props.plans} currentPlanCode={props.currentPlanCode} onSubmit={post} busy={busy} />
+        <ChangePlanForm
+          plans={props.plans}
+          currentPlanCode={props.currentPlanCode}
+          onSubmit={post}
+          busy={busy}
+        />
         <ChangeCycleForm currentCycle={props.currentCycle} onSubmit={post} busy={busy} />
         <ExtendTrialForm onSubmit={post} busy={busy} />
       </CardContent>
@@ -166,7 +164,8 @@ function ChangePlanForm({
       >
         {plans.map((p) => (
           <option key={p.id} value={p.id}>
-            {p.name} ({p.code}) {p.code === currentPlanCode ? t("admin.orgBilling.currentPlan") : ""}
+            {p.name} ({p.code}){" "}
+            {p.code === currentPlanCode ? t("admin.orgBilling.currentPlan") : ""}
           </option>
         ))}
       </select>
@@ -252,9 +251,7 @@ function ExtendTrialForm({
       />
       <Button
         disabled={busy || !reason.trim() || Number(days) <= 0}
-        onClick={() =>
-          onSubmit("extend-trial", { days: Number(days), reason: reason.trim() })
-        }
+        onClick={() => onSubmit("extend-trial", { days: Number(days), reason: reason.trim() })}
       >
         {t("admin.orgBilling.extendTrial")}
       </Button>

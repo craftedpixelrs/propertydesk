@@ -32,17 +32,14 @@ describe("withLogoCacheBust", () => {
   });
 
   it("appends a version query to the public logo route", () => {
-    expect(
-      withLogoCacheBust("/api/v1/public/organization-logo/org_1", new Date(1000)),
-    ).toBe("/api/v1/public/organization-logo/org_1?v=1000");
+    expect(withLogoCacheBust("/api/v1/public/organization-logo/org_1", new Date(1000))).toBe(
+      "/api/v1/public/organization-logo/org_1?v=1000",
+    );
   });
 
   it("appends a version query after an existing variant param", () => {
     expect(
-      withLogoCacheBust(
-        "/api/v1/public/organization-logo/org_1?variant=light",
-        new Date(1000),
-      ),
+      withLogoCacheBust("/api/v1/public/organization-logo/org_1?variant=light", new Date(1000)),
     ).toBe("/api/v1/public/organization-logo/org_1?variant=light&v=1000");
   });
 });

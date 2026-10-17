@@ -42,11 +42,7 @@ async function isBillingMasterEnabled(): Promise<boolean> {
   }
 }
 
-function toResult(summary: {
-  status: string;
-  summary: BillingJobSummary;
-  durationMs: number;
-}) {
+function toResult(summary: { status: string; summary: BillingJobSummary; durationMs: number }) {
   return {
     processed: summary.summary.processed ?? 0,
     updated: summary.summary.succeeded ?? 0,
@@ -209,9 +205,7 @@ ensure("billing-extend-subscriptions", () =>
       const result = await runBillingJob(
         "EXTEND_SUBSCRIPTIONS" satisfies BillingJobType,
         async (): Promise<BillingJobSummary> => {
-          const { reconcileSubscriptionExtensions } = await import(
-            "./extend-subscriptions"
-          );
+          const { reconcileSubscriptionExtensions } = await import("./extend-subscriptions");
           const s = await reconcileSubscriptionExtensions();
           return {
             processed: s.considered,
@@ -245,9 +239,7 @@ ensure("billing-sync-sef", () =>
       const result = await runBillingJob(
         "SYNC_SEF" satisfies BillingJobType,
         async (): Promise<BillingJobSummary> => {
-          const { retrySefSubmissions } = await import(
-            "../electronic-invoice/service"
-          );
+          const { retrySefSubmissions } = await import("../electronic-invoice/service");
           const s = await retrySefSubmissions();
           return {
             processed: s.considered,
@@ -281,9 +273,7 @@ ensure("billing-match-payments", () =>
       const result = await runBillingJob(
         "MATCH_PAYMENTS" satisfies BillingJobType,
         async (): Promise<BillingJobSummary> => {
-          const { autoMatchPendingBankTransactions } = await import(
-            "../bank-statement/service"
-          );
+          const { autoMatchPendingBankTransactions } = await import("../bank-statement/service");
           const s = await autoMatchPendingBankTransactions();
           return {
             processed: s.considered,

@@ -76,7 +76,7 @@ export default async function UplatePage({ searchParams }: PageProps) {
           <CardContent>
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-[var(--color-border)] text-sm">
-                <thead className="text-left text-xs uppercase tracking-wide text-[var(--color-foreground-muted)]">
+                <thead className="text-left text-xs tracking-wide text-[var(--color-foreground-muted)] uppercase">
                   <tr>
                     <th className="py-2 pr-3">{t("common.date")}</th>
                     <th className="py-2 pr-3">{t("deals.unit")}</th>
@@ -99,13 +99,9 @@ export default async function UplatePage({ searchParams }: PageProps) {
                         </Link>
                       </td>
                       <td className="py-2 pr-3">
-                        {p.sale?.buyer
-                          ? `${p.sale.buyer.firstName} ${p.sale.buyer.lastName}`
-                          : "—"}
+                        {p.sale?.buyer ? `${p.sale.buyer.firstName} ${p.sale.buyer.lastName}` : "—"}
                       </td>
-                      <td className="py-2 pr-3">
-                        {paymentMethodLabel(p.paymentMethod, t)}
-                      </td>
+                      <td className="py-2 pr-3">{paymentMethodLabel(p.paymentMethod, t)}</td>
                       <td className="py-2 pr-3 text-right font-medium">
                         {formatMoney(p.amount.toString(), p.currency as SupportedCurrency)}
                       </td>

@@ -31,9 +31,7 @@ const TYPE_KEY: Record<string, TranslationKey> = {
   AGENCY: "organization.types.agency",
 };
 
-export default async function PlatformOrganizationsPage({
-  searchParams,
-}: PageProps) {
+export default async function PlatformOrganizationsPage({ searchParams }: PageProps) {
   await requireSuperAdmin();
   const params = await searchParams;
   const page = Number.parseInt(params.page ?? "1", 10) || 1;
@@ -45,21 +43,14 @@ export default async function PlatformOrganizationsPage({
     search: params.q,
     type: (params.type as "INVESTOR" | "AGENCY" | undefined) ?? undefined,
     status:
-      (params.status as
-        | "TRIAL"
-        | "ACTIVE"
-        | "RESTRICTED"
-        | "SUSPENDED"
-        | "CLOSED"
-        | undefined) ?? undefined,
+      (params.status as "TRIAL" | "ACTIVE" | "RESTRICTED" | "SUSPENDED" | "CLOSED" | undefined) ??
+      undefined,
   });
 
   return (
     <section className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h2 className="text-lg font-semibold">
-          {t("admin.orgsPage.title", { total })}
-        </h2>
+        <h2 className="text-lg font-semibold">{t("admin.orgsPage.title", { total })}</h2>
         <Button asChild size="sm">
           <Link href="/administracija/organizacije/nova">
             <Plus className="size-4" /> {t("admin.orgsPage.newOrg")}
@@ -110,7 +101,7 @@ export default async function PlatformOrganizationsPage({
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
-                <thead className="text-left text-xs uppercase text-[var(--color-foreground-subtle)]">
+                <thead className="text-left text-xs text-[var(--color-foreground-subtle)] uppercase">
                   <tr>
                     <th className="border-b border-[var(--color-border)] px-4 py-2">
                       {t("admin.orgsPage.colName")}
@@ -183,18 +174,10 @@ export default async function PlatformOrganizationsPage({
                           ? t("ops.org.agencyPartnerTitle")
                           : (row.planName ?? t("admin.dash"))}
                       </td>
-                      <td className="px-4 py-2 text-right tabular-nums">
-                        {row.memberCount}
-                      </td>
-                      <td className="px-4 py-2 text-right tabular-nums">
-                        {row.projectCount}
-                      </td>
-                      <td className="px-4 py-2 text-right tabular-nums">
-                        {row.unitCount}
-                      </td>
-                      <td className="px-4 py-2 text-xs">
-                        {formatDate(row.createdAt)}
-                      </td>
+                      <td className="px-4 py-2 text-right tabular-nums">{row.memberCount}</td>
+                      <td className="px-4 py-2 text-right tabular-nums">{row.projectCount}</td>
+                      <td className="px-4 py-2 text-right tabular-nums">{row.unitCount}</td>
+                      <td className="px-4 py-2 text-xs">{formatDate(row.createdAt)}</td>
                       <td className="px-4 py-2">
                         <div className="flex flex-wrap gap-2">
                           <Link

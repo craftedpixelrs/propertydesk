@@ -209,8 +209,10 @@
                   "NO_ACTIVE_ORGANIZATION",
                   "ORGANIZATION_ACCESS_DENIED",
                   "ORGANIZATION_SUSPENDED",
+                  "ORGANIZATION_NOT_ACTIVE",
                   "ORGANIZATION_RESTRICTED",
                   "PLATFORM_ADMIN_REQUIRED",
+                  "TWO_FACTOR_SETUP_REQUIRED",
                   "VALIDATION_ERROR",
                   "NOT_FOUND",
                   "CONFLICT",
@@ -547,7 +549,7 @@
           "auth"
         ],
         "summary": "Prijava email + lozinka",
-        "description": "**Auth:** `Better Auth (javne auth rute / session cookie)`\nVraća session cookie (`__Secure-propertydesk.session_token` u\nprodukciji; `propertydesk.session_token` lokalno — HttpOnly,\nSameSite=Lax) i user objekat. `requireEmailVerification: true`\nznači da se ne može ući dok email nije potvrđen.\n\n**Swagger Try it out:** Authorize ne može da setuje HttpOnly cookie.\nPozovi ovaj endpoint iz Swaggera na istom originu — browser će sam\nsačuvati Set-Cookie i koristiti ga za sledeće pozive.\n",
+        "description": "**Auth:** `Better Auth (javne auth rute / session cookie)`\nVraća session cookie (`__Secure-propertydesk.session_token` u\nprodukciji; `propertydesk.session_token` lokalno — HttpOnly,\nSameSite=Lax) i user objekat. `requireEmailVerification: true`\nznači da se ne može ući dok email nije potvrđen.\n\nTri pogrešne lozinke zaključavaju nalog: 30 min, pa 1h, 6h, 12h,\n24h, zatim suspenzija dok SUPER_ADMIN ne odblokira\n(`/administracija/korisnici` ili SQL na `user.loginLockLevel`).\n\n**Swagger Try it out:** Authorize ne može da setuje HttpOnly cookie.\nPozovi ovaj endpoint iz Swaggera na istom originu — browser će sam\nsačuvati Set-Cookie i koristiti ga za sledeće pozive.\n",
         "security": [],
         "requestBody": {
           "required": true,
@@ -625,6 +627,9 @@
           },
           "401": {
             "description": "Nalog nije pronađen ili lozinka ne odgovara (Better Auth)."
+          },
+          "403": {
+            "description": "Nalog je zaključan ili suspendovan zbog pogrešnih prijava."
           },
           "422": {
             "description": "Ulaz nije validan (npr. prekratka lozinka, loš email format).",
@@ -1213,6 +1218,44 @@
         }
       }
     },
+    "/api/v1/agencies/connection-requests/{id}/respond": {
+      "post": {
+        "tags": [
+          "agencies"
+        ],
+        "summary": "Prihvati ili odbij zahtev agencije",
+        "description": "**Auth:** `requirePermission(\"agency.manage\")` + INVESTOR org\n",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/agencies/connection-requests": {
+      "get": {
+        "tags": [
+          "agencies"
+        ],
+        "summary": "Dolazni zahtevi agencija",
+        "description": "**Auth:** `requirePermission(\"agency.read\")` + INVESTOR org\n",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/api/v1/agencies": {
       "get": {
         "tags": [
@@ -1384,6 +1427,56 @@
         }
       }
     },
+    "/api/v1/agency/connection-requests/{id}/cancel": {
+      "post": {
+        "tags": [
+          "agency"
+        ],
+        "summary": "Otkaži zahtev za saradnju",
+        "description": "**Auth:** `requirePermission(\"organization.members:manage\")` + AGENCY org\n",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/agency/connection-requests": {
+      "get": {
+        "tags": [
+          "agency"
+        ],
+        "summary": "Zahtevi agencije za saradnju",
+        "description": "**Auth:** `requirePermission(\"agency.read\")` + AGENCY org\n",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "agency"
+        ],
+        "summary": "Pošalji zahtev investitoru",
+        "description": "**Auth:** `requirePermission(\"organization.members:manage\")` + AGENCY org + VERIFIED\n",
+        "responses": {
+          "201": {
+            "description": "Created"
+          }
+        }
+      }
+    },
     "/api/v1/agency/connections/{id}/respond": {
       "post": {
         "tags": [
@@ -1435,6 +1528,26 @@
         "responses": {
           "200": {
             "description": "OK\n"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthenticated"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/agency/network-catalog": {
+      "get": {
+        "tags": [
+          "agency"
+        ],
+        "summary": "Teaser katalog mreže investitora",
+        "description": "**Auth:** `requirePermission(\"agency.read\")` + AGENCY org\nVraća samo projekte sa `networkCatalogEnabled`. Nema lista stanova.\n",
+        "responses": {
+          "200": {
+            "description": "OK"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -2064,6 +2177,36 @@
         "responses": {
           "200": {
             "description": "\nOK\n"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthenticated"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/billing/subscriptions/{id}/issue-invoice": {
+      "post": {
+        "tags": [
+          "billing"
+        ],
+        "summary": "Issue the current subscription invoice now",
+        "description": "**Auth:** `requireSuperAdmin() — platform SUPER_ADMIN`\n",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -2723,7 +2866,7 @@
           "comments"
         ],
         "summary": "Delete comments",
-        "description": "**Auth:** `requirePermission(\"buyer.read\") + requirePermission(\"sale.read\")`\n",
+        "description": "**Auth:** `requirePermission(\"lead.read\") + requirePermission(\"sale.read\")`\n",
         "parameters": [
           {
             "in": "path",
@@ -2753,7 +2896,7 @@
           "comments"
         ],
         "summary": "List / read comments",
-        "description": "**Auth:** `requirePermission(\"buyer.read\") + requirePermission(\"sale.read\")`\n",
+        "description": "**Auth:** `requirePermission(\"lead.read\") + requirePermission(\"sale.read\")`\n",
         "responses": {
           "200": {
             "description": "OK\n"
@@ -2773,7 +2916,7 @@
           "comments"
         ],
         "summary": "List / read comments",
-        "description": "**Auth:** `requirePermission(permissionForEntity(...)) — Buyer→\"buyer.read\", Sale→\"sale.read\"`\n",
+        "description": "**Auth:** `requirePermission(permissionForEntity(...)) — Buyer→\"lead.read\", Sale→\"sale.read\"`\n",
         "responses": {
           "200": {
             "description": "OK\n"
@@ -2791,7 +2934,7 @@
           "comments"
         ],
         "summary": "Create comments",
-        "description": "**Auth:** `requirePermission(permissionForEntity(...)) — Buyer→\"buyer.read\", Sale→\"sale.read\"`\n",
+        "description": "**Auth:** `requirePermission(permissionForEntity(...)) — Buyer→\"lead.read\", Sale→\"sale.read\"`\n",
         "requestBody": {
           "required": true,
           "content": {
@@ -3355,6 +3498,46 @@
         }
       }
     },
+    "/api/v1/geo/geocode": {
+      "get": {
+        "tags": [
+          "projects"
+        ],
+        "summary": "Geocode an address in a city",
+        "description": "**Auth:** `requirePermission(\"project.read\")`\n",
+        "responses": {
+          "200": {
+            "description": "Coordinates"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthenticated"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/geo/suggest": {
+      "get": {
+        "tags": [
+          "projects"
+        ],
+        "summary": "Suggest city, municipality, or street",
+        "description": "**Auth:** `requirePermission(\"project.read\")`\n",
+        "responses": {
+          "200": {
+            "description": "Suggestion list"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthenticated"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          }
+        }
+      }
+    },
     "/api/v1/health/ready": {
       "get": {
         "tags": [
@@ -3461,7 +3644,62 @@
         }
       }
     },
+    "/api/v1/me/email": {
+      "post": {
+        "tags": [
+          "me"
+        ],
+        "summary": "Request own email change",
+        "description": "**Auth:** sesija. Šalje potvrdu na trenutnu adresu. Nije dozvoljeno tokom impersonacije.\n",
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthenticated"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/me/password": {
+      "post": {
+        "tags": [
+          "me"
+        ],
+        "summary": "Change own password",
+        "description": "**Auth:** sesija. Nije dozvoljeno tokom impersonacije.\n",
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthenticated"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          }
+        }
+      }
+    },
     "/api/v1/me": {
+      "patch": {
+        "tags": [
+          "me"
+        ],
+        "summary": "Update current user preferences",
+        "description": "**Auth:** sesija. `locale`, `theme` i/ili `name`.\n",
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthenticated"
+          }
+        }
+      },
       "get": {
         "tags": [
           "me"
@@ -3631,6 +3869,32 @@
           },
           "403": {
             "$ref": "#/components/responses/Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/organization/logo": {
+      "post": {
+        "tags": [
+          "organization"
+        ],
+        "summary": "Upload organization logo",
+        "description": "**Auth:** `requirePermission(\"organization.manage\")`\n",
+        "responses": {
+          "201": {
+            "description": "OK"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "organization"
+        ],
+        "summary": "Remove organization logo",
+        "description": "**Auth:** `requirePermission(\"organization.manage\")`\n",
+        "responses": {
+          "200": {
+            "description": "OK"
           }
         }
       }
@@ -4064,7 +4328,7 @@
           "pdf"
         ],
         "summary": "List / read pdf",
-        "description": "**Auth:** `requirePermission(\"commission.read\")`\n",
+        "description": "**Auth:** `requirePermission(\"commission.statement\")`\n",
         "responses": {
           "200": {
             "description": "OK\n"
@@ -4104,7 +4368,7 @@
           "pdf"
         ],
         "summary": "List / read pdf",
-        "description": "**Auth:** `requirePermission(\"sale.read\")`\n",
+        "description": "**Auth:** `requirePermission(\"sale.dossier\")`\n",
         "parameters": [
           {
             "in": "path",
@@ -4210,6 +4474,75 @@
         }
       }
     },
+    "/api/v1/platform/organizations/{id}": {
+      "get": {
+        "tags": [
+          "platform"
+        ],
+        "summary": "Read one organization (platform admin)",
+        "description": "**Auth:** `requireSuperAdmin()`\n",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthenticated"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "platform"
+        ],
+        "summary": "Update organization profile, plan and status",
+        "description": "**Auth:** `requireSuperAdmin()`\n",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthenticated"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          }
+        }
+      }
+    },
     "/api/v1/platform/organizations/{id}/status": {
       "patch": {
         "tags": [
@@ -4247,6 +4580,30 @@
           },
           "403": {
             "$ref": "#/components/responses/Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/platform/organizations/{id}/verification": {
+      "post": {
+        "tags": [
+          "platform"
+        ],
+        "summary": "Verifikacija agencije",
+        "description": "**Auth:** `requireSuperAdmin()`\n",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
           }
         }
       }
@@ -4459,13 +4816,147 @@
         }
       }
     },
+    "/api/v1/platform/property-desk/lead-tasks/{id}/complete": {
+      "post": {
+        "tags": [
+          "platform-property-desk"
+        ],
+        "summary": "Označi task kao završen ili ponovo otvoren",
+        "description": "**Auth:** `requirePropertyDeskAccess() + pd_lead_task.complete`\n",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "completed": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "completed"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/platform/property-desk/lead-tasks/{id}": {
+      "patch": {
+        "tags": [
+          "platform-property-desk"
+        ],
+        "summary": "Izmena taska nad marketing lead-om",
+        "description": "**Auth:** `requirePropertyDeskAccess() + pd_lead_task.create`.\nAko se `assignedToUserId` menja u nekoga ko nije pozivalac,\ndodatno se traži `pd_lead_task.assign`.\n",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/platform/property-desk/leads/{id}/activities": {
+      "get": {
+        "tags": [
+          "platform-property-desk"
+        ],
+        "summary": "Timeline aktivnosti marketing lead-a",
+        "description": "**Auth:** `requirePropertyDeskAccess() + pd_lead_activity.read`\n",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "platform-property-desk"
+        ],
+        "summary": "Ručno dodaj aktivnost (poziv/email/meeting/note)",
+        "description": "**Auth:** `requirePropertyDeskAccess() + pd_lead_activity.create + canViewMarketingLead(lead)`\n",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Kreirano"
+          }
+        }
+      }
+    },
     "/api/v1/platform/property-desk/leads/{id}/convert": {
       "post": {
         "tags": [
           "platform-property-desk"
         ],
         "summary": "Konvertuj marketing lead u tenant organizaciju",
-        "description": "**Auth:** `requirePropertyDeskAccess() + canViewMarketingLead(lead)`\n\nPostavlja `stage=WON`, `convertedOrganizationId`, `convertedAt` i\nupisuje audit red `marketing_lead.converted`.\n",
+        "description": "**Auth:** `requirePropertyDeskAccess() + pd_lead.convert + canViewMarketingLead(lead)`\n\nDva moda (tačno jedan):\n1. `organizationId` — veži postojeći tenant. Default: CLOSER,\n   OPERATIONS, MANAGER, SUPER_ADMIN.\n2. `createOrganization` — napravi novi tenant + vlasnika najvišeg\n   stepena (`INVESTOR_OWNER` / `AGENCY_OWNER` iz zaključane\n   publike) i veži lead. Samo SUPER_ADMIN i OPERATIONS. Tip\n   organizacije i paket se uzimaju iz lead-a / `planCode`.\n\nOba moda postavljaju `stage=WON`, `convertedOrganizationId`,\n`convertedAt`. Ako lead još nije bio u L3, auto-unassign ide u\nOperations pool.\n",
         "parameters": [
           {
             "in": "path",
@@ -4485,11 +4976,11 @@
                 "properties": {
                   "organizationId": {
                     "type": "string"
+                  },
+                  "createOrganization": {
+                    "type": "object"
                   }
-                },
-                "required": [
-                  "organizationId"
-                ]
+                }
               }
             }
           }
@@ -4582,13 +5073,101 @@
         }
       }
     },
+    "/api/v1/platform/property-desk/leads/{id}/tasks": {
+      "get": {
+        "tags": [
+          "platform-property-desk"
+        ],
+        "summary": "Lista taskova nad lead-om",
+        "description": "**Auth:** `requirePropertyDeskAccess() + pd_lead_task.read + canViewMarketingLead(lead)`\n",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "platform-property-desk"
+        ],
+        "summary": "Kreiraj task nad lead-om",
+        "description": "**Auth:** `requirePropertyDeskAccess() + pd_lead_task.create + canViewMarketingLead(lead)`.\nAko se `assignedToUserId` razlikuje od pozivaoca, dodatno se traži `pd_lead_task.assign`.\n",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Kreirano"
+          }
+        }
+      }
+    },
+    "/api/v1/platform/property-desk/leads/bulk": {
+      "post": {
+        "tags": [
+          "platform-property-desk"
+        ],
+        "summary": "Bulk operacije nad marketing lead-ovima",
+        "description": "**Auth:** `requirePropertyDeskAccess() + pd_lead.bulk`; dodatno:\n- `assign` traži `pd_lead.reassign`\n- `stage` i `lost` traže `pd_lead.update_stage`\n\nLead-ovi van vidljivog `leadScope` pozivaoca se preskaču (`skipped`).\n",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthenticated"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          }
+        }
+      }
+    },
     "/api/v1/platform/property-desk/leads": {
       "get": {
         "tags": [
           "platform-property-desk"
         ],
         "summary": "Lista marketing lead-ova (scope-filtered)",
-        "description": "**Auth:** `requirePropertyDeskAccess() — SUPER_ADMIN ili aktivan property_desk_team_member`\n\nRezultat je filtriran prema `leadScope` člana tima. SUPER_ADMIN i\nMANAGER vide sve. Parametar `assignedTo=me` filtrira po korisniku,\n`assignedTo=unassigned` po neraspoređenim lead-ovima.\n",
+        "description": "**Auth:** `requirePropertyDeskAccess() — SUPER_ADMIN ili aktivan property_desk_team_member`\n\nRezultat je filtriran prema `leadScope` člana tima ili `pd_lead.view_team`.\nParametar `assignedTo=me` filtrira po korisniku, `assignedTo=unassigned`\nvraća lead-ove bez vlasnika, a `hasOverdueTask=1` samo one koji imaju\nnezavršen task čiji je `dueAt` u prošlosti.\n",
         "parameters": [
           {
             "in": "query",
@@ -4607,6 +5186,27 @@
           {
             "in": "query",
             "name": "assignedTo",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "source",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "utmSource",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "hasOverdueTask",
             "schema": {
               "type": "string"
             }
@@ -4644,6 +5244,75 @@
             "$ref": "#/components/responses/Forbidden"
           }
         }
+      },
+      "post": {
+        "tags": [
+          "platform-property-desk"
+        ],
+        "summary": "Ručno kreiraj marketing lead",
+        "description": "**Auth:** `requirePropertyDeskAccess() + pd_lead.create`\n\nDuplikat email-a vraća `409 CONFLICT` sa `context.existingLeadId`.\nAko `assignedToUserId` nije prosleđen, dodela ide na pozivaoca (osim\nza SUPER_ADMIN — njima ostaje neraspoređeno).\n",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Kreirano"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthenticated"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "409": {
+            "description": "Postoji lead sa istim email-om"
+          }
+        }
+      }
+    },
+    "/api/v1/platform/property-desk/tasks": {
+      "get": {
+        "tags": [
+          "platform-property-desk"
+        ],
+        "summary": "Cross-lead lista taskova (dashboard tabovi)",
+        "description": "**Auth:** `requirePropertyDeskAccess() + pd_lead_task.read`\n\n`view` određuje šta se vraća:\n- `MINE_OPEN` — moji nezavršeni taskovi\n- `MINE_OVERDUE` — moji taskovi sa `dueAt < now()` bez `completedAt`\n- `OPEN` — svi nezavršeni u okviru `leadScope`\n- `OVERDUE` — svi overdue u okviru `leadScope`\n- `ALL` — svi taskovi u `leadScope`\n\nSa `counts=1` vraća brojače za dashboard tile-ove (bez liste).\n",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "view",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "counts",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
       }
     },
     "/api/v1/platform/property-desk/team/{id}": {
@@ -4652,7 +5321,7 @@
           "platform-property-desk"
         ],
         "summary": "Ažuriraj člana Property Desk tima",
-        "description": "**Auth:** `requirePropertyDeskAccess() + (SUPER_ADMIN || teamRole=MANAGER)`\n\nPromenu `teamRole` polja može izvršiti samo SUPER_ADMIN.\n",
+        "description": "**Auth:** `requirePropertyDeskAccess()` plus field-level:\n- `teamRole` polje traži `pd_team.manage_role`\n- `leadScope` polje traži `pd_team.manage_scope`\n- `enabled` polje traži `pd_team.disable`\n- `notes` (bez ostalih polja) traži `pd_team.view`\n\nPo default-u sve gore su SUPER_ADMIN, ali se mogu delegirati kroz\n/administracija/role.\n",
         "parameters": [
           {
             "in": "path",
@@ -4691,7 +5360,7 @@
           "platform-property-desk"
         ],
         "summary": "Ukloni člana Property Desk tima",
-        "description": "**Auth:** `requireSuperAdmin() — platform SUPER_ADMIN`\n",
+        "description": "**Auth:** `requirePropertyDeskAccess() + pd_team.add_member` (default: SUPER_ADMIN).\n",
         "parameters": [
           {
             "in": "path",
@@ -4721,7 +5390,7 @@
           "platform-property-desk"
         ],
         "summary": "Lista članova Property Desk internog tima",
-        "description": "**Auth:** `requirePropertyDeskAccess() + (SUPER_ADMIN || teamRole=MANAGER)`\n\nSa `?addable=1` vraća korisnike koji još nisu u timu — dostupno\nsamo SUPER_ADMIN-u za formu dodavanja novog člana.\n",
+        "description": "**Auth:** `requirePropertyDeskAccess() + pd_team.view`\n\nSa `?addable=1` vraća korisnike koji još nisu u timu — dostupno\nsamo pozivaocu sa `pd_team.add_member` (default: SUPER_ADMIN).\n",
         "responses": {
           "200": {
             "description": "OK"
@@ -4739,7 +5408,7 @@
           "platform-property-desk"
         ],
         "summary": "Dodaj korisnika u Property Desk tim",
-        "description": "**Auth:** `requireSuperAdmin() — platform SUPER_ADMIN`\n",
+        "description": "**Auth:** `requirePropertyDeskAccess() + pd_team.add_member` (default: SUPER_ADMIN).\n",
         "requestBody": {
           "required": true,
           "content": {
@@ -4875,7 +5544,7 @@
           "platform"
         ],
         "summary": "Ažuriraj nalog korisnika platforme",
-        "description": "**Auth:** `requireSuperAdmin() — platform SUPER_ADMIN`\n\nMenja nalog (ime, e-mail, verifikacija, ban, platformska uloga) i\nopciono članstvo u Property Desk internom timu (Sloj C). Aplikacione\nuloge unutar tenanta (Sloj B) se ne menjaju ovde.\n",
+        "description": "**Auth:** `requireSuperAdmin() — platform SUPER_ADMIN`\n\nMenja nalog (ime, e-mail, verifikacija, ban, odblokada prijave,\nplatformska uloga) i\nopciono članstvo u Property Desk internom timu (Sloj C). Aplikacione\nuloge unutar tenanta (Sloj B) se ne menjaju ovde.\n",
         "parameters": [
           {
             "in": "path",
@@ -4909,6 +5578,40 @@
           },
           "409": {
             "description": "E-mail je već zauzet"
+          }
+        }
+      }
+    },
+    "/api/v1/platform/users": {
+      "post": {
+        "tags": [
+          "platform"
+        ],
+        "summary": "Kreiraj nalog i dodeli ga organizaciji i/ili Property Desk timu",
+        "description": "**Auth:** `requireSuperAdmin() — platform SUPER_ADMIN`\n\nAko nalog sa tim e-mailom već postoji, dodaje se u izabranu\norganizaciju / Property Desk tim umesto da se pravi duplikat.\n",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Kreirano"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthenticated"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "409": {
+            "description": "Korisnik je već član"
           }
         }
       }
@@ -5104,6 +5807,45 @@
       }
     },
     "/api/v1/projects/{id}/units/import": {
+      "get": {
+        "tags": [
+          "projects"
+        ],
+        "summary": "Preuzmi šablon za uvoz jedinica",
+        "description": "**Auth:** `requirePermission(\"inventory.import\")`\nVraća CSV ili XLSX sa kanonskim kolonama i primer redovima.\n",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "format",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "csv",
+                "xlsx"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Fajl šablona"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthenticated"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          }
+        }
+      },
       "post": {
         "tags": [
           "projects"
@@ -5134,6 +5876,26 @@
         "responses": {
           "200": {
             "description": "OK\n"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthenticated"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/projects/cover": {
+      "post": {
+        "tags": [
+          "projects"
+        ],
+        "summary": "Upload a project cover photo",
+        "description": "**Auth:** `requirePermission(\"project.update\")` or `project.create`\n",
+        "responses": {
+          "201": {
+            "description": "Public cover path"
           },
           "401": {
             "$ref": "#/components/responses/Unauthenticated"
@@ -5189,6 +5951,159 @@
           },
           "403": {
             "$ref": "#/components/responses/Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/public/agencies/register": {
+      "post": {
+        "tags": [
+          "public"
+        ],
+        "summary": "Self-registracija agencije",
+        "description": "**Auth:** `javno + rate-limit (bez sesije)`\nKreira besplatan partner nalog. Katalog je odmah vidljiv;\nzahtev za saradnju čeka verifikaciju platforme.\n",
+        "security": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "name",
+                  "email",
+                  "password",
+                  "displayName",
+                  "legalName",
+                  "taxNumber",
+                  "registrationNumber",
+                  "address",
+                  "city",
+                  "postalCode",
+                  "phone"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          }
+        }
+      }
+    },
+    "/api/v1/public/invitations/{id}/accept": {
+      "post": {
+        "tags": [
+          "public"
+        ],
+        "summary": "Prihvatanje poziva u organizaciju",
+        "description": "**Auth:** `sesija (email mora da se poklapa sa pozivom)`\nPozivani korisnik, već ulogovan, postaje član organizacije.\n",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthenticated"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/public/invitations/{id}/register": {
+      "post": {
+        "tags": [
+          "public"
+        ],
+        "summary": "Registracija preko poziva u organizaciju",
+        "description": "**Auth:** `javno + rate-limit (bez sesije)`\nKreira nalog za email iz poziva (potvrđen jer je link tajni).\nKlijent potom prijavljuje korisnika i prihvata poziv.\n",
+        "security": [],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "name",
+                  "password"
+                ],
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "password": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          }
+        }
+      }
+    },
+    "/api/v1/public/organization-logo/{organizationId}": {
+      "get": {
+        "tags": [
+          "public"
+        ],
+        "summary": "Public organization logo",
+        "responses": {
+          "200": {
+            "description": "Image bytes"
+          },
+          "404": {
+            "description": "No logo"
+          }
+        }
+      }
+    },
+    "/api/v1/public/project-cover/{documentId}": {
+      "get": {
+        "tags": [
+          "public"
+        ],
+        "summary": "Public project cover photo",
+        "responses": {
+          "200": {
+            "description": "Image bytes"
+          },
+          "404": {
+            "description": "No cover"
           }
         }
       }
@@ -6021,7 +6936,14 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "additionalProperties": true
+                "required": [
+                  "documentId"
+                ],
+                "properties": {
+                  "documentId": {
+                    "type": "string"
+                  }
+                }
               }
             }
           }
@@ -6384,8 +7306,8 @@
         "tags": [
           "search"
         ],
-        "summary": "List / read search",
-        "description": "**Auth:** `sesija (ulogovan + aktivna org) — bez posebne permission`\n",
+        "summary": "Globalna pretraga",
+        "description": "**Auth:** sesija (ulogovan). Aktivna organizacija nije obavezna —\nplatform admin i Property Desk tim pretražuju svoje entitete i\nbez nje.\n",
         "responses": {
           "200": {
             "description": "OK\n"

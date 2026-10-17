@@ -42,6 +42,20 @@ export interface SaleSummaryPdfData {
     method: string;
     reversed: boolean;
   }>;
+  handover?: {
+    keysHanded: boolean;
+    meterElectricity?: string | null;
+    meterWater?: string | null;
+    meterHeating?: string | null;
+    defects?: string | null;
+    attendees?: string | null;
+    completedAt?: Date | null;
+  } | null;
+  settlement?: Array<{
+    label: string;
+    kind: string;
+    amount: string;
+  }>;
   totals: {
     contracted: string;
     paid: string;
@@ -100,9 +114,7 @@ export function SaleSummaryPdf(data: SaleSummaryPdfData) {
           </View>
           <View style={[pdfStyles.col, pdfStyles.card]}>
             <Text style={pdfStyles.cardTitle}>Ugovorena cena</Text>
-            <Text style={pdfStyles.cardValue}>
-              {formatMoney(data.sale.finalPrice, currency)}
-            </Text>
+            <Text style={pdfStyles.cardValue}>{formatMoney(data.sale.finalPrice, currency)}</Text>
           </View>
         </View>
       </View>
@@ -166,11 +178,57 @@ export function SaleSummaryPdf(data: SaleSummaryPdfData) {
               <Text style={[pdfStyles.td, { flex: 1 } as never]}>
                 {METHOD_LABELS[p.method] ?? p.method}
               </Text>
-              <Text style={[pdfStyles.td, { flex: 1 } as never]}>{p.reversed ? "Storno" : "Aktivno"}</Text>
+              <Text style={[pdfStyles.td, { flex: 1 } as never]}>
+                {p.reversed ? "Storno" : "Aktivno"}
+              </Text>
             </View>
           ))
         )}
       </View>
+
+      {data.handover ? (
+        <View style={pdfStyles.section}>
+          <Text style={pdfStyles.sectionTitle}>Primopredaja</Text>
+          <Text style={pdfStyles.td}>
+            Ključevi: {data.handover.keysHanded ? "predati" : "nisu predati"}
+          </Text>
+          {data.handover.meterElectricity ? (
+            <Text style={pdfStyles.td}>Struja: {data.handover.meterElectricity}</Text>
+          ) : null}
+          {data.handover.meterWater ? (
+            <Text style={pdfStyles.td}>Voda: {data.handover.meterWater}</Text>
+          ) : null}
+          {data.handover.meterHeating ? (
+            <Text style={pdfStyles.td}>Grejanje: {data.handover.meterHeating}</Text>
+          ) : null}
+          {data.handover.attendees ? (
+            <Text style={pdfStyles.td}>Prisutni: {data.handover.attendees}</Text>
+          ) : null}
+          {data.handover.defects ? (
+            <Text style={pdfStyles.td}>Nedostaci: {data.handover.defects}</Text>
+          ) : null}
+          {data.handover.completedAt ? (
+            <Text style={pdfStyles.td}>Završeno: {formatDate(data.handover.completedAt)}</Text>
+          ) : null}
+        </View>
+      ) : null}
+
+      {data.settlement && data.settlement.length > 0 ? (
+        <View style={pdfStyles.section}>
+          <Text style={pdfStyles.sectionTitle}>Konačni obračun</Text>
+          {data.settlement.map((line, idx) => (
+            <View key={idx} style={pdfStyles.row} wrap={false}>
+              <Text style={[pdfStyles.td, { flex: 2 } as never]}>{line.label}</Text>
+              <Text style={[pdfStyles.td, { flex: 1 } as never]}>
+                {line.kind === "DEDUCTION" ? "Umanjenje" : "Uvećanje"}
+              </Text>
+              <Text style={[pdfStyles.tdRight, { flex: 1 } as never]}>
+                {formatMoney(line.amount, currency)}
+              </Text>
+            </View>
+          ))}
+        </View>
+      ) : null}
 
       <View style={pdfStyles.section}>
         <View style={pdfStyles.totalRow}>

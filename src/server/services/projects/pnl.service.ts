@@ -120,15 +120,11 @@ export async function computeProjectPnl(input: {
     const calculated = row._sum.calculatedAmount
       ? toDecimal(row._sum.calculatedAmount)
       : toDecimal(0);
-    const value = row._sum.adjustedAmount
-      ? toDecimal(row._sum.adjustedAmount)
-      : calculated;
+    const value = row._sum.adjustedAmount ? toDecimal(row._sum.adjustedAmount) : calculated;
     const existing = commissionByProject.get(projectId);
     commissionByProject.set(
       projectId,
-      existing
-        ? { amount: existing.amount.add(value) }
-        : { amount: value },
+      existing ? { amount: existing.amount.add(value) } : { amount: value },
     );
   }
 
@@ -190,11 +186,10 @@ export async function computeProjectPnl(input: {
   >();
   for (const r of rows) {
     const cur = r.currency;
-    const existing =
-      summaryMap.get(cur) ?? {
-        revenue: toDecimal(0),
-        cost: toDecimal(0),
-      };
+    const existing = summaryMap.get(cur) ?? {
+      revenue: toDecimal(0),
+      cost: toDecimal(0),
+    };
     summaryMap.set(cur, {
       revenue: existing.revenue.add(toDecimal(r.revenue)),
       cost: existing.cost.add(toDecimal(r.totalCost)),
@@ -212,10 +207,7 @@ export async function computeProjectPnl(input: {
   return { rows, summaries };
 }
 
-export async function getProjectCostFields(input: {
-  organizationId: string;
-  projectId: string;
-}) {
+export async function getProjectCostFields(input: { organizationId: string; projectId: string }) {
   const p = await prisma.project.findFirst({
     where: { id: input.projectId, organizationId: input.organizationId },
     select: {

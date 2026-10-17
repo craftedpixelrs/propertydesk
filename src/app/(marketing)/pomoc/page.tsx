@@ -1,11 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
-import { Button } from "@/components/ui/button";
-import {
-  buildLandingMetadata,
-  LandingJsonLd,
-} from "@/features/marketing/landing/landing-shell";
+import { marketingCta } from "@/features/marketing/marketing-cta";
+import { buildLandingMetadata, LandingJsonLd } from "@/features/marketing/landing/landing-shell";
 import { createT } from "@/lib/i18n";
 import { resolveRequestLocale } from "@/lib/i18n/resolve-locale";
 
@@ -27,17 +24,15 @@ export default async function HelpPage() {
   const works = [1, 2, 3, 4, 5, 6].map((n) =>
     t(`marketing.help.works${n}` as `marketing.help.works1`),
   );
-  const later = [1, 2, 3, 4].map((n) =>
-    t(`marketing.help.later${n}` as `marketing.help.later1`),
-  );
+  const later = [1, 2, 3, 4].map((n) => t(`marketing.help.later${n}` as `marketing.help.later1`));
 
   return (
     <>
       <article className="container-app max-w-3xl py-14 sm:py-16">
-        <p className="text-xs font-semibold uppercase tracking-wider text-[var(--color-brand-700)]">
+        <p className="text-xs font-semibold tracking-[0.18em] text-[#9a7430] uppercase">
           {t("marketing.help.eyebrow")}
         </p>
-        <h1 className="mt-2 text-3xl font-semibold tracking-tight sm:text-4xl">
+        <h1 className="font-display mt-3 text-4xl font-semibold tracking-tight text-[#0b1020] sm:text-5xl">
           {t("marketing.help.title")}
         </h1>
         <p className="mt-4 text-base leading-relaxed text-[var(--color-foreground-muted)]">
@@ -45,9 +40,7 @@ export default async function HelpPage() {
         </p>
 
         <section className="mt-10">
-          <h2 className="text-lg font-semibold tracking-tight">
-            {t("marketing.help.worksTitle")}
-          </h2>
+          <h2 className="text-lg font-semibold tracking-tight">{t("marketing.help.worksTitle")}</h2>
           <ul className="mt-3 list-disc space-y-2 pl-5 text-sm leading-relaxed text-[var(--color-foreground-muted)]">
             {works.map((item) => (
               <li key={item}>{item}</li>
@@ -56,9 +49,7 @@ export default async function HelpPage() {
         </section>
 
         <section className="mt-8">
-          <h2 className="text-lg font-semibold tracking-tight">
-            {t("marketing.help.laterTitle")}
-          </h2>
+          <h2 className="text-lg font-semibold tracking-tight">{t("marketing.help.laterTitle")}</h2>
           <p className="mt-2 text-sm leading-relaxed text-[var(--color-foreground-muted)]">
             {t("marketing.help.laterIntro")}
           </p>
@@ -70,19 +61,17 @@ export default async function HelpPage() {
         </section>
 
         <section className="mt-8 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface-muted)] p-6">
-          <h2 className="text-lg font-semibold tracking-tight">
-            {t("marketing.help.guideTitle")}
-          </h2>
+          <h2 className="text-lg font-semibold tracking-tight">{t("marketing.help.guideTitle")}</h2>
           <p className="mt-2 text-sm leading-relaxed text-[var(--color-foreground-muted)]">
             {t("marketing.help.guideBody")}
           </p>
           <div className="mt-5 flex flex-wrap gap-2">
-            <Button asChild size="sm">
-              <a href="/help-center.html">{t("marketing.help.guideCta")}</a>
-            </Button>
-            <Button asChild size="sm" variant="outline">
-              <Link href="/demo">{t("marketing.header.bookDemo")}</Link>
-            </Button>
+            <a href="/help-center.html" className={marketingCta("ink", "sm")}>
+              {t("marketing.help.guideCta")}
+            </a>
+            <Link href="/demo" className={marketingCta("outline", "sm")}>
+              {t("marketing.header.bookDemo")}
+            </Link>
           </div>
         </section>
       </article>

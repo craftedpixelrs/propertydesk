@@ -467,7 +467,7 @@ email (naziv opciono). Lista konekcija ispod.
 | 1:00–2:00 | Ponuda: projekti investitora, dostupne jedinice, "Rezerviši za kupca" |
 | 2:00–2:45 | Referral kod: kopiraj link, QR PNG, share u WhatsApp-u |
 | 2:45–3:30 | Moje provizije: lifecycle, snapshot na momentu ugovora |
-| 3:30–4:00 | Zatvaranje: prijava do 01.09.2026 |
+| 3:30–4:00 | Zatvaranje: prijava do 15.10.2026 |
 
 ### 0:00–0:20 · Otvaranje
 

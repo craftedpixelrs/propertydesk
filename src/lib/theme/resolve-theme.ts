@@ -4,12 +4,7 @@ import { cookies } from "next/headers";
 
 import { prisma } from "@/server/db/prisma";
 import { getSession } from "@/server/auth/session";
-import {
-  DEFAULT_THEME,
-  THEME_COOKIE,
-  parseTheme,
-  type Theme,
-} from "@/lib/theme";
+import { DEFAULT_THEME, THEME_COOKIE, parseTheme, type Theme } from "@/lib/theme";
 
 /**
  * Resolve the UI theme for this request.

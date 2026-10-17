@@ -38,12 +38,7 @@ export function ResponsiveDataView<T>({
         />
       </div>
       <div className="hidden md:block">
-        <DesktopDataTable
-          columns={columns}
-          data={data}
-          rowKey={rowKey}
-          onRowClick={onRowClick}
-        />
+        <DesktopDataTable columns={columns} data={data} rowKey={rowKey} onRowClick={onRowClick} />
       </div>
     </div>
   );

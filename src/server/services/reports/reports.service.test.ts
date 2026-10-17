@@ -53,7 +53,11 @@ describe("buildInventoryReport", () => {
         status: "AVAILABLE",
         currency: "EUR",
         _count: { _all: 3 },
-        _sum: { totalArea: new Decimal("150.5"), finalPrice: new Decimal("300000"), basePrice: null },
+        _sum: {
+          totalArea: new Decimal("150.5"),
+          finalPrice: new Decimal("300000"),
+          basePrice: null,
+        },
       },
       {
         projectId: "p1",

@@ -149,6 +149,15 @@ export const srLatn = {
     confirmPassword: "Potvrda lozinke",
     fullName: "Ime i prezime",
     signIn: "Prijava",
+    twoFactorTitle: "Kod iz aplikacije",
+    twoFactorHint: "Unesite 6 cifara. Prijava kreće čim je kod kompletan.",
+    twoFactorInvalid: "Kod nije tačan. Pokušajte ponovo.",
+    twoFactorLocked: "Previše pogrešnih pokušaja. Sačekajte pa pokušajte ponovo.",
+    twoFactorBackup: "Rezervni kod",
+    twoFactorBackupHint:
+      "Unesite rezervni kod u obliku XXXXX-XXXXX. Provera kreće čim je kompletan.",
+    twoFactorUseApp: "Koristi kod iz aplikacije",
+    twoFactorUseBackup: "Koristi rezervni kod",
     signUp: "Kreiraj nalog",
     forgotPassword: "Zaboravljena lozinka?",
     resetPasswordTitle: "Resetovanje lozinke",
@@ -197,8 +206,7 @@ export const srLatn = {
     agencyRegisterSubmit: "Napravi nalog",
     agencyRegisterHaveAccount: "Već imate nalog?",
     demoAccountsTitle: "Probni nalozi",
-    demoAccountsHint:
-      "Izaberite nalog da popunite prijavu. Ista lozinka za sve: {{password}}",
+    demoAccountsHint: "Izaberite nalog da popunite prijavu. Ista lozinka za sve: {{password}}",
     demoAccountsOrg: "Organizacija",
     demoAccountsRole: "Uloga",
     demoAccountsEmail: "Email",
@@ -206,8 +214,7 @@ export const srLatn = {
     demoAccountsInvestor: "Gradnja Plus",
     demoAccountsAgency: "Top Nekretnine",
     accountDeactivated: "Vaš nalog je deaktiviran. Kontaktirajte administratora.",
-    organizationSuspended:
-      "Vaša organizacija je trenutno suspendovana. Kontaktirajte podršku.",
+    organizationSuspended: "Vaša organizacija je trenutno suspendovana. Kontaktirajte podršku.",
     loginFailedRemaining:
       "Pogrešan email ili lozinka. Preostalo pokušaja pre zaključavanja: {{remaining}}.",
     loginLocked:
@@ -224,8 +231,7 @@ export const srLatn = {
   },
 
   orgProfile: {
-    setupBanner:
-      "Pre korišćenja aplikacije popunite sva obavezna polja organizacije.",
+    setupBanner: "Pre korišćenja aplikacije popunite sva obavezna polja organizacije.",
     setupWaitTitle: "Organizacija još nije spremna",
     setupWaitBody:
       "Vlasnik treba da popuni podatke firme (PIB, matični broj, adresa, kontakt i veb). Do tada aplikacija nije dostupna. Kontaktirajte vlasnika da završi podešavanja.",
@@ -325,8 +331,7 @@ export const srLatn = {
   },
 
   impersonation: {
-    banner:
-      "Aktivna je administratorska sesija u ime drugog korisnika. Sve radnje se beleže.",
+    banner: "Aktivna je administratorska sesija u ime drugog korisnika. Sve radnje se beleže.",
     impersonatingAs: "Ulogovani kao:",
     inOrganization: "u organizaciji:",
     stop: "Prekini",
@@ -499,8 +504,7 @@ export const srLatn = {
       title: "Promena statusa",
       newStatus: "Novi status",
       reason: "Razlog",
-      reasonRequiredForSold:
-        "Poništavanje prodate jedinice zahteva razlog i posebno ovlašćenje.",
+      reasonRequiredForSold: "Poništavanje prodate jedinice zahteva razlog i posebno ovlašćenje.",
     },
     fields: {
       code: "Kod jedinice",
@@ -578,8 +582,7 @@ export const srLatn = {
 
   billing: {
     title: "Naplata",
-    subtitle:
-      "Automatizovano fakturisanje, upravljanje pretplatama, IPS QR i SEF integracija.",
+    subtitle: "Automatizovano fakturisanje, upravljanje pretplatama, IPS QR i SEF integracija.",
 
     subscriptionStatus: {
       TRIAL: "Probni",
@@ -708,8 +711,6 @@ export const srLatn = {
   guides: guidesSr,
 } as const;
 
-type DeepStringify<T> = T extends string
-  ? string
-  : { [K in keyof T]: DeepStringify<T[K]> };
+type DeepStringify<T> = T extends string ? string : { [K in keyof T]: DeepStringify<T[K]> };
 
 export type Dictionary = DeepStringify<typeof srLatn>;

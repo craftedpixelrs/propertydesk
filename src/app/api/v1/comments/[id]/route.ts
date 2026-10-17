@@ -13,9 +13,7 @@ const paramsSchema = z.object({ id: z.string().min(1).max(64) });
  * their own typos.
  */
 export const DELETE = apiHandler({ paramsSchema }, async ({ params }) => {
-  const ctx = await requirePermission("lead.read").catch(() =>
-    requirePermission("sale.read"),
-  );
+  const ctx = await requirePermission("lead.read").catch(() => requirePermission("sale.read"));
   await deleteComment({
     organizationId: ctx.organization.organizationId,
     actorUserId: ctx.session.user.id,

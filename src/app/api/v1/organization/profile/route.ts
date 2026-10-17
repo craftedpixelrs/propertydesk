@@ -38,18 +38,15 @@ export const GET = apiHandler({}, async () => {
   return { data };
 });
 
-export const PATCH = apiHandler(
-  { bodySchema: updateSchema },
-  async ({ body }) => {
-    const ctx = await requirePermission("organization.manage");
-    const updated = await updateOrganizationProfile(
-      ctx.organization.organizationId,
-      body,
-      ctx.session.user.id,
-    );
-    return { data: updated };
-  },
-);
+export const PATCH = apiHandler({ bodySchema: updateSchema }, async ({ body }) => {
+  const ctx = await requirePermission("organization.manage");
+  const updated = await updateOrganizationProfile(
+    ctx.organization.organizationId,
+    body,
+    ctx.session.user.id,
+  );
+  return { data: updated };
+});
 
 /**
  * @swagger

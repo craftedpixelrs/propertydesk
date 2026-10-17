@@ -62,7 +62,8 @@ describe("permission matrix", () => {
     const role = platformRoles.SUPER_ADMIN as unknown as {
       authorize: (req: Record<string, string[]>) => { success: boolean };
     };
-    const billing = (permissionStatement as unknown as Record<string, readonly string[]>).billing ?? [];
+    const billing =
+      (permissionStatement as unknown as Record<string, readonly string[]>).billing ?? [];
     expect(billing.length).toBeGreaterThan(0);
     for (const action of billing) {
       expect(role.authorize({ billing: [action] }).success).toBe(true);
@@ -97,12 +98,7 @@ describe("permission matrix", () => {
   });
 
   it("roles that manage members can create Better Auth invitations", () => {
-    const canInvite = [
-      "INVESTOR_OWNER",
-      "INVESTOR_ADMIN",
-      "AGENCY_OWNER",
-      "AGENCY_ADMIN",
-    ] as const;
+    const canInvite = ["INVESTOR_OWNER", "INVESTOR_ADMIN", "AGENCY_OWNER", "AGENCY_ADMIN"] as const;
     const cannotInvite = ["SALES_AGENT", "AGENCY_AGENT", "INVESTOR_VIEWER"] as const;
     for (const key of canInvite) {
       const role = (organizationRoles as Record<string, unknown>)[key] as {

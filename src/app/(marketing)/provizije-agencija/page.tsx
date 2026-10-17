@@ -3,11 +3,10 @@ import { BadgeCheck } from "lucide-react";
 
 import { PageHero } from "@/features/marketing/landing/page-hero";
 import { ProblemSolutionGrid } from "@/features/marketing/landing/problem-solution-grid";
+import { RelatedReading } from "@/features/marketing/blog/related-reading";
+import { RelatedLinks } from "@/features/marketing/landing/related-links";
 import { CtaPanel } from "@/features/marketing/landing/cta-panel";
-import {
-  buildLandingMetadata,
-  LandingJsonLd,
-} from "@/features/marketing/landing/landing-shell";
+import { buildLandingMetadata, LandingJsonLd } from "@/features/marketing/landing/landing-shell";
 import { createT, type TranslateFn } from "@/lib/i18n";
 import { resolveRequestLocale } from "@/lib/i18n/resolve-locale";
 
@@ -46,6 +45,15 @@ export default async function Page() {
         subtitle={t("marketing.pages.commissions.gridSubtitle")}
         items={pairs(t)}
       />
+      <RelatedLinks
+        title={t("marketing.anchors.related")}
+        items={[
+          { href: "/za-agencije", label: t("marketing.anchors.agencies") },
+          { href: "/za-investitore", label: t("marketing.anchors.investors") },
+          { href: "/prodaja-novogradnje", label: t("marketing.anchors.newBuild") },
+        ]}
+      />
+      <RelatedReading slugs={["provizije-agencija-za-novogradnju", "cenovnik-stana-u-evrima"]} />
       <CtaPanel />
       <LandingJsonLd
         slug="provizije-agencija"

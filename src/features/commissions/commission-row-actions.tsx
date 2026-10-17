@@ -55,12 +55,7 @@ export function CommissionRowActions({ commissionId, status }: Props) {
         </Button>
       ) : null}
       {canPaid ? (
-        <Button
-          size="sm"
-          variant="outline"
-          loading={busy}
-          onClick={() => act({ action: "paid" })}
-        >
+        <Button size="sm" variant="outline" loading={busy} onClick={() => act({ action: "paid" })}>
           {t("partners.commissionActions.paid")}
         </Button>
       ) : null}

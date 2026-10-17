@@ -23,15 +23,15 @@ export function ActivityTimeline({
         <li key={item.id} className={cn("relative pl-6", i > 0 && "mt-4")}>
           <span
             aria-hidden
-            className="absolute left-[-6px] top-1.5 size-3 rounded-full bg-[var(--color-brand-500)] ring-4 ring-[var(--color-surface)]"
+            className="absolute top-1.5 left-[-6px] size-3 rounded-full bg-[var(--color-brand-500)] ring-4 ring-[var(--color-surface)]"
           />
           <div className="text-sm font-medium text-[var(--color-foreground)]">{item.title}</div>
           {item.description ? (
-            <div className="text-sm text-[var(--color-foreground-muted)] mt-0.5">
+            <div className="mt-0.5 text-sm text-[var(--color-foreground-muted)]">
               {item.description}
             </div>
           ) : null}
-          <div className="text-xs text-[var(--color-foreground-subtle)] mt-1">
+          <div className="mt-1 text-xs text-[var(--color-foreground-subtle)]">
             <DateDisplay value={item.createdAt} withTime />
           </div>
         </li>

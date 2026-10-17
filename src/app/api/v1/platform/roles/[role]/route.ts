@@ -42,9 +42,7 @@ export const PATCH = apiHandler(
       throw DomainErrors.badRequest(`Nepoznata rola: ${params.role}`);
     }
 
-    const invalid = body.changes.find(
-      (c) => !(ALL_PERMISSIONS as string[]).includes(c.permission),
-    );
+    const invalid = body.changes.find((c) => !(ALL_PERMISSIONS as string[]).includes(c.permission));
     if (invalid) {
       throw DomainErrors.badRequest(`Nepoznata dozvola: ${invalid.permission}`);
     }

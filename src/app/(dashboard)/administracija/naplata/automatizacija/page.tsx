@@ -30,11 +30,13 @@ export default async function BillingAutomationPage() {
 
   const rows: JobRow[] = billingJobs.map((j) => {
     let enabled = master;
-    if (j.name === "billing-generate-invoices") enabled = master && settings.autoGenerateInvoicesEnabled;
+    if (j.name === "billing-generate-invoices")
+      enabled = master && settings.autoGenerateInvoicesEnabled;
     if (j.name === "billing-send-invoices") enabled = master && settings.autoSendInvoicesEnabled;
     if (j.name === "billing-send-reminders") enabled = master && settings.autoRemindersEnabled;
     if (j.name === "billing-process-overdue") enabled = master && settings.autoOverdueEnabled;
-    if (j.name === "billing-extend-subscriptions") enabled = master && settings.autoExtendSubscriptions;
+    if (j.name === "billing-extend-subscriptions")
+      enabled = master && settings.autoExtendSubscriptions;
     return {
       name: j.name,
       description: j.description,
@@ -105,7 +107,7 @@ export default async function BillingAutomationPage() {
         <CardContent className="p-0">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="text-left text-xs uppercase text-[var(--color-foreground-subtle)]">
+              <thead className="text-left text-xs text-[var(--color-foreground-subtle)] uppercase">
                 <tr>
                   <th className="border-b border-[var(--color-border)] px-3 py-2">
                     {t("admin.automation.colKind")}
@@ -130,13 +132,19 @@ export default async function BillingAutomationPage() {
               <tbody>
                 {recentRuns.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="px-3 py-6 text-center text-[var(--color-foreground-muted)]">
+                    <td
+                      colSpan={6}
+                      className="px-3 py-6 text-center text-[var(--color-foreground-muted)]"
+                    >
                       {t("admin.automation.empty")}
                     </td>
                   </tr>
                 ) : (
                   recentRuns.map((r) => (
-                    <tr key={r.id} className="border-b border-[var(--color-border)] last:border-b-0">
+                    <tr
+                      key={r.id}
+                      className="border-b border-[var(--color-border)] last:border-b-0"
+                    >
                       <td className="px-3 py-2 font-mono text-xs">{r.jobType}</td>
                       <td className="px-3 py-2">
                         <Badge
@@ -156,7 +164,9 @@ export default async function BillingAutomationPage() {
                       <td className="px-3 py-2 text-xs">{formatDateTime(r.startedAt)}</td>
                       <td className="px-3 py-2 text-xs">
                         {r.durationMs
-                          ? t("admin.durationSeconds", { seconds: (r.durationMs / 1000).toFixed(1) })
+                          ? t("admin.durationSeconds", {
+                              seconds: (r.durationMs / 1000).toFixed(1),
+                            })
                           : t("admin.dash")}
                       </td>
                       <td className="px-3 py-2 text-xs">

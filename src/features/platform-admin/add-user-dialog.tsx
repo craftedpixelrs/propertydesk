@@ -19,10 +19,7 @@ import {
 import { apiClient, ApiClientError } from "@/lib/api-client";
 import { useT } from "@/components/app/i18n-provider";
 import type { TranslationKey } from "@/lib/i18n";
-import {
-  rolesForOrgType,
-  type OrganizationRole,
-} from "@/server/permissions/roles";
+import { rolesForOrgType, type OrganizationRole } from "@/server/permissions/roles";
 
 type TeamRole = "SETTER" | "CLOSER" | "OPERATIONS" | "MANAGER";
 type LeadScope = "OWN" | "OWN_AND_UNASSIGNED" | "TEAM" | "ALL";
@@ -74,12 +71,8 @@ export function AddUserDialog({ organizations }: { organizations: OrgOption[] })
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [assignOrg, setAssignOrg] = useState(true);
-  const [organizationId, setOrganizationId] = useState(
-    organizations[0]?.id ?? "",
-  );
-  const [organizationRole, setOrganizationRole] = useState<OrganizationRole>(
-    "SALES_AGENT",
-  );
+  const [organizationId, setOrganizationId] = useState(organizations[0]?.id ?? "");
+  const [organizationRole, setOrganizationRole] = useState<OrganizationRole>("SALES_AGENT");
   const [assignPd, setAssignPd] = useState(false);
   const [pdRole, setPdRole] = useState<TeamRole>("SETTER");
   const [pdScope, setPdScope] = useState<LeadScope>("OWN_AND_UNASSIGNED");
@@ -115,9 +108,7 @@ export function AddUserDialog({ organizations }: { organizations: OrgOption[] })
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!assignOrg && !assignPd && !platformAdmin) {
-      setError(
-        t("admin.addUser.needOne"),
-      );
+      setError(t("admin.addUser.needOne"));
       return;
     }
     setBusy(true);
@@ -129,9 +120,7 @@ export function AddUserDialog({ organizations }: { organizations: OrgOption[] })
         password: password || undefined,
         organizationId: assignOrg ? organizationId || null : null,
         organizationRole: assignOrg ? organizationRole : undefined,
-        propertyDeskTeam: assignPd
-          ? { teamRole: pdRole, leadScope: pdScope }
-          : null,
+        propertyDeskTeam: assignPd ? { teamRole: pdRole, leadScope: pdScope } : null,
         platformRole: platformAdmin ? "SUPER_ADMIN" : null,
       });
       toast.success(t("admin.addUser.success"));
@@ -139,11 +128,7 @@ export function AddUserDialog({ organizations }: { organizations: OrgOption[] })
       reset();
       router.refresh();
     } catch (err) {
-      setError(
-        err instanceof ApiClientError
-          ? err.message
-          : t("admin.addUser.failed"),
-      );
+      setError(err instanceof ApiClientError ? err.message : t("admin.addUser.failed"));
     } finally {
       setBusy(false);
     }
@@ -166,9 +151,7 @@ export function AddUserDialog({ organizations }: { organizations: OrgOption[] })
       <DialogContent className="max-h-[90vh] max-w-xl overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{t("admin.addUser.title")}</DialogTitle>
-          <DialogDescription>
-            {t("admin.addUser.description")}
-          </DialogDescription>
+          <DialogDescription>{t("admin.addUser.description")}</DialogDescription>
         </DialogHeader>
         <form onSubmit={onSubmit} className="space-y-4">
           <div>
@@ -232,9 +215,7 @@ export function AddUserDialog({ organizations }: { organizations: OrgOption[] })
                       const nextId = e.target.value;
                       setOrganizationId(nextId);
                       const next = organizations.find((o) => o.id === nextId);
-                      const roles = next?.type
-                        ? rolesForOrgType(next.type)
-                        : [];
+                      const roles = next?.type ? rolesForOrgType(next.type) : [];
                       if (roles[0]) setOrganizationRole(roles[0]);
                     }}
                     required={assignOrg}
@@ -261,9 +242,7 @@ export function AddUserDialog({ organizations }: { organizations: OrgOption[] })
                   <select
                     id="new-user-org-role"
                     value={organizationRole}
-                    onChange={(e) =>
-                      setOrganizationRole(e.target.value as OrganizationRole)
-                    }
+                    onChange={(e) => setOrganizationRole(e.target.value as OrganizationRole)}
                     required={assignOrg}
                     className={inputClass}
                   >
@@ -330,17 +309,10 @@ export function AddUserDialog({ organizations }: { organizations: OrgOption[] })
             </label>
           </fieldset>
 
-          {error ? (
-            <p className="text-sm text-[var(--color-danger)]">{error}</p>
-          ) : null}
+          {error ? <p className="text-sm text-[var(--color-danger)]">{error}</p> : null}
 
           <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setOpen(false)}
-              disabled={busy}
-            >
+            <Button type="button" variant="outline" onClick={() => setOpen(false)} disabled={busy}>
               {t("common.cancel")}
             </Button>
             <Button type="submit" loading={busy}>

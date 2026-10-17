@@ -33,7 +33,8 @@ function generateReferralCode(): string {
   const bytes = randomBytes(8);
   let out = "";
   for (let i = 0; i < 8; i += 1) {
-    out += REFERRAL_ALPHABET[bytes[i] % REFERRAL_ALPHABET.length];
+    const byte = bytes[i]!;
+    out += REFERRAL_ALPHABET[byte % REFERRAL_ALPHABET.length];
   }
   return out;
 }
@@ -81,9 +82,7 @@ async function uniqueAgencySlug(base: string): Promise<string> {
   const root = slugifyAgencyName(base);
   for (let attempt = 0; attempt < 8; attempt += 1) {
     const slug =
-      attempt === 0
-        ? root
-        : `${root}-${generateReferralCode().slice(0, 4).toLowerCase()}`;
+      attempt === 0 ? root : `${root}-${generateReferralCode().slice(0, 4).toLowerCase()}`;
     const clash = await prisma.organization.findUnique({
       where: { slug },
       select: { id: true },
@@ -93,9 +92,7 @@ async function uniqueAgencySlug(base: string): Promise<string> {
   return `${root}-${createId().slice(0, 8)}`;
 }
 
-async function findAgencyOrganizationIdByEmail(
-  email: string,
-): Promise<string | null> {
+async function findAgencyOrganizationIdByEmail(email: string): Promise<string | null> {
   const profile = await prisma.organizationProfile.findFirst({
     where: { type: "AGENCY", email: { equals: email, mode: "insensitive" } },
     select: { organizationId: true },
@@ -163,10 +160,7 @@ export interface UpdateProjectAccessInput {
 // Helpers
 // -----------------------------------------------------------------------------
 
-async function loadConnectionOwnedBy(
-  investorOrganizationId: string,
-  connectionId: string,
-) {
+async function loadConnectionOwnedBy(investorOrganizationId: string, connectionId: string) {
   const conn = await prisma.agencyConnection.findFirst({
     where: { id: connectionId, investorOrganizationId },
   });
@@ -200,12 +194,9 @@ export async function inviteAgency(input: InviteAgencyInput) {
 
   let createdNewAgency = false;
   if (!agencyOrganizationId && email) {
-    agencyOrganizationId =
-      (await findAgencyOrganizationIdByEmail(email)) ?? "";
+    agencyOrganizationId = (await findAgencyOrganizationIdByEmail(email)) ?? "";
     if (!agencyOrganizationId) {
-      const name = (
-        input.agencyName?.trim() || agencyNameFromEmail(email)
-      ).slice(0, 120);
+      const name = (input.agencyName?.trim() || agencyNameFromEmail(email)).slice(0, 120);
       const createdOrg = await createOrganizationByPlatformAdmin(
         {
           name,
@@ -226,9 +217,7 @@ export async function inviteAgency(input: InviteAgencyInput) {
   }
 
   if (input.investorOrganizationId === agencyOrganizationId) {
-    throw DomainErrors.badRequest(
-      "Organizacija ne može uspostaviti konekciju sa samom sobom.",
-    );
+    throw DomainErrors.badRequest("Organizacija ne može uspostaviti konekciju sa samom sobom.");
   }
 
   const agency = await prisma.organization.findUnique({
@@ -247,9 +236,7 @@ export async function inviteAgency(input: InviteAgencyInput) {
     },
   });
   if (existing && existing.status !== "REJECTED" && existing.status !== "TERMINATED") {
-    throw DomainErrors.conflict(
-      "Konekcija sa ovom agencijom već postoji ili čeka odgovor.",
-    );
+    throw DomainErrors.conflict("Konekcija sa ovom agencijom već postoji ili čeka odgovor.");
   }
 
   const referralCode = await ensureUniqueReferralCode();
@@ -312,8 +299,7 @@ export async function inviteAgency(input: InviteAgencyInput) {
     },
   });
 
-  const investorName =
-    investor.profile?.displayName?.trim() || investor.name;
+  const investorName = investor.profile?.displayName?.trim() || investor.name;
   const notifyEmail = email ?? agency.profile?.email?.trim().toLowerCase() ?? null;
   const appUrl = serverEnv.BETTER_AUTH_URL.replace(/\/$/, "");
 
@@ -323,15 +309,11 @@ export async function inviteAgency(input: InviteAgencyInput) {
       email: notifyEmail,
       role: "AGENCY_OWNER",
       actorUserId: input.actorUserId,
-      buildEmail: (url) =>
-        agencyPartnerInvitationEmail(investorName, agency.name, url),
+      buildEmail: (url) => agencyPartnerInvitationEmail(investorName, agency.name, url),
     });
   } else if (notifyEmail) {
     await sendEmail({
-      ...agencyConnectionInvitationEmail(
-        investorName,
-        `${appUrl}/agencija/konekcije`,
-      ),
+      ...agencyConnectionInvitationEmail(investorName, `${appUrl}/agencija/konekcije`),
       to: notifyEmail,
     });
   }
@@ -368,10 +350,7 @@ export async function listConnections(input: ListConnectionsInput) {
   return { items: rows, total };
 }
 
-export async function getConnectionDetail(
-  investorOrganizationId: string,
-  connectionId: string,
-) {
+export async function getConnectionDetail(investorOrganizationId: string, connectionId: string) {
   const conn = await prisma.agencyConnection.findFirst({
     where: { id: connectionId, investorOrganizationId },
     include: {
@@ -390,10 +369,7 @@ export async function suspendConnection(input: {
   connectionId: string;
   reason?: string;
 }) {
-  const existing = await loadConnectionOwnedBy(
-    input.investorOrganizationId,
-    input.connectionId,
-  );
+  const existing = await loadConnectionOwnedBy(input.investorOrganizationId, input.connectionId);
   if (existing.status === "SUSPENDED") return existing;
   if (existing.status !== "ACTIVE" && existing.status !== "INVITED") {
     throw DomainErrors.invalidState("Ova konekcija se ne može suspendovati.");
@@ -423,10 +399,7 @@ export async function reactivateConnection(input: {
   actorUserId: string;
   connectionId: string;
 }) {
-  const existing = await loadConnectionOwnedBy(
-    input.investorOrganizationId,
-    input.connectionId,
-  );
+  const existing = await loadConnectionOwnedBy(input.investorOrganizationId, input.connectionId);
   if (existing.status === "ACTIVE") return existing;
   if (existing.status !== "SUSPENDED") {
     throw DomainErrors.invalidState("Ova konekcija se ne može reaktivirati.");
@@ -456,10 +429,7 @@ export async function terminateConnection(input: {
   connectionId: string;
   reason?: string;
 }) {
-  const existing = await loadConnectionOwnedBy(
-    input.investorOrganizationId,
-    input.connectionId,
-  );
+  const existing = await loadConnectionOwnedBy(input.investorOrganizationId, input.connectionId);
   if (existing.status === "TERMINATED") return existing;
   const updated = await prisma.agencyConnection.update({
     where: { id: existing.id },
@@ -488,10 +458,7 @@ export async function setProtectionDays(input: {
   if (input.days < 0 || input.days > 365) {
     throw DomainErrors.badRequest("Broj dana zaštite mora biti između 0 i 365.");
   }
-  const existing = await loadConnectionOwnedBy(
-    input.investorOrganizationId,
-    input.connectionId,
-  );
+  const existing = await loadConnectionOwnedBy(input.investorOrganizationId, input.connectionId);
   const updated = await prisma.agencyConnection.update({
     where: { id: existing.id },
     data: { defaultProtectionDays: input.days },
@@ -592,10 +559,7 @@ export async function rotateReferralCode(input: {
 // -----------------------------------------------------------------------------
 
 export async function grantProjectAccess(input: GrantProjectAccessInput) {
-  const conn = await loadConnectionOwnedBy(
-    input.investorOrganizationId,
-    input.connectionId,
-  );
+  const conn = await loadConnectionOwnedBy(input.investorOrganizationId, input.connectionId);
   const project = await prisma.project.findFirst({
     where: { id: input.projectId, organizationId: input.investorOrganizationId },
     select: { id: true },
@@ -664,10 +628,7 @@ export async function grantProjectAccess(input: GrantProjectAccessInput) {
 }
 
 export async function updateProjectAccess(input: UpdateProjectAccessInput) {
-  const conn = await loadConnectionOwnedBy(
-    input.investorOrganizationId,
-    input.connectionId,
-  );
+  const conn = await loadConnectionOwnedBy(input.investorOrganizationId, input.connectionId);
   const existing = await prisma.agencyProjectAccess.findFirst({
     where: { id: input.projectAccessId, agencyConnectionId: conn.id },
   });
@@ -682,8 +643,7 @@ export async function updateProjectAccess(input: UpdateProjectAccessInput) {
       showOnlyAgencyVisibleUnits: input.patch.showOnlyAgencyVisibleUnits ?? undefined,
       accessStartsAt:
         input.patch.accessStartsAt !== undefined ? input.patch.accessStartsAt : undefined,
-      accessEndsAt:
-        input.patch.accessEndsAt !== undefined ? input.patch.accessEndsAt : undefined,
+      accessEndsAt: input.patch.accessEndsAt !== undefined ? input.patch.accessEndsAt : undefined,
     },
   });
   await recordAudit({
@@ -710,10 +670,7 @@ export async function revokeProjectAccess(input: {
   connectionId: string;
   projectAccessId: string;
 }) {
-  const conn = await loadConnectionOwnedBy(
-    input.investorOrganizationId,
-    input.connectionId,
-  );
+  const conn = await loadConnectionOwnedBy(input.investorOrganizationId, input.connectionId);
   const existing = await prisma.agencyProjectAccess.findFirst({
     where: { id: input.projectAccessId, agencyConnectionId: conn.id },
   });
@@ -743,10 +700,7 @@ export async function setUnitOverride(input: {
   unitId: string;
   visible: boolean;
 }) {
-  const conn = await loadConnectionOwnedBy(
-    input.investorOrganizationId,
-    input.connectionId,
-  );
+  const conn = await loadConnectionOwnedBy(input.investorOrganizationId, input.connectionId);
   const unit = await prisma.unit.findFirst({
     where: { id: input.unitId, organizationId: input.investorOrganizationId },
     select: { id: true },
@@ -786,10 +740,7 @@ export async function removeUnitOverride(input: {
   connectionId: string;
   overrideId: string;
 }) {
-  const conn = await loadConnectionOwnedBy(
-    input.investorOrganizationId,
-    input.connectionId,
-  );
+  const conn = await loadConnectionOwnedBy(input.investorOrganizationId, input.connectionId);
   const existing = await prisma.agencyUnitAccessOverride.findFirst({
     where: { id: input.overrideId, agencyConnectionId: conn.id },
   });

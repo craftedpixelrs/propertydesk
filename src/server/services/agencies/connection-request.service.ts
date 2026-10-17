@@ -122,9 +122,7 @@ export async function createConnectionRequest(input: {
     },
   });
   if (catalogCount === 0) {
-    throw DomainErrors.invalidState(
-      "Ovaj investitor nije otvorio projekte za mrežu agencija.",
-    );
+    throw DomainErrors.invalidState("Ovaj investitor nije otvorio projekte za mrežu agencija.");
   }
 
   let projectId = input.projectId?.trim() || null;
@@ -195,16 +193,12 @@ export async function createConnectionRequest(input: {
   });
 
   const appUrl = serverEnv.BETTER_AUTH_URL.replace(/\/$/, "");
-  const agencyName =
-    created.agency.profile?.displayName?.trim() || created.agency.name;
+  const agencyName = created.agency.profile?.displayName?.trim() || created.agency.name;
   const recipients = await notifyEmails(input.investorOrganizationId);
   await Promise.all(
     recipients.map((to) =>
       sendEmail({
-        ...agencyConnectionRequestReceivedEmail(
-          agencyName,
-          `${appUrl}/agencije`,
-        ),
+        ...agencyConnectionRequestReceivedEmail(agencyName, `${appUrl}/agencije`),
         to,
       }),
     ),
@@ -376,17 +370,12 @@ export async function acceptConnectionRequest(input: {
   });
 
   const appUrl = serverEnv.BETTER_AUTH_URL.replace(/\/$/, "");
-  const investorName =
-    updated.investor.profile?.displayName?.trim() || updated.investor.name;
+  const investorName = updated.investor.profile?.displayName?.trim() || updated.investor.name;
   const recipients = await notifyEmails(existing.agencyOrganizationId);
   await Promise.all(
     recipients.map((to) =>
       sendEmail({
-        ...agencyConnectionRequestReviewedEmail(
-          investorName,
-          true,
-          `${appUrl}/agencija/konekcije`,
-        ),
+        ...agencyConnectionRequestReviewedEmail(investorName, true, `${appUrl}/agencija/konekcije`),
         to,
       }),
     ),
@@ -433,17 +422,12 @@ export async function rejectConnectionRequest(input: {
   });
 
   const appUrl = serverEnv.BETTER_AUTH_URL.replace(/\/$/, "");
-  const investorName =
-    updated.investor.profile?.displayName?.trim() || updated.investor.name;
+  const investorName = updated.investor.profile?.displayName?.trim() || updated.investor.name;
   const recipients = await notifyEmails(existing.agencyOrganizationId);
   await Promise.all(
     recipients.map((to) =>
       sendEmail({
-        ...agencyConnectionRequestReviewedEmail(
-          investorName,
-          false,
-          `${appUrl}/katalog`,
-        ),
+        ...agencyConnectionRequestReviewedEmail(investorName, false, `${appUrl}/katalog`),
         to,
       }),
     ),

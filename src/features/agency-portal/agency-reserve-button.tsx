@@ -74,9 +74,7 @@ export function AgencyReserveButton({ unitId }: { unitId: string }) {
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{t("partners.reserve.title")}</DialogTitle>
-          <DialogDescription>
-            {t("partners.reserve.description")}
-          </DialogDescription>
+          <DialogDescription>{t("partners.reserve.description")}</DialogDescription>
         </DialogHeader>
         <div className="space-y-3">
           <div className="space-y-1">

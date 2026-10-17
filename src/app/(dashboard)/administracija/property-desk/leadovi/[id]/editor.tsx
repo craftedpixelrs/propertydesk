@@ -18,15 +18,7 @@ import {
   type ProvisionPlanOption,
 } from "./provision-panel";
 
-type Stage =
-  | "NEW"
-  | "CONTACTED"
-  | "QUALIFIED"
-  | "DEMO"
-  | "PROPOSAL"
-  | "WON"
-  | "LOST"
-  | "NURTURING";
+type Stage = "NEW" | "CONTACTED" | "QUALIFIED" | "DEMO" | "PROPOSAL" | "WON" | "LOST" | "NURTURING";
 
 type Level = "SOURCING" | "CLOSING" | "OPERATIONS" | "ARCHIVED";
 type Priority = "LOW" | "NORMAL" | "HIGH" | "URGENT";
@@ -39,14 +31,7 @@ function handoffListHref(stage: Stage): string {
   return `/administracija/property-desk/leadovi?handoff=${stage}`;
 }
 
-type BadgeTone =
-  | "neutral"
-  | "brand"
-  | "info"
-  | "success"
-  | "warning"
-  | "danger"
-  | "violet";
+type BadgeTone = "neutral" | "brand" | "info" | "success" | "warning" | "danger" | "violet";
 
 const STAGE_TONE: Record<Stage, BadgeTone> = {
   NEW: "brand",
@@ -62,23 +47,17 @@ const STAGE_TONE: Record<Stage, BadgeTone> = {
 /** Popunjena boja za forward dugmad — LOST je uvek crven, ostalo po fazi. */
 const STAGE_ACTION_CLASS: Record<Stage, string> = {
   NEW: "border-transparent bg-[var(--color-brand-600)] text-white hover:bg-[var(--color-brand-700)]",
-  CONTACTED:
-    "border-transparent bg-[var(--color-info)] text-white hover:opacity-90",
-  QUALIFIED:
-    "border-transparent bg-[var(--color-success)] text-white hover:opacity-90",
+  CONTACTED: "border-transparent bg-[var(--color-info)] text-white hover:opacity-90",
+  QUALIFIED: "border-transparent bg-[var(--color-success)] text-white hover:opacity-90",
   DEMO: "border-transparent bg-[#7c3aed] text-white hover:bg-[#6d28d9]",
-  PROPOSAL:
-    "border-transparent bg-[var(--color-warning)] text-white hover:opacity-90",
+  PROPOSAL: "border-transparent bg-[var(--color-warning)] text-white hover:opacity-90",
   WON: "border-transparent bg-[var(--color-success)] text-white hover:opacity-90",
   LOST: "border-transparent bg-[var(--color-danger)] text-white hover:opacity-90",
   NURTURING:
     "border-[var(--color-border-strong)] bg-[var(--color-surface-inset)] text-[var(--color-foreground)] hover:bg-[color-mix(in_oklab,var(--color-surface-inset)_85%,black)]",
 };
 
-const LEVEL_TONE: Record<
-  Level,
-  "neutral" | "brand" | "info" | "success" | "warning" | "danger"
-> = {
+const LEVEL_TONE: Record<Level, "neutral" | "brand" | "info" | "success" | "warning" | "danger"> = {
   SOURCING: "brand",
   CLOSING: "info",
   OPERATIONS: "success",
@@ -206,16 +185,12 @@ export function LeadDetailEditor(props: Props) {
   const [reopenReason, setReopenReason] = useState<string>("");
   const [showReopen, setShowReopen] = useState(false);
 
-  const [assignedTo, setAssignedTo] = useState<string>(
-    initialAssignedToUserId ?? "",
-  );
+  const [assignedTo, setAssignedTo] = useState<string>(initialAssignedToUserId ?? "");
 
   // Classification
   const [priority, setPriority] = useState<Priority>(initialPriority);
   const [temperature, setTemperature] = useState<Temperature>(initialTemperature);
-  const [timelineHorizon, setTimelineHorizon] = useState<Timeline>(
-    initialTimelineHorizon,
-  );
+  const [timelineHorizon, setTimelineHorizon] = useState<Timeline>(initialTimelineHorizon);
   const [nextFollowUpAt, setNextFollowUpAt] = useState<string>(
     initialNextFollowUpAt ? toDatetimeLocal(initialNextFollowUpAt) : "",
   );
@@ -225,9 +200,7 @@ export function LeadDetailEditor(props: Props) {
   const [lastName, setLastName] = useState<string>(initialLastName ?? "");
   const [phone, setPhone] = useState<string>(initialPhone ?? "");
   const [city, setCity] = useState<string>(initialCity ?? "");
-  const [audience, setAudience] = useState<"INVESTOR" | "AGENCY" | "OTHER">(
-    initialAudience,
-  );
+  const [audience, setAudience] = useState<"INVESTOR" | "AGENCY" | "OTHER">(initialAudience);
   const [audienceLocked, setAudienceLocked] = useState(
     initialAudience === "INVESTOR" || initialAudience === "AGENCY",
   );
@@ -240,9 +213,7 @@ export function LeadDetailEditor(props: Props) {
   const [preferredContact, setPreferredContact] = useState<ContactChannel | "">(
     initialPreferredContact ?? "",
   );
-  const [bestContactHour, setBestContactHour] = useState<string>(
-    initialBestContactHour ?? "",
-  );
+  const [bestContactHour, setBestContactHour] = useState<string>(initialBestContactHour ?? "");
   const [preferredLanguage, setPreferredLanguage] = useState<string>(
     initialPreferredLanguage ?? "sr",
   );
@@ -251,16 +222,12 @@ export function LeadDetailEditor(props: Props) {
 
   // {t("admin.pdEditor.company")} / novac
   const [companyName, setCompanyName] = useState<string>(initialCompanyName ?? "");
-  const [companyWebsite, setCompanyWebsite] = useState<string>(
-    initialCompanyWebsite ?? "",
-  );
+  const [companyWebsite, setCompanyWebsite] = useState<string>(initialCompanyWebsite ?? "");
   const [companySize, setCompanySize] = useState<string>(
     initialCompanySize == null ? "" : String(initialCompanySize),
   );
   const [budgetTier, setBudgetTier] = useState<BudgetTier>(initialBudgetTier);
-  const [budgetCurrency, setBudgetCurrency] = useState<string>(
-    initialBudgetCurrency ?? "EUR",
-  );
+  const [budgetCurrency, setBudgetCurrency] = useState<string>(initialBudgetCurrency ?? "EUR");
 
   // {t("admin.pdEditor.qualification")}
   const [competitor, setCompetitor] = useState<string>(initialCompetitor ?? "");
@@ -278,12 +245,8 @@ export function LeadDetailEditor(props: Props) {
     setError(null);
     setOk(null);
     try {
-      await apiClient.patch(
-        `/platform/property-desk/leads/${leadId}`,
-        payload,
-      );
-      const nextStage =
-        typeof payload.stage === "string" ? (payload.stage as Stage) : null;
+      await apiClient.patch(`/platform/property-desk/leads/${leadId}`, payload);
+      const nextStage = typeof payload.stage === "string" ? (payload.stage as Stage) : null;
       if (nextStage && leavesMyPipeline(nextStage)) {
         router.push(handoffListHref(nextStage));
         return true;
@@ -305,7 +268,10 @@ export function LeadDetailEditor(props: Props) {
 
   async function changeStage(next: Stage) {
     setStage(next);
-    await patch({ stage: next }, t("admin.pdEditor.stageChanged", { stage: t(`admin.pd.stage.${next}` as TranslationKey) }));
+    await patch(
+      { stage: next },
+      t("admin.pdEditor.stageChanged", { stage: t(`admin.pd.stage.${next}` as TranslationKey) }),
+    );
   }
 
   async function submitReopen() {
@@ -320,7 +286,9 @@ export function LeadDetailEditor(props: Props) {
     setStage(reopenTo);
     await patch(
       { stage: reopenTo, reopenReason: reopenReason.trim() },
-      t("admin.pdEditor.stageReopened", { stage: t(`admin.pd.stage.${reopenTo}` as TranslationKey) }),
+      t("admin.pdEditor.stageReopened", {
+        stage: t(`admin.pd.stage.${reopenTo}` as TranslationKey),
+      }),
     );
     setShowReopen(false);
     setReopenReason("");
@@ -328,10 +296,7 @@ export function LeadDetailEditor(props: Props) {
   }
 
   async function saveAssignee() {
-    await patch(
-      { assignedToUserId: assignedTo || null },
-      t("admin.pdEditor.assigneeSaved"),
-    );
+    await patch({ assignedToUserId: assignedTo || null }, t("admin.pdEditor.assigneeSaved"));
   }
 
   async function claimLead() {
@@ -345,9 +310,7 @@ export function LeadDetailEditor(props: Props) {
         priority,
         temperature,
         timelineHorizon,
-        nextFollowUpAt: nextFollowUpAt
-          ? new Date(nextFollowUpAt).toISOString()
-          : null,
+        nextFollowUpAt: nextFollowUpAt ? new Date(nextFollowUpAt).toISOString() : null,
       },
       t("admin.pdEditor.classificationSaved"),
     );
@@ -389,11 +352,7 @@ export function LeadDetailEditor(props: Props) {
       },
       t("admin.pdEditor.contactSaved"),
     );
-    if (
-      saved &&
-      !audienceLocked &&
-      (audience === "INVESTOR" || audience === "AGENCY")
-    ) {
+    if (saved && !audienceLocked && (audience === "INVESTOR" || audience === "AGENCY")) {
       setAudienceLocked(true);
     }
   }
@@ -438,9 +397,7 @@ export function LeadDetailEditor(props: Props) {
   const forwardTerminal = allowedNextStages.length === 0;
 
   const parsedCompanySize =
-    companySize.trim() === "" || !Number.isFinite(Number(companySize))
-      ? null
-      : Number(companySize);
+    companySize.trim() === "" || !Number.isFinite(Number(companySize)) ? null : Number(companySize);
   const liveScore = computeLeadScore({
     stage,
     companyName,
@@ -510,15 +467,14 @@ export function LeadDetailEditor(props: Props) {
             </div>
             {convertedOrgId ? (
               <span className="text-xs text-[var(--color-foreground-muted)]">
-                {t("admin.pdEditor.convertedTo")}{" "}
-                <code>{convertedOrgId.slice(0, 8)}</code>
+                {t("admin.pdEditor.convertedTo")} <code>{convertedOrgId.slice(0, 8)}</code>
               </span>
             ) : null}
           </div>
 
           {canUpdateStage ? (
             forwardTerminal ? (
-              <p className="text-xs italic text-[var(--color-foreground-muted)]">
+              <p className="text-xs text-[var(--color-foreground-muted)] italic">
                 {t("admin.pdEditor.terminal")}
               </p>
             ) : (
@@ -540,7 +496,7 @@ export function LeadDetailEditor(props: Props) {
               </div>
             )
           ) : (
-            <p className="text-xs italic text-[var(--color-foreground-muted)]">
+            <p className="text-xs text-[var(--color-foreground-muted)] italic">
               {t("admin.pdEditor.noStagePerm")}
             </p>
           )}
@@ -550,12 +506,7 @@ export function LeadDetailEditor(props: Props) {
               <span className="text-sm text-[var(--color-foreground-muted)]">
                 {t("admin.pdEditor.unassignedPool")}
               </span>
-              <Button
-                type="button"
-                size="sm"
-                onClick={claimLead}
-                disabled={busy}
-              >
+              <Button type="button" size="sm" onClick={claimLead} disabled={busy}>
                 {t("admin.pdEditor.claim")}
               </Button>
             </div>
@@ -594,7 +545,18 @@ export function LeadDetailEditor(props: Props) {
                       disabled={busy}
                     >
                       <option value="">{t("admin.pdEditor.pickOption")}</option>
-                      {(["NEW","CONTACTED","QUALIFIED","DEMO","PROPOSAL","WON","LOST","NURTURING"] as Stage[]).map((st) => (
+                      {(
+                        [
+                          "NEW",
+                          "CONTACTED",
+                          "QUALIFIED",
+                          "DEMO",
+                          "PROPOSAL",
+                          "WON",
+                          "LOST",
+                          "NURTURING",
+                        ] as Stage[]
+                      ).map((st) => (
                         <option key={st} value={st} disabled={st === stage}>
                           {t(`admin.pd.stage.${st}` as TranslationKey)}
                         </option>
@@ -611,12 +573,7 @@ export function LeadDetailEditor(props: Props) {
                     />
                   </label>
                   <div className="flex gap-2">
-                    <Button
-                      type="button"
-                      size="sm"
-                      onClick={submitReopen}
-                      disabled={busy}
-                    >
+                    <Button type="button" size="sm" onClick={submitReopen} disabled={busy}>
                       {t("common.confirm")}
                     </Button>
                     <Button
@@ -647,14 +604,16 @@ export function LeadDetailEditor(props: Props) {
             <h3 className="text-sm font-semibold">{t("admin.pdEditor.classification")}</h3>
             <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
               <label className="block">
-                <span className="mb-1 block text-xs font-medium">{t("admin.pdEditor.priority")}</span>
+                <span className="mb-1 block text-xs font-medium">
+                  {t("admin.pdEditor.priority")}
+                </span>
                 <select
                   value={priority}
                   onChange={(e) => setPriority(e.target.value as Priority)}
                   className="h-9 w-full rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] px-2 text-sm"
                   disabled={busy}
                 >
-                  {(["LOW","NORMAL","HIGH","URGENT"] as Priority[]).map((p) => (
+                  {(["LOW", "NORMAL", "HIGH", "URGENT"] as Priority[]).map((p) => (
                     <option key={p} value={p}>
                       {t(`admin.pd.priority.${p}` as TranslationKey)}
                     </option>
@@ -662,16 +621,16 @@ export function LeadDetailEditor(props: Props) {
                 </select>
               </label>
               <label className="block">
-                <span className="mb-1 block text-xs font-medium">{t("admin.pdEditor.temperature")}</span>
+                <span className="mb-1 block text-xs font-medium">
+                  {t("admin.pdEditor.temperature")}
+                </span>
                 <select
                   value={temperature}
-                  onChange={(e) =>
-                    setTemperature(e.target.value as Temperature)
-                  }
+                  onChange={(e) => setTemperature(e.target.value as Temperature)}
                   className="h-9 w-full rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] px-2 text-sm"
                   disabled={busy}
                 >
-                  {(["COLD","WARM","HOT"] as Temperature[]).map((p) => (
+                  {(["COLD", "WARM", "HOT"] as Temperature[]).map((p) => (
                     <option key={p} value={p}>
                       {t(`admin.pd.temperature.${p}` as TranslationKey)}
                     </option>
@@ -679,16 +638,16 @@ export function LeadDetailEditor(props: Props) {
                 </select>
               </label>
               <label className="block">
-                <span className="mb-1 block text-xs font-medium">{t("admin.pdEditor.timeline")}</span>
+                <span className="mb-1 block text-xs font-medium">
+                  {t("admin.pdEditor.timeline")}
+                </span>
                 <select
                   value={timelineHorizon}
-                  onChange={(e) =>
-                    setTimelineHorizon(e.target.value as Timeline)
-                  }
+                  onChange={(e) => setTimelineHorizon(e.target.value as Timeline)}
                   className="h-9 w-full rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] px-2 text-sm"
                   disabled={busy}
                 >
-                  {(["WITHIN_30D","WITHIN_90D","LATER","UNDECIDED"] as Timeline[]).map((p) => (
+                  {(["WITHIN_30D", "WITHIN_90D", "LATER", "UNDECIDED"] as Timeline[]).map((p) => (
                     <option key={p} value={p}>
                       {t(`admin.pd.timeline.${p}` as TranslationKey)}
                     </option>
@@ -721,7 +680,9 @@ export function LeadDetailEditor(props: Props) {
             <h3 className="text-sm font-semibold">{t("admin.pdEditor.company")}</h3>
             <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
               <label className="block">
-                <span className="mb-1 block text-xs font-medium">{t("admin.pdEditor.companyName")}</span>
+                <span className="mb-1 block text-xs font-medium">
+                  {t("admin.pdEditor.companyName")}
+                </span>
                 <input
                   type="text"
                   value={companyName}
@@ -731,7 +692,9 @@ export function LeadDetailEditor(props: Props) {
                 />
               </label>
               <label className="block">
-                <span className="mb-1 block text-xs font-medium">{t("admin.pdEditor.website")}</span>
+                <span className="mb-1 block text-xs font-medium">
+                  {t("admin.pdEditor.website")}
+                </span>
                 <input
                   type="text"
                   value={companyWebsite}
@@ -762,7 +725,7 @@ export function LeadDetailEditor(props: Props) {
                   className="h-9 w-full rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] px-2 text-sm"
                   disabled={busy}
                 >
-                  {(["STARTER","GROWTH","ENTERPRISE","UNKNOWN"] as BudgetTier[]).map((b) => (
+                  {(["STARTER", "GROWTH", "ENTERPRISE", "UNKNOWN"] as BudgetTier[]).map((b) => (
                     <option key={b} value={b}>
                       {t(`admin.pd.budget.${b}` as TranslationKey)}
                     </option>
@@ -770,7 +733,9 @@ export function LeadDetailEditor(props: Props) {
                 </select>
               </label>
               <label className="block">
-                <span className="mb-1 block text-xs font-medium">{t("admin.pdEditor.currency")}</span>
+                <span className="mb-1 block text-xs font-medium">
+                  {t("admin.pdEditor.currency")}
+                </span>
                 <input
                   type="text"
                   value={budgetCurrency}
@@ -804,7 +769,9 @@ export function LeadDetailEditor(props: Props) {
                 />
               </label>
               <label className="block">
-                <span className="mb-1 block text-xs font-medium">{t("admin.pdEditor.lastName")}</span>
+                <span className="mb-1 block text-xs font-medium">
+                  {t("admin.pdEditor.lastName")}
+                </span>
                 <input
                   type="text"
                   value={lastName}
@@ -853,18 +820,18 @@ export function LeadDetailEditor(props: Props) {
                 </span>
                 <select
                   value={preferredContact}
-                  onChange={(e) =>
-                    setPreferredContact(e.target.value as ContactChannel)
-                  }
+                  onChange={(e) => setPreferredContact(e.target.value as ContactChannel)}
                   className="h-9 w-full rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] px-2 text-sm"
                   disabled={busy}
                 >
                   <option value="">{t("admin.pdEditor.channelUnset")}</option>
-                  {(["PHONE","EMAIL","WHATSAPP","VIBER","OTHER"] as ContactChannel[]).map((c) => (
-                    <option key={c} value={c}>
-                      {t(`admin.pd.channel.${c}` as TranslationKey)}
-                    </option>
-                  ))}
+                  {(["PHONE", "EMAIL", "WHATSAPP", "VIBER", "OTHER"] as ContactChannel[]).map(
+                    (c) => (
+                      <option key={c} value={c}>
+                        {t(`admin.pd.channel.${c}` as TranslationKey)}
+                      </option>
+                    ),
+                  )}
                 </select>
               </label>
               <label className="block">
@@ -881,7 +848,9 @@ export function LeadDetailEditor(props: Props) {
                 />
               </label>
               <label className="block">
-                <span className="mb-1 block text-xs font-medium">{t("admin.pdEditor.language")}</span>
+                <span className="mb-1 block text-xs font-medium">
+                  {t("admin.pdEditor.language")}
+                </span>
                 <input
                   type="text"
                   value={preferredLanguage}
@@ -891,17 +860,19 @@ export function LeadDetailEditor(props: Props) {
                 />
               </label>
               <label className="block">
-                <span className="mb-1 block text-xs font-medium">{t("admin.pdEditor.audience")}</span>
+                <span className="mb-1 block text-xs font-medium">
+                  {t("admin.pdEditor.audience")}
+                </span>
                 <select
                   value={audience}
-                  onChange={(e) =>
-                    setAudience(e.target.value as typeof audience)
-                  }
+                  onChange={(e) => setAudience(e.target.value as typeof audience)}
                   className="h-9 w-full rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] px-2 text-sm disabled:opacity-60"
                   disabled={busy || audienceLocked}
                 >
-                  {(["INVESTOR","AGENCY","OTHER"] as const).map((v) => (
-                    <option key={v} value={v}>{t(`admin.pd.audience.${v}` as TranslationKey)}</option>
+                  {(["INVESTOR", "AGENCY", "OTHER"] as const).map((v) => (
+                    <option key={v} value={v}>
+                      {t(`admin.pd.audience.${v}` as TranslationKey)}
+                    </option>
                   ))}
                 </select>
                 <span className="mt-1 block text-[11px] text-[var(--color-foreground-muted)]">
@@ -911,7 +882,9 @@ export function LeadDetailEditor(props: Props) {
                 </span>
               </label>
               <label className="block">
-                <span className="mb-1 block text-xs font-medium">{t("admin.pdEditor.country")}</span>
+                <span className="mb-1 block text-xs font-medium">
+                  {t("admin.pdEditor.country")}
+                </span>
                 <input
                   type="text"
                   value={country}
@@ -967,7 +940,9 @@ export function LeadDetailEditor(props: Props) {
                 />
               </label>
               <label className="block">
-                <span className="mb-1 block text-xs font-medium">{t("admin.pdEditor.painPoint")}</span>
+                <span className="mb-1 block text-xs font-medium">
+                  {t("admin.pdEditor.painPoint")}
+                </span>
                 <input
                   type="text"
                   value={painPoint}
@@ -1030,7 +1005,9 @@ export function LeadDetailEditor(props: Props) {
           ) : (
             <p className="text-sm text-[var(--color-foreground-muted)]">
               {t("admin.pdEditor.assignedOther", {
-                name: teamMembers.find((m) => m.userId === assignedTo)?.name ?? t("admin.pdEditor.otherMember"),
+                name:
+                  teamMembers.find((m) => m.userId === assignedTo)?.name ??
+                  t("admin.pdEditor.otherMember"),
               })}
             </p>
           )}
@@ -1091,9 +1068,7 @@ export function LeadDetailEditor(props: Props) {
         ) : (
           <Card>
             <CardContent className="space-y-3 p-4">
-              <h3 className="text-sm font-semibold">
-                {t("admin.pdEditor.convertTitle")}
-              </h3>
+              <h3 className="text-sm font-semibold">{t("admin.pdEditor.convertTitle")}</h3>
               <p className="text-xs text-[var(--color-foreground-muted)]">
                 {t("admin.pdEditor.convertHint")}
               </p>
@@ -1169,7 +1144,7 @@ function CloserLinkExisting({
       <select
         value={convertOrg}
         onChange={(e) => setConvertOrg(e.target.value)}
-        className="h-10 flex-1 min-w-64 rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] px-3 text-sm"
+        className="h-10 min-w-64 flex-1 rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] px-3 text-sm"
         disabled={busy}
       >
         <option value="">{t("admin.pdEditor.pickOrgOption")}</option>

@@ -13,6 +13,7 @@
 .env
 .env.local
 .env.*.local
+.env.deploy
 
 # Local storage bind-mounted at runtime, not baked in.
 storage/*

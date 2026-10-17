@@ -12,10 +12,12 @@ const schema = z.object({
   status: z.enum(["DRAFT", "ACTIVE"]),
 });
 
-function issuesOf(input: unknown) {
+function issuesOf(input: unknown): [z.core.$ZodIssue, ...z.core.$ZodIssue[]] {
   const parsed = schema.safeParse(input);
   if (parsed.success) throw new Error("expected failure");
-  return parsed.error.issues;
+  const issues = parsed.error.issues;
+  if (issues.length === 0) throw new Error("expected at least one issue");
+  return issues as [z.core.$ZodIssue, ...z.core.$ZodIssue[]];
 }
 
 describe("messageForZodIssue", () => {
@@ -79,9 +81,7 @@ describe("messageForZodIssue", () => {
       price: 10,
       status: "NOPE",
     });
-    expect(messageForZodIssue(issue, "sr-Latn")).toBe(
-      "Izaberite jednu od ponuđenih vrednosti.",
-    );
+    expect(messageForZodIssue(issue, "sr-Latn")).toBe("Izaberite jednu od ponuđenih vrednosti.");
     expect(messageForZodIssue(issue, "en")).toBe("Choose one of the available options.");
   });
 
@@ -107,9 +107,9 @@ describe("localizeZodMessage", () => {
     expect(
       localizeZodMessage("Invalid input: expected string, received undefined", "sr-Latn"),
     ).toBe("Ovo polje je obavezno.");
-    expect(
-      localizeZodMessage("Invalid input: expected string, received undefined", "en"),
-    ).toBe("This field is required.");
+    expect(localizeZodMessage("Invalid input: expected string, received undefined", "en")).toBe(
+      "This field is required.",
+    );
   });
 
   it("leaves already-localized copy alone", () => {

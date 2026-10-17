@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { FormActions } from "@/components/forms/form-actions";
 import { useT } from "@/components/app/i18n-provider";
 import { apiClient, ApiClientError } from "@/lib/api-client";
 import { unitTypeLabel } from "@/lib/i18n";
@@ -19,7 +20,7 @@ interface EntranceOpt {
   name: string;
   floors: FloorOpt[];
 }
-interface BuildingOpt {
+export interface BuildingOpt {
   id: string;
   code: string;
   name: string;
@@ -43,6 +44,8 @@ interface UnitFormProps {
   unitId?: string;
   initialValues?: Record<string, string>;
   expectedVersion?: number;
+  variant?: "page" | "embedded";
+  onCancel?: () => void;
 }
 
 export function NewUnitForm({
@@ -52,6 +55,8 @@ export function NewUnitForm({
   unitId,
   initialValues,
   expectedVersion,
+  variant = "page",
+  onCancel,
 }: UnitFormProps) {
   const t = useT();
   const router = useRouter();
@@ -67,13 +72,10 @@ export function NewUnitForm({
   const [priceChangeReason, setPriceChangeReason] = useState<string>("");
 
   const selectedBuilding = structure.find((b) => b.id === values.buildingId);
-  const selectedEntrance = selectedBuilding?.entrances.find(
-    (e) => e.id === values.entranceId,
-  );
+  const selectedEntrance = selectedBuilding?.entrances.find((e) => e.id === values.entranceId);
 
   const initialBasePrice = initialValues?.basePrice ?? "";
-  const basePriceChanged =
-    isEdit && (values.basePrice ?? "") !== initialBasePrice;
+  const basePriceChanged = isEdit && (values.basePrice ?? "") !== initialBasePrice;
 
   function setValue(name: string, value: string) {
     setValues((prev) => {
@@ -118,8 +120,7 @@ export function NewUnitForm({
         for (const key of numericKeys) {
           const raw = values[key];
           if (raw === undefined) continue;
-          payload[key] =
-            raw === "" ? null : Number(raw.replace(",", "."));
+          payload[key] = raw === "" ? null : Number(raw.replace(",", "."));
         }
         payload.structure = values.structure || null;
         payload.orientation = values.orientation || null;
@@ -132,8 +133,13 @@ export function NewUnitForm({
           payload.priceChangeReason = priceChangeReason.trim();
         }
         await apiClient.patch(`/units/${unitId}`, payload);
-        router.push(`/jedinice/${unitId}`);
-        router.refresh();
+        if (variant === "embedded") {
+          onCancel?.();
+          router.refresh();
+        } else {
+          router.push(`/jedinice/${unitId}`);
+          router.refresh();
+        }
       } else {
         const payload: Record<string, unknown> = {
           projectId,
@@ -167,228 +173,237 @@ export function NewUnitForm({
     }
   }
 
+  const form = (
+    <form className="grid grid-cols-1 gap-4 sm:grid-cols-2" onSubmit={onSubmit}>
+      <Field
+        name="code"
+        label={t("units.fields.code")}
+        required
+        value={values.code ?? ""}
+        onChange={(v) => setValue("code", v)}
+        errors={fieldErrors.code}
+        disabled={isEdit}
+        hint={isEdit ? t("inventory.units.codeImmutable") : undefined}
+      />
+      <div className="space-y-1">
+        <label className="text-sm font-medium">{t("units.fields.type")}</label>
+        <select
+          value={values.type ?? "APARTMENT"}
+          onChange={(e) => setValue("type", e.target.value)}
+          className="h-11 w-full rounded-md border border-[var(--color-border)] bg-white px-3 text-sm"
+        >
+          {UNIT_TYPE_VALUES.map((value) => (
+            <option key={value} value={value}>
+              {unitTypeLabel(value, t)}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      <div className="space-y-1">
+        <label className="text-sm font-medium">{t("units.columns.building")}</label>
+        <select
+          value={values.buildingId ?? ""}
+          onChange={(e) => setValue("buildingId", e.target.value)}
+          className="h-11 w-full rounded-md border border-[var(--color-border)] bg-white px-3 text-sm"
+        >
+          <option value="">{t("inventory.form.unspecified")}</option>
+          {structure.map((b) => (
+            <option key={b.id} value={b.id}>
+              {b.name} ({b.code})
+            </option>
+          ))}
+        </select>
+      </div>
+      <div className="space-y-1">
+        <label className="text-sm font-medium">{t("units.columns.entrance")}</label>
+        <select
+          value={values.entranceId ?? ""}
+          onChange={(e) => setValue("entranceId", e.target.value)}
+          disabled={!selectedBuilding}
+          className="h-11 w-full rounded-md border border-[var(--color-border)] bg-white px-3 text-sm disabled:opacity-50"
+        >
+          <option value="">{t("inventory.form.unspecified")}</option>
+          {selectedBuilding?.entrances.map((e) => (
+            <option key={e.id} value={e.id}>
+              {e.name} ({e.code})
+            </option>
+          ))}
+        </select>
+      </div>
+      <div className="space-y-1">
+        <label className="text-sm font-medium">{t("units.columns.floor")}</label>
+        <select
+          value={values.floorId ?? ""}
+          onChange={(e) => setValue("floorId", e.target.value)}
+          disabled={!selectedEntrance}
+          className="h-11 w-full rounded-md border border-[var(--color-border)] bg-white px-3 text-sm disabled:opacity-50"
+        >
+          <option value="">{t("inventory.form.unspecified")}</option>
+          {selectedEntrance?.floors.map((f) => (
+            <option key={f.id} value={f.id}>
+              {f.label}
+            </option>
+          ))}
+        </select>
+      </div>
+      <Field
+        name="structure"
+        label={t("units.fields.structure")}
+        value={values.structure ?? ""}
+        onChange={(v) => setValue("structure", v)}
+      />
+
+      <Field
+        name="totalArea"
+        label={t("units.fields.totalArea")}
+        type="number"
+        required
+        value={values.totalArea ?? ""}
+        onChange={(v) => setValue("totalArea", v)}
+        errors={fieldErrors.totalArea}
+      />
+      <Field
+        name="internalArea"
+        label={t("units.fields.internalArea")}
+        type="number"
+        value={values.internalArea ?? ""}
+        onChange={(v) => setValue("internalArea", v)}
+      />
+      <Field
+        name="terraceArea"
+        label={t("units.fields.terraceArea")}
+        type="number"
+        value={values.terraceArea ?? ""}
+        onChange={(v) => setValue("terraceArea", v)}
+      />
+      <Field
+        name="gardenArea"
+        label={t("units.fields.gardenArea")}
+        type="number"
+        value={values.gardenArea ?? ""}
+        onChange={(v) => setValue("gardenArea", v)}
+      />
+
+      <Field
+        name="basePrice"
+        label={t("units.fields.basePrice")}
+        type="number"
+        required
+        value={values.basePrice ?? ""}
+        onChange={(v) => setValue("basePrice", v)}
+        errors={fieldErrors.basePrice}
+      />
+      <Field
+        name="finalPrice"
+        label={t("units.fields.finalPrice")}
+        type="number"
+        value={values.finalPrice ?? ""}
+        onChange={(v) => setValue("finalPrice", v)}
+      />
+      <Field
+        name="currency"
+        label={t("units.fields.currency")}
+        value={values.currency ?? "EUR"}
+        onChange={(v) => setValue("currency", v)}
+      />
+      <Field
+        name="vatRate"
+        label={t("units.fields.vatRate")}
+        type="number"
+        value={values.vatRate ?? ""}
+        onChange={(v) => setValue("vatRate", v)}
+      />
+
+      <Field
+        name="bedrooms"
+        label={t("units.fields.bedrooms")}
+        type="number"
+        value={values.bedrooms ?? ""}
+        onChange={(v) => setValue("bedrooms", v)}
+      />
+      <Field
+        name="bathrooms"
+        label={t("units.fields.bathrooms")}
+        type="number"
+        value={values.bathrooms ?? ""}
+        onChange={(v) => setValue("bathrooms", v)}
+      />
+
+      <Field
+        name="orientation"
+        label={t("units.fields.orientation")}
+        value={values.orientation ?? ""}
+        onChange={(v) => setValue("orientation", v)}
+      />
+
+      <div className="space-y-1 sm:col-span-2">
+        <label className="text-sm font-medium">{t("units.fields.publicDescription")}</label>
+        <textarea
+          className="min-h-20 w-full rounded-md border border-[var(--color-border)] bg-white px-3 py-2 text-sm"
+          value={values.publicDescription ?? ""}
+          onChange={(e) => setValue("publicDescription", e.target.value)}
+        />
+      </div>
+      <div className="space-y-1 sm:col-span-2">
+        <label className="text-sm font-medium">{t("units.fields.internalNotes")}</label>
+        <textarea
+          className="min-h-20 w-full rounded-md border border-[var(--color-border)] bg-white px-3 py-2 text-sm"
+          value={values.internalNotes ?? ""}
+          onChange={(e) => setValue("internalNotes", e.target.value)}
+        />
+      </div>
+
+      {basePriceChanged ? (
+        <div className="space-y-1 sm:col-span-2">
+          <label className="text-sm font-medium">
+            {t("inventory.units.priceChangeReason")} <span className="text-red-500">*</span>
+          </label>
+          <input
+            type="text"
+            value={priceChangeReason}
+            onChange={(e) => setPriceChangeReason(e.target.value)}
+            required
+            className="h-11 w-full rounded-md border border-[var(--color-border)] bg-white px-3 text-sm"
+            placeholder={t("inventory.units.priceChangePlaceholder")}
+          />
+          <p className="text-xs text-[var(--color-foreground-muted)]">
+            {t("inventory.units.priceChangeHint")}
+          </p>
+        </div>
+      ) : null}
+
+      {error ? (
+        <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700 sm:col-span-2">
+          {error}
+        </div>
+      ) : null}
+
+      <FormActions sticky={variant === "embedded"} className="sm:col-span-2">
+        <Button
+          variant="outline"
+          type="button"
+          onClick={() => (onCancel ? onCancel() : router.back())}
+          disabled={loading}
+        >
+          {t("inventory.discard")}
+        </Button>
+        <Button
+          type="submit"
+          loading={loading}
+          disabled={basePriceChanged && priceChangeReason.trim().length === 0}
+        >
+          {isEdit ? t("common.saveChanges") : t("inventory.units.create")}
+        </Button>
+      </FormActions>
+    </form>
+  );
+
+  if (variant === "embedded") return form;
+
   return (
     <Card>
-      <CardContent className="p-4 sm:p-6">
-        <form className="grid grid-cols-1 gap-4 sm:grid-cols-2" onSubmit={onSubmit}>
-          <Field
-            name="code"
-            label={t("units.fields.code")}
-            required
-            value={values.code ?? ""}
-            onChange={(v) => setValue("code", v)}
-            errors={fieldErrors.code}
-            disabled={isEdit}
-            hint={isEdit ? t("inventory.units.codeImmutable") : undefined}
-          />
-          <div className="space-y-1">
-            <label className="text-sm font-medium">{t("units.fields.type")}</label>
-            <select
-              value={values.type ?? "APARTMENT"}
-              onChange={(e) => setValue("type", e.target.value)}
-              className="h-11 w-full rounded-md border border-[var(--color-border)] bg-white px-3 text-sm"
-            >
-              {UNIT_TYPE_VALUES.map((value) => (
-                <option key={value} value={value}>
-                  {unitTypeLabel(value, t)}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="space-y-1">
-            <label className="text-sm font-medium">{t("units.columns.building")}</label>
-            <select
-              value={values.buildingId ?? ""}
-              onChange={(e) => setValue("buildingId", e.target.value)}
-              className="h-11 w-full rounded-md border border-[var(--color-border)] bg-white px-3 text-sm"
-            >
-              <option value="">{t("inventory.form.unspecified")}</option>
-              {structure.map((b) => (
-                <option key={b.id} value={b.id}>
-                  {b.name} ({b.code})
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="space-y-1">
-            <label className="text-sm font-medium">{t("units.columns.entrance")}</label>
-            <select
-              value={values.entranceId ?? ""}
-              onChange={(e) => setValue("entranceId", e.target.value)}
-              disabled={!selectedBuilding}
-              className="h-11 w-full rounded-md border border-[var(--color-border)] bg-white px-3 text-sm disabled:opacity-50"
-            >
-              <option value="">{t("inventory.form.unspecified")}</option>
-              {selectedBuilding?.entrances.map((e) => (
-                <option key={e.id} value={e.id}>
-                  {e.name} ({e.code})
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="space-y-1">
-            <label className="text-sm font-medium">{t("units.columns.floor")}</label>
-            <select
-              value={values.floorId ?? ""}
-              onChange={(e) => setValue("floorId", e.target.value)}
-              disabled={!selectedEntrance}
-              className="h-11 w-full rounded-md border border-[var(--color-border)] bg-white px-3 text-sm disabled:opacity-50"
-            >
-              <option value="">{t("inventory.form.unspecified")}</option>
-              {selectedEntrance?.floors.map((f) => (
-                <option key={f.id} value={f.id}>
-                  {f.label}
-                </option>
-              ))}
-            </select>
-          </div>
-          <Field
-            name="structure"
-            label={t("units.fields.structure")}
-            value={values.structure ?? ""}
-            onChange={(v) => setValue("structure", v)}
-          />
-
-          <Field
-            name="totalArea"
-            label={t("units.fields.totalArea")}
-            type="number"
-            required
-            value={values.totalArea ?? ""}
-            onChange={(v) => setValue("totalArea", v)}
-            errors={fieldErrors.totalArea}
-          />
-          <Field
-            name="internalArea"
-            label={t("units.fields.internalArea")}
-            type="number"
-            value={values.internalArea ?? ""}
-            onChange={(v) => setValue("internalArea", v)}
-          />
-          <Field
-            name="terraceArea"
-            label={t("units.fields.terraceArea")}
-            type="number"
-            value={values.terraceArea ?? ""}
-            onChange={(v) => setValue("terraceArea", v)}
-          />
-          <Field
-            name="gardenArea"
-            label={t("units.fields.gardenArea")}
-            type="number"
-            value={values.gardenArea ?? ""}
-            onChange={(v) => setValue("gardenArea", v)}
-          />
-
-          <Field
-            name="basePrice"
-            label={t("units.fields.basePrice")}
-            type="number"
-            required
-            value={values.basePrice ?? ""}
-            onChange={(v) => setValue("basePrice", v)}
-            errors={fieldErrors.basePrice}
-          />
-          <Field
-            name="finalPrice"
-            label={t("units.fields.finalPrice")}
-            type="number"
-            value={values.finalPrice ?? ""}
-            onChange={(v) => setValue("finalPrice", v)}
-          />
-          <Field
-            name="currency"
-            label={t("units.fields.currency")}
-            value={values.currency ?? "EUR"}
-            onChange={(v) => setValue("currency", v)}
-          />
-          <Field
-            name="vatRate"
-            label={t("units.fields.vatRate")}
-            type="number"
-            value={values.vatRate ?? ""}
-            onChange={(v) => setValue("vatRate", v)}
-          />
-
-          <Field
-            name="bedrooms"
-            label={t("units.fields.bedrooms")}
-            type="number"
-            value={values.bedrooms ?? ""}
-            onChange={(v) => setValue("bedrooms", v)}
-          />
-          <Field
-            name="bathrooms"
-            label={t("units.fields.bathrooms")}
-            type="number"
-            value={values.bathrooms ?? ""}
-            onChange={(v) => setValue("bathrooms", v)}
-          />
-
-          <Field
-            name="orientation"
-            label={t("units.fields.orientation")}
-            value={values.orientation ?? ""}
-            onChange={(v) => setValue("orientation", v)}
-          />
-
-          <div className="sm:col-span-2 space-y-1">
-            <label className="text-sm font-medium">{t("units.fields.publicDescription")}</label>
-            <textarea
-              className="min-h-20 w-full rounded-md border border-[var(--color-border)] bg-white px-3 py-2 text-sm"
-              value={values.publicDescription ?? ""}
-              onChange={(e) => setValue("publicDescription", e.target.value)}
-            />
-          </div>
-          <div className="sm:col-span-2 space-y-1">
-            <label className="text-sm font-medium">{t("units.fields.internalNotes")}</label>
-            <textarea
-              className="min-h-20 w-full rounded-md border border-[var(--color-border)] bg-white px-3 py-2 text-sm"
-              value={values.internalNotes ?? ""}
-              onChange={(e) => setValue("internalNotes", e.target.value)}
-            />
-          </div>
-
-          {basePriceChanged ? (
-            <div className="sm:col-span-2 space-y-1">
-              <label className="text-sm font-medium">
-                {t("inventory.units.priceChangeReason")} <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                value={priceChangeReason}
-                onChange={(e) => setPriceChangeReason(e.target.value)}
-                required
-                className="h-11 w-full rounded-md border border-[var(--color-border)] bg-white px-3 text-sm"
-                placeholder={t("inventory.units.priceChangePlaceholder")}
-              />
-              <p className="text-xs text-[var(--color-foreground-muted)]">
-                {t("inventory.units.priceChangeHint")}
-              </p>
-            </div>
-          ) : null}
-
-          {error ? (
-            <div className="sm:col-span-2 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
-              {error}
-            </div>
-          ) : null}
-
-          <div className="sm:col-span-2 flex justify-end gap-2 pt-2">
-            <Button variant="outline" type="button" onClick={() => router.back()} disabled={loading}>
-              {t("inventory.discard")}
-            </Button>
-            <Button
-              type="submit"
-              loading={loading}
-              disabled={basePriceChanged && priceChangeReason.trim().length === 0}
-            >
-              {isEdit ? t("common.saveChanges") : t("inventory.units.create")}
-            </Button>
-          </div>
-        </form>
-      </CardContent>
+      <CardContent className="p-4 sm:p-6">{form}</CardContent>
     </Card>
   );
 }
@@ -430,9 +445,7 @@ function Field({
         disabled={disabled}
         className="h-11 w-full rounded-md border border-[var(--color-border)] bg-white px-3 text-sm disabled:bg-neutral-100 disabled:text-neutral-500"
       />
-      {hint ? (
-        <p className="text-xs text-[var(--color-foreground-muted)]">{hint}</p>
-      ) : null}
+      {hint ? <p className="text-xs text-[var(--color-foreground-muted)]">{hint}</p> : null}
       {errors?.map((msg, i) => (
         <p key={i} className="text-xs text-red-600">
           {msg}

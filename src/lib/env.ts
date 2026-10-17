@@ -31,9 +31,7 @@ const serverSchema = z.object({
   DATABASE_URL: z.string().url().min(1, "DATABASE_URL is required"),
   DIRECT_URL: optionalUrl,
 
-  BETTER_AUTH_SECRET: z
-    .string()
-    .min(32, "BETTER_AUTH_SECRET must be at least 32 characters"),
+  BETTER_AUTH_SECRET: z.string().min(32, "BETTER_AUTH_SECRET must be at least 32 characters"),
   BETTER_AUTH_URL: z.string().url().min(1, "BETTER_AUTH_URL is required"),
 
   APP_NAME: z.string().min(1).default("PropertyDesk"),
@@ -80,14 +78,8 @@ const serverSchema = z.object({
   // back to a deterministic dev key derived from `BETTER_AUTH_SECRET`.
   BILLING_SECRET_KEY: optionalString,
 
-  SEED_SUPER_ADMIN_EMAIL: z
-    .string()
-    .email()
-    .default("admin@propertydesk.test"),
-  SEED_SUPER_ADMIN_PASSWORD: z
-    .string()
-    .min(10)
-    .default("PropertyDesk!2026"),
+  SEED_SUPER_ADMIN_EMAIL: z.string().email().default("admin@propertydesk.test"),
+  SEED_SUPER_ADMIN_PASSWORD: z.string().min(10).default("PropertyDesk!2026"),
 
   RATE_LIMIT_ENABLED: booleanish.default(true),
 
@@ -120,9 +112,7 @@ const serverSchema = z.object({
   // When unset the job records an "OK: skipped (verifier disabled)"
   // status so operators can see the check is running but there is
   // nothing to verify. It never fails hard.
-  BACKUP_VERIFY_SOURCE: z
-    .enum(["disabled", "local", "s3"])
-    .default("disabled"),
+  BACKUP_VERIFY_SOURCE: z.enum(["disabled", "local", "s3"]).default("disabled"),
   BACKUP_VERIFY_LOCAL_DIR: optionalString,
   BACKUP_VERIFY_S3_BUCKET: optionalString,
   BACKUP_VERIFY_S3_PREFIX: optionalString,
@@ -141,10 +131,7 @@ const publicSchema = z.object({
   // Public URL of the authenticated app subdomain. The marketing landing at
   // the apex domain (propertydesk.app) links to this for every "sign in" or
   // "open the app" call to action.
-  NEXT_PUBLIC_MY_APP_URL: z
-    .string()
-    .url()
-    .default("https://my.propertydesk.app"),
+  NEXT_PUBLIC_MY_APP_URL: z.string().url().default("https://my.propertydesk.app"),
   // Loops (loops.so) public newsletter/form ID. When present, the landing
   // lead form POSTs directly to Loops' public form endpoint. An empty value
   // is tolerated at build time; the form will surface a clear "not
@@ -196,8 +183,7 @@ function parsePublicEnv(): PublicEnv {
     NEXT_PUBLIC_APP_TIMEZONE: process.env.NEXT_PUBLIC_APP_TIMEZONE,
     NEXT_PUBLIC_MY_APP_URL: process.env.NEXT_PUBLIC_MY_APP_URL,
     NEXT_PUBLIC_LOOPS_FORM_ID: process.env.NEXT_PUBLIC_LOOPS_FORM_ID,
-    NEXT_PUBLIC_GOOGLE_APPOINTMENT_URL:
-      process.env.NEXT_PUBLIC_GOOGLE_APPOINTMENT_URL,
+    NEXT_PUBLIC_GOOGLE_APPOINTMENT_URL: process.env.NEXT_PUBLIC_GOOGLE_APPOINTMENT_URL,
     NEXT_PUBLIC_PRODUCT_VIDEO_URL: process.env.NEXT_PUBLIC_PRODUCT_VIDEO_URL,
     NEXT_PUBLIC_SENTRY_DSN: process.env.NEXT_PUBLIC_SENTRY_DSN,
   };
@@ -214,9 +200,7 @@ function parsePublicEnv(): PublicEnv {
  * (route handlers, server components, service layer).
  */
 export const serverEnv: ServerEnv =
-  typeof window === "undefined"
-    ? parseServerEnv()
-    : (undefined as unknown as ServerEnv);
+  typeof window === "undefined" ? parseServerEnv() : (undefined as unknown as ServerEnv);
 
 /**
  * `publicEnv` is safe to import from client components.

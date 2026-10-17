@@ -104,9 +104,7 @@ describe("createPaymentPlan", () => {
     const call = prismaMock.paymentInstallment.createMany.mock.calls[0]![0] as {
       data: Array<{ amount: string }>;
     };
-    const total = call.data
-      .reduce((acc, r) => acc.plus(r.amount), new Decimal(0))
-      .toString();
+    const total = call.data.reduce((acc, r) => acc.plus(r.amount), new Decimal(0)).toString();
     expect(total).toBe("100000");
   });
 
@@ -137,9 +135,7 @@ describe("createPaymentPlan", () => {
     const call = prismaMock.paymentInstallment.createMany.mock.calls[0]![0] as {
       data: Array<{ amount: string }>;
     };
-    const total = call.data
-      .reduce((acc, r) => acc.plus(r.amount), new Decimal(0))
-      .toString();
+    const total = call.data.reduce((acc, r) => acc.plus(r.amount), new Decimal(0)).toString();
     expect(total).toBe("100000");
     expect(call.data).toHaveLength(3);
   });

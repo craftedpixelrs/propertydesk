@@ -87,7 +87,13 @@ function addMonths(base: Date, months: number): Date {
 function buildManual(
   input: ManualInstallmentInput[],
   finalPrice: Decimal,
-): { amount: Decimal; percentage: Decimal | null; name: string; dueDate: Date; notes: string | null }[] {
+): {
+  amount: Decimal;
+  percentage: Decimal | null;
+  name: string;
+  dueDate: Date;
+  notes: string | null;
+}[] {
   if (!input?.length) {
     throw DomainErrors.badRequest("Plan mora imati bar jednu ratu.");
   }
@@ -97,9 +103,7 @@ function buildManual(
     return {
       name: it.name.trim(),
       amount: amt,
-      percentage: finalPrice.gt(0)
-        ? amt.dividedBy(finalPrice).times(100).toDecimalPlaces(3)
-        : null,
+      percentage: finalPrice.gt(0) ? amt.dividedBy(finalPrice).times(100).toDecimalPlaces(3) : null,
       dueDate: toDate(it.dueDate),
       notes: it.notes ?? null,
     };
@@ -116,7 +120,13 @@ function buildManual(
 function buildPercentage(
   input: PercentageInstallmentInput[],
   finalPrice: Decimal,
-): { amount: Decimal; percentage: Decimal | null; name: string; dueDate: Date; notes: string | null }[] {
+): {
+  amount: Decimal;
+  percentage: Decimal | null;
+  name: string;
+  dueDate: Date;
+  notes: string | null;
+}[] {
   if (!input?.length) {
     throw DomainErrors.badRequest("Plan mora imati bar jednu ratu.");
   }
@@ -152,7 +162,13 @@ function buildPercentage(
 function buildEqual(
   input: EqualPlanInput,
   finalPrice: Decimal,
-): { amount: Decimal; percentage: Decimal | null; name: string; dueDate: Date; notes: string | null }[] {
+): {
+  amount: Decimal;
+  percentage: Decimal | null;
+  name: string;
+  dueDate: Date;
+  notes: string | null;
+}[] {
   if (!input || input.installments < 1) {
     throw DomainErrors.badRequest("Broj rata mora biti najmanje 1.");
   }
@@ -163,9 +179,7 @@ function buildEqual(
   const rows = Array.from({ length: n }).map((_, idx) => ({
     name: `${input.namePrefix ?? "Rata"} ${idx + 1}`,
     amount: base,
-    percentage: finalPrice.gt(0)
-      ? base.dividedBy(finalPrice).times(100).toDecimalPlaces(3)
-      : null,
+    percentage: finalPrice.gt(0) ? base.dividedBy(finalPrice).times(100).toDecimalPlaces(3) : null,
     dueDate: addMonths(firstDue, gap * idx),
     notes: null as string | null,
   }));
@@ -253,10 +267,7 @@ export async function createPaymentPlan(input: CreatePaymentPlanInput) {
   return plan;
 }
 
-export async function getPaymentPlan(input: {
-  organizationId: string;
-  planId: string;
-}) {
+export async function getPaymentPlan(input: { organizationId: string; planId: string }) {
   const plan = await prisma.paymentPlan.findFirst({
     where: { id: input.planId, organizationId: input.organizationId },
     include: {
@@ -292,9 +303,7 @@ export async function cancelPaymentPlan(input: {
   if (!existing) throw DomainErrors.notFound("Plan plaćanja");
   if (existing.status === "CANCELED") return existing;
   if (existing.installments.length > 0) {
-    throw DomainErrors.invalidState(
-      "Ne možete otkazati plan kada postoje evidentirane uplate.",
-    );
+    throw DomainErrors.invalidState("Ne možete otkazati plan kada postoje evidentirane uplate.");
   }
   const canceled = await prisma.$transaction(async (tx) => {
     await tx.paymentInstallment.updateMany({

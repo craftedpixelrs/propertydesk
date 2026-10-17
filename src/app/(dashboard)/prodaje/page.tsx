@@ -193,7 +193,7 @@ async function ListView({
         <>
           <div className="hidden overflow-x-auto rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] md:block">
             <table className="min-w-full divide-y divide-[var(--color-border)] text-sm">
-              <thead className="bg-[var(--color-surface-inset)] text-left text-xs uppercase tracking-wide text-[var(--color-foreground-muted)]">
+              <thead className="bg-[var(--color-surface-inset)] text-left text-xs tracking-wide text-[var(--color-foreground-muted)] uppercase">
                 <tr>
                   <th className="px-4 py-3">{t("deals.unit")}</th>
                   <th className="px-4 py-3">{t("units.columns.project")}</th>

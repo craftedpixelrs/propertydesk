@@ -40,9 +40,7 @@ export function ChartCard({
         <div>
           <CardTitle className="text-sm">{title}</CardTitle>
           {description ? (
-            <p className="mt-1 text-xs text-[var(--color-foreground-muted)]">
-              {description}
-            </p>
+            <p className="mt-1 text-xs text-[var(--color-foreground-muted)]">{description}</p>
           ) : null}
         </div>
         {action ? <div className="shrink-0">{action}</div> : null}

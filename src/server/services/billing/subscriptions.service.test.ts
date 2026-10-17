@@ -54,7 +54,12 @@ describe("priceForCycle", () => {
   });
 
   it("falls back to N × monthly when a cycle price is null", () => {
-    const partial = { monthlyPrice: "10", quarterlyPrice: null, semiAnnualPrice: null, annualPrice: null };
+    const partial = {
+      monthlyPrice: "10",
+      quarterlyPrice: null,
+      semiAnnualPrice: null,
+      annualPrice: null,
+    };
     expect(priceForCycle(partial, "QUARTERLY").toString()).toBe("30");
     expect(priceForCycle(partial, "SEMI_ANNUAL").toString()).toBe("60");
     expect(priceForCycle(partial, "ANNUAL").toString()).toBe("120");

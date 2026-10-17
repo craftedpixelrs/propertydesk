@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 
 import { APP_NAME, MARKETING_URL } from "@/lib/constants/app";
 import { htmlLang, t, type Locale, type TranslationKey } from "@/lib/i18n";
+import { JsonLd } from "@/lib/seo/json-ld";
 
 interface LandingMeta {
   slug: string;
@@ -20,17 +21,18 @@ interface LandingMeta {
  * landing page. Every topic page reuses the same OG image dimensions
  * and Twitter card layout as the root marketing page.
  */
-export function buildLandingMetadata({
-  slug,
-  title,
-  description,
-  locale,
-}: LandingMeta): Metadata {
+export function buildLandingMetadata({ slug, title, description, locale }: LandingMeta): Metadata {
   const url = `${MARKETING_URL}/${slug}`;
   return {
     title: { absolute: `${title} | ${APP_NAME}` },
     description,
-    alternates: { canonical: url },
+    alternates: {
+      canonical: url,
+      languages: {
+        "sr-Latn": url,
+        "x-default": url,
+      },
+    },
     openGraph: {
       title: `${title} | ${APP_NAME}`,
       description,
@@ -51,13 +53,7 @@ export function buildLandingMetadata({
  * Emit the standard triple of JSON-LD blocks (WebPage + BreadcrumbList)
  * used by every topic landing page for structured-data SEO.
  */
-export function LandingJsonLd({
-  slug,
-  title,
-  description,
-  locale,
-  breadcrumb,
-}: LandingMeta) {
+export function LandingJsonLd({ slug, title, description, locale, breadcrumb }: LandingMeta) {
   const url = `${MARKETING_URL}/${slug}`;
   const webPage = {
     "@context": "https://schema.org",
@@ -94,14 +90,8 @@ export function LandingJsonLd({
 
   return (
     <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(webPage) }}
-      />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbList) }}
-      />
+      <JsonLd data={webPage} />
+      <JsonLd data={breadcrumbList} />
     </>
   );
 }

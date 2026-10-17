@@ -4,12 +4,7 @@ import { cookies } from "next/headers";
 
 import { prisma } from "@/server/db/prisma";
 import { getSession } from "@/server/auth/session";
-import {
-  DEFAULT_LOCALE,
-  LOCALE_COOKIE,
-  parseLocale,
-  type Locale,
-} from "@/lib/i18n";
+import { DEFAULT_LOCALE, LOCALE_COOKIE, parseLocale, type Locale } from "@/lib/i18n";
 
 /**
  * Resolve the UI locale for this request.

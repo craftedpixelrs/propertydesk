@@ -14,19 +14,16 @@ const bodySchema = z.object({
  * Investor rejects the reservation request. Frees the unit's soft
  * hold if no other pending requests remain.
  */
-export const POST = apiHandler(
-  { paramsSchema, bodySchema },
-  async ({ params, body }) => {
-    const ctx = await requirePermission("reservation.approve");
-    const result = await declineReservationRequest({
-      organizationId: ctx.organization.organizationId,
-      actorUserId: ctx.session.user.id,
-      requestId: params.id,
-      reason: body.reason ?? null,
-    });
-    return { data: result };
-  },
-);
+export const POST = apiHandler({ paramsSchema, bodySchema }, async ({ params, body }) => {
+  const ctx = await requirePermission("reservation.approve");
+  const result = await declineReservationRequest({
+    organizationId: ctx.organization.organizationId,
+    actorUserId: ctx.session.user.id,
+    requestId: params.id,
+    reason: body.reason ?? null,
+  });
+  return { data: result };
+});
 
 /**
  * @swagger

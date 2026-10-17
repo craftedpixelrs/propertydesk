@@ -41,9 +41,9 @@ export function OrganizationSwitcher({ className }: { className?: string }) {
         <Button
           variant="outline"
           size="sm"
-          className={cn("gap-2 min-w-0 max-w-full justify-between", className)}
+          className={cn("max-w-full min-w-0 justify-between gap-2", className)}
         >
-          <span className="inline-flex items-center gap-2 min-w-0">
+          <span className="inline-flex min-w-0 items-center gap-2">
             <Building2 aria-hidden className="size-4 text-[var(--color-foreground-muted)]" />
             <span className="truncate text-left">{activeName}</span>
           </span>

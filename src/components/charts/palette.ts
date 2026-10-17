@@ -73,10 +73,7 @@ export const reservationStatusColor: Record<string, string> = {
   CONVERTED: chartStatusTones.success,
 };
 
-export function pickColor(
-  index: number,
-  palette: readonly string[] = chartBrandScale,
-): string {
+export function pickColor(index: number, palette: readonly string[] = chartBrandScale): string {
   if (palette.length === 0) return chartBrandScale[0]!;
   return palette[index % palette.length]!;
 }

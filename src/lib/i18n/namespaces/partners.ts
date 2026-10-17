@@ -100,8 +100,7 @@ export const partnersSr = {
 
   connectionsPage: {
     title: "Konekcije sa investitorima",
-    subtitle:
-      "Investitori koji su Vas pozvali, plus zahtevi koje ste poslali iz kataloga mreže.",
+    subtitle: "Investitori koji su Vas pozvali, plus zahtevi koje ste poslali iz kataloga mreže.",
     empty: "Nemate uspostavljenih konekcija sa investitorima.",
     invitePending: "Poziv čeka",
   },
@@ -122,8 +121,7 @@ export const partnersSr = {
     needVerification: "Zahtev možete slati kada platforma verifikuje agenciju.",
     pendingBanner:
       "Nalog čeka verifikaciju. Katalog možete pregledati, a zahtev za saradnju šaljete tek posle potvrde.",
-    rejectedBanner:
-      "Verifikacija je odbijena. Kontaktirajte podršku ako mislite da je to greška.",
+    rejectedBanner: "Verifikacija je odbijena. Kontaktirajte podršku ako mislite da je to greška.",
   },
 
   requests: {
@@ -139,8 +137,7 @@ export const partnersSr = {
   },
 
   myCommissions: {
-    subtitle:
-      "Obračun provizija za realizovane prodaje. Detaljna razrada dolazi u sledećoj fazi.",
+    subtitle: "Obračun provizija za realizovane prodaje. Detaljna razrada dolazi u sledećoj fazi.",
     empty: "Nema evidentiranih provizija.",
   },
 
@@ -220,8 +217,7 @@ export const partnersSr = {
   reserve: {
     trigger: "Rezerviši",
     title: "Kreiranje rezervacije",
-    description:
-      "Izaberite kupca kog ste prethodno registrovali kod ovog investitora.",
+    description: "Izaberite kupca kog ste prethodno registrovali kod ovog investitora.",
     selectBuyer: "Izaberite kupca",
   },
 
@@ -283,8 +279,7 @@ export const partnersEn: Leaves<typeof partnersSr> = {
   },
 
   agencies: {
-    subtitle:
-      "Manage connections, project access, and buyer protection for partner agencies.",
+    subtitle: "Manage connections, project access, and buyer protection for partner agencies.",
     totalConnections: "Total connections: {{count}}",
     empty: "You have no agency connections yet.",
     commissionRules: "Commission rules",
@@ -331,8 +326,7 @@ export const partnersEn: Leaves<typeof partnersSr> = {
 
   connectionsPage: {
     title: "Connections with investors",
-    subtitle:
-      "Investors who invited you, plus requests you sent from the network catalogue.",
+    subtitle: "Investors who invited you, plus requests you sent from the network catalogue.",
     empty: "You have no connections with investors.",
     invitePending: "Invite pending",
   },
@@ -353,8 +347,7 @@ export const partnersEn: Leaves<typeof partnersSr> = {
     needVerification: "You can send requests after the platform verifies the agency.",
     pendingBanner:
       "Your account is awaiting verification. You can browse the catalogue; connection requests unlock after approval.",
-    rejectedBanner:
-      "Verification was rejected. Contact support if you think this is a mistake.",
+    rejectedBanner: "Verification was rejected. Contact support if you think this is a mistake.",
   },
 
   requests: {
@@ -451,8 +444,7 @@ export const partnersEn: Leaves<typeof partnersSr> = {
   reserve: {
     trigger: "Reserve",
     title: "Create reservation",
-    description:
-      "Select a buyer you previously registered with this investor.",
+    description: "Select a buyer you previously registered with this investor.",
     selectBuyer: "Select a buyer",
   },
 

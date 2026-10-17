@@ -18,7 +18,7 @@ interface PageProps {
 function InfoRow({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <div className="text-xs uppercase tracking-wide text-[var(--color-foreground-muted)]">
+      <div className="text-xs tracking-wide text-[var(--color-foreground-muted)] uppercase">
         {label}
       </div>
       <div className="mt-0.5">{value}</div>
@@ -55,7 +55,7 @@ export default async function OfferUnitDetailPage({ params }: PageProps) {
           >
             ← {unit.project.name}
           </Link>
-          <div className="mt-2 text-xs font-mono uppercase text-[var(--color-foreground-muted)]">
+          <div className="mt-2 font-mono text-xs text-[var(--color-foreground-muted)] uppercase">
             {unit.project.code} · {unit.code}
           </div>
           <h1 className="text-2xl font-semibold">
@@ -71,7 +71,7 @@ export default async function OfferUnitDetailPage({ params }: PageProps) {
         </div>
         <div className="flex flex-col items-end gap-2">
           <div className="text-right">
-            <div className="text-xs uppercase tracking-wide text-[var(--color-foreground-muted)]">
+            <div className="text-xs tracking-wide text-[var(--color-foreground-muted)] uppercase">
               {t("units.detail.pricing")}
             </div>
             <div className="text-2xl font-semibold tabular-nums">
@@ -83,9 +83,7 @@ export default async function OfferUnitDetailPage({ params }: PageProps) {
               </div>
             ) : null}
           </div>
-          <div className="text-sm">
-            {unitStatusLabel(unit.status, t)}
-          </div>
+          <div className="text-sm">{unitStatusLabel(unit.status, t)}</div>
           {unit.status === "AVAILABLE" && access.canRequestReservations ? (
             <AgencyReserveButton unitId={unit.id} />
           ) : null}
@@ -118,14 +116,8 @@ export default async function OfferUnitDetailPage({ params }: PageProps) {
           </CardHeader>
           <CardContent className="grid grid-cols-2 gap-3 text-sm">
             <InfoRow label={t("units.fields.type")} value={unitTypeLabel(unit.type, t)} />
-            <InfoRow
-              label={t("units.columns.structure")}
-              value={unit.structure ?? "—"}
-            />
-            <InfoRow
-              label={t("inventory.units.totalAreaShort")}
-              value={`${unit.totalArea} m²`}
-            />
+            <InfoRow label={t("units.columns.structure")} value={unit.structure ?? "—"} />
+            <InfoRow label={t("inventory.units.totalAreaShort")} value={`${unit.totalArea} m²`} />
             <InfoRow
               label={t("inventory.units.gross")}
               value={unit.internalArea ? `${unit.internalArea} m²` : "—"}
@@ -143,17 +135,10 @@ export default async function OfferUnitDetailPage({ params }: PageProps) {
             <InfoRow
               label={t("inventory.units.garden")}
               value={
-                unit.gardenArea
-                  ? `${unit.gardenArea} m²`
-                  : unit.hasGarden
-                    ? t("common.yes")
-                    : "—"
+                unit.gardenArea ? `${unit.gardenArea} m²` : unit.hasGarden ? t("common.yes") : "—"
               }
             />
-            <InfoRow
-              label={t("units.fields.orientation")}
-              value={unit.orientation ?? "—"}
-            />
+            <InfoRow label={t("units.fields.orientation")} value={unit.orientation ?? "—"} />
             <InfoRow
               label={t("units.fields.bedrooms")}
               value={unit.bedrooms != null ? String(unit.bedrooms) : "—"}
@@ -184,7 +169,7 @@ export default async function OfferUnitDetailPage({ params }: PageProps) {
           <CardHeader>
             <CardTitle>{t("units.fields.publicDescription")}</CardTitle>
           </CardHeader>
-          <CardContent className="whitespace-pre-wrap text-sm">
+          <CardContent className="text-sm whitespace-pre-wrap">
             {unit.publicDescription}
           </CardContent>
         </Card>

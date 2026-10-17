@@ -28,46 +28,43 @@ const bodySchema = z.object({
  *
  * Rate-limited per IP AND per token to avoid enumeration + noise.
  */
-export const POST = apiHandler(
-  { paramsSchema, bodySchema },
-  async ({ req, params, body }) => {
-    // 5 attempts / 10 min per IP × token, plus a 20 attempts / hour
-    // per token bucket to absorb NAT-shared IPs.
-    enforceRateLimit({
-      req,
-      scope: "public.reserve.ip",
-      options: { windowMs: 10 * 60_000, max: 5 },
-    });
-    enforceRateLimit({
-      req,
-      scope: "public.reserve.token",
-      callerId: params.token,
-      options: { windowMs: 60 * 60_000, max: 20 },
-    });
+export const POST = apiHandler({ paramsSchema, bodySchema }, async ({ req, params, body }) => {
+  // 5 attempts / 10 min per IP × token, plus a 20 attempts / hour
+  // per token bucket to absorb NAT-shared IPs.
+  enforceRateLimit({
+    req,
+    scope: "public.reserve.ip",
+    options: { windowMs: 10 * 60_000, max: 5 },
+  });
+  enforceRateLimit({
+    req,
+    scope: "public.reserve.token",
+    callerId: params.token,
+    options: { windowMs: 60 * 60_000, max: 20 },
+  });
 
-    const result = await createReservationRequest({
-      token: params.token,
-      firstName: body.firstName,
-      lastName: body.lastName,
-      email: body.email,
-      phone: body.phone,
-      depositAmount: body.depositAmount,
-      notes: body.notes ?? null,
-      referralCode: body.referralCode ?? null,
-    });
+  const result = await createReservationRequest({
+    token: params.token,
+    firstName: body.firstName,
+    lastName: body.lastName,
+    email: body.email,
+    phone: body.phone,
+    depositAmount: body.depositAmount,
+    notes: body.notes ?? null,
+    referralCode: body.referralCode ?? null,
+  });
 
-    return {
-      data: {
-        id: result.id,
-        ipsReference: result.ipsReference,
-        ipsQrAvailable: result.ipsQrAvailable,
-        expiresAt: result.expiresAt.toISOString(),
-        payment: result.payment,
-      },
-      status: 201,
-    };
-  },
-);
+  return {
+    data: {
+      id: result.id,
+      ipsReference: result.ipsReference,
+      ipsQrAvailable: result.ipsQrAvailable,
+      expiresAt: result.expiresAt.toISOString(),
+      payment: result.payment,
+    },
+    status: 201,
+  };
+});
 
 /**
  * @swagger

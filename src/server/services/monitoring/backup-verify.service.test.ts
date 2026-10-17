@@ -21,10 +21,7 @@ const emailMock = vi.hoisted(() => ({
 
 const envMock = vi.hoisted(() => ({
   serverEnv: {
-    BACKUP_VERIFY_SOURCE: "disabled" as
-      | "disabled"
-      | "local"
-      | "s3",
+    BACKUP_VERIFY_SOURCE: "disabled" as "disabled" | "local" | "s3",
     BACKUP_VERIFY_LOCAL_DIR: undefined as string | undefined,
     BACKUP_VERIFY_S3_BUCKET: undefined as string | undefined,
     BACKUP_VERIFY_S3_PREFIX: undefined as string | undefined,
@@ -130,8 +127,7 @@ describe("consecutive-failure alerting", () => {
   it("sends an alert email when the two most recent checks are FAIL", async () => {
     envMock.serverEnv.BACKUP_VERIFY_SOURCE = "local";
     envMock.serverEnv.BACKUP_VERIFY_LOCAL_DIR = undefined;
-    envMock.serverEnv.BACKUP_VERIFY_ALERT_EMAILS =
-      "ops@propertydesk.app, oncall@propertydesk.app";
+    envMock.serverEnv.BACKUP_VERIFY_ALERT_EMAILS = "ops@propertydesk.app, oncall@propertydesk.app";
 
     prismaMock.systemHealthCheck.findMany.mockResolvedValue([
       {

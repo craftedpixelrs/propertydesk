@@ -45,14 +45,7 @@ export interface UsersFilterValues {
   platform: string;
 }
 
-const FILTER_KEYS = [
-  "q",
-  "organizationId",
-  "orgType",
-  "role",
-  "status",
-  "platform",
-] as const;
+const FILTER_KEYS = ["q", "organizationId", "orgType", "role", "status", "platform"] as const;
 
 export function UsersFilterBar({
   values,
@@ -97,10 +90,7 @@ export function UsersFilterBar({
   const hasFilters = FILTER_KEYS.some((key) => values[key]);
 
   return (
-    <div
-      className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4"
-      aria-busy={pending}
-    >
+    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4" aria-busy={pending}>
       <input
         type="search"
         value={qLocal}

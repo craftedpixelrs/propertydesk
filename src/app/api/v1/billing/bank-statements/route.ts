@@ -31,8 +31,7 @@ export const POST = apiHandler({}, async ({ req }) => {
   }
 
   const buffer = Buffer.from(await file.arrayBuffer());
-  const rows =
-    format === "CSV" ? parseCsv(buffer.toString("utf8")) : await parseXlsx(buffer);
+  const rows = format === "CSV" ? parseCsv(buffer.toString("utf8")) : await parseXlsx(buffer);
   if (rows.length === 0) {
     throw new ApiError("BAD_REQUEST", "Fajl ne sadrži transakcije.");
   }

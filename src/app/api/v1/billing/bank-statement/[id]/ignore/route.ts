@@ -7,18 +7,15 @@ import { ignoreTransaction } from "@/server/services/billing/bank-statement/serv
 const paramsSchema = z.object({ id: z.string().min(1) });
 const bodySchema = z.object({ reason: z.string().min(2).max(500) });
 
-export const POST = apiHandler(
-  { paramsSchema, bodySchema },
-  async ({ params, body }) => {
-    const ctx = await requireSuperAdmin();
-    await ignoreTransaction({
-      transactionId: params.id,
-      reason: body.reason,
-      actorUserId: ctx.session.user.id,
-    });
-    return { data: { ok: true } };
-  },
-);
+export const POST = apiHandler({ paramsSchema, bodySchema }, async ({ params, body }) => {
+  const ctx = await requireSuperAdmin();
+  await ignoreTransaction({
+    transactionId: params.id,
+    reason: body.reason,
+    actorUserId: ctx.session.user.id,
+  });
+  return { data: { ok: true } };
+});
 
 /**
  * @swagger

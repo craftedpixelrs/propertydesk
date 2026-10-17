@@ -42,22 +42,22 @@ export function Faq() {
     <section
       id="faq"
       aria-labelledby="faq-title"
-      className="scroll-mt-20 border-t border-[var(--color-border)] bg-[var(--color-surface-muted)]"
+      className="scroll-mt-20 border-t border-[#0b1020]/10 bg-white"
     >
       <div className="container-app py-16 sm:py-20">
         <div className="max-w-3xl">
-          <div className="text-xs font-semibold uppercase tracking-wider text-[var(--color-brand-700)]">
+          <div className="text-xs font-semibold tracking-[0.18em] text-[#9a7430] uppercase">
             {t("marketing.faq.eyebrow")}
           </div>
           <h2
             id="faq-title"
-            className="mt-2 text-3xl font-semibold tracking-tight sm:text-4xl"
+            className="font-display mt-3 text-4xl font-semibold tracking-tight text-[#0b1020] sm:text-5xl"
           >
             {t("marketing.faq.title")}
           </h2>
         </div>
 
-        <div className="mt-8 divide-y divide-[var(--color-border)] overflow-hidden rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)]">
+        <div className="mt-10 divide-y divide-[#0b1020]/10 overflow-hidden rounded-3xl border border-[#0b1020]/10 bg-[#f7f3ea]">
           {items.map((f, idx) => {
             const isOpen = openIndexes.has(idx);
             const panelId = `faq-panel-${idx}`;
@@ -71,7 +71,7 @@ export function Faq() {
                     aria-expanded={isOpen}
                     aria-controls={panelId}
                     onClick={() => toggle(idx)}
-                    className="flex w-full cursor-pointer items-center justify-between gap-4 py-4 text-left text-base font-medium text-[var(--color-foreground)] transition-colors hover:text-[var(--color-brand-700)]"
+                    className="flex w-full cursor-pointer items-center justify-between gap-4 py-4 text-left text-base font-medium text-[#0b1020] transition-colors hover:text-[#9a7430]"
                   >
                     <span>{f.question}</span>
                     <span
@@ -79,8 +79,8 @@ export function Faq() {
                       className={cn(
                         "grid h-8 w-8 flex-none place-items-center rounded-md border transition duration-300 ease-out",
                         isOpen
-                          ? "rotate-45 border-[var(--color-brand-600)] bg-[var(--color-brand-50)] text-[var(--color-brand-700)]"
-                          : "border-[var(--color-border)] text-[var(--color-foreground-muted)]",
+                          ? "rotate-45 border-[#d6b26a] bg-[#0b1020] text-[#f3e2bc]"
+                          : "border-[#0b1020]/15 text-[#0b1020]/55",
                       )}
                     >
                       <Plus className="size-4" />
@@ -93,9 +93,7 @@ export function Faq() {
                   aria-labelledby={triggerId}
                   className={cn(
                     "grid overflow-hidden transition-[grid-template-rows,opacity] duration-300 ease-out",
-                    isOpen
-                      ? "grid-rows-[1fr] opacity-100"
-                      : "grid-rows-[0fr] opacity-0",
+                    isOpen ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0",
                   )}
                 >
                   <div className="min-h-0">

@@ -33,15 +33,13 @@ const STAGE_TONE: Record<
   NURTURING: "neutral",
 };
 
-const LEVEL_TONE: Record<
-  string,
-  "neutral" | "brand" | "info" | "success" | "warning" | "danger"
-> = {
-  SOURCING: "brand",
-  CLOSING: "info",
-  OPERATIONS: "success",
-  ARCHIVED: "neutral",
-};
+const LEVEL_TONE: Record<string, "neutral" | "brand" | "info" | "success" | "warning" | "danger"> =
+  {
+    SOURCING: "brand",
+    CLOSING: "info",
+    OPERATIONS: "success",
+    ARCHIVED: "neutral",
+  };
 
 const PRIORITY_TONE: Record<
   string,
@@ -62,19 +60,27 @@ const TEMPERATURE_TONE: Record<
   HOT: "danger",
 };
 
-const STAGES = ["NEW","CONTACTED","QUALIFIED","DEMO","PROPOSAL","WON","LOST","NURTURING"] as const;
-const AUDIENCES = ["INVESTOR","AGENCY","OTHER"] as const;
-const BUDGETS = ["UNKNOWN","STARTER","GROWTH","ENTERPRISE"] as const;
-const TIMELINES = ["UNDECIDED","WITHIN_30D","WITHIN_90D","LATER"] as const;
-const PRIORITIES = ["LOW","NORMAL","HIGH","URGENT"] as const;
-const TEMPERATURES = ["COLD","WARM","HOT"] as const;
+const STAGES = [
+  "NEW",
+  "CONTACTED",
+  "QUALIFIED",
+  "DEMO",
+  "PROPOSAL",
+  "WON",
+  "LOST",
+  "NURTURING",
+] as const;
+const AUDIENCES = ["INVESTOR", "AGENCY", "OTHER"] as const;
+const BUDGETS = ["UNKNOWN", "STARTER", "GROWTH", "ENTERPRISE"] as const;
+const TIMELINES = ["UNDECIDED", "WITHIN_30D", "WITHIN_90D", "LATER"] as const;
+const PRIORITIES = ["LOW", "NORMAL", "HIGH", "URGENT"] as const;
+const TEMPERATURES = ["COLD", "WARM", "HOT"] as const;
 
 function enumLabel(t: TranslateFn, ns: string, value: string) {
   const key = `admin.pd.${ns}.${value}` as TranslationKey;
   const out = t(key);
   return out === key ? value : out;
 }
-
 
 export interface LeadRow {
   id: string;
@@ -160,9 +166,7 @@ export function LeadListView({
       });
       setOk(
         t("admin.pdList.bulkUpdated", { updated: result.updated }) +
-          (result.skipped
-            ? t("admin.pdList.bulkSkipped", { skipped: result.skipped })
-            : ""),
+          (result.skipped ? t("admin.pdList.bulkSkipped", { skipped: result.skipped }) : ""),
       );
       setSelected(new Set());
       startTransition(() => router.refresh());
@@ -211,12 +215,7 @@ export function LeadListView({
 
       <div className="flex flex-wrap items-center gap-2">
         {canCreate ? (
-          <Button
-            type="button"
-            size="sm"
-            onClick={() => setShowNew(true)}
-            disabled={busy}
-          >
+          <Button type="button" size="sm" onClick={() => setShowNew(true)} disabled={busy}>
             {t("admin.pdList.newLead")}
           </Button>
         ) : null}
@@ -228,9 +227,7 @@ export function LeadListView({
             canUpdateStage={canUpdateStage}
             canReopen={canReopen}
             busy={busy}
-            onAssign={(userId) =>
-              bulk({ kind: "assign", assignedToUserId: userId })
-            }
+            onAssign={(userId) => bulk({ kind: "assign", assignedToUserId: userId })}
             onStage={(stage) => bulk({ kind: "stage", stage })}
             onLost={(reason) => bulk({ kind: "lost", reason })}
             onClear={() => setSelected(new Set())}
@@ -296,9 +293,7 @@ export function LeadListView({
                               type="checkbox"
                               aria-label={t("admin.pdList.selectOne", { email: lead.email })}
                               checked={isSelected}
-                              onChange={(e) =>
-                                toggleOne(lead.id, e.target.checked)
-                              }
+                              onChange={(e) => toggleOne(lead.id, e.target.checked)}
                             />
                           ) : null}
                         </td>
@@ -350,15 +345,11 @@ export function LeadListView({
                                 }}
                               />
                             </div>
-                            <span className="text-xs font-medium">
-                              {lead.leadScore}
-                            </span>
+                            <span className="text-xs font-medium">{lead.leadScore}</span>
                           </div>
                         </td>
                         <td className="px-4 py-3">
-                          <Badge tone="neutral">
-                            {enumLabel(t, "audience", lead.audience)}
-                          </Badge>
+                          <Badge tone="neutral">{enumLabel(t, "audience", lead.audience)}</Badge>
                         </td>
                         <td className="px-4 py-3 text-xs text-[var(--color-foreground-muted)]">
                           {lead.assignedTo ? (
@@ -469,9 +460,7 @@ function BulkBar({
             size="sm"
             variant="outline"
             disabled={busy || !assignee}
-            onClick={() =>
-              onAssign(assignee === "__unassign__" ? null : assignee || null)
-            }
+            onClick={() => onAssign(assignee === "__unassign__" ? null : assignee || null)}
           >
             {t("admin.pdList.assign")}
           </Button>
@@ -487,10 +476,10 @@ function BulkBar({
           >
             <option value="">{t("admin.pdList.changeStage")}</option>
             {STAGES.filter((v) => v !== "LOST").map((v) => (
-                <option key={v} value={v}>
-                  {enumLabel(t, "stage", v)}
-                </option>
-              ))}
+              <option key={v} value={v}>
+                {enumLabel(t, "stage", v)}
+              </option>
+            ))}
           </select>
           <Button
             type="button"
@@ -499,15 +488,13 @@ function BulkBar({
             disabled={busy || !stage}
             onClick={() => onStage(stage)}
             title={
-              canReopen
-                ? t("admin.pdList.bulkForwardTitle")
-                : t("admin.pdList.bulkForwardOnly")
+              canReopen ? t("admin.pdList.bulkForwardTitle") : t("admin.pdList.bulkForwardOnly")
             }
           >
             {t("admin.pdList.setStage")}
           </Button>
           {!canReopen ? (
-            <span className="text-xs italic text-[var(--color-foreground-muted)]">
+            <span className="text-xs text-[var(--color-foreground-muted)] italic">
               {t("admin.pdList.forwardOnlyHint")}
             </span>
           ) : null}
@@ -522,13 +509,7 @@ function BulkBar({
           </Button>
         </>
       ) : null}
-      <Button
-        type="button"
-        size="sm"
-        variant="ghost"
-        disabled={busy}
-        onClick={onClear}
-      >
+      <Button type="button" size="sm" variant="ghost" disabled={busy} onClick={onClear}>
         {t("admin.pdList.clearSelection")}
       </Button>
 
@@ -580,38 +561,27 @@ interface NewLeadDialogProps {
   canReassign: boolean;
 }
 
-function NewLeadDialog({
-  onClose,
-  onCreated,
-  teamMembers,
-  canReassign,
-}: NewLeadDialogProps) {
+function NewLeadDialog({ onClose, onCreated, teamMembers, canReassign }: NewLeadDialogProps) {
   const t = useT();
   const [email, setEmail] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [phone, setPhone] = useState("");
   const [city, setCity] = useState("");
-  const [audience, setAudience] = useState<"INVESTOR" | "AGENCY" | "OTHER">(
-    "OTHER",
-  );
+  const [audience, setAudience] = useState<"INVESTOR" | "AGENCY" | "OTHER">("OTHER");
   const [source, setSource] = useState("manual");
   const [assigneeUserId, setAssigneeUserId] = useState<string>("");
   const [note, setNote] = useState("");
   const [companyName, setCompanyName] = useState("");
   const [companyWebsite, setCompanyWebsite] = useState("");
-  const [budgetTier, setBudgetTier] = useState<
-    "STARTER" | "GROWTH" | "ENTERPRISE" | "UNKNOWN"
-  >("UNKNOWN");
+  const [budgetTier, setBudgetTier] = useState<"STARTER" | "GROWTH" | "ENTERPRISE" | "UNKNOWN">(
+    "UNKNOWN",
+  );
   const [timelineHorizon, setTimelineHorizon] = useState<
     "WITHIN_30D" | "WITHIN_90D" | "LATER" | "UNDECIDED"
   >("UNDECIDED");
-  const [priority, setPriority] = useState<
-    "LOW" | "NORMAL" | "HIGH" | "URGENT"
-  >("NORMAL");
-  const [temperature, setTemperature] = useState<"COLD" | "WARM" | "HOT">(
-    "COLD",
-  );
+  const [priority, setPriority] = useState<"LOW" | "NORMAL" | "HIGH" | "URGENT">("NORMAL");
+  const [temperature, setTemperature] = useState<"COLD" | "WARM" | "HOT">("COLD");
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [duplicateId, setDuplicateId] = useState<string | null>(null);
@@ -630,9 +600,7 @@ function NewLeadDialog({
         audience,
         source: source.trim() || "manual",
         note: note.trim() || null,
-        assignedToUserId: canReassign
-          ? assigneeUserId || undefined
-          : undefined,
+        assignedToUserId: canReassign ? assigneeUserId || undefined : undefined,
         companyName: companyName.trim() || null,
         companyWebsite: companyWebsite.trim() || null,
         budgetTier,
@@ -692,7 +660,9 @@ function NewLeadDialog({
             </div>
           ) : null}
           <label className="block">
-            <span className="mb-1 block text-xs font-medium">{t("admin.pdList.emailRequired")}</span>
+            <span className="mb-1 block text-xs font-medium">
+              {t("admin.pdList.emailRequired")}
+            </span>
             <input
               type="email"
               value={email}
@@ -751,14 +721,14 @@ function NewLeadDialog({
               <span className="mb-1 block text-xs font-medium">{t("admin.pdList.audience")}</span>
               <select
                 value={audience}
-                onChange={(e) =>
-                  setAudience(e.target.value as typeof audience)
-                }
+                onChange={(e) => setAudience(e.target.value as typeof audience)}
                 className="h-9 w-full rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] px-2 text-sm"
                 disabled={busy}
               >
                 {AUDIENCES.map((v) => (
-                  <option key={v} value={v}>{enumLabel(t, "audience", v)}</option>
+                  <option key={v} value={v}>
+                    {enumLabel(t, "audience", v)}
+                  </option>
                 ))}
               </select>
             </label>
@@ -776,9 +746,7 @@ function NewLeadDialog({
           </div>
           {canReassign ? (
             <label className="block">
-              <span className="mb-1 block text-xs font-medium">
-                {t("admin.pdList.assignTo")}
-              </span>
+              <span className="mb-1 block text-xs font-medium">{t("admin.pdList.assignTo")}</span>
               <select
                 value={assigneeUserId}
                 onChange={(e) => setAssigneeUserId(e.target.value)}
@@ -825,14 +793,14 @@ function NewLeadDialog({
               <span className="mb-1 block text-xs font-medium">{t("admin.pdList.budget")}</span>
               <select
                 value={budgetTier}
-                onChange={(e) =>
-                  setBudgetTier(e.target.value as typeof budgetTier)
-                }
+                onChange={(e) => setBudgetTier(e.target.value as typeof budgetTier)}
                 className="h-9 w-full rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] px-2 text-sm"
                 disabled={busy}
               >
                 {BUDGETS.map((v) => (
-                  <option key={v} value={v}>{enumLabel(t, "budget", v)}</option>
+                  <option key={v} value={v}>
+                    {enumLabel(t, "budget", v)}
+                  </option>
                 ))}
               </select>
             </label>
@@ -840,14 +808,14 @@ function NewLeadDialog({
               <span className="mb-1 block text-xs font-medium">{t("admin.pdList.timeline")}</span>
               <select
                 value={timelineHorizon}
-                onChange={(e) =>
-                  setTimelineHorizon(e.target.value as typeof timelineHorizon)
-                }
+                onChange={(e) => setTimelineHorizon(e.target.value as typeof timelineHorizon)}
                 className="h-9 w-full rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] px-2 text-sm"
                 disabled={busy}
               >
                 {TIMELINES.map((v) => (
-                  <option key={v} value={v}>{enumLabel(t, "timeline", v)}</option>
+                  <option key={v} value={v}>
+                    {enumLabel(t, "timeline", v)}
+                  </option>
                 ))}
               </select>
             </label>
@@ -857,14 +825,14 @@ function NewLeadDialog({
               <span className="mb-1 block text-xs font-medium">{t("admin.pdList.priority")}</span>
               <select
                 value={priority}
-                onChange={(e) =>
-                  setPriority(e.target.value as typeof priority)
-                }
+                onChange={(e) => setPriority(e.target.value as typeof priority)}
                 className="h-9 w-full rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] px-2 text-sm"
                 disabled={busy}
               >
                 {PRIORITIES.map((v) => (
-                  <option key={v} value={v}>{enumLabel(t, "priority", v)}</option>
+                  <option key={v} value={v}>
+                    {enumLabel(t, "priority", v)}
+                  </option>
                 ))}
               </select>
             </label>
@@ -874,14 +842,14 @@ function NewLeadDialog({
               </span>
               <select
                 value={temperature}
-                onChange={(e) =>
-                  setTemperature(e.target.value as typeof temperature)
-                }
+                onChange={(e) => setTemperature(e.target.value as typeof temperature)}
                 className="h-9 w-full rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] px-2 text-sm"
                 disabled={busy}
               >
                 {TEMPERATURES.map((v) => (
-                  <option key={v} value={v}>{enumLabel(t, "temperature", v)}</option>
+                  <option key={v} value={v}>
+                    {enumLabel(t, "temperature", v)}
+                  </option>
                 ))}
               </select>
             </label>
@@ -898,13 +866,7 @@ function NewLeadDialog({
           </label>
         </div>
         <div className="flex items-center justify-end gap-2 border-t border-[var(--color-border)] px-4 py-3">
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={onClose}
-            disabled={busy}
-          >
+          <Button type="button" variant="outline" size="sm" onClick={onClose} disabled={busy}>
             {t("common.cancel")}
           </Button>
           <Button

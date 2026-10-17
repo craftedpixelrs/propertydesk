@@ -30,9 +30,7 @@ export default async function PlatformAuditPage({ searchParams }: PageProps) {
 
   return (
     <section className="space-y-4">
-      <h2 className="text-lg font-semibold">
-        {t("admin.auditPage.title", { total })}
-      </h2>
+      <h2 className="text-lg font-semibold">{t("admin.auditPage.title", { total })}</h2>
 
       <form className="grid gap-3 sm:grid-cols-4" action="/administracija/revizija">
         <input
@@ -68,7 +66,7 @@ export default async function PlatformAuditPage({ searchParams }: PageProps) {
         <CardContent className="p-0">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="text-left text-xs uppercase text-[var(--color-foreground-subtle)]">
+              <thead className="text-left text-xs text-[var(--color-foreground-subtle)] uppercase">
                 <tr>
                   <th className="border-b border-[var(--color-border)] px-4 py-2">
                     {t("admin.time")}
@@ -103,12 +101,10 @@ export default async function PlatformAuditPage({ searchParams }: PageProps) {
                       key={row.id}
                       className="border-b border-[var(--color-border)] last:border-b-0"
                     >
-                      <td className="whitespace-nowrap px-4 py-2 text-xs">
+                      <td className="px-4 py-2 text-xs whitespace-nowrap">
                         {formatDateTime(row.createdAt)}
                       </td>
-                      <td className="px-4 py-2 font-mono text-xs">
-                        {row.action}
-                      </td>
+                      <td className="px-4 py-2 font-mono text-xs">{row.action}</td>
                       <td className="px-4 py-2 text-xs">
                         {row.entityType}
                         {row.entityId ? (

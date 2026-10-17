@@ -54,11 +54,7 @@ function toIsoDate(year: number, month: number, day: number): string | null {
     return null;
   }
   const dt = new Date(Date.UTC(year, month - 1, day));
-  if (
-    dt.getUTCFullYear() !== year ||
-    dt.getUTCMonth() !== month - 1 ||
-    dt.getUTCDate() !== day
-  ) {
+  if (dt.getUTCFullYear() !== year || dt.getUTCMonth() !== month - 1 || dt.getUTCDate() !== day) {
     return null;
   }
   return `${year}-${pad2(month)}-${pad2(day)}`;
@@ -84,7 +80,10 @@ export function parseDateInputValue(text: string, locale: Locale): string | null
   const iso = raw.match(ISO_DATE);
   if (iso) return toIsoDate(Number(iso[1]), Number(iso[2]), Number(iso[3]));
 
-  const parts = raw.split(/[./-]/).map((part) => part.replace(/\D/g, "")).filter(Boolean);
+  const parts = raw
+    .split(/[./-]/)
+    .map((part) => part.replace(/\D/g, ""))
+    .filter(Boolean);
   if (parts.length === 3 && parts[2]!.length === 4) {
     const a = Number(parts[0]);
     const b = Number(parts[1]);

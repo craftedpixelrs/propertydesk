@@ -1,5 +1,6 @@
 import { ArrowRight, CalendarCheck2, PhoneCall } from "lucide-react";
 
+import { marketingCta } from "@/features/marketing/marketing-cta";
 import { createT } from "@/lib/i18n";
 import { resolveRequestLocale } from "@/lib/i18n/resolve-locale";
 
@@ -32,27 +33,23 @@ export async function CtaPanel({
   return (
     <section
       aria-labelledby="cta-panel-title"
-      className="relative overflow-hidden border-t border-[var(--color-border)] bg-[var(--color-brand-600)] text-white"
+      className="relative overflow-hidden bg-[#0b1020] text-[#f7f3ea]"
     >
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-0 -z-0 bg-gradient-to-br from-[var(--color-brand-600)] via-[var(--color-brand-700)] to-[var(--color-brand-900)]"
-      />
-      <div
-        aria-hidden
-        className="pointer-events-none absolute -top-32 left-1/2 -z-0 h-72 w-[36rem] -translate-x-1/2 rounded-full bg-white/10 blur-3xl"
+        className="pointer-events-none absolute inset-0 -z-0 bg-[radial-gradient(ellipse_at_top,rgba(214,178,106,0.22),transparent_55%)]"
       />
       <div className="container-app relative z-10 py-16 sm:py-20">
         <div className="mx-auto max-w-3xl text-center">
           <span
             aria-hidden
-            className="inline-grid h-14 w-14 place-items-center rounded-full bg-white/20 text-white ring-1 ring-white/30 backdrop-blur-sm"
+            className="inline-grid size-14 place-items-center rounded-full bg-[#d6b26a]/20 text-[#f3e2bc] ring-1 ring-[#d6b26a]/40"
           >
             <CalendarCheck2 className="size-6" />
           </span>
           <h2
             id="cta-panel-title"
-            className="mt-5 text-3xl font-semibold tracking-tight text-white sm:text-4xl"
+            className="font-display mt-5 text-4xl font-semibold tracking-tight text-[#f7f3ea] sm:text-5xl"
           >
             {title ?? t("marketing.cta.title")}
           </h2>
@@ -60,18 +57,11 @@ export async function CtaPanel({
             {subtitle ?? t("marketing.cta.subtitle")}
           </p>
           <div className="mt-8 flex w-full flex-col items-stretch justify-center gap-3 sm:w-auto sm:flex-row sm:items-center">
-            <a
-              href={primaryHref}
-              style={{ color: "#1e40af" }}
-              className="inline-flex h-12 items-center justify-center gap-2 rounded-md bg-white px-6 text-base font-semibold shadow-lg shadow-black/10 transition hover:bg-neutral-100 hover:shadow-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-blue-800"
-            >
+            <a href={primaryHref} className={marketingCta("cream", "lg")}>
               {primaryLabel ?? t("marketing.common.bookDemo")}
               <ArrowRight aria-hidden className="size-4" />
             </a>
-            <a
-              href="tel:+381654363142"
-              className="inline-flex h-12 items-center justify-center gap-2 rounded-md border border-white/40 bg-white/10 px-6 text-base font-semibold text-white backdrop-blur-sm transition hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-blue-800"
-            >
+            <a href="tel:+381654363142" className={marketingCta("outlineDark", "lg")}>
               <PhoneCall aria-hidden className="size-4" />
               <span className="sm:hidden">{t("marketing.common.callUs")}</span>
               <span className="hidden sm:inline">{t("marketing.common.callUsPhone")}</span>

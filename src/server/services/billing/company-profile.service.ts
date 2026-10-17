@@ -1,10 +1,6 @@
 import "server-only";
 import { createId } from "@paralleldrive/cuid2";
-import type {
-  CompanyBillingProfile,
-  Prisma,
-  SefEnvironment,
-} from "@prisma/client";
+import type { CompanyBillingProfile, Prisma, SefEnvironment } from "@prisma/client";
 
 import { prisma } from "@/server/db/prisma";
 import { recordAudit } from "@/server/audit/audit";
@@ -43,8 +39,10 @@ export interface CompanyBillingProfileInput {
   sefApiKey?: string | null;
 }
 
-export interface CompanyBillingProfilePublic
-  extends Omit<CompanyBillingProfile, "sefApiKeyEncrypted"> {
+export interface CompanyBillingProfilePublic extends Omit<
+  CompanyBillingProfile,
+  "sefApiKeyEncrypted"
+> {
   sefApiKeyMasked: string | null;
   sefApiKeyPresent: boolean;
 }
@@ -83,9 +81,7 @@ export async function upsertCompanyBillingProfile(
 
   // Basic Serbian tax-number sanity check: 9 digits.
   if (!/^\d{7,13}$/.test(input.taxNumber.replace(/\s+/g, ""))) {
-    throw DomainErrors.badRequest(
-      "PIB / poreski broj mora sadržati samo cifre (7–13 znakova).",
-    );
+    throw DomainErrors.badRequest("PIB / poreski broj mora sadržati samo cifre (7–13 znakova).");
   }
 
   const encryptedKey =

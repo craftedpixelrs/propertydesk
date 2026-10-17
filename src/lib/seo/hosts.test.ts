@@ -1,12 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import {
-  hostFromHeaders,
-  isAppHost,
-  isDemoHost,
-  isMarketingHost,
-  normalizeHost,
-} from "./hosts";
+import { hostFromHeaders, isAppHost, isDemoHost, isMarketingHost, normalizeHost } from "./hosts";
 
 describe("seo hosts", () => {
   it("treats apex and www as marketing", () => {

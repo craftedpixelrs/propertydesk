@@ -96,27 +96,19 @@ export const GET = apiHandler({}, async ({ query, searchParams }) => {
     activeOnly: searchParams.get("activeOnly") === "true",
     sort: query.sort,
   });
-  const { items: pageItems, pagination } = paginate(
-    items,
-    query.page,
-    query.pageSize,
-    total,
-  );
+  const { items: pageItems, pagination } = paginate(items, query.page, query.pageSize, total);
   return { data: pageItems, meta: { pagination } };
 });
 
-export const POST = apiHandler(
-  { bodySchema: createSchema },
-  async ({ body }) => {
-    const ctx = await requirePermission("inventory.manage");
-    const unit = await createUnit({
-      organizationId: ctx.organization.organizationId,
-      actorUserId: ctx.session.user.id,
-      ...body,
-    });
-    return { data: unit, status: 201 };
-  },
-);
+export const POST = apiHandler({ bodySchema: createSchema }, async ({ body }) => {
+  const ctx = await requirePermission("inventory.manage");
+  const unit = await createUnit({
+    organizationId: ctx.organization.organizationId,
+    actorUserId: ctx.session.user.id,
+    ...body,
+  });
+  return { data: unit, status: 201 };
+});
 
 /**
  * @swagger

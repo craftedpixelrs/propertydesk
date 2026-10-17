@@ -68,10 +68,7 @@ export default async function ReservationsReportPage({ searchParams }: PageProps
 
   return (
     <div className="space-y-6">
-      <PageHeader
-        title={t("nav.reservations")}
-        description={t("ops.reports.reservationsDesc")}
-      />
+      <PageHeader title={t("nav.reservations")} description={t("ops.reports.reservationsDesc")} />
 
       <ReportFilters
         action="/izvestaji/rezervacije"

@@ -73,10 +73,7 @@ export default async function PonudaPage() {
             <Card key={p.id}>
               <CardHeader>
                 <CardTitle className="text-base">
-                  <Link
-                    href={`/ponuda/${p.id}`}
-                    className="hover:text-[var(--color-brand-700)]"
-                  >
+                  <Link href={`/ponuda/${p.id}`} className="hover:text-[var(--color-brand-700)]">
                     {p.name}
                   </Link>
                 </CardTitle>

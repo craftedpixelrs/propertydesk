@@ -14,6 +14,7 @@ import { StructureManager } from "@/features/projects/structure-manager";
 import { PhotoGallery, type PhotoItem } from "@/features/documents/photo-gallery";
 import { ProjectMap } from "@/features/projects/project-map-loader";
 import { CloneProjectDialog } from "@/features/projects/clone-project-dialog";
+import { EditProjectDrawer } from "@/features/projects/edit-project-drawer";
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -58,7 +59,7 @@ export default async function ProjectDetail({ params }: Props) {
     <div className="space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <div className="text-xs font-mono uppercase text-[var(--color-foreground-muted)]">
+          <div className="font-mono text-xs text-[var(--color-foreground-muted)] uppercase">
             {project.code}
           </div>
           <h1 className="text-2xl font-semibold">{project.name}</h1>
@@ -69,9 +70,45 @@ export default async function ProjectDetail({ params }: Props) {
         </div>
         <div className="flex flex-wrap gap-2">
           <PermissionGuard permission="project.update">
-            <Button asChild variant="outline">
-              <Link href={`/projekti/${project.id}/izmena`}>{t("inventory.projects.edit")}</Link>
-            </Button>
+            <EditProjectDrawer
+              projectId={project.id}
+              projectCode={project.code}
+              initialValues={{
+                code: project.code,
+                name: project.name,
+                city: project.city ?? "",
+                address: project.address ?? "",
+                municipality: project.municipality ?? "",
+                postalCode: project.postalCode ?? "",
+                latitude: project.latitude ? String(project.latitude) : "",
+                longitude: project.longitude ? String(project.longitude) : "",
+                coverImageUrl: project.coverImageUrl ?? "",
+                projectStatus: project.projectStatus ?? "",
+                salesStartDate: project.salesStartDate
+                  ? project.salesStartDate.toISOString().slice(0, 10)
+                  : "",
+                constructionStartDate: project.constructionStartDate
+                  ? project.constructionStartDate.toISOString().slice(0, 10)
+                  : "",
+                expectedCompletionDate: project.expectedCompletionDate
+                  ? project.expectedCompletionDate.toISOString().slice(0, 10)
+                  : "",
+                defaultCurrency: project.defaultCurrency ?? "",
+                defaultVatRate: project.defaultVatRate ? String(project.defaultVatRate) : "",
+                description: project.description ?? "",
+                internalNotes: project.internalNotes ?? "",
+                landCost: project.landCost ? String(project.landCost) : "",
+                constructionCost: project.constructionCost ? String(project.constructionCost) : "",
+                marketingCost: project.marketingCost ? String(project.marketingCost) : "",
+                otherCost: project.otherCost ? String(project.otherCost) : "",
+                budgetNote: project.budgetNote ?? "",
+                publicMicrositeEnabled: project.publicMicrositeEnabled ? "true" : "false",
+                publicMicrositeSlug: project.publicMicrositeSlug ?? "",
+                networkCatalogEnabled: project.networkCatalogEnabled ? "true" : "false",
+              }}
+            >
+              <Button variant="outline">{t("inventory.projects.edit")}</Button>
+            </EditProjectDrawer>
           </PermissionGuard>
           <PermissionGuard permission="inventory.import">
             <Button asChild variant="outline">
@@ -122,19 +159,23 @@ export default async function ProjectDetail({ params }: Props) {
           <InfoRow label={t("inventory.columns.created")} value={formatDate(project.createdAt)} />
           <InfoRow
             label={t("inventory.projects.expectedCompletion")}
-            value={project.expectedCompletionDate ? formatDate(project.expectedCompletionDate) : "—"}
+            value={
+              project.expectedCompletionDate ? formatDate(project.expectedCompletionDate) : "—"
+            }
           />
           {project.description ? (
             <div className="sm:col-span-2">
-              <div className="text-xs uppercase tracking-wide text-[var(--color-foreground-muted)]">
+              <div className="text-xs tracking-wide text-[var(--color-foreground-muted)] uppercase">
                 {t("projects.fields.description")}
               </div>
-              <div className="mt-1 whitespace-pre-wrap text-sm">{project.description}</div>
+              <div className="mt-1 text-sm whitespace-pre-wrap">{project.description}</div>
             </div>
           ) : null}
           {project.publicMicrositeEnabled ? (
             <div className="rounded-md border border-emerald-200 bg-emerald-50 p-3 text-sm sm:col-span-2">
-              <div className="font-medium text-emerald-800">{t("inventory.projects.micrositeActive")}</div>
+              <div className="font-medium text-emerald-800">
+                {t("inventory.projects.micrositeActive")}
+              </div>
               <div className="mt-1 text-emerald-700">
                 <a
                   href={`/p/projekat/${project.publicMicrositeSlug ?? project.slug}`}
@@ -174,10 +215,7 @@ export default async function ProjectDetail({ params }: Props) {
         </CardHeader>
         <CardContent>
           {project.latitude != null && project.longitude != null ? (
-            <ProjectMap
-              latitude={Number(project.latitude)}
-              longitude={Number(project.longitude)}
-            />
+            <ProjectMap latitude={Number(project.latitude)} longitude={Number(project.longitude)} />
           ) : (
             <div className="rounded-md border border-dashed border-[var(--color-border)] px-4 py-6 text-center text-sm text-[var(--color-foreground-muted)]">
               {t("inventory.projects.noCoordinates")}
@@ -218,7 +256,9 @@ export default async function ProjectDetail({ params }: Props) {
 
       <div className="flex items-center gap-2">
         <Button asChild variant="outline">
-          <Link href={`/jedinice?projectId=${project.id}`}>{t("inventory.projects.viewAllUnits")}</Link>
+          <Link href={`/jedinice?projectId=${project.id}`}>
+            {t("inventory.projects.viewAllUnits")}
+          </Link>
         </Button>
       </div>
     </div>
@@ -228,7 +268,7 @@ export default async function ProjectDetail({ params }: Props) {
 function InfoRow({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <div className="text-xs uppercase tracking-wide text-[var(--color-foreground-muted)]">
+      <div className="text-xs tracking-wide text-[var(--color-foreground-muted)] uppercase">
         {label}
       </div>
       <div className="mt-0.5">{value}</div>
@@ -240,7 +280,7 @@ function StatCard({ label, value }: { label: string; value: number | string }) {
   return (
     <Card>
       <CardContent className="py-3">
-        <div className="text-xs uppercase tracking-wide text-[var(--color-foreground-muted)]">
+        <div className="text-xs tracking-wide text-[var(--color-foreground-muted)] uppercase">
           {label}
         </div>
         <div className="text-2xl font-semibold tabular-nums">{value}</div>

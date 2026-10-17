@@ -23,21 +23,15 @@ export interface ContractTemplateRow {
  * templates manager): list on the left, editor on the right, no
  * modal dialogs.
  */
-export function ContractTemplatesManager(props: {
-  templates: ContractTemplateRow[];
-}) {
+export function ContractTemplatesManager(props: { templates: ContractTemplateRow[] }) {
   const t = useT();
   const router = useRouter();
-  const [selectedId, setSelectedId] = useState<string | null>(
-    props.templates[0]?.id ?? null,
-  );
+  const [selectedId, setSelectedId] = useState<string | null>(props.templates[0]?.id ?? null);
   const [creating, setCreating] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const [draftKind, setDraftKind] = useState<"PRE_CONTRACT" | "CONTRACT">(
-    "PRE_CONTRACT",
-  );
+  const [draftKind, setDraftKind] = useState<"PRE_CONTRACT" | "CONTRACT">("PRE_CONTRACT");
   const [draftName, setDraftName] = useState("");
   const [draftDescription, setDraftDescription] = useState("");
   const [draftContent, setDraftContent] = useState("");
@@ -130,7 +124,13 @@ export function ContractTemplatesManager(props: {
   }
 
   const editorTemplate = creating
-    ? { id: "new", kind: draftKind, name: draftName, description: draftDescription, contentHtml: draftContent }
+    ? {
+        id: "new",
+        kind: draftKind,
+        name: draftName,
+        description: draftDescription,
+        contentHtml: draftContent,
+      }
     : selected;
 
   return (
@@ -161,7 +161,7 @@ export function ContractTemplatesManager(props: {
                 >
                   <div className="flex w-full items-center justify-between gap-2">
                     <span className="truncate font-medium">{row.name}</span>
-                    <span className="shrink-0 text-[10px] uppercase text-[var(--color-foreground-muted)]">
+                    <span className="shrink-0 text-[10px] text-[var(--color-foreground-muted)] uppercase">
                       {row.kind === "PRE_CONTRACT"
                         ? t("deals.contract.kindPre")
                         : t("deals.contract.kindFull")}
@@ -208,9 +208,7 @@ export function ContractTemplatesManager(props: {
                 <select
                   className="h-10 w-full rounded-md border border-[var(--color-border)] px-3 text-sm"
                   value={draftKind}
-                  onChange={(e) =>
-                    setDraftKind(e.target.value as "PRE_CONTRACT" | "CONTRACT")
-                  }
+                  onChange={(e) => setDraftKind(e.target.value as "PRE_CONTRACT" | "CONTRACT")}
                 >
                   <option value="PRE_CONTRACT">{t("deals.contract.kindPre")}</option>
                   <option value="CONTRACT">{t("deals.contract.kindFull")}</option>
@@ -218,7 +216,7 @@ export function ContractTemplatesManager(props: {
               </div>
             </div>
             <div>
-                <label className="mb-1 block text-xs text-[var(--color-foreground-muted)]">
+              <label className="mb-1 block text-xs text-[var(--color-foreground-muted)]">
                 {t("deals.contractTemplates.description")}
               </label>
               <input

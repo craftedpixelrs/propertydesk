@@ -13,7 +13,7 @@ export const GET = apiHandler({ paramsSchema }, async ({ req, params }) => {
   enforceRateLimit({
     req,
     scope: "public.project.cover",
-    options: { windowMs: 60_000, maxHits: 180 },
+    options: { windowMs: 60_000, max: 180 },
   });
 
   const resolved = await resolvePublicProjectCover(params.documentId);

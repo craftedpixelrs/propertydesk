@@ -27,7 +27,7 @@ export default async function ReminderScheduleRulesPage() {
         </CardHeader>
         <CardContent className="p-0">
           <table className="w-full text-sm">
-            <thead className="text-left text-xs uppercase text-[var(--color-foreground-subtle)]">
+            <thead className="text-left text-xs text-[var(--color-foreground-subtle)] uppercase">
               <tr>
                 <th className="border-b border-[var(--color-border)] px-3 py-2">
                   {t("admin.reminders.offset")}
@@ -42,8 +42,13 @@ export default async function ReminderScheduleRulesPage() {
             </thead>
             <tbody>
               {resolved.reminderSchedule.map((stage) => (
-                <tr key={stage.templateKey} className="border-b border-[var(--color-border)] last:border-b-0">
-                  <td className="px-3 py-2 tabular-nums">{stage.offsetDays > 0 ? `+${stage.offsetDays}` : stage.offsetDays}</td>
+                <tr
+                  key={stage.templateKey}
+                  className="border-b border-[var(--color-border)] last:border-b-0"
+                >
+                  <td className="px-3 py-2 tabular-nums">
+                    {stage.offsetDays > 0 ? `+${stage.offsetDays}` : stage.offsetDays}
+                  </td>
                   <td className="px-3 py-2 font-mono text-xs">{stage.templateKey}</td>
                   <td className="px-3 py-2">
                     <Badge tone="info">{stage.channel}</Badge>
@@ -55,9 +60,7 @@ export default async function ReminderScheduleRulesPage() {
         </CardContent>
       </Card>
 
-      <p className="text-xs text-[var(--color-foreground-muted)]">
-        {t("admin.reminders.footer")}
-      </p>
+      <p className="text-xs text-[var(--color-foreground-muted)]">{t("admin.reminders.footer")}</p>
     </section>
   );
 }

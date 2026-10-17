@@ -64,7 +64,7 @@ export default async function BillingInvoicesPage({ searchParams }: PageProps) {
         <CardContent className="p-0">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="text-left text-xs uppercase text-[var(--color-foreground-subtle)]">
+              <thead className="text-left text-xs text-[var(--color-foreground-subtle)] uppercase">
                 <tr>
                   <th className="border-b border-[var(--color-border)] px-3 py-2">
                     {t("billing.columns.invoiceNumber")}
@@ -89,15 +89,24 @@ export default async function BillingInvoicesPage({ searchParams }: PageProps) {
               <tbody>
                 {items.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="px-3 py-6 text-center text-[var(--color-foreground-muted)]">
+                    <td
+                      colSpan={6}
+                      className="px-3 py-6 text-center text-[var(--color-foreground-muted)]"
+                    >
                       {t("admin.invoices.empty")}
                     </td>
                   </tr>
                 ) : (
                   items.map((inv) => (
-                    <tr key={inv.id} className="border-b border-[var(--color-border)] last:border-b-0">
+                    <tr
+                      key={inv.id}
+                      className="border-b border-[var(--color-border)] last:border-b-0"
+                    >
                       <td className="px-3 py-2 font-mono text-xs">
-                        <Link href={`/administracija/naplata/fakture/${inv.id}`} className="text-[var(--color-brand-700)] hover:underline">
+                        <Link
+                          href={`/administracija/naplata/fakture/${inv.id}`}
+                          className="text-[var(--color-brand-700)] hover:underline"
+                        >
                           {inv.invoiceNumber ?? t("admin.draftParen")}
                         </Link>
                       </td>
@@ -113,10 +122,16 @@ export default async function BillingInvoicesPage({ searchParams }: PageProps) {
                         {inv.dueDate ? formatDate(inv.dueDate) : t("admin.dash")}
                       </td>
                       <td className="px-3 py-2 text-right tabular-nums">
-                        {formatMoney(Number(inv.totalAmount.toString()), inv.currency as "EUR" | "RSD")}
+                        {formatMoney(
+                          Number(inv.totalAmount.toString()),
+                          inv.currency as "EUR" | "RSD",
+                        )}
                       </td>
                       <td className="px-3 py-2 text-right tabular-nums">
-                        {formatMoney(Number(inv.amountDue.toString()), inv.currency as "EUR" | "RSD")}
+                        {formatMoney(
+                          Number(inv.amountDue.toString()),
+                          inv.currency as "EUR" | "RSD",
+                        )}
                       </td>
                     </tr>
                   ))

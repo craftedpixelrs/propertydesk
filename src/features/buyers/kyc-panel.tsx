@@ -84,14 +84,10 @@ export function KycPanel(props: {
         <div>
           <span
             className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${
-              isComplete
-                ? "bg-emerald-100 text-emerald-700"
-                : "bg-amber-100 text-amber-800"
+              isComplete ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-800"
             }`}
           >
-            {isComplete
-              ? t("crm.kyc.complete")
-              : t("crm.kyc.missing", { count: missing })}
+            {isComplete ? t("crm.kyc.complete") : t("crm.kyc.missing", { count: missing })}
           </span>
           {props.initial.reviewedAt ? (
             <span className="ml-2 text-xs text-[var(--color-foreground-muted)]">
@@ -114,9 +110,7 @@ export function KycPanel(props: {
             <input
               type="checkbox"
               checked={state[it.key]}
-              onChange={(e) =>
-                setState((s) => ({ ...s, [it.key]: e.target.checked }))
-              }
+              onChange={(e) => setState((s) => ({ ...s, [it.key]: e.target.checked }))}
               disabled={!props.canManage}
               className="size-4"
             />
@@ -152,7 +146,7 @@ export function KycPanel(props: {
       ) : null}
 
       <div className="pt-3">
-        <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-[var(--color-foreground-muted)]">
+        <h3 className="mb-2 text-xs font-semibold tracking-wide text-[var(--color-foreground-muted)] uppercase">
           {t("crm.kyc.documentsTitle")}
         </h3>
         <DocumentList

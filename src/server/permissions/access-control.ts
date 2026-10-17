@@ -17,36 +17,29 @@ export const permissionStatement = {
     "members:manage",
     "suspend",
     "read",
+    // JSON export of the tenant. Allowed while RESTRICTED so the
+    // 30-day post-cancel export in the terms still works.
+    "export",
+    // Extra paragraphs appended to buyer emails.
+    "templates",
   ],
   project: ["create", "read", "update", "delete", "archive"],
   // `inventory.price` and `inventory.status` split the manage right so that
   // a finance-focused role can update prices without moving units through
   // the sales pipeline (and vice versa). `inventory.manage` remains as an
   // umbrella "everything about inventory" grant.
-  inventory: [
-    "read",
-    "manage",
-    "price",
-    "status",
-    "reopen_sold",
-    "import",
-    "export",
-    "bulk",
-  ],
+  inventory: ["read", "manage", "price", "status", "reopen_sold", "import", "export", "bulk"],
   lead: ["read", "manage"],
   reservation: ["create", "approve", "cancel", "read"],
-  sale: ["read", "manage"],
+  sale: ["read", "manage", "dossier", "handover", "buyer_link", "settlement"],
   payment: ["read", "manage"],
   agency: ["manage", "customer:register", "read"],
-  commission: ["read", "manage"],
+  commission: ["read", "manage", "statement"],
+  buyer: ["anonymize"],
   document: ["read", "manage"],
   report: ["read"],
   audit: ["read"],
-  platform: [
-    "organization:manage",
-    "impersonate",
-    "user:manage",
-  ],
+  platform: ["organization:manage", "impersonate", "user:manage"],
   // Billing resource: SaaS invoicing, subscriptions, payments, automation.
   // Actions map 1:1 to the surfaces documented in the billing spec — read
   // (view own tenant), settings.manage (global toggles), plan.manage,

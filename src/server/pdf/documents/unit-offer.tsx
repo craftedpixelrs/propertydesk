@@ -118,7 +118,12 @@ export function UnitOfferPdf(data: UnitOfferPdfData) {
         <View style={pdfStyles.section}>
           <Text style={pdfStyles.sectionTitle}>Napomene</Text>
           {data.unit.description ? <Text>{data.unit.description}</Text> : null}
-          {data.notes ? <Text>{"\n"}{data.notes}</Text> : null}
+          {data.notes ? (
+            <Text>
+              {"\n"}
+              {data.notes}
+            </Text>
+          ) : null}
         </View>
       ) : null}
 

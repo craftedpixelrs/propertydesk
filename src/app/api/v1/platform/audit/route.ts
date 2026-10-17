@@ -19,12 +19,7 @@ export const GET = apiHandler({}, async ({ query, searchParams }) => {
     to: to ? new Date(to) : undefined,
   });
 
-  const { items: pageItems, pagination } = paginate(
-    items,
-    query.page,
-    query.pageSize,
-    total,
-  );
+  const { items: pageItems, pagination } = paginate(items, query.page, query.pageSize, total);
 
   return { data: pageItems, meta: { pagination } };
 });

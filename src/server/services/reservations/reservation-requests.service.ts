@@ -3,6 +3,7 @@ import { createId } from "@paralleldrive/cuid2";
 import type { Prisma, ReservationRequestStatus } from "@prisma/client";
 
 import { prisma } from "@/server/db/prisma";
+import { appOrigin } from "@/server/http/app-origin";
 import { DomainErrors } from "@/lib/errors";
 import { recordAudit } from "@/server/audit/audit";
 import { toDecimal } from "@/lib/formatters/money";
@@ -10,7 +11,10 @@ import { paymentInstructionLines } from "@/lib/reservations/deposit-payee";
 import { serbianIpsQrProvider } from "@/server/services/billing/ips-qr";
 import { storage } from "@/server/storage";
 import { createReservation } from "@/server/services/reservations.service";
-import { normalizeEmail as libNormalizeEmail, normalizePhone as libNormalizePhone } from "@/lib/normalize";
+import {
+  normalizeEmail as libNormalizeEmail,
+  normalizePhone as libNormalizePhone,
+} from "@/lib/normalize";
 import { sendEmail } from "@/server/auth/email";
 import {
   publicReservationConfirmedEmail,
@@ -81,7 +85,10 @@ function sanitizeString(v: string | null | undefined, max: number): string {
 }
 
 function stripPhone(v: string): string {
-  const cleaned = v.replace(/[^\d+\s()-]/g, "").trim().slice(0, 32);
+  const cleaned = v
+    .replace(/[^\d+\s()-]/g, "")
+    .trim()
+    .slice(0, 32);
   if (!cleaned) throw DomainErrors.badRequest("Telefon je obavezan.");
   return cleaned;
 }
@@ -147,7 +154,11 @@ async function resolveOfferedUnit(token: string) {
     },
   });
   if (!unit) return null;
-  if (!HOLDABLE_STATUSES.has(unit.status) && unit.status !== "RESERVED" && unit.status !== "DEPOSIT_PAID") {
+  if (
+    !HOLDABLE_STATUSES.has(unit.status) &&
+    unit.status !== "RESERVED" &&
+    unit.status !== "DEPOSIT_PAID"
+  ) {
     return null;
   }
   return { link, unit };
@@ -338,6 +349,7 @@ export async function createReservationRequest(
       projectName: unit.project.name,
       expiresAt,
       paymentLines: paymentInstructionLines(payment),
+      qrUrl: qr ? `${appOrigin()}/api/v1/public/reservation-requests/${created.id}/qr` : null,
     });
     await sendEmail({ ...msg, to: email });
   } catch (err) {
@@ -367,9 +379,7 @@ export interface ListReservationRequestsInput {
   pageSize?: number;
 }
 
-export async function listReservationRequests(
-  input: ListReservationRequestsInput,
-) {
+export async function listReservationRequests(input: ListReservationRequestsInput) {
   const page = Math.max(1, input.page ?? 1);
   const pageSize = Math.min(100, Math.max(1, input.pageSize ?? 25));
   const where: Prisma.ReservationRequestWhereInput = {
@@ -405,10 +415,7 @@ export async function listReservationRequests(
   return { items, total, pendingCount, page, pageSize };
 }
 
-export async function getReservationRequest(input: {
-  organizationId: string;
-  requestId: string;
-}) {
+export async function getReservationRequest(input: { organizationId: string; requestId: string }) {
   const row = await prisma.reservationRequest.findFirst({
     where: { id: input.requestId, organizationId: input.organizationId },
     include: {
@@ -446,9 +453,7 @@ export async function confirmReservationRequest(input: {
     requestId: input.requestId,
   });
   if (req.status !== "PENDING") {
-    throw DomainErrors.invalidState(
-      "Zahtev za rezervaciju je već obrađen ili je istekao.",
-    );
+    throw DomainErrors.invalidState("Zahtev za rezervaciju je već obrađen ili je istekao.");
   }
 
   const agency = await resolveAgencyFromReferral({
@@ -502,9 +507,7 @@ export async function confirmReservationRequest(input: {
     referralCode: req.referralCode ?? null,
   });
 
-  const holdUntil =
-    reservation.expiresAt ??
-    new Date(Date.now() + 14 * 24 * 60 * 60 * 1000);
+  const holdUntil = reservation.expiresAt ?? new Date(Date.now() + 14 * 24 * 60 * 60 * 1000);
   if (!reservation.expiresAt) {
     await prisma.reservation.update({
       where: { id: reservation.id },
@@ -529,6 +532,9 @@ export async function confirmReservationRequest(input: {
       projectName: req.unit.project.name,
       expiresAt: holdUntil,
       paymentLines: paymentInstructionLines(payment),
+      qrUrl: req.ipsQrPngPath
+        ? `${appOrigin()}/api/v1/public/reservation-requests/${req.id}/qr`
+        : null,
     });
     await sendEmail({ ...msg, to: req.email });
   } catch (err) {

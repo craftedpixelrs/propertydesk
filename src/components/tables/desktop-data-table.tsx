@@ -31,9 +31,14 @@ export function DesktopDataTable<T>({
   className,
 }: DesktopDataTableProps<T>) {
   return (
-    <div className={cn("overflow-x-auto rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] shadow-[0_1px_2px_var(--color-shadow),0_12px_28px_-18px_var(--color-shadow)]", className)}>
+    <div
+      className={cn(
+        "overflow-x-auto rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] shadow-[0_1px_2px_var(--color-shadow),0_12px_28px_-18px_var(--color-shadow)]",
+        className,
+      )}
+    >
       <table className="w-full border-collapse text-sm">
-        <thead className="border-b border-[var(--color-border)] bg-[var(--color-surface-muted)] text-left text-[11px] font-semibold uppercase tracking-[0.06em] text-[var(--color-foreground-subtle)]">
+        <thead className="border-b border-[var(--color-border)] bg-[var(--color-surface-muted)] text-left text-[11px] font-semibold tracking-[0.06em] text-[var(--color-foreground-subtle)] uppercase">
           <tr>
             {columns.map((col) => (
               <th

@@ -10,9 +10,7 @@ const dsn = process.env.SENTRY_DSN;
 const parseRate = (value: string | undefined, fallback: number): number => {
   if (!value) return fallback;
   const parsed = Number.parseFloat(value);
-  return Number.isFinite(parsed) && parsed >= 0 && parsed <= 1
-    ? parsed
-    : fallback;
+  return Number.isFinite(parsed) && parsed >= 0 && parsed <= 1 ? parsed : fallback;
 };
 
 Sentry.init({
@@ -30,9 +28,7 @@ Sentry.init({
 });
 
 function scrubRequest(event: Sentry.ErrorEvent): void {
-  const req = event.request as
-    | { cookies?: unknown; headers?: Record<string, unknown> }
-    | undefined;
+  const req = event.request as { cookies?: unknown; headers?: Record<string, unknown> } | undefined;
   if (!req) return;
   if (req.cookies) delete req.cookies;
   if (req.headers) {

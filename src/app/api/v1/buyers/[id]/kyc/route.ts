@@ -2,10 +2,7 @@ import { z } from "zod";
 
 import { apiHandler } from "@/lib/api/handler";
 import { requirePermission } from "@/server/permissions/require";
-import {
-  getKycStatus,
-  updateKycChecklist,
-} from "@/server/services/buyers/kyc.service";
+import { getKycStatus, updateKycChecklist } from "@/server/services/buyers/kyc.service";
 
 const paramsSchema = z.object({ id: z.string().min(1).max(64) });
 const patchSchema = z.object({

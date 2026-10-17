@@ -41,19 +41,22 @@ export const GET = apiHandler({ paramsSchema }, async ({ params, query }) => {
   return { data: pageItems, meta: { pagination } };
 });
 
-export const POST = apiHandler({ paramsSchema, bodySchema: createSchema }, async ({ params, body }) => {
-  const ctx = await requirePermission("lead.manage");
-  await assertBuyerInOrg(ctx.organization.organizationId, params.id);
-  const activity = await recordActivity({
-    organizationId: ctx.organization.organizationId,
-    actorUserId: ctx.session.user.id,
-    type: body.type,
-    description: body.description,
-    buyerId: params.id,
-    occurredAt: body.occurredAt ? new Date(body.occurredAt) : undefined,
-  });
-  return { data: activity, status: 201 };
-});
+export const POST = apiHandler(
+  { paramsSchema, bodySchema: createSchema },
+  async ({ params, body }) => {
+    const ctx = await requirePermission("lead.manage");
+    await assertBuyerInOrg(ctx.organization.organizationId, params.id);
+    const activity = await recordActivity({
+      organizationId: ctx.organization.organizationId,
+      actorUserId: ctx.session.user.id,
+      type: body.type,
+      description: body.description,
+      buyerId: params.id,
+      occurredAt: body.occurredAt ? new Date(body.occurredAt) : undefined,
+    });
+    return { data: activity, status: 201 };
+  },
+);
 
 /**
  * @swagger
