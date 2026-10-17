@@ -30,7 +30,29 @@ env:
   IMAGE_NAME: ${{ github.repository }}
 
 jobs:
+  # Quality gate: lint, typecheck, unit tests, prettier. Build i deploy
+  # ne startuju ako ovo padne. Štiti produkciju od commita koji su
+  # autori zaboravili lokalno da provere.
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm prisma generate
+      - run: pnpm lint
+      - run: pnpm typecheck
+      - run: pnpm format:check
+      - run: pnpm test
+
   build-and-push:
+    needs: quality
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -153,6 +175,22 @@ jobs:
             IMAGE="$IMAGE_REF" docker compose --env-file .env --env-file .env.deploy pull app-staging
           fi
 
+          # Migracije MORAJU da se primene PRE nego što podigemo novi
+          # app, inače novi kod neko vreme radi nad starom šemom. Sve
+          # migracije su aditivne (release-checklist pravilo), pa stari
+          # app i dalje radi dok ovo traje.
+          echo "==> Running migrations (idempotent, per database)"
+          IMAGE="$IMAGE_REF" docker compose --env-file .env --env-file .env.deploy \
+            run --rm --no-deps app npx prisma migrate deploy
+          if [ -f .env.demo ]; then
+            IMAGE="$IMAGE_REF" docker compose --env-file .env --env-file .env.deploy \
+              run --rm --no-deps app-demo npx prisma migrate deploy
+          fi
+          if [ -f .env.staging ]; then
+            IMAGE="$IMAGE_REF" docker compose --env-file .env --env-file .env.deploy \
+              run --rm --no-deps app-staging npx prisma migrate deploy
+          fi
+
           echo "==> Rolling out (no-build, uses pulled image)"
           UP_SERVICES="app caddy"
           if [ -f .env.demo ]; then UP_SERVICES="$UP_SERVICES app-demo"; fi
@@ -170,12 +208,6 @@ jobs:
             echo "[\${i}/30] status=\$status, waiting..."
             sleep 5
           done
-
-          echo "==> Running migrations (idempotent, per database)"
-          docker compose --env-file .env --env-file .env.deploy exec -T app npx prisma migrate deploy
-          if [ -f .env.demo ]; then
-            docker compose --env-file .env --env-file .env.deploy exec -T app-demo npx prisma migrate deploy
-          fi
 
           echo "==> Pruning old images"
           docker image prune -f --filter "until=168h" >/dev/null 2>&1 || true
