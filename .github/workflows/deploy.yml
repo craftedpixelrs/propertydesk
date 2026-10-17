@@ -120,17 +120,40 @@ jobs:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
           SSH_KNOWN_HOSTS: ${{ secrets.SSH_KNOWN_HOSTS }}
           SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+        shell: bash
         run: |
+          set -euo pipefail
+          # Prekini odmah ako bilo koji secret fali, umesto da step padne
+          # na chmod sa anonimnim exit code 1 (dosadasnji simptom).
+          missing=""
+          [ -z "${SSH_PRIVATE_KEY:-}" ] && missing="$missing SSH_PRIVATE_KEY"
+          [ -z "${SSH_HOST:-}" ] && missing="$missing SSH_HOST"
+          [ -z "${SSH_USER:-}" ] && missing="$missing SSH_USER"
+          if [ -n "$missing" ]; then
+            echo "::error::Missing GitHub Secret(s):$missing"
+            echo "::error::Postavi ih u Settings -> Secrets and variables -> Actions."
+            exit 1
+          fi
+
           mkdir -p ~/.ssh
           chmod 700 ~/.ssh
-          echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_deploy
+          printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/id_deploy
           chmod 600 ~/.ssh/id_deploy
-          if [ -n "$SSH_KNOWN_HOSTS" ]; then
-            echo "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
+
+          if [ -n "${SSH_KNOWN_HOSTS:-}" ]; then
+            printf '%s\n' "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
           else
-            ssh-keyscan -H "$SSH_HOST" >> ~/.ssh/known_hosts 2>/dev/null
+            echo "::warning::SSH_KNOWN_HOSTS nije postavljen; koristim ssh-keyscan (slabije, TOFU)."
+            # Ne vezujemo exit code 1 za nedostupan host – daj jasnu poruku.
+            if ! ssh-keyscan -T 10 -H "$SSH_HOST" > ~/.ssh/known_hosts 2> /tmp/keyscan.err; then
+              echo "::error::ssh-keyscan nije uspeo za $SSH_HOST:"
+              cat /tmp/keyscan.err || true
+              exit 1
+            fi
           fi
           chmod 600 ~/.ssh/known_hosts
+          echo "SSH keymaterial pripremljen (host=$SSH_HOST, user=$SSH_USER)."
 
       - name: Deploy on VPS
         env:
