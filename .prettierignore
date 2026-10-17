@@ -8,3 +8,6 @@ test-results
 prisma/migrations
 pnpm-lock.yaml
 *.md
+# Generated OpenAPI spec committed as a static asset; its shape is dictated
+# by next-swagger-doc, not by prettier.
+public/api-docs.json

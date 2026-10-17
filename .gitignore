@@ -46,3 +46,9 @@ tsconfig.tsbuildinfo
 # tools
 .agent-tools
 agent-tools
+
+# generated / local-only reports (not source)
+docs-live.json
+scripts/.swagger-perms-report.json
+scripts/i18n-audit-output.json
+scripts/i18n-audit-summary.txt
