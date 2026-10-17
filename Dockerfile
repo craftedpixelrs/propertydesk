@@ -74,6 +74,11 @@ ARG NEXT_PUBLIC_SENTRY_DSN=
 ARG NEXT_PUBLIC_GOOGLE_APPOINTMENT_URL=
 ARG NEXT_PUBLIC_PRODUCT_VIDEO_URL=
 
+# Git SHA of the commit this image was built from. Not a NEXT_PUBLIC_*
+# variable because we only want to surface it from the server (via
+# `/api/health`), never ship it to the client bundle.
+ARG BUILD_SHA=unknown
+
 ENV NEXT_PUBLIC_APP_URL=$NEXT_PUBLIC_APP_URL \
     NEXT_PUBLIC_APP_NAME=$NEXT_PUBLIC_APP_NAME \
     NEXT_PUBLIC_APP_DOMAIN=$NEXT_PUBLIC_APP_DOMAIN \
@@ -182,10 +187,12 @@ RUN --mount=type=cache,id=next-cache,target=/app/.next/cache \
 FROM node:22-alpine AS runner
 WORKDIR /app
 
+ARG BUILD_SHA=unknown
 ENV NODE_ENV=production \
     NEXT_TELEMETRY_DISABLED=1 \
     PORT=3000 \
-    HOSTNAME=0.0.0.0
+    HOSTNAME=0.0.0.0 \
+    BUILD_SHA=$BUILD_SHA
 
 RUN apk add --no-cache libc6-compat openssl tini \
  && addgroup --system --gid 1001 nodejs \
