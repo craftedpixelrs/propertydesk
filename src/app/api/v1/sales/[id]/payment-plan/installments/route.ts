@@ -19,22 +19,19 @@ const bodySchema = z.object({
  * enforced here — the client shows a yellow banner when the totals
  * diverge, but the write goes through.
  */
-export const POST = apiHandler(
-  { paramsSchema, bodySchema },
-  async ({ params, body }) => {
-    const ctx = await requirePermission("payment.manage");
-    const installment = await addInstallmentToExistingPlan({
-      organizationId: ctx.organization.organizationId,
-      actorUserId: ctx.session.user.id,
-      saleId: params.id,
-      label: body.label,
-      amount: body.amount,
-      dueDate: body.dueDate,
-      notes: body.notes ?? null,
-    });
-    return { data: installment, status: 201 };
-  },
-);
+export const POST = apiHandler({ paramsSchema, bodySchema }, async ({ params, body }) => {
+  const ctx = await requirePermission("payment.manage");
+  const installment = await addInstallmentToExistingPlan({
+    organizationId: ctx.organization.organizationId,
+    actorUserId: ctx.session.user.id,
+    saleId: params.id,
+    label: body.label,
+    amount: body.amount,
+    dueDate: body.dueDate,
+    notes: body.notes ?? null,
+  });
+  return { data: installment, status: 201 };
+});
 
 /**
  * @swagger

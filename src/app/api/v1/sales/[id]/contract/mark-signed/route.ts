@@ -5,13 +5,15 @@ import { requirePermission } from "@/server/permissions/require";
 import { markContractSigned } from "@/server/services/sales/contracts.service";
 
 const paramsSchema = z.object({ id: z.string().min(1) });
+const bodySchema = z.object({ documentId: z.string().min(1) });
 
-export const POST = apiHandler({ paramsSchema }, async ({ params }) => {
+export const POST = apiHandler({ paramsSchema, bodySchema }, async ({ params, body }) => {
   const ctx = await requirePermission("sale.manage");
   const result = await markContractSigned({
     organizationId: ctx.organization.organizationId,
     actorUserId: ctx.session.user.id,
     saleId: params.id,
+    documentId: body.documentId,
   });
   return { data: result };
 });
@@ -37,7 +39,11 @@ export const POST = apiHandler({ paramsSchema }, async ({ params }) => {
  *         application/json:
  *           schema:
  *             type: object
- *             additionalProperties: true
+ *             required:
+ *               - documentId
+ *             properties:
+ *               documentId:
+ *                 type: string
  *     responses:
  *       "200":
  *         description: |

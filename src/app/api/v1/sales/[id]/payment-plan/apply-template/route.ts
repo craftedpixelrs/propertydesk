@@ -13,18 +13,15 @@ const bodySchema = z.object({ templateId: z.string().min(1) });
  * client still submits `POST /sales/[id]/payment-plan` with the
  * MANUAL body once the operator is happy with the amounts and dates.
  */
-export const POST = apiHandler(
-  { paramsSchema, bodySchema },
-  async ({ params, body }) => {
-    const ctx = await requirePermission("payment.manage");
-    const draft = await applyTemplateToDraft({
-      organizationId: ctx.organization.organizationId,
-      saleId: params.id,
-      templateId: body.templateId,
-    });
-    return { data: draft };
-  },
-);
+export const POST = apiHandler({ paramsSchema, bodySchema }, async ({ params, body }) => {
+  const ctx = await requirePermission("payment.manage");
+  const draft = await applyTemplateToDraft({
+    organizationId: ctx.organization.organizationId,
+    saleId: params.id,
+    templateId: body.templateId,
+  });
+  return { data: draft };
+});
 
 /**
  * @swagger

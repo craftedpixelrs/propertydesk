@@ -19,48 +19,45 @@ const bodySchema = z.object({
  * files it as a `Document(entityType=Sale, category=SALE)` so the
  * "Dokumenti prodaje" section on the sale detail page shows it.
  */
-export const POST = apiHandler(
-  { paramsSchema, bodySchema },
-  async ({ params, body }) => {
-    const ctx = await requirePermission("sale.manage");
+export const POST = apiHandler({ paramsSchema, bodySchema }, async ({ params, body }) => {
+  const ctx = await requirePermission("sale.manage");
 
-    const rendered = await renderSaleContractPdf({
-      organizationId: ctx.organization.organizationId,
-      saleId: params.id,
-      templateId: body.templateId,
-    });
+  const rendered = await renderSaleContractPdf({
+    organizationId: ctx.organization.organizationId,
+    saleId: params.id,
+    templateId: body.templateId,
+  });
 
-    if (body.attachToSale !== false) {
-      await uploadDocument({
-        organizationId: ctx.organization.organizationId,
-        actorUserId: ctx.session.user.id,
-        category: "SALE",
-        entityType: "Sale",
-        entityId: params.id,
-        visibility: "INTERNAL",
-        fileName: `${rendered.filename}.pdf`,
-        mimeType: "application/pdf",
-        buffer: rendered.buffer,
-      });
-    }
-
-    await markContractGenerated({
+  if (body.attachToSale !== false) {
+    await uploadDocument({
       organizationId: ctx.organization.organizationId,
       actorUserId: ctx.session.user.id,
-      saleId: params.id,
-      templateId: rendered.templateId,
+      category: "SALE",
+      entityType: "Sale",
+      entityId: params.id,
+      visibility: "INTERNAL",
+      fileName: `${rendered.filename}.pdf`,
+      mimeType: "application/pdf",
+      buffer: rendered.buffer,
     });
+  }
 
-    return new NextResponse(new Uint8Array(rendered.buffer), {
-      status: 200,
-      headers: {
-        "content-type": "application/pdf",
-        "content-disposition": `attachment; filename="${rendered.filename}.pdf"`,
-        "cache-control": "private, no-store",
-      },
-    });
-  },
-);
+  await markContractGenerated({
+    organizationId: ctx.organization.organizationId,
+    actorUserId: ctx.session.user.id,
+    saleId: params.id,
+    templateId: rendered.templateId,
+  });
+
+  return new NextResponse(new Uint8Array(rendered.buffer), {
+    status: 200,
+    headers: {
+      "content-type": "application/pdf",
+      "content-disposition": `attachment; filename="${rendered.filename}.pdf"`,
+      "cache-control": "private, no-store",
+    },
+  });
+});
 
 /**
  * @swagger
