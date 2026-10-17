@@ -46,12 +46,20 @@ export async function uploadProjectCoverImage(input: {
 }
 
 export async function resolvePublicProjectCover(documentId: string) {
+  // Namerno uska pretraga: ovo je javna, neautentifikovana ruta
+  // (`/api/v1/public/project-cover/{documentId}`), pa sme da servira
+  // ISKLJUČIVO naslovne slike projekta namenjene kupcima. Ranija verzija
+  // je uključivala i `AGENCY_SHARED` što je značilo da svako sa document
+  // ID-jem može da dohvati sliku namenjenu samo partnerskim agencijama
+  // (bypass `AgencyConnection` provere u `getSignedDownloadUrl`).
   const doc = await prisma.document.findFirst({
     where: {
       id: documentId,
       deletedAt: null,
+      entityType: "Project",
+      category: "PROJECT",
       mimeType: { startsWith: "image/" },
-      visibility: { in: ["BUYER_SHARED", "AGENCY_SHARED"] },
+      visibility: "BUYER_SHARED",
     },
   });
   if (!doc) return null;

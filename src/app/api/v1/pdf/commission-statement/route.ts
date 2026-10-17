@@ -5,6 +5,7 @@ import { requirePermission } from "@/server/permissions/require";
 import { renderCommissionStatementPdf } from "@/server/pdf/service";
 import { pdfResponseHeaders } from "@/server/pdf/render";
 import { ApiError } from "@/lib/api/errors";
+import { prisma } from "@/server/db/prisma";
 
 /**
  * GET /api/v1/pdf/commission-statement?agencyOrganizationId=&from=&to=
@@ -18,6 +19,21 @@ export const GET = apiHandler({}, async ({ searchParams }): Promise<Response> =>
   const agencyOrganizationId = searchParams.get("agencyOrganizationId");
   if (!agencyOrganizationId) {
     throw new ApiError("BAD_REQUEST", "Nedostaje agencyOrganizationId.");
+  }
+  // `agencyOrganizationId` je caller-controlled. Bez ove provere, bilo
+  // koji investor sa `commission.statement` pravom mogao je da generiše
+  // PDF sa legalnim podacima (ime, adresa, PIB) proizvoljne agencije
+  // na platformi — čak i bez ijedne provizije i bez `AgencyConnection`.
+  // Mirror-check u `agency-commission-statement/route.ts`.
+  const linked = await prisma.agencyConnection.findFirst({
+    where: {
+      investorOrganizationId: ctx.organization.organizationId,
+      agencyOrganizationId,
+    },
+    select: { id: true },
+  });
+  if (!linked) {
+    throw new ApiError("FORBIDDEN", "Obračun nije dostupan za ovu agenciju.");
   }
   const from = parseDate(searchParams.get("from"));
   const to = parseDate(searchParams.get("to"));

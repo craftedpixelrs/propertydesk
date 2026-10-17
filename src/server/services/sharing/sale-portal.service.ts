@@ -152,6 +152,12 @@ export async function uploadSalePortalProof(input: {
   if (!link || link.revokedAt || link.entityType !== "Sale") {
     throw DomainErrors.notFound("Link");
   }
+  // Istekli link ne sme da prima nove uplate — `resolveSalePortal` (GET)
+  // već ovo radi; upload (POST) ranije nije, pa je napadač sa procurenim
+  // tokenom mogao da nastavi da gura PDF-ove i posle isteka.
+  if (link.expiresAt && link.expiresAt.getTime() < Date.now()) {
+    throw DomainErrors.notFound("Link");
+  }
   return uploadDocument({
     organizationId: link.organizationId,
     actorUserId: link.createdByUserId,
