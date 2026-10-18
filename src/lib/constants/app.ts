@@ -90,7 +90,7 @@ export const LAUNCH_DATE_LABEL = "15.11.2026.";
 export const COMPANY = {
   productName: "PropertyDesk",
   operatorName: "CraftedPixel",
-  operatorUrl: "https://getcraftedpixel.com",
+  operatorUrl: "https://craftedpixel.rs",
   email: "hello@propertydesk.app",
   phoneDisplay: "+381 65 43 63 142",
   phoneTel: "+381654363142",
