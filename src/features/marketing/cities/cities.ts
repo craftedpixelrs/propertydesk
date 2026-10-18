@@ -1,3 +1,7 @@
+import type { Locale } from "@/lib/i18n";
+
+import { CITY_EN } from "./cities-en";
+
 /**
  * Lokalne SEO stranice: softver za prodaju novogradnje po gradovima.
  *
@@ -6,9 +10,10 @@
  * stranica i interni linkovi se grade iz ove liste - dodavanje novog
  * grada ovde automatski uključuje sve ostalo.
  *
- * Sadržaj je namerno samo na srpskom (sr-Latn): ciljamo investitore i
- * agencije iz Srbije koji kucaju "softver za prodaju novogradnje
- * {grad}" na Google-u. Google tretira skoro-identične "doorway"
+ * Podrazumevani tekst je na srpskom (sr-Latn) jer ciljamo investitore
+ * i agencije iz Srbije koji kucaju "softver za prodaju novogradnje
+ * {grad}" na Google-u. Engleski prevod je u `cities-en.ts` i uključuje
+ * se kad posetilac izabere English. Google tretira skoro-identične "doorway"
  * stranice kao spam, pa svaki grad ima:
  *   - jedinstven uvodni opis lokalnog tržišta novogradnje,
  *   - svoju listu opština ili karakterističnih naselja,
@@ -218,7 +223,7 @@ export const CITIES: CityInfo[] = [
       },
       {
         q: "Da li PropertyDesk podržava dvojezičnu prezentaciju (srpski + engleski)?",
-        a: "Interni rad tima je trenutno samo na srpskom (planirana je potpuna i engleska verzija). Javna ponuda projekta se može deliti sa svim informacijama (slike, plan, cena), što je za strane kupce često dovoljno. Potpuna lokalizacija engleskog je na roadmap-u.",
+        a: "Da. Sajt i interfejs tima rade na srpskom i na engleskom. Javna ponuda projekta (slike, plan, cena) deli se linkom, što je kupcima iz inostranstva dovoljno da vide stan pre rezervacije.",
       },
       {
         q: "Imamo mali projekat od 15 stanova - vredi li nam PropertyDesk?",
@@ -363,10 +368,24 @@ export const CITIES: CityInfo[] = [
  * O(1) lookup slug → CityInfo. Grade se kao Map pri učitavanju modula,
  * tako da je ruta za nepostojeći grad odmah 404 bez skupe pretrage.
  */
+for (const city of CITIES) {
+  if (!CITY_EN[city.slug]) {
+    throw new Error(`Missing English city copy for ${city.slug}`);
+  }
+}
+
 const BY_SLUG = new Map(CITIES.map((c) => [c.slug, c] as const));
 
 export function getCityBySlug(slug: string): CityInfo | undefined {
   return BY_SLUG.get(slug);
+}
+
+/** Serbian fields stay the indexed default. English replaces the visible copy. */
+export function localizeCity(city: CityInfo, locale: Locale): CityInfo {
+  if (locale !== "en") return city;
+  const en = CITY_EN[city.slug];
+  if (!en) return city;
+  return { ...city, ...en };
 }
 
 export const CITY_SLUGS: readonly string[] = CITIES.map((c) => c.slug);

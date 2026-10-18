@@ -8,14 +8,14 @@ import { FeatureGrid } from "@/features/marketing/feature-grid";
 import { PageHero } from "@/features/marketing/landing/page-hero";
 import { ProblemSolutionGrid } from "@/features/marketing/landing/problem-solution-grid";
 import { RelatedLinks } from "@/features/marketing/landing/related-links";
-import { CITIES, getCityBySlug } from "@/features/marketing/cities/cities";
+import { CITIES, getCityBySlug, localizeCity } from "@/features/marketing/cities/cities";
+import { cityChrome } from "@/features/marketing/cities/cities-ui";
 import { APP_NAME, MARKETING_URL } from "@/lib/constants/app";
 import { createT, htmlLang } from "@/lib/i18n";
 import { resolveRequestLocale } from "@/lib/i18n/resolve-locale";
 import { JsonLd } from "@/lib/seo/json-ld";
 
 const HUB_SLUG = "softver-za-prodaju-novogradnje";
-const HUB_TITLE = "Softver za prodaju novogradnje";
 
 interface PageProps {
   params: Promise<{ grad: string }>;
@@ -37,12 +37,14 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const city = getCityBySlug(grad);
   if (!city) return {};
 
+  const locale = await resolveRequestLocale();
+  const copy = cityChrome(locale);
+  const local = localizeCity(city, locale);
   const url = `${MARKETING_URL}/${HUB_SLUG}/${city.slug}`;
-  const title = `${HUB_TITLE} ${city.nameLokativ}`;
-  // Ahrefs flagged every city page meta description as too long (205+).
-  // We trim to ~155 chars which Google renders in full on both desktop
-  // and mobile SERPs, and front-load the city keyword.
-  const description = `${HUB_TITLE} ${city.nameLokativ}: cenovnik, rezervacija stana, IPS QR kapara, ugovor i provizija agencije - jedna platforma za investitore i agencije.`;
+  const title = copy.metaTitle(local.nameLokativ);
+  // Keep the description under 160 characters. Googlebot has no locale
+  // cookie, so the indexed text stays the Serbian default.
+  const description = copy.description(local.nameLokativ);
 
   return {
     title: { absolute: `${title} | ${APP_NAME}` },
@@ -56,7 +58,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       description,
       url,
       type: "website",
-      locale: "sr_Latn",
+      locale: locale === "en" ? "en_GB" : "sr_Latn",
       siteName: APP_NAME,
     },
     twitter: {
@@ -74,46 +76,22 @@ export default async function CityPage({ params }: PageProps) {
 
   const locale = await resolveRequestLocale();
   const t = createT(locale);
+  const copy = cityChrome(locale);
+  const local = localizeCity(city, locale);
 
   const url = `${MARKETING_URL}/${HUB_SLUG}/${city.slug}`;
-  const title = `${HUB_TITLE} ${city.nameLokativ}`;
+  const title = copy.title(local.nameLokativ);
 
   const neighbors = city.neighbors
     .map((slug) => getCityBySlug(slug))
-    .filter((c): c is NonNullable<typeof c> => Boolean(c));
-
-  const problems = [
-    {
-      problem:
-        "Cenovnik u Excelu se grana - tim u kancelariji i tim na gradilištu rade u različitim verzijama.",
-      solution:
-        "Jedan cenovnik po projektu, jedna istina za ceo tim, sa trag izmena ko je i kada menjao cenu.",
-    },
-    {
-      problem:
-        "Agencija rezerviše stan preko Vibera - druga agencija prodaje isti stan drugom kupcu.",
-      solution:
-        "Jedna aktivna rezervacija po jedinici, status zaključan za sve agencije u realnom vremenu.",
-    },
-    {
-      problem:
-        "Kupac traži kaparu preko e-bankinga, Vi mu dajete poziv na broj mejlom - uplata ne stigne pola nedelje.",
-      solution:
-        "IPS QR na javnom linku jedinice - kupac skenira iz svoje banke i uplaćuje kaparu u par sekundi.",
-    },
-    {
-      problem:
-        "Ne znate ko je kome agent, provizije se kasnije dogovaraju iz glave, uvek jedan ispadne nezadovoljan.",
-      solution:
-        "Pravila provizije unapred po projektu i jedinici, snapshot u trenutku ugovora, portal za agenciju sa statusom isplate.",
-    },
-  ];
+    .filter((c): c is NonNullable<typeof c> => Boolean(c))
+    .map((neighbor) => localizeCity(neighbor, locale));
 
   const webPageJsonLd = {
     "@context": "https://schema.org",
     "@type": "WebPage",
     name: `${title} | ${APP_NAME}`,
-    description: city.intro,
+    description: local.intro,
     url,
     inLanguage: htmlLang(locale),
     isPartOf: {
@@ -136,13 +114,13 @@ export default async function CityPage({ params }: PageProps) {
       {
         "@type": "ListItem",
         position: 2,
-        name: HUB_TITLE,
+        name: copy.hubTitle,
         item: `${MARKETING_URL}/${HUB_SLUG}`,
       },
       {
         "@type": "ListItem",
         position: 3,
-        name: city.name,
+        name: local.name,
         item: url,
       },
     ],
@@ -151,7 +129,7 @@ export default async function CityPage({ params }: PageProps) {
   const serviceJsonLd = {
     "@context": "https://schema.org",
     "@type": "Service",
-    serviceType: "Softver za prodaju novogradnje",
+    serviceType: copy.serviceType,
     provider: {
       "@type": "Organization",
       name: APP_NAME,
@@ -159,14 +137,14 @@ export default async function CityPage({ params }: PageProps) {
     },
     areaServed: {
       "@type": "City",
-      name: city.name,
+      name: local.name,
       containedInPlace: {
         "@type": "Country",
-        name: "Srbija",
+        name: copy.country,
       },
     },
     url,
-    description: city.intro,
+    description: local.intro,
   };
 
   // Same normalisation as on the home-page FAQ schema: strip any stray
@@ -184,7 +162,7 @@ export default async function CityPage({ params }: PageProps) {
     "@type": "FAQPage",
     "@id": `${url}#faq`,
     inLanguage: htmlLang(locale),
-    mainEntity: city.faqs.map((f, idx) => ({
+    mainEntity: local.faqs.map((f, idx) => ({
       "@type": "Question",
       "@id": `${url}#faq-q${idx + 1}`,
       name: f.q,
@@ -198,34 +176,32 @@ export default async function CityPage({ params }: PageProps) {
   return (
     <>
       <PageHero
-        eyebrow={`Softver za prodaju novogradnje · ${city.name}`}
+        eyebrow={copy.eyebrow(local.name)}
         icon={Building2}
-        title={`Softver za prodaju novogradnje ${city.nameLokativ}`}
-        subtitle={city.intro}
+        title={title}
+        subtitle={local.intro}
       />
 
       <ProblemSolutionGrid
-        title={`Kako PropertyDesk pomaže investitorima ${city.nameLokativ}`}
-        subtitle="Isti problemi, isti sistem - bez obzira na to kako se zovu Vaše opštine i naselja."
-        items={problems}
+        title={copy.problemsTitle(local.nameLokativ)}
+        subtitle={copy.problemsSubtitle}
+        items={copy.problems}
       />
 
       <section aria-labelledby="districts-title" className="bg-white">
         <div className="container-app py-16 sm:py-20">
           <div className="max-w-3xl">
             <p className="text-xs font-semibold tracking-[0.16em] text-[#9a7430] uppercase">
-              {city.name}
+              {local.name}
             </p>
             <h2
               id="districts-title"
               className="font-display mt-3 text-4xl font-semibold tracking-tight text-[#0b1020] sm:text-5xl"
             >
-              {city.districtsTitle}
+              {local.districtsTitle}
             </h2>
             <p className="mt-4 text-base leading-relaxed text-[var(--color-foreground-muted)]">
-              PropertyDesk ne pravi razliku između lokacija - sistem radi isto u svim delovima{" "}
-              {city.nameGenitiv}. Dole su delovi grada u kojima danas vidimo najviše aktivne
-              novogradnje.
+              {copy.districtsBody(local.nameGenitiv)}
             </p>
           </div>
 
@@ -250,11 +226,11 @@ export default async function CityPage({ params }: PageProps) {
               id="faq-title"
               className="font-display text-4xl font-semibold tracking-tight text-[#0b1020] sm:text-5xl"
             >
-              Česta pitanja - {city.name}
+              {copy.faqTitle(local.name)}
             </h2>
           </div>
           <dl className="mt-8 space-y-4">
-            {city.faqs.map((f) => (
+            {local.faqs.map((f) => (
               <div
                 key={f.q}
                 className="rounded-2xl border border-[var(--color-border)] bg-white p-5 shadow-sm sm:p-6"
@@ -273,10 +249,10 @@ export default async function CityPage({ params }: PageProps) {
 
       {neighbors.length > 0 ? (
         <RelatedLinks
-          title={`Drugi gradovi u blizini ${city.nameGenitiv}`}
+          title={copy.neighborsTitle(local.nameGenitiv)}
           items={neighbors.map((n) => ({
             href: `/${HUB_SLUG}/${n.slug}`,
-            label: `Softver za prodaju novogradnje ${n.nameLokativ}`,
+            label: copy.neighborLabel(n.nameLokativ),
           }))}
         />
       ) : null}
@@ -284,7 +260,7 @@ export default async function CityPage({ params }: PageProps) {
       <RelatedLinks
         title={t("marketing.anchors.related")}
         items={[
-          { href: `/${HUB_SLUG}`, label: HUB_TITLE },
+          { href: `/${HUB_SLUG}`, label: copy.hubTitle },
           { href: "/prodaja-novogradnje", label: t("marketing.anchors.newBuild") },
           { href: "/za-investitore", label: t("marketing.anchors.investors") },
           { href: "/za-agencije", label: t("marketing.anchors.agencies") },
