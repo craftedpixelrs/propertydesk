@@ -6,6 +6,7 @@ import {
   themeFromRequest,
   writeThemeCookieValue,
 } from "./index";
+import { isPublicSharePath } from "./public-share";
 
 describe("parseTheme()", () => {
   it("accepts supported theme values", () => {
@@ -34,6 +35,19 @@ describe("writeThemeCookieValue()", () => {
   it("writes a Lax cookie for the theme", () => {
     expect(writeThemeCookieValue("dark")).toContain("pd_theme=dark");
     expect(writeThemeCookieValue("dark")).toContain("SameSite=Lax");
+  });
+});
+
+describe("isPublicSharePath()", () => {
+  it("matches shared offer and project links only", () => {
+    expect(isPublicSharePath("/p/abc")).toBe(true);
+    expect(isPublicSharePath("/p/projekat/zemunska-vila")).toBe(true);
+    expect(isPublicSharePath("/p/kupac/token")).toBe(true);
+    expect(isPublicSharePath("/p/r/code")).toBe(true);
+    expect(isPublicSharePath("/p")).toBe(true);
+    expect(isPublicSharePath("/projects")).toBe(false);
+    expect(isPublicSharePath("/privatnost")).toBe(false);
+    expect(isPublicSharePath(null)).toBe(false);
   });
 });
 

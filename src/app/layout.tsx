@@ -1,10 +1,12 @@
 import type { Metadata, Viewport } from "next";
 import { Plus_Jakarta_Sans, Source_Serif_4 } from "next/font/google";
+import { headers } from "next/headers";
 
 import { Providers } from "@/components/app/providers";
 import { APP_LOCALE, APP_NAME, MARKETING_URL } from "@/lib/constants/app";
 import { htmlLang, t, type Locale } from "@/lib/i18n";
 import { resolveRequestLocale } from "@/lib/i18n/resolve-locale";
+import { isPublicSharePath } from "@/lib/theme/public-share";
 import { resolveRequestTheme } from "@/lib/theme/resolve-theme";
 import { NOINDEX_ROBOTS } from "@/lib/seo/policy";
 import "./globals.css";
@@ -80,8 +82,17 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
+async function themeForDocument() {
+  const pathname = (await headers()).get("x-pathname");
+  const preferred = await resolveRequestTheme();
+  return {
+    preferred,
+    document: isPublicSharePath(pathname) ? ("light" as const) : preferred,
+  };
+}
+
 export async function generateViewport(): Promise<Viewport> {
-  const theme = await resolveRequestTheme();
+  const { document: theme } = await themeForDocument();
   return {
     themeColor: theme === "dark" ? "#0d1117" : "#ffffff",
     width: "device-width",
@@ -91,12 +102,12 @@ export async function generateViewport(): Promise<Viewport> {
 }
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const [locale, theme] = await Promise.all([resolveRequestLocale(), resolveRequestTheme()]);
+  const [locale, themes] = await Promise.all([resolveRequestLocale(), themeForDocument()]);
   return (
     <html
       lang={htmlLang(locale)}
-      data-theme={theme}
-      style={{ colorScheme: theme }}
+      data-theme={themes.document}
+      style={{ colorScheme: themes.document }}
       suppressHydrationWarning
       className={`${sans.variable} ${display.variable}`}
     >
@@ -104,7 +115,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <a href="#main-content" className="skip-link">
           {t("common.skipToContent", undefined, locale)}
         </a>
-        <Providers locale={locale} theme={theme}>
+        <Providers locale={locale} theme={themes.preferred}>
           {children}
         </Providers>
       </body>

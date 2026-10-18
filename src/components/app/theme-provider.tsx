@@ -5,11 +5,12 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useState,
   type ReactNode,
 } from "react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
 import { apiClient } from "@/lib/api-client";
 import {
@@ -18,6 +19,7 @@ import {
   writeThemeCookieValue,
   type Theme,
 } from "@/lib/theme";
+import { isPublicSharePath } from "@/lib/theme/public-share";
 
 interface ThemeContextValue {
   theme: Theme;
@@ -34,17 +36,25 @@ export function ThemeProvider({
   children: ReactNode;
 }) {
   const router = useRouter();
+  const pathname = usePathname();
   const [theme, setThemeState] = useState<Theme>(initialTheme);
+  // Shared links never follow the visitor's dark theme.
+  const visible: Theme = isPublicSharePath(pathname) ? "light" : theme;
 
   useEffect(() => {
     setThemeState(initialTheme);
-    applyThemeToDocument(initialTheme);
   }, [initialTheme]);
+
+  useLayoutEffect(() => {
+    applyThemeToDocument(visible);
+  }, [visible]);
 
   const setTheme = useCallback(
     async (next: Theme) => {
       setThemeState(next);
-      applyThemeToDocument(next);
+      if (!isPublicSharePath(window.location.pathname)) {
+        applyThemeToDocument(next);
+      }
       document.cookie = writeThemeCookieValue(next);
       try {
         await apiClient.patch("/me", { theme: next });
