@@ -13,8 +13,8 @@ export interface LegalDoc {
   sections: LegalSection[];
 }
 
-const UPDATED_SR = "23.09.2026.";
-const UPDATED_EN = "23 September 2026";
+const UPDATED_SR = "18.10.2026.";
+const UPDATED_EN = "18 October 2026";
 
 const privacySr: LegalDoc = {
   title: "Politika privatnosti",
@@ -35,7 +35,7 @@ const privacySr: LegalDoc = {
         "Prijava za rani pristup: ime, prezime, email, telefon, da li ste investitor ili agencija, opciono naziv firme, grad, broj projekata i napomena, plus UTM parametri i referrer ako stignu sa linka.",
         "Zakazivanje demoa: ime, email i termin koji unesete u Google Calendar Appointment Schedules. Te podatke prima Google kao nezavisni rukovalac svog kalendara.",
         "Aplikacija (nakon aktivacije naloga): nalog, članovi tima, projekti, kupci, rezervacije, ugovori, uplate i dokumenta koje Vi unesete. To su poslovni podaci Vaše organizacije.",
-        "Tehnički podaci: IP adresa, tip pregledača i osnovni server logovi potrebni za bezbednost i rad sajta. Ako prihvatite analitičke kolačiće, Google Analytics 4 prima skraćenu IP adresu, stranice koje otvorite i opšte informacije o uređaju.",
+        "Tehnički podaci: IP adresa, tip pregledača i osnovni server logovi potrebni za bezbednost i rad sajta. Ako prihvatite analitičke kolačiće, Google Analytics 4 prima skraćenu IP adresu, stranice koje otvorite i opšte informacije o uređaju, a Microsoft Clarity beleži stranice, klikove i anonimizovan snimak sesije radi mape ponašanja.",
         "Ahrefs Web Analytics se učitava na svim marketing stranicama radi praćenja SEO performansi. Ne postavlja kolačiće i ne prikuplja lične podatke — beleži samo anonimnu statistiku poseta (stranica, izvor, zemlja), pa se ne vezuje za saglasnost za kolačiće.",
       ],
     },
@@ -53,7 +53,7 @@ const privacySr: LegalDoc = {
       heading: "Sa kim delimo podatke",
       paragraphs: [
         "Ne prodajemo podatke. Delimo ih samo sa pružaocima koji su nam potrebni da radimo:",
-        "hosting i baza u EU regionu; skladište dokumenata (S3); email za potvrde i obaveštenja; Loops za listu prijava; Google Calendar za termine demoa; Google Analytics samo uz saglasnost.",
+        "hosting i baza u EU regionu; skladište dokumenata (S3); email za potvrde i obaveštenja; Loops za listu prijava; Google Calendar za termine demoa; Google Analytics i Microsoft Clarity samo uz saglasnost.",
         "Svaki pružalac dobija samo ono što mu treba za tu uslugu.",
       ],
     },
@@ -76,7 +76,7 @@ const privacySr: LegalDoc = {
       heading: "Kolačići",
       paragraphs: [
         "Neophodni kolačići: jezik sajta i, kada se prijavite, sesija na my.propertydesk.app. Bez njih sajt i prijava ne rade.",
-        "Analitički kolačići (Google Analytics 4) postavljamo samo ako kliknete „Prihvatam“. Ako izaberete „Samo neophodni“, analitika se ne učitava.",
+        "Analitički kolačići (Google Analytics 4 i Microsoft Clarity) postavljamo samo ako kliknete „Prihvatam“. Ako izaberete „Samo neophodni“, analitika se ne učitava.",
         "Detalje i promenu izbora naći ćete i u banneru (link „Kolačići“ u dnu svake stranice).",
       ],
     },
@@ -102,7 +102,7 @@ const privacyEn: LegalDoc = {
         "Early-access form: first name, last name, email, phone, whether you are an investor or an agency, optional company name, city, project count and note, plus UTM parameters and referrer if they arrive with the link.",
         "Demo booking: the name, email and slot you enter in Google Calendar Appointment Schedules. Google receives that data as an independent controller of its calendar.",
         "App (after an account is activated): the account, team members, projects, buyers, reservations, contracts, payments and documents you enter. Those are your organisation’s business data.",
-        "Technical data: IP address, browser type and basic server logs needed for security and to run the site. If you accept analytics cookies, Google Analytics 4 receives a truncated IP, the pages you open and general device information.",
+        "Technical data: IP address, browser type and basic server logs needed for security and to run the site. If you accept analytics cookies, Google Analytics 4 receives a truncated IP, the pages you open and general device information, and Microsoft Clarity records pages, clicks and an anonymised session replay for behaviour maps.",
         "Ahrefs Web Analytics runs on every marketing page to track SEO performance. It sets no cookies and collects no personal data — only anonymous visit stats (page, source, country), so it does not require cookie consent.",
       ],
     },
@@ -120,7 +120,7 @@ const privacyEn: LegalDoc = {
       heading: "Who we share it with",
       paragraphs: [
         "We do not sell data. We share it only with providers we need in order to operate:",
-        "hosting and database in the EU region; document storage (S3); email for confirmations and notices; Loops for the application list; Google Calendar for demo slots; Google Analytics only with consent.",
+        "hosting and database in the EU region; document storage (S3); email for confirmations and notices; Loops for the application list; Google Calendar for demo slots; Google Analytics and Microsoft Clarity only with consent.",
         "Each provider receives only what it needs for that service.",
       ],
     },
@@ -143,7 +143,7 @@ const privacyEn: LegalDoc = {
       heading: "Cookies",
       paragraphs: [
         "Strictly necessary cookies: site language and, when you sign in, the session on my.propertydesk.app. The site and sign-in do not work without them.",
-        "Analytics cookies (Google Analytics 4) are set only if you click “Accept”. If you choose “Necessary only”, analytics is not loaded.",
+        "Analytics cookies (Google Analytics 4 and Microsoft Clarity) are set only if you click “Accept”. If you choose “Necessary only”, analytics is not loaded.",
         "You can change the choice via the banner (the “Cookies” link at the bottom of every page).",
       ],
     },

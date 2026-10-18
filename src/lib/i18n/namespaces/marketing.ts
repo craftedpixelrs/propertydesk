@@ -81,7 +81,7 @@ export const marketingSr = {
 
   cookies: {
     title: "Kolačići na ovom sajtu",
-    body: "Neophodni kolačići čuvaju jezik. Google Analytics učitavamo samo ako prihvatite. Možete promeniti izbor u bilo kom trenutku.",
+    body: "Neophodni kolačići čuvaju jezik. Google Analytics i Microsoft Clarity učitavamo samo ako prihvatite. Možete promeniti izbor u bilo kom trenutku.",
     accept: "Prihvatam",
     reject: "Samo neophodni",
     privacyLink: "Politika privatnosti",
@@ -987,7 +987,7 @@ export const marketingEn: Leaves<typeof marketingSr> = {
 
   cookies: {
     title: "Cookies on this site",
-    body: "Necessary cookies store your language. We load Google Analytics only if you accept. You can change this at any time.",
+    body: "Necessary cookies store your language. We load Google Analytics and Microsoft Clarity only if you accept. You can change this at any time.",
     accept: "Accept",
     reject: "Necessary only",
     privacyLink: "Privacy policy",

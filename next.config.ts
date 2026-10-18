@@ -45,11 +45,15 @@ const securityHeaders: Array<{ key: string; value: string }> = [
       // `analytics.ahrefs.com` is the Ahrefs Web Analytics beacon loaded
       // on every marketing page (cookie-less, used for SEO tracking).
       //
+      // `www.clarity.ms` / `scripts.clarity.ms` are Microsoft Clarity.
+      // The tag is injected only after cookie consent; the loader then
+      // pulls the runtime from `scripts.clarity.ms`.
+      //
       // `unsafe-eval` is required by Next.js dev/turbopack; production
       // still needs `unsafe-inline` for hydration inline scripts.
       isProd
-        ? "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://www.google-analytics.com https://static.cloudflareinsights.com https://analytics.ahrefs.com"
-        : "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com https://static.cloudflareinsights.com https://analytics.ahrefs.com",
+        ? "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://www.google-analytics.com https://static.cloudflareinsights.com https://analytics.ahrefs.com https://www.clarity.ms https://scripts.clarity.ms"
+        : "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com https://static.cloudflareinsights.com https://analytics.ahrefs.com https://www.clarity.ms https://scripts.clarity.ms",
       "connect-src 'self' https: wss:",
       "worker-src 'self' blob:",
       "object-src 'none'",
