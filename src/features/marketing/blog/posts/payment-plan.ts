@@ -1,4 +1,4 @@
-﻿import type { BlogPost } from "@/features/marketing/blog/types";
+import type { BlogPost } from "@/features/marketing/blog/types";
 
 export const paymentPlanPost: BlogPost = {
   slug: "plan-placanja-rate-za-stan",

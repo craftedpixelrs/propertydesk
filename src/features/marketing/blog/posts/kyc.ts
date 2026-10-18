@@ -1,4 +1,4 @@
-﻿import type { BlogPost } from "@/features/marketing/blog/types";
+import type { BlogPost } from "@/features/marketing/blog/types";
 
 export const kycPost: BlogPost = {
   slug: "kyc-kupca-pre-ugovora-o-stanu",

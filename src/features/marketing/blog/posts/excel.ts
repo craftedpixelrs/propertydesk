@@ -1,4 +1,4 @@
-﻿import type { BlogPost } from "@/features/marketing/blog/types";
+import type { BlogPost } from "@/features/marketing/blog/types";
 
 export const excelPost: BlogPost = {
   slug: "excel-ili-softver-za-prodaju-novogradnje",

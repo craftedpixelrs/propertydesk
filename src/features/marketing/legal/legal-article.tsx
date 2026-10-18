@@ -20,8 +20,8 @@ import type { LegalDoc } from "./copy";
  * Reference: https://developers.cloudflare.com/waf/tools/scrape-shield/email-address-obfuscation/
  */
 
-const EMAIL_OFF_OPEN: Record<string, string> = { __html: "<!--email_off-->" };
-const EMAIL_OFF_CLOSE: Record<string, string> = { __html: "<!--/email_off-->" };
+const EMAIL_OFF_OPEN = { __html: "<!--email_off-->" } as const;
+const EMAIL_OFF_CLOSE = { __html: "<!--/email_off-->" } as const;
 const DISPLAY_CONTENTS: React.CSSProperties = { display: "contents" };
 
 export function LegalArticle({ doc }: { doc: LegalDoc }) {

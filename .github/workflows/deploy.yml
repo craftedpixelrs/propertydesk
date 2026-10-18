@@ -293,24 +293,21 @@ jobs:
           echo "==> Pruning old images"
           docker image prune -f --filter "until=168h" >/dev/null 2>&1 || true
 
-          # End-to-end sanity: idemo kroz container-ov /api/health koji od
-          # ovog commit-a vraća i baked BUILD_SHA. Ako workflow javlja
-          # success a ovaj curl ne vraća isti SHA kao GITHUB_SHA, tada
-          # container na mašini na kojoj se izvršava deploy NIJE isti
-          # kao container koji opslužuje propertydesk.app saobraćaj —
-          # najverovatnije SSH_HOST secret pokazuje na pogrešan VPS.
-          echo "==> Running on \$(hostname) ($(uname -r))"
-          echo "==> Local /api/health (prod container):"
+          # End-to-end sanity: emituj hostname i /api/health rezultat kao
+          # ::notice annotations koje su vidljive u Checks API-ju čak i
+          # bez pristupa raw logovima. Ako workflow javlja success a ovi
+          # notices pokazuju neočekivan commit ili hostname, znamo da
+          # deploy ne pogađa isti host koji opslužuje saobraćaj.
+          vps_host=\$(hostname -f 2>/dev/null || hostname 2>/dev/null || echo unknown)
+          echo "::notice title=Deploy host::\$vps_host"
           local_health=\$(docker exec propertydesk-app wget -qO- http://127.0.0.1:3000/api/health 2>&1 || echo "exec-failed")
-          echo "   \$local_health"
+          echo "::notice title=Health response on \$vps_host::\$local_health"
           deployed_sha="${{ github.sha }}"
           deployed_short=\$(echo "\$deployed_sha" | cut -c1-12)
           if echo "\$local_health" | grep -q "\"commit\":\"\$deployed_short\""; then
-            echo "==> OK: /api/health vraća deployed commit \$deployed_short"
+            echo "::notice title=Health OK::container na \$vps_host vraća deployed commit \$deployed_short"
           else
-            echo "::warning::/api/health NE vraća deployed commit \$deployed_short."
-            echo "::warning::Container na ovoj mašini ne služi očekivani build."
-            echo "::warning::Proveri SSH_HOST secret i da li ovaj host zaista opslužuje propertydesk.app."
+            echo "::warning title=Health MISMATCH::/api/health na \$vps_host NE vraća deployed commit \$deployed_short - proveri SSH_HOST secret"
           fi
 
           echo "==> Deploy complete"

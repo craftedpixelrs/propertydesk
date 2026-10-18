@@ -1,4 +1,4 @@
-﻿type Leaves<T> = T extends string ? string : { [K in keyof T]: Leaves<T[K]> };
+type Leaves<T> = T extends string ? string : { [K in keyof T]: Leaves<T[K]> };
 
 /** Marketing site + public offer / share pages. */
 export const marketingSr = {

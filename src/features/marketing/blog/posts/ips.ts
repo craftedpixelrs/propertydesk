@@ -1,4 +1,4 @@
-﻿import type { BlogPost } from "@/features/marketing/blog/types";
+import type { BlogPost } from "@/features/marketing/blog/types";
 
 export const ipsPost: BlogPost = {
   slug: "ips-qr-kapara-online-rezervacija-stana",

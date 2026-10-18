@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Lokalne SEO stranice: softver za prodaju novogradnje po gradovima.
  *
  * Ovaj modul je jedini izvor istine o kojim gradovima gađamo organsku
