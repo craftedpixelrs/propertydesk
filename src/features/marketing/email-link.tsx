@@ -106,11 +106,7 @@ export function EmailOffHtml({
   style?: CSSProperties;
 }) {
   return (
-    <Tag
-      className={className}
-      style={style}
-      dangerouslySetInnerHTML={{ __html: wrap(html) }}
-    />
+    <Tag className={className} style={style} dangerouslySetInnerHTML={{ __html: wrap(html) }} />
   );
 }
 

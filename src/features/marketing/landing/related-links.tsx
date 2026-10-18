@@ -27,10 +27,7 @@ export function RelatedLinks({
 }) {
   if (items.length === 0) return null;
   return (
-    <section
-      className="border-t border-[#0b1020]/5 bg-[#f7f3ea]"
-      aria-label={title}
-    >
+    <section className="border-t border-[#0b1020]/5 bg-[#f7f3ea]" aria-label={title}>
       <div className="container-app max-w-5xl py-10 sm:py-12">
         <div className="flex items-center gap-3">
           <h2 className="text-xs font-semibold tracking-[0.18em] text-[#9a7430] uppercase">

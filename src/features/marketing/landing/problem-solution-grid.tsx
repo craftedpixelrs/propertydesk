@@ -62,7 +62,7 @@ export async function ProblemSolutionGrid({ title, subtitle, items }: ProblemSol
               <div className="flex items-start gap-3">
                 <span
                   aria-hidden
-                  className="grid h-9 w-9 flex-none place-items-center rounded-lg bg-[#0b1020]/10 text-[#0b1020]/55 ring-1 ring-inset ring-[#0b1020]/5"
+                  className="grid h-9 w-9 flex-none place-items-center rounded-lg bg-[#0b1020]/10 text-[#0b1020]/55 ring-1 ring-[#0b1020]/5 ring-inset"
                 >
                   <MinusCircle className="size-4" strokeWidth={2} />
                 </span>
@@ -70,17 +70,12 @@ export async function ProblemSolutionGrid({ title, subtitle, items }: ProblemSol
                   <div className="text-[11px] font-semibold tracking-[0.16em] text-[#0b1020]/55 uppercase">
                     {t("marketing.common.problem")}
                   </div>
-                  <p className="mt-1.5 text-sm leading-relaxed text-[#0b1020]/80">
-                    {it.problem}
-                  </p>
+                  <p className="mt-1.5 text-sm leading-relaxed text-[#0b1020]/80">{it.problem}</p>
                 </div>
               </div>
 
               {/* Arrow divider — only visible on sm+ screens. */}
-              <div
-                aria-hidden
-                className="hidden items-center justify-center sm:flex"
-              >
+              <div aria-hidden className="hidden items-center justify-center sm:flex">
                 <span className="grid size-8 place-items-center rounded-full border border-[#d6b26a]/40 bg-white text-[#9a7430] shadow-sm">
                   <ArrowRight className="size-4" strokeWidth={2.25} />
                 </span>
@@ -102,9 +97,7 @@ export async function ProblemSolutionGrid({ title, subtitle, items }: ProblemSol
                   <div className="text-[11px] font-semibold tracking-[0.16em] text-[#9a7430] uppercase">
                     PropertyDesk
                   </div>
-                  <p className="mt-1.5 text-sm leading-relaxed text-[#0b1020]">
-                    {it.solution}
-                  </p>
+                  <p className="mt-1.5 text-sm leading-relaxed text-[#0b1020]">{it.solution}</p>
                 </div>
               </div>
             </article>

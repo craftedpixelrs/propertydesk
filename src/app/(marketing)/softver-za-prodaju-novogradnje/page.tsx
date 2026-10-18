@@ -155,9 +155,8 @@ export default async function HubPage() {
               Softver za prodaju novogradnje po gradovima
             </h2>
             <p className="mt-4 text-base leading-relaxed text-[var(--color-foreground-muted)]">
-              Pogledajte stranicu za Vaš grad - svaka ima opis lokalnog tržišta,
-              listu opština ili karakterističnih naselja i česta pitanja koja
-              čujemo baš od investitora iz tog grada.
+              Pogledajte stranicu za Vaš grad - svaka ima opis lokalnog tržišta, listu opština ili
+              karakterističnih naselja i česta pitanja koja čujemo baš od investitora iz tog grada.
             </p>
           </div>
 

@@ -131,11 +131,7 @@ export default async function LandingPage() {
       availability: "https://schema.org/PreOrder",
       availabilityStarts: LAUNCH_DATE_ISO,
       url: `${MARKETING_URL}/#cenovnik`,
-      offers: [
-        planOffer("Starter", "49"),
-        planOffer("Growth", "149"),
-        planOffer("Scale", "399"),
-      ],
+      offers: [planOffer("Starter", "49"), planOffer("Growth", "149"), planOffer("Scale", "399")],
     },
   };
 

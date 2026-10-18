@@ -124,10 +124,7 @@ export async function MarketingFooter() {
               </Link>
             </li>
             <li>
-              <EmailLink
-                email={COMPANY.email}
-                className="text-white/65 hover:text-white"
-              />
+              <EmailLink email={COMPANY.email} className="text-white/65 hover:text-white" />
             </li>
             <li>
               <a href={`tel:${COMPANY.phoneTel}`} className="text-white/65 hover:text-white">
