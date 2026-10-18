@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Mail, Phone } from "lucide-react";
+import { Phone } from "lucide-react";
 
 import { marketingCta } from "@/features/marketing/marketing-cta";
 import { COMPANY } from "@/lib/constants/app";
+import { EmailLink, MAIL_ICON_HTML } from "@/features/marketing/email-link";
 import { buildLandingMetadata, LandingJsonLd } from "@/features/marketing/landing/landing-shell";
 import { createT } from "@/lib/i18n";
 import { resolveRequestLocale } from "@/lib/i18n/resolve-locale";
@@ -59,13 +60,11 @@ export default async function AboutPage() {
           </p>
           <ul className="mt-4 space-y-2 text-sm">
             <li>
-              <a
-                href={`mailto:${COMPANY.email}`}
-                className="inline-flex items-center gap-1.5 font-medium text-[#0b1020] underline decoration-[#d6b26a] decoration-2 underline-offset-4 hover:text-[#9a7430]"
-              >
-                <Mail aria-hidden className="size-4" />
-                {COMPANY.email}
-              </a>
+              <EmailLink
+                email={COMPANY.email}
+                className="inline-flex items-center font-medium text-[#0b1020] underline decoration-[#d6b26a] decoration-2 underline-offset-4 hover:text-[#9a7430]"
+                iconHtml={MAIL_ICON_HTML}
+              />
             </li>
             <li>
               <a

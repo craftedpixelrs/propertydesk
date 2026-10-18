@@ -14,7 +14,7 @@ import type { BlogLocale, BlogPost } from "@/features/marketing/blog/types";
 
 /**
  * Articles dated through September 2026, the month before the
- * 15.10.2026 launch. Copy is operational, not a customer story.
+ * 15.11.2026 launch. Copy is operational, not a customer story.
  */
 export const BLOG_POSTS: BlogPost[] = [
   excelPost,

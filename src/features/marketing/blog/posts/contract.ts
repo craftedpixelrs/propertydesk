@@ -1,4 +1,4 @@
-import type { BlogPost } from "@/features/marketing/blog/types";
+﻿import type { BlogPost } from "@/features/marketing/blog/types";
 
 export const contractPost: BlogPost = {
   slug: "predugovor-i-ugovor-o-prodaji-stana",
@@ -153,7 +153,7 @@ export const contractPost: BlogPost = {
         },
         {
           type: "p",
-          text: "Ne morate da uvezete stare ugovore da biste videli red. Dovoljan je prvi stan koji ide ka potpisu. Na njemu se vidi da PDF ne izađe dok lista nije zatvorena, i da se potpis ne označi bez fajla. Cene i rani pristup do 15.10.2026. su na [cenovniku](/#cenovnik). Ako hoćete taj zastoj na svom primeru, to pokazujemo na [demou od 25 minuta](/demo).",
+          text: "Ne morate da uvezete stare ugovore da biste videli red. Dovoljan je prvi stan koji ide ka potpisu. Na njemu se vidi da PDF ne izađe dok lista nije zatvorena, i da se potpis ne označi bez fajla. Cene i rani pristup do 15.11.2026. su na [cenovniku](/#cenovnik). Ako hoćete taj zastoj na svom primeru, to pokazujemo na [demou od 25 minuta](/demo).",
         },
       ],
     },
@@ -299,7 +299,7 @@ export const contractPost: BlogPost = {
         },
         {
           type: "p",
-          text: "You do not have to import old contracts to see the order. The first unit heading toward a signature is enough. On it you see that the PDF does not go out until the checklist is closed, and that signed is not marked without a file. Prices and early access until 15 October 2026 are on the [pricing section](/#cenovnik). If you want that wait on your own example, we show it in a [25-minute demo](/demo).",
+          text: "You do not have to import old contracts to see the order. The first unit heading toward a signature is enough. On it you see that the PDF does not go out until the checklist is closed, and that signed is not marked without a file. Prices and early access until 15 November 2026 are on the [pricing section](/#cenovnik). If you want that wait on your own example, we show it in a [25-minute demo](/demo).",
         },
       ],
     },

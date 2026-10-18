@@ -37,7 +37,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const image = publicFileReady(imagePath) ? `${MARKETING_URL}${imagePath}` : undefined;
 
   return {
-    title: { absolute: `${copy.title} | ${APP_NAME}` },
+    // Blog post titles are long operational phrases; adding " | PropertyDesk"
+    // pushed every page over 70 chars (Ahrefs flagged 5 as "Title too long").
+    // The brand still appears via og:site_name and the Organization JSON-LD.
+    title: { absolute: copy.title },
     description: copy.description,
     alternates: {
       canonical: url,

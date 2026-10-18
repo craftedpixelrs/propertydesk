@@ -1,4 +1,4 @@
-import type { BlogPost } from "@/features/marketing/blog/types";
+﻿import type { BlogPost } from "@/features/marketing/blog/types";
 
 export const statusPost: BlogPost = {
   slug: "status-stana-slobodan-rezervisan-prodat",
@@ -157,7 +157,7 @@ export const statusPost: BlogPost = {
         },
         {
           type: "p",
-          text: "Ne morate prvo da sredite ceo objekat. Dovoljan je jedan ulaz i jedan stan koji dve agencije već pitaju. Na njemu se vidi da drugi hold ne prolazi. Cene i rani pristup do 15.10.2026. su na [cenovniku](/#cenovnik). Ako hoćete da probate rok rezervacije na svom primeru, to je deo [demoa od 25 minuta](/demo).",
+          text: "Ne morate prvo da sredite ceo objekat. Dovoljan je jedan ulaz i jedan stan koji dve agencije već pitaju. Na njemu se vidi da drugi hold ne prolazi. Cene i rani pristup do 15.11.2026. su na [cenovniku](/#cenovnik). Ako hoćete da probate rok rezervacije na svom primeru, to je deo [demoa od 25 minuta](/demo).",
         },
       ],
     },
@@ -307,7 +307,7 @@ export const statusPost: BlogPost = {
         },
         {
           type: "p",
-          text: "You do not have to tidy the whole building first. One entrance and one unit that two agencies are already asking about is enough. On it you see that a second hold does not go through. Prices and early access until 15 October 2026 are on the [pricing section](/#cenovnik). If you want to try a reservation deadline on your own example, that is part of a [25-minute demo](/demo).",
+          text: "You do not have to tidy the whole building first. One entrance and one unit that two agencies are already asking about is enough. On it you see that a second hold does not go through. Prices and early access until 15 November 2026 are on the [pricing section](/#cenovnik). If you want to try a reservation deadline on your own example, that is part of a [25-minute demo](/demo).",
         },
       ],
     },

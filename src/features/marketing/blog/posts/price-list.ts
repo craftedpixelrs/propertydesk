@@ -1,4 +1,4 @@
-import type { BlogPost } from "@/features/marketing/blog/types";
+﻿import type { BlogPost } from "@/features/marketing/blog/types";
 
 export const priceListPost: BlogPost = {
   slug: "cenovnik-stana-u-evrima",
@@ -153,7 +153,7 @@ export const priceListPost: BlogPost = {
         },
         {
           type: "p",
-          text: "Cenovnik ne zamenjuje ugovor. Cifra na kartici je ona koja treba da uđe u predugovor, umesto cifre iz priloga koji je agencija prosledila. Tok od oglasa do tog ugovora je na stranici [prodaja novogradnje](/prodaja-novogradnje). Cene paketa i rani pristup do 15.10.2026. su na [cenovniku](/#cenovnik). Ako hoćete da vidite istoriju cene na jednom stanu, to staje u [demo od 25 minuta](/demo).",
+          text: "Cenovnik ne zamenjuje ugovor. Cifra na kartici je ona koja treba da uđe u predugovor, umesto cifre iz priloga koji je agencija prosledila. Tok od oglasa do tog ugovora je na stranici [prodaja novogradnje](/prodaja-novogradnje). Cene paketa i rani pristup do 15.11.2026. su na [cenovniku](/#cenovnik). Ako hoćete da vidite istoriju cene na jednom stanu, to staje u [demo od 25 minuta](/demo).",
         },
       ],
     },
@@ -295,7 +295,7 @@ export const priceListPost: BlogPost = {
         },
         {
           type: "p",
-          text: "A price list does not replace a contract. The figure on the record is the one that should enter the preliminary contract, instead of the figure from an attachment the agency forwarded. The path from the listing to that contract is on [new-build sales](/prodaja-novogradnje). Package prices and early access until 15 October 2026 are on the [pricing section](/#cenovnik). If you want to see a price history on one unit, that fits in a [25-minute demo](/demo).",
+          text: "A price list does not replace a contract. The figure on the record is the one that should enter the preliminary contract, instead of the figure from an attachment the agency forwarded. The path from the listing to that contract is on [new-build sales](/prodaja-novogradnje). Package prices and early access until 15 November 2026 are on the [pricing section](/#cenovnik). If you want to see a price history on one unit, that fits in a [25-minute demo](/demo).",
         },
       ],
     },

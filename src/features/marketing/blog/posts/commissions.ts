@@ -1,4 +1,4 @@
-import type { BlogPost } from "@/features/marketing/blog/types";
+﻿import type { BlogPost } from "@/features/marketing/blog/types";
 
 export const commissionsPost: BlogPost = {
   slug: "provizije-agencija-za-novogradnju",
@@ -153,7 +153,7 @@ export const commissionsPost: BlogPost = {
         },
         {
           type: "p",
-          text: "Ne računamo pravne posledice vašeg ugovora o posredovanju i ne biramo procenat umesto vas. Ne šaljemo novac agenciji. Pamtimo pravilo, vezujemo online zahtev za agenciju i zaključavamo iznos na dan ugovora. Cene paketa su na [cenovniku](/#cenovnik). Rani pristup traje do zvaničnog puštanja 15.10.2026.",
+          text: "Ne računamo pravne posledice vašeg ugovora o posredovanju i ne biramo procenat umesto vas. Ne šaljemo novac agenciji. Pamtimo pravilo, vezujemo online zahtev za agenciju i zaključavamo iznos na dan ugovora. Cene paketa su na [cenovniku](/#cenovnik). Rani pristup traje do zvaničnog puštanja 15.11.2026.",
         },
         {
           type: "p",
@@ -307,7 +307,7 @@ export const commissionsPost: BlogPost = {
         },
         {
           type: "p",
-          text: "We do not calculate the legal effect of your brokerage contract and we do not choose the percentage for you. We do not send money to the agency. We remember the rule, tie the online request to the agency and lock the amount on the day of the contract. Package prices are on the [pricing section](/#cenovnik). Early access runs until the public launch on 15 October 2026.",
+          text: "We do not calculate the legal effect of your brokerage contract and we do not choose the percentage for you. We do not send money to the agency. We remember the rule, tie the online request to the agency and lock the amount on the day of the contract. Package prices are on the [pricing section](/#cenovnik). Early access runs until the public launch on 15 November 2026.",
         },
         {
           type: "p",

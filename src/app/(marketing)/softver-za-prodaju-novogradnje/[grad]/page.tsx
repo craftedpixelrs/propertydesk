@@ -39,7 +39,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   const url = `${MARKETING_URL}/${HUB_SLUG}/${city.slug}`;
   const title = `${HUB_TITLE} ${city.nameLokativ}`;
-  const description = `${HUB_TITLE} ${city.nameLokativ}: cenovnik, rezervacija stana sa IPS QR kaparom, ugovor iz šablona, uplate i provizija agencije. Jedna platforma za investitore i agencije koje prodaju novogradnju.`;
+  // Ahrefs flagged every city page meta description as too long (205+).
+  // We trim to ~155 chars which Google renders in full on both desktop
+  // and mobile SERPs, and front-load the city keyword.
+  const description = `${HUB_TITLE} ${city.nameLokativ}: cenovnik, rezervacija stana, IPS QR kapara, ugovor i provizija agencije - jedna platforma za investitore i agencije.`;
 
   return {
     title: { absolute: `${title} | ${APP_NAME}` },
@@ -166,15 +169,28 @@ export default async function CityPage({ params }: PageProps) {
     description: city.intro,
   };
 
+  // Same normalisation as on the home-page FAQ schema: strip any stray
+  // {{placeholder}} or HTML tag that would trip Google's structured-data
+  // validator (Ahrefs flagged the home page for this).
+  const faqAnswerText = (raw: string) =>
+    raw
+      .replace(/\{\{[^}]+\}\}/g, "")
+      .replace(/<[^>]+>/g, "")
+      .replace(/\s+/g, " ")
+      .trim();
+
   const faqJsonLd = {
     "@context": "https://schema.org",
     "@type": "FAQPage",
-    mainEntity: city.faqs.map((f) => ({
+    "@id": `${url}#faq`,
+    inLanguage: htmlLang(locale),
+    mainEntity: city.faqs.map((f, idx) => ({
       "@type": "Question",
+      "@id": `${url}#faq-q${idx + 1}`,
       name: f.q,
       acceptedAnswer: {
         "@type": "Answer",
-        text: f.a,
+        text: faqAnswerText(f.a),
       },
     })),
   };
@@ -207,9 +223,9 @@ export default async function CityPage({ params }: PageProps) {
               {city.districtsTitle}
             </h2>
             <p className="mt-4 text-base leading-relaxed text-[var(--color-foreground-muted)]">
-              PropertyDesk ne pravi razliku između lokacija - sistem radi isto u svim delovima{" "}
-              {city.nameGenitiv}. Dole su delovi grada u kojima danas vidimo najviše aktivne
-              novogradnje.
+              PropertyDesk ne pravi razliku između lokacija - sistem radi isto u
+              svim delovima {city.nameGenitiv}. Dole su delovi grada u kojima
+              danas vidimo najviše aktivne novogradnje.
             </p>
           </div>
 
@@ -243,7 +259,9 @@ export default async function CityPage({ params }: PageProps) {
                 key={f.q}
                 className="rounded-2xl border border-[var(--color-border)] bg-white p-5 shadow-sm sm:p-6"
               >
-                <dt className="font-display text-lg font-semibold text-[#0b1020]">{f.q}</dt>
+                <dt className="font-display text-lg font-semibold text-[#0b1020]">
+                  {f.q}
+                </dt>
                 <dd className="mt-2 text-sm leading-relaxed text-[var(--color-foreground)]">
                   {f.a}
                 </dd>

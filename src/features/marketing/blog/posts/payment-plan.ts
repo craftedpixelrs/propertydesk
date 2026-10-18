@@ -1,4 +1,4 @@
-import type { BlogPost } from "@/features/marketing/blog/types";
+﻿import type { BlogPost } from "@/features/marketing/blog/types";
 
 export const paymentPlanPost: BlogPost = {
   slug: "plan-placanja-rate-za-stan",
@@ -153,7 +153,7 @@ export const paymentPlanPost: BlogPost = {
         },
         {
           type: "p",
-          text: "Plan ne zamenjuje razgovor sa kupcem i ne bira šta ugovor kaže o docnji. On drži dogovorene iznose na jednom mestu, pored statusa stana i pored cene. Cene paketa su na [cenovniku](/#cenovnik). Rani pristup traje do 15.10.2026. Ako hoćete da vidite zbir rata na jednoj prodaji, to je deo [demoa od 25 minuta](/demo).",
+          text: "Plan ne zamenjuje razgovor sa kupcem i ne bira šta ugovor kaže o docnji. On drži dogovorene iznose na jednom mestu, pored statusa stana i pored cene. Cene paketa su na [cenovniku](/#cenovnik). Rani pristup traje do 15.11.2026. Ako hoćete da vidite zbir rata na jednoj prodaji, to je deo [demoa od 25 minuta](/demo).",
         },
       ],
     },
@@ -295,7 +295,7 @@ export const paymentPlanPost: BlogPost = {
         },
         {
           type: "p",
-          text: "The schedule does not replace a conversation with the buyer and it does not choose what the contract says about delay. It keeps the agreed amounts in one place, next to the unit status and next to the price. Package prices are on the [pricing section](/#cenovnik). Early access runs until 15 October 2026. If you want to see the sum of installments on one sale, that is part of a [25-minute demo](/demo).",
+          text: "The schedule does not replace a conversation with the buyer and it does not choose what the contract says about delay. It keeps the agreed amounts in one place, next to the unit status and next to the price. Package prices are on the [pricing section](/#cenovnik). Early access runs until 15 November 2026. If you want to see the sum of installments on one sale, that is part of a [25-minute demo](/demo).",
         },
       ],
     },

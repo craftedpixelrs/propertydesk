@@ -18,10 +18,10 @@ export const FAQ_ITEMS: FaqItem[] = [
   {
     question: "Kada se lansira PropertyDesk?",
     answer:
-      "Zvanično lansiranje je 15.10.2026. Do tada je otvorena rana prijava - svi koji se prijave putem forme na ovoj stranici dobijaju obaveštenje pre javnog puštanja.",
+      "Zvanično lansiranje je 15.11.2026. Do tada je otvorena rana prijava - svi koji se prijave putem forme na ovoj stranici dobijaju obaveštenje pre javnog puštanja.",
   },
   {
-    question: "Kako funkcioniše rana ponuda za prijave do 15.10.2026.?",
+    question: "Kako funkcioniše rana ponuda za prijave do 15.11.2026.?",
     answer:
       "Prvih 30 dana besplatno. Nakon toga 50% popusta na naredna tri meseca. Uz to: besplatan uvoz prve Excel tabele, besplatno podešavanje jednog projekta, onboarding za tim, prioritetna podrška i zaključana cena paketa 12 meseci - bez poskupljenja u toku prve godine.",
   },
@@ -48,7 +48,7 @@ export const FAQ_ITEMS: FaqItem[] = [
   {
     question: "Da li mogu da generišem ugovor i predugovor iz sistema?",
     answer:
-      "Da. U 'Administracija → Šabloni ugovora' čuvate HTML šablon sa placeholder-ima ({{buyer.fullName}}, {{buyer.jmbg}}, {{sale.finalPrice}}, {{plan.installments}}, {{tax.mode}}, {{investor.pib}}). Na svakoj prodaji izaberete šablon i generišete PDF za par sekundi - sa punim audit tragom (poslato, potpisano).",
+      "Da. U delu Administracija - Šabloni ugovora čuvate HTML šablon sa placeholder-ima za podatke kupca, cenu, plan otplate, poreski režim i matične brojeve investitora. Na svakoj prodaji izaberete šablon i generišete PDF za par sekundi, sa punim audit tragom (poslato, potpisano).",
   },
   {
     question: "Da li podržavate PDV režim za novogradnju (10%) i sekundarno tržište (2.5%)?",

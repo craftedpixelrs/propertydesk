@@ -1,4 +1,4 @@
-import type { BlogPost } from "@/features/marketing/blog/types";
+﻿import type { BlogPost } from "@/features/marketing/blog/types";
 
 export const excelPost: BlogPost = {
   slug: "excel-ili-softver-za-prodaju-novogradnje",
@@ -157,7 +157,7 @@ export const excelPost: BlogPost = {
         },
         {
           type: "p",
-          text: "PropertyDesk se pušta 15.10.2026. Do tog datuma rani pristup je 30 dana bez naknade, pa 50% na naredna tri meseca. Cene paketa su na [cenovniku](/#cenovnik). Najkraći sledeći korak nije uvoz svih istorijskih tabela od 2019. Najkraći korak je [25-minutni demo](/demo) na jednom objektu: jedna cena, jedna rezervacija, jedna agencija.",
+          text: "PropertyDesk se pušta 15.11.2026. Do tog datuma rani pristup je 30 dana bez naknade, pa 50% na naredna tri meseca. Cene paketa su na [cenovniku](/#cenovnik). Najkraći sledeći korak nije uvoz svih istorijskih tabela od 2019. Najkraći korak je [25-minutni demo](/demo) na jednom objektu: jedna cena, jedna rezervacija, jedna agencija.",
         },
         {
           type: "p",
@@ -315,7 +315,7 @@ export const excelPost: BlogPost = {
         },
         {
           type: "p",
-          text: "PropertyDesk launches on 15 October 2026. Until then, early access is 30 days free, then 50% off for the next three months. Package prices are on the [pricing section](/#cenovnik). The shortest next step is not importing every historical sheet since 2019. It is a [25-minute demo](/demo) on one building: one price, one reservation, one agency.",
+          text: "PropertyDesk launches on 15 November 2026. Until then, early access is 30 days free, then 50% off for the next three months. Package prices are on the [pricing section](/#cenovnik). The shortest next step is not importing every historical sheet since 2019. It is a [25-minute demo](/demo) on one building: one price, one reservation, one agency.",
         },
         {
           type: "p",

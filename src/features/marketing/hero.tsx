@@ -11,7 +11,7 @@ import { useT } from "@/components/app/i18n-provider";
 /**
  * Opening band. Ink background and a serif headline so the landing
  * reads as a property brand, not a generic light SaaS template.
- * Login stays in the header until 15.10.2026.
+ * Login stays in the header until 15.11.2026.
  */
 export function Hero() {
   const t = useT();

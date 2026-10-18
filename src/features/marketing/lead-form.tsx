@@ -426,12 +426,20 @@ export function LeadForm() {
                       {t("marketing.lead.consentPrivacy")}
                     </a>
                     . {t("marketing.lead.consentAfter")}{" "}
-                    <a
-                      href={`mailto:${COMPANY.email}`}
-                      className="font-medium text-[#0b1020] underline decoration-[#d6b26a] decoration-2 underline-offset-4 hover:text-[#9a7430]"
-                    >
-                      {COMPANY.email}
-                    </a>
+                    {/*
+                      Cloudflare "Email Address Obfuscation" rewrites
+                      mailto links into /cdn-cgi/l/email-protection URLs
+                      that 404 for crawlers. The documented per-element
+                      opt-out is <!--email_off-->...<!--/email_off-->
+                      HTML comments; we emit them via
+                      dangerouslySetInnerHTML so React keeps them in the
+                      SSR stream Cloudflare parses.
+                    */}
+                    <span
+                      dangerouslySetInnerHTML={{
+                        __html: `<!--email_off--><a href="mailto:${COMPANY.email}" class="font-medium text-[#0b1020] underline decoration-[#d6b26a] decoration-2 underline-offset-4 hover:text-[#9a7430]">${COMPANY.email}</a><!--/email_off-->`,
+                      }}
+                    />
                     .
                   </span>
                 </label>

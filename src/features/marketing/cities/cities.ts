@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Lokalne SEO stranice: softver za prodaju novogradnje po gradovima.
  *
  * Ovaj modul je jedini izvor istine o kojim gradovima gađamo organsku
@@ -222,7 +222,7 @@ export const CITIES: CityInfo[] = [
       },
       {
         q: "Imamo mali projekat od 15 stanova - vredi li nam PropertyDesk?",
-        a: "Vredi. Starter plan je napravljen za jedan projekat ove veličine, i razlika postaje očigledna već kod prve dvostruke rezervacije ili prvog kupca koji se izgubi u mejlu. Trenutni popust: 50% na prva 3 meseca za prijave do 15.10.2026.",
+        a: "Vredi. Starter plan je napravljen za jedan projekat ove veličine, i razlika postaje očigledna već kod prve dvostruke rezervacije ili prvog kupca koji se izgubi u mejlu. Trenutni popust: 50% na prva 3 meseca za prijave do 15.11.2026.",
       },
     ],
     neighbors: ["novi-sad", "beograd"],
@@ -236,7 +236,14 @@ export const CITIES: CityInfo[] = [
     intro:
       "Zlatibor je najaktivnije planinsko tržište novogradnje u Srbiji - od studio apartmana za izdavanje do kompletnih apart-hotela i vikend stanova. Kupci su gotovo isključivo iz drugih gradova (Beograd, Novi Sad, dijaspora), pa prodaja mora biti vođena online: javni link projekta, foto-galerija, mapa i IPS QR za kaparu bez dolaska na lice mesta.",
     districtsTitle: "Zone destinacije",
-    districts: ["Centar (Kraljev trg)", "Jezero", "Čajetina", "Ribnica", "Oko Tornika", "Sloboda"],
+    districts: [
+      "Centar (Kraljev trg)",
+      "Jezero",
+      "Čajetina",
+      "Ribnica",
+      "Oko Tornika",
+      "Sloboda",
+    ],
     faqs: [
       {
         q: "Prodajemo apartmane kupcima iz Beograda i inostranstva - kako bez dolaska na Zlatibor?",

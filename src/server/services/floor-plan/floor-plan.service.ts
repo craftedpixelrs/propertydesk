@@ -10,7 +10,7 @@ import { DomainErrors } from "@/lib/errors";
  * The viewer (11a) reads floor plan areas plus the current status of
  * each anchored unit and paints them on top of the raster plan. This
  * module only supports read for now; the polygon editor (11b) is
- * planned after the 2026-10-15 launch and will add the mutate surface.
+ * planned after the 2026-11-15 launch and will add the mutate surface.
  */
 
 export interface FloorPlanPoint {

@@ -58,7 +58,12 @@ export default async function LandingPage() {
   const faqs = faqItems(t);
 
   const orgId = `${MARKETING_URL}/#organization`;
-  const offer = (name: string, price: string) => ({
+  // Google's rich-results validator wants an `AggregateOffer` on
+  // SoftwareApplication (rather than a bare `offers` array of Offers),
+  // with explicit lowPrice/highPrice/offerCount. Keeping the per-plan
+  // Offers as `offers` inside the AggregateOffer makes it both pass
+  // validation and still describe each plan.
+  const planOffer = (name: string, price: string) => ({
     "@type": "Offer",
     name,
     price,
@@ -66,6 +71,7 @@ export default async function LandingPage() {
     availability: "https://schema.org/PreOrder",
     availabilityStarts: LAUNCH_DATE_ISO,
     url: `${MARKETING_URL}/#cenovnik`,
+    seller: { "@id": orgId },
   });
 
   const orgJsonLd = {
@@ -107,23 +113,55 @@ export default async function LandingPage() {
     "@type": "SoftwareApplication",
     name: APP_NAME,
     applicationCategory: "BusinessApplication",
+    applicationSubCategory: "Real estate CRM",
     operatingSystem: "Web",
     inLanguage: htmlLang(locale),
     url: `${MARKETING_URL}/`,
     description: t("marketing.landing.softwareDescription"),
     publisher: { "@id": orgId },
-    offers: [offer("Starter", "49"), offer("Growth", "149"), offer("Scale", "399")],
+    // Google rich-results validator prefers `AggregateOffer` on
+    // SoftwareApplication with explicit price range and offerCount.
+    // Individual plan offers live under `offers` inside it.
+    offers: {
+      "@type": "AggregateOffer",
+      priceCurrency: "EUR",
+      lowPrice: "49",
+      highPrice: "399",
+      offerCount: 3,
+      availability: "https://schema.org/PreOrder",
+      availabilityStarts: LAUNCH_DATE_ISO,
+      url: `${MARKETING_URL}/#cenovnik`,
+      offers: [
+        planOffer("Starter", "49"),
+        planOffer("Growth", "149"),
+        planOffer("Scale", "399"),
+      ],
+    },
   };
+
+  // Normalise answer text for FAQPage structured data. Google's rich-results
+  // validator rejects schema that contains unresolved template placeholders
+  // (`{{var}}`) or raw HTML; both would leak directly into the Question
+  // schema otherwise. We also collapse whitespace runs for safety.
+  const faqAnswerText = (raw: string) =>
+    raw
+      .replace(/\{\{[^}]+\}\}/g, "")
+      .replace(/<[^>]+>/g, "")
+      .replace(/\s+/g, " ")
+      .trim();
 
   const faqJsonLd = {
     "@context": "https://schema.org",
     "@type": "FAQPage",
-    mainEntity: faqs.map((item) => ({
+    "@id": `${MARKETING_URL}/#faq`,
+    inLanguage: htmlLang(locale),
+    mainEntity: faqs.map((item, idx) => ({
       "@type": "Question",
+      "@id": `${MARKETING_URL}/#faq-q${idx + 1}`,
       name: item.question,
       acceptedAnswer: {
         "@type": "Answer",
-        text: item.answer,
+        text: faqAnswerText(item.answer),
       },
     })),
   };

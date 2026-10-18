@@ -16,8 +16,11 @@ import { JsonLd } from "@/lib/seo/json-ld";
 const HUB_SLUG = "softver-za-prodaju-novogradnje";
 const HUB_TITLE = "Softver za prodaju novogradnje";
 const HUB_META_TITLE = "Softver za prodaju novogradnje u Srbiji";
+// Ahrefs flagged the previous description (233 chars) as too long.
+// We keep every tracked keyword (cenovnik, rezervacija, IPS QR, ugovor,
+// provizija agencija) and the top three cities, but under 160 chars.
 const HUB_DESCRIPTION =
-  "Softver za prodaju novogradnje za investitore i agencije u Srbiji. Jedan cenovnik, rezervacija stana bez duplog holda, IPS QR za kaparu, ugovor iz šablona i provizija zaključana na dan potpisa. Beograd, Novi Sad, Niš i još 7 gradova.";
+  "Softver za prodaju novogradnje za investitore i agencije: cenovnik, rezervacija, IPS QR kapara, ugovor i provizija. Beograd, Novi Sad, Niš i 7 gradova.";
 
 export async function generateMetadata(): Promise<Metadata> {
   const url = `${MARKETING_URL}/${HUB_SLUG}`;
@@ -152,8 +155,9 @@ export default async function HubPage() {
               Softver za prodaju novogradnje po gradovima
             </h2>
             <p className="mt-4 text-base leading-relaxed text-[var(--color-foreground-muted)]">
-              Pogledajte stranicu za Vaš grad - svaka ima opis lokalnog tržišta, listu opština ili
-              karakterističnih naselja i česta pitanja koja čujemo baš od investitora iz tog grada.
+              Pogledajte stranicu za Vaš grad - svaka ima opis lokalnog tržišta,
+              listu opština ili karakterističnih naselja i česta pitanja koja
+              čujemo baš od investitora iz tog grada.
             </p>
           </div>
 

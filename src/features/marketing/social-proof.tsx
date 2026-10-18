@@ -1,12 +1,12 @@
-"use client";
-
-import { Mail, Phone, Building2, ShieldCheck } from "lucide-react";
+import { Phone, Building2, ShieldCheck } from "lucide-react";
 
 import { COMPANY } from "@/lib/constants/app";
-import { useT } from "@/components/app/i18n-provider";
+import { EmailLink, MAIL_ICON_HTML } from "@/features/marketing/email-link";
+import { createT, type TranslateFn } from "@/lib/i18n";
+import { resolveRequestLocale } from "@/lib/i18n/resolve-locale";
 
-export function SocialProof() {
-  const t = useT();
+export async function SocialProof() {
+  const t = createT(await resolveRequestLocale());
 
   return (
     <section aria-labelledby="proof-title" className="bg-white">
@@ -44,16 +44,15 @@ export function SocialProof() {
         </div>
 
         <div className="mt-14 grid gap-6 lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]">
-          <FounderCard />
-          <CompanyCard />
+          <FounderCard t={t} />
+          <CompanyCard t={t} />
         </div>
       </div>
     </section>
   );
 }
 
-function FounderCard() {
-  const t = useT();
+function FounderCard({ t }: { t: TranslateFn }) {
   return (
     <article className="rounded-3xl border border-[var(--color-border)] bg-[#f7f3ea] p-6 sm:p-8">
       <div className="flex flex-col gap-6 sm:flex-row sm:items-start">
@@ -73,13 +72,11 @@ function FounderCard() {
           </p>
           <ul className="mt-4 flex flex-wrap gap-x-5 gap-y-2 text-sm">
             <li>
-              <a
-                href={`mailto:${COMPANY.email}`}
-                className="inline-flex items-center gap-1.5 font-medium text-[#0b1020] underline decoration-[#d6b26a] decoration-2 underline-offset-4 hover:text-[#9a7430]"
-              >
-                <Mail aria-hidden className="size-4" />
-                {COMPANY.email}
-              </a>
+              <EmailLink
+                email={COMPANY.email}
+                className="inline-flex items-center font-medium text-[#0b1020] underline decoration-[#d6b26a] decoration-2 underline-offset-4 hover:text-[#9a7430]"
+                iconHtml={MAIL_ICON_HTML}
+              />
             </li>
             <li>
               <a
@@ -97,8 +94,7 @@ function FounderCard() {
   );
 }
 
-function CompanyCard() {
-  const t = useT();
+function CompanyCard({ t }: { t: TranslateFn }) {
   return (
     <article className="rounded-3xl bg-[#0b1020] p-6 text-[#f7f3ea] sm:p-8">
       <div className="flex items-start gap-3">

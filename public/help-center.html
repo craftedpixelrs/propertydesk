@@ -3,11 +3,39 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>PropertyDesk — Help Center</title>
+    <title>Help Center — PropertyDesk</title>
     <meta
       name="description"
-      content="Detaljan Help Center za PropertyDesk: prijava, projekti, rezervacije, prodaje, KYC, agencije i FAQ."
+      content="Detaljan Help Center za PropertyDesk: prijava, projekti, rezervacije, prodaje, KYC, agencije i FAQ. Za javnu stranicu šta sistem radi danas pogledajte /pomoc."
     />
+    <!--
+      Help Center is a long internal product reference. We canonicalize
+      to the SEO-optimised /pomoc page and keep this file noindex so it
+      does not compete for the same queries. The link to this file from
+      /pomoc still works for operators.
+    -->
+    <meta name="robots" content="noindex, follow" />
+    <link rel="canonical" href="https://propertydesk.app/pomoc" />
+
+    <!-- Open Graph (Ahrefs: previously flagged as missing) -->
+    <meta property="og:type" content="article" />
+    <meta property="og:site_name" content="PropertyDesk" />
+    <meta property="og:title" content="Help Center — PropertyDesk" />
+    <meta
+      property="og:description"
+      content="Operativni Help Center: prijava, projekti, rezervacije, KYC, provizije, agencijski portal."
+    />
+    <meta property="og:url" content="https://propertydesk.app/help-center.html" />
+    <meta property="og:locale" content="sr_RS" />
+
+    <!-- Twitter card (Ahrefs: previously flagged as missing) -->
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="Help Center — PropertyDesk" />
+    <meta
+      name="twitter:description"
+      content="Operativni Help Center: prijava, projekti, rezervacije, KYC, provizije, agencijski portal."
+    />
+
     <link rel="stylesheet" href="/assets/pd-docs.css" />
     <style>
       :root {
@@ -2869,7 +2897,7 @@
             <p>
               Platili ste fakturu a status se nije promenio? Sačekajte do 24 sata za automatsko
               uparivanje, ili pošaljite potvrdu uplate na
-              <a href="mailto:support@propertydesk.app">support@propertydesk.app</a>
+              <!--email_off--><a href="mailto:support@propertydesk.app">support@propertydesk.app</a><!--/email_off-->
               sa brojem fakture.
             </p>
             <div class="callout limit">
@@ -4098,7 +4126,7 @@
             <div class="callout">
               <strong>Još uvek zapinje?</strong>
               Pišite na
-              <a href="mailto:support@propertydesk.app">support@propertydesk.app</a>
+              <!--email_off--><a href="mailto:support@propertydesk.app">support@propertydesk.app</a><!--/email_off-->
               sa URL-om stranice, ulogom i vremenom greške (requestId ako ga vidite).
             </div>
           </article>
@@ -4117,7 +4145,7 @@
     <footer class="doc-footer">
       <p class="support">
         Podrška:
-        <a href="mailto:hello@propertydesk.app">hello@propertydesk.app</a>
+        <!--email_off--><a href="mailto:hello@propertydesk.app">hello@propertydesk.app</a><!--/email_off-->
       </p>
       <p>
         <a href="/">Sajt</a>

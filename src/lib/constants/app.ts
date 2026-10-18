@@ -64,19 +64,19 @@ export const PRODUCT_VIDEO_URL = publicEnv.NEXT_PUBLIC_PRODUCT_VIDEO_URL ?? "";
  * SaaS launch date. Used by the countdown, hero copy, and JSON-LD.
  * If you change it, also update the FAQ and offer banner copy.
  */
-export const LAUNCH_DATE_ISO = "2026-10-15";
+export const LAUNCH_DATE_ISO = "2026-11-15";
 
 /**
  * Stable "last updated" date for sitemap `lastmod`. Do not use
  * `new Date()` per request — that tells Google every crawl is a new edit.
  */
-export const MARKETING_CONTENT_UPDATED = "2026-10-03";
+export const MARKETING_CONTENT_UPDATED = "2026-10-18";
 
 /**
  * Human-readable launch date used across marketing copy. Kept next to
  * `LAUNCH_DATE_ISO` so a future date change is a two-line diff.
  */
-export const LAUNCH_DATE_LABEL = "15.10.2026.";
+export const LAUNCH_DATE_LABEL = "15.11.2026.";
 
 /**
  * Public contact + operator identity for the marketing site, JSON-LD,

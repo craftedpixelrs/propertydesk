@@ -10,6 +10,7 @@ import {
   resolvePublicUnitOffer,
   type PublicUnitOffer,
 } from "@/server/services/sharing/share-links.service";
+import { EmailLink } from "@/features/marketing/email-link";
 import { PublicReservationForm } from "@/features/reservations/public-reservation-form";
 
 export const dynamic = "force-dynamic";
@@ -197,12 +198,10 @@ function OfferView({ offer, token, t }: { offer: PublicUnitOffer; token: string;
                 </a>
               ) : null}
               {offer.organization.email ? (
-                <a
-                  href={`mailto:${offer.organization.email}`}
+                <EmailLink
+                  email={offer.organization.email}
                   className="block text-[var(--color-brand-700)] hover:underline"
-                >
-                  {offer.organization.email}
-                </a>
+                />
               ) : null}
               {offer.organization.website ? (
                 <a

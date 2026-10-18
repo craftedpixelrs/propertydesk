@@ -3,6 +3,7 @@ import Link from "next/link";
 
 import { CITIES } from "@/features/marketing/cities/cities";
 import { APP_NAME, COMPANY, LANDING_IMAGES } from "@/lib/constants/app";
+import { EmailLink } from "@/features/marketing/email-link";
 import { LANDING_ROUTES } from "@/features/marketing/landing/landing-shell";
 import { CookieSettingsButton } from "@/features/marketing/cookie-banner";
 import { createT } from "@/lib/i18n";
@@ -123,9 +124,10 @@ export async function MarketingFooter() {
               </Link>
             </li>
             <li>
-              <a href={`mailto:${COMPANY.email}`} className="text-white/65 hover:text-white">
-                {COMPANY.email}
-              </a>
+              <EmailLink
+                email={COMPANY.email}
+                className="text-white/65 hover:text-white"
+              />
             </li>
             <li>
               <a href={`tel:${COMPANY.phoneTel}`} className="text-white/65 hover:text-white">

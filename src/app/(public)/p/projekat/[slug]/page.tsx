@@ -7,6 +7,7 @@ import { REFERRAL_COOKIE, sanitizeReferralCode } from "@/lib/referral";
 import { hostFromHeaders } from "@/lib/seo/hosts";
 
 import { createT } from "@/lib/i18n";
+import { EmailLink } from "@/features/marketing/email-link";
 import { PublicProjectUnitsCatalog } from "@/features/public/public-project-units";
 import { resolveRequestLocale } from "@/lib/i18n/resolve-locale";
 import {
@@ -133,12 +134,10 @@ export default async function PublicProjectMicrosite({ params, searchParams }: P
               </a>
             ) : null}
             {site.organization.email ? (
-              <a
-                href={`mailto:${site.organization.email}`}
+              <EmailLink
+                email={site.organization.email}
                 className="text-[var(--color-brand-700)] hover:underline"
-              >
-                {site.organization.email}
-              </a>
+              />
             ) : null}
           </div>
         </div>

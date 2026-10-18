@@ -1,4 +1,4 @@
-import type { BlogPost } from "@/features/marketing/blog/types";
+﻿import type { BlogPost } from "@/features/marketing/blog/types";
 
 export const kycPost: BlogPost = {
   slug: "kyc-kupca-pre-ugovora-o-stanu",
@@ -144,7 +144,7 @@ export const kycPost: BlogPost = {
         },
         {
           type: "p",
-          text: "Ne morate prvo da uvezete pet godina starih kupaca. Dovoljan je prvi stan koji ide u oglas. Na njemu vidite formu, kaparu, listu i zastoj ugovora. Cene i rani pristup do 15.10.2026. su na [cenovniku](/#cenovnik). Ako hoćete da vidite blok na ugovor na svom primeru, to pokazujemo na [demou od 25 minuta](/demo). Ponesite jednog kupca, jedan dokument koji vam fali, i jedan stan. To je dovoljno da se vidi da PDF ne izađe dok lista nije zatvorena.",
+          text: "Ne morate prvo da uvezete pet godina starih kupaca. Dovoljan je prvi stan koji ide u oglas. Na njemu vidite formu, kaparu, listu i zastoj ugovora. Cene i rani pristup do 15.11.2026. su na [cenovniku](/#cenovnik). Ako hoćete da vidite blok na ugovor na svom primeru, to pokazujemo na [demou od 25 minuta](/demo). Ponesite jednog kupca, jedan dokument koji vam fali, i jedan stan. To je dovoljno da se vidi da PDF ne izađe dok lista nije zatvorena.",
         },
       ],
     },
@@ -285,7 +285,7 @@ export const kycPost: BlogPost = {
         },
         {
           type: "p",
-          text: "You do not have to import five years of old buyers first. The first unit that goes into an advert is enough. On it you see the form, the deposit, the list and the contract waiting. Prices and early access until 15 October 2026 are on the [pricing section](/#cenovnik). If you want to see the contract block on your own example, we show that in a [25-minute demo](/demo). Bring one buyer, one document you are missing, and one unit. That is enough to see that the PDF does not go out until the list is closed.",
+          text: "You do not have to import five years of old buyers first. The first unit that goes into an advert is enough. On it you see the form, the deposit, the list and the contract waiting. Prices and early access until 15 November 2026 are on the [pricing section](/#cenovnik). If you want to see the contract block on your own example, we show that in a [25-minute demo](/demo). Bring one buyer, one document you are missing, and one unit. That is enough to see that the PDF does not go out until the list is closed.",
         },
       ],
     },
