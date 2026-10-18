@@ -223,9 +223,9 @@ export default async function CityPage({ params }: PageProps) {
               {city.districtsTitle}
             </h2>
             <p className="mt-4 text-base leading-relaxed text-[var(--color-foreground-muted)]">
-              PropertyDesk ne pravi razliku između lokacija - sistem radi isto u
-              svim delovima {city.nameGenitiv}. Dole su delovi grada u kojima
-              danas vidimo najviše aktivne novogradnje.
+              PropertyDesk ne pravi razliku između lokacija - sistem radi isto u svim delovima{" "}
+              {city.nameGenitiv}. Dole su delovi grada u kojima danas vidimo najviše aktivne
+              novogradnje.
             </p>
           </div>
 
@@ -259,9 +259,7 @@ export default async function CityPage({ params }: PageProps) {
                 key={f.q}
                 className="rounded-2xl border border-[var(--color-border)] bg-white p-5 shadow-sm sm:p-6"
               >
-                <dt className="font-display text-lg font-semibold text-[#0b1020]">
-                  {f.q}
-                </dt>
+                <dt className="font-display text-lg font-semibold text-[#0b1020]">{f.q}</dt>
                 <dd className="mt-2 text-sm leading-relaxed text-[var(--color-foreground)]">
                   {f.a}
                 </dd>
