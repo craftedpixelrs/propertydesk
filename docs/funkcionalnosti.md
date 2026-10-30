@@ -266,8 +266,48 @@ Verzija: **v1** · Datum lansiranja: **15.10.2026.**
   toggle-ovati bilo koju dozvolu za bilo koju rolu bez izmene koda.
 - **Plan editor** (`/administracija/planovi`) — pun CRUD SaaS
   planova sa iz UI-ja.
-- 9 rola (INVESTOR_OWNER/ADMIN/…, SALES_MANAGER/AGENT, FINANCE,
-  INVESTOR_VIEWER, AGENCY_OWNER/ADMIN/AGENT/VIEWER, SUPER_ADMIN).
+- 15 rola (investitor + agencija + upravnik):
+  INVESTOR_OWNER/ADMIN, SALES_MANAGER/AGENT, FINANCE,
+  INVESTOR_VIEWER; AGENCY_OWNER/ADMIN/AGENT/VIEWER;
+  MANAGER_OWNER/ADMIN/ACCOUNTANT/TECHNICIAN/VIEWER; plus
+  SUPER_ADMIN. `OrganizationType` je `INVESTOR | AGENCY | MANAGER`;
+  `SaaSPlan.audience` određuje gde se plan nudi.
+
+## 13a. Upravljanje stambenim zajednicama (Faza 11, MANAGER tenant)
+
+Novi tip tenanta za profesionalne upravnike zgrada. Pun runbook:
+[`upravnici.md`](./upravnici.md).
+
+- **Registar zgrada** — `/zgrade`, ulazi (`BuildingEntranceSection`),
+  posebni delovi (`ManagedUnit`), vlasnici (`UnitOwnership` sa
+  `participationShare`). XLSX uvoz na `/zgrade/[id]/uvoz`.
+- **Zajedničke takse** — tarife po zgradi / ulazu / tipu jedinice;
+  cron `manager-generate-dues` (1. u mesecu, 02:00 UTC) idempotentno
+  pravi `DuesCharge` redove.
+- **Uplatnica (slip) PDF sa IPS QR i model-97 pozivom na broj** —
+  isti red uvek vraća isti referentni broj (deterministic).
+- **Uplate** — ručno + CSV/XLSX uvoz izvoda; reversal flag; dužnici
+  rang-lista + opomene.
+- **Kvarovi i troškovi** — ticket workflow
+  (`OPEN → TRIAGED → IN_PROGRESS → AWAITING_PARTS → COMPLETED/CANCELED`),
+  dobavljači, `BuildingExpense` po fondu
+  (`CURRENT_MAINTENANCE / INVESTMENT_FUND / OTHER`).
+- **Obaveštenja i dokumenti** — portal + email broadcast,
+  `BuildingDocument` repo sa soft-delete-om.
+- **Skupštine** — zakazivanje, pozivi, dnevni red; glasanje sa
+  težinama (`SIMPLE / ABSOLUTE / TWO_THIRDS` majorities), PDF
+  zapisnik.
+- **Portal za stanare** (`/stanar/*`) — magic-link invite preko
+  `ResidentAccess`, HMAC-potpisan cookie `pd_resident`; stanari NE
+  troše seats i NISU `User`. Stanar vidi svoje jedinice, dug,
+  uplatnice, prijavljuje kvar, glasa.
+- **Prenos zgrade od investitora** — `BuildingHandoverRequest`,
+  jedna transakcija, kopira strukturu + vlasnike **bez JMBG,
+  identityNumber, taxId** (ZZPL minimizacija —
+  [`obrada-podataka.md`](./obrada-podataka.md)).
+- **Dashboard upravnika** + 4 izveštaja
+  (`/izvestaji/upravljanje/{finansije,duznici,troskovi,godisnji}`),
+  CSV/XLSX export + godišnji PDF „Izveštaj o radu".
 
 ## 14. Automatizacija (cron jobs)
 
@@ -280,6 +320,9 @@ Verzija: **v1** · Datum lansiranja: **15.10.2026.**
 - `backup-verify` (nedeljno pon 03:00, Faza 8)
 - `purge-deleted-documents` (dnevno 04:00) — objekat sa S3/local se
   briše 45 dana nakon soft-delete-a u aplikaciji
+- `manager-generate-dues` (1. u mesecu 02:00 UTC, Faza 11) —
+  idempotentno pravi mesečna `DuesCharge` zaduženja za svaki aktivan
+  MANAGER tenant
 - 7 billing cron-ova (invoice generation, sending, reminders,
   overdue transitions, subscription extension, SEF sync, payment
   matching).
@@ -386,3 +429,28 @@ Detalji svakog Faza 8 modula u odvojenim dokumentima:
 - [`microsite.md`](./microsite.md)
 - [`referral.md`](./referral.md)
 - [`monitoring.md`](./monitoring.md)
+
+## Faza 11 delta (upravnici zgrada)
+
+Ako nekom treba brzi pregled šta donosi MANAGER modul:
+
+1. **Novi tip tenanta `OrganizationType.MANAGER`** sa 5 rola
+   (`MANAGER_OWNER/ADMIN/ACCOUNTANT/TECHNICIAN/VIEWER`) i svojim
+   `SaaSPlan.audience = MANAGER` planovima.
+2. **Registar zgrada, ulaza, posebnih delova i vlasnika** sa XLSX
+   uvozom.
+3. **Mesečna zajednička taksa** — tarife + idempotentan cron +
+   uplatnica PDF sa IPS QR i modelom 97.
+4. **Uplate** — ručni upis + uvoz izvoda; dužnici + opomene.
+5. **Kvarovi + izvođači + troškovi po fondu** sa foto prilozima.
+6. **Obaveštenja i dokumenti zgrade** (portal + email).
+7. **Skupština** sa težinskim glasanjem i PDF zapisnikom.
+8. **Portal za stanare** (`/stanar/*`) — magic-link, HMAC cookie,
+   stanari nisu `User` i ne troše seats.
+9. **Prenos zgrade investitor → upravnik** (`BuildingHandoverRequest`),
+   kopira strukturu i vlasnike **bez JMBG, LK i PIB** (ZZPL).
+10. **Dashboard upravnika** + izveštaji
+    (`/izvestaji/upravljanje/{finansije,duznici,troskovi,godisnji}`)
+    sa CSV/XLSX exportima i godišnjim PDF-om.
+
+Pun runbook: [`upravnici.md`](./upravnici.md).

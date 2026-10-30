@@ -29,7 +29,7 @@ import { cn } from "@/lib/utils";
  * separate analytics call.
  */
 
-type Audience = "INVESTOR" | "AGENCY";
+type Audience = "INVESTOR" | "AGENCY" | "MANAGER";
 
 type ProjectCount = "ZERO" | "ONE_TWO" | "THREE_FIVE" | "SIX_TEN" | "TEN_PLUS";
 
@@ -48,6 +48,7 @@ export function LeadForm() {
   const audienceOptions: Array<{ value: Audience; label: string }> = [
     { value: "INVESTOR", label: t("marketing.lead.investor") },
     { value: "AGENCY", label: t("marketing.lead.agency") },
+    { value: "MANAGER", label: t("marketing.lead.manager") },
   ];
   const projectCountOptions: Array<{ value: ProjectCount; label: string }> = [
     { value: "ZERO", label: t("marketing.lead.projects0") },
@@ -93,7 +94,7 @@ export function LeadForm() {
     // works on <input type="radio"> but only if the group is properly
     // rendered - belt-and-braces).
     const audienceValue = String(fd.get("audience") ?? "").trim();
-    if (audienceValue !== "INVESTOR" && audienceValue !== "AGENCY") {
+    if (audienceValue !== "INVESTOR" && audienceValue !== "AGENCY" && audienceValue !== "MANAGER") {
       setState({
         kind: "error",
         message: t("marketing.lead.audienceRequired"),

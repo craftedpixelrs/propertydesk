@@ -548,7 +548,10 @@ export async function updateMarketingLead(
 }
 
 export function isAudienceLocked(audience: MarketingLeadAudience): boolean {
-  return audience === "INVESTOR" || audience === "AGENCY";
+  // Posle promocije u konkretan tenant tip, audience se zaključava jer
+  // provisioning zavisi od njega (OrganizationType, planovi, uloge). OTHER
+  // je privremena oznaka — može se ponovo klasifikovati.
+  return audience === "INVESTOR" || audience === "AGENCY" || audience === "MANAGER";
 }
 
 /** Super Admin i Operations smeju iz L3 da naprave tenant org + vlasnika. */
@@ -716,13 +719,25 @@ export async function provisionMarketingLead(
   if (!isAudienceLocked(existing.audience)) {
     throw new DomainError(
       "VALIDATION",
-      "Postavite publiku na Investitor ili Agencija pre kreiranja organizacije.",
-      { fieldErrors: { audience: ["Obavezno Investitor ili Agencija."] } },
+      "Postavite publiku na Investitor, Agencija ili Upravnik pre kreiranja organizacije.",
+      { fieldErrors: { audience: ["Obavezno Investitor, Agencija ili Upravnik."] } },
     );
   }
 
-  const orgType = existing.audience === "AGENCY" ? "AGENCY" : "INVESTOR";
-  const ownerRole = orgType === "AGENCY" ? "AGENCY_OWNER" : "INVESTOR_OWNER";
+  // Faza 11 — mapiraj zaključanu publiku na tip tenant organizacije i
+  // odgovarajuću "owner" ulogu. OTHER je filtrirano gore, pa ne stiže ovde.
+  const orgType: "INVESTOR" | "AGENCY" | "MANAGER" =
+    existing.audience === "AGENCY"
+      ? "AGENCY"
+      : existing.audience === "MANAGER"
+        ? "MANAGER"
+        : "INVESTOR";
+  const ownerRole =
+    orgType === "AGENCY"
+      ? "AGENCY_OWNER"
+      : orgType === "MANAGER"
+        ? "MANAGER_OWNER"
+        : "INVESTOR_OWNER";
   const name = input.name.trim();
   if (name.length < 2) {
     throw new DomainError("VALIDATION", "Naziv organizacije je obavezan.");
@@ -1180,6 +1195,7 @@ export async function getPipelineStats(ctx: PropertyDeskAccessContext): Promise<
   const audienceMap: Record<MarketingLeadAudience, number> = {
     INVESTOR: 0,
     AGENCY: 0,
+    MANAGER: 0,
     OTHER: 0,
   };
   for (const row of byAudience) audienceMap[row.audience] = row._count.audience;

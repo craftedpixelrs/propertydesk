@@ -100,6 +100,12 @@ const MENUS: Array<{
         icon: Handshake,
       },
       {
+        href: "/za-upravnike",
+        label: "marketing.nav.managers",
+        body: "marketing.nav.managersBody",
+        icon: Building2,
+      },
+      {
         href: "/provizije-agencija",
         label: "marketing.nav.commissions",
         body: "marketing.nav.commissionsBody",

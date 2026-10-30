@@ -104,3 +104,30 @@ flowchart LR
 | Agency referral | `/ponuda` cards + public `/p/r/<code>` catalog + `/izvestaji/agencije` | `POST /agency/referral/rotate` | `agencies.service.ts`, `referral-catalog.service.ts` | `AgencyConnection.referralCode` + cookie `pd_ref` (30d) |
 | Sentry monitoring | Sentry SaaS (client/server/edge) | Instrumented via `src/instrumentation.ts` + `next.config.ts` `withSentryConfig` | `server/monitoring/index.ts` facade | Uses `SENTRY_DSN`, `NEXT_PUBLIC_SENTRY_DSN` env vars |
 | Backup verifier | `/administracija/monitoring` | `POST /platform/monitoring/backup-verify` + weekly cron | `monitoring/backup-verify.service.ts` | `SystemHealthCheck` rows + email alerts |
+
+## 7. Faza 11 module map (MANAGER — upravnici zgrada)
+
+Separate `OrganizationType.MANAGER` tenant. Full runbook:
+[`docs/upravnici.md`](./upravnici.md).
+
+| Feature | Frontend surface | REST | Service | Storage / cross-cutting |
+|---------|------------------|------|---------|-------------------------|
+| Building registry | `/zgrade`, `/zgrade/[id]` | `GET/POST/PATCH /manager/buildings`, `POST /manager/buildings/:id/import` | `services/manager/buildings.service.ts` | `ManagedBuilding`, `BuildingEntranceSection`, `ManagedUnit`, `BuildingPerson`, `UnitOwnership` |
+| Dues & uplatnice | `/zgrade/zaduzenja`, `/zgrade/dug`, `/zgrade/uplate` | `GET/POST /manager/dues/*`, `GET /manager/dues/:id/pdf`, `POST /manager/dues/bank-statement/import` | `services/manager/dues.service.ts` + `cron/manager-generate-dues` | `DuesTariff`, `DuesCharge`, `DuesPayment`; model-97 reference + IPS QR PNG |
+| Maintenance | `/zgrade/kvarovi`, `/zgrade/dobavljaci`, `/zgrade/troskovi` | `GET/POST/PATCH /manager/tickets`, `GET/POST/PATCH /manager/suppliers` | `services/manager/tickets.service.ts`, `services/manager/expenses.service.ts` | `MaintenanceTicket` (code `BLD-00001`), `Supplier`, `BuildingExpense`, ticket photos |
+| Notices & docs | `/zgrade/obavestenja`, `/zgrade/dokumenti` | `GET/POST /manager/notices`, `POST /manager/notices/:id/publish` | `services/manager/notices.service.ts` | `BuildingNotice`, `BuildingDocument`, email dispatch |
+| Assemblies | `/zgrade/skupstine/*` | `GET/POST /manager/assemblies`, `POST /manager/assemblies/:id/{open,close}-voting`, `POST /manager/agenda/:id/vote`, `GET /manager/assemblies/:id/minutes/pdf` | `services/manager/assemblies.service.ts` + `pdf/documents/assembly-minutes.tsx` | `Assembly`, `AgendaItem`, `AssemblyVote`, `AssemblyInvitation` |
+| Resident portal | `/stanar/*` route group | `POST /manager/units/:id/residents`, `DELETE /manager/residents/:id`, `GET /api/stanar/dues/:id/pdf` | `services/manager/residents.service.ts` + server actions in `(stanar)` | `ResidentAccess` + `ResidentAccessUnit`; HMAC cookie `pd_resident` signed with `BETTER_AUTH_SECRET` |
+| Investor → manager handover | Investor `/projekti/[id]`, `/projekti/predaje` + manager `/zgrade/predaje` | `POST /manager/handovers`, `POST /manager/handovers/:id/{accept,reject,cancel}` | `services/manager/handover.service.ts` | `BuildingHandoverRequest`; one-transaction copy, **never JMBG** |
+| Dashboard & reports | `/dashboard` (manager KPIs), `/izvestaji/upravljanje/*` | `GET /manager/reports/export`, `GET /manager/reports/godisnji/pdf` | `services/manager/dashboard.service.ts`, `services/manager/reports.service.ts`, `services/manager/annual-pdf.service.ts` | CSV via `papaparse`, XLSX via `exceljs`, PDF via `@react-pdf/renderer` |
+
+**Tenant isolation.** The investor module can call exactly one
+manager-side endpoint: `POST /manager/handovers`
+(`project.handover_manager`). It gets no other `building.*` /
+`dues.*` / `ticket.*` / `assembly.*` / `notice.*` / `resident.*`
+permission.
+
+**Resident auth.** Residents are not `User` rows. The portal reads a
+signed cookie, re-validates it against `ResidentAccess` on every
+request, and shows only the units reachable through
+`ResidentAccessUnit`. Revocation is immediate.

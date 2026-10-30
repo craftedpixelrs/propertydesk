@@ -23,7 +23,7 @@ export const permissionStatement = {
     // Extra paragraphs appended to buyer emails.
     "templates",
   ],
-  project: ["create", "read", "update", "delete", "archive"],
+  project: ["create", "read", "update", "delete", "archive", "handover_manager"],
   // `inventory.price` and `inventory.status` split the manage right so that
   // a finance-focused role can update prices without moving units through
   // the sales pipeline (and vice versa). `inventory.manage` remains as an
@@ -101,6 +101,52 @@ export const permissionStatement = {
   ],
   pd_report: [
     "pipeline", // pipeline i konverzioni izveštaji
+  ],
+  // ----------------------------------------------------------------------
+  // Faza 11 — Upravnici zgrada (building managers, Sloj B / MANAGER tenant)
+  // ----------------------------------------------------------------------
+  // Svi ovi resursi su scoped po MANAGER organizaciji. Investitorske i
+  // agencijske uloge NE smeju dobijati `building.*`, `dues.*`, `ticket.*`,
+  // `assembly.*`, `notice.*`, `resident.*` grantove.
+  //
+  // Jedini "dodir" sa investitorom je `project.handover_manager` — pravo
+  // da investitorska uloga pokrene prenos projekta/zgrade upravniku.
+  // Investitor NE dobija nove dozvole nad building-manager resursima.
+  building: [
+    "read", // listanje i detalj zgrada
+    "manage", // kreiranje, uređivanje, arhiviranje zgrade / posebnih delova / vlasnika
+    "import", // XLSX uvoz posebnih delova i vlasnika
+    "handover", // prihvatanje predaje zgrade od investitora (MANAGER_OWNER/ADMIN)
+  ],
+  dues: [
+    "read", // pregled zaduženja i uplata
+    "tariff.manage", // tarife po fondu
+    "generate", // mesečno generisanje zaduženja
+    "payment.record", // ručno zavođenje uplate
+    "payment.reverse", // storno uplate
+    "bankstatement.import", // uvoz izvoda i matching
+    "invoice.send", // slanje uplatnica (email + PDF)
+    "reminder.send", // opomene za dužnike
+    "writeoff", // otpis duga
+  ],
+  ticket: [
+    "read", // listanje i detalj kvarova
+    "manage", // kreiranje, dodela izvođača, status, foto
+    "close", // zatvaranje sa knjižnim fondom
+  ],
+  assembly: [
+    "read", // pregled skupština i rezultata
+    "manage", // kreiranje, dnevni red, otvaranje glasanja, zatvaranje
+    "vote.cast", // glasanje u ime vlasnika (ovlašćeni predstavnik)
+    "minutes.generate", // generisanje zapisnika PDF
+  ],
+  notice: [
+    "read", // pregled poslatih obaveštenja
+    "manage", // kreiranje i objavljivanje obaveštenja stanarima
+  ],
+  resident: [
+    "read", // pregled stanarskih naloga
+    "manage", // slanje/opoziv magic linka
   ],
   // These two resources mirror the Better Auth `admin` plugin's default
   // statements (see node_modules/better-auth/.../admin/access/statement.mjs).

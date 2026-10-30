@@ -88,6 +88,53 @@ export function isAgencyProfileComplete(
   return missingAgencyProfileFields(profile).length === 0;
 }
 
+// -----------------------------------------------------------------------------
+// Faza 11 — MANAGER (building-manager) organization profile.
+//
+// Upravnici zgrada moraju imati sva osnovna identifikaciona polja da bi se
+// uplatnice i obaveštenja mogli slati stanarima u ime stambene zajednice.
+// Website nije obavezan (upravnici retko imaju sopstveni sajt).
+// -----------------------------------------------------------------------------
+
+export const MANAGER_REQUIRED_PROFILE_FIELDS = [
+  "displayName",
+  "legalName",
+  "taxNumber",
+  "registrationNumber",
+  "address",
+  "city",
+  "postalCode",
+  "phone",
+  "email",
+] as const;
+
+export type ManagerRequiredProfileField = (typeof MANAGER_REQUIRED_PROFILE_FIELDS)[number];
+
+export const MANAGER_PROFILE_FIELD_LABEL: Record<ManagerRequiredProfileField, string> = {
+  displayName: "Naziv upravnika",
+  legalName: "Pravni naziv",
+  taxNumber: "PIB",
+  registrationNumber: "Matični broj",
+  address: "Adresa sedišta",
+  city: "Grad",
+  postalCode: "Poštanski broj",
+  phone: "Telefon",
+  email: "Email",
+};
+
+export function missingManagerProfileFields(
+  profile: InvestorProfileFields | null | undefined,
+): ManagerRequiredProfileField[] {
+  if (!profile) return [...MANAGER_REQUIRED_PROFILE_FIELDS];
+  return MANAGER_REQUIRED_PROFILE_FIELDS.filter((field) => !filled(profile[field]));
+}
+
+export function isManagerProfileComplete(
+  profile: InvestorProfileFields | null | undefined,
+): boolean {
+  return missingManagerProfileFields(profile).length === 0;
+}
+
 /** Accept `example.rs` by prefixing https:// so the URL check can run. */
 export function normalizeWebsite(value: string | null | undefined): string | null {
   const raw = value?.trim() ?? "";

@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, Building2, Users } from "lucide-react";
+import { Check, Building2, Users, HomeIcon } from "lucide-react";
 
 import { LANDING_IMAGES } from "@/lib/constants/app";
 import { MockupFrame } from "@/features/marketing/mockup-frame";
@@ -113,7 +113,7 @@ export function Personas() {
           </p>
         </div>
 
-        <div className="mt-10 grid gap-6 lg:grid-cols-2">
+        <div className="mt-10 grid gap-6 lg:grid-cols-3">
           <PersonaCard
             tone="ink"
             icon={Building2}
@@ -145,6 +145,22 @@ export function Personas() {
               t("marketing.personas.agency5"),
               t("marketing.personas.agency6"),
               t("marketing.personas.agency7"),
+            ]}
+          />
+          <PersonaCard
+            icon={HomeIcon}
+            eyebrow={t("marketing.personas.managerEyebrow")}
+            title={t("marketing.personas.managerTitle")}
+            description={t("marketing.personas.managerDescription")}
+            delay={240}
+            items={[
+              t("marketing.personas.manager1"),
+              t("marketing.personas.manager2"),
+              t("marketing.personas.manager3"),
+              t("marketing.personas.manager4"),
+              t("marketing.personas.manager5"),
+              t("marketing.personas.manager6"),
+              t("marketing.personas.manager7"),
             ]}
           />
         </div>

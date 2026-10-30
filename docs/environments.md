@@ -53,6 +53,13 @@ Buyer-page and IPS QR links are built from each container's
 and still emit that host. The browser calls `/api/v1` on the same
 origin.
 
+`BETTER_AUTH_SECRET` doubles as the signing key for the Faza 11
+resident-portal cookie `pd_resident` (HMAC-SHA256 over the
+`ResidentAccess.id`). If you rotate `BETTER_AUTH_SECRET` you also
+invalidate every open resident session — plan a re-invite flow or
+rotate during a quiet window. See
+[`docs/upravnici.md`](./upravnici.md#portal-za-stanare).
+
 ## VPS files
 
 | File | Used by |
@@ -139,12 +146,45 @@ Keep `BETTER_AUTH_URL` / `NEXT_PUBLIC_APP_URL` as `http://localhost:3000`.
 Point `DATABASE_URL` at **demo or staging**, never at `my.`.
 
 ```bash
-pnpm db:seed              # full demo tenants
-pnpm db:seed:platform     # plans + admin only
+pnpm db:seed              # full demo tenants (investor + agency + MANAGER Upravnik Plus)
+pnpm db:seed:platform     # plans + admin only (production-safe)
 pnpm db:seed:demo         # rich inventory on top of full seed
 ```
 
 `NODE_ENV=production` blocks seed unless `ALLOW_SEED_IN_PRODUCTION=true`.
+
+`pnpm db:seed` is idempotent: on a demo DB that was last seeded before
+Faza 11, rerunning it adds the MANAGER tenant `Upravnik Plus`, its
+two seed buildings, tariffs, dues, one open ticket and one scheduled
+assembly without touching existing investor/agency rows.
+
+## Reseeding demo & staging on the VPS (Faza 11)
+
+Image builds (`git push origin main`) run **migrations only** — never
+seed data. To refresh the shared demo/staging DB with the Faza 11
+MANAGER tenant, SSH onto the VPS once after a deploy:
+
+```bash
+ssh root@159.89.104.12
+cd /opt/propertydesk
+docker compose --env-file .env.demo --env-file .env.deploy \
+  run --rm --no-deps app-demo node ./node_modules/tsx/dist/cli.mjs prisma/seed.ts
+```
+
+The command runs inside the demo container (so it uses the demo
+`DATABASE_URL`) and uses the full seed (`SEED_MODE=full`). It is
+idempotent — safe to rerun. Staging and demo share the same DB, so
+one run covers both. **Do not run this against `.env`
+(production)** — production uses `pnpm db:seed:platform` only.
+
+Verify after seeding:
+
+```bash
+docker compose --env-file .env.demo --env-file .env.deploy \
+  exec app-demo node -e "const{PrismaClient}=require('@prisma/client');const{PrismaPg}=require('@prisma/adapter-pg');const p=new PrismaClient({adapter:new PrismaPg({connectionString:process.env.DIRECT_URL||process.env.DATABASE_URL})});p.managedBuilding.count().then(n=>{console.log('managed_building rows:',n);return p.\$disconnect()})"
+```
+
+Expected: `managed_building rows: 2`.
 
 ## Deploy
 

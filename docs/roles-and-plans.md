@@ -467,6 +467,9 @@ ne vidi.
   - `INVESTOR_OWNER`, `INVESTOR_ADMIN`, `SALES_MANAGER`, `SALES_AGENT`,
     `FINANCE`, `INVESTOR_VIEWER`
   - `AGENCY_OWNER`, `AGENCY_ADMIN`, `AGENCY_AGENT`, `AGENCY_VIEWER`
+  - `MANAGER_OWNER`, `MANAGER_ADMIN`, `MANAGER_ACCOUNTANT`,
+    `MANAGER_TECHNICIAN`, `MANAGER_VIEWER` (Faza 11 — upravnici zgrada;
+    vidi `docs/upravnici.md`)
   - `SUPER_ADMIN` (platformska rola — `platform.*` dozvole su zaključane
     da super-admin ne bi mogao slučajno da izgubi pristup platformi).
 - Tabela sa 4 kolone:

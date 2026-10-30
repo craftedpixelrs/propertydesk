@@ -402,6 +402,53 @@ export const guidesSr = {
     ],
     ["Dozvole", "pd_* prava menjate u Administracija → Role, isto kao ostale uloge."],
   ]),
+  // Faza 11 — upravnici zgrada
+  buildings: page("Zgrade", [
+    ["Katalog", "Lista stambenih zajednica koje održavate. Dodajete ulaze, delove i vlasnike."],
+    ["Uvoz", "XLSX uvoz posebnih delova i vlasnika po templejtu."],
+    ["Finansije", "Svakoj zgradi stiže tab sa tarifama, zaduženjima, uplatama i dugom."],
+    ["Portal stanara", "Vlasnici i zakupci pristupaju portalu preko magic linka."],
+  ]),
+  dues: page("Zaduženja", [
+    ["Automatski", "Cron 1. u mesecu pravi zaduženja po tarifama. Idempotentno — bez duplikata."],
+    ["Uplatnica", "Svako zaduženje ima PDF uplatnicu sa IPS QR kodom (model 97)."],
+    ["Uplate", "Zavedete ručno ili uvozom izvoda. Preostali dug se automatski ažurira."],
+  ]),
+  debtors: page("Dužnici", [
+    ["Lista", "Posebni delovi sa otvorenim dugom — sortirano po iznosu."],
+    ["Opomene", "Jednim klikom šaljete email opomenu i pamtite istoriju."],
+    ["Izvoz", "CSV i XLSX za računovodstvo."],
+  ]),
+  tickets: page("Kvarovi", [
+    ["Prijave", "Stanari prijavljuju iz portala, upravnik iz back-office-a."],
+    ["Dodela", "Dodelite izvođača, pratite status i vreme."],
+    ["Zatvaranje", "Zatvaranjem beležite trošak koji ide na odabrani fond."],
+  ]),
+  suppliers: page("Izvođači", [
+    ["Katalog", "Vaši servisi i majstori sa kontaktom i specijalnošću."],
+    ["Istorija", "Svaki kvar vodi link na izvođača koji ga je rešio."],
+    ["Fakture", "Fakture izvođača se povezuju na troškove zgrade."],
+  ]),
+  notices: page("Obaveštenja", [
+    ["Portal + email", "Birate kanale: portal, email ili oba."],
+    ["Ciljanje", "Audience: svi, po ulazu, po tipu ili po konkretnom delu."],
+    ["Istorija", "Broj dostavljenih emailova se čuva uz obaveštenje."],
+  ]),
+  assemblies: page("Skupštine", [
+    ["Zakazivanje", "Datum, mesto, dnevni red i vrsta većine po tački."],
+    ["Elektronsko glasanje", "Period glasanja, težina glasa po učešću, automatski rezultat."],
+    ["Zapisnik", "Automatski PDF zapisnik posle zatvaranja glasanja."],
+  ]),
+  residents: page("Stanari", [
+    ["Pozivnice", "Šaljete magic link stanaru — važi 14 dana."],
+    ["Portal", "Stanari ne troše seats i nisu u Better Auth. HMAC potpisana cookie."],
+    ["Opoziv", "Jednim klikom opozovete pristup — važi trenutno."],
+  ]),
+  handovers: page("Predaje zgrada", [
+    ["Investitor", 'Dugme „Predaj upravniku" na stranici projekta pokreće zahtev.'],
+    ["Upravnik", "Prihvatate iz /zgrade/predaje — struktura i vlasnici se kopiraju bez JMBG-a."],
+    ["Čista granica", "Nema deljenja baze posle prenosa — samo kopija + audit."],
+  ]),
 } as const;
 
 export const guidesEn: Leaves<typeof guidesSr> = {
@@ -779,5 +826,52 @@ export const guidesEn: Leaves<typeof guidesSr> = {
       "Stages from NEW to WON. Convert creates or links an organization. Agencies always get the partner plan.",
     ],
     ["Permissions", "Edit pd_* rights under Administration → Roles, same as other roles."],
+  ]),
+  // Faza 11 — building managers
+  buildings: page("Buildings", [
+    ["Catalog", "Residential associations you manage. Add entrances, units and owners."],
+    ["Import", "XLSX import of units and owners using the provided template."],
+    ["Finance", "Each building has tabs for tariffs, dues, payments and debt."],
+    ["Resident portal", "Owners and tenants access the portal via a magic link."],
+  ]),
+  dues: page("Dues", [
+    ["Automatic", "A cron on day 1 generates dues from tariffs. Idempotent — no duplicates."],
+    ["Invoice", "Every charge has a PDF uplatnica with an IPS QR (model 97)."],
+    ["Payments", "Enter manually or via bank-statement import. Outstanding updates live."],
+  ]),
+  debtors: page("Debtors", [
+    ["List", "Units with open debt — sorted by amount."],
+    ["Reminders", "Send email reminders in one click and keep history."],
+    ["Export", "CSV and XLSX for accounting."],
+  ]),
+  tickets: page("Tickets", [
+    ["Reports", "Residents report from the portal; staff from the back-office."],
+    ["Assignment", "Assign a contractor, track status and time."],
+    ["Closing", "Closing records a cost that posts to the chosen fund."],
+  ]),
+  suppliers: page("Suppliers", [
+    ["Catalog", "Your contractors and specialists with contact and skills."],
+    ["History", "Every ticket links to the supplier who resolved it."],
+    ["Invoices", "Supplier invoices link to building expenses."],
+  ]),
+  notices: page("Notices", [
+    ["Portal + email", "Pick channels: portal, email, or both."],
+    ["Targeting", "Audience: all, by entrance, by unit type, or specific units."],
+    ["History", "Delivered email counts persist on each notice."],
+  ]),
+  assemblies: page("Assemblies", [
+    ["Scheduling", "Date, location, agenda and majority per item."],
+    ["Electronic voting", "Voting window, vote weight by share, automatic tally."],
+    ["Minutes", "Automatic PDF minutes once voting is closed."],
+  ]),
+  residents: page("Residents", [
+    ["Invitations", "Send a magic link — valid for 14 days."],
+    ["Portal", "Residents don't consume seats or Better Auth users. HMAC-signed cookie."],
+    ["Revoke", "Revoke access in one click — effective immediately."],
+  ]),
+  handovers: page("Handovers", [
+    ["Investor", "The “Hand over to manager” button on a project starts the request."],
+    ["Manager", "Accept from /zgrade/predaje — structure and owners are copied without JMBG."],
+    ["Clean boundary", "No shared tables after transfer — only a copy + audit."],
   ]),
 };

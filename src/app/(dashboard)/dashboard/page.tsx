@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Building2, BadgeCheck, Users, Handshake, Wallet, Store } from "lucide-react";
+import { Building2, BadgeCheck, Users, Handshake, Wallet, Store, Wrench } from "lucide-react";
 
 import { PageHeader } from "@/components/app/page-header";
 import { StatCard } from "@/components/app/stat-card";
@@ -11,10 +11,12 @@ import { StatusDonut } from "@/components/charts/status-donut";
 import { CategoryBars } from "@/components/charts/category-bars";
 import { unitStatusColor, saleStatusColor } from "@/components/charts/palette";
 import { loadUserContext } from "@/server/auth/context";
+import { prisma } from "@/server/db/prisma";
 import {
   loadInvestorDashboard,
   loadAgencyDashboard,
 } from "@/server/services/dashboard/dashboard.service";
+import { loadManagerDashboard } from "@/server/services/manager/dashboard.service";
 import { loadOnboardingState } from "@/server/services/onboarding.service";
 import { loadWorkQueue } from "@/server/services/dashboard/work-queue.service";
 import { buildCashFlowProjection } from "@/server/services/reports/cash-flow.service";
@@ -71,12 +73,168 @@ export default async function DashboardPage() {
       />
     );
   }
+  if (ctx.activeOrganization.type === "MANAGER") {
+    // Faza 11 — placeholder dok Faza 9 ne isporuči pravi dashboard upravnika
+    // (broj zgrada i delova, naplata, dug, otvoreni kvarovi, naredne skupštine).
+    return (
+      <ManagerDashboard
+        organizationId={ctx.activeOrganization.id}
+        name={ctx.activeOrganization.name}
+        locale={locale}
+      />
+    );
+  }
   return (
     <InvestorDashboard
       organizationId={ctx.activeOrganization.id}
       name={ctx.activeOrganization.name}
       locale={locale}
     />
+  );
+}
+
+async function ManagerDashboard({
+  organizationId,
+  name,
+  locale,
+}: {
+  organizationId: string;
+  name: string;
+  locale: Locale;
+}) {
+  const data = await loadManagerDashboard(organizationId);
+  const monthLabel = `${String(data.currentMonth.month).padStart(2, "0")}/${data.currentMonth.year}`;
+  const collectionRate =
+    data.currentMonth.chargedTotal > 0
+      ? Math.round((data.currentMonth.paidTotal / data.currentMonth.chargedTotal) * 100)
+      : 0;
+
+  return (
+    <div className="space-y-6">
+      <PageHeader
+        title={name}
+        description={t("ui.dashboard.manager.subtitle", undefined, locale)}
+      />
+
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <StatCard
+          label={t("nav.buildings", undefined, locale)}
+          value={String(data.totals.buildings)}
+          icon={<Building2 className="size-5" />}
+        />
+        <StatCard
+          label={t("manager.units.title", undefined, locale)}
+          value={String(data.totals.units)}
+          icon={<Users className="size-5" />}
+        />
+        <StatCard
+          label={t("nav.tickets", undefined, locale)}
+          value={String(data.totals.openTickets)}
+          icon={<Wrench className="size-5" />}
+        />
+        <StatCard
+          label={t("nav.assemblies", undefined, locale)}
+          value={String(data.totals.openAssemblies)}
+          icon={<Handshake className="size-5" />}
+        />
+      </div>
+
+      <div className="grid gap-3 md:grid-cols-3">
+        <StatCard
+          label={`${t("manager.dues.currentMonth", undefined, locale)} ${monthLabel}`}
+          value={formatMoney(data.currentMonth.chargedTotal, "RSD" as SupportedCurrency)}
+          hint={`${data.currentMonth.chargeCount} ${t("manager.dues.chargeCountHint", undefined, locale)}`}
+          icon={<Wallet className="size-5" />}
+        />
+        <StatCard
+          label={t("manager.dues.collected", undefined, locale)}
+          value={formatMoney(data.currentMonth.paidTotal, "RSD" as SupportedCurrency)}
+          hint={`${collectionRate}%`}
+          icon={<Wallet className="size-5" />}
+        />
+        <StatCard
+          label={t("manager.debtors.outstandingTotal", undefined, locale)}
+          value={formatMoney(data.debt.outstandingTotal, "RSD" as SupportedCurrency)}
+          hint={`${data.debt.chargesOpen} ${t("manager.debtors.openChargesHint", undefined, locale)}`}
+          icon={<Wallet className="size-5" />}
+        />
+      </div>
+
+      <div className="grid gap-6 lg:grid-cols-2">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle className="text-sm">
+              {t("manager.dashboard.upcomingAssemblies", undefined, locale)}
+            </CardTitle>
+            <Link
+              href="/zgrade/skupstine"
+              className="text-xs text-[var(--color-brand-700)] hover:underline"
+            >
+              {t("ui.dashboard.viewAll", undefined, locale)}
+            </Link>
+          </CardHeader>
+          <CardContent>
+            {data.upcomingAssemblies.length === 0 ? (
+              <EmptyState
+                title={t("manager.dashboard.noUpcomingAssemblies", undefined, locale)}
+                description={t("ui.dashboard.noItems", undefined, locale)}
+              />
+            ) : (
+              <ul className="divide-y divide-[var(--color-border)]">
+                {data.upcomingAssemblies.map((a) => (
+                  <li key={a.id} className="flex items-center justify-between py-2 text-sm">
+                    <Link
+                      href={`/zgrade/skupstine`}
+                      className="font-medium text-[var(--color-brand-700)] hover:underline"
+                    >
+                      {a.title}
+                    </Link>
+                    <span className="text-[var(--color-foreground-muted)]">{a.buildingName}</span>
+                    <span className="text-xs text-[var(--color-foreground-subtle)]">
+                      {formatDate(a.scheduledAt)}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle className="text-sm">
+              {t("manager.dashboard.recentTickets", undefined, locale)}
+            </CardTitle>
+            <Link
+              href="/zgrade/kvarovi"
+              className="text-xs text-[var(--color-brand-700)] hover:underline"
+            >
+              {t("ui.dashboard.viewAll", undefined, locale)}
+            </Link>
+          </CardHeader>
+          <CardContent>
+            {data.recentTickets.length === 0 ? (
+              <EmptyState
+                title={t("manager.dashboard.noTickets", undefined, locale)}
+                description={t("ui.dashboard.noItems", undefined, locale)}
+              />
+            ) : (
+              <ul className="divide-y divide-[var(--color-border)]">
+                {data.recentTickets.map((tk) => (
+                  <li key={tk.id} className="flex items-center justify-between py-2 text-sm">
+                    <span className="font-medium">{tk.title}</span>
+                    <span className="text-[var(--color-foreground-muted)]">{tk.buildingName}</span>
+                    <span className="text-xs text-[var(--color-foreground-subtle)]">
+                      {formatDate(tk.createdAt)}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+    </div>
   );
 }
 

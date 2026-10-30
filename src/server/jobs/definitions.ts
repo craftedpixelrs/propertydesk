@@ -13,6 +13,7 @@ import { notifyTrialsExpiring } from "@/server/services/subscriptions/jobs";
 import { expireEndedSubscriptions } from "@/server/services/subscriptions/expire.service";
 import { runBackupVerify } from "@/server/services/monitoring/backup-verify.service";
 import { purgeExpiredDeletedDocuments } from "@/server/services/documents-purge.service";
+import { generateMonthlyDuesForAllOrganizations } from "@/server/services/manager/dues.service";
 // Side-effect import: registers all billing cron jobs into the shared registry.
 import "@/server/services/billing/jobs/definitions";
 
@@ -170,6 +171,21 @@ ensure("purge-deleted-documents", () =>
     run: async () => {
       const { processed, errors } = await purgeExpiredDeletedDocuments();
       return { processed, updated: processed, errors };
+    },
+  }),
+);
+
+ensure("manager-generate-dues", () =>
+  registerJob({
+    name: "manager-generate-dues",
+    description:
+      "Prvog u mesecu generiše mesečna zaduženja (zajedničku taksu) za sve aktivne zgrade svih MANAGER organizacija. Idempotentan — postojeća zaduženja za isti period se preskaču.",
+    // Run on the 1st of every month at 02:00 UTC. Admins can trigger it
+    // manually from the jobs page any time to catch up missed periods.
+    suggestedCron: "0 2 1 * *",
+    run: async () => {
+      const { processed, created, errors } = await generateMonthlyDuesForAllOrganizations();
+      return { processed, updated: created, errors };
     },
   }),
 );

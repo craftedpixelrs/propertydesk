@@ -7,7 +7,7 @@ export function isAgencyPartnerPlan(code: string | null | undefined): boolean {
 
 export function applyAgencyOrgDefaults<
   T extends {
-    type: "INVESTOR" | "AGENCY";
+    type: "INVESTOR" | "AGENCY" | "MANAGER";
     planCode?: string;
     status?: "TRIAL" | "ACTIVE" | "RESTRICTED" | "SUSPENDED" | "CLOSED";
     trialDays?: number | null;

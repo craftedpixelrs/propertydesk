@@ -12,6 +12,12 @@ export const ORG_ROLE_LABEL: Record<string, string> = {
   AGENCY_ADMIN: "Administrator",
   AGENCY_AGENT: "Agent",
   AGENCY_VIEWER: "Pregled",
+  // Faza 11 — upravnici zgrada
+  MANAGER_OWNER: "Vlasnik upravnika",
+  MANAGER_ADMIN: "Administrator",
+  MANAGER_ACCOUNTANT: "Računovođa",
+  MANAGER_TECHNICIAN: "Tehničar",
+  MANAGER_VIEWER: "Pregled",
 };
 
 export type CapabilityLevel = "yes" | "read" | "no";
@@ -229,6 +235,132 @@ const AGENCY_CAPABILITIES: CapabilityRowDef[] = [
   },
 ];
 
+// Faza 11 — Upravnici zgrada
+const MANAGER_CAPABILITIES: CapabilityRowDef[] = [
+  {
+    id: "members",
+    section: "Organizacija",
+    label: "Korisnici (poziv, uloge, uklanjanje)",
+    yes: ["organization.members:manage"],
+  },
+  {
+    id: "org-settings",
+    section: "Organizacija",
+    label: "Podešavanja organizacije",
+    yes: ["organization.manage"],
+    read: ["organization.read"],
+  },
+  {
+    id: "buildings",
+    section: "Zgrade",
+    label: "Zgrade i posebni delovi",
+    yes: ["building.manage"],
+    read: ["building.read"],
+  },
+  {
+    id: "buildings-import",
+    section: "Zgrade",
+    label: "Uvoz vlasnika i stanova (XLSX)",
+    yes: ["building.import"],
+  },
+  {
+    id: "buildings-handover",
+    section: "Zgrade",
+    label: "Prihvatanje predaje zgrade od investitora",
+    yes: ["building.handover"],
+  },
+  {
+    id: "dues",
+    section: "Finansije",
+    label: "Zaduženja i uplate",
+    yes: ["dues.payment.record"],
+    read: ["dues.read"],
+  },
+  {
+    id: "dues-tariffs",
+    section: "Finansije",
+    label: "Tarife po fondu",
+    yes: ["dues.tariff.manage"],
+  },
+  {
+    id: "dues-generate",
+    section: "Finansije",
+    label: "Generisanje mesečnih zaduženja",
+    yes: ["dues.generate"],
+  },
+  {
+    id: "dues-bankstatement",
+    section: "Finansije",
+    label: "Uvoz bankovnih izvoda",
+    yes: ["dues.bankstatement.import"],
+  },
+  {
+    id: "dues-invoice",
+    section: "Finansije",
+    label: "Slanje uplatnica (email + PDF)",
+    yes: ["dues.invoice.send"],
+  },
+  {
+    id: "dues-reminder",
+    section: "Finansije",
+    label: "Opomene dužnicima",
+    yes: ["dues.reminder.send"],
+  },
+  {
+    id: "tickets",
+    section: "Održavanje",
+    label: "Kvarovi i radni nalozi",
+    yes: ["ticket.manage"],
+    read: ["ticket.read"],
+  },
+  {
+    id: "tickets-close",
+    section: "Održavanje",
+    label: "Zatvaranje sa knjižnim fondom",
+    yes: ["ticket.close"],
+  },
+  {
+    id: "assemblies",
+    section: "Zajednica",
+    label: "Skupštine i glasanje",
+    yes: ["assembly.manage"],
+    read: ["assembly.read"],
+  },
+  {
+    id: "notices",
+    section: "Zajednica",
+    label: "Obaveštenja stanarima",
+    yes: ["notice.manage"],
+    read: ["notice.read"],
+  },
+  {
+    id: "residents",
+    section: "Zajednica",
+    label: "Portal za stanare",
+    yes: ["resident.manage"],
+    read: ["resident.read"],
+  },
+  {
+    id: "documents",
+    section: "Ostalo",
+    label: "Dokumenti",
+    yes: ["document.manage"],
+    read: ["document.read"],
+  },
+  {
+    id: "reports",
+    section: "Ostalo",
+    label: "Izveštaji",
+    yes: ["report.read"],
+  },
+  {
+    id: "billing",
+    section: "Ostalo",
+    label: "Pretplata i fakture (pregled)",
+    yes: ["billing.read"],
+  },
+];
+
 function cellLevel(
   role: OrganizationRole,
   def: CapabilityRowDef,
@@ -240,14 +372,19 @@ function cellLevel(
 }
 
 export function buildRoleCapabilityGuide(
-  orgType: "INVESTOR" | "AGENCY",
+  orgType: "INVESTOR" | "AGENCY" | "MANAGER",
   has: (role: OrganizationRole, permission: PermissionString) => boolean,
 ): RoleCapabilityGuide {
   const roles = rolesForOrgType(orgType).map((key) => ({
     key,
     label: ORG_ROLE_LABEL[key] ?? key,
   }));
-  const defs = orgType === "AGENCY" ? AGENCY_CAPABILITIES : INVESTOR_CAPABILITIES;
+  const defs =
+    orgType === "AGENCY"
+      ? AGENCY_CAPABILITIES
+      : orgType === "MANAGER"
+        ? MANAGER_CAPABILITIES
+        : INVESTOR_CAPABILITIES;
 
   const sectionMap = new Map<string, RoleCapabilityGuide["sections"][number]["rows"]>();
   for (const def of defs) {

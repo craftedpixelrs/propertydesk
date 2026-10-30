@@ -68,7 +68,7 @@ export async function listSaaSPlans() {
 async function ensurePartnerPlan() {
   return prisma.saaSPlan.upsert({
     where: { code: AGENCY_PARTNER_PLAN_CODE },
-    update: { active: true },
+    update: { active: true, audience: "AGENCY" },
     create: {
       code: AGENCY_PARTNER_PLAN_CODE,
       name: "Partner",
@@ -80,12 +80,30 @@ async function ensurePartnerPlan() {
       maxUnits: 0,
       maxMembers: 25,
       maxAgencyConnections: null,
+      audience: "AGENCY",
       features: { audience: "agency", agencySharing: true, whiteLabel: false },
       active: true,
       publiclyAvailable: false,
       sortOrder: 20,
     },
   });
+}
+
+/**
+ * Faza 11 — validacija da plan odgovara tipu organizacije. `audience = null`
+ * znači legacy plan (važi za sve), ostali planovi važe samo za svoju publiku.
+ * Pozivaju: `createOrganizationByPlatformAdmin`, `updateOrganizationByPlatformAdmin`,
+ * `changeSubscriptionPlan`, `provisionMarketingLead`.
+ */
+function assertPlanAudienceMatches(
+  plan: { code: string; audience: OrganizationType | null },
+  orgType: OrganizationType,
+): void {
+  if (plan.audience && plan.audience !== orgType) {
+    throw DomainErrors.badRequest(
+      `Plan "${plan.code}" je namenjen organizacijama tipa ${plan.audience}. Nije dozvoljeno dodeliti ga organizaciji tipa ${orgType}.`,
+    );
+  }
 }
 
 export async function createSaaSPlan(input: SaaSPlanInput, actorUserId: string) {
@@ -414,6 +432,11 @@ export async function createOrganizationByPlatformAdmin(
   if (!plan || !plan.active) {
     throw DomainErrors.notFound("Plan");
   }
+  // Faza 11 — plan.audience mora da se poklopi sa tipom organizacije.
+  // AGENCY se dodatno zaključava na "partner" planu kroz
+  // `applyAgencyOrgDefaults`, pa se audience validacija ovde dovoljno
+  // pokriva.
+  assertPlanAudienceMatches(plan, billing.type);
 
   const now = new Date();
   const trialDays = billing.trialDays ?? 30;
@@ -593,6 +616,10 @@ export async function updateOrganizationByPlatformAdmin(
   if (!plan.active && plan.id !== currentPlanId) {
     throw DomainErrors.notFound("Plan");
   }
+  // Faza 11 — plan.audience se mora slagati sa tipom organizacije (u update
+  // flow-u koristimo `effectiveType`, koji je fiksiran na AGENCY ako je org
+  // već agencija).
+  assertPlanAudienceMatches(plan, effectiveType);
 
   const previousStatus = existing.profile?.status ?? "TRIAL";
   let nextStatus: OrganizationStatus = billing.status ?? input.status ?? previousStatus;

@@ -30,6 +30,16 @@ export const PAGE_GUIDE_KEYS = [
   "connections",
   "platformAdmin",
   "propertyDesk",
+  // Faza 11 — upravnici zgrada
+  "buildings",
+  "dues",
+  "debtors",
+  "tickets",
+  "suppliers",
+  "notices",
+  "assemblies",
+  "residents",
+  "handovers",
 ] as const;
 
 export type PageGuideKey = (typeof PAGE_GUIDE_KEYS)[number];
@@ -81,6 +91,16 @@ export const PAGE_GUIDES: PageGuideDef[] = [
   { key: "propertyDesk", prefixes: ["/administracija/property-desk"], steps: 3 },
   { key: "platformAdmin", prefixes: ["/administracija"], steps: 3 },
   { key: "dashboard", prefixes: ["/dashboard", "/prvi-koraci"], steps: 4 },
+  // Faza 11 — manager pages (longest-prefix-first order matters).
+  { key: "dues", prefixes: ["/zgrade/zaduzenja"], steps: 3 },
+  { key: "debtors", prefixes: ["/zgrade/duznici"], steps: 3 },
+  { key: "tickets", prefixes: ["/zgrade/kvarovi"], steps: 3 },
+  { key: "suppliers", prefixes: ["/zgrade/izvodjaci"], steps: 3 },
+  { key: "notices", prefixes: ["/zgrade/obavestenja"], steps: 3 },
+  { key: "assemblies", prefixes: ["/zgrade/skupstine"], steps: 3 },
+  { key: "residents", prefixes: ["/zgrade/stanari"], steps: 3 },
+  { key: "handovers", prefixes: ["/zgrade/predaje", "/projekti/predaje"], steps: 3 },
+  { key: "buildings", prefixes: ["/zgrade"], steps: 4 },
 ];
 
 export function resolvePageGuide(pathname: string): PageGuideDef | null {

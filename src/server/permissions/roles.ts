@@ -16,7 +16,7 @@ import { ac } from "./access-control";
 
 export const INVESTOR_OWNER = ac.newRole({
   organization: ["manage", "members:manage", "suspend", "read", "export", "templates"],
-  project: ["create", "read", "update", "delete", "archive"],
+  project: ["create", "read", "update", "delete", "archive", "handover_manager"],
   inventory: ["read", "manage", "price", "status", "reopen_sold", "import", "export", "bulk"],
   lead: ["read", "manage"],
   reservation: ["create", "approve", "cancel", "read"],
@@ -37,7 +37,7 @@ export const INVESTOR_OWNER = ac.newRole({
 
 export const INVESTOR_ADMIN = ac.newRole({
   organization: ["manage", "members:manage", "read", "export", "templates"],
-  project: ["create", "read", "update", "delete", "archive"],
+  project: ["create", "read", "update", "delete", "archive", "handover_manager"],
   inventory: ["read", "manage", "price", "status", "reopen_sold", "import", "export", "bulk"],
   lead: ["read", "manage"],
   reservation: ["create", "approve", "cancel", "read"],
@@ -166,12 +166,124 @@ export const AGENCY_VIEWER = ac.newRole({
 });
 
 // -----------------------------------------------------------------------------
+// Faza 11 — MANAGER (building-manager) organization roles
+//
+// MANAGER organizacije ne vide investitorski ni agencijski modul. Ni jedna
+// od ovih uloga ne dobija `project.*`, `inventory.*`, `lead.*`,
+// `reservation.*`, `sale.*`, `agency.*`, `commission.*` grantove.
+// -----------------------------------------------------------------------------
+
+export const MANAGER_OWNER = ac.newRole({
+  organization: ["manage", "members:manage", "read", "export", "templates"],
+  building: ["read", "manage", "import", "handover"],
+  dues: [
+    "read",
+    "tariff.manage",
+    "generate",
+    "payment.record",
+    "payment.reverse",
+    "bankstatement.import",
+    "invoice.send",
+    "reminder.send",
+    "writeoff",
+  ],
+  ticket: ["read", "manage", "close"],
+  assembly: ["read", "manage", "vote.cast", "minutes.generate"],
+  notice: ["read", "manage"],
+  resident: ["read", "manage"],
+  document: ["read", "manage"],
+  report: ["read"],
+  audit: ["read"],
+  // Pristup sopstvenom tenant billing-u (čitanje). Plan.manage ostaje SA.
+  billing: ["read", "subscription.read", "invoice.read", "payment.read"],
+  invitation: ["create", "cancel"],
+  member: ["create", "update", "delete"],
+});
+
+export const MANAGER_ADMIN = ac.newRole({
+  organization: ["members:manage", "read", "export", "templates"],
+  building: ["read", "manage", "import", "handover"],
+  dues: [
+    "read",
+    "tariff.manage",
+    "generate",
+    "payment.record",
+    "payment.reverse",
+    "bankstatement.import",
+    "invoice.send",
+    "reminder.send",
+  ],
+  ticket: ["read", "manage", "close"],
+  assembly: ["read", "manage", "vote.cast", "minutes.generate"],
+  notice: ["read", "manage"],
+  resident: ["read", "manage"],
+  document: ["read", "manage"],
+  report: ["read"],
+  billing: ["read", "subscription.read", "invoice.read", "payment.read"],
+  invitation: ["create", "cancel"],
+  member: ["create", "update", "delete"],
+});
+
+/**
+ * Računovođa / finansije zgrade. Vidi sve zgrade organizacije, radi na
+ * zaduženjima i uplatama, ne upravlja članovima niti kvarovima.
+ */
+export const MANAGER_ACCOUNTANT = ac.newRole({
+  organization: ["read"],
+  building: ["read"],
+  dues: [
+    "read",
+    "tariff.manage",
+    "generate",
+    "payment.record",
+    "payment.reverse",
+    "bankstatement.import",
+    "invoice.send",
+    "reminder.send",
+  ],
+  ticket: ["read"],
+  assembly: ["read"],
+  notice: ["read"],
+  resident: ["read"],
+  document: ["read", "manage"],
+  report: ["read"],
+  billing: ["read", "subscription.read", "invoice.read", "payment.read"],
+});
+
+/**
+ * Terenski radnik / tehničar. Prima kvarove, menja im status, dodaje
+ * foto i troškove. Nema pristup finansijama ni skupštinama.
+ */
+export const MANAGER_TECHNICIAN = ac.newRole({
+  organization: ["read"],
+  building: ["read"],
+  ticket: ["read", "manage", "close"],
+  document: ["read", "manage"],
+});
+
+/**
+ * Pregled samo. Namenjeno npr. predsedniku skupštine kao gostu kod
+ * upravnika — vidi sve, ne menja ništa.
+ */
+export const MANAGER_VIEWER = ac.newRole({
+  organization: ["read"],
+  building: ["read"],
+  dues: ["read"],
+  ticket: ["read"],
+  assembly: ["read"],
+  notice: ["read"],
+  resident: ["read"],
+  document: ["read"],
+  report: ["read"],
+});
+
+// -----------------------------------------------------------------------------
 // Platform role — used by the Better Auth `admin` plugin
 // -----------------------------------------------------------------------------
 
 export const SUPER_ADMIN = ac.newRole({
   organization: ["manage", "members:manage", "suspend", "read", "export", "templates"],
-  project: ["create", "read", "update", "delete", "archive"],
+  project: ["create", "read", "update", "delete", "archive", "handover_manager"],
   inventory: ["read", "manage", "price", "status", "reopen_sold", "import", "export", "bulk"],
   lead: ["read", "manage"],
   reservation: ["create", "approve", "cancel", "read"],
@@ -180,6 +292,23 @@ export const SUPER_ADMIN = ac.newRole({
   payment: ["read", "manage"],
   agency: ["manage", "customer:register", "read"],
   commission: ["read", "manage", "statement"],
+  // Faza 11 — SUPER_ADMIN uvek vidi i menja sve u MANAGER modulu.
+  building: ["read", "manage", "import", "handover"],
+  dues: [
+    "read",
+    "tariff.manage",
+    "generate",
+    "payment.record",
+    "payment.reverse",
+    "bankstatement.import",
+    "invoice.send",
+    "reminder.send",
+    "writeoff",
+  ],
+  ticket: ["read", "manage", "close"],
+  assembly: ["read", "manage", "vote.cast", "minutes.generate"],
+  notice: ["read", "manage"],
+  resident: ["read", "manage"],
   document: ["read", "manage"],
   report: ["read"],
   audit: ["read"],
@@ -332,12 +461,26 @@ export const agencyRoles = {
 } as const;
 
 /**
- * All organization-level roles (union of investor + agency).
+ * Faza 11 — building-manager (upravnik) organization roles. Posebno
+ * izdvojene da bi `rolesForOrgType("MANAGER")` i matrix editor znali
+ * koje uloge pripadaju ovom tipu.
+ */
+export const managerRoles = {
+  MANAGER_OWNER,
+  MANAGER_ADMIN,
+  MANAGER_ACCOUNTANT,
+  MANAGER_TECHNICIAN,
+  MANAGER_VIEWER,
+} as const;
+
+/**
+ * All organization-level roles (union of investor + agency + manager).
  * These are the values Better Auth will accept as `member.role`.
  */
 export const organizationRoles = {
   ...investorRoles,
   ...agencyRoles,
+  ...managerRoles,
 } as const;
 
 export const platformRoles = {
@@ -359,19 +502,24 @@ export const propertyDeskTeamRoles = {
 
 export type InvestorRole = keyof typeof investorRoles;
 export type AgencyRole = keyof typeof agencyRoles;
-export type OrganizationRole = InvestorRole | AgencyRole;
+export type ManagerRole = keyof typeof managerRoles;
+export type OrganizationRole = InvestorRole | AgencyRole | ManagerRole;
 export type PlatformRole = keyof typeof platformRoles;
 export type PropertyDeskRole = keyof typeof propertyDeskTeamRoles;
 
 export const INVESTOR_ROLE_NAMES = Object.keys(investorRoles) as InvestorRole[];
 export const AGENCY_ROLE_NAMES = Object.keys(agencyRoles) as AgencyRole[];
+export const MANAGER_ROLE_NAMES = Object.keys(managerRoles) as ManagerRole[];
 export const ALL_ORG_ROLE_NAMES = Object.keys(organizationRoles) as OrganizationRole[];
 export const PROPERTY_DESK_ROLE_NAMES = Object.keys(propertyDeskTeamRoles) as PropertyDeskRole[];
 
 /**
  * Given an organization type, return the roles valid for that org.
- * Used when inviting members: an INVESTOR org may only assign investor roles.
+ * Used when inviting members: an INVESTOR org may only assign investor
+ * roles; a MANAGER org only manager roles; etc.
  */
-export function rolesForOrgType(type: "INVESTOR" | "AGENCY"): OrganizationRole[] {
-  return type === "INVESTOR" ? INVESTOR_ROLE_NAMES : AGENCY_ROLE_NAMES;
+export function rolesForOrgType(type: "INVESTOR" | "AGENCY" | "MANAGER"): OrganizationRole[] {
+  if (type === "INVESTOR") return INVESTOR_ROLE_NAMES;
+  if (type === "AGENCY") return AGENCY_ROLE_NAMES;
+  return MANAGER_ROLE_NAMES;
 }

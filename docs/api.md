@@ -209,6 +209,87 @@ No REST endpoint is exposed; the microsite lives at
 `/p/projekat/[slug]` and reuses the same unit data structures as the
 authenticated app. See [`docs/microsite.md`](./microsite.md).
 
+### Building managers (Faza 11, `OrganizationType.MANAGER`)
+
+All require `requirePermission("…")` scoped to the active MANAGER
+organization. Full module runbook: [`upravnici.md`](./upravnici.md).
+
+**Buildings & units**
+
+- `GET/POST /manager/buildings`, `GET/PATCH /manager/buildings/:id`,
+  `POST /manager/buildings/:id/archive` — `building.read` / `building.manage`.
+- `POST /manager/buildings/:id/import` — `building.import` (XLSX wizard).
+- `POST /manager/units`, `PATCH/DELETE /manager/units/:id` — `building.manage`.
+- `POST /manager/units/:id/ownerships` — `building.manage` (create / rotate owner).
+
+**Dues (zajedničke takse)**
+
+- `GET/POST /manager/dues/tariffs` — `dues.tariff.manage`.
+- `POST /manager/dues/generate` — `dues.generate`; idempotent.
+- `GET /manager/dues/charges`, `GET /manager/dues/:id` — `dues.read`.
+- `POST /manager/dues/:id/payments` — `dues.payment.record`.
+- `POST /manager/dues/:id/payments/:paymentId/reverse` — `dues.payment.reverse`.
+- `GET /manager/dues/:id/pdf` — uplatnica PDF with IPS QR + model-97.
+- `POST /manager/dues/bank-statement/import` — `dues.bankstatement.import`.
+- `POST /manager/dues/reminders` — `dues.reminder.send`.
+
+**Maintenance**
+
+- `GET/POST /manager/tickets`, `GET/PATCH /manager/tickets/:id` —
+  `ticket.read` / `ticket.manage`.
+- `POST /manager/tickets/:id/status` — `ticket.manage` / `ticket.close`.
+- `GET/POST /manager/suppliers`, `PATCH /manager/suppliers/:id` —
+  `ticket.manage`.
+
+**Assemblies**
+
+- `GET/POST /manager/assemblies`, `PATCH /manager/assemblies/:id` —
+  `assembly.read` / `assembly.manage`.
+- `POST /manager/assemblies/:id/open-voting`,
+  `POST /manager/assemblies/:id/close-voting` — `assembly.manage`.
+- `POST /manager/agenda/:id/vote` — `assembly.vote.cast` (manager
+  acting on behalf of owner; residents vote via the portal).
+- `GET /manager/assemblies/:id/minutes/pdf` — `assembly.minutes.generate`.
+
+**Notices**
+
+- `GET/POST /manager/notices`, `POST /manager/notices/:id/publish` —
+  `notice.read` / `notice.manage`.
+
+**Residents (portal invitations)**
+
+- `POST /manager/units/:id/residents` — `resident.manage`; creates
+  `ResidentAccess`, sends magic-link email valid 14 days.
+- `DELETE /manager/residents/:id?reason=…` — `resident.manage`;
+  revocation is immediate (next request fails cookie re-validation).
+
+**Reports & exports**
+
+- `GET /manager/reports/export?report=manager-{financial|debtors|expenses}&format=csv|xlsx`
+  — `report.read`.
+- `GET /manager/reports/godisnji/pdf?year=YYYY` — `report.read`;
+  one-page annual activity report for the chairman.
+
+**Handover from investor**
+
+- `POST /manager/handovers` — `project.handover_manager` (INVESTOR
+  side); creates a `BuildingHandoverRequest` and emails the manager.
+- `POST /manager/handovers/:id/accept` — `building.handover` (MANAGER);
+  one-transaction copy of structure + owners, **never JMBG**.
+- `POST /manager/handovers/:id/reject` — `building.handover`.
+- `POST /manager/handovers/:id/cancel` — `project.handover_manager`
+  (INVESTOR), only while `PENDING`.
+
+**Resident portal (`/stanar/*`, cookie-authenticated)**
+
+Not in `/api/v1`. The resident portal lives under `/stanar/*` route
+group and reads/writes through server actions in
+`src/app/(stanar)/stanar/**`. The one JSON surface is:
+
+- `GET /api/stanar/dues/:id/pdf` — uplatnica PDF for a resident's own
+  charge; re-verifies the `pd_resident` cookie against
+  `ResidentAccess` and the charge's unit before responding.
+
 ### Cron
 
 Guarded by `x-cron-secret` matching `CRON_SECRET`:
@@ -221,6 +302,9 @@ Guarded by `x-cron-secret` matching `CRON_SECRET`:
 - `POST /jobs/trial-expiration-notifications`
 - `POST /jobs/backup-verify`
 - `POST /jobs/purge-deleted-documents`
+- `POST /jobs/manager-generate-dues` — Faza 11; monthly 02:00 UTC on
+  day 1. Walks every active MANAGER org and generates `DuesCharge` rows
+  from the effective `DuesTariff` set. Idempotent.
 
 ### Health
 

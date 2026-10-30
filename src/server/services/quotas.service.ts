@@ -7,15 +7,24 @@ import { DomainErrors } from "@/lib/errors";
  *
  * An organization has one `OrganizationSubscription` pointing at a `SaaSPlan`.
  * The plan carries numeric caps (maxActiveProjects, maxUnits, maxMembers,
- * maxAgencyConnections). Any of those may be `null` meaning "unlimited".
+ * maxAgencyConnections, maxManagedBuildings, maxManagedUnits). Any of those
+ * may be `null` meaning "unlimited".
  *
  * Every service that creates a limited entity must call
- * `assertQuota(organizationId, "projects" | "units" | "members" | "agencies")`
+ * `assertQuota(organizationId, "projects" | "units" | "members" | "agencies" |
+ *   "managedBuildings" | "managedUnits")`
  * before persisting. When the quota is exceeded, a domain `QUOTA_EXCEEDED`
  * error is raised with a Serbian message.
  */
 
-export type QuotaResource = "projects" | "units" | "members" | "agencies";
+export type QuotaResource =
+  | "projects"
+  | "units"
+  | "members"
+  | "agencies"
+  // Faza 11 — upravnici zgrada
+  | "managedBuildings"
+  | "managedUnits";
 
 export interface QuotaSnapshot {
   plan: {
@@ -27,7 +36,15 @@ export interface QuotaSnapshot {
 }
 
 export async function loadQuotaSnapshot(organizationId: string): Promise<QuotaSnapshot> {
-  const [subscription, projectsCount, unitsCount, membersCount, agenciesCount] = await Promise.all([
+  const [
+    subscription,
+    projectsCount,
+    unitsCount,
+    membersCount,
+    agenciesCount,
+    managedBuildingsCount,
+    managedUnitsCount,
+  ] = await Promise.all([
     prisma.organizationSubscription.findUnique({
       where: { organizationId },
       include: { plan: true },
@@ -43,6 +60,8 @@ export async function loadQuotaSnapshot(organizationId: string): Promise<QuotaSn
         status: { in: ["INVITED", "ACTIVE"] },
       },
     }),
+    prisma.managedBuilding.count({ where: { organizationId, archivedAt: null } }),
+    prisma.managedUnit.count({ where: { organizationId, archivedAt: null } }),
   ]);
 
   const plan = subscription?.plan ?? null;
@@ -54,12 +73,16 @@ export async function loadQuotaSnapshot(organizationId: string): Promise<QuotaSn
       units: plan?.maxUnits ?? null,
       members: plan?.maxMembers ?? null,
       agencies: plan?.maxAgencyConnections ?? null,
+      managedBuildings: plan?.maxManagedBuildings ?? null,
+      managedUnits: plan?.maxManagedUnits ?? null,
     },
     usage: {
       projects: projectsCount,
       units: unitsCount,
       members: membersCount,
       agencies: agenciesCount,
+      managedBuildings: managedBuildingsCount,
+      managedUnits: managedUnitsCount,
     },
   };
 }
@@ -69,6 +92,8 @@ const RESOURCE_LABELS: Record<QuotaResource, string> = {
   units: "jedinica",
   members: "korisnika",
   agencies: "agencijskih konekcija",
+  managedBuildings: "zgrada u upravljanju",
+  managedUnits: "posebnih delova u upravljanju",
 };
 
 export async function assertQuota(

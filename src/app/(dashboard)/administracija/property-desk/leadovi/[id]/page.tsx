@@ -83,7 +83,7 @@ export default async function PropertyDeskLeadDetailPage({ params }: PageProps) 
             [] as Array<{
               id: string;
               name: string;
-              profile: { type: "INVESTOR" | "AGENCY" } | null;
+              profile: { type: "INVESTOR" | "AGENCY" | "MANAGER" } | null;
             }>,
           ),
     ),

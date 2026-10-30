@@ -78,7 +78,7 @@ interface Props {
   initialLastName: string | null;
   initialPhone: string | null;
   initialCity: string | null;
-  initialAudience: "INVESTOR" | "AGENCY" | "OTHER";
+  initialAudience: "INVESTOR" | "AGENCY" | "MANAGER" | "OTHER";
   // Classification
   initialPriority: Priority;
   initialTemperature: Temperature;
@@ -200,7 +200,9 @@ export function LeadDetailEditor(props: Props) {
   const [lastName, setLastName] = useState<string>(initialLastName ?? "");
   const [phone, setPhone] = useState<string>(initialPhone ?? "");
   const [city, setCity] = useState<string>(initialCity ?? "");
-  const [audience, setAudience] = useState<"INVESTOR" | "AGENCY" | "OTHER">(initialAudience);
+  const [audience, setAudience] = useState<"INVESTOR" | "AGENCY" | "MANAGER" | "OTHER">(
+    initialAudience,
+  );
   const [audienceLocked, setAudienceLocked] = useState(
     initialAudience === "INVESTOR" || initialAudience === "AGENCY",
   );

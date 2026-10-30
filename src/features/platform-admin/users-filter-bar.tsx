@@ -55,7 +55,7 @@ export function UsersFilterBar({
   organizations: Array<{
     id: string;
     name: string;
-    type: "INVESTOR" | "AGENCY" | null;
+    type: "INVESTOR" | "AGENCY" | "MANAGER" | null;
   }>;
 }) {
   const router = useRouter();

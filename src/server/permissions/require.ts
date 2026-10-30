@@ -12,6 +12,7 @@ import { checkPermissionForRole } from "@/server/services/permissions/role-overr
 import {
   isAgencyOrgSetupComplete,
   isInvestorOrgSetupComplete,
+  isManagerOrgSetupComplete,
 } from "@/server/services/organization-admin.service";
 import { getRestrictedModeAllowlist } from "@/server/permissions/restricted-mode";
 
@@ -121,6 +122,20 @@ export async function requirePermission(permission: PermissionString): Promise<A
       throw new AuthError(
         "FORBIDDEN",
         "Prvo popunite sva obavezna polja agencije (sve sem sajta) da biste koristili portal.",
+      );
+    }
+  }
+
+  if (
+    org.organizationType === "MANAGER" &&
+    permission !== "organization.read" &&
+    permission !== "organization.manage"
+  ) {
+    const setupDone = await isManagerOrgSetupComplete(org.organizationId);
+    if (!setupDone) {
+      throw new AuthError(
+        "FORBIDDEN",
+        "Prvo popunite osnovne podatke upravnika zgrada (naziv, PIB, adresu) da biste koristili modul.",
       );
     }
   }

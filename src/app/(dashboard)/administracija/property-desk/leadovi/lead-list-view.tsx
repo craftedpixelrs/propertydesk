@@ -568,7 +568,7 @@ function NewLeadDialog({ onClose, onCreated, teamMembers, canReassign }: NewLead
   const [lastName, setLastName] = useState("");
   const [phone, setPhone] = useState("");
   const [city, setCity] = useState("");
-  const [audience, setAudience] = useState<"INVESTOR" | "AGENCY" | "OTHER">("OTHER");
+  const [audience, setAudience] = useState<"INVESTOR" | "AGENCY" | "MANAGER" | "OTHER">("OTHER");
   const [source, setSource] = useState("manual");
   const [assigneeUserId, setAssigneeUserId] = useState<string>("");
   const [note, setNote] = useState("");

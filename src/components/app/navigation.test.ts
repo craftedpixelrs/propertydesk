@@ -36,7 +36,7 @@ function computeOrgPermissions(roleKey: keyof typeof organizationRoles): Set<Per
 }
 
 function keysFor(input: {
-  organizationType: "INVESTOR" | "AGENCY" | null;
+  organizationType: "INVESTOR" | "AGENCY" | "MANAGER" | null;
   permissions: Set<PermissionString>;
   isSuperAdmin: boolean;
   hasPropertyDeskAccess?: boolean;
@@ -195,6 +195,7 @@ describe("sidebar navigation matrix", () => {
           "documents",
           "reports",
           "settings",
+          "investor-handovers",
         ].sort(),
       );
     });

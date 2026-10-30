@@ -40,7 +40,7 @@ export interface UserContext {
   activeOrganization: {
     id: string;
     name: string;
-    type: "INVESTOR" | "AGENCY" | null;
+    type: "INVESTOR" | "AGENCY" | "MANAGER" | null;
     role: OrganizationRole | null;
     status: "TRIAL" | "ACTIVE" | "RESTRICTED" | "SUSPENDED" | "CLOSED" | null;
     activationPending: boolean;
@@ -117,15 +117,24 @@ export function requireTenantPage(
   ctx: UserContext | null,
   opts: {
     permission?: PermissionString;
-    orgType?: "INVESTOR" | "AGENCY";
+    /**
+     * Allowed organization type(s) for this page. Omit to allow any.
+     * A page that strictly belongs to one module (upravnici / investitor /
+     * agencija) should pass its single tip ovde. Pages koje se dele između
+     * tipova mogu da proslede niz, npr. `["INVESTOR","MANAGER"]`.
+     */
+    orgType?: "INVESTOR" | "AGENCY" | "MANAGER" | ReadonlyArray<"INVESTOR" | "AGENCY" | "MANAGER">;
   } = {},
 ): asserts ctx is UserContext & {
   activeOrganization: NonNullable<UserContext["activeOrganization"]>;
 } {
   if (!ctx) redirect("/sign-in");
   if (!ctx.activeOrganization) redirect("/dashboard");
-  if (opts.orgType && ctx.activeOrganization.type !== opts.orgType) {
-    redirect("/dashboard");
+  if (opts.orgType) {
+    const allowed = Array.isArray(opts.orgType) ? opts.orgType : [opts.orgType];
+    if (!allowed.includes(ctx.activeOrganization.type as "INVESTOR" | "AGENCY" | "MANAGER")) {
+      redirect("/dashboard");
+    }
   }
   if (opts.permission && !ctx.isSuperAdmin && !ctx.permissions.includes(opts.permission)) {
     redirect("/dashboard");

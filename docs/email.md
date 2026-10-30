@@ -73,6 +73,7 @@ Use your own inbox as the recipient. Do not point local at production
 | Agency connection invite (existing) | `agencyConnectionInvitationEmail()` in `email.ts` — link `/agencija/konekcije` |
 | Domain event templates (sr-Latn) | [`src/server/email/templates.ts`](../src/server/email/templates.ts) |
 | Billing templates | [`src/server/services/billing/emails/`](../src/server/services/billing/emails/) |
+| MANAGER templates (Faza 11) | `src/server/services/manager/*` — resident magic-link invite, notice broadcast, dues reminder, assembly invitation, handover request/accept/reject notifications |
 | Env schema | `EMAIL_*`, `RESEND_API_KEY`, `SMTP_*` in `src/lib/env.ts` |
 
 Callers use `sendEmail({ to, subject, text, html? })`. They must not

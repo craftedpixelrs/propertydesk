@@ -9,9 +9,13 @@ import { CookieSettingsButton } from "@/features/marketing/cookie-banner";
 import { createT } from "@/lib/i18n";
 import { resolveRequestLocale } from "@/lib/i18n/resolve-locale";
 
+// Everything except the demo CTA (lives in the header) and the "new
+// build sales" alias (its topic is already covered by the per-persona
+// pages). `za-upravnike` was added for Faza 11 — all remaining routes
+// fit the footer column, so we no longer trim the list.
 const SOLUTION_LINKS = LANDING_ROUTES.filter(
   (r) => r.slug !== "demo" && r.slug !== "prodaja-novogradnje",
-).slice(0, 6);
+);
 
 /**
  * Footer "Gradovi" column. We cap at 6 entries so the column visually

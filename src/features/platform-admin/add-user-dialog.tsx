@@ -27,7 +27,7 @@ type LeadScope = "OWN" | "OWN_AND_UNASSIGNED" | "TEAM" | "ALL";
 export interface OrgOption {
   id: string;
   name: string;
-  type: "INVESTOR" | "AGENCY" | null;
+  type: "INVESTOR" | "AGENCY" | "MANAGER" | null;
 }
 
 const ORG_ROLE_KEY: Record<string, TranslationKey> = {

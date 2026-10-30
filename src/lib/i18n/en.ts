@@ -4,6 +4,7 @@ import { crmEn } from "./namespaces/crm";
 import { dealsEn } from "./namespaces/deals";
 import { enumsEn } from "./namespaces/enums";
 import { inventoryEn } from "./namespaces/inventory";
+import { managerEn } from "./namespaces/manager";
 import { marketingEn } from "./namespaces/marketing";
 import { opsEn } from "./namespaces/ops";
 import { pagesEn } from "./namespaces/pages";
@@ -128,6 +129,19 @@ export const en: Dictionary = {
     search: "Search",
     groupOverview: "Overview",
     groupProperty: "Properties",
+    // Faza 11 — building managers
+    groupBuildings: "Buildings",
+    groupMaintenance: "Maintenance",
+    groupCommunity: "Community",
+    buildings: "Buildings",
+    dues: "Dues",
+    debtors: "Debtors",
+    tickets: "Tickets",
+    suppliers: "Contractors",
+    assemblies: "Assemblies",
+    notices: "Notices",
+    residents: "Residents",
+    handovers: "Handovers",
     groupCrm: "Buyers",
     groupDeals: "Deals",
     groupFinance: "Finance",
@@ -319,6 +333,7 @@ export const en: Dictionary = {
     types: {
       investor: "Developer",
       agency: "Agency",
+      manager: "Building manager",
     },
     switcherLabel: "Active organization",
     noOrgTitle: "No organization selected",
@@ -702,5 +717,6 @@ export const en: Dictionary = {
   ops: opsEn,
   admin: adminEn,
   marketing: marketingEn,
+  manager: managerEn,
   guides: guidesEn,
 };

@@ -16,7 +16,7 @@ import { useT } from "@/components/app/i18n-provider";
 import { cn } from "@/lib/utils";
 
 export interface BottomNavProps {
-  organizationType: "INVESTOR" | "AGENCY" | null;
+  organizationType: "INVESTOR" | "AGENCY" | "MANAGER" | null;
   permissions: PermissionString[];
   isSuperAdmin: boolean;
   hasPropertyDeskAccess: boolean;

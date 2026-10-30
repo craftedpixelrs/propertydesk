@@ -177,6 +177,13 @@ export async function changeSubscriptionPlan(
 
   const nextPlan = await prisma.saaSPlan.findUnique({ where: { id: newPlanId } });
   if (!nextPlan) throw DomainErrors.notFound("Plan");
+  // Faza 11 — plan.audience mora da se poklopi sa tipom organizacije.
+  // Legacy planovi (audience == null) i dalje važe svima.
+  if (nextPlan.audience && orgType?.type && nextPlan.audience !== orgType.type) {
+    throw DomainErrors.badRequest(
+      `Plan "${nextPlan.code}" je namenjen organizacijama tipa ${nextPlan.audience}. Ne može se primeniti na ovu organizaciju.`,
+    );
+  }
 
   const nextPrice = sub.customPrice ? sub.price : priceForCycle(nextPlan, sub.billingCycle);
 

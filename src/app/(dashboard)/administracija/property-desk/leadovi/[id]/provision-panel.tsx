@@ -9,12 +9,12 @@ import { apiClient, ApiClientError } from "@/lib/api-client";
 import { useT } from "@/components/app/i18n-provider";
 import type { TranslationKey } from "@/lib/i18n";
 
-type Audience = "INVESTOR" | "AGENCY" | "OTHER";
+type Audience = "INVESTOR" | "AGENCY" | "MANAGER" | "OTHER";
 
 export interface ProvisionOrgOption {
   id: string;
   name: string;
-  type: "INVESTOR" | "AGENCY" | null;
+  type: "INVESTOR" | "AGENCY" | "MANAGER" | null;
 }
 
 export interface ProvisionPlanOption {

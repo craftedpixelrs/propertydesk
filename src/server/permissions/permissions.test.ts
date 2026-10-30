@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   investorRoles,
   agencyRoles,
+  managerRoles,
   organizationRoles,
   platformRoles,
   rolesForOrgType,
@@ -155,9 +156,11 @@ describe("permission matrix", () => {
     );
   });
 
-  it("organizationRoles is the union of investor + agency", () => {
+  it("organizationRoles is the union of investor + agency + manager", () => {
     expect(Object.keys(organizationRoles).length).toBe(
-      Object.keys(investorRoles).length + Object.keys(agencyRoles).length,
+      Object.keys(investorRoles).length +
+        Object.keys(agencyRoles).length +
+        Object.keys(managerRoles).length,
     );
   });
 

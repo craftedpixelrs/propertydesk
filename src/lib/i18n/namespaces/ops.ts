@@ -292,6 +292,8 @@ export const opsSr = {
     agencies: "Agencije",
     agencyConnections: "Agencijske konekcije",
     investors: "Povezani investitori",
+    managedBuildings: "Zgrade u upravljanju",
+    managedUnits: "Posebni delovi",
   },
 
   org: {
@@ -765,6 +767,8 @@ export const opsEn: Leaves<typeof opsSr> = {
     agencies: "Agencies",
     agencyConnections: "Agency connections",
     investors: "Connected investors",
+    managedBuildings: "Managed buildings",
+    managedUnits: "Managed units",
   },
 
   org: {

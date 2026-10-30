@@ -7,6 +7,7 @@ import { loadUserContext } from "@/server/auth/context";
 import {
   isAgencyOrgSetupComplete,
   isInvestorOrgSetupComplete,
+  isManagerOrgSetupComplete,
   loadOrganizationProfile,
 } from "@/server/services/organization-admin.service";
 import { SidebarNav } from "@/components/app/sidebar-nav";
@@ -70,12 +71,16 @@ export default async function DashboardLayout({ children }: { children: ReactNod
     );
   } else if (
     !ctx.isSuperAdmin &&
-    (ctx.activeOrganization?.type === "INVESTOR" || ctx.activeOrganization?.type === "AGENCY")
+    (ctx.activeOrganization?.type === "INVESTOR" ||
+      ctx.activeOrganization?.type === "AGENCY" ||
+      ctx.activeOrganization?.type === "MANAGER")
   ) {
     const setupDone =
       ctx.activeOrganization.type === "INVESTOR"
         ? await isInvestorOrgSetupComplete(ctx.activeOrganization.id)
-        : await isAgencyOrgSetupComplete(ctx.activeOrganization.id);
+        : ctx.activeOrganization.type === "AGENCY"
+          ? await isAgencyOrgSetupComplete(ctx.activeOrganization.id)
+          : await isManagerOrgSetupComplete(ctx.activeOrganization.id);
     if (!setupDone) {
       lockNav = true;
       const canFill = ctx.permissions.includes("organization.manage");

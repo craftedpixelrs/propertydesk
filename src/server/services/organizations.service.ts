@@ -21,7 +21,7 @@ export interface OrganizationListItem {
   id: string;
   name: string;
   slug: string | null;
-  type: "INVESTOR" | "AGENCY" | null;
+  type: "INVESTOR" | "AGENCY" | "MANAGER" | null;
   status: "TRIAL" | "ACTIVE" | "RESTRICTED" | "SUSPENDED" | "CLOSED" | null;
   memberRole: string | null;
   createdAt: Date;

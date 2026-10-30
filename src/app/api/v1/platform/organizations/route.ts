@@ -45,7 +45,7 @@ export const GET = apiHandler({}, async ({ query, searchParams }) => {
     page: query.page,
     pageSize: query.pageSize,
     search: query.q,
-    type: (type as "INVESTOR" | "AGENCY" | null) ?? undefined,
+    type: (type as "INVESTOR" | "AGENCY" | "MANAGER" | null) ?? undefined,
     status: (status as "TRIAL" | "ACTIVE" | "SUSPENDED" | "CLOSED" | null) ?? undefined,
   });
 

@@ -22,7 +22,7 @@ export interface ClientUserContext {
   activeOrganization: {
     id: string;
     name: string;
-    type: "INVESTOR" | "AGENCY" | null;
+    type: "INVESTOR" | "AGENCY" | "MANAGER" | null;
     role: string | null;
     status: "TRIAL" | "ACTIVE" | "RESTRICTED" | "SUSPENDED" | "CLOSED" | null;
   } | null;

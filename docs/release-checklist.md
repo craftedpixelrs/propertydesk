@@ -84,6 +84,37 @@ Every one must exit 0.
       project, **no sign-in**. Cookie `pd_ref` is set. A later
       reservation on `/p/[token]` carries the code.
 
+### MANAGER module (Faza 11, run only when `OrganizationType.MANAGER` is in use)
+
+- [ ] Trigger `POST /api/v1/jobs/manager-generate-dues` with the cron
+      secret → 200. First run on day 1 of the month creates charges;
+      a second run returns 200 with 0 new rows (idempotent on
+      `(unitId, periodYear, periodMonth)`).
+- [ ] Sign in as a seeded manager owner
+      (`vlasnik@upravnikplus.test` / `PropertyDesk!2026`) and open
+      `/zgrade`, `/zgrade/zaduzenja`, `/zgrade/kvarovi`,
+      `/zgrade/skupstine`. Each list loads.
+- [ ] Download one uplatnica PDF
+      (`GET /api/v1/manager/dues/<id>/pdf`) and verify the IPS QR
+      block + 14-digit model-97 reference print on the slip.
+- [ ] Send a resident invitation from `/zgrade/stanari` and open the
+      magic-link URL from the email in an incognito window. Cookie
+      `pd_resident` is set; `/stanar/pocetna` lists only that
+      resident's units. `DELETE /api/v1/manager/residents/<id>?reason=…`
+      immediately revokes access (next refresh falls back to the
+      sign-in page).
+- [ ] From an investor seed account, open `/projekti/[id]` for a
+      project with at least one `PAID` sale. Click **Predaj
+      upravniku**, pick the manager org, submit. Switch to the manager
+      account and open `/zgrade/predaje/[id]` → **Prihvati**. The
+      transaction creates `ManagedBuilding`, `ManagedUnit`,
+      `BuildingPerson`, `UnitOwnership` rows. Confirm
+      `BuildingPerson` has **no** JMBG / `identityNumber` / `taxId`
+      (ZZPL — see [`docs/obrada-podataka.md`](./obrada-podataka.md)).
+- [ ] Download `GET /api/v1/manager/reports/godisnji/pdf?year=YYYY`
+      and `GET /api/v1/manager/reports/export?report=manager-financial&format=xlsx`
+      — both return a non-empty body.
+
 ## Communication
 
 - [ ] Release note posted in the ops channel with the tag and the top

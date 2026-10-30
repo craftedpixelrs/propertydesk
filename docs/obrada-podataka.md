@@ -23,6 +23,35 @@ JMBG, PIB, adresa), KYC dokumenta, rezervacije, ugovori, uplate,
 provizije. Podaci kupaca ostaju u organizaciji klijenta. Druga
 organizacija ih ne vidi.
 
+Kod MANAGER tenanta (upravnici zgrada, Faza 11) dodatno:
+`ManagedBuilding`, `ManagedUnit`, `BuildingPerson` (ime, email,
+telefon, adresa — **bez JMBG, broja lične karte i PIB-a**),
+`UnitOwnership`, `DuesCharge` / `DuesPayment`, `MaintenanceTicket`,
+`BuildingNotice`, `Assembly` + `AssemblyVote`, `ResidentAccess`
+(magic-link pristup stanaru). Stanari **nisu** nalozi u sistemu
+(nema `User` reda) — pristup se čuva kao HMAC-potpisan cookie
+`pd_resident` (ključ `BETTER_AUTH_SECRET`); povlačenje pristupa je
+trenutno (prvi sledeći zahtev padne na proveri potpisa / statusa).
+
+## Minimizacija pri predaji zgrade (investitor → upravnik)
+
+Kada investitor preda zgradu upravniku
+(`BuildingHandoverRequest` → accept), kopira se samo ono što
+upravniku treba za rad: struktura zgrade (ulazi, posebni delovi),
+imena vlasnika sa `email`, `phone`, `address`. **JMBG, broj lične
+karte (`identityNumber`) i PIB (`taxId`) iz `Buyer` reda se NIKAD
+ne kopiraju** u `BuildingPerson`. Pravilo je ugrađeno u
+`src/server/services/manager/handover.service.ts` (whitelist polja);
+dokumentovano u [`docs/upravnici.md`](./upravnici.md). Investitor
+zadržava originalni `Buyer` red za svoje računovodstvo; upravnik
+ima zasebnu, mršaviju kopiju za zaduženja i skupštine.
+
+Posledica za ugovor o obradi: za MANAGER tenanta ne upisujete JMBG
+u šablon, osim ako sam upravnik od stanara prikupi JMBG za
+sopstvenu svrhu (npr. ugovor o korišćenju) — u tom slučaju je
+rukovalac i dalje upravnik, a PropertyDesk pruža samo tehničku
+infrastrukturu i nema automatizovan unos JMBG-a za `BuildingPerson`.
+
 ## Svrha i rok
 
 Izvršenje pretplate. Dok traje nalog, plus 30 dana za izvoz posle

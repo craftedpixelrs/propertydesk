@@ -7,6 +7,7 @@ import { appOrigin } from "@/server/http/app-origin";
 import { DomainErrors } from "@/lib/errors";
 import { recordAudit } from "@/server/audit/audit";
 import { toDecimal } from "@/lib/formatters/money";
+import { formatModel97, generateModel97Reference } from "@/lib/payments/model97";
 import { paymentInstructionLines } from "@/lib/reservations/deposit-payee";
 import { serbianIpsQrProvider } from "@/server/services/billing/ips-qr";
 import { storage } from "@/server/storage";
@@ -94,39 +95,11 @@ function stripPhone(v: string): string {
 }
 
 /**
- * Generate a 12-digit numeric `poziv-na-broj` for the deposit
- * reference. Includes a mod-97 control-digit prefix so the resulting
- * IPS `RO:97 <ref>` field is well-formed. Collisions with existing
- * `payment.referenceNumber` values are astronomically unlikely at 12
- * digits, but the caller stores it separately anyway.
+ * Reservation deposit references delegate to the shared model-97 helper so
+ * MANAGER dues invoices use the exact same `97 CC-XXXXXXXXXXXX` format and
+ * check-digit algorithm. See [src/lib/payments/model97.ts].
  */
-function generateIpsReference(): { compact: string; model97: string } {
-  const now = Date.now(); // 13-digit epoch ms; drop leading char
-  const base = String(now).slice(-10);
-  const salt = Math.floor(Math.random() * 100)
-    .toString()
-    .padStart(2, "0");
-  const twelve = `${base}${salt}`; // exactly 12 digits
-  // Model 97 check digits: `98 - (num mod 97)`. Do the whole thing in
-  // BigInt (JS refuses to mix BigInt and Number in a single expression)
-  // then coerce the small final integer to Number for string formatting.
-  const remainder = BigInt(twelve) % 97n;
-  const check = Number(98n - remainder);
-  const checkStr = check.toString().padStart(2, "0");
-  return {
-    compact: twelve,
-    model97: formatIpsReference(twelve),
-  };
-}
-
-function formatIpsReference(compact: string): string {
-  if (!/^\d{12}$/.test(compact)) return compact;
-  const remainder = BigInt(compact) % 97n;
-  const check = Number(98n - remainder)
-    .toString()
-    .padStart(2, "0");
-  return `97 ${check}-${compact}`;
-}
+const generateIpsReference = generateModel97Reference;
 
 async function resolveOfferedUnit(token: string) {
   const link = await prisma.shareLink.findUnique({ where: { token } });
@@ -520,7 +493,7 @@ export async function confirmReservationRequest(input: {
     referralCode: req.referralCode,
   });
   const payment = toPaymentInstructions(payee, {
-    reference: formatIpsReference(req.ipsReference),
+    reference: formatModel97(req.ipsReference),
     amount: req.depositAmount.toFixed(2),
     currency: req.currency,
   });

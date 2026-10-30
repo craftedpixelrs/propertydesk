@@ -37,7 +37,7 @@ interface Invitation {
 }
 
 interface MembersManagerProps {
-  organizationType: "INVESTOR" | "AGENCY" | null;
+  organizationType: "INVESTOR" | "AGENCY" | "MANAGER" | null;
   members: Member[];
   invitations: Invitation[];
   roleGuide: RoleCapabilityGuide | null;

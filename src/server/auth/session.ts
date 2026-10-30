@@ -30,7 +30,7 @@ export interface ActiveOrganizationContext {
   organizationId: string;
   organizationRole: OrganizationRole;
   organizationName: string;
-  organizationType: "INVESTOR" | "AGENCY" | null;
+  organizationType: "INVESTOR" | "AGENCY" | "MANAGER" | null;
   organizationStatus: OrganizationStatusValue | null;
   /** Members have no access until this instant. Super-admin is exempt. */
   activationPending: boolean;
@@ -145,7 +145,11 @@ export async function getActiveOrganization(
   let status = (membership.organization.profile?.status ?? null) as OrganizationStatusValue | null;
 
   const sub = membership.organization.subscription;
-  if (membership.organization.profile?.type === "AGENCY") {
+  const orgType = membership.organization.profile?.type;
+  // Agencije koriste connection-based pristup — nema klasičnog trial/expiry.
+  // Investitori i upravnici imaju pretplate; status se sinhronizuje iz
+  // `syncExpiredAccess` kad trial / plaćeni period istekne.
+  if (orgType === "AGENCY") {
     const synced = await syncExpiredAccess(membership.organizationId).catch(() => status);
     status = synced ?? status;
   } else if (sub && expiryReasonForSubscription(sub, new Date())) {
@@ -171,8 +175,8 @@ export async function getActiveOrganization(
     organizationName: membership.organization.name,
     organizationType: membership.organization.profile?.type ?? null,
     organizationStatus: status,
-    activationPending:
-      membership.organization.profile?.type !== "AGENCY" && isBeforeActivation(sub?.trialStartsAt),
+    // Agencija nema aktivaciju; investitori i upravnici imaju trialStartsAt.
+    activationPending: orgType !== "AGENCY" && isBeforeActivation(sub?.trialStartsAt),
     activatesAt: sub?.trialStartsAt?.toISOString() ?? null,
   };
 }

@@ -15,6 +15,7 @@ import { PhotoGallery, type PhotoItem } from "@/features/documents/photo-gallery
 import { ProjectMap } from "@/features/projects/project-map-loader";
 import { CloneProjectDialog } from "@/features/projects/clone-project-dialog";
 import { EditProjectDrawer } from "@/features/projects/edit-project-drawer";
+import { RequestHandoverDialog } from "@/features/manager/request-handover-dialog";
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -126,6 +127,9 @@ export default async function ProjectDetail({ params }: Props) {
             <Button asChild>
               <Link href={`/projekti/${project.id}/jedinice/nova`}>{t("units.newUnit")}</Link>
             </Button>
+          </PermissionGuard>
+          <PermissionGuard permission="project.handover_manager">
+            <RequestHandoverDialog projectId={project.id} />
           </PermissionGuard>
         </div>
       </div>

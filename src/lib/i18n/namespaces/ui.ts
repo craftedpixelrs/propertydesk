@@ -73,6 +73,12 @@ export const uiSr = {
     noRegistrations: "Nema prijava",
     noRegistrationsHint: "Prijavite kupca iz ponude.",
     myReservations: "Moje rezervacije",
+    // Faza 11 — placeholder za dashboard upravnika zgrada (puna verzija dolazi u Fazi 9).
+    manager: {
+      subtitle: "Pregled stambenih zajednica koje vodite.",
+      placeholder:
+        "Pun pregled finansija, dužnika i narednih skupština stiže uskoro. Do tada koristite sekcije u navigaciji.",
+    },
     workQueue: "Danas na redu",
     workKind: {
       installment: "Rata",
@@ -155,6 +161,11 @@ export const uiEn: Leaves<typeof uiSr> = {
     noRegistrations: "No registrations",
     noRegistrationsHint: "Register a buyer from the offer.",
     myReservations: "My reservations",
+    manager: {
+      subtitle: "Overview of the housing associations you manage.",
+      placeholder:
+        "The full dashboard with finance, overdue dues and upcoming assemblies is coming soon. Use the sidebar in the meantime.",
+    },
     workQueue: "Due today",
     workKind: {
       installment: "Installment",

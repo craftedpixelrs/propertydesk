@@ -27,7 +27,11 @@ export const POST = apiHandler(
   { paramsSchema, bodySchema: createBody },
   async ({ params, body }) => {
     const ctx = await requirePermission("inventory.read");
-    const orgType = ctx.organization.organizationType ?? "INVESTOR";
+    // Share-link servis ne radi za MANAGER (upravnici nemaju `Unit`
+    // objekte, već `ManagedUnit`). Fallback na INVESTOR je bezbedan jer
+    // `assertUnitVisibleToOrg` i dalje proverava `organizationId`.
+    const orgType: "INVESTOR" | "AGENCY" =
+      ctx.organization.organizationType === "AGENCY" ? "AGENCY" : "INVESTOR";
     const link = await createShareLink({
       organizationId: ctx.organization.organizationId,
       organizationType: orgType,

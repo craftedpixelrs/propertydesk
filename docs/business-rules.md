@@ -244,3 +244,59 @@ Domain events emit notifications through the service layer. The service
 layer never calls React directly. Users see them in the header bell +
 `/obavestenja`; email is dispatched via the configured provider (see
 [`docs/email.md`](./email.md)).
+
+## Building managers (Faza 11 — `OrganizationType.MANAGER`)
+
+A separate tenant type for professional building managers. Full module
+runbook: [`docs/upravnici.md`](./upravnici.md). Rules binding across the
+module:
+
+- **Tenant isolation.** Every manager-owned table (`ManagedBuilding`,
+  `ManagedUnit`, `BuildingPerson`, `UnitOwnership`, `DuesCharge`,
+  `MaintenanceTicket`, `Assembly`, `BuildingNotice`, `ResidentAccess`)
+  carries `organizationId`. A manager never sees investor inventory or
+  agency connections. The investor module sees only
+  `BuildingHandoverRequest` rows it created.
+- **Dues generation is idempotent.** `generateDuesForBuilding` and the
+  cron `manager-generate-dues` write at most one `DuesCharge` per
+  `(unitId, periodYear, periodMonth)` (unique index). Rerunning the job
+  skips existing rows — safe to retry after a partial outage.
+- **Model-97 reference.** Every `DuesCharge.reference` is derived
+  deterministically from the charge `cuid` via `deterministicModel97`
+  (`src/lib/payments/model97.ts`). A reprinted uplatnica carries the
+  **same** reference the bank already knows.
+- **Resident portal is NOT Better Auth.** Residents authenticate with a
+  signed cookie `pd_resident = ${accessId}.${hmac}` where `hmac` is
+  `HMAC-SHA256(BETTER_AUTH_SECRET, accessId)`. Every request re-reads
+  `ResidentAccess` from the DB so revocation is instant. Residents do
+  not consume manager org seats.
+- **Assembly voting.** One vote per `(agendaItemId, unitId)`. Weight =
+  `ManagedUnit.participationShare`. Majorities:
+  - `SIMPLE` — more than 50 % of cast votes
+  - `ABSOLUTE` — more than 50 % of total weight
+  - `TWO_THIRDS` — ≥ ⅔ of total weight
+  Vote is upsert (change allowed while voting is open). `closeVoting`
+  computes and freezes `AgendaItem.resultSummary`.
+- **Maintenance tickets** carry a strict state machine
+  (`OPEN → TRIAGED → IN_PROGRESS → AWAITING_PARTS → COMPLETED / CANCELED`).
+  `COMPLETED` with `actualCost` set automatically writes a
+  `BuildingExpense` on the chosen `fund` (`CURRENT_MAINTENANCE` /
+  `INVESTMENT_FUND` / `OTHER`). The sum per fund powers the
+  `/izvestaji/upravljanje/troskovi` report.
+- **Handover from investor to manager** (`BuildingHandoverRequest`) runs
+  as a single transaction. On accept, structure (`Unit` → `ManagedUnit`,
+  with `sourceUnitId`) and owners (`Buyer` → `BuildingPerson` +
+  `UnitOwnership`) are **copied, not shared**. Only sales in `PAID` /
+  `HANDED_OVER` seed ownership.
+- **JMBG, `identityNumber`, `taxId` are NEVER copied on handover** (ZZPL
+  minimization). The manager receives only the fields they need for
+  dues and assemblies: name, email, phone, address. See
+  [`docs/obrada-podataka.md`](./obrada-podataka.md).
+
+## Investor ↔ manager hinge
+
+Only one permission crosses the investor/manager boundary:
+`project.handover_manager` — allows `INVESTOR_OWNER` / `INVESTOR_ADMIN`
+to start a `BuildingHandoverRequest`. It grants **no access** to any
+`building.*` / `dues.*` / `ticket.*` / `assembly.*` / `notice.*` /
+`resident.*` resource. Managers never gain any investor permission.

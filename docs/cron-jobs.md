@@ -34,6 +34,7 @@ Contract:
 | `POST /api/v1/jobs/trial-expiration-notifications` | `0 7 * * *` | Notifies organization owners about upcoming trial expirations (14/7/3/1 days ahead). Also runs the same expiry pass as `expire-subscriptions`. |
 | `POST /api/v1/jobs/backup-verify` | `30 4 * * 0` | Downloads the latest `pg_dump` from configured storage, runs `pg_restore --list` to validate integrity, writes a `SystemHealthCheck` row, and emails `BACKUP_ALERT_EMAILS` when the two most recent runs are `FAIL`. See [`docs/monitoring.md`](./monitoring.md#backup-verifier). |
 | `POST /api/v1/jobs/purge-deleted-documents` | Daily 04:00 | Deletes S3/local objects for documents soft-deleted in the app more than 45 days ago, then sets `Document.storagePurgedAt`. |
+| `POST /api/v1/jobs/manager-generate-dues` | `0 2 1 * *` (02:00 UTC, 1st of month) | **Faza 11.** Walks every active MANAGER org and generates `DuesCharge` rows for every active `ManagedUnit` × every effective `DuesTariff`. Idempotent via unique `(unitId, periodYear, periodMonth)` — existing charges are skipped. Rerunnable after a partial outage. See [`docs/upravnici.md`](./upravnici.md#finansije). |
 
 ## Example crontab
 
@@ -54,6 +55,7 @@ Contract:
 45   4 * * *  curl -fsS -X POST -H "x-cron-secret: $CRON_SECRET" https://my.propertydesk.app/api/v1/jobs/billing-extend-subscriptions >/dev/null
 45   * * * *  curl -fsS -X POST -H "x-cron-secret: $CRON_SECRET" https://my.propertydesk.app/api/v1/jobs/billing-sync-sef >/dev/null
 0    5 * * *  curl -fsS -X POST -H "x-cron-secret: $CRON_SECRET" https://my.propertydesk.app/api/v1/jobs/billing-match-payments >/dev/null
+0    2 1 * *  curl -fsS -X POST -H "x-cron-secret: $CRON_SECRET" https://my.propertydesk.app/api/v1/jobs/manager-generate-dues >/dev/null
 ```
 
 `billing-sync-sef` only retries rows already marked `FAILED`. While

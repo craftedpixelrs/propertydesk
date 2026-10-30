@@ -19,7 +19,7 @@ import { cn } from "@/lib/utils";
  * touch target (≥ 56 px) so it works well on phones.
  */
 export interface MoreGridProps {
-  organizationType: "INVESTOR" | "AGENCY" | null;
+  organizationType: "INVESTOR" | "AGENCY" | "MANAGER" | null;
   permissions: PermissionString[];
   isSuperAdmin: boolean;
   hasPropertyDeskAccess: boolean;

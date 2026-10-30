@@ -3,6 +3,7 @@ import { crmSr } from "./namespaces/crm";
 import { dealsSr } from "./namespaces/deals";
 import { enumsSr } from "./namespaces/enums";
 import { inventorySr } from "./namespaces/inventory";
+import { managerSr } from "./namespaces/manager";
 import { marketingSr } from "./namespaces/marketing";
 import { opsSr } from "./namespaces/ops";
 import { pagesSr } from "./namespaces/pages";
@@ -138,6 +139,19 @@ export const srLatn = {
     groupFinance: "Finansije",
     groupNetwork: "Partneri",
     groupLibrary: "Ostalo",
+    // Faza 11 — upravnici zgrada
+    groupBuildings: "Zgrade",
+    groupMaintenance: "Održavanje",
+    groupCommunity: "Zajednica",
+    buildings: "Zgrade",
+    dues: "Zaduženja",
+    debtors: "Dužnici",
+    tickets: "Kvarovi",
+    suppliers: "Izvođači",
+    assemblies: "Skupštine",
+    notices: "Obaveštenja",
+    residents: "Stanari",
+    handovers: "Predaje",
   },
 
   auth: {
@@ -324,6 +338,7 @@ export const srLatn = {
     types: {
       investor: "Investitor",
       agency: "Agencija",
+      manager: "Upravnik zgrada",
     },
     switcherLabel: "Aktivna organizacija",
     noOrgTitle: "Nemate izabranu organizaciju",
@@ -708,6 +723,7 @@ export const srLatn = {
   ops: opsSr,
   admin: adminSr,
   marketing: marketingSr,
+  manager: managerSr,
   guides: guidesSr,
 } as const;
 

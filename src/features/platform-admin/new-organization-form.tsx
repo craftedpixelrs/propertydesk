@@ -20,7 +20,7 @@ interface PlanOption {
 export interface OrganizationFormValues {
   name: string;
   slug: string;
-  type: "INVESTOR" | "AGENCY";
+  type: "INVESTOR" | "AGENCY" | "MANAGER";
   legalName: string;
   displayName: string;
   registrationNumber: string;
@@ -72,9 +72,17 @@ export function NewOrganizationForm({
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({});
-  const [orgType, setOrgType] = useState<"INVESTOR" | "AGENCY">(initialValues?.type ?? "INVESTOR");
+  const [orgType, setOrgType] = useState<"INVESTOR" | "AGENCY" | "MANAGER">(
+    initialValues?.type ?? "INVESTOR",
+  );
   const isAgency = orgType === "AGENCY";
-  const investorPlans = plans.filter((p) => p.code !== AGENCY_PARTNER_PLAN_CODE);
+  const isManager = orgType === "MANAGER";
+  // Investor plans + manager plans are picked separately; agency uses
+  // partner plan. Filter so each tenant type sees only matching plans.
+  const investorPlans = plans.filter(
+    (p) => p.code !== AGENCY_PARTNER_PLAN_CODE && !p.code.startsWith("upravnik-"),
+  );
+  const managerPlans = plans.filter((p) => p.code.startsWith("upravnik-"));
   const [agencyStatus, setAgencyStatus] = useState<"ACTIVE" | "SUSPENDED" | "CLOSED">(
     initialValues?.status === "SUSPENDED" || initialValues?.status === "CLOSED"
       ? initialValues.status
@@ -204,11 +212,14 @@ export function NewOrganizationForm({
             required
             value={orgType}
             disabled={isEdit && initialValues?.type === "AGENCY"}
-            onChange={(event) => setOrgType(event.target.value as "INVESTOR" | "AGENCY")}
+            onChange={(event) =>
+              setOrgType(event.target.value as "INVESTOR" | "AGENCY" | "MANAGER")
+            }
             className="mt-1 h-11 w-full rounded-md border border-[var(--color-border-strong)] bg-[var(--color-surface)] px-3 text-sm"
           >
             <option value="INVESTOR">{t("organization.types.investor")}</option>
             <option value="AGENCY">{t("organization.types.agency")}</option>
+            <option value="MANAGER">{t("organization.types.manager")}</option>
           </select>
           <FieldError messages={fieldErrors.type} />
         </div>
@@ -259,10 +270,13 @@ export function NewOrganizationForm({
                 id="planCode"
                 name="planCode"
                 required
-                defaultValue={initialValues?.planCode ?? investorPlans[0]?.code}
+                defaultValue={
+                  initialValues?.planCode ??
+                  (isManager ? managerPlans[0]?.code : investorPlans[0]?.code)
+                }
                 className="mt-1 h-11 w-full rounded-md border border-[var(--color-border-strong)] bg-[var(--color-surface)] px-3 text-sm"
               >
-                {investorPlans.map((p) => (
+                {(isManager ? managerPlans : investorPlans).map((p) => (
                   <option key={p.code} value={p.code}>
                     {p.name}
                   </option>

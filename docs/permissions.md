@@ -41,6 +41,17 @@ Do **not** hard-code role names in feature code — always ask
 | `AGENCY_ADMIN` | Agency org | Members and export, commission statement. No email-template edit. |
 | `AGENCY_AGENT` | Agency org | Buyer registration, reservation create, commission statement. |
 | `AGENCY_VIEWER` | Agency org | Read-only plus commission statement. |
+| `MANAGER_OWNER` | Manager org (Faza 11) | Full `building.*`, `dues.*`, `ticket.*`, `assembly.*`, `notice.*`, `resident.*`, plus billing. |
+| `MANAGER_ADMIN` | Manager org | Same as owner minus `billing.*`. |
+| `MANAGER_ACCOUNTANT` | Manager org | Financial work: dues, payments, bank-statement import, reminders, writeoff, reports. |
+| `MANAGER_TECHNICIAN` | Manager org | Operational work: buildings, units, owners, tickets, suppliers, assemblies, notices. |
+| `MANAGER_VIEWER` | Manager org | Read-only plus report viewing. |
+
+**Investor/manager hinge:** `project.handover_manager` is the only
+resource shared across the investor/manager boundary. It allows an
+`INVESTOR_OWNER`/`INVESTOR_ADMIN` to initiate a `BuildingHandoverRequest`
+but grants no access to any `building.*`/`dues.*`/etc. resources. See
+`docs/upravnici.md` for the full manager module description.
 
 ## Role editor (three layers)
 

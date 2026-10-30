@@ -22,6 +22,7 @@ import { planAllowsWhiteLabel, withLogoCacheBust } from "@/lib/billing/white-lab
 import {
   isAgencyProfileComplete,
   isInvestorProfileComplete,
+  isManagerProfileComplete,
   normalizeWebsite,
 } from "@/server/services/organization-profile-completeness";
 
@@ -43,7 +44,7 @@ interface OrganizationProfileFormProps {
     trialEndsAt: Date | null;
   } | null;
   quota: QuotaSnapshot;
-  orgType: "INVESTOR" | "AGENCY" | null;
+  orgType: "INVESTOR" | "AGENCY" | "MANAGER" | null;
 }
 
 function FieldLabel({
@@ -82,10 +83,12 @@ export function OrganizationProfileForm({
   const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({});
   const investorRequired = orgType === "INVESTOR";
   const agencyRequired = orgType === "AGENCY";
-  const firmRequired = investorRequired || agencyRequired;
+  const managerRequired = orgType === "MANAGER";
+  const firmRequired = investorRequired || agencyRequired || managerRequired;
   const setupIncomplete =
     (investorRequired && !isInvestorProfileComplete(profile)) ||
-    (agencyRequired && !isAgencyProfileComplete(profile));
+    (agencyRequired && !isAgencyProfileComplete(profile)) ||
+    (managerRequired && !isManagerProfileComplete(profile));
 
   function subscriptionStatusLabel(status: string) {
     const key = `billing.subscriptionStatus.${status}` as TranslationKey;
@@ -147,6 +150,24 @@ export function OrganizationProfileForm({
             label={t("ops.quota.investors")}
             value={`${quota.usage.agencies}`}
             icon={<Handshake className="size-5" />}
+          />
+        </div>
+      ) : orgType === "MANAGER" ? (
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <StatCard
+            label={t("ops.quota.managedBuildings")}
+            value={`${quota.usage.managedBuildings ?? 0}${quota.limits.managedBuildings != null ? " / " + quota.limits.managedBuildings : ""}`}
+            icon={<Building2 className="size-5" />}
+          />
+          <StatCard
+            label={t("ops.quota.managedUnits")}
+            value={`${quota.usage.managedUnits ?? 0}${quota.limits.managedUnits != null ? " / " + quota.limits.managedUnits : ""}`}
+            icon={<Package className="size-5" />}
+          />
+          <StatCard
+            label={t("ops.quota.members")}
+            value={`${quota.usage.members}${quota.limits.members != null ? " / " + quota.limits.members : ""}`}
+            icon={<Users className="size-5" />}
           />
         </div>
       ) : (
@@ -489,7 +510,7 @@ function OrganizationLogoField({
   logoLightUrl: string | null;
   updatedAt: Date | null;
   planCode: string | null;
-  orgType: "INVESTOR" | "AGENCY" | null;
+  orgType: "INVESTOR" | "AGENCY" | "MANAGER" | null;
 }) {
   const t = useT();
   const whiteLabel = planAllowsWhiteLabel(planCode);

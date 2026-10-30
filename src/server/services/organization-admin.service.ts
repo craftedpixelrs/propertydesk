@@ -17,7 +17,10 @@ import {
   INVESTOR_PROFILE_FIELD_LABEL,
   isAgencyProfileComplete,
   isInvestorProfileComplete,
+  isManagerProfileComplete,
+  MANAGER_PROFILE_FIELD_LABEL,
   missingInvestorProfileFields,
+  missingManagerProfileFields,
   normalizeWebsite,
 } from "@/server/services/organization-profile-completeness";
 import { activatePendingAgencyConnections } from "@/server/services/agencies/connection.service";
@@ -101,6 +104,39 @@ export async function updateOrganizationProfile(
       throw DomainErrors.validation(
         `Popunite sva obavezna polja: ${missing
           .map((f) => INVESTOR_PROFILE_FIELD_LABEL[f])
+          .join(", ")}.`,
+        fieldErrors,
+      );
+    }
+  }
+
+  if (previous.type === "MANAGER") {
+    // Upravnici imaju isti obim obaveznih polja kao investitor (naziv, PIB,
+    // matični broj, adresa, kontakt). Validaciju držimo ovde da bi se u
+    // Settings formi prikazala kao strukturisana greška po poljima.
+    const merged = {
+      displayName: input.displayName ?? previous.displayName,
+      legalName: input.legalName ?? previous.legalName,
+      taxNumber: input.taxNumber === undefined ? previous.taxNumber : input.taxNumber,
+      registrationNumber:
+        input.registrationNumber === undefined
+          ? previous.registrationNumber
+          : input.registrationNumber,
+      address: input.address === undefined ? previous.address : input.address,
+      city: input.city === undefined ? previous.city : input.city,
+      postalCode: input.postalCode === undefined ? previous.postalCode : input.postalCode,
+      phone: input.phone === undefined ? previous.phone : input.phone,
+      email: input.email === undefined ? previous.email : input.email,
+    };
+    const missing = missingManagerProfileFields(merged);
+    if (missing.length > 0) {
+      const fieldErrors: Record<string, string[]> = {};
+      for (const field of missing) {
+        fieldErrors[field] = ["Obavezno za upravnika zgrada."];
+      }
+      throw DomainErrors.validation(
+        `Popunite sva obavezna polja upravnika: ${missing
+          .map((f) => MANAGER_PROFILE_FIELD_LABEL[f])
           .join(", ")}.`,
         fieldErrors,
       );
@@ -196,6 +232,26 @@ export async function isAgencyOrgSetupComplete(organizationId: string): Promise<
   });
   if (!profile || profile.type !== "AGENCY") return true;
   return isAgencyProfileComplete(profile);
+}
+
+export async function isManagerOrgSetupComplete(organizationId: string): Promise<boolean> {
+  const profile = await prisma.organizationProfile.findUnique({
+    where: { organizationId },
+    select: {
+      type: true,
+      displayName: true,
+      legalName: true,
+      taxNumber: true,
+      registrationNumber: true,
+      address: true,
+      city: true,
+      postalCode: true,
+      phone: true,
+      email: true,
+    },
+  });
+  if (!profile || profile.type !== "MANAGER") return true;
+  return isManagerProfileComplete(profile);
 }
 
 // -----------------------------------------------------------------------------
@@ -476,7 +532,7 @@ export interface PublicInvitation {
   role: string;
   status: string;
   expiresAt: Date;
-  organizationType: "INVESTOR" | "AGENCY" | null;
+  organizationType: "INVESTOR" | "AGENCY" | "MANAGER" | null;
   requiresAgencyProfile: boolean;
   investorName: string | null;
 }

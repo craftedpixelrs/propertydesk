@@ -29,6 +29,7 @@ const STATUS_KEY: Record<string, TranslationKey> = {
 const TYPE_KEY: Record<string, TranslationKey> = {
   INVESTOR: "organization.types.investor",
   AGENCY: "organization.types.agency",
+  MANAGER: "organization.types.manager",
 };
 
 export default async function PlatformOrganizationsPage({ searchParams }: PageProps) {
@@ -41,7 +42,7 @@ export default async function PlatformOrganizationsPage({ searchParams }: PagePr
     page,
     pageSize: 25,
     search: params.q,
-    type: (params.type as "INVESTOR" | "AGENCY" | undefined) ?? undefined,
+    type: (params.type as "INVESTOR" | "AGENCY" | "MANAGER" | undefined) ?? undefined,
     status:
       (params.status as "TRIAL" | "ACTIVE" | "RESTRICTED" | "SUSPENDED" | "CLOSED" | undefined) ??
       undefined,
@@ -74,6 +75,7 @@ export default async function PlatformOrganizationsPage({ searchParams }: PagePr
           <option value="">{t("admin.allTypes")}</option>
           <option value="INVESTOR">{t("admin.investors")}</option>
           <option value="AGENCY">{t("admin.agencies")}</option>
+          <option value="MANAGER">{t("admin.managers")}</option>
         </select>
         <select
           name="status"

@@ -144,6 +144,106 @@ The 2026-08 visual/sales layer expansion added:
   `BACKUP_VERIFY` / `DB_MIGRATE_STATUS`. Enum
   `SystemHealthCheckStatus`: `OK` / `FAIL`.
 
+## Phase 11 migrations (MANAGER module — upravnici zgrada)
+
+All new models carry `organizationId` and FK to it with
+`onDelete: Cascade`. Full module runbook:
+[`docs/upravnici.md`](./upravnici.md).
+
+**Core registry**
+
+- `managed_building` — `(organizationId, code)` unique; `status`
+  (`ACTIVE` / `ARCHIVED`), `floors`, `construction_year`,
+  `cadastre_number`.
+- `building_entrance_section` — subdivision inside a building
+  (entrance / stairwell).
+- `managed_unit` — a flat / garage / storage. `(organizationId,
+  buildingId, code)` unique. `ManagedUnitType` enum:
+  `APARTMENT / GARAGE / PARKING_SPACE / STORAGE / COMMERCIAL / OTHER`
+  (no `HOUSE` — mapped via `UNIT_TYPE_MAP` from investor `Unit.type`
+  on handover). `participationShare` is the weight used for assembly
+  voting and (optionally) tariff-by-share dues.
+- `building_person` — plain contact row (name / email / phone /
+  address). **Never** stores JMBG, `identityNumber`, or `taxId`.
+- `unit_ownership` — M-N `managed_unit` ↔ `building_person` with
+  `share`, `startedAt`, `endedAt`. A current owner has `endedAt =
+  null`. Rotating owners is a two-step: close old row, insert new.
+
+**Finance**
+
+- `dues_tariff` — base per-period charges. `scope` is
+  `BUILDING / ENTRANCE / UNIT_TYPE`; `basis` is
+  `FIXED_PER_UNIT / PER_M2 / PER_SHARE`.
+- `dues_charge` — generated monthly obligation.
+  `(unitId, periodYear, periodMonth, tariffId)` unique; this is the
+  idempotency key that lets the cron job rerun safely.
+  `reference` is a 14-digit model-97 string, deterministic from the
+  row cuid.
+- `dues_payment` — recorded or imported inflow.
+  `(organizationId, bankStatementRowId)` is unique when matched.
+  `reversedAt` + `reversedBy` keeps a soft reversal trail.
+
+**Maintenance**
+
+- `supplier` — contractors / vendors.
+- `maintenance_ticket` — `(organizationId, code)` unique, code in
+  `BLD-00001` format. `status` enum
+  `OPEN / TRIAGED / IN_PROGRESS / AWAITING_PARTS / COMPLETED / CANCELED`.
+  `fund` enum `CURRENT_MAINTENANCE / INVESTMENT_FUND / OTHER`.
+- `maintenance_ticket_photo` — attached images, `storagePath`.
+- `building_expense` — written automatically when a ticket is
+  `COMPLETED` with `actualCost`, or recorded manually. Powers the
+  "Troškovi po fondu" report.
+
+**Assemblies**
+
+- `assembly` — one meeting. `status`
+  `DRAFT / SCHEDULED / IN_PROGRESS / CLOSED / CANCELED`.
+- `assembly_invitation` — per-owner invite row + delivery metadata.
+- `agenda_item` — ordered agenda entries; `voteMajority`
+  (`SIMPLE / ABSOLUTE / TWO_THIRDS`). Relation on `Assembly` is
+  `items` (not `agenda`).
+- `assembly_vote` — `(agendaItemId, unitId)` unique. `weight` is a
+  snapshot of `managed_unit.participationShare` at vote time.
+- When voting closes, `agenda_item.resultSummary` freezes the counts.
+
+**Notices + documents**
+
+- `building_notice` — `status` `DRAFT / PUBLISHED`. Delivery counters
+  are `emailDeliveredCount` and `portalViewCount`.
+- `building_document` — PDFs / minutes / contracts attached per
+  building. Soft-delete flag; the daily purge job honours it.
+
+**Resident portal**
+
+- `resident_access` — the single source of truth for a resident's
+  identity. `id` is the opaque cuid used in the signed cookie
+  `pd_resident`. Status enum
+  `PENDING / ACTIVE / REVOKED / EXPIRED`. Revocation flips `status`
+  so the next request fails cookie verification. Residents are
+  **not** `User` rows.
+- `resident_access_unit` — M-N between a resident and the units they
+  can see (one resident may own multiple flats across buildings).
+
+**Investor → manager handover**
+
+- `building_handover_request` — the only cross-tenant row.
+  `(investorOrganizationId, managerOrganizationId, projectId)` unique
+  when `status = PENDING`. Accept is a single transaction that copies
+  structure (`Unit` → `ManagedUnit`, with `sourceUnitId` back-pointer)
+  and ownership (`Buyer` → `BuildingPerson` + `UnitOwnership`). Only
+  sales in `PAID` / `HANDED_OVER` seed ownership. **JMBG /
+  `identityNumber` / `taxId` are never copied.** See
+  [`docs/obrada-podataka.md`](./obrada-podataka.md).
+
+**Enum additions**
+
+- `OrganizationType` adds `MANAGER`.
+- `SaaSPlan.audience` (`INVESTOR / AGENCY / MANAGER / ANY`) picks
+  which signup / admin surface a plan shows up on.
+- New organization roles: `MANAGER_OWNER`, `MANAGER_ADMIN`,
+  `MANAGER_ACCOUNTANT`, `MANAGER_TECHNICIAN`, `MANAGER_VIEWER`.
+
 ## Composite Indexes
 
 Every tenant-scoped list query filters on `organizationId`. The schema

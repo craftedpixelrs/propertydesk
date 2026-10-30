@@ -1,6 +1,16 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Building2, Handshake, Users, BadgeCheck, Wallet, Store } from "lucide-react";
+import {
+  Building2,
+  Handshake,
+  Users,
+  BadgeCheck,
+  Wallet,
+  Store,
+  Wrench,
+  FileBarChart,
+  AlertCircle,
+} from "lucide-react";
 
 import { PageHeader } from "@/components/app/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -51,6 +61,38 @@ const REPORTS: Array<{
   },
 ];
 
+const MANAGER_REPORTS: Array<{
+  href: string;
+  titleKey: TranslationKey;
+  descriptionKey: TranslationKey;
+  Icon: typeof Building2;
+}> = [
+  {
+    href: "/izvestaji/upravljanje/finansije",
+    titleKey: "manager.reports.financialTitle",
+    descriptionKey: "manager.reports.financialDesc",
+    Icon: Wallet,
+  },
+  {
+    href: "/izvestaji/upravljanje/duznici",
+    titleKey: "manager.reports.debtorsTitle",
+    descriptionKey: "manager.reports.debtorsDesc",
+    Icon: AlertCircle,
+  },
+  {
+    href: "/izvestaji/upravljanje/troskovi",
+    titleKey: "manager.reports.expensesTitle",
+    descriptionKey: "manager.reports.expensesDesc",
+    Icon: Wrench,
+  },
+  {
+    href: "/izvestaji/upravljanje/godisnji",
+    titleKey: "manager.reports.annualTitle",
+    descriptionKey: "manager.reports.annualDesc",
+    Icon: FileBarChart,
+  },
+];
+
 export default async function ReportsIndexPage() {
   const ctx = await loadUserContext();
   if (!ctx) redirect("/sign-in");
@@ -59,15 +101,19 @@ export default async function ReportsIndexPage() {
     redirect("/dashboard");
   }
   const t = createT(ctx.user.locale);
-  const isInvestor = ctx.activeOrganization.type === "INVESTOR";
-  const items = isInvestor
-    ? REPORTS
-    : REPORTS.filter(
-        (r) =>
-          !r.href.endsWith("/prodaje") &&
-          !r.href.endsWith("/agencije") &&
-          !r.href.endsWith("/uplate"),
-      );
+  const orgType = ctx.activeOrganization.type;
+  const isInvestor = orgType === "INVESTOR";
+  const isManager = orgType === "MANAGER";
+  const items = isManager
+    ? MANAGER_REPORTS
+    : isInvestor
+      ? REPORTS
+      : REPORTS.filter(
+          (r) =>
+            !r.href.endsWith("/prodaje") &&
+            !r.href.endsWith("/agencije") &&
+            !r.href.endsWith("/uplate"),
+        );
 
   return (
     <div className="space-y-6">

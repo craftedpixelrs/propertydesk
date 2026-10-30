@@ -1415,3 +1415,16 @@ Svaki prelaz:
 - [`docs/security.md`](./security.md) — sigurnosni posmatrač
 - [`docs/backup.md`](./backup.md) — backup strategija
 - [`docs/incident-response.md`](./incident-response.md) — kako reagovati na incidente
+
+### Upravnici zgrada (MANAGER tenant, Faza 11)
+
+Ovaj demo tok vodi investitorski + agencijski scenario. Scenario za
+upravnike (zgrade, zaduženja, uplatnice sa IPS QR, kvarovi,
+skupštine, portal za stanare, prenos zgrade od investitora) ima
+sopstveni runbook — vidi [`docs/upravnici.md`](./upravnici.md).
+Seed nalozi za MANAGER demo:
+
+- `vlasnik@upravnikplus.test` — upravnik (lozinka `PropertyDesk!2026`),
+  2 zgrade, otvoreni kvar, zakazana skupština sa 2 tačke dnevnog reda.
+- Pokreni `POST /api/v1/jobs/manager-generate-dues` sa `CRON_SECRET`
+  da napuniš mesečna zaduženja (idempotentno).

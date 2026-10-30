@@ -49,29 +49,39 @@ async function upsertPlan(
     maxUnits: number | null;
     maxMembers: number | null;
     maxAgencyConnections: number | null;
+    maxManagedBuildings?: number | null;
+    maxManagedUnits?: number | null;
+    audience?: "INVESTOR" | "AGENCY" | "MANAGER";
     features?: Record<string, unknown>;
     publiclyAvailable?: boolean;
+    recommended?: boolean;
     sortOrder: number;
   },
 ) {
+  // Idempotent seed: on repeat runs refresh pricing + limits + audience so
+  // dev DBs match the committed seed. New rows get full data via `create`.
+  const payload = {
+    name: data.name,
+    description: data.description ?? null,
+    monthlyPrice: data.monthlyPrice,
+    currency: "EUR",
+    maxActiveProjects: data.maxActiveProjects,
+    maxUnits: data.maxUnits,
+    maxMembers: data.maxMembers,
+    maxAgencyConnections: data.maxAgencyConnections,
+    maxManagedBuildings: data.maxManagedBuildings ?? null,
+    maxManagedUnits: data.maxManagedUnits ?? null,
+    audience: data.audience ?? null,
+    features: (data.features ?? {}) as Prisma.InputJsonValue,
+    active: true,
+    publiclyAvailable: data.publiclyAvailable ?? true,
+    recommended: data.recommended ?? false,
+    sortOrder: data.sortOrder,
+  };
   return prisma.saaSPlan.upsert({
     where: { code },
-    update: {},
-    create: {
-      code,
-      name: data.name,
-      description: data.description ?? null,
-      monthlyPrice: data.monthlyPrice,
-      currency: "EUR",
-      maxActiveProjects: data.maxActiveProjects,
-      maxUnits: data.maxUnits,
-      maxMembers: data.maxMembers,
-      maxAgencyConnections: data.maxAgencyConnections,
-      features: (data.features ?? {}) as Prisma.InputJsonValue,
-      active: true,
-      publiclyAvailable: data.publiclyAvailable ?? true,
-      sortOrder: data.sortOrder,
-    },
+    update: payload,
+    create: { code, ...payload },
   });
 }
 
@@ -144,7 +154,7 @@ interface TenantSpec {
   legalName: string;
   displayName: string;
   city: string;
-  type: "INVESTOR" | "AGENCY";
+  type: "INVESTOR" | "AGENCY" | "MANAGER";
   planCode: string;
   paymentAccountNumber?: string;
   paymentBankName?: string;
@@ -162,6 +172,8 @@ async function ensureTenant(spec: TenantSpec) {
   });
   if (!plan) throw new Error(`Plan ${spec.planCode} missing`);
 
+  // Agency ne koristi trial model — pristup je uvek aktivan dok traje
+  // konekcija ka investitoru. Investor i Manager imaju 30 dana trial-a.
   const isAgency = spec.type === "AGENCY";
   const orgStatus = isAgency ? "ACTIVE" : "TRIAL";
   const subStatus = isAgency ? "ACTIVE" : "TRIAL";
@@ -401,9 +413,69 @@ async function main() {
     maxUnits: 0,
     maxMembers: 25,
     maxAgencyConnections: null,
+    audience: "AGENCY",
     features: { audience: "agency", agencySharing: true, whiteLabel: false },
     publiclyAvailable: false,
     sortOrder: 20,
+  });
+
+  // Faza 11 — pretplate za upravnike zgrada. Audience fiksiran na MANAGER,
+  // tako da super-admin ne može ovaj plan dodeliti investitoru ili agenciji.
+  // Cene u prvoj iteraciji su placeholder (super-admin ih podesi u panelu).
+  await upsertPlan("upravnik-start", {
+    name: "Upravnik Start",
+    description: "Za nove upravnike: do 3 zgrade i 200 posebnih delova.",
+    monthlyPrice: 29,
+    maxActiveProjects: 0,
+    maxUnits: 0,
+    maxMembers: 5,
+    maxAgencyConnections: 0,
+    maxManagedBuildings: 3,
+    maxManagedUnits: 200,
+    audience: "MANAGER",
+    features: { audience: "manager", residentPortal: true, electronicVoting: true },
+    sortOrder: 30,
+  });
+
+  await upsertPlan("upravnik-pro", {
+    name: "Upravnik Pro",
+    description: "Standardno za profesionalne upravnike: do 10 zgrada i 1000 delova.",
+    monthlyPrice: 79,
+    maxActiveProjects: 0,
+    maxUnits: 0,
+    maxMembers: 15,
+    maxAgencyConnections: 0,
+    maxManagedBuildings: 10,
+    maxManagedUnits: 1000,
+    audience: "MANAGER",
+    features: {
+      audience: "manager",
+      residentPortal: true,
+      electronicVoting: true,
+      whiteLabel: false,
+    },
+    recommended: true,
+    sortOrder: 31,
+  });
+
+  await upsertPlan("upravnik-biz", {
+    name: "Upravnik Biz",
+    description: "Za veće upravnike: neograničeno zgrada i delova.",
+    monthlyPrice: 199,
+    maxActiveProjects: 0,
+    maxUnits: 0,
+    maxMembers: null,
+    maxAgencyConnections: 0,
+    maxManagedBuildings: null,
+    maxManagedUnits: null,
+    audience: "MANAGER",
+    features: {
+      audience: "manager",
+      residentPortal: true,
+      electronicVoting: true,
+      whiteLabel: true,
+    },
+    sortOrder: 32,
   });
 
   await ensureUser({
@@ -481,6 +553,42 @@ async function main() {
     ],
   });
 
+  // Faza 11 — demo upravnik. Prazna organizacija: zgrade, vlasnici i
+  // zaduženja se dodaju u Fazi 10 (admin-docs-tests) kad bude pun seed.
+  const managerOrg = await ensureTenant({
+    slug: "upravnik-plus",
+    name: "Upravnik Plus",
+    legalName: "Upravnik Plus d.o.o. Beograd",
+    displayName: "Upravnik Plus",
+    city: "Beograd",
+    type: "MANAGER",
+    paymentAccountNumber: "165000000000987654",
+    paymentBankName: "AIK Banka",
+    planCode: "upravnik-pro",
+    members: [
+      {
+        email: "vlasnik@upravnikplus.test",
+        name: "Nenad Vlasnik",
+        role: "MANAGER_OWNER",
+        isOwner: true,
+      },
+      {
+        email: "racuni@upravnikplus.test",
+        name: "Jelena Računovođa",
+        role: "MANAGER_ACCOUNTANT",
+      },
+      {
+        email: "majstor@upravnikplus.test",
+        name: "Stevan Tehničar",
+        role: "MANAGER_TECHNICIAN",
+      },
+    ],
+  });
+  // Faza 11 — demo content for the manager org: two buildings, owners,
+  // one month of dues, an open ticket and a scheduled assembly. Idempotent
+  // via `upsert` and content filters so re-running seed is safe.
+  await seedManagerDemoContent(managerOrg.id);
+
   // Link investor and agency (invited state)
   const inviter = await prisma.user.findUnique({
     where: { email: "vlasnik@gradnjaplus.test" },
@@ -517,6 +625,346 @@ async function main() {
   console.log("  Investor Sales Manager: prodaja@gradnjaplus.test");
   console.log("  Agency Owner: vlasnik@topnekretnine.test");
   console.log("  Agency Agent: agent@topnekretnine.test");
+  console.log("  Manager Owner: vlasnik@upravnikplus.test");
+  console.log("  Manager Accountant: racuni@upravnikplus.test");
+  console.log("  Manager Technician: majstor@upravnikplus.test");
+}
+
+// ---------------------------------------------------------------------------
+// Faza 11 — Manager demo content
+// ---------------------------------------------------------------------------
+
+async function seedManagerDemoContent(organizationId: string) {
+  // Building 1 — Bulevar oslobođenja 123
+  const b1 = await upsertManagedBuilding(organizationId, {
+    name: "Bulevar oslobođenja 123",
+    address: "Bulevar oslobođenja 123",
+    city: "Novi Sad",
+    legalName: "SZ Bulevar oslobođenja 123",
+    paymentAccountNumber: "265000000012345678",
+    paymentBankName: "Raiffeisen Banka",
+  });
+  const b1Entrance = await ensureEntrance(b1.id, "A");
+
+  // 2 units in building 1
+  const unit1a = await upsertManagedUnit(organizationId, b1.id, b1Entrance.id, {
+    code: "STAN-1A",
+    type: "APARTMENT",
+    floor: 1,
+    totalArea: "62.50",
+    participationShare: "1.0",
+  });
+  const unit1b = await upsertManagedUnit(organizationId, b1.id, b1Entrance.id, {
+    code: "STAN-1B",
+    type: "APARTMENT",
+    floor: 2,
+    totalArea: "48.00",
+    participationShare: "0.8",
+  });
+
+  // Owners
+  const owner1 = await upsertBuildingPerson(organizationId, b1.id, {
+    firstName: "Milan",
+    lastName: "Petrović",
+    email: "milan.petrovic@stanari.test",
+    phone: "+381641112233",
+  });
+  const owner2 = await upsertBuildingPerson(organizationId, b1.id, {
+    firstName: "Ana",
+    lastName: "Jovanović",
+    email: "ana.jovanovic@stanari.test",
+    phone: "+381604445566",
+  });
+  await upsertOwnership(unit1a.id, owner1.id);
+  await upsertOwnership(unit1b.id, owner2.id);
+
+  // Building 2 — Kneza Mihaila 45
+  const b2 = await upsertManagedBuilding(organizationId, {
+    name: "Kneza Mihaila 45",
+    address: "Kneza Mihaila 45",
+    city: "Beograd",
+    legalName: "SZ Kneza Mihaila 45",
+    paymentAccountNumber: "265000000087654321",
+    paymentBankName: "Raiffeisen Banka",
+  });
+  const b2Entrance = await ensureEntrance(b2.id, "A");
+  const unit2a = await upsertManagedUnit(organizationId, b2.id, b2Entrance.id, {
+    code: "STAN-2A",
+    type: "APARTMENT",
+    floor: 3,
+    totalArea: "75.00",
+    participationShare: "1.2",
+  });
+  const owner3 = await upsertBuildingPerson(organizationId, b2.id, {
+    firstName: "Jovana",
+    lastName: "Nikolić",
+    email: "jovana.nikolic@stanari.test",
+    phone: "+381621234567",
+  });
+  await upsertOwnership(unit2a.id, owner3.id);
+
+  // Tariffs — current maintenance + manager fee per m² for both buildings
+  for (const b of [b1, b2]) {
+    await upsertTariff(organizationId, b.id, {
+      name: "Tekuće održavanje",
+      kind: "CURRENT_MAINTENANCE",
+      basis: "PER_SQUARE_METER",
+      amount: "30.0000",
+    });
+    await upsertTariff(organizationId, b.id, {
+      name: "Naknada upravniku",
+      kind: "MANAGER_FEE",
+      basis: "PER_UNIT",
+      amount: "500.00",
+    });
+  }
+
+  // One month of dues charges for both buildings
+  const now = new Date();
+  const periodYear = now.getFullYear();
+  const periodMonth = now.getMonth() + 1;
+  await seedDuesForUnit(organizationId, b1.id, unit1a.id, periodYear, periodMonth, {
+    CURRENT_MAINTENANCE: 1875, // 62.5 × 30
+    MANAGER_FEE: 500,
+  });
+  await seedDuesForUnit(organizationId, b1.id, unit1b.id, periodYear, periodMonth, {
+    CURRENT_MAINTENANCE: 1440, // 48 × 30
+    MANAGER_FEE: 500,
+  });
+  await seedDuesForUnit(organizationId, b2.id, unit2a.id, periodYear, periodMonth, {
+    CURRENT_MAINTENANCE: 2250, // 75 × 30
+    MANAGER_FEE: 500,
+  });
+
+  // One open maintenance ticket for building 1
+  const existingTicket = await prisma.maintenanceTicket.findFirst({
+    where: { organizationId, buildingId: b1.id, title: "Pokvaren lift" },
+  });
+  if (!existingTicket) {
+    const ticketCount = await prisma.maintenanceTicket.count({
+      where: { organizationId },
+    });
+    await prisma.maintenanceTicket.create({
+      data: {
+        organizationId,
+        buildingId: b1.id,
+        unitId: null,
+        code: `BLD-${String(ticketCount + 1).padStart(5, "0")}`,
+        title: "Pokvaren lift",
+        description: "Lift se zaustavlja između spratova. Potreban servis.",
+        status: "OPEN",
+        priority: "HIGH",
+      },
+    });
+  }
+
+  // One scheduled assembly for building 1
+  const existingAssembly = await prisma.assembly.findFirst({
+    where: { organizationId, buildingId: b1.id, title: "Redovna godišnja skupština" },
+  });
+  if (!existingAssembly) {
+    const inTwoWeeks = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000);
+    await prisma.assembly.create({
+      data: {
+        organizationId,
+        buildingId: b1.id,
+        code: `GS-${periodYear}-${String(periodMonth).padStart(2, "0")}`,
+        title: "Redovna godišnja skupština",
+        type: "REGULAR",
+        status: "SCHEDULED",
+        scheduledAt: inTwoWeeks,
+        location: "Hol zgrade",
+        quorumNote: "Potrebno više od 50% vlasnika.",
+        items: {
+          create: [
+            {
+              sortOrder: 1,
+              title: "Usvajanje godišnjeg finansijskog izveštaja",
+              description: "Prikaz prihoda i rashoda za prošlu godinu.",
+              voteKind: "DECISION",
+              majority: "SIMPLE",
+            },
+            {
+              sortOrder: 2,
+              title: "Odluka o investiciji u LED rasvetu",
+              description: "Zamena stepenišne rasvete LED panelima.",
+              voteKind: "DECISION",
+              majority: "ABSOLUTE",
+            },
+          ],
+        },
+      },
+    });
+  }
+}
+
+async function upsertManagedBuilding(
+  organizationId: string,
+  input: {
+    name: string;
+    address: string;
+    city: string;
+    legalName: string;
+    paymentAccountNumber: string;
+    paymentBankName: string;
+  },
+) {
+  const existing = await prisma.managedBuilding.findFirst({
+    where: { organizationId, name: input.name },
+  });
+  if (existing) return existing;
+  return prisma.managedBuilding.create({
+    data: {
+      organizationId,
+      name: input.name,
+      address: input.address,
+      city: input.city,
+      country: "RS",
+      legalName: input.legalName,
+      paymentAccountNumber: input.paymentAccountNumber,
+      paymentBankName: input.paymentBankName,
+      entranceCount: 1,
+    },
+  });
+}
+
+async function ensureEntrance(buildingId: string, code: string) {
+  const existing = await prisma.buildingEntranceSection.findUnique({
+    where: { buildingId_code: { buildingId, code } },
+  });
+  if (existing) return existing;
+  return prisma.buildingEntranceSection.create({
+    data: { buildingId, code, sortOrder: 0 },
+  });
+}
+
+async function upsertManagedUnit(
+  organizationId: string,
+  buildingId: string,
+  entranceId: string,
+  input: {
+    code: string;
+    type: "APARTMENT" | "COMMERCIAL" | "GARAGE" | "PARKING_SPACE" | "STORAGE" | "OFFICE" | "OTHER";
+    floor: number;
+    totalArea: string;
+    participationShare: string;
+  },
+) {
+  const existing = await prisma.managedUnit.findUnique({
+    where: { buildingId_code: { buildingId, code: input.code } },
+  });
+  if (existing) return existing;
+  return prisma.managedUnit.create({
+    data: {
+      organizationId,
+      buildingId,
+      entranceId,
+      code: input.code,
+      type: input.type,
+      floor: input.floor,
+      totalArea: new Prisma.Decimal(input.totalArea),
+      participationShare: new Prisma.Decimal(input.participationShare),
+    },
+  });
+}
+
+async function upsertBuildingPerson(
+  organizationId: string,
+  buildingId: string,
+  input: { firstName: string; lastName: string; email: string; phone: string },
+) {
+  const existing = await prisma.buildingPerson.findFirst({
+    where: { organizationId, buildingId, email: input.email },
+  });
+  if (existing) return existing;
+  return prisma.buildingPerson.create({
+    data: {
+      organizationId,
+      buildingId,
+      firstName: input.firstName,
+      lastName: input.lastName,
+      email: input.email,
+      phone: input.phone,
+      primaryRole: "OWNER",
+    },
+  });
+}
+
+async function upsertOwnership(unitId: string, personId: string) {
+  const existing = await prisma.unitOwnership.findFirst({
+    where: { unitId, personId, endedAt: null },
+  });
+  if (existing) return existing;
+  return prisma.unitOwnership.create({
+    data: {
+      unitId,
+      personId,
+      role: "OWNER",
+      sharePercent: new Prisma.Decimal("100"),
+      isPrimary: true,
+      startedAt: new Date(),
+    },
+  });
+}
+
+async function upsertTariff(
+  organizationId: string,
+  buildingId: string,
+  input: {
+    name: string;
+    kind: "CURRENT_MAINTENANCE" | "INVESTMENT_FUND" | "MANAGER_FEE" | "INSURANCE" | "OTHER";
+    basis: "PER_UNIT" | "PER_SQUARE_METER";
+    amount: string;
+  },
+) {
+  const existing = await prisma.duesTariff.findFirst({
+    where: { organizationId, buildingId, name: input.name, active: true },
+  });
+  if (existing) return existing;
+  return prisma.duesTariff.create({
+    data: {
+      organizationId,
+      buildingId,
+      name: input.name,
+      kind: input.kind,
+      basis: input.basis,
+      amount: new Prisma.Decimal(input.amount),
+      currency: "RSD",
+      effectiveFrom: new Date(new Date().getFullYear(), 0, 1),
+      active: true,
+    },
+  });
+}
+
+async function seedDuesForUnit(
+  organizationId: string,
+  buildingId: string,
+  unitId: string,
+  year: number,
+  month: number,
+  breakdown: Record<string, number>,
+) {
+  const existing = await prisma.duesCharge.findFirst({
+    where: { organizationId, unitId, periodYear: year, periodMonth: month },
+  });
+  if (existing) return existing;
+  const total = Object.values(breakdown).reduce((a, b) => a + b, 0);
+  const dueDate = new Date(year, month - 1, 15);
+  return prisma.duesCharge.create({
+    data: {
+      organizationId,
+      buildingId,
+      unitId,
+      periodYear: year,
+      periodMonth: month,
+      dueDate,
+      totalAmount: new Prisma.Decimal(total.toFixed(2)),
+      paidAmount: new Prisma.Decimal("0"),
+      currency: "RSD",
+      status: "OPEN",
+      breakdown: breakdown as unknown as Prisma.InputJsonValue,
+    },
+  });
 }
 
 main()

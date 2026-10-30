@@ -124,6 +124,9 @@ model User {
   marketingLeadTasksAssigned  MarketingLeadTask[]      @relation("MarketingLeadTaskAssignee")
   marketingLeadTasksCompleted MarketingLeadTask[]      @relation("MarketingLeadTaskCompleter")
 
+  // Faza 11 — kad stanar (ne-tenant korisnik) prihvati magic link.
+  residentAccessRecords ResidentAccess[] @relation("ResidentAccessUser")
+
   @@index([email])
   @@index([loginLockLevel])
   @@map("user")
@@ -276,6 +279,23 @@ model Organization {
   // Marketing leads that were converted into this tenant organization.
   marketingLeadsConverted MarketingLead[] @relation("MarketingLeadConvertedTo")
 
+  // Faza 11 — building manager module. Scoped by organizationId on each row.
+  managedBuildings         ManagedBuilding[]
+  managedUnits             ManagedUnit[]
+  buildingPersons          BuildingPerson[]
+  duesTariffs              DuesTariff[]
+  duesCharges              DuesCharge[]
+  duesPayments             DuesPayment[]
+  duesAdjustments          DuesAdjustment[]
+  suppliers                Supplier[]
+  maintenanceTickets       MaintenanceTicket[]
+  buildingExpenses         BuildingExpense[]
+  assemblies               Assembly[]
+  buildingNotices          BuildingNotice[]
+  residentAccessRecords    ResidentAccess[]
+  handoverRequestsAsSource BuildingHandoverRequest[] @relation("HandoverSourceOrg")
+  handoverRequestsAsTarget BuildingHandoverRequest[] @relation("HandoverTargetOrg")
+
   @@map("organization")
 }
 
@@ -319,6 +339,7 @@ model Invitation {
 enum OrganizationType {
   INVESTOR
   AGENCY
+  MANAGER
 }
 
 enum OrganizationStatus {
@@ -723,6 +744,11 @@ enum DocumentCategory {
   COMMISSION
   INVOICE
   KYC
+  // Building-manager (upravnik) module.
+  BUILDING
+  TICKET
+  ASSEMBLY
+  DUES
   OTHER
 }
 
@@ -782,6 +808,12 @@ enum NotificationCategory {
   COMMISSION
   DOCUMENT
   BILLING
+  // Building-manager (upravnik) module.
+  BUILDING
+  TICKET
+  ASSEMBLY
+  DUES
+  NOTICE
 }
 
 // =============================================================================
@@ -876,6 +908,7 @@ enum LeadContactChannel {
 enum MarketingLeadAudience {
   INVESTOR
   AGENCY
+  MANAGER
   OTHER
 }
 
@@ -949,32 +982,41 @@ model OrganizationProfile {
 }
 
 model SaaSPlan {
-  id                   String   @id @default(cuid())
-  code                 String   @unique
+  id                   String            @id @default(cuid())
+  code                 String            @unique
   name                 String
   description          String?
-  monthlyPrice         Decimal  @db.Decimal(14, 2)
-  quarterlyPrice       Decimal? @db.Decimal(14, 2)
-  semiAnnualPrice      Decimal? @db.Decimal(14, 2)
-  annualPrice          Decimal? @db.Decimal(14, 2)
-  onboardingFee        Decimal? @db.Decimal(14, 2)
-  currency             String   @default("EUR")
+  monthlyPrice         Decimal           @db.Decimal(14, 2)
+  quarterlyPrice       Decimal?          @db.Decimal(14, 2)
+  semiAnnualPrice      Decimal?          @db.Decimal(14, 2)
+  annualPrice          Decimal?          @db.Decimal(14, 2)
+  onboardingFee        Decimal?          @db.Decimal(14, 2)
+  currency             String            @default("EUR")
   maxActiveProjects    Int?
   maxUnits             Int?
   maxMembers           Int?
   maxAgencyConnections Int?
-  features             Json     @default("{}")
-  active               Boolean  @default(true)
-  publiclyAvailable    Boolean  @default(true)
-  recommended          Boolean  @default(false)
+  // Faza 11: upravnici zgrada. Novi limiti važe samo za planove sa
+  // `audience = MANAGER`. Za investitorske/agencijske planove ostaju null.
+  maxManagedBuildings  Int?
+  maxManagedUnits      Int?
+  // Faza 11: svaki plan važi ili za svaku organizaciju (null = legacy
+  // ponašanje), ili samo za jedan tip organizacije. Super-admin i servisi
+  // moraju proveriti pre dodeljivanja plana.
+  audience             OrganizationType?
+  features             Json              @default("{}")
+  active               Boolean           @default(true)
+  publiclyAvailable    Boolean           @default(true)
+  recommended          Boolean           @default(false)
   defaultTrialDays     Int?
-  sortOrder            Int      @default(0)
-  createdAt            DateTime @default(now())
-  updatedAt            DateTime @updatedAt
+  sortOrder            Int               @default(0)
+  createdAt            DateTime          @default(now())
+  updatedAt            DateTime          @updatedAt
 
   subscriptions OrganizationSubscription[]
   invoices      Invoice[]
 
+  @@index([audience])
   @@map("saas_plan")
 }
 
@@ -1109,6 +1151,10 @@ model Project {
   agencyCommissionRules    AgencyCommissionRule[]
   agencyConnectionRequests AgencyConnectionRequest[]
   paymentPlanTemplates     PaymentPlanTemplate[]
+
+  // Faza 11 — ako je projekat predat upravniku, čuvamo linkove.
+  handedToManagerBuildings ManagedBuilding[]         @relation("ProjectHandedToManager")
+  handoverRequests         BuildingHandoverRequest[] @relation("HandoverSourceProject")
 
   @@unique([organizationId, code])
   @@unique([organizationId, slug])
@@ -1249,6 +1295,9 @@ model Unit {
   sales               Sale[]
   buyerInterests      BuyerInterest[]
   floorPlanAreas      FloorPlanArea[]
+
+  // Faza 11 — ako je jedinica postala posebni deo kod upravnika, čuvamo link.
+  handedToManagedUnits ManagedUnit[] @relation("UnitHandedToManager")
 
   @@unique([projectId, code])
   @@index([organizationId, status])
@@ -2840,4 +2889,684 @@ model ExchangeRate {
   @@unique([baseCurrency, quoteCurrency, effectiveDate])
   @@index([baseCurrency, quoteCurrency, effectiveDate])
   @@map("exchange_rate")
+}
+
+// =============================================================================
+// Faza 11 — Upravnici zgrada (building managers)
+// -----------------------------------------------------------------------------
+// Nova organizacija tipa MANAGER vodi stambenu zajednicu. Posebni delovi,
+// vlasnici i sredstva fondova zgrade ne mešaju se sa investitorskim
+// `Project`/`Unit` modelom. Investitor samo može da "preda zgradu
+// upravniku" posle primopredaje (vidi BuildingHandoverRequest).
+// =============================================================================
+
+enum ManagedUnitType {
+  APARTMENT
+  COMMERCIAL
+  GARAGE
+  PARKING_SPACE
+  STORAGE
+  OFFICE
+  OTHER
+}
+
+enum ManagedPersonRole {
+  OWNER
+  TENANT
+  USER
+}
+
+enum DuesTariffBasis {
+  PER_UNIT // fiksan iznos po posebnom delu
+  PER_SQUARE_METER // iznos × m²
+}
+
+enum DuesTariffKind {
+  CURRENT_MAINTENANCE // tekuće održavanje
+  INVESTMENT_FUND // investiciono održavanje (fond)
+  MANAGER_FEE // naknada upravniku
+  INSURANCE // osiguranje
+  OTHER
+}
+
+enum DuesChargeStatus {
+  OPEN
+  PARTIALLY_PAID
+  PAID
+  WRITTEN_OFF
+}
+
+enum MaintenanceCategory {
+  PLUMBING
+  ELECTRICAL
+  HEATING
+  ELEVATOR
+  COMMON_AREAS
+  ROOF
+  FACADE
+  SECURITY
+  CLEANING
+  OTHER
+}
+
+enum MaintenancePriority {
+  LOW
+  NORMAL
+  HIGH
+  URGENT
+}
+
+enum MaintenanceStatus {
+  OPEN
+  TRIAGED
+  IN_PROGRESS
+  AWAITING_PARTS
+  COMPLETED
+  CANCELED
+}
+
+enum BuildingExpenseFund {
+  CURRENT_MAINTENANCE
+  INVESTMENT_FUND
+  OTHER
+}
+
+enum AssemblyType {
+  REGULAR
+  EXTRAORDINARY
+  WRITTEN_PROCEDURE
+}
+
+enum AssemblyStatus {
+  SCHEDULED
+  OPEN_FOR_VOTING
+  COMPLETED
+  CANCELED
+}
+
+enum AgendaItemVoteKind {
+  DECISION
+  INFORMATION
+  ELECTION
+}
+
+enum AgendaItemMajority {
+  SIMPLE // > 50% prisutnih
+  ABSOLUTE // > 50% svih vlasnika
+  TWO_THIRDS // ⅔ svih vlasnika
+}
+
+enum AssemblyVoteChoice {
+  YES
+  NO
+  ABSTAIN
+}
+
+enum BuildingNoticeChannel {
+  PORTAL_ONLY
+  PORTAL_AND_EMAIL
+  EMAIL_ONLY
+}
+
+enum BuildingNoticeAudience {
+  ALL
+  BY_ENTRANCE
+  BY_UNIT_TYPE
+  SPECIFIC_UNITS
+}
+
+enum BuildingHandoverStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  CANCELED
+}
+
+enum ResidentAccessStatus {
+  PENDING_INVITE
+  ACTIVE
+  REVOKED
+}
+
+model ManagedBuilding {
+  id                    String    @id @default(cuid())
+  organizationId        String // MANAGER organizacija
+  name                  String // Naziv stambene zajednice
+  address               String
+  city                  String
+  municipality          String?
+  postalCode            String?
+  country               String?   @default("RS")
+  // Pravna lica stambene zajednice (ako imaju matični broj / PIB)
+  legalName             String?
+  registrationNumber    String?
+  taxNumber             String?
+  // Tekući račun zgrade za IPS QR uplatnice (18 cifara).
+  paymentAccountNumber  String?
+  paymentBankName       String?
+  // Katastar
+  cadastralLot          String?
+  cadastralMunicipality String?
+  // Osnovne karakteristike
+  entranceCount         Int       @default(1)
+  storeyCount           Int?
+  // Kad je zgrada preuzeta iz investitorskog projekta, čuvamo originalni
+  // Project.id da bi investitor video "ovo je sada kod upravnika X".
+  sourceProjectId       String?
+  // Opciono email adresa stambene zajednice (za predsednika).
+  contactEmail          String?
+  contactPhone          String?
+  // Beleške upravnika (interno).
+  notes                 String?
+  archivedAt            DateTime?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  organization  Organization              @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  sourceProject Project?                  @relation("ProjectHandedToManager", fields: [sourceProjectId], references: [id], onDelete: SetNull)
+  entrances     BuildingEntranceSection[]
+  units         ManagedUnit[]
+  persons       BuildingPerson[]
+  tariffs       DuesTariff[]
+  charges       DuesCharge[]
+  tickets       MaintenanceTicket[]
+  suppliers     Supplier[]
+  expenses      BuildingExpense[]
+  assemblies    Assembly[]
+  notices       BuildingNotice[]
+  handovers     BuildingHandoverRequest[] @relation("HandoverTargetBuilding")
+
+  @@index([organizationId, archivedAt])
+  @@index([organizationId, city])
+  @@map("managed_building")
+}
+
+model BuildingEntranceSection {
+  id         String   @id @default(cuid())
+  buildingId String
+  code       String // "A", "B", "1" ...
+  label      String?
+  sortOrder  Int      @default(0)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  building ManagedBuilding @relation(fields: [buildingId], references: [id], onDelete: Cascade)
+  units    ManagedUnit[]
+
+  @@unique([buildingId, code])
+  @@map("building_entrance_section")
+}
+
+model ManagedUnit {
+  id                 String          @id @default(cuid())
+  organizationId     String // izveden iz zgrade; dupliran radi tenant scopinga
+  buildingId         String
+  entranceId         String?
+  code               String // „stan 12", „garaža G1", …
+  type               ManagedUnitType @default(APARTMENT)
+  floor              Int?
+  totalArea          Decimal         @db.Decimal(10, 2) // m²
+  // Koeficijent učešća u troškovima zajedničkih delova.
+  // Default 1.0 = ravnopravno. Može biti m² ili pondere iz katastra.
+  participationShare Decimal         @default(1) @db.Decimal(10, 4)
+  roomCount          Decimal?        @db.Decimal(4, 1)
+  // Kad je deo nastao iz investitorskog Unit-a (preko handover-a).
+  sourceUnitId       String?
+  notes              String?
+  archivedAt         DateTime?
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @updatedAt
+
+  organization   Organization             @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  building       ManagedBuilding          @relation(fields: [buildingId], references: [id], onDelete: Cascade)
+  entrance       BuildingEntranceSection? @relation(fields: [entranceId], references: [id], onDelete: SetNull)
+  sourceUnit     Unit?                    @relation("UnitHandedToManager", fields: [sourceUnitId], references: [id], onDelete: SetNull)
+  ownerships     UnitOwnership[]
+  charges        DuesCharge[]
+  tickets        MaintenanceTicket[]
+  votes          AssemblyVote[]
+  residentAccess ResidentAccess[]
+
+  @@unique([buildingId, code])
+  @@index([organizationId, archivedAt])
+  @@map("managed_unit")
+}
+
+/// Vlasnik, zakupac ili korisnik stana. Jedan BuildingPerson može biti
+/// vezan za više posebnih delova preko UnitOwnership.
+model BuildingPerson {
+  id             String            @id @default(cuid())
+  organizationId String
+  buildingId     String
+  firstName      String?
+  lastName       String?
+  // Pravno lice (ako postoji legalName, deluje kao firma).
+  legalName      String?
+  email          String?
+  phone          String?
+  address        String?
+  // Rolno (OWNER/TENANT/USER). Jedna osoba može imati više zapisa po ulozi.
+  primaryRole    ManagedPersonRole @default(OWNER)
+  notes          String?
+  archivedAt     DateTime?
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+
+  organization   Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  building       ManagedBuilding  @relation(fields: [buildingId], references: [id], onDelete: Cascade)
+  ownerships     UnitOwnership[]
+  residentAccess ResidentAccess[]
+
+  @@index([organizationId, buildingId])
+  @@map("building_person")
+}
+
+model UnitOwnership {
+  id           String            @id @default(cuid())
+  unitId       String
+  personId     String
+  role         ManagedPersonRole @default(OWNER)
+  sharePercent Decimal           @default(100) @db.Decimal(5, 2)
+  startedAt    DateTime          @default(now())
+  endedAt      DateTime?
+  isPrimary    Boolean           @default(true) // glavni kontakt za uplatnice
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+
+  unit   ManagedUnit    @relation(fields: [unitId], references: [id], onDelete: Cascade)
+  person BuildingPerson @relation(fields: [personId], references: [id], onDelete: Cascade)
+
+  @@index([unitId, endedAt])
+  @@index([personId])
+  @@map("unit_ownership")
+}
+
+model DuesTariff {
+  id             String           @id @default(cuid())
+  organizationId String
+  buildingId     String
+  name           String
+  kind           DuesTariffKind
+  basis          DuesTariffBasis
+  amount         Decimal          @db.Decimal(14, 4)
+  currency       String           @default("RSD")
+  // Primenjuje se samo na jedinice ovog tipa (null = sve).
+  unitTypeFilter ManagedUnitType?
+  effectiveFrom  DateTime         @db.Date
+  effectiveTo    DateTime?        @db.Date
+  active         Boolean          @default(true)
+  notes          String?
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  organization Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  building     ManagedBuilding @relation(fields: [buildingId], references: [id], onDelete: Cascade)
+
+  @@index([buildingId, kind, effectiveFrom])
+  @@map("dues_tariff")
+}
+
+model DuesCharge {
+  id             String           @id @default(cuid())
+  organizationId String
+  buildingId     String
+  unitId         String
+  periodYear     Int
+  periodMonth    Int // 1-12
+  dueDate        DateTime         @db.Date
+  // Agregat svih tarifa (CM + IF + MF + ...). Zbog izveštaja po fondu
+  // razdvojićemo iznose u `breakdown` JSON polju.
+  totalAmount    Decimal          @db.Decimal(14, 2)
+  paidAmount     Decimal          @default(0) @db.Decimal(14, 2)
+  currency       String           @default("RSD")
+  status         DuesChargeStatus @default(OPEN)
+  // JSON { "CURRENT_MAINTENANCE": "...", "INVESTMENT_FUND": "...", ... }
+  breakdown      Json             @default("{}")
+  // Model 97 referenca za uplatnicu
+  reference      String?          @unique
+  notes          String?
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  organization Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  building     ManagedBuilding @relation(fields: [buildingId], references: [id], onDelete: Cascade)
+  unit         ManagedUnit     @relation(fields: [unitId], references: [id], onDelete: Cascade)
+  payments     DuesPayment[]
+
+  @@unique([unitId, periodYear, periodMonth])
+  @@index([buildingId, periodYear, periodMonth])
+  @@index([organizationId, status, dueDate])
+  @@map("dues_charge")
+}
+
+model DuesPayment {
+  id                String               @id @default(cuid())
+  organizationId    String
+  chargeId          String
+  amount            Decimal              @db.Decimal(14, 2)
+  currency          String               @default("RSD")
+  paidAt            DateTime
+  method            BillingPaymentMethod @default(BANK_TRANSFER)
+  reference         String?
+  bankTransactionId String?
+  recordedByUserId  String?
+  reversed          Boolean              @default(false)
+  reversedAt        DateTime?
+  reversalReason    String?
+  notes             String?
+  createdAt         DateTime             @default(now())
+  updatedAt         DateTime             @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  charge       DuesCharge   @relation(fields: [chargeId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, paidAt])
+  @@index([chargeId])
+  @@map("dues_payment")
+}
+
+model DuesAdjustment {
+  id              String   @id @default(cuid())
+  organizationId  String
+  unitId          String
+  amount          Decimal  @db.Decimal(14, 2) // + povećava dug, − umanjuje
+  reason          String
+  effectiveDate   DateTime @db.Date
+  createdByUserId String?
+  createdAt       DateTime @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, unitId])
+  @@map("dues_adjustment")
+}
+
+model Supplier {
+  id             String               @id @default(cuid())
+  organizationId String
+  // Null = platformski izvođač, dostupan svim zgradama upravnika.
+  buildingId     String?
+  name           String
+  category       MaintenanceCategory?
+  contactPerson  String?
+  phone          String?
+  email          String?
+  taxNumber      String?
+  notes          String?
+  archivedAt     DateTime?
+  createdAt      DateTime             @default(now())
+  updatedAt      DateTime             @updatedAt
+
+  organization Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  building     ManagedBuilding?    @relation(fields: [buildingId], references: [id], onDelete: Cascade)
+  tickets      MaintenanceTicket[]
+  expenses     BuildingExpense[]
+
+  @@index([organizationId, archivedAt])
+  @@map("supplier")
+}
+
+model MaintenanceTicket {
+  id                 String               @id @default(cuid())
+  organizationId     String
+  buildingId         String
+  unitId             String?
+  code               String // interni broj (BLD-00001)
+  title              String
+  description        String?
+  category           MaintenanceCategory  @default(OTHER)
+  priority           MaintenancePriority  @default(NORMAL)
+  status             MaintenanceStatus    @default(OPEN)
+  reportedByPersonId String?
+  reportedByUserId   String? // zaposleni upravnika
+  assignedToUserId   String?
+  supplierId         String?
+  estimatedCost      Decimal?             @db.Decimal(14, 2)
+  actualCost         Decimal?             @db.Decimal(14, 2)
+  currency           String               @default("RSD")
+  // Fond na čiji teret ide trošak (bira se pri zatvaranju).
+  fund               BuildingExpenseFund?
+  completedAt        DateTime?
+  closedByUserId     String?
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @updatedAt
+
+  organization Organization               @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  building     ManagedBuilding            @relation(fields: [buildingId], references: [id], onDelete: Cascade)
+  unit         ManagedUnit?               @relation(fields: [unitId], references: [id], onDelete: SetNull)
+  supplier     Supplier?                  @relation(fields: [supplierId], references: [id], onDelete: SetNull)
+  history      MaintenanceTicketHistory[]
+  expenses     BuildingExpense[]
+
+  @@unique([organizationId, code])
+  @@index([buildingId, status])
+  @@index([organizationId, status, createdAt])
+  @@map("maintenance_ticket")
+}
+
+model MaintenanceTicketHistory {
+  id              String             @id @default(cuid())
+  ticketId        String
+  fromStatus      MaintenanceStatus?
+  toStatus        MaintenanceStatus
+  note            String?
+  changedByUserId String?
+  createdAt       DateTime           @default(now())
+
+  ticket MaintenanceTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+
+  @@index([ticketId, createdAt])
+  @@map("maintenance_ticket_history")
+}
+
+model BuildingExpense {
+  id                String              @id @default(cuid())
+  organizationId    String
+  buildingId        String
+  ticketId          String?
+  supplierId        String?
+  fund              BuildingExpenseFund @default(CURRENT_MAINTENANCE)
+  description       String
+  amount            Decimal             @db.Decimal(14, 2)
+  currency          String              @default("RSD")
+  spentAt           DateTime            @db.Date
+  invoiceDocumentId String?
+  createdByUserId   String?
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  organization Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  building     ManagedBuilding    @relation(fields: [buildingId], references: [id], onDelete: Cascade)
+  ticket       MaintenanceTicket? @relation(fields: [ticketId], references: [id], onDelete: SetNull)
+  supplier     Supplier?          @relation(fields: [supplierId], references: [id], onDelete: SetNull)
+
+  @@index([buildingId, fund, spentAt])
+  @@map("building_expense")
+}
+
+model Assembly {
+  id                String         @id @default(cuid())
+  organizationId    String
+  buildingId        String
+  code              String // SZ-2026-01
+  title             String
+  description       String?
+  type              AssemblyType   @default(REGULAR)
+  status            AssemblyStatus @default(SCHEDULED)
+  scheduledAt       DateTime
+  // Elektronsko glasanje: period u kojem članovi smeju da glasaju
+  votingOpensAt     DateTime?
+  votingClosesAt    DateTime?
+  location          String?
+  // Kvorum: minimalni broj / procenat učešća za validnost (čuvamo kao JSON).
+  quorumNote        String?
+  minutesDocumentId String? // link na PDF zapisnika u Document tabeli
+  completedAt       DateTime?
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+
+  organization Organization         @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  building     ManagedBuilding      @relation(fields: [buildingId], references: [id], onDelete: Cascade)
+  items        AgendaItem[]
+  invitations  AssemblyInvitation[]
+
+  @@unique([organizationId, code])
+  @@index([buildingId, scheduledAt])
+  @@map("assembly")
+}
+
+model AgendaItem {
+  id            String             @id @default(cuid())
+  assemblyId    String
+  sortOrder     Int                @default(0)
+  title         String
+  description   String?
+  voteKind      AgendaItemVoteKind @default(DECISION)
+  majority      AgendaItemMajority @default(SIMPLE)
+  // Rezultat izračunat posle zatvaranja glasanja.
+  resultSummary Json? // { yes, no, abstain, totalWeight, passed }
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+
+  assembly Assembly       @relation(fields: [assemblyId], references: [id], onDelete: Cascade)
+  votes    AssemblyVote[]
+
+  @@index([assemblyId, sortOrder])
+  @@map("agenda_item")
+}
+
+model AssemblyVote {
+  id           String             @id @default(cuid())
+  agendaItemId String
+  unitId       String
+  // Glas se vezuje za lice koje ga je dalo (vlasnik ili ovlašćeni
+  // predstavnik). Null = anonimna ali validna evidencija (ex-post).
+  personId     String?
+  choice       AssemblyVoteChoice
+  // Zabeležen ponder u trenutku glasanja (m², broj glasova ili 1).
+  weight       Decimal            @db.Decimal(10, 4)
+  castByUserId String?
+  castAt       DateTime           @default(now())
+  notes        String?
+
+  agendaItem AgendaItem  @relation(fields: [agendaItemId], references: [id], onDelete: Cascade)
+  unit       ManagedUnit @relation(fields: [unitId], references: [id], onDelete: Cascade)
+
+  @@unique([agendaItemId, unitId])
+  @@index([agendaItemId])
+  @@map("assembly_vote")
+}
+
+model AssemblyInvitation {
+  id         String    @id @default(cuid())
+  assemblyId String
+  personId   String?
+  // Email na koji je poslat poziv (ponekad nije u BuildingPerson tabeli).
+  email      String
+  sentAt     DateTime  @default(now())
+  openedAt   DateTime?
+
+  assembly Assembly @relation(fields: [assemblyId], references: [id], onDelete: Cascade)
+
+  @@index([assemblyId])
+  @@map("assembly_invitation")
+}
+
+model BuildingNotice {
+  id                  String                 @id @default(cuid())
+  organizationId      String
+  buildingId          String
+  title               String
+  body                String
+  channel             BuildingNoticeChannel  @default(PORTAL_AND_EMAIL)
+  audience            BuildingNoticeAudience @default(ALL)
+  // JSON parametara za audience (lista entranceId, unitType, unitId ...)
+  audienceParams      Json                   @default("{}")
+  publishedAt         DateTime?
+  publishedByUserId   String?
+  // Istorija poslatih emailova je u `BuyerNotice`-nalik tabeli nije potrebna
+  // za prvu verziju; zapisujemo samo count-ove za pregled.
+  emailDeliveredCount Int                    @default(0)
+  createdAt           DateTime               @default(now())
+  updatedAt           DateTime               @updatedAt
+
+  organization Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  building     ManagedBuilding @relation(fields: [buildingId], references: [id], onDelete: Cascade)
+
+  @@index([buildingId, publishedAt])
+  @@map("building_notice")
+}
+
+/// Stanar/vlasnik se prijavljuje emailom (magic link). Nije `Member`
+/// organizacije, nego ima zasebnu vezu sa posebnim delom.
+model ResidentAccess {
+  id              String               @id @default(cuid())
+  organizationId  String
+  personId        String
+  // Pristup se vezuje za svaki posebni deo koji ta osoba kontroliše.
+  unitId          String
+  userId          String? // kad prihvati pozivnicu, ovde ide User.id
+  email           String
+  status          ResidentAccessStatus @default(PENDING_INVITE)
+  invitedAt       DateTime             @default(now())
+  acceptedAt      DateTime?
+  revokedAt       DateTime?
+  revokedReason   String?
+  // Nasumičan token za jednokratnu invite-link stranicu.
+  inviteToken     String?              @unique
+  inviteExpiresAt DateTime?
+  createdAt       DateTime             @default(now())
+  updatedAt       DateTime             @updatedAt
+
+  organization Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  person       BuildingPerson @relation(fields: [personId], references: [id], onDelete: Cascade)
+  unit         ManagedUnit    @relation(fields: [unitId], references: [id], onDelete: Cascade)
+  user         User?          @relation("ResidentAccessUser", fields: [userId], references: [id], onDelete: SetNull)
+
+  @@unique([unitId, email])
+  @@index([organizationId, status])
+  @@index([userId])
+  @@map("resident_access")
+}
+
+/// Investitor pokreće predaju projekta/zgrade upravniku. Jedan Project može
+/// imati više zahteva (jedan po zgradi/manageru), ali u praksi je obično
+/// jedan po projektu.
+model BuildingHandoverRequest {
+  id                   String                 @id @default(cuid())
+  // Investitorska organizacija (izvor)
+  sourceOrganizationId String
+  sourceProjectId      String
+  // Opciono, već kreirana zgrada upravnika u koju ide kopija.
+  targetBuildingId     String?
+  // Upravnička organizacija (destinacija). Mora postojati pre prihvatanja.
+  targetOrganizationId String?
+  // Email + PIB koje je investitor uneo pre nego što je upravnik povezan.
+  targetContactEmail   String
+  targetContactName    String?
+  targetTaxNumber      String?
+  // Snapshot šta se predaje (brojevi delova itd.) za pregled u panelu.
+  summary              Json                   @default("{}")
+  status               BuildingHandoverStatus @default(PENDING)
+  initiatedByUserId    String?
+  initiatedAt          DateTime               @default(now())
+  acceptedByUserId     String?
+  acceptedAt           DateTime?
+  rejectedByUserId     String?
+  rejectedAt           DateTime?
+  rejectedReason       String?
+  canceledAt           DateTime?
+  notes                String?
+  createdAt            DateTime               @default(now())
+  updatedAt            DateTime               @updatedAt
+
+  sourceOrganization Organization     @relation("HandoverSourceOrg", fields: [sourceOrganizationId], references: [id], onDelete: Cascade)
+  sourceProject      Project          @relation("HandoverSourceProject", fields: [sourceProjectId], references: [id], onDelete: Cascade)
+  targetOrganization Organization?    @relation("HandoverTargetOrg", fields: [targetOrganizationId], references: [id], onDelete: SetNull)
+  targetBuilding     ManagedBuilding? @relation("HandoverTargetBuilding", fields: [targetBuildingId], references: [id], onDelete: SetNull)
+
+  @@index([sourceOrganizationId, status])
+  @@index([targetOrganizationId, status])
+  @@index([sourceProjectId])
+  @@map("building_handover_request")
 }

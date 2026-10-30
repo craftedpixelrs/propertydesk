@@ -276,7 +276,7 @@ export async function softDeleteDocument(input: {
 
 export interface DocumentAccessContext {
   organizationId: string;
-  organizationType: "INVESTOR" | "AGENCY" | "PLATFORM";
+  organizationType: "INVESTOR" | "AGENCY" | "MANAGER" | "PLATFORM";
   userId: string;
   /**
    * For agency callers: the investor org whose data they're consuming. When
@@ -303,9 +303,13 @@ export async function getSignedDownloadUrl(input: {
   });
   if (!doc) throw DomainErrors.notFound("Dokument");
 
-  // Investor + platform callers can access their own org's documents.
+  // Investor + manager + platform callers can access their own org's
+  // documents. MANAGER organizacije koriste iste `Document` red za
+  // uplatnice, zapisnike i račune zgrada.
   if (
-    (input.actor.organizationType === "INVESTOR" || input.actor.organizationType === "PLATFORM") &&
+    (input.actor.organizationType === "INVESTOR" ||
+      input.actor.organizationType === "MANAGER" ||
+      input.actor.organizationType === "PLATFORM") &&
     doc.organizationId === input.actor.organizationId
   ) {
     // INTERNAL is fine for these; further role gating is the API layer's job.

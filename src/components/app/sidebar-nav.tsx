@@ -19,7 +19,7 @@ import { NotificationBell } from "@/features/notifications/notification-bell";
 import { SearchButton } from "@/components/app/search-button";
 
 export interface SidebarNavProps {
-  organizationType: "INVESTOR" | "AGENCY" | null;
+  organizationType: "INVESTOR" | "AGENCY" | "MANAGER" | null;
   permissions: PermissionString[];
   isSuperAdmin: boolean;
   hasPropertyDeskAccess: boolean;

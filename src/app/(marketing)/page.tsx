@@ -192,6 +192,7 @@ export default async function LandingPage() {
           { href: "/provizije-agencija", label: t("marketing.anchors.commission") },
           { href: "/za-investitore", label: t("marketing.anchors.investors") },
           { href: "/za-agencije", label: t("marketing.anchors.agencies") },
+          { href: "/za-upravnike", label: t("marketing.anchors.managers") },
         ]}
       />
       <Faq />

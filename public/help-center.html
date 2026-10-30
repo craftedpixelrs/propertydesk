@@ -915,8 +915,43 @@
                   <td>Sve (read-only)</td>
                   <td>Samo čitanje — bez izmena</td>
                 </tr>
+                <tr>
+                  <td><code>MANAGER_OWNER</code></td>
+                  <td>Sve u upravničkom tenantu</td>
+                  <td>Vlasnik firme upravnika, pretplata i rolе</td>
+                </tr>
+                <tr>
+                  <td><code>MANAGER_ADMIN</code></td>
+                  <td>Zgrade, zaduženja, kvarovi, skupštine</td>
+                  <td>Operativa osim brisanja tenanta i pretplate</td>
+                </tr>
+                <tr>
+                  <td><code>MANAGER_ACCOUNTANT</code></td>
+                  <td>Finansije (zaduženja, uplate, opomene, uvoz izvoda)</td>
+                  <td>Računovodstvo stambenih zajednica</td>
+                </tr>
+                <tr>
+                  <td><code>MANAGER_TECHNICIAN</code></td>
+                  <td>Kvarovi i izvođači</td>
+                  <td>Prijem i rešavanje prijava kvarova</td>
+                </tr>
+                <tr>
+                  <td><code>MANAGER_VIEWER</code></td>
+                  <td>Sve u upravniku (read-only)</td>
+                  <td>Samo čitanje</td>
+                </tr>
               </tbody>
             </table>
+
+            <div class="callout">
+              <strong>Upravnici zgrada (MANAGER tenant, Faza 11).</strong>
+              Modul za profesionalne upravnike dolazi uz posebne menije:
+              <code>/zgrade</code>, <code>/zgrade/zaduzenja</code>, <code>/zgrade/kvarovi</code>,
+              <code>/zgrade/skupstine</code>, <code>/zgrade/obavestenja</code> i izveštaje pod
+              <code>/izvestaji/upravljanje/*</code>. Stanari imaju sopstveni portal na
+              <code>/stanar/*</code> (magic-link, nisu nalozi u sistemu). Više u razvojnoj
+              dokumentaciji u fajlu <code>docs/upravnici.md</code>.
+            </div>
 
             <div class="callout warn">
               <strong>Šta ako kolega „ne vidi dugme“?</strong>

@@ -21,6 +21,7 @@ export const marketingSr = {
     app: "Aplikacija",
     investors: "Za investitore",
     agencies: "Za agencije",
+    managers: "Za upravnike zgrada",
     newBuild: "Prodaja novogradnje",
     crm: "CRM za investitore",
     excel: "Alternativa Excelu",
@@ -46,6 +47,8 @@ export const marketingSr = {
     excelBody: "Excel tabela za prodaju stanova, zamenjena jednim cenovnikom.",
     investorsBody: "Softver za investitore: projekat, agencije i uplate.",
     agenciesBody: "Softver za agencije: jedinice koje smete da nudite.",
+    managersBody:
+      "Softver za upravnike zgrada: zaduženja, uplatnice sa IPS QR, kvarovi, skupštine i portal za stanare.",
     commissionsBody: "Provizija agencije za nekretnine, zaključana na dan ugovora.",
     blogBody: "Cenovnik, kapara, ugovor, primopredaja i uplate.",
     helpBody: "Šta je spremno danas, a šta stiže posle 15.11.",
@@ -323,9 +326,9 @@ export const marketingSr = {
 
   personas: {
     eyebrow: "Za koga",
-    title: "Dve strane, jedna platforma",
+    title: "Tri strane, jedna platforma",
     subtitle:
-      "PropertyDesk je dizajniran za dvosmernu saradnju investitora i agencija. Svaka strana dobija svoj portal i tačno one podatke koji su joj potrebni - ništa više, ništa manje.",
+      "PropertyDesk je dizajniran za lanac novogradnje - od investitora i agencija, do upravnika zgrade koji preuzima objekat. Svaka strana dobija svoj portal i tačno one podatke koji su joj potrebni - ništa više, ništa manje.",
     investorEyebrow: "Za investitore",
     investorTitle: "Prodaja novogradnje pod punom kontrolom",
     investorDescription:
@@ -349,6 +352,18 @@ export const marketingSr = {
     agency5: "Praćenje provizija od odobrenja do isplate, sa referral bonusima",
     agency6: "Zaseban tim agenata i uloge sa dozvolama",
     agency7: "Nema više izgubljenih kontakata i konfuzije sa investitorima",
+    managerEyebrow: "Za upravnike zgrada",
+    managerTitle: "Upravljanje zgradama bez tabela i papira",
+    managerDescription:
+      "Vodite stambene zajednice od investitora koji je završio objekat. Zaduženja, uplatnice sa IPS QR, kvarovi, skupštine, obaveštenja i portal za stanare - sve na jednom mestu.",
+    manager1: "Registar zgrada, ulaza, posebnih delova i vlasnika - sa XLSX uvozom",
+    manager2:
+      "Mesečna zaduženja idempotentno (cron 1. u mesecu) + PDF uplatnica sa IPS QR i modelom 97",
+    manager3: "Uvoz izvoda banke, automatsko uparivanje uplata i rang-lista dužnika",
+    manager4: "Kvarovi sa statusima i foto prilozima; troškovi po fondu (tekuće / investiciono)",
+    manager5: "Skupština sa težinskim glasanjem, PDF zapisnik, obaveštenja na portal + mejl",
+    manager6: "Portal za stanare: magic-link, dug, uplatnica, prijava kvara, glasanje",
+    manager7: "Prenos zgrade od investitora jednim klikom, bez JMBG - ZZPL minimizacija ugrađena",
     mobileAlt: "Mobilna aplikacija PropertyDesk za rad na terenu",
     mobileLabel: "PWA za teren - uskoro",
   },
@@ -531,6 +546,8 @@ export const marketingSr = {
     a9: "Da. Pretplata se otkazuje jednim klikom iz aplikacije, bez ugovorne obaveze. Vaši podaci ostaju dostupni za izvoz još 30 dana nakon otkazivanja.",
     q10: "Kako se čuvaju podaci?",
     a10: "Svi podaci se čuvaju u EU regionu, uz enkripciju u tranzitu i u mirovanju. Svaka izmena je evidentirana u trajnom audit dnevniku. Pristup podacima je striktno ograničen po organizaciji (multi-tenant izolacija) i po ulozi korisnika. Backup baze se verifikuje sedmično automatski - operateri dobijaju email upozorenje već na drugi uzastopni fail.",
+    q11: "Da li PropertyDesk radi i za upravnike stambenih zajednica?",
+    a11: "Da. Modul 'Upravnik zgrada' pokriva registar zgrada, mesečna zaduženja sa IPS QR uplatnicama (model 97), uvoz izvoda banke i uparivanje uplata, kvarove i troškove po fondu, obaveštenja stanarima, skupštine sa težinskim glasanjem i portal za stanare (magic-link, bez registracije). Investitor sa PropertyDesk-om jednim klikom preda zgradu upravniku bez prekucavanja vlasnika i jedinica. Više: stranica 'Za upravnike'.",
   },
 
   lead: {
@@ -559,6 +576,7 @@ export const marketingSr = {
     who: "Ko ste Vi?",
     investor: "Investitor",
     agency: "Agencija za nekretnine",
+    manager: "Upravnik zgrada",
     projectCount: "Broj projekata koji trenutno vodite / prodajete",
     select: "Izaberite…",
     projects0: "0 - u pripremi",
@@ -574,7 +592,7 @@ export const marketingSr = {
     consentAfter: "Podatke mogu povući u bilo kom trenutku slanjem mejla na",
     submit: "Pošalji prijavu",
     afterSubmit: "Nakon slanja, kontaktiramo Vas u roku od 2 radna dana.",
-    audienceRequired: "Molimo označite da li ste investitor ili agencija.",
+    audienceRequired: "Molimo označite da li ste investitor, agencija ili upravnik zgrada.",
     rateLimited: "Previše pokušaja. Sačekajte minut i pokušajte ponovo.",
     sendFailed: "Slanje nije uspelo. Pokušajte ponovo za koji trenutak.",
     network: "Nema veze sa serverom. Proverite internet i pokušajte ponovo.",
@@ -683,6 +701,56 @@ export const marketingSr = {
       s5: "Transparentan tok od prodaje do isplate provizije - vidite status svake stavke uživo.",
       p6: "Kupci Vas zovu da pitaju za dostupnost - a Vi morate da zovete investitora da proverite.",
       s6: "Direktan pristup katalogu - odgovarate klijentu u realnom vremenu i zakazujete termin obilaska. Javni sajt projekta možete deliti kupcu jednim linkom.",
+    },
+    managers: {
+      metaTitle: "Softver za upravnike stambenih zajednica",
+      metaDescription:
+        "Softver za upravnike zgrada: zaduženja, uplatnice sa IPS QR, kvarovi, skupštine i portal za stanare. Jedan sistem umesto Excela, Vibera i papira.",
+      eyebrow: "Za upravnike zgrada",
+      icon: "Upravnik",
+      title: "Vodite stambene zajednice bez tabela i Vibera",
+      // Subtitle front-loads "softver za upravnike zgrada" za SEO alignment.
+      subtitle:
+        "Softver za upravnike zgrada u Srbiji - zaduženja, uplatnice sa IPS QR i modelom 97, kvarovi, skupštine, obaveštenja i portal za stanare. Investitor Vam predaje zgradu jednim klikom, bez prekucavanja vlasnika i jedinica.",
+      gridTitle: "Deset stvari koje upravnici žele da reše sa softverom",
+      gridSubtitle:
+        "Ovo su najčešći problemi koje čujemo od upravnika sa 5 do 50 zgrada pod upravljanjem. PropertyDesk rešava svaki od njih iz kutije - na srpskom i po Zakonu o stanovanju i održavanju zgrada.",
+      p1: "Zaduženja za zajedničke troškove radite ručno u Excelu - svaki mesec sat vremena po zgradi.",
+      s1: "Tarife po zgradi, ulazu ili tipu jedinice. Cron prvog u mesecu automatski generiše zaduženja za sve posebne delove - idempotentno, bez duplikata, čak i ako pokrenete ponovo.",
+      p2: "Uplatnice štampate u Wordu i stanari ne znaju šta da upišu u poziv na broj.",
+      s2: "PDF uplatnica sa IPS QR kodom (NBS specifikacija) i 14-cifrenim pozivom na broj po modelu 97. Reprint iste uplatnice uvek vraća istu referencu - banka ne pravi dupli red.",
+      p3: "Uplate iz izvoda banke ručno vežete sa zaduženjima, pa dužnici 'nestaju' u Excelu.",
+      s3: "Uvoz CSV/XLSX izvoda, automatsko poklapanje sa otvorenim zaduženjima po pozivu na broj. Dužnici imaju svoju rang-listu, slanje opomena jednim klikom.",
+      p4: "Kvarovi stižu Viberom, nestaju u razgovoru, pa niko ne zna kome je šta prijavio.",
+      s4: "Tiketi sa statusima (prijavljeno → trijaža → u radu → završeno), fotografije, dobavljači. Zatvaranje kvara sa iznosom automatski piše trošak u izabrani fond (tekuće održavanje / investicioni / ostalo).",
+      p5: "Skupština - pozivi papirom, zapisnik ručno, glasovi se broje na parče papira.",
+      s5: "Zakazivanje skupštine, pozivi mejlom, dnevni red, težinsko glasanje po udelu u zgradi (prosta / apsolutna / dvotrećinska većina). Zapisnik se generiše u PDF-u, spreman za potpis.",
+      p6: "Stanari zovu po ceo dan da pitaju koliko duguju i kada je bio poslednji kvar.",
+      s6: "Portal za stanare - stanar dobije magic-link mejlom, bez registracije, bez lozinke. Vidi svoje jedinice, dug, preuzme uplatnicu PDF, prijavi kvar i glasa na otvorenoj skupštini.",
+      p7: "Obaveštenja po oglasnoj tabli zgrade - pola stanara ih nikada ne vidi.",
+      s7: "Objavljivanje obaveštenja na portal + email broadcast u jednom koraku. Dokumenti zgrade (zapisnici, ugovori, planovi) na jednom mestu, sa soft-delete politikom.",
+      p8: "Prevozi i vlasnici od investitora stižu Excelom, pa ponovno kucate 100 stanova u svoju bazu.",
+      s8: "Investitor preda zgradu jednim klikom (zahtev → prihvat). Jedna transakcija kopira strukturu zgrade i vlasnike u Vaš sistem - bez prekucavanja, bez grešaka.",
+      p9: "Lični podaci stanara idu i tamo gde ne treba - zabrinuti ste zbog ZZPL-a.",
+      s9: "Prilikom preuzimanja zgrade od investitora JMBG, broj lične karte i PIB se NIKAD ne kopiraju u Vaš sistem (minimizacija). Portal za stanare takođe ne traži JMBG - stanar nije nalog u sistemu.",
+      p10: "Na kraju godine ručno sastavljate 'Izveštaj o radu' - niko ga ne čita.",
+      s10: "Dashboard upravnika sa KPI-jevima + 4 izveštaja (finansije, dužnici, troškovi, godišnji). Export u CSV/XLSX i godišnji PDF 'Izveštaj o radu' spreman za predsednika skupštine.",
+      ctaTitle: "Zamenite tabele, Viber i papirne uplatnice jednim sistemom.",
+      ctaSubtitle:
+        "Prvih 30 dana besplatno. Nakon toga paket 'Upravnik Pro' za do 10 zgrada po fiksnoj mesečnoj ceni, bez skrivenih tarifa po stanaru. Zakažite 25-minutni demo i proverite da li vam odgovara.",
+      // Three-step flow block below the problem-solution grid.
+      flowTitle: "Kako izgleda uobičajen mesec u PropertyDesk-u",
+      flowSubtitle:
+        "Od 1. do 31. - sistem automatizuje posao koji ste do sada radili rukom. Ovo je stvarni tok, ne marketing.",
+      flow1Title: "1. u mesecu - zaduženja",
+      flow1Body:
+        "Cron u 02:00 UTC generiše zaduženja za sve zgrade. Stanar ujutru dobije uplatnicu PDF sa IPS QR na portalu i mejlom.",
+      flow2Title: "Tokom meseca - uplate i kvarovi",
+      flow2Body:
+        "Uvezete izvod banke i uplate se same vežu sa zaduženjima. Stanari prijavljuju kvare sa fotografijama - tehničar vidi tiket u realnom vremenu.",
+      flow3Title: "Kraj meseca - dug i izveštaji",
+      flow3Body:
+        "Rang-lista dužnika + slanje opomena jednim klikom. Finansijski izveštaji i troškovi po fondu spremni za CSV/XLSX export - bez pravljenja tabela od nule.",
     },
     newBuild: {
       metaTitle: "Prodaja novogradnje",
@@ -876,6 +944,7 @@ export const marketingSr = {
     newBuild: "Prodaja novogradnje",
     investors: "Softver za investitore",
     agencies: "Softver za agencije za nekretnine",
+    managers: "Softver za upravnike zgrada",
     crm: "CRM za investitore",
     excel: "Excel tabela za prodaju stanova",
     reservation: "Rezervacija stana",
@@ -927,6 +996,7 @@ export const marketingEn: Leaves<typeof marketingSr> = {
     app: "App",
     investors: "For investors",
     agencies: "For agencies",
+    managers: "For building managers",
     newBuild: "New-build sales",
     crm: "CRM for investors",
     excel: "Excel alternative",
@@ -952,6 +1022,8 @@ export const marketingEn: Leaves<typeof marketingSr> = {
     excelBody: "An Excel sheet for unit sales, replaced by one price list.",
     investorsBody: "Software for investors: the project, the agencies, and the payments.",
     agenciesBody: "Software for agencies: the units you may offer.",
+    managersBody:
+      "Software for building managers: dues, IPS QR payment slips, tickets, assemblies, and the resident portal.",
     commissionsBody: "An agency commission, locked on contract day.",
     blogBody: "Price lists, deposits, contracts, handover, and payments.",
     helpBody: "What is ready today, and what arrives after 15 November.",
@@ -1224,9 +1296,9 @@ export const marketingEn: Leaves<typeof marketingSr> = {
 
   personas: {
     eyebrow: "Who it's for",
-    title: "Two sides, one platform",
+    title: "Three sides, one platform",
     subtitle:
-      "PropertyDesk is designed for two-way collaboration between investors and agencies. Each side gets its own portal and exactly the data it needs — nothing more, nothing less.",
+      "PropertyDesk is designed for the whole new-build chain — from investors and agencies to the building manager who takes over the finished object. Each side gets its own portal and exactly the data it needs — nothing more, nothing less.",
     investorEyebrow: "For investors",
     investorTitle: "New-build sales under full control",
     investorDescription:
@@ -1251,6 +1323,19 @@ export const marketingEn: Leaves<typeof marketingSr> = {
     agency5: "Commission tracking from approval to payout, including referral bonuses",
     agency6: "A separate agent team and roles with permissions",
     agency7: "No more lost contacts and confusion with investors",
+    managerEyebrow: "For building managers",
+    managerTitle: "Run housing associations without spreadsheets or paper",
+    managerDescription:
+      "Take over buildings from the developer when the project is done. Dues, IPS QR payment slips, maintenance tickets, assemblies, notices and a resident portal — all in one place.",
+    manager1: "Building registry, entrances, units and owners — with XLSX import",
+    manager2:
+      "Monthly dues generated idempotently (day-1 cron) + PDF slip with IPS QR and model-97 reference",
+    manager3: "Bank statement import, automatic payment matching and a debtor league table",
+    manager4: "Tickets with statuses and photos; expenses per fund (routine / capital)",
+    manager5: "Assemblies with weighted voting, PDF minutes, notices on the portal + email",
+    manager6: "Resident portal: magic link, dues balance, payment slip, repair request, voting",
+    manager7:
+      "One-click building handover from the developer, with no JMBG — data minimisation built in",
     mobileAlt: "PropertyDesk mobile app for field work",
     mobileLabel: "PWA for the field — coming soon",
   },
@@ -1433,6 +1518,8 @@ export const marketingEn: Leaves<typeof marketingSr> = {
     a9: "Yes. The subscription is cancelled in one click from the app, with no contractual lock-in. Your data stays available for export for another 30 days after cancellation.",
     q10: "How is data stored?",
     a10: "All data is stored in the EU region, encrypted in transit and at rest. Every change is recorded in a permanent audit log. Access is strictly limited by organisation (multi-tenant isolation) and by user role. Database backups are verified automatically every week — operators get an email warning on the second consecutive fail.",
+    q11: "Does PropertyDesk work for building managers (housing associations)?",
+    a11: "Yes. The 'Building manager' module covers a building registry, monthly dues with IPS QR payment slips (model-97 reference), bank statement import and payment matching, maintenance tickets with per-fund expenses, resident notices, assemblies with weighted voting, and a resident portal (magic-link, no sign-up). A developer running PropertyDesk hands a building over to the manager in one click, with no re-typing of owners or units. More on the 'For building managers' page.",
   },
 
   lead: {
@@ -1462,6 +1549,7 @@ export const marketingEn: Leaves<typeof marketingSr> = {
     who: "Who are you?",
     investor: "Investor",
     agency: "Real-estate agency",
+    manager: "Building manager",
     projectCount: "Number of projects you currently run / sell",
     select: "Select…",
     projects0: "0 — in preparation",
@@ -1477,7 +1565,7 @@ export const marketingEn: Leaves<typeof marketingSr> = {
     consentAfter: "I can withdraw my data at any time by emailing",
     submit: "Send application",
     afterSubmit: "After you send this, we contact you within 2 business days.",
-    audienceRequired: "Please indicate whether you are an investor or an agency.",
+    audienceRequired: "Please indicate whether you are an investor, agency or building manager.",
     rateLimited: "Too many attempts. Wait a minute and try again.",
     sendFailed: "Sending failed. Please try again in a moment.",
     network: "No connection to the server. Check your internet and try again.",
@@ -1580,6 +1668,54 @@ export const marketingEn: Leaves<typeof marketingSr> = {
       s5: "A transparent flow from sale to commission payout — you see the status of every item live.",
       p6: "Buyers call you about availability — and you have to call the investor to check.",
       s6: "Direct catalogue access — you answer the client in real time and book a viewing. You can share the public project site with the buyer as a single link.",
+    },
+    managers: {
+      metaTitle: "Software for building managers in Serbia",
+      metaDescription:
+        "Software for building managers: dues, IPS QR payment slips, maintenance tickets, assemblies and a resident portal. One system instead of Excel, Viber and paper.",
+      eyebrow: "For building managers",
+      icon: "Building manager",
+      title: "Run housing associations without spreadsheets or Viber",
+      subtitle:
+        "Software for building managers in Serbia — dues, payment slips with IPS QR and the model-97 reference, maintenance tickets, assemblies, notices and a resident portal. Developers hand buildings over to you in one click, with no re-typing of owners and units.",
+      gridTitle: "Ten things managers want to fix with software",
+      gridSubtitle:
+        "These are the problems we hear most from managers of 5 to 50 buildings. PropertyDesk solves each of them out of the box — in Serbian, and aligned with the Serbian Housing and Maintenance Act.",
+      p1: "You compute monthly dues by hand in Excel — an hour per building, every month.",
+      s1: "Tariffs per building, entrance or unit type. A cron on day 1 of the month generates dues for every unit — idempotent, no duplicates, safe to rerun.",
+      p2: "You print payment slips in Word and residents never know what to type in the reference field.",
+      s2: "A PDF slip with an IPS QR (NBS spec) and a 14-digit model-97 reference. Reprinting the same slip returns the same reference — the bank never creates a duplicate row.",
+      p3: "You match bank statement payments to dues by hand, and debtors 'disappear' in Excel.",
+      s3: "Import a CSV/XLSX statement — payments auto-match to open dues by their reference. Debtors get a league table and reminders go out in one click.",
+      p4: "Repair requests come through Viber, drown in the chat, and nobody knows who reported what.",
+      s4: "Tickets with statuses (open → triaged → in progress → done), photos, suppliers. Closing a ticket with a cost automatically writes an expense to the chosen fund (routine maintenance / capital / other).",
+      p5: "Assemblies — paper invitations, hand-written minutes, votes counted on scraps of paper.",
+      s5: "Schedule the assembly, email invitations, build the agenda, run weighted voting by ownership share (simple / absolute / two-thirds majority). Minutes are generated as a PDF ready for signatures.",
+      p6: "Residents call you all day to ask what they owe and when the last repair happened.",
+      s6: "A resident portal — residents get a magic-link email, no registration, no password. They see their units, their balance, download the PDF slip, report a repair and vote on an open assembly.",
+      p7: "Notices on the building board — half the residents never see them.",
+      s7: "Publish notices to the portal + email broadcast in one step. Building documents (minutes, contracts, plans) live in one place, with a soft-delete policy.",
+      p8: "Owners from the developer arrive in Excel, and you re-type 100 apartments into your own database.",
+      s8: "The developer hands the building over in one click (request → accept). A single transaction copies the building structure and owners into your system — no re-typing, no mistakes.",
+      p9: "Resident personal data goes where it shouldn't — you worry about data protection.",
+      s9: "When a building is handed over from the developer, Serbian ID numbers (JMBG), identity card numbers and tax IDs are NEVER copied into your system (data minimisation). The resident portal doesn't ask for a JMBG either — a resident is not a system account.",
+      p10: "At year-end you compile the 'Annual activity report' by hand — and nobody reads it.",
+      s10: "A manager dashboard with KPIs + 4 reports (finance, debtors, expenses, annual). CSV/XLSX export and a 'Annual activity' PDF ready for the chairman of the assembly.",
+      ctaTitle: "Replace spreadsheets, Viber and paper slips with one system.",
+      ctaSubtitle:
+        "First 30 days free. After that the 'Manager Pro' plan covers up to 10 buildings at a flat monthly fee, with no hidden per-resident charges. Book a 25-minute demo to see whether it fits.",
+      flowTitle: "What a typical month looks like in PropertyDesk",
+      flowSubtitle:
+        "From day 1 to day 31 — the system automates what you've been doing by hand. This is the real flow, not marketing.",
+      flow1Title: "Day 1 — dues",
+      flow1Body:
+        "A cron at 02:00 UTC generates dues for every building. By morning the resident has the PDF slip with its IPS QR on the portal and in email.",
+      flow2Title: "During the month — payments and tickets",
+      flow2Body:
+        "You import a bank statement and payments match themselves to open dues. Residents report repairs with photos — the technician sees the ticket in real time.",
+      flow3Title: "End of month — debt and reports",
+      flow3Body:
+        "A debtor league table + reminders in one click. Finance and expense-by-fund reports are ready for CSV/XLSX export — without building tables from scratch.",
     },
     newBuild: {
       metaTitle: "New-build sales",
@@ -1771,6 +1907,7 @@ export const marketingEn: Leaves<typeof marketingSr> = {
     newBuild: "New-build sales",
     investors: "Software for investors",
     agencies: "Software for estate agencies",
+    managers: "Software for building managers",
     crm: "CRM for investors",
     excel: "An Excel sheet for selling units",
     reservation: "Apartment reservation",

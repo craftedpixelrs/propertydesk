@@ -103,6 +103,7 @@ export function LandingJsonLd({ slug, title, description, locale, breadcrumb }: 
 export const LANDING_ROUTES = [
   { slug: "za-investitore", labelKey: "marketing.nav.investors" },
   { slug: "za-agencije", labelKey: "marketing.nav.agencies" },
+  { slug: "za-upravnike", labelKey: "marketing.nav.managers" },
   { slug: "prodaja-novogradnje", labelKey: "marketing.nav.newBuild" },
   { slug: "crm-za-investitore", labelKey: "marketing.nav.crm" },
   { slug: "alternative-excelu", labelKey: "marketing.nav.excel" },

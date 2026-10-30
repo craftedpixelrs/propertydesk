@@ -20,6 +20,10 @@ import {
   Inbox,
   CalendarDays,
   Radar,
+  Wrench,
+  Megaphone,
+  Vote,
+  CircleUser,
 } from "lucide-react";
 import type { PermissionString } from "@/server/permissions/access-control";
 
@@ -33,13 +37,26 @@ import type { PermissionString } from "@/server/permissions/access-control";
  */
 
 export type NavGroup =
-  "overview" | "property" | "crm" | "deals" | "finance" | "network" | "library";
+  | "overview"
+  | "property"
+  | "crm"
+  | "deals"
+  | "finance"
+  | "network"
+  | "library"
+  // Faza 11 — upravnici zgrada
+  | "buildings"
+  | "maintenance"
+  | "community";
 
 export const NAV_GROUP_ORDER: NavGroup[] = [
   "overview",
   "property",
+  "buildings",
   "crm",
   "deals",
+  "maintenance",
+  "community",
   "finance",
   "network",
   "library",
@@ -54,6 +71,9 @@ export const NAV_GROUP_LABEL: Record<
   | "nav.groupFinance"
   | "nav.groupNetwork"
   | "nav.groupLibrary"
+  | "nav.groupBuildings"
+  | "nav.groupMaintenance"
+  | "nav.groupCommunity"
 > = {
   overview: "nav.groupOverview",
   property: "nav.groupProperty",
@@ -62,6 +82,9 @@ export const NAV_GROUP_LABEL: Record<
   finance: "nav.groupFinance",
   network: "nav.groupNetwork",
   library: "nav.groupLibrary",
+  buildings: "nav.groupBuildings",
+  maintenance: "nav.groupMaintenance",
+  community: "nav.groupCommunity",
 };
 
 export interface NavItem {
@@ -97,13 +120,23 @@ export interface NavItem {
     | "signOut"
     | "more"
     | "platformAdmin"
-    | "propertyDesk"}`;
+    | "propertyDesk"
+    // Faza 11 — upravnici
+    | "buildings"
+    | "dues"
+    | "debtors"
+    | "tickets"
+    | "suppliers"
+    | "assemblies"
+    | "notices"
+    | "residents"
+    | "handovers"}`;
   href: string;
   icon: LucideIcon;
   /** Required permission to see the item. `undefined` == always visible. */
   permission?: PermissionString;
   /** If provided, only these org types see this item. */
-  orgTypes?: ("INVESTOR" | "AGENCY")[];
+  orgTypes?: ("INVESTOR" | "AGENCY" | "MANAGER")[];
   /** Only visible to platform SUPER_ADMIN. */
   platformOnly?: boolean;
   /**
@@ -335,10 +368,105 @@ export const navigation: NavItem[] = [
     icon: Radar,
     pdTeamOnly: true,
   },
+
+  // -------------------------------------------------------------------------
+  // Faza 11 — Upravnici zgrada (MANAGER organizacije)
+  // -------------------------------------------------------------------------
+  {
+    key: "buildings",
+    group: "buildings",
+    labelKey: "nav.buildings",
+    href: "/zgrade",
+    icon: Building2,
+    permission: "building.read",
+    orgTypes: ["MANAGER"],
+  },
+  {
+    key: "building-dues",
+    group: "buildings",
+    labelKey: "nav.dues",
+    href: "/zgrade/zaduzenja",
+    icon: ReceiptText,
+    permission: "dues.read",
+    orgTypes: ["MANAGER"],
+  },
+  {
+    key: "building-debtors",
+    group: "buildings",
+    labelKey: "nav.debtors",
+    href: "/zgrade/duznici",
+    icon: ReceiptText,
+    permission: "dues.read",
+    orgTypes: ["MANAGER"],
+  },
+  {
+    key: "building-tickets",
+    group: "maintenance",
+    labelKey: "nav.tickets",
+    href: "/zgrade/kvarovi",
+    icon: Wrench,
+    permission: "ticket.read",
+    orgTypes: ["MANAGER"],
+  },
+  {
+    key: "building-suppliers",
+    group: "maintenance",
+    labelKey: "nav.suppliers",
+    href: "/zgrade/izvodjaci",
+    icon: Users,
+    permission: "ticket.manage",
+    orgTypes: ["MANAGER"],
+  },
+  {
+    key: "building-assemblies",
+    group: "community",
+    labelKey: "nav.assemblies",
+    href: "/zgrade/skupstine",
+    icon: Vote,
+    permission: "assembly.read",
+    orgTypes: ["MANAGER"],
+  },
+  {
+    key: "building-notices",
+    group: "community",
+    labelKey: "nav.notices",
+    href: "/zgrade/obavestenja",
+    icon: Megaphone,
+    permission: "notice.read",
+    orgTypes: ["MANAGER"],
+  },
+  {
+    key: "building-residents",
+    group: "community",
+    labelKey: "nav.residents",
+    href: "/zgrade/stanari",
+    icon: CircleUser,
+    permission: "resident.read",
+    orgTypes: ["MANAGER"],
+  },
+  {
+    key: "building-handovers",
+    group: "network",
+    labelKey: "nav.handovers",
+    href: "/zgrade/predaje",
+    icon: Handshake,
+    permission: "building.handover",
+    orgTypes: ["MANAGER"],
+  },
+  // Investitor vidi pokrenute predaje svojih projekata upravnicima.
+  {
+    key: "investor-handovers",
+    group: "network",
+    labelKey: "nav.handovers",
+    href: "/projekti/predaje",
+    icon: Handshake,
+    permission: "project.handover_manager",
+    orgTypes: ["INVESTOR"],
+  },
 ];
 
 export interface NavContext {
-  organizationType: "INVESTOR" | "AGENCY" | null;
+  organizationType: "INVESTOR" | "AGENCY" | "MANAGER" | null;
   hasPermission: (perm: PermissionString) => boolean;
   isSuperAdmin: boolean;
   /** True when the caller is an enabled Property Desk team member. */
@@ -397,10 +525,13 @@ export const MOBILE_BOTTOM_NAV_KEYS = [
   "dashboard",
   "projects",
   "offer",
+  "buildings",
   "customers",
   "my-buyers",
   "reservations",
   "my-reservations",
+  "building-dues",
+  "building-tickets",
 ] as const;
 
 export const MoreIcon = Grid3x3;
