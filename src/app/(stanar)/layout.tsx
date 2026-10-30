@@ -33,11 +33,17 @@ export default function ResidentLayout({ children }: { children: ReactNode }) {
             <Link href="/stanar/obavestenja" className="hover:text-[var(--color-foreground)]">
               Obaveštenja
             </Link>
-            <Link href="/stanar/kvarovi/novi" className="hover:text-[var(--color-foreground)]">
-              Prijavi kvar
+            <Link href="/stanar/kvarovi" className="hover:text-[var(--color-foreground)]">
+              Kvarovi
+            </Link>
+            <Link href="/stanar/dokumenti" className="hover:text-[var(--color-foreground)]">
+              Dokumenti
             </Link>
             <Link href="/stanar/glasanje" className="hover:text-[var(--color-foreground)]">
               Glasanje
+            </Link>
+            <Link href="/stanar/privatnost" className="hover:text-[var(--color-foreground)]">
+              Privatnost
             </Link>
             <form action="/stanar/odjava" method="post" className="inline">
               <button

@@ -287,6 +287,7 @@ model Organization {
   duesCharges              DuesCharge[]
   duesPayments             DuesPayment[]
   duesAdjustments          DuesAdjustment[]
+  duesReminderLogs         DuesReminderLog[]
   suppliers                Supplier[]
   maintenanceTickets       MaintenanceTicket[]
   buildingExpenses         BuildingExpense[]
@@ -785,6 +786,12 @@ enum DocumentVisibility {
   INVESTOR_TEAM
   AGENCY_SHARED
   BUYER_SHARED
+  /// Faza 11 — document is visible to residents through the stanar portal.
+  /// Only honoured for category=BUILDING / TICKET / ASSEMBLY / DUES /
+  /// NOTICE / OTHER on manager-tenant entities (`ManagedBuilding`,
+  /// `ManagedUnit`, `MaintenanceTicket`, `Assembly`). Access is scoped to
+  /// units the resident has an active ResidentAccess row on.
+  RESIDENT_SHARED
 }
 
 enum CommissionStatus {
@@ -2161,7 +2168,12 @@ model Document {
   mimeType         String
   size             Int
   storageKey       String
-  uploadedByUserId String
+  /// Nullable because residents (not Better Auth `User` rows) can upload
+  /// photos through the stanar portal. In that case we store the resident
+  /// link on `uploadedByPersonId` instead and the audit log records the
+  /// identity for traceability.
+  uploadedByUserId   String?
+  uploadedByPersonId String?
   visibility       DocumentVisibility @default(INTERNAL)
   sortOrder        Int                @default(0)
   isCover          Boolean            @default(false)
@@ -2173,8 +2185,9 @@ model Document {
   /// in the bucket / local dir.
   storagePurgedAt  DateTime?
 
-  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  uploadedByUser User         @relation("DocumentUploader", fields: [uploadedByUserId], references: [id], onDelete: Restrict)
+  organization       Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  uploadedByUser     User?           @relation("DocumentUploader", fields: [uploadedByUserId], references: [id], onDelete: SetNull)
+  uploadedByPerson   BuildingPerson? @relation("DocumentPersonUploader", fields: [uploadedByPersonId], references: [id], onDelete: SetNull)
 
   @@index([organizationId, category])
   @@index([entityType, entityId])
@@ -3152,10 +3165,11 @@ model BuildingPerson {
   createdAt      DateTime          @default(now())
   updatedAt      DateTime          @updatedAt
 
-  organization   Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  building       ManagedBuilding  @relation(fields: [buildingId], references: [id], onDelete: Cascade)
-  ownerships     UnitOwnership[]
-  residentAccess ResidentAccess[]
+  organization      Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  building          ManagedBuilding  @relation(fields: [buildingId], references: [id], onDelete: Cascade)
+  ownerships        UnitOwnership[]
+  residentAccess    ResidentAccess[]
+  uploadedDocuments Document[]       @relation("DocumentPersonUploader")
 
   @@index([organizationId, buildingId])
   @@map("building_person")
@@ -3279,6 +3293,25 @@ model DuesAdjustment {
 
   @@index([organizationId, unitId])
   @@map("dues_adjustment")
+}
+
+/// Faza 11 — one row per debtor email actually dispatched by
+/// `sendDuesReminders`. Used to dedupe: a second call within
+/// `cooldownDays` for the same unit is skipped and audited as `skipped`.
+model DuesReminderLog {
+  id             String   @id @default(cuid())
+  organizationId String
+  buildingId     String
+  unitId         String
+  recipientEmail String
+  outstanding    Decimal  @db.Decimal(14, 2)
+  sentAt         DateTime @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, unitId, sentAt])
+  @@index([organizationId, buildingId, sentAt])
+  @@map("dues_reminder_log")
 }
 
 model Supplier {

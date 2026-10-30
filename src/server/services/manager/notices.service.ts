@@ -128,6 +128,50 @@ export async function listBuildingNotices(input: {
   });
 }
 
+interface AudienceShape {
+  entranceIds?: string[];
+  unitTypes?: ManagedUnitType[];
+  unitIds?: string[];
+}
+
+/**
+ * Resolve the set of units a notice targets. The audience discriminator
+ * on the notice chooses which `audienceParams` field is honoured; any
+ * other fields are ignored. For `ALL` this returns every active unit in
+ * the building.
+ *
+ * Centralising this logic lets the email sender, the resident portal and
+ * the unit tests all agree on exactly who sees a notice.
+ */
+export async function resolveNoticeUnitIds(notice: {
+  organizationId: string;
+  buildingId: string;
+  audience: BuildingNoticeAudience;
+  audienceParams: Prisma.JsonValue | null;
+}): Promise<string[]> {
+  const params = ((notice.audienceParams ?? {}) as AudienceShape) || {};
+
+  const where: Prisma.ManagedUnitWhereInput = {
+    organizationId: notice.organizationId,
+    buildingId: notice.buildingId,
+    archivedAt: null,
+  };
+  if (notice.audience === "BY_ENTRANCE") {
+    if (!params.entranceIds?.length) return [];
+    where.entranceId = { in: params.entranceIds };
+  } else if (notice.audience === "BY_UNIT_TYPE") {
+    if (!params.unitTypes?.length) return [];
+    where.type = { in: params.unitTypes };
+  } else if (notice.audience === "SPECIFIC_UNITS") {
+    if (!params.unitIds?.length) return [];
+    where.id = { in: params.unitIds };
+  }
+  // ALL (fallthrough) targets every active unit in the building.
+
+  const units = await prisma.managedUnit.findMany({ where, select: { id: true } });
+  return units.map((u) => u.id);
+}
+
 /**
  * Resolve audience → unique list of email addresses, then send a plain-text
  * email to each. Updates `emailDeliveredCount` on the notice row.
@@ -145,30 +189,13 @@ export async function deliverNoticeEmails(noticeId: string): Promise<number> {
   if (!notice) return 0;
   if (notice.channel === "PORTAL_ONLY") return 0;
 
-  // Resolve units for this audience.
-  const audienceParams = (notice.audienceParams ?? {}) as {
-    entranceIds?: string[];
-    unitTypes?: ManagedUnitType[];
-    unitIds?: string[];
-  };
-
-  const unitWhere: Prisma.ManagedUnitWhereInput = {
-    organizationId: notice.organizationId,
-    buildingId: notice.buildingId,
-    archivedAt: null,
-  };
-  if (notice.audience === "BY_ENTRANCE" && audienceParams.entranceIds?.length) {
-    unitWhere.entranceId = { in: audienceParams.entranceIds };
-  } else if (notice.audience === "BY_UNIT_TYPE" && audienceParams.unitTypes?.length) {
-    unitWhere.type = { in: audienceParams.unitTypes };
-  } else if (notice.audience === "SPECIFIC_UNITS" && audienceParams.unitIds?.length) {
-    unitWhere.id = { in: audienceParams.unitIds };
-  }
+  const unitIds = await resolveNoticeUnitIds(notice);
+  if (unitIds.length === 0) return 0;
 
   const owners = await prisma.unitOwnership.findMany({
     where: {
       endedAt: null,
-      unit: unitWhere,
+      unitId: { in: unitIds },
       person: { email: { not: null } },
     },
     select: {

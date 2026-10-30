@@ -12,6 +12,7 @@ import { formatDate } from "@/lib/formatters";
 import { createT } from "@/lib/i18n";
 import type { MaintenancePriority, MaintenanceStatus } from "@prisma/client";
 import { NewTicketDialog } from "@/features/manager/ticket-forms";
+import { TicketsKanban } from "@/features/manager/tickets-kanban";
 
 const PRIORITY_TONE: Record<MaintenancePriority, string> = {
   LOW: "bg-slate-100 text-slate-700",
@@ -51,12 +52,15 @@ export default async function TicketsListPage({ searchParams }: PageProps) {
     ? (statusRaw as MaintenanceStatus)
     : undefined;
   const page = Number(readParam(sp.page) ?? "1") || 1;
-  const pageSize = 50;
+  const viewMode = readParam(sp.view) === "board" ? "board" : "list";
+  // The board shows every open status side-by-side; pulling a larger page
+  // keeps drag-and-drop meaningful without duplicating pagination there.
+  const pageSize = viewMode === "board" ? 500 : 50;
 
   const [{ items }, buildings, allUnits, suppliers] = await Promise.all([
     listMaintenanceTickets({
       organizationId: ctx.activeOrganization.id,
-      status,
+      status: viewMode === "board" ? undefined : status,
       page,
       pageSize,
     }),
@@ -83,16 +87,52 @@ export default async function TicketsListPage({ searchParams }: PageProps) {
             {t("manager.tickets.subtitle")}
           </p>
         </div>
-        <PermissionGuard permission="ticket.manage">
-          <NewTicketDialog
-            buildings={buildings}
-            units={allUnits}
-            suppliers={suppliers.map((s) => ({ id: s.id, name: s.name }))}
-          />
-        </PermissionGuard>
+        <div className="flex items-center gap-2">
+          <div className="inline-flex overflow-hidden rounded-md border border-[var(--color-border)] text-xs">
+            <Link
+              href="/zgrade/kvarovi"
+              className={`px-3 py-1.5 ${
+                viewMode === "list"
+                  ? "bg-[var(--color-brand-700)] text-white"
+                  : "bg-[var(--color-surface)]"
+              }`}
+            >
+              {t("manager.ticket.listView")}
+            </Link>
+            <Link
+              href="/zgrade/kvarovi?view=board"
+              className={`px-3 py-1.5 ${
+                viewMode === "board"
+                  ? "bg-[var(--color-brand-700)] text-white"
+                  : "bg-[var(--color-surface)]"
+              }`}
+            >
+              {t("manager.ticket.boardView")}
+            </Link>
+          </div>
+          <PermissionGuard permission="ticket.manage">
+            <NewTicketDialog
+              buildings={buildings}
+              units={allUnits}
+              suppliers={suppliers.map((s) => ({ id: s.id, name: s.name }))}
+            />
+          </PermissionGuard>
+        </div>
       </div>
 
-      {items.length === 0 ? (
+      {viewMode === "board" ? (
+        <TicketsKanban
+          tickets={items.map((t) => ({
+            id: t.id,
+            code: t.code,
+            title: t.title,
+            priority: t.priority,
+            status: t.status,
+            buildingName: t.building.name,
+            unitCode: t.unit?.code ?? null,
+          }))}
+        />
+      ) : items.length === 0 ? (
         <Card>
           <CardContent className="py-10 text-center text-sm text-[var(--color-foreground-muted)]">
             {t("manager.tickets.empty")}

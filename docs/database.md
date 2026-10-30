@@ -210,12 +210,25 @@ All new models carry `organizationId` and FK to it with
 **Notices + documents**
 
 - `building_notice` — `status` `DRAFT / PUBLISHED`. Delivery counters
-  are `emailDeliveredCount` and `portalViewCount`.
+  are `emailDeliveredCount` and `portalViewCount`. `audience` je enum
+  `ALL / BY_ENTRANCE / BY_UNIT_TYPE / SPECIFIC_UNITS`, a `audienceParams`
+  je JSON (`entranceIds[]`, `unitTypes[]`, `unitIds[]`). Mapiranje
+  obaveštenja na stvarnu listu jedinica radi
+  `resolveNoticeUnitIds()` — jedini pozivani iz email dostave i iz
+  `/stanar/obavestenja`.
 - Zgradni dokumenti žive u opštoj `document` tabeli sa
   `entityType = 'ManagedBuilding'` + `entityId = <buildingId>` i
   `category` iz enuma `DocumentCategory` (`BUILDING`, `TICKET`,
   `ASSEMBLY`, `DUES`, `OTHER`, `INVOICE`). Soft-delete flag; the daily
-  purge job honours it.
+  purge job honours it. `visibility` je prošireno sa `RESIDENT_SHARED`
+  — dokumenti sa ovom vrednošću pokazuju se stanarima kojima je
+  dodeljen pristup toj zgradi. `uploadedByUserId` je sada nullable sa
+  FK-om `SetNull`; dodatna kolona `uploadedByPersonId` (`SetNull` FK
+  na `BuildingPerson`) hvata uploade iz portala za stanare.
+- `dues_reminder_log` — audit svake stvarno poslate opomene za
+  uplatnicu (`chargeId`, `email`, `sentAt`). Koristi se za cooldown
+  dedupe u `sendDuesReminders` (default 7 dana). `(organizationId,
+  sentAt)` je indeks nad kojim radimo filter.
 
 **Resident portal**
 

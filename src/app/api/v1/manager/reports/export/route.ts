@@ -6,6 +6,7 @@ import { requirePermission } from "@/server/permissions/require";
 import {
   buildManagerFinancialReport,
   buildManagerExpensesReport,
+  buildMaintenanceProgramReport,
 } from "@/server/services/manager/reports.service";
 import { listDebtors } from "@/server/services/manager/dues.service";
 import {
@@ -100,6 +101,31 @@ export const GET = apiHandler({}, async ({ searchParams }): Promise<Response> =>
         { key: "fund", label: "Fond" },
         { key: "total", label: "Iznos" },
         { key: "count", label: "Broj" },
+      ];
+      rows = data.rows as unknown as Array<Record<string, unknown>>;
+      break;
+    }
+    case "manager-maintenance": {
+      const from = new Date(Date.UTC(year, 0, 1));
+      const to = new Date(Date.UTC(year + 1, 0, 1));
+      const data = await buildMaintenanceProgramReport({
+        organizationId,
+        from,
+        to,
+        buildingId,
+      });
+      filename = `program-odrzavanja-${year}`;
+      columns = [
+        { key: "buildingName", label: "Zgrada" },
+        { key: "category", label: "Kategorija" },
+        { key: "totalCount", label: "Ukupno" },
+        { key: "openCount", label: "Otvoreno" },
+        { key: "inProgressCount", label: "U radu" },
+        { key: "awaitingPartsCount", label: "Čeka delove" },
+        { key: "completedCount", label: "Završeno" },
+        { key: "canceledCount", label: "Otkazano" },
+        { key: "estimatedCost", label: "Procenjeni trošak" },
+        { key: "actualCost", label: "Stvarni trošak" },
       ];
       rows = data.rows as unknown as Array<Record<string, unknown>>;
       break;

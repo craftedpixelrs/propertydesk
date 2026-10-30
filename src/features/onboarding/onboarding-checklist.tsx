@@ -15,7 +15,7 @@ export interface OnboardingChecklistProps {
   state: Pick<OnboardingState, "steps" | "completedCount" | "totalCount" | "allDone">;
 }
 
-const STEP_LABEL: Record<OnboardingStepKey, TranslationKey> = {
+const STEP_LABEL: Partial<Record<OnboardingStepKey, TranslationKey>> = {
   profile: "crm.onboarding.steps.profile.label",
   project: "crm.onboarding.steps.project.label",
   units: "crm.onboarding.steps.units.label",
@@ -94,7 +94,7 @@ export function OnboardingChecklist({ state }: OnboardingChecklistProps) {
                         : "text-sm font-medium"
                     }
                   >
-                    {t(STEP_LABEL[step.key])}
+                    {STEP_LABEL[step.key] ? t(STEP_LABEL[step.key]!) : step.label}
                   </div>
                 </div>
               </div>

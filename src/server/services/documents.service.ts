@@ -23,7 +23,16 @@ import { storage, assertAllowedMimeType, MAX_UPLOAD_BYTES } from "@/server/stora
 
 export interface UploadDocumentInput {
   organizationId: string;
-  actorUserId: string;
+  /**
+   * Signed-in operator who performed the upload. `null` is accepted for
+   * resident-portal flows — residents are not `User` rows so there is no
+   * valid id to persist on `uploadedByUserId`. In that case callers pass
+   * `actorPersonId` so we can still trace the resident identity on the
+   * document itself (and the audit log entry is written with a null
+   * actor plus a `metadata.personId` field).
+   */
+  actorUserId: string | null;
+  actorPersonId?: string | null;
   category: DocumentCategory;
   entityType: string;
   entityId: string;
@@ -93,6 +102,7 @@ export async function uploadDocument(input: UploadDocumentInput) {
       size: put.size,
       storageKey: put.storageKey,
       uploadedByUserId: input.actorUserId,
+      uploadedByPersonId: input.actorPersonId ?? null,
       visibility: input.visibility ?? "INTERNAL",
       expiresAt: input.expiresAt ?? null,
     },
@@ -110,6 +120,7 @@ export async function uploadDocument(input: UploadDocumentInput) {
       size: doc.size,
       target: `${input.entityType}:${input.entityId}`,
     },
+    metadata: input.actorPersonId ? { personId: input.actorPersonId } : undefined,
   });
 
   return doc;
@@ -338,5 +349,112 @@ export async function getSignedDownloadUrl(input: {
     return { doc, url };
   }
 
+  throw DomainErrors.forbidden("Nemate pristup ovom dokumentu.");
+}
+
+/**
+ * Faza 11 — list every document a resident can see based on their
+ * `ResidentAccess` rows. Includes:
+ *   - documents on a building the resident has access to, visibility=RESIDENT_SHARED
+ *   - documents on one of the resident's units, visibility=RESIDENT_SHARED
+ *   - documents on a MaintenanceTicket the resident filed (reportedByPersonId)
+ *     — these are always readable to that specific resident even when the
+ *     visibility is INTERNAL (it's their own report).
+ */
+export async function listResidentDocuments(input: {
+  personId: string;
+  buildingIds: string[];
+  unitIds: string[];
+  page: number;
+  pageSize: number;
+}) {
+  const { personId, buildingIds, unitIds, page, pageSize } = input;
+  if (buildingIds.length === 0 && unitIds.length === 0) {
+    return { items: [], total: 0 };
+  }
+
+  // Tickets this resident filed — we expose every document attached to
+  // them regardless of visibility (it's their own evidence).
+  const myTickets = await prisma.maintenanceTicket.findMany({
+    where: { reportedByPersonId: personId },
+    select: { id: true },
+    take: 500,
+  });
+  const myTicketIds = myTickets.map((t) => t.id);
+
+  const or: Prisma.DocumentWhereInput[] = [];
+  if (buildingIds.length > 0) {
+    or.push({
+      entityType: "ManagedBuilding",
+      entityId: { in: buildingIds },
+      visibility: "RESIDENT_SHARED",
+    });
+  }
+  if (unitIds.length > 0) {
+    or.push({
+      entityType: "ManagedUnit",
+      entityId: { in: unitIds },
+      visibility: "RESIDENT_SHARED",
+    });
+  }
+  if (myTicketIds.length > 0) {
+    or.push({
+      entityType: "MaintenanceTicket",
+      entityId: { in: myTicketIds },
+    });
+  }
+
+  const where: Prisma.DocumentWhereInput = { deletedAt: null, OR: or };
+  const [items, total] = await Promise.all([
+    prisma.document.findMany({
+      where,
+      orderBy: { createdAt: "desc" },
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+    }),
+    prisma.document.count({ where }),
+  ]);
+  return { items, total };
+}
+
+/**
+ * Guard used by the resident-facing download route. Returns the document
+ * row if the resident may read it, otherwise throws forbidden. Mirrors
+ * `listResidentDocuments` so a document shown in the list is downloadable
+ * and vice-versa.
+ */
+export async function assertResidentCanReadDocument(input: {
+  personId: string;
+  buildingIds: string[];
+  unitIds: string[];
+  documentId: string;
+}) {
+  const { personId, buildingIds, unitIds, documentId } = input;
+  const doc = await prisma.document.findFirst({
+    where: { id: documentId, deletedAt: null },
+  });
+  if (!doc) throw DomainErrors.notFound("Dokument");
+
+  if (doc.entityType === "ManagedBuilding" && buildingIds.includes(doc.entityId)) {
+    if (doc.visibility === "RESIDENT_SHARED") return doc;
+  }
+  if (doc.entityType === "ManagedUnit" && unitIds.includes(doc.entityId)) {
+    if (doc.visibility === "RESIDENT_SHARED") return doc;
+  }
+  if (doc.entityType === "MaintenanceTicket") {
+    const ticket = await prisma.maintenanceTicket.findUnique({
+      where: { id: doc.entityId },
+      select: { reportedByPersonId: true },
+    });
+    if (ticket?.reportedByPersonId === personId) return doc;
+    // Also allow RESIDENT_SHARED tickets to a unit they own.
+    if (doc.visibility === "RESIDENT_SHARED") {
+      const ticketWithUnit = await prisma.maintenanceTicket.findUnique({
+        where: { id: doc.entityId },
+        select: { unitId: true },
+      });
+      if (ticketWithUnit?.unitId && unitIds.includes(ticketWithUnit.unitId)) return doc;
+    }
+  }
   throw DomainErrors.forbidden("Nemate pristup ovom dokumentu.");
 }

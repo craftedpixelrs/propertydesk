@@ -258,6 +258,119 @@ export function ChangeTicketStatusDialog({
   );
 }
 
+export function EditTicketDialog({
+  ticket,
+  assignees,
+  suppliers,
+}: {
+  ticket: {
+    id: string;
+    title: string;
+    description: string | null;
+    category: MaintenanceCategory;
+    priority: MaintenancePriority;
+    assignedToUserId: string | null;
+    supplierId: string | null;
+    estimatedCost: string | null;
+    actualCost: string | null;
+    fund: "CURRENT_MAINTENANCE" | "INVESTMENT_FUND" | "OTHER" | null;
+  };
+  assignees: Array<{ id: string; name: string }>;
+  suppliers: Array<{ id: string; name: string }>;
+}) {
+  const t = useT();
+  const [title, setTitle] = useState(ticket.title);
+  const [description, setDescription] = useState(ticket.description ?? "");
+  const [category, setCategory] = useState<MaintenanceCategory>(ticket.category);
+  const [priority, setPriority] = useState<MaintenancePriority>(ticket.priority);
+  const [assignedToUserId, setAssignedToUserId] = useState(ticket.assignedToUserId ?? "");
+  const [supplierId, setSupplierId] = useState(ticket.supplierId ?? "");
+  const [estimatedCost, setEstimatedCost] = useState(ticket.estimatedCost ?? "");
+
+  return (
+    <ActionDialog
+      trigger={<Button variant="outline">{t("manager.actions.edit")}</Button>}
+      title={t("manager.actions.edit")}
+      submitLabel={t("common.save")}
+      onSubmit={async () => {
+        await apiClient.patch(`/manager/tickets/${ticket.id}`, {
+          title: title.trim(),
+          description: description.trim() || null,
+          category,
+          priority,
+          assignedToUserId: assignedToUserId || null,
+          supplierId: supplierId || null,
+          estimatedCost: estimatedCost.toString().trim() ? Number(estimatedCost) : null,
+        });
+      }}
+    >
+      {() => (
+        <>
+          <Field
+            label={t("manager.tickets.columns.title")}
+            id="et-title"
+            value={title}
+            required
+            onChange={setTitle}
+          />
+          <TextareaField
+            label={t("manager.ticket.descriptionField")}
+            id="et-desc"
+            value={description}
+            onChange={setDescription}
+          />
+          <div className="grid grid-cols-2 gap-3">
+            <SelectField
+              label={t("manager.ticket.categoryField")}
+              id="et-cat"
+              value={category}
+              options={CATEGORIES.map((c) => ({ value: c, label: CATEGORY_LABEL_SR[c] }))}
+              onChange={(v) => v && setCategory(v)}
+            />
+            <SelectField
+              label={t("manager.ticket.priorityField")}
+              id="et-prio"
+              value={priority}
+              options={PRIORITIES.map((p) => ({
+                value: p,
+                label: t(`manager.tickets.priority.${p}` as const),
+              }))}
+              onChange={(v) => v && setPriority(v)}
+            />
+            <SelectField
+              label={t("manager.ticket.assigneeField")}
+              id="et-assignee"
+              value={assignedToUserId}
+              options={[
+                { value: "", label: `— ${t("manager.ticket.noAssignee")} —` },
+                ...assignees.map((u) => ({ value: u.id, label: u.name })),
+              ]}
+              onChange={setAssignedToUserId}
+            />
+            <SelectField
+              label={t("manager.ticket.supplierField")}
+              id="et-sup"
+              value={supplierId}
+              options={[
+                { value: "", label: "—" },
+                ...suppliers.map((s) => ({ value: s.id, label: s.name })),
+              ]}
+              onChange={setSupplierId}
+            />
+            <Field
+              label={t("manager.ticket.estimatedCostField")}
+              id="et-ec"
+              type="number"
+              value={estimatedCost}
+              onChange={setEstimatedCost}
+            />
+          </div>
+        </>
+      )}
+    </ActionDialog>
+  );
+}
+
 export function UploadTicketPhotoButton({ ticketId }: { ticketId: string }) {
   const t = useT();
   const [file, setFile] = useState<File | null>(null);

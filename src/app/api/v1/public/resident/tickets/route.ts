@@ -28,7 +28,10 @@ export async function POST(req: Request): Promise<Response> {
 
     const ticket = await createMaintenanceTicket({
       organizationId: match.organizationId,
-      actorUserId: session.personId,
+      // Residents are not `User` rows; the identity lives on
+      // `reportedByPersonId` and the service fans out notifications to
+      // every manager with `ticket.manage` because actorUserId is null.
+      actorUserId: null,
       buildingId: match.unit.buildingId,
       unitId: match.unitId,
       title,
@@ -43,7 +46,8 @@ export async function POST(req: Request): Promise<Response> {
       const buffer = Buffer.from(await photo.arrayBuffer());
       await uploadDocument({
         organizationId: match.organizationId,
-        actorUserId: session.personId,
+        actorUserId: null,
+        actorPersonId: session.personId,
         category: "TICKET",
         entityType: "MaintenanceTicket",
         entityId: ticket.id,

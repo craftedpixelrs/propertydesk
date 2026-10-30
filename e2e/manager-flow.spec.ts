@@ -24,7 +24,9 @@ test.describe("manager flow — route guards", () => {
     "/izvestaji/upravljanje/finansije",
     "/izvestaji/upravljanje/duznici",
     "/izvestaji/upravljanje/troskovi",
+    "/izvestaji/upravljanje/odrzavanje",
     "/izvestaji/upravljanje/godisnji",
+    "/zgrade/kvarovi?view=board",
   ];
 
   for (const route of managerRoutes) {
@@ -56,6 +58,26 @@ test.describe("stanar portal — access guards", () => {
     // Either 302/303 to /stanar/odjavljen, or a 200 with that page rendered.
     expect([200, 302, 303].includes(res.status())).toBe(true);
   });
+
+  test("resident document download rejects anonymous callers", async ({ request }) => {
+    const res = await request.get("/api/v1/public/resident/documents/does-not-exist/download");
+    expect([401, 403, 404].includes(res.status())).toBe(true);
+  });
+
+  test("resident ticket inbox requires a cookie", async ({ page }) => {
+    await page.goto("/stanar/kvarovi");
+    await expect(page).toHaveURL(/\/stanar\/potreban-pristup|\/sign-in/);
+  });
+
+  test("resident documents inbox requires a cookie", async ({ page }) => {
+    await page.goto("/stanar/dokumenti");
+    await expect(page).toHaveURL(/\/stanar\/potreban-pristup|\/sign-in/);
+  });
+
+  test("resident privacy page requires a cookie", async ({ page }) => {
+    await page.goto("/stanar/privatnost");
+    await expect(page).toHaveURL(/\/stanar\/potreban-pristup|\/sign-in/);
+  });
 });
 
 test.describe("investor → manager handover guard", () => {
@@ -67,6 +89,22 @@ test.describe("investor → manager handover guard", () => {
       },
     });
     // 401/403 — never 200, never 500.
+    expect([401, 403].includes(res.status())).toBe(true);
+  });
+});
+
+test.describe("manager finance API — new endpoints", () => {
+  test("GET /api/v1/manager/dues/bulk-pdf requires auth", async ({ request }) => {
+    const res = await request.get(
+      "/api/v1/manager/dues/bulk-pdf?buildingId=none&year=2026&month=10",
+    );
+    expect([401, 403].includes(res.status())).toBe(true);
+  });
+
+  test("POST /api/v1/manager/dues/reminders requires auth", async ({ request }) => {
+    const res = await request.post("/api/v1/manager/dues/reminders", {
+      data: { cooldownDays: 7 },
+    });
     expect([401, 403].includes(res.status())).toBe(true);
   });
 });

@@ -1,5 +1,10 @@
 import "server-only";
-import type { BuildingExpenseFund, Prisma } from "@prisma/client";
+import type {
+  BuildingExpenseFund,
+  MaintenanceCategory,
+  MaintenanceStatus,
+  Prisma,
+} from "@prisma/client";
 import Decimal from "decimal.js";
 
 import { prisma } from "@/server/db/prisma";
@@ -277,5 +282,154 @@ export async function buildAnnualActivityReport(input: {
       publishedCount: notices._count._all,
       totalDeliveries: notices._sum.emailDeliveredCount ?? 0,
     },
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Maintenance program report — program održavanja
+// ---------------------------------------------------------------------------
+
+export interface MaintenanceProgramRow {
+  buildingId: string;
+  buildingName: string;
+  category: MaintenanceCategory;
+  totalCount: number;
+  openCount: number;
+  inProgressCount: number;
+  awaitingPartsCount: number;
+  completedCount: number;
+  canceledCount: number;
+  estimatedCost: string;
+  actualCost: string;
+}
+
+export interface MaintenanceProgramTotals {
+  totalCount: number;
+  completedCount: number;
+  openCount: number;
+  estimatedCost: string;
+  actualCost: string;
+}
+
+/**
+ * Faza 11 — "program održavanja" report. Groups every maintenance ticket
+ * in the chosen period by building and category, counting statuses and
+ * summing estimated/actual costs. Used by managers to review workload,
+ * plan next-year budgets and justify fund usage to the assembly.
+ */
+export async function buildMaintenanceProgramReport(input: {
+  organizationId: string;
+  from: Date;
+  to: Date;
+  buildingId?: string | null;
+}): Promise<{
+  rows: MaintenanceProgramRow[];
+  totals: MaintenanceProgramTotals;
+  byCategory: Array<{ category: MaintenanceCategory; count: number; actualCost: string }>;
+}> {
+  const where: Prisma.MaintenanceTicketWhereInput = {
+    organizationId: input.organizationId,
+    createdAt: { gte: input.from, lt: input.to },
+    ...(input.buildingId ? { buildingId: input.buildingId } : {}),
+  };
+
+  const tickets = await prisma.maintenanceTicket.findMany({
+    where,
+    select: {
+      buildingId: true,
+      category: true,
+      status: true,
+      estimatedCost: true,
+      actualCost: true,
+      building: { select: { id: true, name: true } },
+    },
+  });
+
+  const byKey = new Map<string, MaintenanceProgramRow>();
+  let totalCount = 0;
+  let completedCount = 0;
+  let openCount = 0;
+  let totalEst = new Decimal(0);
+  let totalAct = new Decimal(0);
+  const categoryTotals = new Map<MaintenanceCategory, { count: number; actual: Decimal }>();
+
+  for (const t of tickets) {
+    const key = `${t.buildingId}::${t.category}`;
+    let row = byKey.get(key);
+    if (!row) {
+      row = {
+        buildingId: t.buildingId,
+        buildingName: t.building?.name ?? "—",
+        category: t.category,
+        totalCount: 0,
+        openCount: 0,
+        inProgressCount: 0,
+        awaitingPartsCount: 0,
+        completedCount: 0,
+        canceledCount: 0,
+        estimatedCost: "0.00",
+        actualCost: "0.00",
+      };
+      byKey.set(key, row);
+    }
+    row.totalCount += 1;
+    totalCount += 1;
+    switch (t.status as MaintenanceStatus) {
+      case "OPEN":
+      case "TRIAGED":
+        row.openCount += 1;
+        openCount += 1;
+        break;
+      case "IN_PROGRESS":
+        row.inProgressCount += 1;
+        openCount += 1;
+        break;
+      case "AWAITING_PARTS":
+        row.awaitingPartsCount += 1;
+        openCount += 1;
+        break;
+      case "COMPLETED":
+        row.completedCount += 1;
+        completedCount += 1;
+        break;
+      case "CANCELED":
+        row.canceledCount += 1;
+        break;
+    }
+    const est = t.estimatedCost ? new Decimal(t.estimatedCost.toString()) : new Decimal(0);
+    const act = t.actualCost ? new Decimal(t.actualCost.toString()) : new Decimal(0);
+    row.estimatedCost = new Decimal(row.estimatedCost).plus(est).toFixed(2);
+    row.actualCost = new Decimal(row.actualCost).plus(act).toFixed(2);
+    totalEst = totalEst.plus(est);
+    totalAct = totalAct.plus(act);
+
+    const cat = categoryTotals.get(t.category) ?? { count: 0, actual: new Decimal(0) };
+    cat.count += 1;
+    cat.actual = cat.actual.plus(act);
+    categoryTotals.set(t.category, cat);
+  }
+
+  const rows = Array.from(byKey.values()).sort(
+    (a, b) => a.buildingName.localeCompare(b.buildingName) || a.category.localeCompare(b.category),
+  );
+
+  const byCategory = Array.from(categoryTotals.entries())
+    .map(([category, v]) => ({
+      category,
+      count: v.count,
+      actualCost: v.actual.toFixed(2),
+    }))
+    .sort((a, b) => b.count - a.count);
+
+  return {
+    rows,
+    totals: {
+      totalCount,
+      completedCount,
+      openCount,
+      estimatedCost: totalEst.toFixed(2),
+      actualCost: totalAct.toFixed(2),
+    },
+    byCategory,
   };
 }

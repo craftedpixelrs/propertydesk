@@ -7,7 +7,11 @@ import { prisma } from "@/server/db/prisma";
 import { formatDate, formatMoney } from "@/lib/formatters";
 import { createT, type TranslateFn } from "@/lib/i18n";
 import type { DuesChargeStatus } from "@prisma/client";
-import { ImportBankStatementDialog, SendRemindersDialog } from "@/features/manager/dues-actions";
+import {
+  BulkUplatnicaDialog,
+  ImportBankStatementDialog,
+  SendRemindersDialog,
+} from "@/features/manager/dues-actions";
 
 const STATUS_TONE: Record<DuesChargeStatus, string> = {
   OPEN: "bg-amber-100 text-amber-700",
@@ -82,6 +86,9 @@ export default async function DuesListPage({ searchParams }: PageProps) {
         <div className="flex flex-wrap gap-2">
           <PermissionGuard permission="dues.bankstatement.import">
             <ImportBankStatementDialog buildings={buildings} />
+          </PermissionGuard>
+          <PermissionGuard permission="dues.invoice.send">
+            <BulkUplatnicaDialog buildings={buildings} />
           </PermissionGuard>
           <PermissionGuard permission="dues.reminder.send">
             <SendRemindersDialog buildings={buildings} />

@@ -19,11 +19,16 @@ const prismaMock = vi.hoisted(() => {
     create: vi.fn<AsyncFn>(),
     update: vi.fn<AsyncFn>(),
   };
+  const duesReminderLog = {
+    findMany: vi.fn<AsyncFn>(),
+    create: vi.fn<AsyncFn>(),
+  };
   return {
     duesCharge,
     duesPayment,
+    duesReminderLog,
     $transaction: vi.fn(async (cb: (tx: unknown) => Promise<unknown>) =>
-      cb({ duesCharge, duesPayment }),
+      cb({ duesCharge, duesPayment, duesReminderLog }),
     ),
   };
 });
@@ -61,6 +66,8 @@ beforeEach(() => {
     status: "PAID",
   });
   prismaMock.duesCharge.findMany.mockResolvedValue([]);
+  prismaMock.duesReminderLog.findMany.mockResolvedValue([]);
+  prismaMock.duesReminderLog.create.mockResolvedValue({ id: "log-1" });
 });
 
 describe("writeOffDuesCharge", () => {
@@ -407,5 +414,62 @@ describe("sendDuesReminders", () => {
         entityId: "b-1",
       }),
     );
+  });
+
+  it("writes a DuesReminderLog row for every email actually sent", async () => {
+    prismaMock.duesCharge.findMany.mockResolvedValueOnce([
+      debtor("u-1", "a@example.test", "500.00", "0.00"),
+      debtor("u-2", "b@example.test", "750.00", "0.00"),
+    ]);
+    emailMock.sendEmail.mockResolvedValue(undefined);
+    await sendDuesReminders({ organizationId: "org-1", actorUserId: "user-1" });
+    expect(prismaMock.duesReminderLog.create).toHaveBeenCalledTimes(2);
+    const firstCall = prismaMock.duesReminderLog.create.mock.calls[0]?.[0] as {
+      data: { unitId: string; recipientEmail: string; outstanding: string };
+    };
+    // listDebtors sorts by outstanding DESC, so u-2 (750) is logged first.
+    expect(firstCall.data).toMatchObject({
+      unitId: "u-2",
+      recipientEmail: "b@example.test",
+      outstanding: "750.00",
+    });
+  });
+
+  it("skips a unit that was reminded within the cooldown window", async () => {
+    prismaMock.duesCharge.findMany.mockResolvedValueOnce([
+      debtor("u-1", "ana@example.test", "500.00", "0.00"),
+      debtor("u-2", "petar@example.test", "900.00", "0.00"),
+    ]);
+    // u-1 was reminded a day ago → inside the default 7-day cooldown.
+    prismaMock.duesReminderLog.findMany.mockResolvedValueOnce([
+      { unitId: "u-1", sentAt: new Date(Date.now() - 24 * 60 * 60 * 1000) },
+    ]);
+    emailMock.sendEmail.mockResolvedValue(undefined);
+    const result = await sendDuesReminders({
+      organizationId: "org-1",
+      actorUserId: "user-1",
+    });
+    expect(result.dedupedSkipped).toBe(1);
+    expect(result.sent).toBe(1);
+    // Only u-2 should get an email + log.
+    expect(emailMock.sendEmail).toHaveBeenCalledTimes(1);
+    expect(prismaMock.duesReminderLog.create).toHaveBeenCalledTimes(1);
+  });
+
+  it("cooldownDays=0 disables the dedupe guard", async () => {
+    prismaMock.duesCharge.findMany.mockResolvedValueOnce([
+      debtor("u-1", "ana@example.test", "500.00", "0.00"),
+    ]);
+    prismaMock.duesReminderLog.findMany.mockResolvedValue([{ unitId: "u-1", sentAt: new Date() }]);
+    emailMock.sendEmail.mockResolvedValue(undefined);
+    const result = await sendDuesReminders({
+      organizationId: "org-1",
+      actorUserId: "user-1",
+      cooldownDays: 0,
+    });
+    expect(result.dedupedSkipped).toBe(0);
+    expect(result.sent).toBe(1);
+    // With cooldown=0 we skip the pre-fetch entirely.
+    expect(prismaMock.duesReminderLog.findMany).not.toHaveBeenCalled();
   });
 });

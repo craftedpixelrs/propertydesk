@@ -47,6 +47,9 @@ tsconfig.tsbuildinfo
 .agent-tools
 agent-tools
 
+# local-only social/content drafts (never commit)
+.tmp-social
+
 # generated / local-only reports (not source)
 docs-live.json
 scripts/.swagger-perms-report.json

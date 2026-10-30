@@ -8,6 +8,7 @@ import { useT } from "@/components/app/i18n-provider";
 import { ActionDialog, SelectField } from "./_shared/action-dialog";
 
 type AllowedCategory = "BUILDING" | "TICKET" | "ASSEMBLY" | "DUES" | "INVOICE" | "OTHER";
+type ManagerVisibility = "INTERNAL" | "RESIDENT_SHARED";
 
 const DEFAULT_CATEGORIES: AllowedCategory[] = ["BUILDING", "INVOICE", "DUES", "ASSEMBLY", "OTHER"];
 
@@ -16,14 +17,24 @@ export function UploadDocumentDialog({
   entityId,
   categories = DEFAULT_CATEGORIES,
   defaultCategory = "BUILDING",
+  /**
+   * When true the dialog shows a visibility picker (INTERNAL vs
+   * RESIDENT_SHARED) so operators can expose the document on the
+   * resident portal. Defaults to true for `ManagedBuilding` /
+   * `ManagedUnit` / `MaintenanceTicket` entities, which are the only
+   * ones the resident guard accepts.
+   */
+  allowResidentShare = true,
 }: {
   entityType: string;
   entityId: string;
   categories?: AllowedCategory[];
   defaultCategory?: AllowedCategory;
+  allowResidentShare?: boolean;
 }) {
   const t = useT();
   const [category, setCategory] = useState<AllowedCategory>(defaultCategory);
+  const [visibility, setVisibility] = useState<ManagerVisibility>("INTERNAL");
   const [file, setFile] = useState<File | null>(null);
   return (
     <ActionDialog
@@ -37,7 +48,7 @@ export function UploadDocumentDialog({
         form.append("category", category);
         form.append("entityType", entityType);
         form.append("entityId", entityId);
-        form.append("visibility", "INTERNAL");
+        form.append("visibility", visibility);
         const res = await fetch("/api/v1/documents", {
           method: "POST",
           body: form,
@@ -61,6 +72,21 @@ export function UploadDocumentDialog({
             }))}
             onChange={(v) => v && setCategory(v)}
           />
+          {allowResidentShare ? (
+            <SelectField
+              label={t("manager.documents.visibilityField")}
+              id="ud-vis"
+              value={visibility}
+              options={[
+                { value: "INTERNAL", label: t("manager.documents.visibility.INTERNAL") },
+                {
+                  value: "RESIDENT_SHARED",
+                  label: t("manager.documents.visibility.RESIDENT_SHARED"),
+                },
+              ]}
+              onChange={(v) => v && setVisibility(v as ManagerVisibility)}
+            />
+          ) : null}
           <div className="space-y-1">
             <label className="text-sm font-medium">{t("manager.documents.fileField")}</label>
             <input

@@ -241,9 +241,14 @@ organization. Full module runbook: [`upravnici.md`](./upravnici.md).
 - `POST /manager/dues/payments/:paymentId/reverse` — `dues.payment.reverse`.
 - `POST /manager/dues/:id/write-off` — `dues.writeoff` (obavezan razlog).
 - `GET /manager/dues/:id/pdf` — uplatnica PDF with IPS QR + model-97.
+- `GET /manager/dues/bulk-pdf?buildingId=&year=&month=&includePaid=0|1`
+  — jedan PDF sa po jednom stranom za svaku otvorenu uplatnicu zgrade
+  za zadati mesec (`dues.read`).
 - `POST /manager/dues/bank-statement` — `dues.bankstatement.import`
   (multipart CSV/XLSX ili JSON `{ rows: [...] }`; matching po model-97).
-- `POST /manager/dues/reminders` — `dues.reminder.send`.
+- `POST /manager/dues/reminders` — `dues.reminder.send`; prima
+  `{ cooldownDays?: number }` (default 7). Vraća `{ sent, failed,
+  dedupedSkipped[] }`. Pokušaj se evidentira u `DuesReminderLog`.
 - `GET/POST /manager/buildings/:id/expenses` — `dues.read` /
   `ticket.close` (lista + ručni unos van ticket workflow-a).
 
@@ -283,8 +288,10 @@ organization. Full module runbook: [`upravnici.md`](./upravnici.md).
 
 **Reports & exports**
 
-- `GET /manager/reports/export?report=manager-{financial|debtors|expenses}&format=csv|xlsx`
-  — `report.read`.
+- `GET /manager/reports/export?report=manager-{financial|debtors|expenses|maintenance}&format=csv|xlsx`
+  — `report.read`. `manager-maintenance` je novi program održavanja:
+  po zgradi × kategoriji daje broj otvorenih / zatvorenih tiketa, zbir
+  procene i zbir stvarnog troška.
 - `GET /manager/reports/godisnji/pdf?year=YYYY` — `report.read`;
   one-page annual activity report for the chairman.
 
@@ -311,7 +318,14 @@ group and reads/writes through server actions in
   `MaintenanceTicket` za jedinicu iz aktivnog `pd_resident` cookie-ja i
   prilaže do 5 slika kao `Document(category: TICKET,
   entityType: MaintenanceTicket)`. Scope je striktno `ResidentAccess.unitId`
-  — tempered unit id vraća 403.
+  — tempered unit id vraća 403. Pri kreiranju tiketa upravnici dobijaju
+  in-app notifikaciju i email (preko `listOrgMembersWithPermission` sa
+  `ticket.read`).
+- `GET /api/v1/public/resident/documents/:id/download` — download za
+  dokument koji je upravnik označio `visibility: RESIDENT_SHARED` i
+  vezao za zgradu u kojoj stanar ima pristup. Guard je
+  `assertResidentCanReadDocument` — svaki pokušaj van dozvoljenih
+  zgrada vraća 403.
 
 ### Cron
 

@@ -6,10 +6,15 @@ import { PermissionGuard } from "@/components/app/permission-guard";
 import { loadUserContext, requireTenantPage } from "@/server/auth/context";
 import { getMaintenanceTicket, listSuppliers } from "@/server/services/manager/maintenance.service";
 import { listDocuments } from "@/server/services/documents.service";
+import { listOrgMembersWithPermission } from "@/server/services/manager/members";
 import { isDomainError } from "@/lib/errors";
-import { formatDate, formatDateTime, formatMoney } from "@/lib/formatters";
+import { formatDateTime, formatMoney } from "@/lib/formatters";
 import { createT } from "@/lib/i18n";
-import { ChangeTicketStatusDialog, UploadTicketPhotoButton } from "@/features/manager/ticket-forms";
+import {
+  ChangeTicketStatusDialog,
+  EditTicketDialog,
+  UploadTicketPhotoButton,
+} from "@/features/manager/ticket-forms";
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -29,7 +34,7 @@ export default async function TicketDetailPage({ params }: Props) {
     throw err;
   }
 
-  const [suppliers, photos] = await Promise.all([
+  const [suppliers, photos, assigneeMembers] = await Promise.all([
     listSuppliers({ organizationId: ctx.activeOrganization.id, buildingId: ticket.buildingId }),
     listDocuments({
       organizationId: ctx.activeOrganization.id,
@@ -39,7 +44,13 @@ export default async function TicketDetailPage({ params }: Props) {
       page: 1,
       pageSize: 50,
     }),
+    listOrgMembersWithPermission(ctx.activeOrganization.id, "ticket.manage"),
   ]);
+  const assignees = assigneeMembers.map((m) => ({
+    id: m.userId,
+    name: m.name ?? m.email,
+  }));
+  const assigneeName = assignees.find((a) => a.id === ticket.assignedToUserId)?.name ?? null;
 
   return (
     <div className="space-y-6">
@@ -57,6 +68,22 @@ export default async function TicketDetailPage({ params }: Props) {
         </div>
         <div className="flex flex-wrap gap-2">
           <PermissionGuard permission="ticket.manage">
+            <EditTicketDialog
+              ticket={{
+                id: ticket.id,
+                title: ticket.title,
+                description: ticket.description,
+                category: ticket.category,
+                priority: ticket.priority,
+                assignedToUserId: ticket.assignedToUserId,
+                supplierId: ticket.supplierId,
+                estimatedCost: ticket.estimatedCost ? ticket.estimatedCost.toString() : null,
+                actualCost: ticket.actualCost ? ticket.actualCost.toString() : null,
+                fund: ticket.fund,
+              }}
+              assignees={assignees}
+              suppliers={suppliers.map((s) => ({ id: s.id, name: s.name }))}
+            />
             <ChangeTicketStatusDialog
               ticketId={ticket.id}
               currentStatus={ticket.status}
@@ -87,6 +114,10 @@ export default async function TicketDetailPage({ params }: Props) {
             <Row
               label={t("manager.tickets.columns.status")}
               value={t(`manager.tickets.status.${ticket.status}` as const)}
+            />
+            <Row
+              label={t("manager.ticket.assigneeField")}
+              value={assigneeName ?? `— ${t("manager.ticket.noAssignee")} —`}
             />
             <Row label={t("manager.ticket.supplierField")} value={ticket.supplier?.name ?? "—"} />
             <Row

@@ -86,6 +86,12 @@ const MANAGER_REPORTS: Array<{
     Icon: Wrench,
   },
   {
+    href: "/izvestaji/upravljanje/odrzavanje",
+    titleKey: "manager.reports.maintenanceTitle",
+    descriptionKey: "manager.reports.maintenanceDesc",
+    Icon: Wrench,
+  },
+  {
     href: "/izvestaji/upravljanje/godisnji",
     titleKey: "manager.reports.annualTitle",
     descriptionKey: "manager.reports.annualDesc",

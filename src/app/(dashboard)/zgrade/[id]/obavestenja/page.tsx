@@ -6,6 +6,7 @@ import {
   assertBuildingBelongsToOrg,
   getManagedBuilding,
 } from "@/server/services/manager/buildings.service";
+import { prisma } from "@/server/db/prisma";
 import { formatDate } from "@/lib/formatters";
 import { createT } from "@/lib/i18n";
 import { NewNoticeDialog, PublishNoticeButton } from "@/features/manager/notice-forms";
@@ -21,9 +22,26 @@ export default async function BuildingNoticesTab({ params }: Props) {
   const t = createT(ctx.user.locale);
   await assertBuildingBelongsToOrg(ctx.activeOrganization.id, id);
 
-  const [rows, building] = await Promise.all([
+  const [rows, building, entrances, units] = await Promise.all([
     listBuildingNotices({ organizationId: ctx.activeOrganization.id, buildingId: id }),
     getManagedBuilding(ctx.activeOrganization.id, id),
+    prisma.buildingEntranceSection.findMany({
+      where: { buildingId: id },
+      select: { id: true, code: true, label: true, buildingId: true },
+      orderBy: [{ sortOrder: "asc" }, { code: "asc" }],
+    }),
+    prisma.managedUnit.findMany({
+      where: { buildingId: id, archivedAt: null },
+      select: {
+        id: true,
+        code: true,
+        buildingId: true,
+        entranceId: true,
+        type: true,
+      },
+      orderBy: { code: "asc" },
+      take: 5000,
+    }),
   ]);
 
   return (
@@ -32,6 +50,8 @@ export default async function BuildingNoticesTab({ params }: Props) {
         <PermissionGuard permission="notice.manage">
           <NewNoticeDialog
             buildings={[{ id: building.id, name: building.name }]}
+            entrances={entrances}
+            units={units}
             defaultBuildingId={id}
           />
         </PermissionGuard>

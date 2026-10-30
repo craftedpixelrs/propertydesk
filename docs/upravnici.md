@@ -61,7 +61,22 @@ Better Auth tabele (`User`, `Session`, `Account`).
     sažetak u `/zgrade/predaje`. **Prihvati** jednom transakcijom
     kopira strukturu i vlasnike — bez JMBG-a.
 14. **Izveštaji** (`/izvestaji/upravljanje/*`) — Finansije, Dužnici,
-    Troškovi, Godišnji izveštaj o radu (PDF).
+    Troškovi, **Program održavanja**, Godišnji izveštaj o radu (PDF).
+15. **Masovne uplatnice** — iz `/zgrade/zaduzenja` dugme **Masovno
+    uplatnice (PDF)** → bira zgradu + mesec/godinu i preuzima jedan PDF
+    sa po jednom stranom za svaku otvorenu uplatnicu. Endpoint:
+    `GET /api/v1/manager/dues/bulk-pdf`.
+16. **Opomene bez duplikata** — **Pošalji opomene** sada ne šalje
+    opomenu stanaru koji je dobio opomenu u poslednjih N dana (podrazumevano
+    7). Pokušaji se evidentiraju u `DuesReminderLog` i vide se u povratnom
+    rezimeu. Pokrenite sa `cooldownDays=0` da naterate ponovno slanje.
+17. **Kanban prikaz kvarova** — `/zgrade/kvarovi?view=board` otvara
+    kolone po statusu (OPEN → COMPLETED). Prevucite karticu da promeni
+    status; audit log i obaveštenja stanaru rade kao kod bilo koje druge
+    promene statusa.
+18. **EditTicketDialog** — na `/zgrade/kvarovi/[id]` dugme **Izmeni**
+    menja naslov, kategoriju, prioritet, dodeljenog kolegu, izvođača i
+    procenjeni trošak.
 
 ## Brzi uputnik (za stanara)
 
@@ -75,8 +90,18 @@ Better Auth tabele (`User`, `Session`, `Account`).
    iz svojih aktivnih pristupa i može priložiti do 5 fotografija koje se
    čuvaju kao `Document(category: TICKET)` uz tiket. Upravnik odmah vidi
    tiket u `/zgrade/kvarovi/[id]` sa galerijom fotografija.
-5. **Obaveštenja** (`/stanar/obavestenja`) — sva objavljena obaveštenja
-   za zgrade u kojima stanar ima aktivan pristup.
+5. **Obaveštenja** (`/stanar/obavestenja`) — objavljena obaveštenja za
+   zgrade u kojima stanar ima aktivan pristup; filtriraju se dodatno po
+   audijenciji (ALL / BY_ENTRANCE / BY_UNIT_TYPE / SPECIFIC_UNITS).
+5a. **Kvarovi** (`/stanar/kvarovi`) — stanar vidi istoriju svojih
+    prijava sa statusom i poslednjom belešškom upravnika.
+5b. **Dokumenti** (`/stanar/dokumenti`) — dokumenti koje je upravnik
+    označio `visibility: RESIDENT_SHARED` i vezao za bilo koju zgradu
+    u kojoj stanar ima pristup. Download preko zaštićene rute
+    `/api/v1/public/resident/documents/[id]/download`.
+5c. **Privatnost** (`/stanar/privatnost`) — pregled svih ličnih podataka
+    koje PropertyDesk čuva o stanaru (ime, email, telefon, adresa,
+    vezane jedinice i udeli).
 6. **Glasanje** (`/stanar/glasanje`) — za otvorenu skupštinu stanar bira
    `ZA / PROTIV / UZDRŽAN` po tačkama dnevnog reda; težina se izvodi
    serverski iz `participationShare` jedinice koju poseduje.
@@ -102,9 +127,19 @@ Sve ispod je dodato bez brisanja postojećih tabela. Idemo redom:
   `items` (`items: AgendaItem[]`). Težina glasa = `participationShare`
   jedinice. Većine: `SIMPLE`, `ABSOLUTE`, `TWO_THIRDS`.
 - `BuildingNotice` — obaveštenja stanarima (PORTAL/EMAIL/BOTH).
+  Audijencija: `ALL | BY_ENTRANCE | BY_UNIT_TYPE | SPECIFIC_UNITS`
+  (sa `audienceParams` JSON-om — `entranceIds[]`, `unitTypes[]`,
+  `unitIds[]`). `resolveNoticeUnitIds()` je jedini izvor istine o tome
+  ko sme da ga vidi — koriste ga i email dostava i portal.
 - `ResidentAccess` — portal za stanare. **Nije `User`** — magic-link + HMAC
   potpisana cookie (`pd_resident`).
 - `BuildingHandoverRequest` — prenos projekta investitora na upravnika.
+- `DuesReminderLog` — audit svake poslate opomene (`chargeId`, `email`,
+  `sentAt`). Omogućava cooldown dedupe iz `sendDuesReminders`.
+- `Document.uploadedByUserId` je sada `nullable` — `uploadedByPersonId`
+  (FK na `BuildingPerson`) hvata uploade sa portala stanara.
+  `DocumentVisibility.RESIDENT_SHARED` je nova vrednost namenjena
+  dokumentima koje stanar sme da vidi.
 
 ## Dozvole
 
@@ -171,6 +206,21 @@ sidebar-a i bez redirect-a na `/sign-in` — stanari uopšte nisu u Better Auth.
 - Cron `manager-generate-dues` (`0 2 1 * *` — 02:00 UTC prvog u mesecu).
 - Idempotentno — ako već postoji `DuesCharge` za `(unitId, year, month)`,
   preskače. Operator može ručno pokrenuti iz UI-a.
+
+### Masovni PDF uplatnica
+
+- `GET /api/v1/manager/dues/bulk-pdf?buildingId=&year=&month=&includePaid=`
+  renderuje jedan PDF sa po jednom stranom (`<Page />`) za svaku otvorenu
+  uplatnicu zgrade za zadati mesec. Interno koristi
+  `renderBulkDuesUplatnicaPdf()` i `buildUplatnicaPdfData()` — ista
+  model-97 referenca kao i pojedinačni PDF.
+
+### Opomene bez duplikata
+
+- `sendDuesReminders(organizationId, { cooldownDays })` preskače svaku
+  uplatnicu za koju postoji `DuesReminderLog` novijih od
+  `cooldownDays` (default 7). Pokušaj se vraća u `dedupedSkipped` nizu.
+  Svaka realno poslata opomena se upisuje u `DuesReminderLog`.
 
 ## Prenos zgrade od investitora
 

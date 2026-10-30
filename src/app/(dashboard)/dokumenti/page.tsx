@@ -85,7 +85,7 @@ export default async function DokumentiPage() {
                       <td className="py-2 pr-3 font-medium">{d.originalFileName}</td>
                       <td className="py-2 pr-3">{categoryLabel(d.category)}</td>
                       <td className="py-2 pr-3 text-xs">{visibilityLabel(d.visibility)}</td>
-                      <td className="py-2 pr-3">{d.uploadedByUser.name ?? "—"}</td>
+                      <td className="py-2 pr-3">{d.uploadedByUser?.name ?? "—"}</td>
                       <td className="py-2 pr-3">{formatDate(d.createdAt)}</td>
                       <td className="py-2 pr-3 text-right">
                         <Link

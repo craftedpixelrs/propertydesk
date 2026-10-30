@@ -1,7 +1,11 @@
 "use client";
 
-import { useState } from "react";
-import type { BuildingNoticeAudience, BuildingNoticeChannel } from "@prisma/client";
+import { useMemo, useState } from "react";
+import type {
+  BuildingNoticeAudience,
+  BuildingNoticeChannel,
+  ManagedUnitType,
+} from "@prisma/client";
 
 import { Button } from "@/components/ui/button";
 import { useT } from "@/components/app/i18n-provider";
@@ -15,12 +19,45 @@ const AUDIENCES: BuildingNoticeAudience[] = [
   "BY_UNIT_TYPE",
   "SPECIFIC_UNITS",
 ];
+const UNIT_TYPES: ManagedUnitType[] = [
+  "APARTMENT",
+  "COMMERCIAL",
+  "GARAGE",
+  "PARKING_SPACE",
+  "STORAGE",
+  "OFFICE",
+  "OTHER",
+];
+
+export interface NoticeFormBuilding {
+  id: string;
+  name: string;
+}
+
+export interface NoticeFormEntrance {
+  id: string;
+  code: string;
+  label: string | null;
+  buildingId: string;
+}
+
+export interface NoticeFormUnit {
+  id: string;
+  code: string;
+  buildingId: string;
+  entranceId: string | null;
+  type: ManagedUnitType;
+}
 
 export function NewNoticeDialog({
   buildings,
+  entrances,
+  units,
   defaultBuildingId,
 }: {
-  buildings: Array<{ id: string; name: string }>;
+  buildings: NoticeFormBuilding[];
+  entrances: NoticeFormEntrance[];
+  units: NoticeFormUnit[];
   defaultBuildingId?: string;
 }) {
   const t = useT();
@@ -29,19 +66,55 @@ export function NewNoticeDialog({
   const [body, setBody] = useState("");
   const [channel, setChannel] = useState<BuildingNoticeChannel>("PORTAL_AND_EMAIL");
   const [audience, setAudience] = useState<BuildingNoticeAudience>("ALL");
+  const [entranceIds, setEntranceIds] = useState<string[]>([]);
+  const [unitTypes, setUnitTypes] = useState<ManagedUnitType[]>([]);
+  const [unitIds, setUnitIds] = useState<string[]>([]);
   const [publishNow, setPublishNow] = useState(true);
+
+  const buildingEntrances = useMemo(
+    () => entrances.filter((e) => e.buildingId === buildingId),
+    [entrances, buildingId],
+  );
+  const buildingUnits = useMemo(
+    () => units.filter((u) => u.buildingId === buildingId),
+    [units, buildingId],
+  );
+
+  function toggle<T>(current: T[], value: T): T[] {
+    return current.includes(value) ? current.filter((v) => v !== value) : [...current, value];
+  }
+
   return (
     <ActionDialog
       trigger={<Button>{t("manager.notices.newButton")}</Button>}
       title={t("manager.notices.newButton")}
       submitLabel={t("common.save")}
       onSubmit={async () => {
+        // Trim empty audience params so the server records exactly what
+        // the operator chose — otherwise an ALL notice would carry a
+        // stale `unitIds: []` that confuses the audit trail.
+        const audienceParams: {
+          entranceIds?: string[];
+          unitTypes?: ManagedUnitType[];
+          unitIds?: string[];
+        } = {};
+        if (audience === "BY_ENTRANCE") {
+          if (entranceIds.length === 0) throw new Error("Izaberite bar jedan ulaz.");
+          audienceParams.entranceIds = entranceIds;
+        } else if (audience === "BY_UNIT_TYPE") {
+          if (unitTypes.length === 0) throw new Error("Izaberite bar jedan tip posebnog dela.");
+          audienceParams.unitTypes = unitTypes;
+        } else if (audience === "SPECIFIC_UNITS") {
+          if (unitIds.length === 0) throw new Error("Izaberite bar jedan posebni deo.");
+          audienceParams.unitIds = unitIds;
+        }
         await apiClient.post("/manager/notices", {
           buildingId,
           title: title.trim(),
           body: body.trim(),
           channel,
           audience,
+          audienceParams,
           publishNow,
         });
       }}
@@ -53,7 +126,13 @@ export function NewNoticeDialog({
             id="nn-building"
             value={buildingId}
             options={buildings.map((b) => ({ value: b.id, label: b.name }))}
-            onChange={(v) => v && setBuildingId(v)}
+            onChange={(v) => {
+              if (v) {
+                setBuildingId(v);
+                setEntranceIds([]);
+                setUnitIds([]);
+              }
+            }}
           />
           <Field
             label={t("manager.notices.titleField")}
@@ -89,9 +168,45 @@ export function NewNoticeDialog({
                 value: a,
                 label: t(`manager.notices.audiences.${a}` as const),
               }))}
-              onChange={(v) => v && setAudience(v)}
+              onChange={(v) => {
+                if (v) setAudience(v);
+              }}
             />
           </div>
+
+          {audience === "BY_ENTRANCE" ? (
+            <CheckboxList
+              label={t("manager.notices.audiences.BY_ENTRANCE")}
+              items={buildingEntrances.map((e) => ({
+                value: e.id,
+                label: e.label ? `${e.code} — ${e.label}` : e.code,
+              }))}
+              selected={entranceIds}
+              onToggle={(v) => setEntranceIds((cur) => toggle(cur, v))}
+              empty={t("manager.notices.noEntrances")}
+            />
+          ) : null}
+          {audience === "BY_UNIT_TYPE" ? (
+            <CheckboxList
+              label={t("manager.notices.audiences.BY_UNIT_TYPE")}
+              items={UNIT_TYPES.map((u) => ({
+                value: u,
+                label: t(`manager.unitTypes.${u}` as const),
+              }))}
+              selected={unitTypes}
+              onToggle={(v) => setUnitTypes((cur) => toggle(cur, v as ManagedUnitType))}
+            />
+          ) : null}
+          {audience === "SPECIFIC_UNITS" ? (
+            <CheckboxList
+              label={t("manager.notices.audiences.SPECIFIC_UNITS")}
+              items={buildingUnits.map((u) => ({ value: u.id, label: u.code }))}
+              selected={unitIds}
+              onToggle={(v) => setUnitIds((cur) => toggle(cur, v))}
+              empty={t("manager.notices.noUnits")}
+            />
+          ) : null}
+
           <label className="flex items-center gap-2 text-sm">
             <input
               type="checkbox"
@@ -103,6 +218,44 @@ export function NewNoticeDialog({
         </>
       )}
     </ActionDialog>
+  );
+}
+
+function CheckboxList<V extends string>({
+  label,
+  items,
+  selected,
+  onToggle,
+  empty,
+}: {
+  label: string;
+  items: Array<{ value: V; label: string }>;
+  selected: V[];
+  onToggle: (value: V) => void;
+  empty?: string;
+}) {
+  return (
+    <div className="space-y-1">
+      <div className="text-xs font-medium tracking-wide text-[var(--color-foreground-muted)] uppercase">
+        {label}
+      </div>
+      {items.length === 0 ? (
+        <p className="text-xs text-[var(--color-foreground-muted)]">{empty ?? "—"}</p>
+      ) : (
+        <div className="grid max-h-40 grid-cols-2 gap-1 overflow-y-auto rounded border border-[var(--color-border)] bg-[var(--color-surface)] p-2 text-sm">
+          {items.map((it) => (
+            <label key={it.value} className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={selected.includes(it.value)}
+                onChange={() => onToggle(it.value)}
+              />
+              <span>{it.label}</span>
+            </label>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }
 

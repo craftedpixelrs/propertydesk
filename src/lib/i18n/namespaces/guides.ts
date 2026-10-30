@@ -411,8 +411,14 @@ export const guidesSr = {
   ]),
   dues: page("Zaduženja", [
     ["Automatski", "Cron 1. u mesecu pravi zaduženja po tarifama. Idempotentno — bez duplikata."],
-    ["Uplatnica", "Svako zaduženje ima PDF uplatnicu sa IPS QR kodom (model 97)."],
-    ["Uplate", "Zavedete ručno ili uvozom izvoda. Preostali dug se automatski ažurira."],
+    [
+      "Uplatnica",
+      "Svako zaduženje ima PDF uplatnicu (IPS QR, model 97); dugme „Masovno uplatnice (PDF)” sklapa jedan PDF za celu zgradu.",
+    ],
+    [
+      "Uplate i opomene",
+      "Uplate zavedete ručno ili iz izvoda; opomene imaju cooldown (default 7 dana) i audit u DuesReminderLog.",
+    ],
   ]),
   debtors: page("Dužnici", [
     ["Lista", "Posebni delovi sa otvorenim dugom — sortirano po iznosu."],
@@ -420,9 +426,18 @@ export const guidesSr = {
     ["Izvoz", "CSV i XLSX za računovodstvo."],
   ]),
   tickets: page("Kvarovi", [
-    ["Prijave", "Stanari prijavljuju iz portala, upravnik iz back-office-a."],
-    ["Dodela", "Dodelite izvođača, pratite status i vreme."],
-    ["Zatvaranje", "Zatvaranjem beležite trošak koji ide na odabrani fond."],
+    [
+      "Prijave",
+      "Stanari prijavljuju iz portala — svaka prijava šalje in-app + email obaveštenje upravnicima.",
+    ],
+    [
+      "Dodela i kanban",
+      "Dodelite kolegu / izvođača iz Izmeni, ili prevucite karticu u ?view=board kanbanu — status se čuva kao kod bilo koje promene.",
+    ],
+    [
+      "Zatvaranje",
+      "Zatvaranjem beležite trošak koji ide na odabrani fond; stanar dobija email o promeni statusa.",
+    ],
   ]),
   suppliers: page("Izvođači", [
     ["Katalog", "Vaši servisi i majstori sa kontaktom i specijalnošću."],
@@ -836,8 +851,14 @@ export const guidesEn: Leaves<typeof guidesSr> = {
   ]),
   dues: page("Dues", [
     ["Automatic", "A cron on day 1 generates dues from tariffs. Idempotent — no duplicates."],
-    ["Invoice", "Every charge has a PDF uplatnica with an IPS QR (model 97)."],
-    ["Payments", "Enter manually or via bank-statement import. Outstanding updates live."],
+    [
+      "Invoice",
+      "Every charge has a PDF uplatnica (IPS QR, model 97); “Bulk uplatnica (PDF)” builds one PDF for the whole building.",
+    ],
+    [
+      "Payments & reminders",
+      "Enter payments manually or from statement imports; reminders have a cooldown (default 7 days) and an audit trail in DuesReminderLog.",
+    ],
   ]),
   debtors: page("Debtors", [
     ["List", "Units with open debt — sorted by amount."],
@@ -845,9 +866,15 @@ export const guidesEn: Leaves<typeof guidesSr> = {
     ["Export", "CSV and XLSX for accounting."],
   ]),
   tickets: page("Tickets", [
-    ["Reports", "Residents report from the portal; staff from the back-office."],
-    ["Assignment", "Assign a contractor, track status and time."],
-    ["Closing", "Closing records a cost that posts to the chosen fund."],
+    ["Reports", "Resident reports trigger an in-app + email notification to managers."],
+    [
+      "Assignment & kanban",
+      "Assign a colleague/contractor from Edit, or drag cards in ?view=board — status updates like any manual change.",
+    ],
+    [
+      "Closing",
+      "Closing records a cost that posts to the chosen fund; the resident gets an email about the status change.",
+    ],
   ]),
   suppliers: page("Suppliers", [
     ["Catalog", "Your contractors and specialists with contact and skills."],

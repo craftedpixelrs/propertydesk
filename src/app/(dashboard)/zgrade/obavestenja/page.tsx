@@ -14,12 +14,34 @@ export default async function NoticesListPage() {
   requireTenantPage(ctx, { permission: "notice.read", orgType: "MANAGER" });
   const t = createT(ctx.user.locale);
 
-  const [rows, buildings] = await Promise.all([
+  const [rows, buildings, entrances, units] = await Promise.all([
     listBuildingNotices({ organizationId: ctx.activeOrganization.id }),
     prisma.managedBuilding.findMany({
       where: { organizationId: ctx.activeOrganization.id, archivedAt: null },
       select: { id: true, name: true },
       orderBy: { name: "asc" },
+    }),
+    prisma.buildingEntranceSection.findMany({
+      where: {
+        building: { organizationId: ctx.activeOrganization.id, archivedAt: null },
+      },
+      select: { id: true, code: true, label: true, buildingId: true },
+      orderBy: [{ buildingId: "asc" }, { sortOrder: "asc" }, { code: "asc" }],
+    }),
+    prisma.managedUnit.findMany({
+      where: {
+        organizationId: ctx.activeOrganization.id,
+        archivedAt: null,
+      },
+      select: {
+        id: true,
+        code: true,
+        buildingId: true,
+        entranceId: true,
+        type: true,
+      },
+      orderBy: { code: "asc" },
+      take: 5000,
     }),
   ]);
 
@@ -33,7 +55,7 @@ export default async function NoticesListPage() {
           </p>
         </div>
         <PermissionGuard permission="notice.manage">
-          <NewNoticeDialog buildings={buildings} />
+          <NewNoticeDialog buildings={buildings} entrances={entrances} units={units} />
         </PermissionGuard>
       </div>
 

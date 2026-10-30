@@ -144,6 +144,9 @@ export const managerSr = {
     currentMonth: "Zaduženo",
     collected: "Naplaćeno",
     chargeCountHint: "zaduženja",
+    yearField: "Godina",
+    monthField: "Mesec",
+    includePaidField: "Uključi i plaćene uplatnice",
   },
   tariffs: {
     title: "Tarife",
@@ -238,6 +241,15 @@ export const managerSr = {
     INVESTMENT_FUND: "Investicioni fond",
     OTHER: "Ostalo",
   },
+  unitTypes: {
+    APARTMENT: "Stan",
+    COMMERCIAL: "Poslovni prostor",
+    GARAGE: "Garaža",
+    PARKING_SPACE: "Parking mesto",
+    STORAGE: "Ostava",
+    OFFICE: "Kancelarija",
+    OTHER: "Ostalo",
+  },
   assemblies: {
     title: "Skupštine",
     subtitle:
@@ -282,6 +294,14 @@ export const managerSr = {
     annualTitle: "Godišnji izveštaj o radu",
     annualDesc:
       "Rezime za celu godinu — struktura, finansije, kvarovi, skupštine. PDF za predsednika.",
+    maintenanceTitle: "Program održavanja",
+    maintenanceDesc:
+      "Broj kvarova i stvarni/procenjeni trošak po zgradi i kategoriji — osnova za plan sledeće godine.",
+    maintenanceTotal: "Ukupno prijava",
+    maintenanceOpen: "Otvoreno/u radu",
+    maintenanceCompleted: "Završeno",
+    maintenanceEstimated: "Procenjeni trošak",
+    maintenanceActualCost: "Stvarni trošak",
     period: "Period",
     year: "Godina",
     month: "Mesec",
@@ -409,6 +429,8 @@ export const managerSr = {
     publishNow: "Objavi odmah",
     publishSuccess: "Obaveštenje je objavljeno.",
     saveSuccess: "Obaveštenje je sačuvano kao nacrt.",
+    noEntrances: "Ova zgrada nema definisane ulaze.",
+    noUnits: "Ova zgrada nema evidentirane posebne delove.",
   },
   actions: {
     edit: "Izmeni",
@@ -430,6 +452,8 @@ export const managerSr = {
     writeOff: "Otpiši dug",
     importBankStatement: "Uvezi izvod",
     sendReminders: "Pošalji opomene",
+    bulkUplatnica: "Masovno uplatnice (PDF)",
+    downloadPdf: "Preuzmi PDF",
     newTicket: "Nova prijava",
     changeStatus: "Promeni status",
     uploadPhoto: "Priloži fotografiju",
@@ -487,9 +511,11 @@ export const managerSr = {
   reminders: {
     title: "Pošalji opomene",
     description:
-      "Email opomena se šalje na kontakt adresu primarnog vlasnika svakog posebnog dela sa otvorenim dugom.",
+      "Email opomena se šalje na kontakt adresu primarnog vlasnika svakog posebnog dela sa otvorenim dugom. Opomena za istu jedinicu ne šalje se ponovo pre isteka perioda ispod.",
     minOutstandingField: "Minimalni dug (RSD, opciono)",
+    cooldownField: "Period ponavljanja (dani)",
     successBody: "Poslato {{sent}} opomena, preskočeno {{skipped}}.",
+    dedupeNote: "Dodatno preskočeno {{count}} jedinica zbog nedavne opomene.",
   },
   payments: {
     recordTitle: "Zavedi uplatu",
@@ -517,6 +543,8 @@ export const managerSr = {
     categoryField: "Kategorija",
     priorityField: "Prioritet",
     assignedField: "Zadužen",
+    assigneeField: "Zadužen",
+    noAssignee: "nije dodeljen",
     supplierField: "Izvođač",
     estimatedCostField: "Procenjeni trošak",
     actualCostField: "Stvarni trošak",
@@ -526,6 +554,9 @@ export const managerSr = {
     photosEmpty: "Nema priloženih fotografija.",
     noUnit: "Zajednički deo",
     reporterField: "Prijavio",
+    boardView: "Tabla",
+    listView: "Lista",
+    kanbanEmpty: "Nema prijava u ovom statusu.",
   },
   assembly: {
     detailTitle: "Detalj skupštine",
@@ -568,6 +599,11 @@ export const managerSr = {
     },
     categoryField: "Kategorija",
     fileField: "Datoteka",
+    visibilityField: "Vidljivost",
+    visibility: {
+      INTERNAL: "Interno (samo upravnik)",
+      RESIDENT_SHARED: "Vidljivo stanarima",
+    },
     category: {
       BUILDING: "Zgrada",
       TICKET: "Kvar",
@@ -727,6 +763,9 @@ export const managerEn: Leaves<typeof managerSr> = {
     currentMonth: "Billed",
     collected: "Collected",
     chargeCountHint: "charges",
+    yearField: "Year",
+    monthField: "Month",
+    includePaidField: "Include already-paid slips",
   },
   tariffs: {
     title: "Tariffs",
@@ -821,6 +860,15 @@ export const managerEn: Leaves<typeof managerSr> = {
     INVESTMENT_FUND: "Investment fund",
     OTHER: "Other",
   },
+  unitTypes: {
+    APARTMENT: "Apartment",
+    COMMERCIAL: "Commercial",
+    GARAGE: "Garage",
+    PARKING_SPACE: "Parking space",
+    STORAGE: "Storage",
+    OFFICE: "Office",
+    OTHER: "Other",
+  },
   assemblies: {
     title: "Assemblies",
     subtitle:
@@ -864,6 +912,14 @@ export const managerEn: Leaves<typeof managerSr> = {
     expensesDesc: "Expenses grouped by maintenance fund and building.",
     annualTitle: "Annual activity report",
     annualDesc: "Yearly summary — structure, finances, tickets, assemblies. PDF for the chairman.",
+    maintenanceTitle: "Maintenance program",
+    maintenanceDesc:
+      "Ticket counts and estimated/actual cost per building and category — the base for next year's plan.",
+    maintenanceTotal: "Total tickets",
+    maintenanceOpen: "Open / in progress",
+    maintenanceCompleted: "Completed",
+    maintenanceEstimated: "Estimated cost",
+    maintenanceActualCost: "Actual cost",
     period: "Period",
     year: "Year",
     month: "Month",
@@ -990,6 +1046,8 @@ export const managerEn: Leaves<typeof managerSr> = {
     publishNow: "Publish immediately",
     publishSuccess: "Notice published.",
     saveSuccess: "Notice saved as draft.",
+    noEntrances: "This building has no defined entrances.",
+    noUnits: "This building has no recorded units.",
   },
   actions: {
     edit: "Edit",
@@ -1011,6 +1069,8 @@ export const managerEn: Leaves<typeof managerSr> = {
     writeOff: "Write off",
     importBankStatement: "Import bank statement",
     sendReminders: "Send reminders",
+    bulkUplatnica: "Bulk payment slips (PDF)",
+    downloadPdf: "Download PDF",
     newTicket: "New ticket",
     changeStatus: "Change status",
     uploadPhoto: "Attach photo",
@@ -1068,9 +1128,11 @@ export const managerEn: Leaves<typeof managerSr> = {
   reminders: {
     title: "Send reminders",
     description:
-      "A reminder email is sent to the primary owner's contact address for every unit with open debt.",
+      "A reminder email is sent to the primary owner's contact address for every unit with open debt. Units reminded within the cooldown below are not emailed again.",
     minOutstandingField: "Minimum debt (RSD, optional)",
+    cooldownField: "Repeat cooldown (days)",
     successBody: "Sent {{sent}} reminders, skipped {{skipped}}.",
+    dedupeNote: "Also skipped {{count}} units due to a recent reminder.",
   },
   payments: {
     recordTitle: "Record payment",
@@ -1098,6 +1160,8 @@ export const managerEn: Leaves<typeof managerSr> = {
     categoryField: "Category",
     priorityField: "Priority",
     assignedField: "Assignee",
+    assigneeField: "Assignee",
+    noAssignee: "unassigned",
     supplierField: "Contractor",
     estimatedCostField: "Estimated cost",
     actualCostField: "Actual cost",
@@ -1107,6 +1171,9 @@ export const managerEn: Leaves<typeof managerSr> = {
     photosEmpty: "No photos attached.",
     noUnit: "Common area",
     reporterField: "Reporter",
+    boardView: "Board",
+    listView: "List",
+    kanbanEmpty: "No tickets in this status.",
   },
   assembly: {
     detailTitle: "Assembly detail",
@@ -1149,6 +1216,11 @@ export const managerEn: Leaves<typeof managerSr> = {
     },
     categoryField: "Category",
     fileField: "File",
+    visibilityField: "Visibility",
+    visibility: {
+      INTERNAL: "Internal (manager only)",
+      RESIDENT_SHARED: "Visible to residents",
+    },
     category: {
       BUILDING: "Building",
       TICKET: "Ticket",

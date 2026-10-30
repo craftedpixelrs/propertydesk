@@ -7,6 +7,7 @@ import { sendDuesReminders } from "@/server/services/manager/dues.service";
 const bodySchema = z.object({
   buildingId: z.string().min(1).nullable().optional(),
   minOutstanding: z.coerce.number().nonnegative().optional(),
+  cooldownDays: z.coerce.number().int().min(0).max(365).optional(),
 });
 
 export const POST = apiHandler({ bodySchema }, async ({ body }) => {
@@ -16,6 +17,7 @@ export const POST = apiHandler({ bodySchema }, async ({ body }) => {
     actorUserId: ctx.session.user.id,
     buildingId: body?.buildingId ?? null,
     minOutstanding: body?.minOutstanding,
+    cooldownDays: body?.cooldownDays,
   });
   return { data: result, status: 201 };
 });

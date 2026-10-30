@@ -11,14 +11,14 @@ import { createT, type TranslationKey } from "@/lib/i18n";
 
 export const dynamic = "force-dynamic";
 
-const STEP_LABEL: Record<OnboardingStepKey, TranslationKey> = {
+const STEP_LABEL: Partial<Record<OnboardingStepKey, TranslationKey>> = {
   profile: "crm.onboarding.steps.profile.label",
   project: "crm.onboarding.steps.project.label",
   units: "crm.onboarding.steps.units.label",
   team: "crm.onboarding.steps.team.label",
 };
 
-const STEP_HINT: Record<OnboardingStepKey, TranslationKey> = {
+const STEP_HINT: Partial<Record<OnboardingStepKey, TranslationKey>> = {
   profile: "crm.onboarding.steps.profile.hint",
   project: "crm.onboarding.steps.project.hint",
   units: "crm.onboarding.steps.units.hint",
@@ -31,7 +31,10 @@ export default async function OnboardingPage() {
   if (!ctx.activeOrganization) redirect("/podesavanja");
   const t = createT(ctx.user.locale);
 
-  const state = await loadOnboardingState(ctx.activeOrganization.id);
+  const state = await loadOnboardingState(
+    ctx.activeOrganization.id,
+    ctx.activeOrganization.type ?? "INVESTOR",
+  );
   const percent = Math.round((state.completedCount / state.totalCount) * 100);
 
   return (
@@ -85,11 +88,11 @@ export default async function OnboardingPage() {
                   <CardTitle className="text-base">
                     {t("crm.onboarding.stepTitle", {
                       n: index + 1,
-                      label: t(STEP_LABEL[step.key]),
+                      label: STEP_LABEL[step.key] ? t(STEP_LABEL[step.key]!) : step.label,
                     })}
                   </CardTitle>
                   <p className="mt-1 text-sm text-[var(--color-foreground-muted)]">
-                    {t(STEP_HINT[step.key])}
+                    {STEP_HINT[step.key] ? t(STEP_HINT[step.key]!) : step.hint}
                   </p>
                 </div>
               </div>

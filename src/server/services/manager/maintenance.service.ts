@@ -11,8 +11,12 @@ import Decimal from "decimal.js";
 import { prisma } from "@/server/db/prisma";
 import { DomainErrors } from "@/lib/errors";
 import { recordAudit } from "@/server/audit/audit";
+import { logger } from "@/server/logger";
 import { assertBuildingBelongsToOrg } from "@/server/services/manager/buildings.service";
-import { notify } from "@/server/services/notifications.service";
+import { listOrgMembersWithPermission } from "@/server/services/manager/members";
+import { notify, notifyMany } from "@/server/services/notifications.service";
+import { sendEmail } from "@/server/auth/email";
+import { appOrigin } from "@/server/http/app-origin";
 
 /**
  * Faza 11 — maintenance tickets ("kvarovi") + suppliers + per-fund expenses.
@@ -85,7 +89,13 @@ export async function getMaintenanceTicket(organizationId: string, ticketId: str
 
 export interface CreateTicketInput {
   organizationId: string;
-  actorUserId: string;
+  /**
+   * Signed-in operator who recorded the ticket. Pass `null` when the
+   * ticket comes from the resident portal — residents are not `User` rows
+   * so we can't stamp them as the audit actor (and `reportedByPersonId`
+   * carries the resident identity instead).
+   */
+  actorUserId: string | null;
   buildingId: string;
   unitId?: string | null;
   title: string;
@@ -117,6 +127,8 @@ export async function createMaintenanceTicket(input: CreateTicketInput) {
         priority: input.priority ?? "NORMAL",
         status: "OPEN",
         reportedByPersonId: input.reportedByPersonId ?? null,
+        // reportedByUserId is for a manager-side employee. A portal
+        // submission has only reportedByPersonId set, so this stays null.
         reportedByUserId: input.actorUserId,
         assignedToUserId: input.assignedToUserId ?? null,
         supplierId: input.supplierId ?? null,
@@ -141,8 +153,15 @@ export async function createMaintenanceTicket(input: CreateTicketInput) {
     entityId: ticket.id,
     organizationId: input.organizationId,
     actorUserId: input.actorUserId,
-    newValues: { code: ticket.code, title: ticket.title, priority: ticket.priority },
+    newValues: {
+      code: ticket.code,
+      title: ticket.title,
+      priority: ticket.priority,
+      reportedByPersonId: ticket.reportedByPersonId,
+    },
   });
+
+  const actionUrl = `/zgrade/kvarovi/${ticket.id}`;
 
   // Notify the assignee if one was picked up-front.
   if (ticket.assignedToUserId) {
@@ -154,8 +173,73 @@ export async function createMaintenanceTicket(input: CreateTicketInput) {
       message: `Dodeljen vam je kvar ${ticket.code}.`,
       entityType: "MaintenanceTicket",
       entityId: ticket.id,
-      actionUrl: `/zgrade/${input.buildingId}/kvarovi/${ticket.id}`,
+      actionUrl,
     });
+  }
+
+  // Resident-reported tickets must reach whoever can act on them. We fan
+  // out an in-app notification + email to every org member that currently
+  // holds `ticket.manage` (owners, admins, technicians, or whatever custom
+  // role an override granted). Email is best-effort; failures only log.
+  if (input.reportedByPersonId && !input.actorUserId) {
+    try {
+      const members = await listOrgMembersWithPermission(input.organizationId, "ticket.manage");
+      // Skip the already-notified assignee to avoid duplicate inbox pings.
+      const recipients = members.filter((m) => m.userId !== ticket.assignedToUserId);
+      if (recipients.length > 0) {
+        const building = await prisma.managedBuilding.findUnique({
+          where: { id: ticket.buildingId },
+          select: { name: true },
+        });
+        const unit = ticket.unitId
+          ? await prisma.managedUnit.findUnique({
+              where: { id: ticket.unitId },
+              select: { code: true },
+            })
+          : null;
+        const title = `Nova prijava kvara: ${ticket.title}`;
+        const message = `Stanar je prijavio kvar ${ticket.code} u zgradi ${
+          building?.name ?? ""
+        }${unit ? ` (${unit.code})` : ""}.`;
+        const origin = appOrigin();
+        await notifyMany(
+          recipients.map((r) => r.userId),
+          {
+            organizationId: input.organizationId,
+            category: "TICKET",
+            title,
+            message,
+            entityType: "MaintenanceTicket",
+            entityId: ticket.id,
+            actionUrl,
+          },
+        );
+        for (const recipient of recipients) {
+          try {
+            // eslint-disable-next-line no-await-in-loop
+            await sendEmail({
+              to: recipient.email,
+              subject: `[${building?.name ?? "Zgrada"}] ${title}`,
+              text:
+                `${message}\n\n` +
+                `Opis: ${ticket.description ?? "(bez dodatnog opisa)"}\n\n` +
+                `Detalji: ${origin}${actionUrl}`,
+            });
+          } catch (err) {
+            logger.warn("manager.ticket.resident_report_email_failed", {
+              ticketId: ticket.id,
+              userId: recipient.userId,
+              error: (err as Error)?.message,
+            });
+          }
+        }
+      }
+    } catch (err) {
+      logger.error("manager.ticket.resident_report_notify_failed", {
+        ticketId: ticket.id,
+        error: (err as Error)?.message,
+      });
+    }
   }
 
   return ticket;
@@ -313,6 +397,8 @@ export async function changeMaintenanceStatus(input: {
     metadata: input.note ? { note: input.note } : undefined,
   });
 
+  const actionUrl = `/zgrade/kvarovi/${updated.id}`;
+
   // Notify assignee on status change (not on self-change).
   if (updated.assignedToUserId && updated.assignedToUserId !== input.actorUserId) {
     await notify({
@@ -320,14 +406,66 @@ export async function changeMaintenanceStatus(input: {
       organizationId: input.organizationId,
       category: "TICKET",
       title: `Status prijave: ${updated.title}`,
-      message: `Kvar ${updated.code} je sada u statusu ${updated.status}.`,
+      message: `Kvar ${updated.code} je sada u statusu ${statusLabel(updated.status)}.`,
       entityType: "MaintenanceTicket",
       entityId: updated.id,
-      actionUrl: `/zgrade/${updated.buildingId}/kvarovi/${updated.id}`,
+      actionUrl,
     });
   }
 
+  // Email the resident reporter so they can follow progress without the
+  // portal. Best-effort — a missing email or SMTP failure must not block
+  // the status change. The portal page `/stanar/kvarovi` always has the
+  // authoritative view.
+  if (existing.reportedByPersonId) {
+    try {
+      const reporter = await prisma.buildingPerson.findUnique({
+        where: { id: existing.reportedByPersonId },
+        select: { email: true, firstName: true, lastName: true },
+      });
+      const email = reporter?.email?.trim().toLowerCase();
+      if (email && /.+@.+\..+/.test(email)) {
+        const buildingName = existing.building?.name ?? "zgradi";
+        const label = statusLabel(updated.status);
+        const subject = `[${buildingName}] Prijava ${updated.code}: ${label}`;
+        const greeting = reporter?.firstName ? `Poštovani ${reporter.firstName},` : "Poštovani,";
+        const body =
+          `${greeting}\n\n` +
+          `Status Vaše prijave kvara "${updated.title}" (${updated.code}) ` +
+          `je promenjen na: ${label}.\n` +
+          (input.note ? `\nNapomena upravnika: ${input.note}\n` : "") +
+          `\nStatus možete pratiti i preko stanarskog portala: ${appOrigin()}/stanar/kvarovi\n` +
+          `\nSrdačno,\nUpravnik zgrade`;
+        await sendEmail({ to: email, subject, text: body });
+      }
+    } catch (err) {
+      logger.warn("manager.ticket.reporter_status_email_failed", {
+        ticketId: updated.id,
+        error: (err as Error)?.message,
+      });
+    }
+  }
+
   return updated;
+}
+
+function statusLabel(status: MaintenanceStatus): string {
+  switch (status) {
+    case "OPEN":
+      return "Otvoreno";
+    case "TRIAGED":
+      return "Prihvaćeno";
+    case "IN_PROGRESS":
+      return "U radu";
+    case "AWAITING_PARTS":
+      return "Čeka delove";
+    case "COMPLETED":
+      return "Završeno";
+    case "CANCELED":
+      return "Otkazano";
+    default:
+      return status;
+  }
 }
 
 async function nextTicketCode(organizationId: string): Promise<string> {

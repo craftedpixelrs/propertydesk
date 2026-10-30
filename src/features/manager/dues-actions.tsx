@@ -227,7 +227,13 @@ export function SendRemindersDialog({
   const t = useT();
   const [buildingId, setBuildingId] = useState("");
   const [minOutstanding, setMinOutstanding] = useState("");
-  const [summary, setSummary] = useState<{ sent: number; skipped: number } | null>(null);
+  const [cooldownDays, setCooldownDays] = useState("7");
+  const [summary, setSummary] = useState<{
+    sent: number;
+    skipped: number;
+    dedupedSkipped: number;
+    totalDebtors: number;
+  } | null>(null);
   return (
     <ActionDialog
       trigger={<Button>{t("manager.actions.sendReminders")}</Button>}
@@ -238,10 +244,13 @@ export function SendRemindersDialog({
         const payload: Record<string, unknown> = {};
         if (buildingId) payload.buildingId = buildingId;
         if (minOutstanding.trim()) payload.minOutstanding = Number(minOutstanding);
-        const r = await apiClient.post<{ sent: number; skipped: number }>(
-          "/manager/dues/reminders",
-          payload,
-        );
+        if (cooldownDays.trim()) payload.cooldownDays = Math.max(0, Number(cooldownDays));
+        const r = await apiClient.post<{
+          sent: number;
+          skipped: number;
+          dedupedSkipped: number;
+          totalDebtors: number;
+        }>("/manager/dues/reminders", payload);
         setSummary(r);
         return false;
       }}
@@ -258,21 +267,104 @@ export function SendRemindersDialog({
             ]}
             onChange={setBuildingId}
           />
-          <Field
-            label={t("manager.reminders.minOutstandingField")}
-            id="rm-min"
-            type="number"
-            value={minOutstanding}
-            onChange={setMinOutstanding}
-          />
+          <div className="grid grid-cols-2 gap-3">
+            <Field
+              label={t("manager.reminders.minOutstandingField")}
+              id="rm-min"
+              type="number"
+              value={minOutstanding}
+              onChange={setMinOutstanding}
+            />
+            <Field
+              label={t("manager.reminders.cooldownField")}
+              id="rm-cool"
+              type="number"
+              value={cooldownDays}
+              onChange={setCooldownDays}
+            />
+          </div>
           {summary ? (
-            <p className="rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-800">
-              {t(
-                "manager.reminders.successBody",
-                summary as unknown as Record<string, string | number>,
-              )}
-            </p>
+            <div className="rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-800">
+              <div>
+                {t(
+                  "manager.reminders.successBody",
+                  summary as unknown as Record<string, string | number>,
+                )}
+              </div>
+              {summary.dedupedSkipped > 0 ? (
+                <div className="mt-1 text-xs text-emerald-900">
+                  {t("manager.reminders.dedupeNote", {
+                    count: summary.dedupedSkipped,
+                  } as unknown as Record<string, string | number>)}
+                </div>
+              ) : null}
+            </div>
           ) : null}
+        </>
+      )}
+    </ActionDialog>
+  );
+}
+
+export function BulkUplatnicaDialog({
+  buildings,
+}: {
+  buildings: Array<{ id: string; name: string }>;
+}) {
+  const t = useT();
+  const now = new Date();
+  const [buildingId, setBuildingId] = useState(buildings[0]?.id ?? "");
+  const [year, setYear] = useState(String(now.getFullYear()));
+  const [month, setMonth] = useState(String(now.getMonth() + 1));
+  const [includePaid, setIncludePaid] = useState(false);
+  return (
+    <ActionDialog
+      trigger={<Button variant="outline">{t("manager.actions.bulkUplatnica")}</Button>}
+      title={t("manager.actions.bulkUplatnica")}
+      submitLabel={t("manager.actions.downloadPdf")}
+      onSubmit={async () => {
+        if (!buildingId) throw new Error("Izaberite zgradu.");
+        const url = `/api/v1/manager/dues/bulk-pdf?buildingId=${encodeURIComponent(
+          buildingId,
+        )}&year=${year}&month=${month}&includePaid=${includePaid ? "1" : "0"}`;
+        // Opening in a new tab lets the operator keep the dialog state
+        // if they want to re-generate for another period.
+        window.open(url, "_blank", "noopener");
+      }}
+    >
+      {() => (
+        <>
+          <SelectField
+            label={t("manager.bankStatement.buildingField")}
+            id="bu-building"
+            value={buildingId}
+            options={buildings.map((b) => ({ value: b.id, label: b.name }))}
+            onChange={(v) => v && setBuildingId(v)}
+          />
+          <div className="grid grid-cols-2 gap-3">
+            <Field
+              label={t("manager.dues.yearField")}
+              id="bu-year"
+              type="number"
+              value={year}
+              onChange={setYear}
+            />
+            <Field
+              label={t("manager.dues.monthField")}
+              id="bu-month"
+              type="number"
+              value={month}
+              onChange={setMonth}
+            />
+          </div>
+          <label className="flex items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              checked={includePaid}
+              onChange={(e) => setIncludePaid(e.currentTarget.checked)}
+            />
+            <span>{t("manager.dues.includePaidField")}</span>
+          </label>
         </>
       )}
     </ActionDialog>

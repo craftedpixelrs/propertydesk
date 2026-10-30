@@ -813,11 +813,22 @@ export interface SendDuesRemindersInput {
   actorUserId: string;
   buildingId?: string | null;
   minOutstanding?: string | number;
+  /**
+   * Minimum number of days that must have elapsed since the last
+   * reminder email dispatched to the SAME unit before another one is
+   * allowed. Defaults to 7 — a weekly cadence matches the Serbian
+   * practice of a once-per-week opomena. Pass 0 to disable the guard
+   * (used by tests and operator "force resend" actions).
+   */
+  cooldownDays?: number;
 }
 
 export interface SendDuesRemindersResult {
   sent: number;
+  /** Skipped because of invalid email / duplicate / send failure. */
   skipped: number;
+  /** Skipped because of the cooldown guard (dedupe). */
+  dedupedSkipped: number;
   totalDebtors: number;
 }
 
@@ -842,8 +853,32 @@ export async function sendDuesReminders(
 
   const origin = appOrigin();
   const seen = new Set<string>();
+  const cooldownDays = input.cooldownDays ?? 7;
   let sent = 0;
   let skipped = 0;
+  let dedupedSkipped = 0;
+
+  // Preload the most-recent reminder per unit for this org so we can
+  // decide dedupe without an N+1. The cooldown is checked per unit, not
+  // per email — co-owners sharing an email still deserve one combined
+  // reminder, not two.
+  const cutoff =
+    cooldownDays > 0 ? new Date(Date.now() - cooldownDays * 24 * 60 * 60 * 1000) : null;
+  const lastByUnit = new Map<string, Date>();
+  if (cutoff) {
+    const recent = await prisma.duesReminderLog.findMany({
+      where: {
+        organizationId: input.organizationId,
+        ...(input.buildingId ? { buildingId: input.buildingId } : {}),
+        sentAt: { gte: cutoff },
+      },
+      select: { unitId: true, sentAt: true },
+      orderBy: { sentAt: "desc" },
+    });
+    for (const r of recent) {
+      if (!lastByUnit.has(r.unitId)) lastByUnit.set(r.unitId, r.sentAt);
+    }
+  }
 
   for (const d of debtors) {
     const email = (d.contactEmail ?? "").trim().toLowerCase();
@@ -853,6 +888,11 @@ export async function sendDuesReminders(
     }
     if (seen.has(email)) {
       skipped += 1;
+      continue;
+    }
+    // Dedupe guard — a reminder for this unit went out within cooldown.
+    if (cutoff && lastByUnit.has(d.unitId)) {
+      dedupedSkipped += 1;
       continue;
     }
     seen.add(email);
@@ -873,6 +913,21 @@ export async function sendDuesReminders(
           `S poštovanjem,\nUpravnik zgrade`,
       });
       sent += 1;
+      // Log so a repeat run within cooldown skips this unit.
+      try {
+        await prisma.duesReminderLog.create({
+          data: {
+            organizationId: input.organizationId,
+            buildingId: d.buildingId,
+            unitId: d.unitId,
+            recipientEmail: email,
+            outstanding: new Decimal(d.outstanding).toFixed(2),
+          },
+        });
+      } catch {
+        // Logging is best-effort — never fail the reminder because the
+        // dedupe log couldn't be written.
+      }
     } catch {
       skipped += 1;
     }
@@ -884,10 +939,16 @@ export async function sendDuesReminders(
     entityId: input.buildingId ?? "all",
     organizationId: input.organizationId,
     actorUserId: input.actorUserId,
-    newValues: { sent, skipped, totalDebtors: debtors.length },
+    newValues: {
+      sent,
+      skipped,
+      dedupedSkipped,
+      totalDebtors: debtors.length,
+      cooldownDays,
+    },
   });
 
-  return { sent, skipped, totalDebtors: debtors.length };
+  return { sent, skipped, dedupedSkipped, totalDebtors: debtors.length };
 }
 
 // ---------------------------------------------------------------------------
