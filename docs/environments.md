@@ -158,6 +158,20 @@ Faza 11, rerunning it adds the MANAGER tenant `Upravnik Plus`, its
 two seed buildings, tariffs, dues, one open ticket and one scheduled
 assembly without touching existing investor/agency rows.
 
+## Automatsko seedovanje demo + staging na svaki deploy
+
+Deploy workflow (`.github/workflows/deploy.yml`) sada posle `prisma migrate deploy`
+automatski pokreće `prisma/seed.ts` (full seed) protiv `app-demo` kontejnera —
+samo kad `.env.demo` postoji na hostu. Seed je idempotentan, pa svaki push na
+`main` svedoči da `demo.` i `staging.` imaju aktuelni Faza-11 upravnički sadržaj
+(Upravnik Plus, dve zgrade, tarife, mesec zaduženja, otvoren tiket, zakazana
+skupština) i sve demo nalogove.
+
+**Produkciju (`app`, `.env`) workflow NIKADA ne seeduje.** Produkcija ima samo
+kod i fajlove — nema demo podataka, nema demo korisnika. Jedini "data" korak
+za produkciju je ručni `pnpm db:seed:platform` iz `docs/environments.md`
+("Bootstrap production platform data"), i to samo prvi put.
+
 ## Reseeding demo & staging on the VPS (Faza 11)
 
 Image builds (`git push origin main`) run **migrations only** — never

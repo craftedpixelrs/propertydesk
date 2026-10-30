@@ -219,6 +219,33 @@ jobs:
               run --rm --no-deps app-staging npx prisma migrate deploy
           fi
 
+          # Seedovi (idempotentni, pokreću se posle svake migracije):
+          #   - production  (`app`)              → NEMA seed-a.
+          #                                        Ni platform-admin se ovde ne
+          #                                        gura — to je ručna operacija
+          #                                        iz `docs/environments.md`.
+          #   - demo + staging                    → full seed (plans + admin +
+          #                                        demo tenanti INV + AG +
+          #                                        MANAGER Upravnik Plus +
+          #                                        zgrade/dues/tiketi/skupština).
+          #                                        Demo i staging dele istu bazu
+          #                                        pa pokrećemo samo jednom
+          #                                        (preko app-demo kontejnera).
+          # `ALLOW_SEED_IN_PRODUCTION=true` je potreban jer kontejner radi sa
+          # NODE_ENV=production (vidi .env.demo). Seed je idempotentan pa je
+          # bezbedno da ide uz svaki deploy — svedočimo da demo.
+          # i staging. stalno imaju Faza-11 upravnički sadržaj.
+          if [ -f .env.demo ]; then
+            echo "==> Seeding demo + staging DB (full seed, idempotent)"
+            IMAGE="$IMAGE_REF" docker compose --env-file .env --env-file .env.deploy \
+              run --rm --no-deps \
+                -e ALLOW_SEED_IN_PRODUCTION=true \
+                -e SEED_MODE=full \
+                app-demo node ./node_modules/tsx/dist/cli.mjs prisma/seed.ts
+          else
+            echo "==> Preskačem seed (nema .env.demo na ovom hostu)"
+          fi
+
           echo "==> Rolling out (no-build, uses pulled image)"
           # Heredoc je `<<REMOTE` (bez quote-a), pa GitHub Actions runner
           # expand-uje svaku nenaescape-ovanu \$VAR PRE slanja na VPS. Zato
