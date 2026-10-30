@@ -1,9 +1,11 @@
 import { Card, CardContent } from "@/components/ui/card";
+import { PermissionGuard } from "@/components/app/permission-guard";
 import { loadUserContext, requireTenantPage } from "@/server/auth/context";
 import { listResidentAccesses } from "@/server/services/manager/residents.service";
 import { formatDate } from "@/lib/formatters";
 import { createT } from "@/lib/i18n";
 import type { ResidentAccessStatus } from "@prisma/client";
+import { ResendInviteButton, RevokeAccessButton } from "@/features/manager/resident-actions";
 
 const STATUS_TONE: Record<ResidentAccessStatus, string> = {
   PENDING_INVITE: "bg-amber-100 text-amber-700",
@@ -45,6 +47,7 @@ export default async function ResidentAccessPage() {
                 <th className="px-4 py-3">{t("manager.residents.columns.status")}</th>
                 <th className="px-4 py-3">{t("manager.residents.columns.invitedAt")}</th>
                 <th className="px-4 py-3">{t("manager.residents.columns.acceptedAt")}</th>
+                <th className="px-4 py-3"></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[var(--color-border)]">
@@ -70,6 +73,16 @@ export default async function ResidentAccessPage() {
                     </td>
                     <td className="px-4 py-3 text-xs text-[var(--color-foreground-muted)]">
                       {r.acceptedAt ? formatDate(r.acceptedAt) : "—"}
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      {r.status !== "REVOKED" ? (
+                        <PermissionGuard permission="resident.manage">
+                          <div className="inline-flex gap-1">
+                            <ResendInviteButton accessId={r.id} />
+                            <RevokeAccessButton accessId={r.id} />
+                          </div>
+                        </PermissionGuard>
+                      ) : null}
                     </td>
                   </tr>
                 );

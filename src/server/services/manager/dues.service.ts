@@ -12,6 +12,8 @@ import { DomainErrors } from "@/lib/errors";
 import { recordAudit } from "@/server/audit/audit";
 import { assertBuildingBelongsToOrg } from "@/server/services/manager/buildings.service";
 import { deterministicModel97, formatModel97 } from "@/lib/payments/model97";
+import { sendEmail } from "@/server/auth/email";
+import { appOrigin } from "@/server/http/app-origin";
 
 /**
  * Faza 11 — Dues (zajedničke takse) service for building managers.
@@ -586,4 +588,329 @@ function numericHash(id: string): string {
     acc = (acc * 131n + BigInt(id.charCodeAt(i))) % 1_000_000_000_000n;
   }
   return acc.toString().padStart(12, "0");
+}
+
+// ---------------------------------------------------------------------------
+// Write-off (otpis duga)
+// ---------------------------------------------------------------------------
+
+/**
+ * Write off the remaining outstanding on a `DuesCharge`. The charge is
+ * flipped to `WRITTEN_OFF` and `paidAmount` is bumped to `totalAmount` so
+ * subsequent reports treat it as closed. An audit entry preserves the
+ * operator-supplied reason.
+ */
+export async function writeOffDuesCharge(input: {
+  organizationId: string;
+  actorUserId: string;
+  chargeId: string;
+  reason: string;
+}) {
+  const charge = await prisma.duesCharge.findFirst({
+    where: { id: input.chargeId, organizationId: input.organizationId },
+  });
+  if (!charge) throw DomainErrors.notFound("Zaduženje nije pronađeno.");
+  if (charge.status === "WRITTEN_OFF") {
+    throw DomainErrors.conflict("Zaduženje je već otpisano.");
+  }
+  if (!input.reason?.trim()) {
+    throw DomainErrors.validation("Razlog otpisa je obavezan.");
+  }
+
+  const updated = await prisma.duesCharge.update({
+    where: { id: charge.id },
+    data: {
+      status: "WRITTEN_OFF",
+      // Keep paidAmount intact — the delta is now "written off" so reports
+      // can still show the actual money collected vs. the originally
+      // charged amount.
+    },
+  });
+
+  await recordAudit({
+    action: "manager.dues_charge_written_off",
+    entityType: "DuesCharge",
+    entityId: updated.id,
+    organizationId: input.organizationId,
+    actorUserId: input.actorUserId,
+    metadata: { reason: input.reason.trim() },
+  });
+
+  return updated;
+}
+
+// ---------------------------------------------------------------------------
+// Bank-statement import (model-97 matching)
+// ---------------------------------------------------------------------------
+
+export interface DuesBankStatementRow {
+  transactionDate: Date;
+  amount: string | number;
+  currency?: string;
+  reference?: string | null;
+  counterpartyName?: string | null;
+  counterpartyRef?: string | null;
+  externalId?: string | null;
+  narrative?: string | null;
+}
+
+export interface ImportBankStatementResult {
+  matched: number;
+  unmatched: number;
+  duplicates: number;
+  totalRows: number;
+  details: Array<{
+    reference: string | null;
+    amount: string;
+    status: "matched" | "unmatched" | "duplicate";
+    chargeId?: string | null;
+    reason?: string | null;
+  }>;
+}
+
+/**
+ * Import a parsed bank-statement into dues payments.
+ *
+ * Matching rule: `DuesCharge.reference` (12-digit compact model-97) is
+ * extracted from the row's `reference` (or `counterpartyRef`) by stripping
+ * all non-digits and taking the last 12 digits. A row is applied as a
+ * `DuesPayment` when the compact reference matches an open or partially
+ * paid charge in the caller's organization. Duplicates are detected by
+ * `bankTransactionId` (externalId).
+ */
+export async function importDuesBankStatement(input: {
+  organizationId: string;
+  actorUserId: string;
+  buildingId?: string | null;
+  rows: DuesBankStatementRow[];
+}): Promise<ImportBankStatementResult> {
+  if (input.buildingId) {
+    await assertBuildingBelongsToOrg(input.organizationId, input.buildingId);
+  }
+
+  const details: ImportBankStatementResult["details"] = [];
+  let matched = 0;
+  let unmatched = 0;
+  let duplicates = 0;
+
+  for (const row of input.rows) {
+    const amount = new Decimal(row.amount);
+    if (amount.lte(0)) {
+      unmatched += 1;
+      details.push({
+        reference: row.reference ?? null,
+        amount: amount.toFixed(2),
+        status: "unmatched",
+        reason: "Iznos nije pozitivan.",
+      });
+      continue;
+    }
+
+    // Extract the compact 12-digit numeric reference.
+    const rawRef = `${row.reference ?? ""}${row.counterpartyRef ?? ""}`;
+    const digits = rawRef.replace(/\D/g, "");
+    const compact = digits.length >= 12 ? digits.slice(-12) : null;
+
+    if (!compact) {
+      unmatched += 1;
+      details.push({
+        reference: row.reference ?? null,
+        amount: amount.toFixed(2),
+        status: "unmatched",
+        reason: "Poziv na broj (model 97) nije pronađen u redu.",
+      });
+      continue;
+    }
+
+    // Check duplicate by externalId.
+    if (row.externalId) {
+      const existing = await prisma.duesPayment.findFirst({
+        where: {
+          organizationId: input.organizationId,
+          bankTransactionId: row.externalId,
+        },
+        select: { id: true, chargeId: true },
+      });
+      if (existing) {
+        duplicates += 1;
+        details.push({
+          reference: compact,
+          amount: amount.toFixed(2),
+          status: "duplicate",
+          chargeId: existing.chargeId,
+          reason: "Transakcija je već uvezena.",
+        });
+        continue;
+      }
+    }
+
+    // Find charge by reference, scoped to building when provided.
+    const charge = await prisma.duesCharge.findFirst({
+      where: {
+        organizationId: input.organizationId,
+        ...(input.buildingId ? { buildingId: input.buildingId } : {}),
+        reference: compact,
+        status: { in: ["OPEN", "PARTIALLY_PAID"] },
+      },
+    });
+
+    if (!charge) {
+      unmatched += 1;
+      details.push({
+        reference: compact,
+        amount: amount.toFixed(2),
+        status: "unmatched",
+        reason: "Nije pronađeno otvoreno zaduženje za ovaj poziv na broj.",
+      });
+      continue;
+    }
+
+    await recordDuesPayment({
+      organizationId: input.organizationId,
+      actorUserId: input.actorUserId,
+      chargeId: charge.id,
+      amount: amount.toFixed(2),
+      paidAt: row.transactionDate,
+      method: "BANK_TRANSFER",
+      reference: compact,
+      bankTransactionId: row.externalId ?? null,
+      notes: row.narrative ?? null,
+    });
+
+    matched += 1;
+    details.push({
+      reference: compact,
+      amount: amount.toFixed(2),
+      status: "matched",
+      chargeId: charge.id,
+    });
+  }
+
+  await recordAudit({
+    action: "manager.dues_bank_statement_imported",
+    entityType: "ManagedBuilding",
+    entityId: input.buildingId ?? "all",
+    organizationId: input.organizationId,
+    actorUserId: input.actorUserId,
+    newValues: { matched, unmatched, duplicates, totalRows: input.rows.length },
+  });
+
+  return {
+    matched,
+    unmatched,
+    duplicates,
+    totalRows: input.rows.length,
+    details,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Reminders (opomene dužnicima)
+// ---------------------------------------------------------------------------
+
+export interface SendDuesRemindersInput {
+  organizationId: string;
+  actorUserId: string;
+  buildingId?: string | null;
+  minOutstanding?: string | number;
+}
+
+export interface SendDuesRemindersResult {
+  sent: number;
+  skipped: number;
+  totalDebtors: number;
+}
+
+/**
+ * Email every debtor (unique email) with an outstanding dues sum. The
+ * amount shown is the full outstanding across all open/partially-paid
+ * charges on that unit — operators call this once per billing cycle so
+ * residents get a single consolidated message, not one per charge.
+ */
+export async function sendDuesReminders(
+  input: SendDuesRemindersInput,
+): Promise<SendDuesRemindersResult> {
+  if (input.buildingId) {
+    await assertBuildingBelongsToOrg(input.organizationId, input.buildingId);
+  }
+
+  const debtors = await listDebtors({
+    organizationId: input.organizationId,
+    buildingId: input.buildingId ?? undefined,
+    minOutstanding: input.minOutstanding,
+  });
+
+  const origin = appOrigin();
+  const seen = new Set<string>();
+  let sent = 0;
+  let skipped = 0;
+
+  for (const d of debtors) {
+    const email = (d.contactEmail ?? "").trim().toLowerCase();
+    if (!/.+@.+\..+/.test(email)) {
+      skipped += 1;
+      continue;
+    }
+    if (seen.has(email)) {
+      skipped += 1;
+      continue;
+    }
+    seen.add(email);
+    try {
+      await sendEmail({
+        to: email,
+        subject: `[${d.buildingName}] Opomena za dug ${d.outstanding} RSD`,
+        text:
+          `Poštovani/a,\n\n` +
+          `Evidentiran je dug za zajedničku taksu u iznosu od ` +
+          `${d.outstanding} RSD za posebni deo ${d.unitCode} u zgradi ` +
+          `${d.buildingName}.\n\n` +
+          (d.oldestDueDate
+            ? `Najstarije dospelo zaduženje: ${d.oldestDueDate.toLocaleDateString("sr-RS")}.\n\n`
+            : "") +
+          `Molimo Vas da uplatite dug u najkraćem roku.\n\n` +
+          `Pregled zaduženja: ${origin}/stanar\n\n` +
+          `S poštovanjem,\nUpravnik zgrade`,
+      });
+      sent += 1;
+    } catch {
+      skipped += 1;
+    }
+  }
+
+  await recordAudit({
+    action: "manager.dues_reminders_sent",
+    entityType: "ManagedBuilding",
+    entityId: input.buildingId ?? "all",
+    organizationId: input.organizationId,
+    actorUserId: input.actorUserId,
+    newValues: { sent, skipped, totalDebtors: debtors.length },
+  });
+
+  return { sent, skipped, totalDebtors: debtors.length };
+}
+
+// ---------------------------------------------------------------------------
+// Fetch helpers for the UI
+// ---------------------------------------------------------------------------
+
+export async function getDuesCharge(organizationId: string, chargeId: string) {
+  const charge = await prisma.duesCharge.findFirst({
+    where: { id: chargeId, organizationId },
+    include: {
+      unit: { select: { id: true, code: true, building: { select: { id: true, name: true } } } },
+      building: { select: { id: true, name: true, paymentAccountNumber: true } },
+      payments: { orderBy: { paidAt: "desc" } },
+    },
+  });
+  if (!charge) throw DomainErrors.notFound("Zaduženje nije pronađeno.");
+  return charge;
+}
+
+export async function getDuesPayment(organizationId: string, paymentId: string) {
+  const row = await prisma.duesPayment.findFirst({
+    where: { id: paymentId, organizationId },
+  });
+  if (!row) throw DomainErrors.notFound("Uplata nije pronađena.");
+  return row;
 }

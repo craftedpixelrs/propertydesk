@@ -19,34 +19,48 @@ Better Auth tabele (`User`, `Session`, `Account`).
 3. **Vlasnici** (`Vlasnici` tab u zgradi) — upiši `BuildingPerson` (ime,
    email, telefon, adresa) i poveži sa jedinicom (`UnitOwnership` sa
    `share`). JMBG nije potreban i aplikacija ga ne traži.
-4. **Tarife** (`/zgrade/[id]/tarife`) — definiši mesečne stavke
-   (održavanje, lift, čišćenje). Scope: po zgradi / po ulazu / po tipu
-   jedinice; basis: fiksno / po m² / po udelu.
+4. **Finansije zgrade** (`/zgrade/[id]/finansije`) — definiši mesečne
+   tarife (održavanje, lift, čišćenje) iz **Tarife** sekcije. Scope: po
+   zgradi / po ulazu / po tipu jedinice; basis: fiksno / po m² / po
+   udelu. Ista stranica prikazuje zaduženja i troškove (`BuildingExpense`
+   po fondu).
 5. **Mesečna zaduženja** (`/zgrade/zaduzenja`) — cron
    `manager-generate-dues` pokreće ih prvog u mesecu u 02:00 UTC. Dugme
-   **Generiši sada** radi istu stvar — idempotentno, bez duplikata.
-6. **Uplatnica (PDF)** se otvara klikom na zaduženje → **Štampaj
-   uplatnicu**. Sadrži IPS QR kod + 14-cifreni poziv na broj (model 97)
-   koji je uvek isti za isto zaduženje — reprint vraća istu referencu.
-7. **Uplate** (`/zgrade/uplate`) — ručni upis ili **Uvoz izvoda**
-   (CSV/XLSX). **Dužnici** (`/zgrade/dug`) → **Pošalji opomene**.
-8. **Kvarovi** (`/zgrade/kvarovi`) — ticket workflow sa fotografijama.
-   Zatvaranje tiketa sa `actualCost` automatski piše
-   `BuildingExpense` po izabranom fondu (tekuće održavanje /
-   investiciono / ostalo).
-9. **Obaveštenja** (`/zgrade/obavestenja`) — DRAFT → PUBLISHED šalje
-   email svim pozvanim stanarima i prikazuje na portalu.
-10. **Skupštine** (`/zgrade/skupstine`) — zakazivanje, dnevni red,
-    pozivi, otvaranje glasanja. Glasovi se mogu menjati dok je
-    glasanje otvoreno; zatvaranje zamrzava rezultat. PDF **Zapisnik**
-    je gotov iz detalja skupštine.
+   **Generiši sada** iz tab-a Finansije radi istu stvar — idempotentno,
+   bez duplikata.
+6. **Uplatnica (PDF)** se otvara iz detalja zaduženja
+   (`/zgrade/zaduzenja/[id]` → **Preuzmi uplatnicu**). Sadrži IPS QR kod
+   + 14-cifreni poziv na broj (model 97) koji je uvek isti za isto
+   zaduženje — reprint vraća istu referencu.
+7. **Uplate** se unose u detaljnom prikazu zaduženja (**Zavedi uplatu**,
+   **Storniraj**, **Otpiši**). Masovno: **Uvoz izvoda** (CSV/XLSX) iz
+   `/zgrade/zaduzenja` ili `/zgrade/[id]/finansije` — matching po
+   model-97 referenci. **Dužnici** (`/zgrade/duznici`) → **Pošalji
+   opomene**.
+8. **Kvarovi** (`/zgrade/kvarovi` + `/zgrade/kvarovi/[id]`) — ticket
+   workflow sa fotografijama (upload direktno u `Document` sa
+   `category: TICKET`). Zatvaranje tiketa (`COMPLETED` + `actualCost`)
+   automatski piše `BuildingExpense` po izabranom fondu (tekuće
+   održavanje / investiciono / ostalo). **Izvođači** (`/zgrade/izvodjaci`)
+   su `Supplier` zapisi (dodaj / izmeni).
+9. **Obaveštenja** (`/zgrade/obavestenja` + tab `/zgrade/[id]/obavestenja`)
+    — DRAFT → PUBLISHED šalje email svim pozvanim stanarima i prikazuje
+    na portalu (`/stanar/obavestenja`).
+10. **Skupštine** (`/zgrade/skupstine` + `/zgrade/skupstine/[id]`) —
+    zakazivanje sa dinamičkim dnevnim redom, slanje poziva, otvaranje
+    glasanja (ovlašćeni predstavnik glasa u ime vlasnika). Glasovi se
+    mogu menjati dok je glasanje otvoreno; zatvaranje zamrzava rezultat.
+    PDF **Zapisnik** je gotov iz detalja skupštine.
 11. **Stanari** (`/zgrade/stanari`) → **Pozovi** šalje magic-link na
-    email. **Opozovi** pristup je trenutno efektivan (sledeći zahtev
-    stanara pada na proveri cookie-ja).
-12. **Prenos zgrade od investitora** stiže kao `BuildingHandoverRequest`
+    email, **Pošalji ponovo** regeneriše token, **Opozovi** pristup je
+    trenutno efektivan (sledeći zahtev stanara pada na proveri cookie-ja).
+12. **Dokumenti zgrade** (`/zgrade/[id]/dokumenti`) — upload / download /
+    brisanje preko manager API-ja (`entityType: ManagedBuilding`,
+    `category: BUILDING`).
+13. **Prenos zgrade od investitora** stiže kao `BuildingHandoverRequest`
     sažetak u `/zgrade/predaje`. **Prihvati** jednom transakcijom
     kopira strukturu i vlasnike — bez JMBG-a.
-13. **Izveštaji** (`/izvestaji/upravljanje/*`) — Finansije, Dužnici,
+14. **Izveštaji** (`/izvestaji/upravljanje/*`) — Finansije, Dužnici,
     Troškovi, Godišnji izveštaj o radu (PDF).
 
 ## Brzi uputnik (za stanara)
@@ -57,12 +71,16 @@ Better Auth tabele (`User`, `Session`, `Account`).
    `/stanar/pocetna`. Nema lozinke, nema registracije.
 3. Stanar vidi **svoje jedinice**, otvorena zaduženja i dugme
    **Preuzmi uplatnicu** (PDF sa IPS QR).
-4. **Prijavi kvar** (`/stanar/kvarovi/novi`) — upisuje opis, lokaciju,
-   može dodati sliku; upravnik odmah vidi tiket.
-5. **Glasanje** (`/stanar/glasanje`) — za otvorenu skupštinu stanar bira
+4. **Prijavi kvar** (`/stanar/kvarovi/novi`) — upisuje opis, bira jedinicu
+   iz svojih aktivnih pristupa i može priložiti do 5 fotografija koje se
+   čuvaju kao `Document(category: TICKET)` uz tiket. Upravnik odmah vidi
+   tiket u `/zgrade/kvarovi/[id]` sa galerijom fotografija.
+5. **Obaveštenja** (`/stanar/obavestenja`) — sva objavljena obaveštenja
+   za zgrade u kojima stanar ima aktivan pristup.
+6. **Glasanje** (`/stanar/glasanje`) — za otvorenu skupštinu stanar bira
    `ZA / PROTIV / UZDRŽAN` po tačkama dnevnog reda; težina se izvodi
    serverski iz `participationShare` jedinice koju poseduje.
-6. **Odjava** sa `/stanar/odjava` briše cookie. Upravnik može u svakom
+7. **Odjava** sa `/stanar/odjava` briše cookie. Upravnik može u svakom
    trenutku da povuče pristup iz `/zgrade/stanari`.
 
 ## Modeli

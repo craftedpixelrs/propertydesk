@@ -1,11 +1,14 @@
 import Link from "next/link";
 
 import { Card, CardContent } from "@/components/ui/card";
+import { PermissionGuard } from "@/components/app/permission-guard";
 import { loadUserContext, requireTenantPage } from "@/server/auth/context";
+import { prisma } from "@/server/db/prisma";
 import { listAssemblies } from "@/server/services/manager/assemblies.service";
 import { formatDateTime } from "@/lib/formatters";
 import { createT } from "@/lib/i18n";
 import type { AssemblyStatus } from "@prisma/client";
+import { NewAssemblyDialog } from "@/features/manager/assembly-forms";
 
 const STATUS_TONE: Record<AssemblyStatus, string> = {
   SCHEDULED: "bg-sky-100 text-sky-700",
@@ -19,15 +22,27 @@ export default async function AssembliesListPage() {
   requireTenantPage(ctx, { permission: "assembly.read", orgType: "MANAGER" });
   const t = createT(ctx.user.locale);
 
-  const rows = await listAssemblies({ organizationId: ctx.activeOrganization.id });
+  const [rows, buildings] = await Promise.all([
+    listAssemblies({ organizationId: ctx.activeOrganization.id }),
+    prisma.managedBuilding.findMany({
+      where: { organizationId: ctx.activeOrganization.id, archivedAt: null },
+      select: { id: true, name: true },
+      orderBy: { name: "asc" },
+    }),
+  ]);
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold">{t("manager.assemblies.title")}</h1>
-        <p className="text-sm text-[var(--color-foreground-muted)]">
-          {t("manager.assemblies.subtitle")}
-        </p>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-semibold">{t("manager.assemblies.title")}</h1>
+          <p className="text-sm text-[var(--color-foreground-muted)]">
+            {t("manager.assemblies.subtitle")}
+          </p>
+        </div>
+        <PermissionGuard permission="assembly.manage">
+          <NewAssemblyDialog buildings={buildings} />
+        </PermissionGuard>
       </div>
 
       {rows.length === 0 ? (
@@ -54,8 +69,19 @@ export default async function AssembliesListPage() {
             <tbody className="divide-y divide-[var(--color-border)]">
               {rows.map((a) => (
                 <tr key={a.id} className="hover:bg-[var(--color-surface-inset)]">
-                  <td className="px-4 py-3 font-mono text-xs">{a.code}</td>
-                  <td className="px-4 py-3 font-medium">{a.title}</td>
+                  <td className="px-4 py-3 font-mono text-xs">
+                    <Link
+                      href={`/zgrade/skupstine/${a.id}`}
+                      className="text-[var(--color-brand-700)] hover:underline"
+                    >
+                      {a.code}
+                    </Link>
+                  </td>
+                  <td className="px-4 py-3 font-medium">
+                    <Link href={`/zgrade/skupstine/${a.id}`} className="hover:underline">
+                      {a.title}
+                    </Link>
+                  </td>
                   <td className="px-4 py-3">
                     <Link
                       href={`/zgrade/${a.building.id}`}

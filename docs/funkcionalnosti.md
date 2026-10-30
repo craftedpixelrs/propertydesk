@@ -293,7 +293,7 @@ Novi tip tenanta za profesionalne upravnike zgrada. Pun runbook:
   dobavljači, `BuildingExpense` po fondu
   (`CURRENT_MAINTENANCE / INVESTMENT_FUND / OTHER`).
 - **Obaveštenja i dokumenti** — portal + email broadcast,
-  `BuildingDocument` repo sa soft-delete-om.
+  dokumenti zgrade kao `Document(entityType=ManagedBuilding, category=BUILDING)` sa soft-delete-om; brisanje ide kroz dnevni purge job.
 - **Skupštine** — zakazivanje, pozivi, dnevni red; glasanje sa
   težinama (`SIMPLE / ABSOLUTE / TWO_THIRDS` majorities), PDF
   zapisnik.

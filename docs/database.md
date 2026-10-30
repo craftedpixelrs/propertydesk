@@ -211,8 +211,11 @@ All new models carry `organizationId` and FK to it with
 
 - `building_notice` — `status` `DRAFT / PUBLISHED`. Delivery counters
   are `emailDeliveredCount` and `portalViewCount`.
-- `building_document` — PDFs / minutes / contracts attached per
-  building. Soft-delete flag; the daily purge job honours it.
+- Zgradni dokumenti žive u opštoj `document` tabeli sa
+  `entityType = 'ManagedBuilding'` + `entityId = <buildingId>` i
+  `category` iz enuma `DocumentCategory` (`BUILDING`, `TICKET`,
+  `ASSEMBLY`, `DUES`, `OTHER`, `INVOICE`). Soft-delete flag; the daily
+  purge job honours it.
 
 **Resident portal**
 

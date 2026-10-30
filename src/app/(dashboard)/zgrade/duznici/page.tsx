@@ -1,25 +1,40 @@
 import Link from "next/link";
 
 import { Card, CardContent } from "@/components/ui/card";
+import { PermissionGuard } from "@/components/app/permission-guard";
 import { loadUserContext, requireTenantPage } from "@/server/auth/context";
+import { prisma } from "@/server/db/prisma";
 import { listDebtors } from "@/server/services/manager/dues.service";
 import { formatDate, formatMoney } from "@/lib/formatters";
 import { createT } from "@/lib/i18n";
+import { SendRemindersDialog } from "@/features/manager/dues-actions";
 
 export default async function DebtorsPage() {
   const ctx = await loadUserContext();
   requireTenantPage(ctx, { permission: "dues.read", orgType: "MANAGER" });
   const t = createT(ctx.user.locale);
 
-  const debtors = await listDebtors({ organizationId: ctx.activeOrganization.id });
+  const [debtors, buildings] = await Promise.all([
+    listDebtors({ organizationId: ctx.activeOrganization.id }),
+    prisma.managedBuilding.findMany({
+      where: { organizationId: ctx.activeOrganization.id, archivedAt: null },
+      select: { id: true, name: true },
+      orderBy: { name: "asc" },
+    }),
+  ]);
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold">{t("manager.debtors.title")}</h1>
-        <p className="text-sm text-[var(--color-foreground-muted)]">
-          {t("manager.debtors.subtitle")}
-        </p>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-semibold">{t("manager.debtors.title")}</h1>
+          <p className="text-sm text-[var(--color-foreground-muted)]">
+            {t("manager.debtors.subtitle")}
+          </p>
+        </div>
+        <PermissionGuard permission="dues.reminder.send">
+          <SendRemindersDialog buildings={buildings} />
+        </PermissionGuard>
       </div>
 
       {debtors.length === 0 ? (

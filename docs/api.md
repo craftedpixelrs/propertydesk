@@ -217,21 +217,35 @@ organization. Full module runbook: [`upravnici.md`](./upravnici.md).
 **Buildings & units**
 
 - `GET/POST /manager/buildings`, `GET/PATCH /manager/buildings/:id`,
-  `POST /manager/buildings/:id/archive` — `building.read` / `building.manage`.
+  `POST /manager/buildings/:id/archive`,
+  `POST /manager/buildings/:id/restore` — `building.read` /
+  `building.manage`.
 - `POST /manager/buildings/:id/import` — `building.import` (XLSX wizard).
-- `POST /manager/units`, `PATCH/DELETE /manager/units/:id` — `building.manage`.
+- `GET/POST /manager/buildings/:id/entrances` — `building.read` /
+  `building.manage` (ulazi, upsert po `code`).
+- `POST /manager/buildings/:id/units` — `building.manage`.
+- `PATCH /manager/units/:id`, `DELETE /manager/units/:id` —
+  `building.manage` (DELETE arhivira).
+- `GET/POST /manager/buildings/:id/persons` — `building.read` /
+  `building.manage` (BuildingPerson lista/kreiranje).
 - `POST /manager/units/:id/ownerships` — `building.manage` (create / rotate owner).
 
 **Dues (zajedničke takse)**
 
-- `GET/POST /manager/dues/tariffs` — `dues.tariff.manage`.
-- `POST /manager/dues/generate` — `dues.generate`; idempotent.
-- `GET /manager/dues/charges`, `GET /manager/dues/:id` — `dues.read`.
+- `GET/POST /manager/buildings/:id/tariffs`,
+  `PATCH /manager/tariffs/:id` — `dues.read` / `dues.tariff.manage`.
+- `POST /manager/buildings/:id/dues/generate` — `dues.generate`;
+  idempotent per `(unitId, year, month)`.
+- `GET /manager/dues/:id` — `dues.read` (charge + payments).
 - `POST /manager/dues/:id/payments` — `dues.payment.record`.
-- `POST /manager/dues/:id/payments/:paymentId/reverse` — `dues.payment.reverse`.
+- `POST /manager/dues/payments/:paymentId/reverse` — `dues.payment.reverse`.
+- `POST /manager/dues/:id/write-off` — `dues.writeoff` (obavezan razlog).
 - `GET /manager/dues/:id/pdf` — uplatnica PDF with IPS QR + model-97.
-- `POST /manager/dues/bank-statement/import` — `dues.bankstatement.import`.
+- `POST /manager/dues/bank-statement` — `dues.bankstatement.import`
+  (multipart CSV/XLSX ili JSON `{ rows: [...] }`; matching po model-97).
 - `POST /manager/dues/reminders` — `dues.reminder.send`.
+- `GET/POST /manager/buildings/:id/expenses` — `dues.read` /
+  `ticket.close` (lista + ručni unos van ticket workflow-a).
 
 **Maintenance**
 
@@ -247,6 +261,8 @@ organization. Full module runbook: [`upravnici.md`](./upravnici.md).
   `assembly.read` / `assembly.manage`.
 - `POST /manager/assemblies/:id/open-voting`,
   `POST /manager/assemblies/:id/close-voting` — `assembly.manage`.
+- `POST /manager/assemblies/:id/invitations` — `assembly.manage`
+  (šalje email pozive svim registrovanim vlasnicima jedinica).
 - `POST /manager/agenda/:id/vote` — `assembly.vote.cast` (manager
   acting on behalf of owner; residents vote via the portal).
 - `GET /manager/assemblies/:id/minutes/pdf` — `assembly.minutes.generate`.
@@ -260,6 +276,8 @@ organization. Full module runbook: [`upravnici.md`](./upravnici.md).
 
 - `POST /manager/units/:id/residents` — `resident.manage`; creates
   `ResidentAccess`, sends magic-link email valid 14 days.
+- `POST /manager/residents/:id/resend` — `resident.manage`; regeneriše
+  token i šalje email ponovo (produženje za 14 dana).
 - `DELETE /manager/residents/:id?reason=…` — `resident.manage`;
   revocation is immediate (next request fails cookie re-validation).
 
@@ -289,6 +307,11 @@ group and reads/writes through server actions in
 - `GET /api/stanar/dues/:id/pdf` — uplatnica PDF for a resident's own
   charge; re-verifies the `pd_resident` cookie against
   `ResidentAccess` and the charge's unit before responding.
+- `POST /api/v1/public/resident/tickets` — multipart; kreira
+  `MaintenanceTicket` za jedinicu iz aktivnog `pd_resident` cookie-ja i
+  prilaže do 5 slika kao `Document(category: TICKET,
+  entityType: MaintenanceTicket)`. Scope je striktno `ResidentAccess.unitId`
+  — tempered unit id vraća 403.
 
 ### Cron
 

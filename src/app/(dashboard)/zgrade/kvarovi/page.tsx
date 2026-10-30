@@ -1,11 +1,17 @@
 import Link from "next/link";
 
 import { Card, CardContent } from "@/components/ui/card";
+import { PermissionGuard } from "@/components/app/permission-guard";
 import { loadUserContext, requireTenantPage } from "@/server/auth/context";
-import { listMaintenanceTickets } from "@/server/services/manager/maintenance.service";
+import { prisma } from "@/server/db/prisma";
+import {
+  listMaintenanceTickets,
+  listSuppliers,
+} from "@/server/services/manager/maintenance.service";
 import { formatDate } from "@/lib/formatters";
 import { createT } from "@/lib/i18n";
 import type { MaintenancePriority, MaintenanceStatus } from "@prisma/client";
+import { NewTicketDialog } from "@/features/manager/ticket-forms";
 
 const PRIORITY_TONE: Record<MaintenancePriority, string> = {
   LOW: "bg-slate-100 text-slate-700",
@@ -47,20 +53,43 @@ export default async function TicketsListPage({ searchParams }: PageProps) {
   const page = Number(readParam(sp.page) ?? "1") || 1;
   const pageSize = 50;
 
-  const { items } = await listMaintenanceTickets({
-    organizationId: ctx.activeOrganization.id,
-    status,
-    page,
-    pageSize,
-  });
+  const [{ items }, buildings, allUnits, suppliers] = await Promise.all([
+    listMaintenanceTickets({
+      organizationId: ctx.activeOrganization.id,
+      status,
+      page,
+      pageSize,
+    }),
+    prisma.managedBuilding.findMany({
+      where: { organizationId: ctx.activeOrganization.id, archivedAt: null },
+      select: { id: true, name: true },
+      orderBy: { name: "asc" },
+    }),
+    prisma.managedUnit.findMany({
+      where: { organizationId: ctx.activeOrganization.id, archivedAt: null },
+      select: { id: true, code: true, buildingId: true },
+      orderBy: { code: "asc" },
+      take: 2000,
+    }),
+    listSuppliers({ organizationId: ctx.activeOrganization.id }),
+  ]);
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold">{t("manager.tickets.title")}</h1>
-        <p className="text-sm text-[var(--color-foreground-muted)]">
-          {t("manager.tickets.subtitle")}
-        </p>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-semibold">{t("manager.tickets.title")}</h1>
+          <p className="text-sm text-[var(--color-foreground-muted)]">
+            {t("manager.tickets.subtitle")}
+          </p>
+        </div>
+        <PermissionGuard permission="ticket.manage">
+          <NewTicketDialog
+            buildings={buildings}
+            units={allUnits}
+            suppliers={suppliers.map((s) => ({ id: s.id, name: s.name }))}
+          />
+        </PermissionGuard>
       </div>
 
       {items.length === 0 ? (
@@ -86,8 +115,19 @@ export default async function TicketsListPage({ searchParams }: PageProps) {
             <tbody className="divide-y divide-[var(--color-border)]">
               {items.map((ticket) => (
                 <tr key={ticket.id} className="hover:bg-[var(--color-surface-inset)]">
-                  <td className="px-4 py-3 font-mono text-xs">{ticket.code}</td>
-                  <td className="px-4 py-3 font-medium">{ticket.title}</td>
+                  <td className="px-4 py-3 font-mono text-xs">
+                    <Link
+                      href={`/zgrade/kvarovi/${ticket.id}`}
+                      className="text-[var(--color-brand-700)] hover:underline"
+                    >
+                      {ticket.code}
+                    </Link>
+                  </td>
+                  <td className="px-4 py-3 font-medium">
+                    <Link href={`/zgrade/kvarovi/${ticket.id}`} className="hover:underline">
+                      {ticket.title}
+                    </Link>
+                  </td>
                   <td className="px-4 py-3">
                     <Link
                       href={`/zgrade/${ticket.building.id}`}

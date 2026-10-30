@@ -1,11 +1,13 @@
 import Link from "next/link";
 
 import { Card, CardContent } from "@/components/ui/card";
+import { PermissionGuard } from "@/components/app/permission-guard";
 import { loadUserContext, requireTenantPage } from "@/server/auth/context";
 import { prisma } from "@/server/db/prisma";
 import { formatDate, formatMoney } from "@/lib/formatters";
 import { createT, type TranslateFn } from "@/lib/i18n";
 import type { DuesChargeStatus } from "@prisma/client";
+import { ImportBankStatementDialog, SendRemindersDialog } from "@/features/manager/dues-actions";
 
 const STATUS_TONE: Record<DuesChargeStatus, string> = {
   OPEN: "bg-amber-100 text-amber-700",
@@ -70,9 +72,21 @@ export default async function DuesListPage({ searchParams }: PageProps) {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold">{t("manager.dues.title")}</h1>
-        <p className="text-sm text-[var(--color-foreground-muted)]">{t("manager.dues.subtitle")}</p>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-semibold">{t("manager.dues.title")}</h1>
+          <p className="text-sm text-[var(--color-foreground-muted)]">
+            {t("manager.dues.subtitle")}
+          </p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <PermissionGuard permission="dues.bankstatement.import">
+            <ImportBankStatementDialog buildings={buildings} />
+          </PermissionGuard>
+          <PermissionGuard permission="dues.reminder.send">
+            <SendRemindersDialog buildings={buildings} />
+          </PermissionGuard>
+        </div>
       </div>
 
       <Card>
@@ -147,7 +161,14 @@ export default async function DuesListPage({ searchParams }: PageProps) {
                         {r.building.name}
                       </Link>
                     </td>
-                    <td className="px-4 py-3 font-mono text-xs">{r.unit.code}</td>
+                    <td className="px-4 py-3 font-mono text-xs">
+                      <Link
+                        href={`/zgrade/zaduzenja/${r.id}`}
+                        className="text-[var(--color-brand-700)] hover:underline"
+                      >
+                        {r.unit.code}
+                      </Link>
+                    </td>
                     <td className="px-4 py-3">
                       {String(r.periodYear).padStart(4, "0")}-
                       {String(r.periodMonth).padStart(2, "0")}
