@@ -223,6 +223,7 @@ export const en: Dictionary = {
     demoAccountsUse: "Use",
     demoAccountsInvestor: "Gradnja Plus",
     demoAccountsAgency: "Top Nekretnine",
+    demoAccountsManager: "Upravnik Plus",
     accountDeactivated: "Your account is deactivated. Contact an administrator.",
     organizationSuspended: "Your organization is currently suspended. Contact support.",
     loginFailedRemaining: "Wrong email or password. Attempts left before lock: {{remaining}}.",

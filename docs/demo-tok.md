@@ -66,6 +66,9 @@ pnpm dev                   # startuje na http://localhost:3000
 | Investor — finansije | `finansije@gradnjaplus.test` | `PropertyDesk!2026` |
 | Agencija — vlasnik | `vlasnik@topnekretnine.test` | `PropertyDesk!2026` |
 | Agencija — agent | `agent@topnekretnine.test` | `PropertyDesk!2026` |
+| Upravnik — vlasnik | `vlasnik@upravnikplus.test` | `PropertyDesk!2026` |
+| Upravnik — računovođa | `racuni@upravnikplus.test` | `PropertyDesk!2026` |
+| Upravnik — tehničar | `majstor@upravnikplus.test` | `PropertyDesk!2026` |
 
 Detalji nalozima su vidljivi kao super-admin u `/administracija/organizacije`.
 

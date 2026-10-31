@@ -7,7 +7,7 @@ import type { TranslationKey } from "@/lib/i18n";
  */
 export const DEMO_LOGIN_PASSWORD = "PropertyDesk!2026";
 
-export type DemoLoginOrg = "investor" | "agency";
+export type DemoLoginOrg = "investor" | "agency" | "manager";
 
 export type DemoLoginAccount = {
   email: string;
@@ -45,5 +45,20 @@ export const DEMO_LOGIN_ACCOUNTS: readonly DemoLoginAccount[] = [
     email: "agent@topnekretnine.test",
     org: "agency",
     roleKey: "admin.matrixRoles.AGENCY_AGENT",
+  },
+  {
+    email: "vlasnik@upravnikplus.test",
+    org: "manager",
+    roleKey: "admin.matrixRoles.MANAGER_OWNER",
+  },
+  {
+    email: "racuni@upravnikplus.test",
+    org: "manager",
+    roleKey: "admin.matrixRoles.MANAGER_ACCOUNTANT",
+  },
+  {
+    email: "majstor@upravnikplus.test",
+    org: "manager",
+    roleKey: "admin.matrixRoles.MANAGER_TECHNICIAN",
   },
 ];

@@ -227,6 +227,7 @@ export const srLatn = {
     demoAccountsUse: "Popuni",
     demoAccountsInvestor: "Gradnja Plus",
     demoAccountsAgency: "Top Nekretnine",
+    demoAccountsManager: "Upravnik Plus",
     accountDeactivated: "Vaš nalog je deaktiviran. Kontaktirajte administratora.",
     organizationSuspended: "Vaša organizacija je trenutno suspendovana. Kontaktirajte podršku.",
     loginFailedRemaining:

@@ -39,7 +39,9 @@ export function DemoLoginAccountsTable({ onUse }: { onUse: (account: DemoLoginAc
                 <td className="py-2 pr-2 text-[var(--color-foreground)]">
                   {account.org === "investor"
                     ? t("auth.demoAccountsInvestor")
-                    : t("auth.demoAccountsAgency")}
+                    : account.org === "agency"
+                      ? t("auth.demoAccountsAgency")
+                      : t("auth.demoAccountsManager")}
                 </td>
                 <td className="py-2 pr-2 text-[var(--color-foreground)]">{t(account.roleKey)}</td>
                 <td className="py-2 pr-2 font-mono text-[11px] break-all text-[var(--color-foreground-muted)]">

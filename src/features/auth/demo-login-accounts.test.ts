@@ -7,6 +7,9 @@ describe("demo login accounts", () => {
     const emails = DEMO_LOGIN_ACCOUNTS.map((a) => a.email);
     expect(emails).toContain("vlasnik@gradnjaplus.test");
     expect(emails).toContain("agent@topnekretnine.test");
+    expect(emails).toContain("vlasnik@upravnikplus.test");
+    expect(emails).toContain("racuni@upravnikplus.test");
+    expect(emails).toContain("majstor@upravnikplus.test");
     expect(emails.some((email) => email.includes("admin@") || email.includes("super"))).toBe(false);
     expect(DEMO_LOGIN_ACCOUNTS.some((a) => String(a.roleKey).includes("SUPER_ADMIN"))).toBe(false);
   });
