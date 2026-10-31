@@ -3,6 +3,7 @@ import { z } from "zod";
 import { apiHandler } from "@/lib/api/handler";
 import { requirePermission } from "@/server/permissions/require";
 import {
+  cancelAssembly,
   closeVoting,
   getAssembly,
   openVoting,
@@ -20,7 +21,7 @@ const patchSchema = z.object({
   votingClosesAt: z.coerce.date().nullable().optional(),
   location: z.string().max(200).nullable().optional(),
   quorumNote: z.string().max(1000).nullable().optional(),
-  action: z.enum(["open-voting", "close-voting"]).optional(),
+  action: z.enum(["open-voting", "close-voting", "cancel"]).optional(),
 });
 
 export const GET = apiHandler({ paramsSchema }, async ({ params }) => {
@@ -36,6 +37,15 @@ export const PATCH = apiHandler(
     const { action, ...patch } = body;
     if (action === "open-voting") {
       const row = await openVoting({
+        organizationId: ctx.organization.organizationId,
+        actorUserId: ctx.session.user.id,
+        assemblyId: params.id,
+        votingClosesAt: body.votingClosesAt,
+      });
+      return { data: row };
+    }
+    if (action === "cancel") {
+      const row = await cancelAssembly({
         organizationId: ctx.organization.organizationId,
         actorUserId: ctx.session.user.id,
         assemblyId: params.id,

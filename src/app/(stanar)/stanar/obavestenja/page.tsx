@@ -1,8 +1,13 @@
+import Link from "next/link";
+
 import { Card, CardContent } from "@/components/ui/card";
 import { prisma } from "@/server/db/prisma";
 import { requireResidentSession } from "@/server/auth/resident-guard";
 import { listResidentUnitsForSession } from "@/server/auth/resident-session";
-import { resolveNoticeUnitIds } from "@/server/services/manager/notices.service";
+import {
+  noticeVisibleOnPortal,
+  resolveNoticeUnitIds,
+} from "@/server/services/manager/notices.service";
 import { formatDate } from "@/lib/formatters";
 
 /**
@@ -33,20 +38,27 @@ export default async function ResidentNoticesPage() {
       })
     : [];
 
+  const residentIds = [...residentUnitIds];
   const notices: typeof candidates = [];
   for (const notice of candidates) {
-    if (notice.audience === "ALL") {
-      notices.push(notice);
-      continue;
-    }
     // eslint-disable-next-line no-await-in-loop
-    const targeted = await resolveNoticeUnitIds({
-      organizationId: notice.organizationId,
-      buildingId: notice.buildingId,
-      audience: notice.audience,
-      audienceParams: notice.audienceParams,
-    });
-    if (targeted.some((id) => residentUnitIds.has(id))) {
+    const targeted =
+      notice.audience === "ALL"
+        ? []
+        : await resolveNoticeUnitIds({
+            organizationId: notice.organizationId,
+            buildingId: notice.buildingId,
+            audience: notice.audience,
+            audienceParams: notice.audienceParams,
+          });
+    if (
+      noticeVisibleOnPortal({
+        channel: notice.channel,
+        audience: notice.audience,
+        targetedUnitIds: targeted,
+        residentUnitIds: residentIds,
+      })
+    ) {
       notices.push(notice);
     }
     if (notices.length >= 100) break;
@@ -57,7 +69,8 @@ export default async function ResidentNoticesPage() {
       <section>
         <h1 className="text-2xl font-semibold">Obaveštenja</h1>
         <p className="text-sm text-[var(--color-foreground-muted)]">
-          Sva objavljena obaveštenja za Vaše zgrade.
+          Poruke upravnika za vaše stanove, uključujući skupštinu i kvarove u zajedničkim
+          prostorima. Poruke koje idu samo na email ovde se ne prikazuju.
         </p>
       </section>
 
@@ -79,6 +92,22 @@ export default async function ResidentNoticesPage() {
                   </span>
                 </div>
                 <p className="text-sm whitespace-pre-wrap">{n.body}</p>
+                {n.assemblyId ? (
+                  <Link
+                    href={`/stanar/glasanje/${n.assemblyId}`}
+                    className="inline-block text-sm text-[var(--color-brand-700)] hover:underline"
+                  >
+                    Otvori skupštinu
+                  </Link>
+                ) : null}
+                {n.ticketId ? (
+                  <Link
+                    href={`/stanar/kvarovi/${n.ticketId}`}
+                    className="inline-block text-sm text-[var(--color-brand-700)] hover:underline"
+                  >
+                    Otvori prijavu
+                  </Link>
+                ) : null}
               </CardContent>
             </Card>
           ))}

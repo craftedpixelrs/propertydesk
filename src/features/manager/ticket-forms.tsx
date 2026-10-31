@@ -578,3 +578,46 @@ export function EditSupplierDialog({
     </ActionDialog>
   );
 }
+
+export function AddWorkEntryDialog({ ticketId }: { ticketId: string }) {
+  const t = useT();
+  const [body, setBody] = useState("");
+  const [visible, setVisible] = useState(true);
+
+  return (
+    <ActionDialog
+      trigger={<Button variant="outline">{t("manager.ticket.workLogAdd")}</Button>}
+      title={t("manager.ticket.workLogAdd")}
+      description={t("manager.ticket.workLogHint")}
+      submitLabel={t("common.save")}
+      onSubmit={async () => {
+        await apiClient.post(`/manager/tickets/${ticketId}/entries`, {
+          body: body.trim(),
+          visibleToResident: visible,
+        });
+        setBody("");
+        setVisible(true);
+      }}
+    >
+      {() => (
+        <>
+          <TextareaField
+            label={t("manager.ticket.workLogBody")}
+            id="we-body"
+            required
+            value={body}
+            onChange={setBody}
+          />
+          <label className="flex items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              checked={visible}
+              onChange={(event) => setVisible(event.currentTarget.checked)}
+            />
+            {t("manager.ticket.workLogVisible")}
+          </label>
+        </>
+      )}
+    </ActionDialog>
+  );
+}

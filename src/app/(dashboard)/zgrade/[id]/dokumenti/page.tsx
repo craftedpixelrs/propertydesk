@@ -1,11 +1,17 @@
+import Link from "next/link";
+
 import { Card, CardContent } from "@/components/ui/card";
 import { PermissionGuard } from "@/components/app/permission-guard";
 import { loadUserContext, requireTenantPage } from "@/server/auth/context";
-import { listDocuments } from "@/server/services/documents.service";
+import { listBuildingDocumentDossier } from "@/server/services/documents.service";
 import { assertBuildingBelongsToOrg } from "@/server/services/manager/buildings.service";
 import { formatDate } from "@/lib/formatters";
 import { createT } from "@/lib/i18n";
-import { DeleteDocumentButton, UploadDocumentDialog } from "@/features/manager/document-forms";
+import {
+  DeleteDocumentButton,
+  DocumentVisibilityButton,
+  UploadDocumentDialog,
+} from "@/features/manager/document-forms";
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -24,12 +30,9 @@ export default async function BuildingDocumentsTab({ params }: Props) {
   const t = createT(ctx.user.locale);
   await assertBuildingBelongsToOrg(ctx.activeOrganization.id, id);
 
-  const docs = await listDocuments({
+  const docs = await listBuildingDocumentDossier({
     organizationId: ctx.activeOrganization.id,
-    entityType: "ManagedBuilding",
-    entityId: id,
-    page: 1,
-    pageSize: 200,
+    buildingId: id,
   });
 
   return (
@@ -45,7 +48,7 @@ export default async function BuildingDocumentsTab({ params }: Props) {
         </PermissionGuard>
       </div>
 
-      {docs.items.length === 0 ? (
+      {docs.length === 0 ? (
         <Card>
           <CardContent className="py-10 text-center text-sm text-[var(--color-foreground-muted)]">
             {t("manager.documents.empty")}
@@ -57,7 +60,9 @@ export default async function BuildingDocumentsTab({ params }: Props) {
             <thead className="bg-[var(--color-surface-inset)] text-left text-xs tracking-wide text-[var(--color-foreground-muted)] uppercase">
               <tr>
                 <th className="px-4 py-3">{t("manager.documents.columns.name")}</th>
+                <th className="px-4 py-3">{t("manager.documents.columns.place")}</th>
                 <th className="px-4 py-3">{t("manager.documents.columns.category")}</th>
+                <th className="px-4 py-3">{t("manager.documents.columns.visibility")}</th>
                 <th className="px-4 py-3 text-right">{t("manager.documents.columns.size")}</th>
                 <th className="px-4 py-3">{t("manager.documents.columns.uploadedAt")}</th>
                 <th className="px-4 py-3">{t("manager.documents.columns.uploader")}</th>
@@ -65,7 +70,7 @@ export default async function BuildingDocumentsTab({ params }: Props) {
               </tr>
             </thead>
             <tbody className="divide-y divide-[var(--color-border)]">
-              {docs.items.map((d) => (
+              {docs.map((d) => (
                 <tr key={d.id} className="hover:bg-[var(--color-surface-inset)]">
                   <td className="px-4 py-3 font-medium">
                     <a
@@ -78,9 +83,20 @@ export default async function BuildingDocumentsTab({ params }: Props) {
                     </a>
                   </td>
                   <td className="px-4 py-3 text-xs">
+                    <Link href={d.placeHref} className="hover:underline">
+                      {t(`manager.documents.place.${d.place}`)}
+                      {d.placeLabel ? ` · ${d.placeLabel}` : ""}
+                    </Link>
+                  </td>
+                  <td className="px-4 py-3 text-xs">
                     {t(
                       `manager.documents.category.${d.category as "BUILDING" | "TICKET" | "ASSEMBLY" | "DUES" | "OTHER" | "INVOICE"}` as const,
                     )}
+                  </td>
+                  <td className="px-4 py-3 text-xs">
+                    {d.visibility === "RESIDENT_SHARED"
+                      ? t("manager.documents.visibility.RESIDENT_SHARED")
+                      : t("manager.documents.visibility.INTERNAL")}
                   </td>
                   <td className="px-4 py-3 text-right text-xs tabular-nums">
                     {formatSize(d.size)}
@@ -93,6 +109,7 @@ export default async function BuildingDocumentsTab({ params }: Props) {
                   </td>
                   <td className="px-4 py-3 text-right">
                     <PermissionGuard permission="document.manage">
+                      <DocumentVisibilityButton documentId={d.id} visibility={d.visibility} />
                       <DeleteDocumentButton documentId={d.id} />
                     </PermissionGuard>
                   </td>

@@ -188,12 +188,17 @@ All new models carry `organizationId` and FK to it with
 
 **Maintenance**
 
-- `supplier` — contractors / vendors.
+- `supplier` — katalog izvođača, nije `User`. `buildingId` null znači
+  celu firmu (tako UI i snima). Na prijavi je `supplierId`.
 - `maintenance_ticket` — `(organizationId, code)` unique, code in
   `BLD-00001` format. `status` enum
   `OPEN / TRIAGED / IN_PROGRESS / AWAITING_PARTS / COMPLETED / CANCELED`.
   `fund` enum `CURRENT_MAINTENANCE / INVESTMENT_FUND / OTHER`.
-- `maintenance_ticket_photo` — attached images, `storagePath`.
+- Fotografije i ostali prilozi prijave su redovi u `document`
+  (`entityType = MaintenanceTicket`), ne posebna tabela.
+- `maintenance_work_entry` — evidencija rada na prijavi (šta je
+  urađeno), odvojeno od `maintenance_ticket_history`.
+  `visibleToResident` podrazumevano `true`; `false` ostaje interno.
 - `building_expense` — written automatically when a ticket is
   `COMPLETED` with `actualCost`, or recorded manually. Powers the
   "Troškovi po fondu" report.
@@ -201,33 +206,42 @@ All new models carry `organizationId` and FK to it with
 **Assemblies**
 
 - `assembly` — one meeting. `status`
-  `DRAFT / SCHEDULED / IN_PROGRESS / CLOSED / CANCELED`.
-- `assembly_invitation` — per-owner invite row + delivery metadata.
-- `agenda_item` — ordered agenda entries; `voteMajority`
-  (`SIMPLE / ABSOLUTE / TWO_THIRDS`). Relation on `Assembly` is
-  `items` (not `agenda`).
+  `SCHEDULED / OPEN_FOR_VOTING / COMPLETED / CANCELED`.
+  `presentShare` and `quorumMet` are stored when voting closes.
+  Quorum is more than half of the building's `participationShare`.
+- `assembly_attendance` — one row per unit (`IN_PERSON / ELECTRONIC / PROXY`).
+  A vote upserts this row. Presence is what quorum counts.
+- `assembly_invitation` — one row per owner each time an invite email is sent.
+- `agenda_item` — ordered agenda entries. `voteKind` is
+  `DECISION / INFORMATION / ELECTION`. `majority` is
+  `SIMPLE / ABSOLUTE / TWO_THIRDS`. Relation on `Assembly` is
+  `items` (not `agenda`). Information items are not voted.
 - `assembly_vote` — `(agendaItemId, unitId)` unique. `weight` is a
   snapshot of `managed_unit.participationShare` at vote time.
+  Only a current `OWNER` can cast from the resident portal.
 - When voting closes, `agenda_item.resultSummary` freezes the counts.
+  Decisions fail when `quorumMet` is false.
 
 **Notices + documents**
 
-- `building_notice` — `status` `DRAFT / PUBLISHED`. Delivery counters
-  are `emailDeliveredCount` and `portalViewCount`. `audience` je enum
-  `ALL / BY_ENTRANCE / BY_UNIT_TYPE / SPECIFIC_UNITS`, a `audienceParams`
-  je JSON (`entranceIds[]`, `unitTypes[]`, `unitIds[]`). Mapiranje
-  obaveštenja na stvarnu listu jedinica radi
-  `resolveNoticeUnitIds()` — jedini pozivani iz email dostave i iz
-  `/stanar/obavestenja`.
-- Zgradni dokumenti žive u opštoj `document` tabeli sa
-  `entityType = 'ManagedBuilding'` + `entityId = <buildingId>` i
-  `category` iz enuma `DocumentCategory` (`BUILDING`, `TICKET`,
-  `ASSEMBLY`, `DUES`, `OTHER`, `INVOICE`). Soft-delete flag; the daily
-  purge job honours it. `visibility` je prošireno sa `RESIDENT_SHARED`
-  — dokumenti sa ovom vrednošću pokazuju se stanarima kojima je
-  dodeljen pristup toj zgradi. `uploadedByUserId` je sada nullable sa
-  FK-om `SetNull`; dodatna kolona `uploadedByPersonId` (`SetNull` FK
-  na `BuildingPerson`) hvata uploade iz portala za stanare.
+- `building_notice` — draft while `publishedAt` is null. Delivery
+  counter is `emailDeliveredCount`. `channel` is
+  `PORTAL_ONLY / PORTAL_AND_EMAIL / EMAIL_ONLY`. `audience` is
+  `ALL / BY_ENTRANCE / BY_UNIT_TYPE / SPECIFIC_UNITS`, and
+  `audienceParams` is JSON (`entranceIds[]`, `unitTypes[]`, `unitIds[]`).
+  Optional `assemblyId` / `ticketId` link the notice to that event.
+  `originKey` is unique per organization so the same event is posted once.
+  `resolveNoticeUnitIds()` and `noticeVisibleOnPortal()` are what the
+  email sender and `/stanar/obavestenja` both use.
+- Zgradni dokumenti žive u opštoj `document` tabeli. Veza je
+  `entityType` + `entityId`: `ManagedBuilding`, `ManagedUnit`,
+  `MaintenanceTicket` ili `Assembly`. Kategorije su `BUILDING`,
+  `TICKET`, `ASSEMBLY`, `DUES`, `OTHER`, `INVOICE`. Soft-delete flag;
+  the daily purge job honours it. `RESIDENT_SHARED` na zgradi, stanu
+  i skupštini vidi stanar te zgrade. Prilog prijave vidi podnosilac
+  i stanar stana na koji je prijava vezana, i kad je fajl `INTERNAL`.
+  `uploadedByUserId` je nullable sa FK-om `SetNull`; `uploadedByPersonId`
+  (`SetNull` FK na `BuildingPerson`) hvata uploade iz portala za stanare.
 - `dues_reminder_log` — audit svake stvarno poslate opomene za
   uplatnicu (`chargeId`, `email`, `sentAt`). Koristi se za cooldown
   dedupe u `sendDuesReminders` (default 7 dana). `(organizationId,

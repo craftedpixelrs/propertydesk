@@ -10,6 +10,8 @@ import { isDomainError } from "@/lib/errors";
 import { formatDate, formatMoney } from "@/lib/formatters";
 import { createT } from "@/lib/i18n";
 import { AdjustmentDialog } from "@/features/manager/adjustment-dialog";
+import { DocumentVisibilityButton, UploadDocumentDialog } from "@/features/manager/document-forms";
+import { listDocuments } from "@/server/services/documents.service";
 
 interface Props {
   params: Promise<{ id: string; unitId: string }>;
@@ -32,6 +34,13 @@ export default async function UnitFinanceCardPage({ params }: Props) {
     if (isDomainError(err) && err.code === "NOT_FOUND") return notFound();
     throw err;
   }
+  const unitDocs = await listDocuments({
+    organizationId: ctx.activeOrganization.id,
+    entityType: "ManagedUnit",
+    entityId: unitId,
+    page: 1,
+    pageSize: 50,
+  });
 
   return (
     <div className="space-y-6">
@@ -258,6 +267,48 @@ export default async function UnitFinanceCardPage({ params }: Props) {
                 </div>
               ))}
             </div>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between gap-2">
+          <CardTitle className="text-sm">{t("manager.documents.title")}</CardTitle>
+          <PermissionGuard permission="document.manage">
+            <UploadDocumentDialog
+              entityType="ManagedUnit"
+              entityId={unitId}
+              categories={["DUES", "OTHER", "INVOICE"]}
+              defaultCategory="DUES"
+            />
+          </PermissionGuard>
+        </CardHeader>
+        <CardContent>
+          {unitDocs.items.length === 0 ? (
+            <p className="text-sm text-[var(--color-foreground-muted)]">
+              {t("manager.documents.empty")}
+            </p>
+          ) : (
+            <ul className="space-y-2 text-sm">
+              {unitDocs.items.map((file) => (
+                <li key={file.id} className="flex flex-wrap items-center justify-between gap-2">
+                  <a
+                    href={`/api/v1/documents/${file.id}/download`}
+                    className="text-[var(--color-brand-700)] hover:underline"
+                  >
+                    {file.originalFileName}
+                  </a>
+                  <span className="text-xs text-[var(--color-foreground-muted)]">
+                    {file.visibility === "RESIDENT_SHARED"
+                      ? t("manager.documents.visibility.RESIDENT_SHARED")
+                      : t("manager.documents.visibility.INTERNAL")}
+                  </span>
+                  <PermissionGuard permission="document.manage">
+                    <DocumentVisibilityButton documentId={file.id} visibility={file.visibility} />
+                  </PermissionGuard>
+                </li>
+              ))}
+            </ul>
           )}
         </CardContent>
       </Card>

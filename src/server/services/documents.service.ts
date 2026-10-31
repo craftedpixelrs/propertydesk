@@ -5,6 +5,14 @@ import { prisma } from "@/server/db/prisma";
 import { DomainErrors } from "@/lib/errors";
 import { recordAudit } from "@/server/audit/audit";
 import { storage, assertAllowedMimeType, MAX_UPLOAD_BYTES } from "@/server/storage";
+import { residentMayReadDocument } from "@/server/services/resident-document-access";
+
+const MANAGER_DOCUMENT_ENTITIES = [
+  "ManagedBuilding",
+  "ManagedUnit",
+  "MaintenanceTicket",
+  "Assembly",
+] as const;
 
 /**
  * DocumentService — thin wrapper around the storage abstraction that adds
@@ -81,6 +89,9 @@ function assertBuffer(buffer: Buffer): void {
 export async function uploadDocument(input: UploadDocumentInput) {
   assertAllowedMimeType(input.mimeType);
   assertBuffer(input.buffer);
+  if ((MANAGER_DOCUMENT_ENTITIES as readonly string[]).includes(input.entityType)) {
+    await assertManagerDocumentTarget(input.organizationId, input.entityType, input.entityId);
+  }
 
   const put = await storage().put({
     organizationId: input.organizationId,
@@ -357,9 +368,8 @@ export async function getSignedDownloadUrl(input: {
  * `ResidentAccess` rows. Includes:
  *   - documents on a building the resident has access to, visibility=RESIDENT_SHARED
  *   - documents on one of the resident's units, visibility=RESIDENT_SHARED
- *   - documents on a MaintenanceTicket the resident filed (reportedByPersonId)
- *     — these are always readable to that specific resident even when the
- *     visibility is INTERNAL (it's their own report).
+ *   - documents on a MaintenanceTicket the resident filed, or on a ticket
+ *     for one of their units — readable even when visibility is INTERNAL.
  */
 export async function listResidentDocuments(input: {
   personId: string;
@@ -373,10 +383,13 @@ export async function listResidentDocuments(input: {
     return { items: [], total: 0 };
   }
 
-  // Tickets this resident filed — we expose every document attached to
-  // them regardless of visibility (it's their own evidence).
   const myTickets = await prisma.maintenanceTicket.findMany({
-    where: { reportedByPersonId: personId },
+    where: {
+      OR: [
+        { reportedByPersonId: personId },
+        ...(unitIds.length > 0 ? [{ unitId: { in: unitIds } }] : []),
+      ],
+    },
     select: { id: true },
     take: 500,
   });
@@ -402,6 +415,21 @@ export async function listResidentDocuments(input: {
       entityType: "MaintenanceTicket",
       entityId: { in: myTicketIds },
     });
+  }
+  if (buildingIds.length > 0) {
+    const assemblies = await prisma.assembly.findMany({
+      where: { buildingId: { in: buildingIds } },
+      select: { id: true },
+      take: 200,
+    });
+    const assemblyIds = assemblies.map((row) => row.id);
+    if (assemblyIds.length > 0) {
+      or.push({
+        entityType: "Assembly",
+        entityId: { in: assemblyIds },
+        visibility: "RESIDENT_SHARED",
+      });
+    }
   }
 
   const where: Prisma.DocumentWhereInput = { deletedAt: null, OR: or };
@@ -435,26 +463,188 @@ export async function assertResidentCanReadDocument(input: {
   });
   if (!doc) throw DomainErrors.notFound("Dokument");
 
-  if (doc.entityType === "ManagedBuilding" && buildingIds.includes(doc.entityId)) {
-    if (doc.visibility === "RESIDENT_SHARED") return doc;
-  }
-  if (doc.entityType === "ManagedUnit" && unitIds.includes(doc.entityId)) {
-    if (doc.visibility === "RESIDENT_SHARED") return doc;
-  }
-  if (doc.entityType === "MaintenanceTicket") {
-    const ticket = await prisma.maintenanceTicket.findUnique({
-      where: { id: doc.entityId },
-      select: { reportedByPersonId: true },
-    });
-    if (ticket?.reportedByPersonId === personId) return doc;
-    // Also allow RESIDENT_SHARED tickets to a unit they own.
-    if (doc.visibility === "RESIDENT_SHARED") {
-      const ticketWithUnit = await prisma.maintenanceTicket.findUnique({
-        where: { id: doc.entityId },
-        select: { unitId: true },
-      });
-      if (ticketWithUnit?.unitId && unitIds.includes(ticketWithUnit.unitId)) return doc;
-    }
+  const context = await residentDocumentContext(doc.entityType, doc.entityId);
+  if (
+    residentMayReadDocument({
+      entityType: doc.entityType,
+      visibility: doc.visibility,
+      personId,
+      buildingIds,
+      unitIds,
+      ...context,
+    })
+  ) {
+    return doc;
   }
   throw DomainErrors.forbidden("Nemate pristup ovom dokumentu.");
+}
+
+async function residentDocumentContext(entityType: string, entityId: string) {
+  if (entityType === "ManagedBuilding") return { entityBuildingId: entityId };
+  if (entityType === "ManagedUnit") return { entityUnitId: entityId };
+  if (entityType === "Assembly") {
+    const assembly = await prisma.assembly.findUnique({
+      where: { id: entityId },
+      select: { buildingId: true },
+    });
+    return { entityBuildingId: assembly?.buildingId ?? null };
+  }
+  if (entityType === "MaintenanceTicket") {
+    const ticket = await prisma.maintenanceTicket.findUnique({
+      where: { id: entityId },
+      select: { reportedByPersonId: true, unitId: true },
+    });
+    if (!ticket) throw DomainErrors.notFound("Dokument");
+    return {
+      ticketReportedByPersonId: ticket.reportedByPersonId,
+      ticketUnitId: ticket.unitId,
+    };
+  }
+  return {};
+}
+
+export async function listBuildingDocumentDossier(input: {
+  organizationId: string;
+  buildingId: string;
+}) {
+  const [units, tickets, assemblies] = await Promise.all([
+    prisma.managedUnit.findMany({
+      where: { organizationId: input.organizationId, buildingId: input.buildingId },
+      select: { id: true, code: true },
+    }),
+    prisma.maintenanceTicket.findMany({
+      where: { organizationId: input.organizationId, buildingId: input.buildingId },
+      select: { id: true, code: true, title: true },
+    }),
+    prisma.assembly.findMany({
+      where: { organizationId: input.organizationId, buildingId: input.buildingId },
+      select: { id: true, code: true, title: true },
+    }),
+  ]);
+  const or: Prisma.DocumentWhereInput[] = [
+    { entityType: "ManagedBuilding", entityId: input.buildingId },
+  ];
+  if (units.length > 0) {
+    or.push({ entityType: "ManagedUnit", entityId: { in: units.map((row) => row.id) } });
+  }
+  if (tickets.length > 0) {
+    or.push({
+      entityType: "MaintenanceTicket",
+      entityId: { in: tickets.map((row) => row.id) },
+    });
+  }
+  if (assemblies.length > 0) {
+    or.push({ entityType: "Assembly", entityId: { in: assemblies.map((row) => row.id) } });
+  }
+  const docs = await prisma.document.findMany({
+    where: { organizationId: input.organizationId, deletedAt: null, OR: or },
+    include: { uploadedByUser: { select: { id: true, name: true } } },
+    orderBy: { createdAt: "desc" },
+    take: 300,
+  });
+  const unitById = new Map(units.map((row) => [row.id, row]));
+  const ticketById = new Map(tickets.map((row) => [row.id, row]));
+  const assemblyById = new Map(assemblies.map((row) => [row.id, row]));
+  return docs.map((doc) => {
+    if (doc.entityType === "ManagedUnit") {
+      const unit = unitById.get(doc.entityId);
+      return {
+        ...doc,
+        place: "unit" as const,
+        placeLabel: unit?.code ?? doc.entityId,
+        placeHref: `/zgrade/${input.buildingId}/delovi/${doc.entityId}`,
+      };
+    }
+    if (doc.entityType === "MaintenanceTicket") {
+      const ticket = ticketById.get(doc.entityId);
+      return {
+        ...doc,
+        place: "ticket" as const,
+        placeLabel: ticket ? `${ticket.code} · ${ticket.title}` : doc.entityId,
+        placeHref: `/zgrade/kvarovi/${doc.entityId}`,
+      };
+    }
+    if (doc.entityType === "Assembly") {
+      const assembly = assemblyById.get(doc.entityId);
+      return {
+        ...doc,
+        place: "assembly" as const,
+        placeLabel: assembly ? `${assembly.code} · ${assembly.title}` : doc.entityId,
+        placeHref: `/zgrade/skupstine/${doc.entityId}`,
+      };
+    }
+    return {
+      ...doc,
+      place: "building" as const,
+      placeLabel: "",
+      placeHref: `/zgrade/${input.buildingId}/dokumenti`,
+    };
+  });
+}
+
+export async function setDocumentVisibility(input: {
+  organizationId: string;
+  actorUserId: string;
+  documentId: string;
+  visibility: "INTERNAL" | "RESIDENT_SHARED";
+}) {
+  const doc = await prisma.document.findFirst({
+    where: { id: input.documentId, organizationId: input.organizationId, deletedAt: null },
+  });
+  if (!doc) throw DomainErrors.notFound("Dokument");
+  if (!(MANAGER_DOCUMENT_ENTITIES as readonly string[]).includes(doc.entityType)) {
+    throw DomainErrors.badRequest("Vidljivost stanarima važi samo za dokumente zgrade.");
+  }
+  const updated = await prisma.document.update({
+    where: { id: doc.id },
+    data: { visibility: input.visibility },
+  });
+  await recordAudit({
+    action: "document.visibility_changed",
+    entityType: "Document",
+    entityId: doc.id,
+    organizationId: input.organizationId,
+    actorUserId: input.actorUserId,
+    previousValues: { visibility: doc.visibility },
+    newValues: { visibility: updated.visibility },
+  });
+  return updated;
+}
+
+async function assertManagerDocumentTarget(
+  organizationId: string,
+  entityType: string,
+  entityId: string,
+) {
+  if (entityType === "ManagedBuilding") {
+    const row = await prisma.managedBuilding.findFirst({
+      where: { id: entityId, organizationId },
+      select: { id: true },
+    });
+    if (!row) throw DomainErrors.notFound("Zgrada");
+    return;
+  }
+  if (entityType === "ManagedUnit") {
+    const row = await prisma.managedUnit.findFirst({
+      where: { id: entityId, organizationId },
+      select: { id: true },
+    });
+    if (!row) throw DomainErrors.notFound("Posebni deo");
+    return;
+  }
+  if (entityType === "MaintenanceTicket") {
+    const row = await prisma.maintenanceTicket.findFirst({
+      where: { id: entityId, organizationId },
+      select: { id: true },
+    });
+    if (!row) throw DomainErrors.notFound("Kvar");
+    return;
+  }
+  if (entityType === "Assembly") {
+    const row = await prisma.assembly.findFirst({
+      where: { id: entityId, organizationId },
+      select: { id: true },
+    });
+    if (!row) throw DomainErrors.notFound("Skupština");
+  }
 }

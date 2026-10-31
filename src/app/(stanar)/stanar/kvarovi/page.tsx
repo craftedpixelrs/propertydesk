@@ -3,13 +3,14 @@ import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
 import { prisma } from "@/server/db/prisma";
 import { requireResidentSession } from "@/server/auth/resident-guard";
+import { listResidentUnitsForSession } from "@/server/auth/resident-session";
 import { formatDate } from "@/lib/formatters";
 import type { MaintenanceStatus } from "@prisma/client";
 
 /**
- * Resident ticket inbox — shows every maintenance ticket the signed-in
- * resident filed (via `/stanar/kvarovi/novi`), with current status and
- * the manager's last note. Hidden from residents of a different unit.
+ * Resident ticket inbox — tickets the signed-in resident filed, plus
+ * tickets on units they can access. Status and the last manager note
+ * are shown; the detail page carries the visible work log.
  */
 
 const STATUS_LABEL: Record<MaintenanceStatus, string> = {
@@ -32,8 +33,15 @@ const STATUS_TONE: Record<MaintenanceStatus, string> = {
 
 export default async function ResidentTicketsPage() {
   const session = await requireResidentSession();
+  const accesses = await listResidentUnitsForSession(session);
+  const unitIds = accesses.map((access) => access.unitId);
   const tickets = await prisma.maintenanceTicket.findMany({
-    where: { reportedByPersonId: session.personId },
+    where: {
+      OR: [
+        { reportedByPersonId: session.personId },
+        ...(unitIds.length > 0 ? [{ unitId: { in: unitIds } }] : []),
+      ],
+    },
     include: {
       building: { select: { name: true } },
       unit: { select: { code: true } },
@@ -49,7 +57,7 @@ export default async function ResidentTicketsPage() {
         <div>
           <h1 className="text-2xl font-semibold">Prijavljeni kvarovi</h1>
           <p className="text-sm text-[var(--color-foreground-muted)]">
-            Pregled svih vaših prijava i status rada upravnika.
+            Prijave za vaše stanove, status i evidencija rada upravnika.
           </p>
         </div>
         <Link
@@ -81,7 +89,12 @@ export default async function ResidentTicketsPage() {
                       {t.code} · {t.building.name}
                       {t.unit ? ` · ${t.unit.code}` : ""}
                     </div>
-                    <div className="font-semibold">{t.title}</div>
+                    <Link
+                      href={`/stanar/kvarovi/${t.id}`}
+                      className="font-semibold hover:underline"
+                    >
+                      {t.title}
+                    </Link>
                     {t.description ? (
                       <p className="mt-1 text-sm whitespace-pre-wrap text-[var(--color-foreground-muted)]">
                         {t.description}

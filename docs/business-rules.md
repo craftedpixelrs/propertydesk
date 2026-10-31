@@ -279,10 +279,24 @@ module:
   computes and freezes `AgendaItem.resultSummary`.
 - **Maintenance tickets** carry a strict state machine
   (`OPEN → TRIAGED → IN_PROGRESS → AWAITING_PARTS → COMPLETED / CANCELED`).
-  `COMPLETED` with `actualCost` set automatically writes a
-  `BuildingExpense` on the chosen `fund` (`CURRENT_MAINTENANCE` /
-  `INVESTMENT_FUND` / `OTHER`). The sum per fund powers the
-  `/izvestaji/upravljanje/troskovi` report.
+  Status changes go through `PATCH /manager/tickets/:id`. `COMPLETED`
+  with `actualCost` writes a `BuildingExpense` on the chosen `fund`
+  (`CURRENT_MAINTENANCE` / `INVESTMENT_FUND` / `OTHER`). The sum per
+  fund powers `/izvestaji/upravljanje/troskovi`. The list and board
+  open the same ticket in a side panel (`?ticket=`); the full page
+  keeps photos, the work log and payouts.
+- **Contractors** are `Supplier` rows, not users. The catalog is
+  firm-wide. A ticket stores `supplierId`. Closing with a cost copies
+  that supplier onto the expense.
+- **A resident starts as a person on a unit.** `BuildingPerson` plus
+  `UnitOwnership` (`OWNER`, `TENANT` or `USER`) is the register.
+  `ResidentAccess` is only the portal invite for one unit and one
+  email. **Dodaj stanara** writes all three when an email is present.
+- **Shared documents.** `RESIDENT_SHARED` on a building, unit or
+  assembly file is visible to a resident of that building. A file on
+  a ticket is visible to the person who filed it and to residents of
+  that unit even when the file is `INTERNAL`. The building archive
+  lists building, unit, ticket and assembly files together.
 - **Handover from investor to manager** (`BuildingHandoverRequest`) runs
   as a single transaction. On accept, structure (`Unit` → `ManagedUnit`,
   with `sourceUnitId`) and owners (`Buyer` → `BuildingPerson` +

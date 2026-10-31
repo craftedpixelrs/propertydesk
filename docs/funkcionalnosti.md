@@ -293,7 +293,7 @@ Novi tip tenanta za profesionalne upravnike zgrada. Pun runbook:
   dobavljači, `BuildingExpense` po fondu
   (`CURRENT_MAINTENANCE / INVESTMENT_FUND / OTHER`).
 - **Obaveštenja i dokumenti** — portal + email broadcast,
-  dokumenti zgrade kao `Document(entityType=ManagedBuilding, category=BUILDING)` sa soft-delete-om; brisanje ide kroz dnevni purge job.
+  dokumenti zgrade, stana, kvara i zapisnik skupštine u `Document`, sa izborom da li stanar vidi fajl; brisanje ide kroz dnevni purge job.
 - **Skupštine** — zakazivanje, pozivi, dnevni red; glasanje sa
   težinama (`SIMPLE / ABSOLUTE / TWO_THIRDS` majorities), PDF
   zapisnik.
@@ -442,11 +442,15 @@ Ako nekom treba brzi pregled šta donosi MANAGER modul:
 3. **Mesečna zajednička taksa** — tarife + idempotentan cron +
    uplatnica PDF sa IPS QR i modelom 97.
 4. **Uplate** — ručni upis + uvoz izvoda; dužnici + opomene.
-5. **Kvarovi + izvođači + troškovi po fondu** sa foto prilozima.
-6. **Obaveštenja i dokumenti zgrade** (portal + email).
-7. **Skupština** sa težinskim glasanjem i PDF zapisnikom.
-8. **Portal za stanare** (`/stanar/*`) — magic-link, HMAC cookie,
-   stanari nisu `User` i ne troše seats.
+5. **Kvarovi** — lista i tabla, bočni panel sa tokom statusa, dosije
+   sa evidencijom i fotografijama, trošak na fond pri zatvaranju.
+6. **Izvođači** — katalog firmi bez naloga; biraju se na prijavi.
+7. **Obaveštenja** — portal, email ili oba, vezana i za skupštinu i
+   za kvar. **Dokumenti** — arhiva zgrade, stana, kvara i zapisnika,
+   sa izborom da li stanar vidi fajl.
+8. **Skupština** — jedan glas po delu, kvorum, PDF zapisnik kao
+   evidencija. **Stanari** — upis na deo i link za portal; nisu nalog
+   firme.
 9. **Prenos zgrade investitor → upravnik** (`BuildingHandoverRequest`),
    kopira strukturu i vlasnike **bez JMBG, LK i PIB** (ZZPL).
 10. **Dashboard upravnika** + izveštaji

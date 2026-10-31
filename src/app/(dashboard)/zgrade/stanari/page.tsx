@@ -1,11 +1,18 @@
+import Link from "next/link";
+
 import { Card, CardContent } from "@/components/ui/card";
 import { PermissionGuard } from "@/components/app/permission-guard";
 import { loadUserContext, requireTenantPage } from "@/server/auth/context";
+import { prisma } from "@/server/db/prisma";
 import { listResidentAccesses } from "@/server/services/manager/residents.service";
 import { formatDate } from "@/lib/formatters";
 import { createT } from "@/lib/i18n";
 import type { ResidentAccessStatus } from "@prisma/client";
-import { ResendInviteButton, RevokeAccessButton } from "@/features/manager/resident-actions";
+import {
+  AddResidentDialog,
+  ResendInviteButton,
+  RevokeAccessButton,
+} from "@/features/manager/resident-actions";
 
 const STATUS_TONE: Record<ResidentAccessStatus, string> = {
   PENDING_INVITE: "bg-amber-100 text-amber-700",
@@ -18,21 +25,51 @@ export default async function ResidentAccessPage() {
   requireTenantPage(ctx, { permission: "resident.read", orgType: "MANAGER" });
   const t = createT(ctx.user.locale);
 
-  const rows = await listResidentAccesses({ organizationId: ctx.activeOrganization.id });
+  const [rows, buildings, units] = await Promise.all([
+    listResidentAccesses({ organizationId: ctx.activeOrganization.id }),
+    prisma.managedBuilding.findMany({
+      where: { organizationId: ctx.activeOrganization.id, archivedAt: null },
+      select: { id: true, name: true },
+      orderBy: { name: "asc" },
+    }),
+    prisma.managedUnit.findMany({
+      where: { organizationId: ctx.activeOrganization.id, archivedAt: null },
+      select: { id: true, code: true, buildingId: true },
+      orderBy: { code: "asc" },
+      take: 2000,
+    }),
+  ]);
+  const canInvite = ctx.isSuperAdmin || ctx.permissions.includes("resident.manage");
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold">{t("manager.residents.title")}</h1>
-        <p className="text-sm text-[var(--color-foreground-muted)]">
-          {t("manager.residents.subtitle")}
-        </p>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-semibold">{t("manager.residents.title")}</h1>
+          <p className="text-sm text-[var(--color-foreground-muted)]">
+            {t("manager.residents.subtitle")}
+          </p>
+        </div>
+        {buildings.length > 0 ? (
+          <PermissionGuard permission="building.manage">
+            <AddResidentDialog buildings={buildings} units={units} canInvite={canInvite} />
+          </PermissionGuard>
+        ) : null}
       </div>
 
       {rows.length === 0 ? (
         <Card>
-          <CardContent className="py-10 text-center text-sm text-[var(--color-foreground-muted)]">
-            {t("manager.residents.empty")}
+          <CardContent className="space-y-2 py-10 text-center text-sm text-[var(--color-foreground-muted)]">
+            <p>
+              {buildings.length === 0
+                ? t("manager.residents.noBuildings")
+                : t("manager.residents.empty")}
+            </p>
+            {buildings.length === 0 ? (
+              <Link href="/zgrade" className="text-[var(--color-brand-700)] hover:underline">
+                {t("manager.buildings.title")}
+              </Link>
+            ) : null}
           </CardContent>
         </Card>
       ) : (

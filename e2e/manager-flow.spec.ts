@@ -71,6 +71,11 @@ test.describe("stanar portal — access guards", () => {
     await expect(page).toHaveURL(/\/stanar\/potreban-pristup|\/sign-in/);
   });
 
+  test("resident ticket detail requires a cookie", async ({ page }) => {
+    await page.goto("/stanar/kvarovi/does-not-exist");
+    await expect(page).toHaveURL(/\/stanar\/potreban-pristup|\/sign-in/);
+  });
+
   test("resident documents inbox requires a cookie", async ({ page }) => {
     await page.goto("/stanar/dokumenti");
     await expect(page).toHaveURL(/\/stanar\/potreban-pristup|\/sign-in/);

@@ -23,7 +23,7 @@ vi.mock("@/server/services/manager/buildings.service", () => ({
   assertBuildingBelongsToOrg: vi.fn(),
 }));
 
-import { resolveNoticeUnitIds } from "./notices.service";
+import { noticeVisibleOnPortal, resolveNoticeUnitIds } from "./notices.service";
 
 const baseNotice = {
   organizationId: "org-1",
@@ -122,5 +122,48 @@ describe("resolveNoticeUnitIds", () => {
     };
     expect(call.where.entranceId).toEqual({ in: ["ent-X"] });
     expect(call.where.id).toBeUndefined();
+  });
+});
+
+describe("noticeVisibleOnPortal", () => {
+  it("hides email-only notices", () => {
+    expect(
+      noticeVisibleOnPortal({
+        channel: "EMAIL_ONLY",
+        audience: "ALL",
+        targetedUnitIds: [],
+        residentUnitIds: ["u1"],
+      }),
+    ).toBe(false);
+  });
+
+  it("shows an all-building notice to a resident of that building", () => {
+    expect(
+      noticeVisibleOnPortal({
+        channel: "PORTAL_AND_EMAIL",
+        audience: "ALL",
+        targetedUnitIds: [],
+        residentUnitIds: ["u1"],
+      }),
+    ).toBe(true);
+  });
+
+  it("shows a targeted notice only when the resident's unit is included", () => {
+    expect(
+      noticeVisibleOnPortal({
+        channel: "PORTAL_ONLY",
+        audience: "SPECIFIC_UNITS",
+        targetedUnitIds: ["u2"],
+        residentUnitIds: ["u1"],
+      }),
+    ).toBe(false);
+    expect(
+      noticeVisibleOnPortal({
+        channel: "PORTAL_ONLY",
+        audience: "SPECIFIC_UNITS",
+        targetedUnitIds: ["u1", "u2"],
+        residentUnitIds: ["u1"],
+      }),
+    ).toBe(true);
   });
 });

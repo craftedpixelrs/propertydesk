@@ -404,7 +404,10 @@ export const guidesSr = {
   ]),
   // Faza 11 — upravnici zgrada
   buildings: page("Zgrade", [
-    ["Katalog", "Lista stambenih zajednica koje održavate. Dodajete ulaze, delove i vlasnike."],
+    [
+      "Katalog",
+      "Lista stambenih zajednica. U zgradi dodajete ulaze, posebne delove, vlasnike i arhivu dokumenata.",
+    ],
     ["Uvoz", "XLSX uvoz posebnih delova i vlasnika po templejtu."],
     ["Finansije", "Svakoj zgradi stiže tab sa tarifama, zaduženjima, uplatama i dugom."],
     ["Portal stanara", "Vlasnici i zakupci pristupaju portalu preko magic linka."],
@@ -432,7 +435,11 @@ export const guidesSr = {
     ],
     [
       "Dodela i kanban",
-      "Dodelite kolegu / izvođača iz Izmeni, ili prevucite karticu u ?view=board kanbanu — status se čuva kao kod bilo koje promene.",
+      "Klik na prijavu otvara bočni panel sa tokom statusa. Status menjate u panelu ili prevlačenjem kartice na tabli.",
+    ],
+    [
+      "Evidencija",
+      "Ceo dosije (fotografije, evidencija, isplate) je na posebnoj strani. Vidljiv unos šalje email stanaru; interni ostaje samo kod vas.",
     ],
     [
       "Zatvaranje",
@@ -440,24 +447,51 @@ export const guidesSr = {
     ],
   ]),
   suppliers: page("Izvođači", [
-    ["Katalog", "Vaši servisi i majstori sa kontaktom i specijalnošću."],
-    ["Istorija", "Svaki kvar vodi link na izvođača koji ga je rešio."],
-    ["Fakture", "Fakture izvođača se povezuju na troškove zgrade."],
+    [
+      "Katalog",
+      "Novi izvođač traži naziv, vrstu posla, PIB i kontakt. Važi za sve zgrade firme. Izvođač nema nalog.",
+    ],
+    [
+      "Na prijavi",
+      "Birate ga u izmeni prijave ili uz promenu statusa. Dok ga ovde ne dodate, lista na prijavi je prazna.",
+    ],
+    [
+      "Trošak",
+      "Kad zatvorite prijavu sa iznosom, isplata na izabranom fondu nosi tog izvođača.",
+    ],
   ]),
   notices: page("Obaveštenja", [
     ["Portal + email", "Birate kanale: portal, email ili oba."],
     ["Ciljanje", "Audience: svi, po ulazu, po tipu ili po konkretnom delu."],
-    ["Istorija", "Broj dostavljenih emailova se čuva uz obaveštenje."],
+    [
+      "Povezano",
+      "Poziv i rezultat skupštine, kao i kvar u zajedničkom prostoru, sami se pojave ovde.",
+    ],
   ]),
   assemblies: page("Skupštine", [
-    ["Zakazivanje", "Datum, mesto, dnevni red i vrsta većine po tački."],
-    ["Elektronsko glasanje", "Period glasanja, težina glasa po učešću, automatski rezultat."],
-    ["Zapisnik", "Automatski PDF zapisnik posle zatvaranja glasanja."],
+    ["Zakazivanje", "Datum, mesto i dnevni red. Tačka je odluka, izbor ili informacija."],
+    [
+      "Poziv i prisustvo",
+      "Pozivnica ide vlasnicima. Prisustvo je lično, preko portala ili punomoćjem. Kvorum je više od polovine učešća.",
+    ],
+    [
+      "Glasanje",
+      "Jedan deo, jedan glas, težina je učešće. Bez kvoruma odluka ne prolazi. Zapisnik je evidencija, ne zakonski obrazac.",
+    ],
   ]),
   residents: page("Stanari", [
-    ["Pozivnice", "Šaljete magic link stanaru — važi 14 dana."],
-    ["Portal", "Stanari ne troše seats i nisu u Better Auth. HMAC potpisana cookie."],
-    ["Opoziv", "Jednim klikom opozovete pristup — važi trenutno."],
+    [
+      "Upis",
+      "Dodaj stanara bira zgradu, posebni deo i ulogu: vlasnik, zakupac ili korisnik. Zgrada mora već imati delove.",
+    ],
+    [
+      "Portal",
+      "Ako ostavite email, stiže link bez lozinke i važi 14 dana. Stanar nije nalog vaše firme.",
+    ],
+    [
+      "Opoziv",
+      "Pošalji ponovo pravi novi link. Opozovi odmah gasi pristup.",
+    ],
   ]),
   handovers: page("Predaje zgrada", [
     ["Investitor", 'Dugme „Predaj upravniku" na stranici projekta pokreće zahtev.'],
@@ -844,7 +878,10 @@ export const guidesEn: Leaves<typeof guidesSr> = {
   ]),
   // Faza 11 — building managers
   buildings: page("Buildings", [
-    ["Catalog", "Residential associations you manage. Add entrances, units and owners."],
+    [
+      "Catalog",
+      "Residential associations you manage. Inside a building you add entrances, units, owners and the document archive.",
+    ],
     ["Import", "XLSX import of units and owners using the provided template."],
     ["Finance", "Each building has tabs for tariffs, dues, payments and debt."],
     ["Resident portal", "Owners and tenants access the portal via a magic link."],
@@ -869,7 +906,11 @@ export const guidesEn: Leaves<typeof guidesSr> = {
     ["Reports", "Resident reports trigger an in-app + email notification to managers."],
     [
       "Assignment & kanban",
-      "Assign a colleague/contractor from Edit, or drag cards in ?view=board — status updates like any manual change.",
+      "Click a ticket to open the side panel with its status path. Change status in the panel, or drag a card on the board.",
+    ],
+    [
+      "Work log",
+      "The full record (photos, work log, payouts) is its own page. A visible entry emails the resident; an internal one stays with you.",
     ],
     [
       "Closing",
@@ -877,24 +918,51 @@ export const guidesEn: Leaves<typeof guidesSr> = {
     ],
   ]),
   suppliers: page("Suppliers", [
-    ["Catalog", "Your contractors and specialists with contact and skills."],
-    ["History", "Every ticket links to the supplier who resolved it."],
-    ["Invoices", "Supplier invoices link to building expenses."],
+    [
+      "Catalog",
+      "New contractor asks for a name, trade, tax number and contact. It applies to every building. A contractor has no login.",
+    ],
+    [
+      "On a ticket",
+      "Pick them when you edit the ticket or change its status. The list on a ticket stays empty until you add them here.",
+    ],
+    [
+      "Cost",
+      "When you close a ticket with an amount, the fund payout carries that contractor.",
+    ],
   ]),
   notices: page("Notices", [
     ["Portal + email", "Pick channels: portal, email, or both."],
     ["Targeting", "Audience: all, by entrance, by unit type, or specific units."],
-    ["History", "Delivered email counts persist on each notice."],
+    [
+      "Linked",
+      "An assembly invite or result, and a common-area ticket, show up here on their own.",
+    ],
   ]),
   assemblies: page("Assemblies", [
-    ["Scheduling", "Date, location, agenda and majority per item."],
-    ["Electronic voting", "Voting window, vote weight by share, automatic tally."],
-    ["Minutes", "Automatic PDF minutes once voting is closed."],
+    ["Scheduling", "Date, place and agenda. An item is a decision, an election or information."],
+    [
+      "Invite and attendance",
+      "Owners are invited. Attendance is in person, on the portal or by proxy. Quorum is more than half the share.",
+    ],
+    [
+      "Voting",
+      "One unit, one vote, weighted by share. Without quorum a decision does not pass. The minutes are a record, not the statutory form.",
+    ],
   ]),
   residents: page("Residents", [
-    ["Invitations", "Send a magic link — valid for 14 days."],
-    ["Portal", "Residents don't consume seats or Better Auth users. HMAC-signed cookie."],
-    ["Revoke", "Revoke access in one click — effective immediately."],
+    [
+      "Record",
+      "Add resident picks the building, unit and role: owner, tenant or occupant. The building must already have units.",
+    ],
+    [
+      "Portal",
+      "If you leave an email, a link with no password arrives and lasts 14 days. A resident is not a login in your firm.",
+    ],
+    [
+      "Revoke",
+      "Send again makes a new link. Revoke cuts access immediately.",
+    ],
   ]),
   handovers: page("Handovers", [
     ["Investor", "The “Hand over to manager” button on a project starts the request."],

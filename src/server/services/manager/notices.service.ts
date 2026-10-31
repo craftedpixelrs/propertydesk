@@ -9,8 +9,10 @@ import type {
 import { prisma } from "@/server/db/prisma";
 import { DomainErrors } from "@/lib/errors";
 import { recordAudit } from "@/server/audit/audit";
+import { logger } from "@/server/logger";
 import { assertBuildingBelongsToOrg } from "@/server/services/manager/buildings.service";
 import { sendEmail } from "@/server/auth/email";
+import { appOrigin } from "@/server/http/app-origin";
 
 /**
  * Faza 11 — building notices for residents (PORTAL + EMAIL).
@@ -26,13 +28,29 @@ import { sendEmail } from "@/server/auth/email";
  *   - BY_UNIT_TYPE — audienceParams.unitTypes[]
  *   - SPECIFIC_UNITS — audienceParams.unitIds[]
  *
- * Only addresses with `endedAt = null` on `UnitOwnership` + a non-null email
- * are notified. Operator decides channel: PORTAL_ONLY / EMAIL_ONLY / BOTH.
+ * Email goes to every current person on the targeted units (owner, tenant
+ * or occupant) and to active resident-portal logins for those units.
+ * EMAIL_ONLY never appears on the portal. PORTAL_ONLY never sends mail.
+ *
+ * Automatic notices from an assembly or a ticket set `originKey` so the
+ * same event cannot publish twice.
  */
+
+export function noticeVisibleOnPortal(input: {
+  channel: BuildingNoticeChannel;
+  audience: BuildingNoticeAudience;
+  targetedUnitIds: string[];
+  residentUnitIds: string[];
+}): boolean {
+  if (input.channel === "EMAIL_ONLY") return false;
+  if (input.residentUnitIds.length === 0) return false;
+  if (input.audience === "ALL") return true;
+  return input.targetedUnitIds.some((id) => input.residentUnitIds.includes(id));
+}
 
 export interface CreateBuildingNoticeInput {
   organizationId: string;
-  actorUserId: string;
+  actorUserId: string | null;
   buildingId: string;
   title: string;
   body: string;
@@ -44,10 +62,21 @@ export interface CreateBuildingNoticeInput {
     unitIds?: string[];
   };
   publishNow?: boolean;
+  assemblyId?: string | null;
+  ticketId?: string | null;
+  originKey?: string | null;
 }
 
 export async function createBuildingNotice(input: CreateBuildingNoticeInput) {
   await assertBuildingBelongsToOrg(input.organizationId, input.buildingId);
+  const audience = input.audience ?? "ALL";
+  const audienceParams = input.audienceParams ?? {};
+  await assertAudienceBelongsToBuilding({
+    organizationId: input.organizationId,
+    buildingId: input.buildingId,
+    audience,
+    audienceParams,
+  });
 
   const notice = await prisma.buildingNotice.create({
     data: {
@@ -56,15 +85,18 @@ export async function createBuildingNotice(input: CreateBuildingNoticeInput) {
       title: input.title.trim(),
       body: input.body.trim(),
       channel: input.channel ?? "PORTAL_AND_EMAIL",
-      audience: input.audience ?? "ALL",
-      audienceParams: (input.audienceParams ?? {}) as Prisma.InputJsonValue,
+      audience,
+      audienceParams: audienceParams as Prisma.InputJsonValue,
       publishedAt: input.publishNow ? new Date() : null,
       publishedByUserId: input.publishNow ? input.actorUserId : null,
+      assemblyId: input.assemblyId ?? null,
+      ticketId: input.ticketId ?? null,
+      originKey: input.originKey ?? null,
     },
   });
 
   await recordAudit({
-    action: "manager.notice_published",
+    action: input.publishNow ? "manager.notice_published" : "manager.notice_created",
     entityType: "BuildingNotice",
     entityId: notice.id,
     organizationId: input.organizationId,
@@ -80,6 +112,28 @@ export async function createBuildingNotice(input: CreateBuildingNoticeInput) {
   }
 
   return notice;
+}
+
+/**
+ * Publish a notice that belongs to one assembly or ticket event.
+ * A second call with the same originKey returns the existing row.
+ */
+export async function publishLinkedNotice(
+  input: CreateBuildingNoticeInput & { originKey: string },
+) {
+  const existing = await prisma.buildingNotice.findFirst({
+    where: { organizationId: input.organizationId, originKey: input.originKey },
+  });
+  if (existing) return existing;
+  try {
+    return await createBuildingNotice({ ...input, publishNow: true });
+  } catch (err) {
+    const again = await prisma.buildingNotice.findFirst({
+      where: { organizationId: input.organizationId, originKey: input.originKey },
+    });
+    if (again) return again;
+    throw err;
+  }
 }
 
 export async function publishBuildingNotice(input: {
@@ -123,6 +177,8 @@ export async function listBuildingNotices(input: {
     },
     include: {
       building: { select: { id: true, name: true } },
+      assembly: { select: { id: true, code: true, title: true } },
+      ticket: { select: { id: true, code: true, title: true } },
     },
     orderBy: [{ publishedAt: "desc" }, { createdAt: "desc" }],
   });
@@ -192,37 +248,48 @@ export async function deliverNoticeEmails(noticeId: string): Promise<number> {
   const unitIds = await resolveNoticeUnitIds(notice);
   if (unitIds.length === 0) return 0;
 
-  const owners = await prisma.unitOwnership.findMany({
-    where: {
-      endedAt: null,
-      unitId: { in: unitIds },
-      person: { email: { not: null } },
-    },
-    select: {
-      person: { select: { email: true } },
-    },
-  });
+  const [people, accesses] = await Promise.all([
+    prisma.unitOwnership.findMany({
+      where: {
+        endedAt: null,
+        unitId: { in: unitIds },
+        person: { email: { not: null } },
+      },
+      select: { person: { select: { email: true } } },
+    }),
+    prisma.residentAccess.findMany({
+      where: { unitId: { in: unitIds }, status: "ACTIVE" },
+      select: { email: true },
+    }),
+  ]);
 
   const emails = Array.from(
     new Set(
-      owners
-        .map((o) => (o.person.email ?? "").trim().toLowerCase())
-        .filter((e) => /.+@.+\..+/.test(e)),
+      [...people.map((row) => row.person.email ?? ""), ...accesses.map((row) => row.email)]
+        .map((email) => email.trim().toLowerCase())
+        .filter((email) => /.+@.+\..+/.test(email)),
     ),
   );
   if (emails.length === 0) return 0;
 
+  const portalLine = `${appOrigin()}/stanar/obavestenja`;
   let delivered = 0;
   for (const to of emails) {
     try {
       await sendEmail({
         to,
         subject: `[${notice.building.name}] ${notice.title}`,
-        text: `${notice.body}\n\n— ${notice.building.name}, ${notice.building.address}, ${notice.building.city}`,
+        text:
+          `${notice.body}\n\n` +
+          `— ${notice.building.name}, ${notice.building.address}, ${notice.building.city}\n` +
+          `Portal stanara: ${portalLine}`,
       });
       delivered += 1;
-    } catch {
-      // keep going — one bad address shouldn't abort the whole batch.
+    } catch (err) {
+      logger.warn("manager.notice.email_failed", {
+        noticeId,
+        error: (err as Error)?.message,
+      });
     }
   }
 
@@ -232,4 +299,55 @@ export async function deliverNoticeEmails(noticeId: string): Promise<number> {
   });
 
   return delivered;
+}
+
+export async function getBuildingNotice(organizationId: string, noticeId: string) {
+  const row = await prisma.buildingNotice.findFirst({
+    where: { id: noticeId, organizationId },
+    include: {
+      building: { select: { id: true, name: true } },
+      assembly: { select: { id: true, code: true, title: true, status: true } },
+      ticket: { select: { id: true, code: true, title: true, status: true } },
+    },
+  });
+  if (!row) throw DomainErrors.notFound("Obaveštenje");
+  return row;
+}
+
+async function assertAudienceBelongsToBuilding(input: {
+  organizationId: string;
+  buildingId: string;
+  audience: BuildingNoticeAudience;
+  audienceParams: {
+    entranceIds?: string[];
+    unitTypes?: ManagedUnitType[];
+    unitIds?: string[];
+  };
+}) {
+  if (input.audience === "BY_ENTRANCE") {
+    const ids = input.audienceParams.entranceIds ?? [];
+    if (ids.length === 0) throw DomainErrors.badRequest("Izaberite bar jedan ulaz.");
+    const count = await prisma.buildingEntranceSection.count({
+      where: { id: { in: ids }, buildingId: input.buildingId },
+    });
+    if (count !== ids.length) throw DomainErrors.badRequest("Ulaz ne pripada ovoj zgradi.");
+  } else if (input.audience === "BY_UNIT_TYPE") {
+    if ((input.audienceParams.unitTypes ?? []).length === 0) {
+      throw DomainErrors.badRequest("Izaberite bar jedan tip posebnog dela.");
+    }
+  } else if (input.audience === "SPECIFIC_UNITS") {
+    const ids = input.audienceParams.unitIds ?? [];
+    if (ids.length === 0) throw DomainErrors.badRequest("Izaberite bar jedan posebni deo.");
+    const count = await prisma.managedUnit.count({
+      where: {
+        id: { in: ids },
+        organizationId: input.organizationId,
+        buildingId: input.buildingId,
+        archivedAt: null,
+      },
+    });
+    if (count !== ids.length) {
+      throw DomainErrors.badRequest("Posebni deo ne pripada ovoj zgradi.");
+    }
+  }
 }

@@ -900,13 +900,13 @@
                 </tr>
                 <tr>
                   <td><code>MANAGER_ACCOUNTANT</code></td>
-                  <td>Finansije (zaduženja, uplate, opomene, uvoz izvoda)</td>
-                  <td>Računovodstvo stambenih zajednica</td>
+                  <td>Finansije, izveštaji i dokumenti. Prijave samo čita</td>
+                  <td>Računovodstvo stambenih zajednica. Ne dodaje stanare ni izvođače</td>
                 </tr>
                 <tr>
                   <td><code>MANAGER_TECHNICIAN</code></td>
-                  <td>Kvarovi i izvođači</td>
-                  <td>Prijem i rešavanje prijava kvarova</td>
+                  <td>Prijave, fotografije, dokumenti i izvođači</td>
+                  <td>Rešava kvarove. Nema finansije, skupštine ni obaveštenja</td>
                 </tr>
                 <tr>
                   <td><code>MANAGER_VIEWER</code></td>
@@ -919,11 +919,12 @@
             <div class="callout">
               <strong>Upravnici zgrada (MANAGER tenant, Faza 11).</strong>
               Modul za profesionalne upravnike dolazi uz posebne menije:
-              <code>/zgrade</code>, <code>/zgrade/zaduzenja</code>, <code>/zgrade/kvarovi</code>,
+              <code>/zgrade</code>, <code>/zgrade/stanari</code>, <code>/zgrade/zaduzenja</code>,
+              <code>/zgrade/kvarovi</code>, <code>/zgrade/izvodjaci</code>,
               <code>/zgrade/skupstine</code>, <code>/zgrade/obavestenja</code> i izveštaje pod
-              <code>/izvestaji/upravljanje/*</code>. Stanari imaju sopstveni portal na
-              <code>/stanar/*</code> (magic-link, nisu nalozi u sistemu). Više u razvojnoj
-              dokumentaciji u fajlu <code>docs/upravnici.md</code>.
+              <code>/izvestaji/upravljanje/*</code>. Stanar se upisuje na posebni deo, pa dobija
+              link za portal <code>/stanar/*</code> bez naloga u firmi. Dokumenti zgrade biraju
+              da li ih stanar vidi. Više u <code>docs/upravnici.md</code>.
             </div>
 
             <div class="callout warn">

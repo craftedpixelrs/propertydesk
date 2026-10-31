@@ -43,8 +43,8 @@ Do **not** hard-code role names in feature code — always ask
 | `AGENCY_VIEWER` | Agency org | Read-only plus commission statement. |
 | `MANAGER_OWNER` | Manager org (Faza 11) | Full `building.*`, `dues.*`, `ticket.*`, `assembly.*`, `notice.*`, `resident.*`, plus billing. |
 | `MANAGER_ADMIN` | Manager org | Same as owner minus `billing.*`. |
-| `MANAGER_ACCOUNTANT` | Manager org | Financial work: dues, payments, bank-statement import, reminders, writeoff, reports. |
-| `MANAGER_TECHNICIAN` | Manager org | Operational work: buildings, units, owners, tickets, suppliers, assemblies, notices. |
+| `MANAGER_ACCOUNTANT` | Manager org | Dues, payments, bank-statement import, reminders, reports. Reads tickets and residents. Does not add residents or contractors. |
+| `MANAGER_TECHNICIAN` | Manager org | Reads buildings. Manages tickets, photos, documents and the contractor catalog. No finance, assemblies or notices. |
 | `MANAGER_VIEWER` | Manager org | Read-only plus report viewing. |
 
 **Investor/manager hinge:** `project.handover_manager` is the only

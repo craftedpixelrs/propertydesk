@@ -28,7 +28,7 @@ export default async function ResidentAssemblyVotePage({ params, searchParams }:
   const assembly = await prisma.assembly.findFirst({
     where: {
       id,
-      status: "OPEN_FOR_VOTING",
+      status: { in: ["SCHEDULED", "OPEN_FOR_VOTING", "COMPLETED"] },
       buildingId: { in: buildingIds },
     },
     include: {
@@ -46,7 +46,22 @@ export default async function ResidentAssemblyVotePage({ params, searchParams }:
   const unitsInThisBuilding = accesses.filter((a) => a.unit.buildingId === assembly.buildingId);
   const firstUnit = unitsInThisBuilding[0];
   if (!firstUnit) return notFound();
-  const activeUnitId = sp.unit ?? firstUnit.unitId;
+  const activeAccess = unitsInThisBuilding.find((access) => access.unitId === sp.unit) ?? firstUnit;
+  const activeUnitId = activeAccess.unitId;
+  const now = new Date();
+  const windowOpen =
+    assembly.status === "OPEN_FOR_VOTING" &&
+    (!assembly.votingOpensAt || now >= assembly.votingOpensAt) &&
+    (!assembly.votingClosesAt || now <= assembly.votingClosesAt);
+  const ownerRow = await prisma.unitOwnership.findFirst({
+    where: {
+      unitId: activeUnitId,
+      personId: activeAccess.personId,
+      endedAt: null,
+      role: "OWNER",
+    },
+    select: { id: true },
+  });
 
   async function submitVote(formData: FormData) {
     "use server";
@@ -64,10 +79,10 @@ export default async function ResidentAssemblyVotePage({ params, searchParams }:
 
     await castVote({
       organizationId: match.organizationId,
-      actorUserId: null, // residents vote without a User
+      actorUserId: null,
       agendaItemId,
       unitId,
-      personId: session2.personId,
+      personId: match.personId,
       choice: choiceRaw as AssemblyVoteChoice,
     });
     redirect(`/stanar/glasanje/${id}?unit=${unitId}`);
@@ -77,7 +92,22 @@ export default async function ResidentAssemblyVotePage({ params, searchParams }:
     <div className="space-y-4">
       <header>
         <h1 className="text-2xl font-semibold">{assembly.title}</h1>
-        <p className="text-sm text-[var(--color-foreground-muted)]">{assembly.building.name}</p>
+        <p className="text-sm text-[var(--color-foreground-muted)]">
+          {assembly.building.name}
+          {assembly.location ? ` · ${assembly.location}` : ""}
+        </p>
+        <p className="mt-1 text-sm text-[var(--color-foreground-muted)]">
+          {assembly.status === "SCHEDULED"
+            ? "Skupština je zakazana. Glasanje još nije otvoreno."
+            : assembly.status === "COMPLETED"
+              ? "Glasanje je zatvoreno. Ispod je rezultat."
+              : windowOpen
+                ? "Glasanje je otvoreno. Jedan posebni deo daje jedan glas."
+                : "Rok za glasanje je istekao. Upravnik još treba da zatvori skupštinu."}
+        </p>
+        <p className="mt-2 text-xs text-[var(--color-foreground-muted)]">
+          Evidencija glasanja nije zamena za zakonski zapisnik.
+        </p>
       </header>
 
       {unitsInThisBuilding.length > 1 ? (
@@ -118,6 +148,14 @@ export default async function ResidentAssemblyVotePage({ params, searchParams }:
                     <p className="mt-1 text-sm whitespace-pre-wrap">{item.description}</p>
                   ) : null}
                 </div>
+                {item.voteKind === "INFORMATION" ? (
+                  <p className="text-sm text-[var(--color-foreground-muted)]">
+                    Informacija — ova tačka se ne glasa.
+                  </p>
+                ) : null}
+                {assembly.status === "COMPLETED" && item.voteKind !== "INFORMATION" ? (
+                  <p className="text-sm">{resultLabel(item.resultSummary)}</p>
+                ) : null}
                 {existing ? (
                   <p className="text-xs text-[var(--color-foreground-muted)]">
                     Vaš trenutni glas:{" "}
@@ -128,22 +166,29 @@ export default async function ResidentAssemblyVotePage({ params, searchParams }:
                           ? "PROTIV"
                           : "UZDRŽAN"}
                     </strong>
-                    . Možete ga promeniti dok je glasanje otvoreno.
+                    {windowOpen ? ". Možete ga promeniti dok je glasanje otvoreno." : "."}
                   </p>
                 ) : null}
-                <form action={submitVote} className="flex flex-wrap gap-2">
-                  <input type="hidden" name="agendaItemId" value={item.id} />
-                  <input type="hidden" name="unitId" value={activeUnitId} />
-                  <Button type="submit" name="choice" value="YES" variant="outline">
-                    ZA
-                  </Button>
-                  <Button type="submit" name="choice" value="NO" variant="outline">
-                    PROTIV
-                  </Button>
-                  <Button type="submit" name="choice" value="ABSTAIN" variant="outline">
-                    UZDRŽAN
-                  </Button>
-                </form>
+                {windowOpen && item.voteKind !== "INFORMATION" && ownerRow ? (
+                  <form action={submitVote} className="flex flex-wrap gap-2">
+                    <input type="hidden" name="agendaItemId" value={item.id} />
+                    <input type="hidden" name="unitId" value={activeUnitId} />
+                    <Button type="submit" name="choice" value="YES" variant="outline">
+                      ZA
+                    </Button>
+                    <Button type="submit" name="choice" value="NO" variant="outline">
+                      PROTIV
+                    </Button>
+                    <Button type="submit" name="choice" value="ABSTAIN" variant="outline">
+                      UZDRŽAN
+                    </Button>
+                  </form>
+                ) : null}
+                {windowOpen && item.voteKind !== "INFORMATION" && !ownerRow ? (
+                  <p className="text-xs text-[var(--color-foreground-muted)]">
+                    Glas za ovaj deo može dati samo trenutni vlasnik.
+                  </p>
+                ) : null}
               </CardContent>
             </Card>
           );
@@ -151,4 +196,12 @@ export default async function ResidentAssemblyVotePage({ params, searchParams }:
       </div>
     </div>
   );
+}
+
+function resultLabel(summary: unknown): string {
+  if (!summary || typeof summary !== "object") return "Rezultat još nije izračunat.";
+  const row = summary as { passed?: boolean | null; informational?: boolean; quorumMet?: boolean };
+  if (row.informational || row.passed == null) return "Informacija, bez glasanja.";
+  if (row.quorumMet === false) return "Nema kvoruma, odluka nije usvojena.";
+  return row.passed ? "Usvojeno." : "Nije usvojeno.";
 }

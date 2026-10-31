@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 import { Card, CardContent } from "@/components/ui/card";
 import { PermissionGuard } from "@/components/app/permission-guard";
 import { loadUserContext, requireTenantPage } from "@/server/auth/context";
@@ -71,7 +73,9 @@ export default async function BuildingNoticesTab({ params }: Props) {
                 <div className="flex flex-wrap items-start justify-between gap-2">
                   <div>
                     <h3 className="font-semibold">
-                      {n.title}
+                      <Link href={`/zgrade/obavestenja/${n.id}`} className="hover:underline">
+                        {n.title}
+                      </Link>
                       {!n.publishedAt ? (
                         <span className="ml-2 inline-flex rounded-full bg-amber-100 px-2 py-0.5 text-xs text-amber-800">
                           {t("manager.notices.draftBadge")}

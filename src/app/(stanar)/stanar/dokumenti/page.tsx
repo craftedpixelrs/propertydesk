@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 import { Card, CardContent } from "@/components/ui/card";
 import { requireResidentSession } from "@/server/auth/resident-guard";
 import { listResidentUnitsForSession } from "@/server/auth/resident-session";
@@ -7,7 +9,8 @@ import { formatDate } from "@/lib/formatters";
 /**
  * Resident-facing document inbox. Shows every document the signed-in
  * resident may see per `listResidentDocuments` — RESIDENT_SHARED on their
- * buildings/units plus documents on tickets they filed. Download goes
+ * buildings and units, shared assembly records, and files on their
+ * tickets. Download goes
  * through `/api/v1/public/resident/documents/[id]/download`, which runs
  * the matching guard.
  */
@@ -30,7 +33,8 @@ export default async function ResidentDocumentsPage() {
       <section>
         <h1 className="text-2xl font-semibold">Dokumenti</h1>
         <p className="text-sm text-[var(--color-foreground-muted)]">
-          Dokumenti vaše zgrade i vaših prijava koje je upravnik podelio sa stanarima.
+          Dokumenti zgrade i stana koje je upravnik podelio, zapisnik skupštine i prilozi vaših
+          prijava.
         </p>
       </section>
 
@@ -46,7 +50,7 @@ export default async function ResidentDocumentsPage() {
             <thead className="bg-[var(--color-surface-inset)] text-left text-xs tracking-wide text-[var(--color-foreground-muted)] uppercase">
               <tr>
                 <th className="px-4 py-3">Naziv</th>
-                <th className="px-4 py-3">Kategorija</th>
+                <th className="px-4 py-3">Odnosi se na</th>
                 <th className="px-4 py-3">Datum</th>
                 <th className="px-4 py-3 text-right">Preuzmi</th>
               </tr>
@@ -55,7 +59,27 @@ export default async function ResidentDocumentsPage() {
               {items.map((d) => (
                 <tr key={d.id}>
                   <td className="px-4 py-3 font-medium">{d.originalFileName}</td>
-                  <td className="px-4 py-3 text-xs">{d.category}</td>
+                  <td className="px-4 py-3 text-xs">
+                    {d.entityType === "MaintenanceTicket" ? (
+                      <Link
+                        href={`/stanar/kvarovi/${d.entityId}`}
+                        className="text-[var(--color-brand-700)] hover:underline"
+                      >
+                        Prijava kvara
+                      </Link>
+                    ) : d.entityType === "Assembly" ? (
+                      <Link
+                        href={`/stanar/glasanje/${d.entityId}`}
+                        className="text-[var(--color-brand-700)] hover:underline"
+                      >
+                        Skupština
+                      </Link>
+                    ) : d.entityType === "ManagedUnit" ? (
+                      "Vaš posebni deo"
+                    ) : (
+                      "Zgrada"
+                    )}
+                  </td>
                   <td className="px-4 py-3 text-xs text-[var(--color-foreground-muted)]">
                     {formatDate(d.createdAt)}
                   </td>

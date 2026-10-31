@@ -18,7 +18,7 @@ export default async function ResidentVotingPage() {
   const assemblies = await prisma.assembly.findMany({
     where: {
       buildingId: { in: buildingIds },
-      status: "OPEN_FOR_VOTING",
+      status: { in: ["SCHEDULED", "OPEN_FOR_VOTING", "COMPLETED"] },
     },
     include: {
       building: { select: { id: true, name: true } },
@@ -29,12 +29,16 @@ export default async function ResidentVotingPage() {
 
   return (
     <div className="space-y-4">
-      <h1 className="text-2xl font-semibold">Elektronsko glasanje</h1>
+      <h1 className="text-2xl font-semibold">Skupštine</h1>
+      <p className="text-sm text-[var(--color-foreground-muted)]">
+        Poziv, glasanje i rezultat za zgrade u kojima ste vlasnik. Jedan stan ima jedan glas.
+        Evidencija nije zamena za zakonski zapisnik.
+      </p>
 
       {assemblies.length === 0 ? (
         <Card>
           <CardContent className="py-10 text-center text-sm text-[var(--color-foreground-muted)]">
-            Trenutno nema otvorenih skupština za glasanje.
+            Nema zakazanih, otvorenih ni završenih skupština za vaše zgrade.
           </CardContent>
         </Card>
       ) : (
@@ -43,6 +47,13 @@ export default async function ResidentVotingPage() {
             <Card key={a.id}>
               <CardContent className="space-y-2 py-4">
                 <div className="font-semibold">{a.title}</div>
+                <div className="text-xs">
+                  {a.status === "OPEN_FOR_VOTING"
+                    ? "Glasanje otvoreno"
+                    : a.status === "SCHEDULED"
+                      ? `Zakazano: ${formatDateTime(a.scheduledAt)}`
+                      : "Završeno"}
+                </div>
                 <div className="text-xs text-[var(--color-foreground-muted)]">
                   {a.building.name} · {a._count.items} tačaka dnevnog reda
                 </div>
@@ -56,7 +67,7 @@ export default async function ResidentVotingPage() {
                     href={`/stanar/glasanje/${a.id}`}
                     className="rounded-md bg-[var(--color-brand-700)] px-3 py-1 text-xs font-medium text-white hover:bg-[var(--color-brand-800)]"
                   >
-                    Glasaj
+                    {a.status === "OPEN_FOR_VOTING" ? "Glasaj" : "Otvori"}
                   </Link>
                 </div>
               </CardContent>

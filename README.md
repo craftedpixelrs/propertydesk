@@ -82,9 +82,10 @@ Ceo operator + developer runbook je u [`docs/`](./docs/):
 
 ### Faza 11 (Upravnici zgrada / MANAGER modul)
 
-- [`upravnici.md`](./docs/upravnici.md) — ceo modul za upravnike (zgrade, zaduženja,
-  uplatnice sa IPS QR, kvarovi, skupštine, obaveštenja, stanarski portal, prenos
-  zgrade od investitora). Novi tip tenanta `Organization.type = MANAGER` sa
+- [`upravnici.md`](./docs/upravnici.md) — ceo modul za upravnike (zgrade, stanari,
+  zaduženja, uplatnice sa IPS QR, kvarovi i bočni panel, izvođači, skupštine,
+  obaveštenja, dokumenti, prenos zgrade od investitora). Novi tip tenanta
+  `Organization.type = MANAGER` sa
   svojim rolama (`MANAGER_OWNER` / `MANAGER_ADMIN` / `MANAGER_ACCOUNTANT` /
   `MANAGER_TECHNICIAN` / `MANAGER_VIEWER`) i izveštajima pod `/izvestaji/upravljanje/*`.
   Portal za stanare na `/stanar/*` koristi HMAC-potpisanu cookie (`pd_resident`,

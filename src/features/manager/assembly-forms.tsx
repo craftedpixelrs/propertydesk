@@ -1,7 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import type { AgendaItemMajority, AgendaItemVoteKind, AssemblyType } from "@prisma/client";
+import type {
+  AgendaItemMajority,
+  AgendaItemVoteKind,
+  AssemblyPresenceMode,
+  AssemblyType,
+} from "@prisma/client";
 
 import { Button } from "@/components/ui/button";
 import { useT } from "@/components/app/i18n-provider";
@@ -209,7 +214,7 @@ export function SendInvitationsButton({ assemblyId }: { assemblyId: string }) {
       title={t("manager.actions.sendInvitations")}
       submitLabel={t("manager.actions.sendInvitations")}
       onSubmit={async () => {
-        const r = await apiClient.post<{ sent: number }>(
+        const r = await apiClient.post<{ sent: number; skipped: number }>(
           `/manager/assemblies/${assemblyId}/invitations`,
         );
         setSummary(r);
@@ -219,7 +224,7 @@ export function SendInvitationsButton({ assemblyId }: { assemblyId: string }) {
       {() => (
         <>
           <p className="text-sm text-[var(--color-foreground-muted)]">
-            Email pozivnica će biti poslata svim primarnim vlasnicima zgrade.
+            {t("manager.assembly.inviteHint")}
           </p>
           {summary ? (
             <p className="rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-800">
@@ -240,11 +245,13 @@ export function AssemblyStateButton({
   action,
   label,
   destructive,
+  hint,
 }: {
   assemblyId: string;
-  action: "open-voting" | "close-voting";
+  action: "open-voting" | "close-voting" | "cancel";
   label: string;
   destructive?: boolean;
+  hint?: string;
 }) {
   const t = useT();
   return (
@@ -257,7 +264,7 @@ export function AssemblyStateButton({
         await apiClient.patch(`/manager/assemblies/${assemblyId}`, { action });
       }}
     >
-      {() => <p className="text-sm">{t("manager.common.confirmDelete")}</p>}
+      {() => <p className="text-sm">{hint ?? t("manager.common.confirmDelete")}</p>}
     </ActionDialog>
   );
 }
@@ -315,6 +322,190 @@ export function CastVoteDialog({
             id="cv-notes"
             value={notes}
             onChange={setNotes}
+          />
+          <p className="text-xs text-[var(--color-foreground-muted)]">
+            {t("manager.assembly.oneVoteHint")}
+          </p>
+        </>
+      )}
+    </ActionDialog>
+  );
+}
+
+export function OpenVotingDialog({ assemblyId }: { assemblyId: string }) {
+  const t = useT();
+  const [closesAt, setClosesAt] = useState("");
+  return (
+    <ActionDialog
+      trigger={<Button>{t("manager.actions.openVoting")}</Button>}
+      title={t("manager.actions.openVoting")}
+      submitLabel={t("manager.actions.openVoting")}
+      onSubmit={async () => {
+        await apiClient.patch(`/manager/assemblies/${assemblyId}`, {
+          action: "open-voting",
+          votingClosesAt: closesAt ? new Date(closesAt).toISOString() : null,
+        });
+      }}
+    >
+      {() => (
+        <>
+          <p className="text-sm text-[var(--color-foreground-muted)]">
+            {t("manager.assembly.openVotingHint")}
+          </p>
+          <Field
+            label={t("manager.assembly.votingUntil")}
+            id="ov-close"
+            type="datetime-local"
+            value={closesAt}
+            onChange={setClosesAt}
+          />
+        </>
+      )}
+    </ActionDialog>
+  );
+}
+
+export function AddAgendaItemDialog({ assemblyId }: { assemblyId: string }) {
+  const t = useT();
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [voteKind, setVoteKind] = useState<AgendaItemVoteKind>("DECISION");
+  const [majority, setMajority] = useState<AgendaItemMajority>("SIMPLE");
+  return (
+    <ActionDialog
+      trigger={<Button variant="outline">{t("manager.actions.addAgendaItem")}</Button>}
+      title={t("manager.actions.addAgendaItem")}
+      submitLabel={t("common.save")}
+      onSubmit={async () => {
+        await apiClient.post(`/manager/assemblies/${assemblyId}/items`, {
+          title: title.trim(),
+          description: description.trim() || null,
+          voteKind,
+          majority,
+        });
+        setTitle("");
+        setDescription("");
+      }}
+    >
+      {() => (
+        <>
+          <Field
+            label={t("manager.assembly.agendaItemTitle")}
+            id="ai-title"
+            required
+            value={title}
+            onChange={setTitle}
+          />
+          <SelectField
+            label={t("manager.assembly.voteKindField")}
+            id="ai-kind"
+            value={voteKind}
+            options={VOTE_KINDS.map((kind) => ({
+              value: kind,
+              label: t(`manager.assembly.voteKind.${kind}`),
+            }))}
+            onChange={(value) => value && setVoteKind(value)}
+          />
+          {voteKind === "INFORMATION" ? null : (
+            <SelectField
+              label={t("manager.assembly.majorityField")}
+              id="ai-maj"
+              value={majority}
+              options={MAJORITIES.map((item) => ({
+                value: item,
+                label: t(`manager.assembly.majority.${item}`),
+              }))}
+              onChange={(value) => value && setMajority(value)}
+            />
+          )}
+          <TextareaField
+            label={t("manager.assembly.agendaItemDesc")}
+            id="ai-desc"
+            value={description}
+            onChange={setDescription}
+          />
+        </>
+      )}
+    </ActionDialog>
+  );
+}
+
+export function RemoveAgendaItemButton({
+  assemblyId,
+  itemId,
+}: {
+  assemblyId: string;
+  itemId: string;
+}) {
+  const t = useT();
+  return (
+    <ActionDialog
+      trigger={
+        <Button type="button" variant="ghost" size="sm">
+          {t("manager.actions.delete")}
+        </Button>
+      }
+      title={t("manager.actions.delete")}
+      submitLabel={t("manager.actions.delete")}
+      submitVariant="destructive"
+      onSubmit={async () => {
+        await apiClient.delete(`/manager/assemblies/${assemblyId}/items/${itemId}`);
+      }}
+    >
+      {() => <p className="text-sm">{t("manager.assembly.removeItemHint")}</p>}
+    </ActionDialog>
+  );
+}
+
+export function MarkPresentDialog({
+  assemblyId,
+  units,
+}: {
+  assemblyId: string;
+  units: Array<{ id: string; code: string }>;
+}) {
+  const t = useT();
+  const [unitId, setUnitId] = useState(units[0]?.id ?? "");
+  const [mode, setMode] = useState<AssemblyPresenceMode>("IN_PERSON");
+  const [note, setNote] = useState("");
+  return (
+    <ActionDialog
+      trigger={<Button variant="outline">{t("manager.assembly.markPresent")}</Button>}
+      title={t("manager.assembly.markPresent")}
+      submitLabel={t("common.save")}
+      onSubmit={async () => {
+        await apiClient.post(`/manager/assemblies/${assemblyId}/attendance`, {
+          unitId,
+          mode,
+          note: note.trim() || null,
+        });
+        setNote("");
+      }}
+    >
+      {() => (
+        <>
+          <SelectField
+            label={t("manager.assembly.unitField")}
+            id="at-unit"
+            value={unitId}
+            options={units.map((unit) => ({ value: unit.id, label: unit.code }))}
+            onChange={(value) => value && setUnitId(value)}
+          />
+          <SelectField
+            label={t("manager.assembly.presenceMode")}
+            id="at-mode"
+            value={mode}
+            options={(["IN_PERSON", "PROXY"] as const).map((item) => ({
+              value: item,
+              label: t(`manager.assembly.attendanceMode.${item}`),
+            }))}
+            onChange={(value) => value && setMode(value)}
+          />
+          <TextareaField
+            label={t("manager.payments.notesField")}
+            id="at-note"
+            value={note}
+            onChange={setNote}
           />
         </>
       )}

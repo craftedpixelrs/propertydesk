@@ -58,11 +58,14 @@ export async function renderAssemblyMinutesPdf(input: {
     location: assembly.location,
     quorumNote: assembly.quorumNote,
     totalShares,
+    presentShares: assembly.presentShare?.toFixed(4) ?? "0.0000",
+    quorumMet: assembly.quorumMet,
     items: assembly.items.map((item) => ({
       sortOrder: item.sortOrder,
       title: item.title,
       description: item.description,
       majority: item.majority,
+      voteKind: item.voteKind,
       result:
         item.resultSummary && typeof item.resultSummary === "object"
           ? (item.resultSummary as unknown as AssemblyMinutesPdfData["items"][number]["result"])
@@ -84,7 +87,7 @@ export async function renderAssemblyMinutesPdf(input: {
       fileName: `zapisnik-${assembly.code}.pdf`,
       mimeType: "application/pdf",
       buffer,
-      visibility: "INTERNAL",
+      visibility: "RESIDENT_SHARED",
     });
     documentId = doc.id;
     await prisma.assembly.update({

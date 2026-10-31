@@ -19,8 +19,13 @@ const CATEGORIES = [
   "INVOICE",
   "KYC",
   "OTHER",
+  "BUILDING",
+  "TICKET",
+  "ASSEMBLY",
+  "DUES",
 ] as const;
 const VISIBILITIES = ["INTERNAL", "INVESTOR_TEAM", "AGENCY_SHARED", "BUYER_SHARED"] as const;
+const RESIDENT_ENTITIES = ["ManagedBuilding", "ManagedUnit", "MaintenanceTicket", "Assembly"];
 
 export const GET = apiHandler({}, async ({ query, searchParams }) => {
   const ctx = await requirePermission("document.read");
@@ -79,9 +84,17 @@ export const POST = apiHandler({}, async ({ req }) => {
   if (!entityType || !entityId) {
     throw DomainErrors.badRequest("entityType i entityId su obavezni.");
   }
-  const visibility = (VISIBILITIES as readonly string[]).includes(visibilityRaw)
-    ? (visibilityRaw as DocumentVisibility)
-    : "INTERNAL";
+  let visibility: DocumentVisibility = "INTERNAL";
+  if (visibilityRaw === "RESIDENT_SHARED") {
+    if (!RESIDENT_ENTITIES.includes(entityType)) {
+      throw DomainErrors.badRequest(
+        "Stanarima se dele samo dokumenti zgrade, stana, kvara ili skupštine.",
+      );
+    }
+    visibility = "RESIDENT_SHARED";
+  } else if ((VISIBILITIES as readonly string[]).includes(visibilityRaw)) {
+    visibility = visibilityRaw as DocumentVisibility;
+  }
 
   const buffer = Buffer.from(await file.arrayBuffer());
   const doc = await uploadDocument({

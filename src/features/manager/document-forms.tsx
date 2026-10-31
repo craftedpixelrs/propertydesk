@@ -101,6 +101,41 @@ export function UploadDocumentDialog({
   );
 }
 
+export function DocumentVisibilityButton({
+  documentId,
+  visibility,
+}: {
+  documentId: string;
+  visibility: string;
+}) {
+  const t = useT();
+  const router = useRouter();
+  const [busy, setBusy] = useState(false);
+  const shared = visibility === "RESIDENT_SHARED";
+  async function onClick() {
+    setBusy(true);
+    try {
+      const res = await fetch(`/api/v1/documents/${documentId}`, {
+        method: "PATCH",
+        credentials: "include",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ visibility: shared ? "INTERNAL" : "RESIDENT_SHARED" }),
+      });
+      if (!res.ok) return;
+      router.refresh();
+    } finally {
+      setBusy(false);
+    }
+  }
+  return (
+    <Button variant="ghost" size="sm" onClick={onClick} disabled={busy}>
+      {shared
+        ? t("manager.documents.hideFromResidents")
+        : t("manager.documents.shareWithResidents")}
+    </Button>
+  );
+}
+
 export function DeleteDocumentButton({ documentId }: { documentId: string }) {
   const t = useT();
   const router = useRouter();

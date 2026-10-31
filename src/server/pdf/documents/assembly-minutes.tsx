@@ -22,17 +22,21 @@ export interface AssemblyMinutesPdfData {
   location: string | null;
   quorumNote: string | null;
   totalShares: string;
+  presentShares: string;
+  quorumMet: boolean | null;
   items: Array<{
     sortOrder: number;
     title: string;
     description: string | null;
     majority: string;
+    voteKind: string;
     result: {
       yes: string;
       no: string;
       abstain: string;
       castTotal: string;
-      passed: boolean;
+      passed: boolean | null;
+      informational?: boolean;
     } | null;
   }>;
   signatureLines: string[];
@@ -70,12 +74,18 @@ export function AssemblyMinutesPdf(data: AssemblyMinutesPdfData) {
         </View>
       </View>
 
-      {data.quorumNote ? (
-        <View style={pdfStyles.section}>
-          <Text style={pdfStyles.sectionTitle}>Kvorum</Text>
-          <Text>{data.quorumNote}</Text>
-        </View>
-      ) : null}
+      <View style={pdfStyles.section}>
+        <Text style={pdfStyles.sectionTitle}>Kvorum i prisustvo</Text>
+        <Text>
+          Prisutno učešće: {data.presentShares} / {data.totalShares}. Kvorum (više od polovine):{" "}
+          {data.quorumMet ? "ispunjen" : "nije ispunjen"}.
+        </Text>
+        {data.quorumNote ? <Text>{data.quorumNote}</Text> : null}
+        <Text>
+          Svaki posebni deo ima jedan glas. Težina je učešće dela u trenutku glasa. Bez kvoruma
+          odluke i izbori nisu usvojeni.
+        </Text>
+      </View>
 
       <View style={pdfStyles.section}>
         <Text style={pdfStyles.sectionTitle}>Dnevni red i rezultati</Text>
@@ -92,7 +102,9 @@ export function AssemblyMinutesPdf(data: AssemblyMinutesPdfData) {
             </Text>
             {item.description ? <Text>{item.description}</Text> : null}
             <Text>Većina: {MAJORITY_LABELS[item.majority] ?? item.majority}</Text>
-            {item.result ? (
+            {item.voteKind === "INFORMATION" || item.result?.informational ? (
+              <Text>Informacija — nije se glasalo.</Text>
+            ) : item.result ? (
               <>
                 <Text>
                   Za: {item.result.yes} · Protiv: {item.result.no} · Uzdržan: {item.result.abstain}{" "}
@@ -115,6 +127,13 @@ export function AssemblyMinutesPdf(data: AssemblyMinutesPdfData) {
             )}
           </View>
         ))}
+      </View>
+
+      <View style={pdfStyles.section}>
+        <Text>
+          Evidencija glasanja u PropertyDesk-u. Nije zamena za zapisnik u formi koju propisuje zakon
+          i ne potvrđuje pravnu valjanost elektronskog glasanja.
+        </Text>
       </View>
 
       <View style={pdfStyles.section}>

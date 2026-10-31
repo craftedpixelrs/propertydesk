@@ -118,6 +118,8 @@ src/
     services/          Domain services (transactional business logic)
     storage/           StorageProvider (local / S3; 45-day purge after soft-delete)
 prisma/                Schema + migrations + seed
-docs/                  Operator + developer documentation (this folder)
+docs/                  Operator + developer documentation (this folder).
+                       Manager module: upravnici.md (users), api.md +
+                       database.md + business-rules.md (developers).
 e2e/                   Playwright tests
 ```

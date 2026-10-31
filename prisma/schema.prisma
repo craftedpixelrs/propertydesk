@@ -290,6 +290,7 @@ model Organization {
   duesReminderLogs         DuesReminderLog[]
   suppliers                Supplier[]
   maintenanceTickets       MaintenanceTicket[]
+  maintenanceWorkEntries   MaintenanceWorkEntry[]
   buildingExpenses         BuildingExpense[]
   assemblies               Assembly[]
   buildingNotices          BuildingNotice[]
@@ -3015,6 +3016,14 @@ enum AssemblyVoteChoice {
   ABSTAIN
 }
 
+/// Kako je posebni deo prisutan na skupštini. Elektronski glas sa portala
+/// sam upisuje ELECTRONIC; upravnik evidentira dolazak ili punomoćje.
+enum AssemblyPresenceMode {
+  IN_PERSON
+  ELECTRONIC
+  PROXY
+}
+
 enum BuildingNoticeChannel {
   PORTAL_ONLY
   PORTAL_AND_EMAIL
@@ -3138,6 +3147,7 @@ model ManagedUnit {
   charges        DuesCharge[]
   tickets        MaintenanceTicket[]
   votes          AssemblyVote[]
+  assemblyAttendance AssemblyAttendance[]
   residentAccess ResidentAccess[]
 
   @@unique([buildingId, code])
@@ -3369,7 +3379,9 @@ model MaintenanceTicket {
   unit         ManagedUnit?               @relation(fields: [unitId], references: [id], onDelete: SetNull)
   supplier     Supplier?                  @relation(fields: [supplierId], references: [id], onDelete: SetNull)
   history      MaintenanceTicketHistory[]
+  workEntries  MaintenanceWorkEntry[]
   expenses     BuildingExpense[]
+  notices      BuildingNotice[]
 
   @@unique([organizationId, code])
   @@index([buildingId, status])
@@ -3390,6 +3402,24 @@ model MaintenanceTicketHistory {
 
   @@index([ticketId, createdAt])
   @@map("maintenance_ticket_history")
+}
+
+/// Evidencija rada na prijavi kvara: šta je urađeno, odvojeno od promene
+/// statusa. `visibleToResident` odlučuje da li stavka ide na portal stanara.
+model MaintenanceWorkEntry {
+  id                String   @id @default(cuid())
+  organizationId    String
+  ticketId          String
+  body              String
+  visibleToResident Boolean  @default(true)
+  createdByUserId   String?
+  createdAt         DateTime @default(now())
+
+  organization Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  ticket       MaintenanceTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+
+  @@index([ticketId, createdAt])
+  @@map("maintenance_work_entry")
 }
 
 model BuildingExpense {
@@ -3434,6 +3464,10 @@ model Assembly {
   // Kvorum: minimalni broj / procenat učešća za validnost (čuvamo kao JSON).
   quorumNote        String?
   minutesDocumentId String? // link na PDF zapisnika u Document tabeli
+  /// Zbir učešća prisutnih delova u trenutku zatvaranja (kvorum).
+  presentShare      Decimal?       @db.Decimal(14, 4)
+  /// Više od polovine ukupnog učešća zgrade. Bez kvoruma odluke ne prolaze.
+  quorumMet         Boolean?
   completedAt       DateTime?
   createdAt         DateTime       @default(now())
   updatedAt         DateTime       @updatedAt
@@ -3442,6 +3476,8 @@ model Assembly {
   building     ManagedBuilding      @relation(fields: [buildingId], references: [id], onDelete: Cascade)
   items        AgendaItem[]
   invitations  AssemblyInvitation[]
+  attendance   AssemblyAttendance[]
+  notices      BuildingNotice[]
 
   @@unique([organizationId, code])
   @@index([buildingId, scheduledAt])
@@ -3505,6 +3541,26 @@ model AssemblyInvitation {
   @@map("assembly_invitation")
 }
 
+/// Prisustvo posebnog dela na skupštini. Jedan red po delu. Glas sa portala
+/// ili iz kancelarije upravnika upisuje red automatski.
+model AssemblyAttendance {
+  id               String               @id @default(cuid())
+  assemblyId       String
+  unitId           String
+  personId         String?
+  mode             AssemblyPresenceMode @default(IN_PERSON)
+  note             String?
+  recordedByUserId String?
+  recordedAt       DateTime             @default(now())
+
+  assembly Assembly    @relation(fields: [assemblyId], references: [id], onDelete: Cascade)
+  unit     ManagedUnit @relation(fields: [unitId], references: [id], onDelete: Cascade)
+
+  @@unique([assemblyId, unitId])
+  @@index([assemblyId])
+  @@map("assembly_attendance")
+}
+
 model BuildingNotice {
   id                  String                 @id @default(cuid())
   organizationId      String
@@ -3520,13 +3576,23 @@ model BuildingNotice {
   // Istorija poslatih emailova je u `BuyerNotice`-nalik tabeli nije potrebna
   // za prvu verziju; zapisujemo samo count-ove za pregled.
   emailDeliveredCount Int                    @default(0)
+  /// Skupština ili kvar iz kojeg je obaveštenje nastalo. Ručna obaveštenja ostaju bez veze.
+  assemblyId          String?
+  ticketId            String?
+  /// Sprečava duplikat kad se isti događaj (poziv, rezultat, otvaranje kvara) ponovi.
+  originKey           String?
   createdAt           DateTime               @default(now())
   updatedAt           DateTime               @updatedAt
 
-  organization Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  building     ManagedBuilding @relation(fields: [buildingId], references: [id], onDelete: Cascade)
+  organization Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  building     ManagedBuilding     @relation(fields: [buildingId], references: [id], onDelete: Cascade)
+  assembly     Assembly?           @relation(fields: [assemblyId], references: [id], onDelete: SetNull)
+  ticket       MaintenanceTicket?  @relation(fields: [ticketId], references: [id], onDelete: SetNull)
 
+  @@unique([organizationId, originKey])
   @@index([buildingId, publishedAt])
+  @@index([assemblyId])
+  @@index([ticketId])
   @@map("building_notice")
 }
 

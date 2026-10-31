@@ -180,7 +180,12 @@ active organization. The dominant endpoints:
 
 ### Documents
 
-- `POST /documents` (multipart)
+- `POST /documents` (multipart). Kategorije zgrade su `BUILDING`,
+  `TICKET`, `ASSEMBLY`, `DUES`, `INVOICE`, `OTHER`.
+  `visibility: RESIDENT_SHARED` sme samo za zgradu, stan, kvar ili
+  skupštinu. Prilog prijave stanar stana vidi i kad je `INTERNAL`.
+- `PATCH /documents/:id` — `{ visibility: INTERNAL | RESIDENT_SHARED }`
+  za te iste veze. Zapisnik skupštine se otprema kao `RESIDENT_SHARED`.
 - `GET /documents?entity=…&entityId=…`
 - `GET /documents/:id/url` — signed URL.
 
@@ -258,27 +263,41 @@ organization. Full module runbook: [`upravnici.md`](./upravnici.md).
 **Maintenance**
 
 - `GET/POST /manager/tickets`, `GET/PATCH /manager/tickets/:id` —
-  `ticket.read` / `ticket.manage`.
-- `POST /manager/tickets/:id/status` — `ticket.manage` / `ticket.close`.
+  `ticket.read` / `ticket.manage`. Status se menja istim PATCH-om:
+  `{ status, statusNote?, actualCost?, fund?, supplierId? }`.
+  `COMPLETED` sa `actualCost` pravi `BuildingExpense`. Bočni panel na
+  listi nije poseban endpoint — čita isti `GET`.
+- `POST /manager/tickets/:id/entries` — `ticket.manage`; evidencija rada
+  (`MaintenanceWorkEntry`). Telo `{ body, visibleToResident? }`. Vidljiva
+  stavka šalje email prijavljivaču.
 - `GET/POST /manager/suppliers`, `PATCH /manager/suppliers/:id` —
-  `ticket.manage`.
+  `ticket.manage`. Katalog izvođača. `buildingId` prazan znači celu
+  firmu; UI trenutno snima samo tako. Izvođač nije `User`.
 
 **Assemblies**
 
 - `GET/POST /manager/assemblies`, `PATCH /manager/assemblies/:id` —
-  `assembly.read` / `assembly.manage`.
-- `POST /manager/assemblies/:id/open-voting`,
-  `POST /manager/assemblies/:id/close-voting` — `assembly.manage`.
-- `POST /manager/assemblies/:id/invitations` — `assembly.manage`
-  (šalje email pozive svim registrovanim vlasnicima jedinica).
-- `POST /manager/agenda/:id/vote` — `assembly.vote.cast` (manager
-  acting on behalf of owner; residents vote via the portal).
+  `assembly.read` / `assembly.manage`. `action` je `open-voting`
+  (opcioni `votingClosesAt`), `close-voting` ili `cancel`.
+- `POST /manager/assemblies/:id/items`,
+  `DELETE /manager/assemblies/:id/items/:itemId` — dnevni red dok je
+  skupština `SCHEDULED`.
+- `POST /manager/assemblies/:id/attendance` — prisustvo (`IN_PERSON` ili
+  `PROXY`) dok skupština nije zatvorena.
+- `POST /manager/assemblies/:id/invitations` — `assembly.manage`.
+  Email svim trenutnim vlasnicima (`role: OWNER`) sa dnevnim redom i
+  linkom na portal. Vraća `{ sent, skipped }`.
+- `POST /manager/agenda/:id/vote` — `assembly.vote.cast`. Upravnik
+  evidentira glas dela; portal to sme samo trenutni vlasnik. Informativna
+  tačka vraća konflikt.
 - `GET /manager/assemblies/:id/minutes/pdf` — `assembly.minutes.generate`.
 
 **Notices**
 
 - `GET/POST /manager/notices`, `POST /manager/notices/:id/publish` —
-  `notice.read` / `notice.manage`.
+  `notice.read` / `notice.manage`. Email ide licima na ciljanim
+  stanovima i aktivnim nalozima portala. `EMAIL_ONLY` nije na portalu.
+  Skupština i kvar u zajedničkom prostoru sami prave povezano obaveštenje.
 
 **Residents (portal invitations)**
 
@@ -325,10 +344,11 @@ group and reads/writes through server actions in
   in-app notifikaciju i email (preko `listOrgMembersWithPermission` sa
   `ticket.read`).
 - `GET /api/v1/public/resident/documents/:id/download` — download za
-  dokument koji je upravnik označio `visibility: RESIDENT_SHARED` i
-  vezao za zgradu u kojoj stanar ima pristup. Guard je
-  `assertResidentCanReadDocument` — svaki pokušaj van dozvoljenih
-  zgrada vraća 403.
+  fajl zgrade, stana ili zapisnik skupštine koji je upravnik označio
+  `visibility: RESIDENT_SHARED`, ili za prilog prijave koju je stanar
+  podneo ili koja je na njegovom stanu (vidljivost se za prijavu ne
+  traži). Guard je `assertResidentCanReadDocument` — ista pravila kao
+  lista `/stanar/dokumenti`. Pokušaj van dozvoljenih zgrada vraća 403.
 
 ### Cron
 

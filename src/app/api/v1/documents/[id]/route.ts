@@ -2,9 +2,27 @@ import { z } from "zod";
 
 import { apiHandler } from "@/lib/api/handler";
 import { requirePermission } from "@/server/permissions/require";
-import { softDeleteDocument } from "@/server/services/documents.service";
+import { setDocumentVisibility, softDeleteDocument } from "@/server/services/documents.service";
 
 const paramsSchema = z.object({ id: z.string().min(1) });
+
+const patchSchema = z.object({
+  visibility: z.enum(["INTERNAL", "RESIDENT_SHARED"]),
+});
+
+export const PATCH = apiHandler(
+  { paramsSchema, bodySchema: patchSchema },
+  async ({ params, body }) => {
+    const ctx = await requirePermission("document.manage");
+    const doc = await setDocumentVisibility({
+      organizationId: ctx.organization.organizationId,
+      actorUserId: ctx.session.user.id,
+      documentId: params.id,
+      visibility: body.visibility,
+    });
+    return { data: { id: doc.id, visibility: doc.visibility } };
+  },
+);
 
 export const DELETE = apiHandler({ paramsSchema }, async ({ params }) => {
   const ctx = await requirePermission("document.manage");

@@ -1,12 +1,12 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import Link from "next/link";
-import { useState, useTransition } from "react";
+import { useRef, useState, useTransition } from "react";
 import type { MaintenancePriority, MaintenanceStatus } from "@prisma/client";
 
 import { useT } from "@/components/app/i18n-provider";
 import { apiClient } from "@/lib/api-client";
+import { useOpenTicket } from "@/features/manager/ticket-drawer";
 
 const STATUS_ORDER: MaintenanceStatus[] = [
   "OPEN",
@@ -50,9 +50,17 @@ export interface KanbanTicket {
  * success we `router.refresh()` so the server page re-reads the ticket
  * (and the audit entry is already written).
  */
-export function TicketsKanban({ tickets }: { tickets: KanbanTicket[] }) {
+export function TicketsKanban({
+  tickets,
+  activeId,
+}: {
+  tickets: KanbanTicket[];
+  activeId?: string | null;
+}) {
   const t = useT();
   const router = useRouter();
+  const openTicket = useOpenTicket();
+  const dragged = useRef(false);
   const [isPending, startTransition] = useTransition();
   const [dragId, setDragId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -111,31 +119,48 @@ export function TicketsKanban({ tickets }: { tickets: KanbanTicket[] }) {
                   <li
                     key={ticket.id}
                     draggable
-                    onDragStart={() => setDragId(ticket.id)}
-                    onDragEnd={() => setDragId(null)}
-                    className={`cursor-grab rounded border border-[var(--color-border)] bg-[var(--color-surface)] p-2 shadow-sm transition active:cursor-grabbing ${
-                      isPending && dragId === ticket.id ? "opacity-50" : ""
-                    }`}
+                    onDragStart={() => {
+                      dragged.current = true;
+                      setDragId(ticket.id);
+                    }}
+                    onDragEnd={() => {
+                      setDragId(null);
+                      window.setTimeout(() => {
+                        dragged.current = false;
+                      }, 0);
+                    }}
+                    onClick={() => {
+                      if (dragged.current) {
+                        dragged.current = false;
+                        return;
+                      }
+                      openTicket(ticket.id);
+                    }}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter" || event.key === " ") {
+                        event.preventDefault();
+                        openTicket(ticket.id);
+                      }
+                    }}
+                    role="button"
+                    tabIndex={0}
+                    className={`cursor-grab rounded border bg-[var(--color-surface)] p-2 shadow-sm transition active:cursor-grabbing ${
+                      activeId === ticket.id
+                        ? "border-[var(--color-brand-700)]"
+                        : "border-[var(--color-border)]"
+                    } ${isPending && dragId === ticket.id ? "opacity-50" : ""}`}
                   >
                     <div className="flex items-start justify-between gap-2">
-                      <Link
-                        href={`/zgrade/kvarovi/${ticket.id}`}
-                        className="font-mono text-xs text-[var(--color-brand-700)] hover:underline"
-                      >
+                      <span className="font-mono text-xs text-[var(--color-brand-700)]">
                         {ticket.code}
-                      </Link>
+                      </span>
                       <span
                         className={`inline-flex rounded-full px-1.5 py-0.5 text-[10px] font-medium ${PRIORITY_TONE[ticket.priority]}`}
                       >
                         {t(`manager.tickets.priority.${ticket.priority}` as const)}
                       </span>
                     </div>
-                    <Link
-                      href={`/zgrade/kvarovi/${ticket.id}`}
-                      className="mt-1 block text-sm font-medium hover:underline"
-                    >
-                      {ticket.title}
-                    </Link>
+                    <div className="mt-1 text-sm font-medium">{ticket.title}</div>
                     <div className="mt-1 text-[11px] text-[var(--color-foreground-muted)]">
                       {ticket.buildingName}
                       {ticket.unitCode ? ` · ${ticket.unitCode}` : ""}

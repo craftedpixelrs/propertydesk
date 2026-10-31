@@ -202,6 +202,20 @@
     color: inherit;
   }
 
+  /*
+   * Windows draws the native <select> popup in light colors, but the
+   * highlighted row keeps this element's light text. Ink-on-white keeps
+   * every option readable, including the hovered building name.
+   */
+  html[data-theme="dark"] select {
+    color-scheme: light;
+  }
+  html[data-theme="dark"] select option,
+  html[data-theme="dark"] select optgroup {
+    background-color: #ffffff;
+    color: #0b1020;
+  }
+
   textarea {
     background-color: var(--color-surface);
     color: var(--color-foreground);

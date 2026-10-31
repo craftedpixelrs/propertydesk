@@ -83,7 +83,9 @@ export default async function NoticesListPage() {
               {rows.map((n) => (
                 <tr key={n.id} className="hover:bg-[var(--color-surface-inset)]">
                   <td className="px-4 py-3 font-medium">
-                    {n.title}
+                    <Link href={`/zgrade/obavestenja/${n.id}`} className="hover:underline">
+                      {n.title}
+                    </Link>
                     {!n.publishedAt ? (
                       <span className="ml-2 inline-flex rounded-full bg-amber-100 px-2 py-0.5 text-xs text-amber-800">
                         {t("manager.notices.draftBadge")}

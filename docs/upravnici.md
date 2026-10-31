@@ -16,9 +16,11 @@ Better Auth tabele (`User`, `Session`, `Account`).
    gradnje, kat. parcela). Unutar zgrade → **Posebni delovi** → dodaj
    stanove / garaže / lokale (`m²`, `participationShare`). Masovno:
    **XLSX uvoz** na `/zgrade/[id]/uvoz`.
-3. **Vlasnici** (`Vlasnici` tab u zgradi) — upiši `BuildingPerson` (ime,
-   email, telefon, adresa) i poveži sa jedinicom (`UnitOwnership` sa
-   `share`). JMBG nije potreban i aplikacija ga ne traži.
+3. **Vlasnici i stanari** — na `/zgrade/stanari` dugme **Dodaj stanara**
+   upisuje lice na posebni deo (vlasnik, zakupac ili korisnik) i, ako
+   ima email, šalje link za portal. Isti podaci, u tri koraka, stoje i
+   na tabu zgrade **Vlasnici**: novo lice, dodela na deo, pozivnica.
+   JMBG nije potreban i aplikacija ga ne traži.
 4. **Finansije zgrade** (`/zgrade/[id]/finansije`) — slika po stanu
    (zaduženo, uplate, korekcije, dug, radovi, isplate na stan) i stanje
    fondova (uplate u fond minus isplate). Kartica stana je
@@ -44,24 +46,49 @@ Better Auth tabele (`User`, `Session`, `Account`).
    opomene**.
 8. **Kvarovi** (`/zgrade/kvarovi` + `/zgrade/kvarovi/[id]`) — ticket
    workflow sa fotografijama (upload direktno u `Document` sa
-   `category: TICKET`). Zatvaranje tiketa (`COMPLETED` + `actualCost`)
-   automatski piše `BuildingExpense` po izabranom fondu (tekuće
-   održavanje / investiciono / ostalo). **Izvođači** (`/zgrade/izvodjaci`)
-   su `Supplier` zapisi (dodaj / izmeni).
-9. **Obaveštenja** (`/zgrade/obavestenja` + tab `/zgrade/[id]/obavestenja`)
-    — DRAFT → PUBLISHED šalje email svim pozvanim stanarima i prikazuje
-    na portalu (`/stanar/obavestenja`).
+   `category: TICKET`). Lista se filtrira po zgradi, kategoriji i
+   statusu. Klik na prijavu u listi, na tabli ili na tabu zgrade otvara
+   bočni panel (`?ticket=`) sa tokom statusa, mestom, prijaviocem i
+   poslednjim radom; promena statusa je u tom panelu. Ceo dosije
+   (fotografije, evidencija, isplate) ostaje na `/zgrade/kvarovi/[id]`.
+   Na detalju su prijavilac, ulaz, sprat, **evidencija rada**
+   (`MaintenanceWorkEntry`, vidljivo stanaru ili interno) i isplate
+   vezane za tu prijavu. Stavka vidljiva stanaru šalje email i pojavljuje
+   se na `/stanar/kvarovi/[id]`. Zatvaranje tiketa (`COMPLETED` +
+   `actualCost`) automatski piše `BuildingExpense` po izabranom fondu
+   (tekuće održavanje / investiciono / ostalo). **Izvođači**
+   (`/zgrade/izvodjaci`) su katalog firmi i majstora: naziv, vrsta
+   posla, PIB i kontakt, za sve zgrade. Izvođač nema nalog. Na prijavi
+   se bira iz te liste. Zatvaranje sa troškom veže isplatu za njega.
+9. **Obaveštenja** (`/zgrade/obavestenja` + `/zgrade/obavestenja/[id]` +
+    tab `/zgrade/[id]/obavestenja`) — nacrt ili odmah objava. Publika je
+    cela zgrada, ulaz, tip dela ili izabrani stanovi. Kanal je portal,
+    email ili oba. Email ide vlasnicima, zakupcima i aktivnim nalozima
+    portala na tim stanovima, sa linkom na `/stanar/obavestenja`. Samo
+    email se ne vidi na portalu. Poziv i rezultat skupštine, prijava
+    kvara u zajedničkom prostoru i zatvaranje te prijave sami prave
+    obaveštenje vezano za tu skupštinu ili prijavu. Kvar na jednom stanu
+    ostaje na portalu samo za taj stan.
 10. **Skupštine** (`/zgrade/skupstine` + `/zgrade/skupstine/[id]`) —
-    zakazivanje sa dinamičkim dnevnim redom, slanje poziva, otvaranje
-    glasanja (ovlašćeni predstavnik glasa u ime vlasnika). Glasovi se
-    mogu menjati dok je glasanje otvoreno; zatvaranje zamrzava rezultat.
-    PDF **Zapisnik** je gotov iz detalja skupštine.
-11. **Stanari** (`/zgrade/stanari`) → **Pozovi** šalje magic-link na
-    email, **Pošalji ponovo** regeneriše token, **Opozovi** pristup je
-    trenutno efektivan (sledeći zahtev stanara pada na proveri cookie-ja).
-12. **Dokumenti zgrade** (`/zgrade/[id]/dokumenti`) — upload / download /
-    brisanje preko manager API-ja (`entityType: ManagedBuilding`,
-    `category: BUILDING`).
+    zakazivanje, dnevni red (odluka, izbor ili informacija), poziv
+    emailom svim trenutnim vlasnicima i na portalu. Jedan posebni deo
+    ima jedan glas, težina je `participationShare`. Prisustvo (lično,
+    portal ili punomoćje) ulazi u kvorum: više od polovine ukupnog
+    učešća. Bez kvoruma odluke ne prolaze. Većina po tački je prosta
+    (više od polovine datih glasova), apsolutna ili dvotrećinska.
+    Glas se može menjati dok je rok otvoren. Zatvaranje zamrzava
+    rezultat. PDF **Zapisnik** je evidencija, ne zakonski obrazac.
+11. **Stanari** (`/zgrade/stanari`) → **Dodaj stanara** upisuje lice na
+    posebni deo (vlasnik, zakupac ili korisnik) i, ako ima email, šalje
+    magic-link. Isti unos je i na tabu zgrade **Vlasnici** (lice, dodela,
+    pozivnica odvojeno). **Pošalji ponovo** regeneriše token, **Opozovi**
+    pristup je trenutno efektivan (sledeći zahtev stanara pada na proveri
+    cookie-ja). Stanar nije `User` i ne troši mesto u organizaciji.
+12. **Dokumenti zgrade** (`/zgrade/[id]/dokumenti`) — arhiva cele zgrade:
+    fajlovi zgrade, stanova, kvarova i skupština. Upload bira da li je
+    fajl interno ili vidljivo stanarima; isto se menja posle otpremanja.
+    Zapisnik skupštine se čuva kao dokument skupštine vidljiv stanarima.
+    Stan i prijava imaju sopstvenu listu, a arhiva zgrade ih sve pokazuje.
 13. **Prenos zgrade od investitora** stiže kao `BuildingHandoverRequest`
     sažetak u `/zgrade/predaje`. **Prihvati** jednom transakcijom
     kopira strukturu i vlasnike — bez JMBG-a.
@@ -76,9 +103,9 @@ Better Auth tabele (`User`, `Session`, `Account`).
     7). Pokušaji se evidentiraju u `DuesReminderLog` i vide se u povratnom
     rezimeu. Pokrenite sa `cooldownDays=0` da naterate ponovno slanje.
 17. **Kanban prikaz kvarova** — `/zgrade/kvarovi?view=board` otvara
-    kolone po statusu (OPEN → COMPLETED). Prevucite karticu da promeni
-    status; audit log i obaveštenja stanaru rade kao kod bilo koje druge
-    promene statusa.
+    kolone po statusu (OPEN → COMPLETED). Klik na karticu otvara bočni
+    panel. Prevucite karticu da promeni status; audit log i obaveštenja
+    stanaru rade kao kod bilo koje druge promene statusa.
 18. **EditTicketDialog** — na `/zgrade/kvarovi/[id]` dugme **Izmeni**
     menja naslov, kategoriju, prioritet, dodeljenog kolegu, izvođača i
     procenjeni trošak.
@@ -96,20 +123,25 @@ Better Auth tabele (`User`, `Session`, `Account`).
    čuvaju kao `Document(category: TICKET)` uz tiket. Upravnik odmah vidi
    tiket u `/zgrade/kvarovi/[id]` sa galerijom fotografija.
 5. **Obaveštenja** (`/stanar/obavestenja`) — objavljena obaveštenja za
-   zgrade u kojima stanar ima aktivan pristup; filtriraju se dodatno po
-   audijenciji (ALL / BY_ENTRANCE / BY_UNIT_TYPE / SPECIFIC_UNITS).
-5a. **Kvarovi** (`/stanar/kvarovi`) — stanar vidi istoriju svojih
-    prijava sa statusom i poslednjom belešškom upravnika.
-5b. **Dokumenti** (`/stanar/dokumenti`) — dokumenti koje je upravnik
-    označio `visibility: RESIDENT_SHARED` i vezao za bilo koju zgradu
-    u kojoj stanar ima pristup. Download preko zaštićene rute
-    `/api/v1/public/resident/documents/[id]/download`.
+   stanove kojima stanar ima pristup. Publika (svi, ulaz, tip, izabrani
+   delovi) važi i ovde. Poruka samo za email se ne prikazuje. Ako je
+   vezana za skupštinu ili kvar, kartica vodi na tu stranu.
+5a. **Kvarovi** (`/stanar/kvarovi` + `/stanar/kvarovi/[id]`) — stanar
+    vidi prijave koje je sam podneo i prijave na svojim stanovima, sa
+    statusom, vidljivom evidencijom rada i fotografijama. Interne
+    stavke evidencije ostaju samo kod upravnika.
+5b. **Dokumenti** (`/stanar/dokumenti`) — fajlovi zgrade i stana koje je
+    upravnik označio vidljivim stanarima, zapisnik skupštine te zgrade i
+    prilozi prijava na stanovima kojima stanar ima pristup. Download ide
+    preko `/api/v1/public/resident/documents/[id]/download`. Kartica vodi
+    na skupštinu ili prijavu kada je fajl vezan za njih.
 5c. **Privatnost** (`/stanar/privatnost`) — pregled svih ličnih podataka
     koje PropertyDesk čuva o stanaru (ime, email, telefon, adresa,
     vezane jedinice i udeli).
-6. **Glasanje** (`/stanar/glasanje`) — za otvorenu skupštinu stanar bira
-   `ZA / PROTIV / UZDRŽAN` po tačkama dnevnog reda; težina se izvodi
-   serverski iz `participationShare` jedinice koju poseduje.
+6. **Glasanje** (`/stanar/glasanje`) — stanar vidi zakazane, otvorene i
+   završene skupštine svojih zgrada. Glas (`ZA / PROTIV / UZDRŽAN`) daje
+   samo trenutni vlasnik, jednom po posebnom delu; težina se izvodi
+   serverski iz `participationShare`. Informativne tačke se ne glasaju.
 7. **Odjava** sa `/stanar/odjava` briše cookie. Upravnik može u svakom
    trenutku da povuče pristup iz `/zgrade/stanari`.
 
@@ -124,13 +156,15 @@ Sve ispod je dodato bez brisanja postojećih tabela. Idemo redom:
   minimalizacija.
 - `DuesTariff` + `DuesCharge` + `DuesPayment` — zajedničke takse. Idempotentno
   generisanje po `(unitId, periodYear, periodMonth)`.
-- `MaintenanceTicket` + `Supplier` + `BuildingExpense` — kvarovi i troškovi.
-  Zatvaranjem tiketa (`COMPLETED` + `cost`) automatski se pravi
-  `BuildingExpense`.
-- `Assembly` + `AgendaItem` + `AssemblyVote` + `AssemblyInvitation` —
-  skupštine, dnevni red, glasanje. Relacija na `Assembly` se zove
-  `items` (`items: AgendaItem[]`). Težina glasa = `participationShare`
-  jedinice. Većine: `SIMPLE`, `ABSOLUTE`, `TWO_THIRDS`.
+- `MaintenanceTicket` + `MaintenanceWorkEntry` + `Supplier` +
+  `BuildingExpense` — kvarovi, evidencija rada, izvođači i troškovi.
+  `Supplier` nije `User`. Zatvaranjem tiketa (`COMPLETED` + `actualCost`)
+  automatski se pravi `BuildingExpense` na izabranom fondu.
+- `Assembly` + `AgendaItem` + `AssemblyVote` + `AssemblyInvitation` +
+  `AssemblyAttendance` — skupštine, dnevni red, glasanje i prisustvo.
+  Relacija na `Assembly` se zove `items`. Težina glasa =
+  `participationShare` jedinice. Većine: `SIMPLE`, `ABSOLUTE`,
+  `TWO_THIRDS`. Kvorum je prisutno učešće veće od polovine ukupnog.
 - `BuildingNotice` — obaveštenja stanarima (PORTAL/EMAIL/BOTH).
   Audijencija: `ALL | BY_ENTRANCE | BY_UNIT_TYPE | SPECIFIC_UNITS`
   (sa `audienceParams` JSON-om — `entranceIds[]`, `unitTypes[]`,
@@ -165,11 +199,11 @@ Rolne mape (`src/server/permissions/roles.ts`):
 
 | Rola | Pokrivanje |
 |---|---|
-| `MANAGER_OWNER` | Sve |
-| `MANAGER_ADMIN` | Sve osim naplate (`billing.*`) |
-| `MANAGER_ACCOUNTANT` | Finansijski rad: zaduženja, uplate, opomene, izveštaji |
-| `MANAGER_TECHNICIAN` | Operativni rad: zgrade, kvarovi, dobavljači, skupštine, obaveštenja |
-| `MANAGER_VIEWER` | Samo čitanje |
+| `MANAGER_OWNER` | Sve, uključujući otpis duga i čitanje naplate |
+| `MANAGER_ADMIN` | Isto kao vlasnik, osim što ne upravlja organizacijom i ne otpisuje dug |
+| `MANAGER_ACCOUNTANT` | Zaduženja, uplate, opomene, izveštaji i dokumenti. Prijave i stanare samo čita. Ne dodaje stanare ni izvođače |
+| `MANAGER_TECHNICIAN` | Čita zgrade. Vodi prijave, fotografije, dokumente i katalog izvođača. Nema finansije, skupštine ni obaveštenja |
+| `MANAGER_VIEWER` | Samo čitanje, uključujući izveštaje |
 
 ## Portal za stanare (`/stanar/*`)
 
@@ -189,11 +223,17 @@ sidebar-a i bez redirect-a na `/sign-in` — stanari uopšte nisu u Better Auth.
 
 ### Funkcije
 
-- Pregled otvorenih zaduženja, PDF uplatnice sa IPS QR kodom (model 97).
-- Prijava kvara (`createMaintenanceTicket` sa `reportedByPersonId`).
-- Čitanje objavljenih obaveštenja.
-- Glasanje na otvorenim skupštinama (`castVote` sa `actorUserId: null`;
-  težina glasa se izvodi serverski iz `participationShare`).
+- Pregled otvorenih zaduženja i PDF uplatnice sa IPS QR kodom (model 97).
+- Prijava kvara, sa fotografijama. Na portalu vidi i prijave svojih
+  stanova, status i samo evidenciju rada koju je upravnik označio
+  vidljivom.
+- Obaveštenja za svoje stanove. Poruka samo za email se ne prikazuje.
+  Kartica vodi na skupštinu ili kvar kada je obaveštenje vezano za njih.
+- Dokumenti zgrade i stana koje je upravnik podelio, zapisnik skupštine
+  i prilozi prijava na svojim stanovima.
+- Glasanje na otvorenoj skupštini, samo ako je trenutni vlasnik dela.
+  Težina glasa dolazi sa servera iz učešća dela. Informativna tačka se
+  ne glasa.
 
 ## Finansije
 

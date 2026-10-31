@@ -94,7 +94,7 @@ export const PAGE_GUIDES: PageGuideDef[] = [
   // Faza 11 — manager pages (longest-prefix-first order matters).
   { key: "dues", prefixes: ["/zgrade/zaduzenja"], steps: 3 },
   { key: "debtors", prefixes: ["/zgrade/duznici"], steps: 3 },
-  { key: "tickets", prefixes: ["/zgrade/kvarovi"], steps: 3 },
+  { key: "tickets", prefixes: ["/zgrade/kvarovi"], steps: 4 },
   { key: "suppliers", prefixes: ["/zgrade/izvodjaci"], steps: 3 },
   { key: "notices", prefixes: ["/zgrade/obavestenja"], steps: 3 },
   { key: "assemblies", prefixes: ["/zgrade/skupstine"], steps: 3 },

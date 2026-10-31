@@ -17,6 +17,7 @@ import { listOrgMembersWithPermission } from "@/server/services/manager/members"
 import { notify, notifyMany } from "@/server/services/notifications.service";
 import { sendEmail } from "@/server/auth/email";
 import { appOrigin } from "@/server/http/app-origin";
+import { publishLinkedNotice } from "@/server/services/manager/notices.service";
 
 /**
  * Faza 11 — maintenance tickets ("kvarovi") + suppliers + per-fund expenses.
@@ -40,6 +41,7 @@ export interface ListTicketsInput {
   buildingId?: string;
   status?: MaintenanceStatus;
   priority?: MaintenancePriority;
+  category?: MaintenanceCategory;
   page: number;
   pageSize: number;
 }
@@ -53,6 +55,7 @@ export async function listMaintenanceTickets(input: ListTicketsInput) {
     ...(input.buildingId ? { buildingId: input.buildingId } : {}),
     ...(input.status ? { status: input.status } : {}),
     ...(input.priority ? { priority: input.priority } : {}),
+    ...(input.category ? { category: input.category } : {}),
   };
 
   const [items, total] = await Promise.all([
@@ -78,13 +81,119 @@ export async function getMaintenanceTicket(organizationId: string, ticketId: str
     where: { id: ticketId, organizationId },
     include: {
       building: true,
-      unit: true,
+      unit: { include: { entrance: { select: { id: true, code: true } } } },
       supplier: true,
       history: { orderBy: { createdAt: "desc" } },
+      workEntries: { orderBy: { createdAt: "desc" } },
+      expenses: { orderBy: { spentAt: "desc" } },
+      notices: {
+        orderBy: { createdAt: "desc" },
+        select: { id: true, title: true, publishedAt: true },
+      },
     },
   });
   if (!ticket) throw DomainErrors.notFound("Prijava nije pronađena.");
   return ticket;
+}
+
+/**
+ * Slim dossier for the list/board side panel. Missing ids return null so a
+ * stale `?ticket=` link does not take down the list.
+ */
+export async function getTicketDrawer(organizationId: string, ticketId: string) {
+  const ticket = await prisma.maintenanceTicket.findFirst({
+    where: { id: ticketId, organizationId },
+    include: {
+      building: { select: { id: true, name: true } },
+      unit: {
+        select: {
+          id: true,
+          code: true,
+          floor: true,
+          entrance: { select: { code: true } },
+        },
+      },
+      supplier: { select: { id: true, name: true } },
+      history: { orderBy: { createdAt: "desc" }, take: 12 },
+      workEntries: { orderBy: { createdAt: "desc" }, take: 5 },
+    },
+  });
+  if (!ticket) return null;
+
+  const actorIds = Array.from(
+    new Set(
+      [
+        ticket.reportedByUserId,
+        ticket.assignedToUserId,
+        ...ticket.history.map((row) => row.changedByUserId),
+        ...ticket.workEntries.map((row) => row.createdByUserId),
+      ].filter((id): id is string => Boolean(id)),
+    ),
+  );
+  const [reporter, actors] = await Promise.all([
+    ticket.reportedByPersonId
+      ? prisma.buildingPerson.findFirst({
+          where: { id: ticket.reportedByPersonId, organizationId },
+          select: { legalName: true, firstName: true, lastName: true, email: true, phone: true },
+        })
+      : Promise.resolve(null),
+    actorIds.length > 0
+      ? prisma.user.findMany({
+          where: { id: { in: actorIds } },
+          select: { id: true, name: true, email: true },
+        })
+      : Promise.resolve([]),
+  ]);
+  const actorName = new Map(actors.map((user) => [user.id, user.name ?? user.email]));
+  const residentName = reporter
+    ? (reporter.legalName ??
+      ([reporter.firstName, reporter.lastName].filter(Boolean).join(" ") || reporter.email || "—"))
+    : null;
+
+  return {
+    id: ticket.id,
+    code: ticket.code,
+    title: ticket.title,
+    description: ticket.description,
+    status: ticket.status,
+    priority: ticket.priority,
+    category: ticket.category,
+    buildingId: ticket.building.id,
+    buildingName: ticket.building.name,
+    unitId: ticket.unit?.id ?? null,
+    unitCode: ticket.unit?.code ?? null,
+    entranceCode: ticket.unit?.entrance?.code ?? null,
+    floor: ticket.unit?.floor != null ? String(ticket.unit.floor) : null,
+    reporterName:
+      residentName ??
+      (ticket.reportedByUserId ? (actorName.get(ticket.reportedByUserId) ?? null) : null),
+    reporterKind: residentName
+      ? ("resident" as const)
+      : ticket.reportedByUserId
+        ? ("staff" as const)
+        : ("none" as const),
+    reporterEmail: reporter?.email ?? null,
+    reporterPhone: reporter?.phone ?? null,
+    assigneeName: ticket.assignedToUserId ? (actorName.get(ticket.assignedToUserId) ?? null) : null,
+    supplierName: ticket.supplier?.name ?? null,
+    openedAt: ticket.createdAt.toISOString(),
+    closedAt: ticket.completedAt?.toISOString() ?? null,
+    history: ticket.history.map((row) => ({
+      id: row.id,
+      fromStatus: row.fromStatus,
+      toStatus: row.toStatus,
+      note: row.note,
+      at: row.createdAt.toISOString(),
+      actorName: row.changedByUserId ? (actorName.get(row.changedByUserId) ?? null) : null,
+    })),
+    workEntries: ticket.workEntries.map((row) => ({
+      id: row.id,
+      body: row.body,
+      visibleToResident: row.visibleToResident,
+      at: row.createdAt.toISOString(),
+      actorName: row.createdByUserId ? (actorName.get(row.createdByUserId) ?? null) : null,
+    })),
+  };
 }
 
 export interface CreateTicketInput {
@@ -242,6 +351,7 @@ export async function createMaintenanceTicket(input: CreateTicketInput) {
     }
   }
 
+  await publishTicketBoardNotice(ticket, "opened", input.actorUserId);
   return ticket;
 }
 
@@ -434,7 +544,7 @@ export async function changeMaintenanceStatus(input: {
           `Status Vaše prijave kvara "${updated.title}" (${updated.code}) ` +
           `je promenjen na: ${label}.\n` +
           (input.note ? `\nNapomena upravnika: ${input.note}\n` : "") +
-          `\nStatus možete pratiti i preko stanarskog portala: ${appOrigin()}/stanar/kvarovi\n` +
+          `\nStatus možete pratiti i preko stanarskog portala: ${appOrigin()}/stanar/kvarovi/${updated.id}\n` +
           `\nSrdačno,\nUpravnik zgrade`;
         await sendEmail({ to: email, subject, text: body });
       }
@@ -446,7 +556,121 @@ export async function changeMaintenanceStatus(input: {
     }
   }
 
+  if (updated.status === "COMPLETED" || updated.status === "CANCELED") {
+    await publishTicketBoardNotice(updated, "closed", input.actorUserId);
+  }
+
   return updated;
+}
+
+async function publishTicketBoardNotice(
+  ticket: {
+    id: string;
+    organizationId: string;
+    buildingId: string;
+    unitId: string | null;
+    code: string;
+    title: string;
+    status: MaintenanceStatus;
+  },
+  phase: "opened" | "closed",
+  actorUserId: string | null,
+) {
+  const commonArea = !ticket.unitId;
+  const label =
+    phase === "opened"
+      ? "Prijavljen kvar"
+      : ticket.status === "CANCELED"
+        ? "Prijava je otkazana"
+        : "Kvar je završen";
+  try {
+    await publishLinkedNotice({
+      organizationId: ticket.organizationId,
+      actorUserId,
+      buildingId: ticket.buildingId,
+      title: `${label}: ${ticket.title}`,
+      body: `${ticket.code}. ${label}.\n\n` + `Detalj: ${appOrigin()}/stanar/kvarovi/${ticket.id}`,
+      channel: commonArea ? "PORTAL_AND_EMAIL" : "PORTAL_ONLY",
+      audience: commonArea ? "ALL" : "SPECIFIC_UNITS",
+      audienceParams: ticket.unitId ? { unitIds: [ticket.unitId] } : {},
+      ticketId: ticket.id,
+      originKey: `ticket:${ticket.id}:${phase}`,
+      publishNow: true,
+    });
+  } catch (err) {
+    logger.warn("manager.ticket.notice_failed", {
+      ticketId: ticket.id,
+      error: (err as Error)?.message,
+    });
+  }
+}
+
+export async function addMaintenanceWorkEntry(input: {
+  organizationId: string;
+  actorUserId: string;
+  ticketId: string;
+  body: string;
+  visibleToResident?: boolean;
+}) {
+  const body = input.body.trim();
+  if (body.length < 3) {
+    throw DomainErrors.badRequest("Evidencija mora imati bar nekoliko reči.");
+  }
+  const ticket = await prisma.maintenanceTicket.findFirst({
+    where: { id: input.ticketId, organizationId: input.organizationId },
+    include: { building: { select: { name: true } } },
+  });
+  if (!ticket) throw DomainErrors.notFound("Kvar");
+
+  const visible = input.visibleToResident !== false;
+  const entry = await prisma.maintenanceWorkEntry.create({
+    data: {
+      organizationId: input.organizationId,
+      ticketId: ticket.id,
+      body,
+      visibleToResident: visible,
+      createdByUserId: input.actorUserId,
+    },
+  });
+
+  await recordAudit({
+    action: "manager.ticket_work_logged",
+    entityType: "MaintenanceTicket",
+    entityId: ticket.id,
+    organizationId: input.organizationId,
+    actorUserId: input.actorUserId,
+    newValues: { entryId: entry.id, visibleToResident: visible },
+  });
+
+  if (visible && ticket.reportedByPersonId) {
+    try {
+      const reporter = await prisma.buildingPerson.findUnique({
+        where: { id: ticket.reportedByPersonId },
+        select: { email: true, firstName: true },
+      });
+      const email = reporter?.email?.trim().toLowerCase();
+      if (email && /.+@.+\..+/.test(email)) {
+        const greeting = reporter?.firstName ? `Poštovani ${reporter.firstName},` : "Poštovani,";
+        await sendEmail({
+          to: email,
+          subject: `[${ticket.building.name}] Prijava ${ticket.code}: nova evidencija`,
+          text:
+            `${greeting}\n\n` +
+            `Upravnik je dopunio evidenciju prijave "${ticket.title}" (${ticket.code}):\n\n` +
+            `${body}\n\n` +
+            `Detalj: ${appOrigin()}/stanar/kvarovi/${ticket.id}\n\n` +
+            `Srdačno,\nUpravnik zgrade`,
+        });
+      }
+    } catch (err) {
+      logger.warn("manager.ticket.work_entry_email_failed", {
+        ticketId: ticket.id,
+        error: (err as Error)?.message,
+      });
+    }
+  }
+
+  return entry;
 }
 
 function statusLabel(status: MaintenanceStatus): string {

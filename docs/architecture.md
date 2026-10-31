@@ -114,10 +114,10 @@ Separate `OrganizationType.MANAGER` tenant. Full runbook:
 |---------|------------------|------|---------|-------------------------|
 | Building registry | `/zgrade`, `/zgrade/[id]` | `GET/POST/PATCH /manager/buildings`, `POST /manager/buildings/:id/import` | `services/manager/buildings.service.ts` | `ManagedBuilding`, `BuildingEntranceSection`, `ManagedUnit`, `BuildingPerson`, `UnitOwnership` |
 | Dues & uplatnice | `/zgrade/zaduzenja`, `/zgrade/dug`, `/zgrade/uplate` | `GET/POST /manager/dues/*`, `GET /manager/dues/:id/pdf`, `POST /manager/dues/bank-statement/import` | `services/manager/dues.service.ts` + `cron/manager-generate-dues` | `DuesTariff`, `DuesCharge`, `DuesPayment`; model-97 reference + IPS QR PNG |
-| Maintenance | `/zgrade/kvarovi`, `/zgrade/dobavljaci`, `/zgrade/troskovi` | `GET/POST/PATCH /manager/tickets`, `GET/POST/PATCH /manager/suppliers` | `services/manager/tickets.service.ts`, `services/manager/expenses.service.ts` | `MaintenanceTicket` (code `BLD-00001`), `Supplier`, `BuildingExpense`, ticket photos |
-| Notices & docs | `/zgrade/obavestenja`, `/zgrade/[id]/dokumenti` | `GET/POST /manager/notices`, `POST /manager/notices/:id/publish`, `/api/v1/documents` sa `entityType=ManagedBuilding` | `services/manager/notices.service.ts`, `services/documents.service.ts` | `BuildingNotice`, `Document` (category `BUILDING`/`TICKET`), email dispatch |
+| Maintenance | `/zgrade/kvarovi`, `/zgrade/kvarovi?view=board`, `/zgrade/izvodjaci` | `GET/POST/PATCH /manager/tickets`, `POST /manager/tickets/:id/entries`, `GET/POST/PATCH /manager/suppliers` | `services/manager/maintenance.service.ts` | `MaintenanceTicket` (code `BLD-00001`), `MaintenanceWorkEntry`, `Supplier` (nije `User`), `BuildingExpense`. Lista otvara dosije u panelu preko `?ticket=` |
+| Notices & docs | `/zgrade/obavestenja`, `/zgrade/[id]/dokumenti` | `GET/POST /manager/notices`, `POST /manager/notices/:id/publish`, `/api/v1/documents` za zgradu, stan, kvar i skupštinu; `PATCH /documents/:id` menja `RESIDENT_SHARED` | `services/manager/notices.service.ts`, `services/documents.service.ts` | `BuildingNotice`, `Document` (zgrada, stan, kvar, zapisnik), email dispatch |
 | Assemblies | `/zgrade/skupstine/*` | `GET/POST /manager/assemblies`, `POST /manager/assemblies/:id/{open,close}-voting`, `POST /manager/agenda/:id/vote`, `GET /manager/assemblies/:id/minutes/pdf` | `services/manager/assemblies.service.ts` + `pdf/documents/assembly-minutes.tsx` | `Assembly`, `AgendaItem`, `AssemblyVote`, `AssemblyInvitation` |
-| Resident portal | `/stanar/*` route group | `POST /manager/units/:id/residents`, `DELETE /manager/residents/:id`, `GET /api/stanar/dues/:id/pdf` | `services/manager/residents.service.ts` + server actions in `(stanar)` | `ResidentAccess` + `ResidentAccessUnit`; HMAC cookie `pd_resident` signed with `BETTER_AUTH_SECRET` |
+| Residents | `/zgrade/stanari`, tab zgrade `/vlasnici`, portal `/stanar/*` | `POST /manager/buildings/:id/persons`, `POST /manager/units/:id/ownerships`, `POST /manager/units/:id/residents`, `POST /manager/residents/:id/resend`, `DELETE /manager/residents/:id` | `services/manager/buildings.service.ts`, `services/manager/residents.service.ts` | `BuildingPerson` + `UnitOwnership`, zatim `ResidentAccess` (jedan red po paru deo+email). Cookie `pd_resident` je HMAC, stanar nije `User` |
 | Investor → manager handover | Investor `/projekti/[id]`, `/projekti/predaje` + manager `/zgrade/predaje` | `POST /manager/handovers`, `POST /manager/handovers/:id/{accept,reject,cancel}` | `services/manager/handover.service.ts` | `BuildingHandoverRequest`; one-transaction copy, **never JMBG** |
 | Dashboard & reports | `/dashboard` (manager KPIs), `/izvestaji/upravljanje/*` | `GET /manager/reports/export`, `GET /manager/reports/godisnji/pdf` | `services/manager/dashboard.service.ts`, `services/manager/reports.service.ts`, `services/manager/annual-pdf.service.ts` | CSV via `papaparse`, XLSX via `exceljs`, PDF via `@react-pdf/renderer` |
 
@@ -129,5 +129,5 @@ permission.
 
 **Resident auth.** Residents are not `User` rows. The portal reads a
 signed cookie, re-validates it against `ResidentAccess` on every
-request, and shows only the units reachable through
-`ResidentAccessUnit`. Revocation is immediate.
+request, and shows only the units on those rows (one row is one unit
+and one email). Revocation is immediate.

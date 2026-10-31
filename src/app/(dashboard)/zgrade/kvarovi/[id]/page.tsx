@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PermissionGuard } from "@/components/app/permission-guard";
 import { loadUserContext, requireTenantPage } from "@/server/auth/context";
+import { prisma } from "@/server/db/prisma";
 import { getMaintenanceTicket, listSuppliers } from "@/server/services/manager/maintenance.service";
 import { listDocuments } from "@/server/services/documents.service";
 import { listOrgMembersWithPermission } from "@/server/services/manager/members";
@@ -11,10 +12,12 @@ import { isDomainError } from "@/lib/errors";
 import { formatDateTime, formatMoney } from "@/lib/formatters";
 import { createT } from "@/lib/i18n";
 import {
+  AddWorkEntryDialog,
   ChangeTicketStatusDialog,
   EditTicketDialog,
   UploadTicketPhotoButton,
 } from "@/features/manager/ticket-forms";
+import { DocumentVisibilityButton, UploadDocumentDialog } from "@/features/manager/document-forms";
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -34,7 +37,18 @@ export default async function TicketDetailPage({ params }: Props) {
     throw err;
   }
 
-  const [suppliers, photos, assigneeMembers] = await Promise.all([
+  const actorIds = Array.from(
+    new Set(
+      [
+        ticket.reportedByUserId,
+        ticket.assignedToUserId,
+        ticket.closedByUserId,
+        ...ticket.history.map((row) => row.changedByUserId),
+        ...ticket.workEntries.map((row) => row.createdByUserId),
+      ].filter((id): id is string => Boolean(id)),
+    ),
+  );
+  const [suppliers, photos, files, assigneeMembers, reporter, actors] = await Promise.all([
     listSuppliers({ organizationId: ctx.activeOrganization.id, buildingId: ticket.buildingId }),
     listDocuments({
       organizationId: ctx.activeOrganization.id,
@@ -44,8 +58,44 @@ export default async function TicketDetailPage({ params }: Props) {
       page: 1,
       pageSize: 50,
     }),
+    listDocuments({
+      organizationId: ctx.activeOrganization.id,
+      entityType: "MaintenanceTicket",
+      entityId: ticket.id,
+      excludeImages: true,
+      page: 1,
+      pageSize: 50,
+    }),
     listOrgMembersWithPermission(ctx.activeOrganization.id, "ticket.manage"),
+    ticket.reportedByPersonId
+      ? prisma.buildingPerson.findFirst({
+          where: {
+            id: ticket.reportedByPersonId,
+            organizationId: ctx.activeOrganization.id,
+          },
+          select: {
+            legalName: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+            phone: true,
+          },
+        })
+      : Promise.resolve(null),
+    actorIds.length > 0
+      ? prisma.user.findMany({
+          where: { id: { in: actorIds } },
+          select: { id: true, name: true, email: true },
+        })
+      : Promise.resolve([]),
   ]);
+  const actorName = new Map(actors.map((user) => [user.id, user.name ?? user.email]));
+  const reporterName = reporter
+    ? (reporter.legalName ??
+      ([reporter.firstName, reporter.lastName].filter(Boolean).join(" ") || reporter.email || "—"))
+    : ticket.reportedByUserId
+      ? (actorName.get(ticket.reportedByUserId) ?? t("manager.ticket.reporterStaff"))
+      : "—";
   const assignees = assigneeMembers.map((m) => ({
     id: m.userId,
     name: m.name ?? m.email,
@@ -65,6 +115,16 @@ export default async function TicketDetailPage({ params }: Props) {
             {t(`manager.tickets.status.${ticket.status}` as const)} ·{" "}
             {t(`manager.tickets.priority.${ticket.priority}` as const)}
           </div>
+          {ticket.unit ? (
+            <PermissionGuard permission="dues.read">
+              <Link
+                href={`/zgrade/${ticket.buildingId}/delovi/${ticket.unit.id}`}
+                className="text-sm text-[var(--color-brand-700)] hover:underline"
+              >
+                {t("manager.ledger.openCard")}
+              </Link>
+            </PermissionGuard>
+          ) : null}
         </div>
         <div className="flex flex-wrap gap-2">
           <PermissionGuard permission="ticket.manage">
@@ -90,6 +150,13 @@ export default async function TicketDetailPage({ params }: Props) {
               suppliers={suppliers.map((s) => ({ id: s.id, name: s.name }))}
             />
             <UploadTicketPhotoButton ticketId={ticket.id} />
+            <UploadDocumentDialog
+              entityType="MaintenanceTicket"
+              entityId={ticket.id}
+              categories={["TICKET", "INVOICE", "OTHER"]}
+              defaultCategory="TICKET"
+            />
+            <AddWorkEntryDialog ticketId={ticket.id} />
           </PermissionGuard>
         </div>
       </div>
@@ -106,7 +173,32 @@ export default async function TicketDetailPage({ params }: Props) {
               label={t("manager.tickets.columns.unit")}
               value={ticket.unit ? ticket.unit.code : t("manager.ticket.noUnit")}
             />
-            <Row label={t("manager.ticket.categoryField")} value={ticket.category} />
+            <Row
+              label={t("manager.ticket.categoryField")}
+              value={t(`manager.ticket.categories.${ticket.category}`)}
+            />
+            <Row
+              label={t("manager.ticket.reporterField")}
+              value={
+                reporter
+                  ? `${reporterName} · ${t("manager.ticket.reporterResident")}`
+                  : reporterName
+              }
+            />
+            {reporter?.email ? (
+              <Row label={t("manager.building.fields.contactEmail")} value={reporter.email} />
+            ) : null}
+            {reporter?.phone ? (
+              <Row label={t("manager.building.fields.contactPhone")} value={reporter.phone} />
+            ) : null}
+            <Row
+              label={t("manager.ticket.entranceField")}
+              value={ticket.unit?.entrance?.code ?? "—"}
+            />
+            <Row
+              label={t("manager.ticket.floorField")}
+              value={ticket.unit?.floor != null ? String(ticket.unit.floor) : "—"}
+            />
             <Row
               label={t("manager.ticket.priorityField")}
               value={t(`manager.tickets.priority.${ticket.priority}` as const)}
@@ -128,10 +220,16 @@ export default async function TicketDetailPage({ params }: Props) {
               label={t("manager.ticket.actualCostField")}
               value={ticket.actualCost ? formatMoney(ticket.actualCost, "RSD") : "—"}
             />
-            <Row label={t("manager.ticket.fundField")} value={ticket.fund ?? "—"} />
-            <Row label="Kreirano" value={formatDateTime(ticket.createdAt)} />
+            <Row
+              label={t("manager.ticket.fundField")}
+              value={ticket.fund ? t(`manager.ledger.funds.${ticket.fund}`) : "—"}
+            />
+            <Row label={t("manager.ticket.openedAt")} value={formatDateTime(ticket.createdAt)} />
             {ticket.completedAt ? (
-              <Row label="Završeno" value={formatDateTime(ticket.completedAt)} />
+              <Row
+                label={t("manager.ticket.closedAt")}
+                value={formatDateTime(ticket.completedAt)}
+              />
             ) : null}
           </CardContent>
         </Card>
@@ -159,12 +257,92 @@ export default async function TicketDetailPage({ params }: Props) {
                 <li key={h.id} className="border-b border-[var(--color-border)] pb-2">
                   <div className="flex items-center justify-between gap-2 text-xs text-[var(--color-foreground-muted)]">
                     <span>
-                      {h.fromStatus ? `${h.fromStatus} → ` : ""}
-                      {h.toStatus}
+                      {h.fromStatus ? `${t(`manager.tickets.status.${h.fromStatus}`)} → ` : ""}
+                      {t(`manager.tickets.status.${h.toStatus}`)}
+                      {h.changedByUserId ? ` · ${actorName.get(h.changedByUserId) ?? ""}` : ""}
                     </span>
                     <span>{formatDateTime(h.createdAt)}</span>
                   </div>
                   {h.note ? <p className="mt-1 whitespace-pre-wrap">{h.note}</p> : null}
+                </li>
+              ))}
+            </ul>
+          )}
+        </CardContent>
+      </Card>
+
+      {ticket.notices.length > 0 ? (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm">{t("manager.notices.relatedTitle")}</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-1 text-sm">
+            {ticket.notices.map((notice) => (
+              <Link
+                key={notice.id}
+                href={`/zgrade/obavestenja/${notice.id}`}
+                className="block text-[var(--color-brand-700)] hover:underline"
+              >
+                {notice.title}
+              </Link>
+            ))}
+          </CardContent>
+        </Card>
+      ) : null}
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-sm">{t("manager.ticket.workLogTitle")}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {ticket.workEntries.length === 0 ? (
+            <p className="text-sm text-[var(--color-foreground-muted)]">
+              {t("manager.ticket.workLogEmpty")}
+            </p>
+          ) : (
+            <ul className="space-y-3 text-sm">
+              {ticket.workEntries.map((entry) => (
+                <li key={entry.id} className="border-b border-[var(--color-border)] pb-3">
+                  <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-[var(--color-foreground-muted)]">
+                    <span>
+                      {formatDateTime(entry.createdAt)}
+                      {entry.createdByUserId
+                        ? ` · ${actorName.get(entry.createdByUserId) ?? ""}`
+                        : ""}
+                    </span>
+                    <span>
+                      {entry.visibleToResident
+                        ? t("manager.ticket.workLogVisible")
+                        : t("manager.ticket.workLogInternal")}
+                    </span>
+                  </div>
+                  <p className="mt-1 whitespace-pre-wrap">{entry.body}</p>
+                </li>
+              ))}
+            </ul>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-sm">{t("manager.ticket.expensesTitle")}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {ticket.expenses.length === 0 ? (
+            <p className="text-sm text-[var(--color-foreground-muted)]">
+              {t("manager.ticket.expensesEmpty")}
+            </p>
+          ) : (
+            <ul className="space-y-2 text-sm">
+              {ticket.expenses.map((expense) => (
+                <li key={expense.id} className="flex flex-wrap items-center justify-between gap-2">
+                  <span>
+                    {expense.description}
+                    {" · "}
+                    {t(`manager.ledger.funds.${expense.fund}`)}
+                  </span>
+                  <span className="tabular-nums">{formatMoney(expense.amount, "RSD")}</span>
                 </li>
               ))}
             </ul>
@@ -205,6 +383,35 @@ export default async function TicketDetailPage({ params }: Props) {
                 </a>
               ))}
             </div>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-sm">{t("manager.documents.title")}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {files.items.length === 0 ? (
+            <p className="text-sm text-[var(--color-foreground-muted)]">
+              {t("manager.documents.empty")}
+            </p>
+          ) : (
+            <ul className="space-y-2 text-sm">
+              {files.items.map((file) => (
+                <li key={file.id} className="flex flex-wrap items-center justify-between gap-2">
+                  <a
+                    href={`/api/v1/documents/${file.id}/download`}
+                    className="text-[var(--color-brand-700)] hover:underline"
+                  >
+                    {file.fileName}
+                  </a>
+                  <PermissionGuard permission="document.manage">
+                    <DocumentVisibilityButton documentId={file.id} visibility={file.visibility} />
+                  </PermissionGuard>
+                </li>
+              ))}
+            </ul>
           )}
         </CardContent>
       </Card>

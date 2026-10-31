@@ -1422,9 +1422,12 @@ Svaki prelaz:
 ### Upravnici zgrada (MANAGER tenant, Faza 11)
 
 Ovaj demo tok vodi investitorski + agencijski scenario. Scenario za
-upravnike (zgrade, zaduženja, uplatnice sa IPS QR, kvarovi,
-skupštine, portal za stanare, prenos zgrade od investitora) ima
-sopstveni runbook — vidi [`docs/upravnici.md`](./upravnici.md).
+upravnike ima sopstveni runbook — [`docs/upravnici.md`](./upravnici.md).
+Tu su, redom, zgrade i posebni delovi, stanari (upis na deo i link za
+portal), zaduženja i uplatnice, kvarovi (bočni panel i dosije),
+izvođači, obaveštenja, skupštine, dokumenti zgrade i prenos od
+investitora. Za razvoj su uz to [`api.md`](./api.md),
+[`database.md`](./database.md) i [`business-rules.md`](./business-rules.md).
 Seed nalozi za MANAGER demo:
 
 - `vlasnik@upravnikplus.test` — upravnik (lozinka `PropertyDesk!2026`),
