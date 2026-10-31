@@ -182,6 +182,9 @@ All new models carry `organizationId` and FK to it with
 - `dues_payment` — recorded or imported inflow.
   `(organizationId, bankStatementRowId)` is unique when matched.
   `reversedAt` + `reversedBy` keeps a soft reversal trail.
+- `dues_adjustment` — per-unit correction outside the monthly tariff.
+  Positive amount increases debt, negative amount is a credit. Included
+  in the debtor balance and on `/zgrade/[id]/delovi/[unitId]`.
 
 **Maintenance**
 

@@ -484,7 +484,8 @@ export interface DebtorRow {
 
 /**
  * Return the list of units with outstanding debt. The amount is the sum
- * of `(totalAmount - paidAmount)` over all open or partially-paid charges.
+ * of `(totalAmount - paidAmount)` over open or partially-paid charges,
+ * plus `DuesAdjustment` (positive increases the debt, negative is a credit).
  * Results are ordered by outstanding amount desc (biggest debtor first).
  */
 export async function listDebtors(input: {
@@ -559,10 +560,136 @@ export async function listDebtors(input: {
     });
   }
 
+  const adjustmentGroups = await prisma.duesAdjustment.groupBy({
+    by: ["unitId"],
+    where: { organizationId: input.organizationId },
+    _sum: { amount: true },
+  });
+  const adjustmentByUnit = new Map<string, Decimal>();
+  for (const group of adjustmentGroups) {
+    const amount = new Decimal(group._sum.amount?.toString() ?? "0");
+    if (!amount.eq(0)) adjustmentByUnit.set(group.unitId, amount);
+  }
+
+  for (const [unitId, row] of byUnit) {
+    const extra = adjustmentByUnit.get(unitId);
+    if (!extra) continue;
+    row.outstanding = new Decimal(row.outstanding).plus(extra).toFixed(2);
+    adjustmentByUnit.delete(unitId);
+  }
+
+  const missingIds = Array.from(adjustmentByUnit.entries())
+    .filter(([, amount]) => amount.gt(0))
+    .map(([unitId]) => unitId);
+  if (missingIds.length > 0) {
+    const extras = await prisma.managedUnit.findMany({
+      where: {
+        organizationId: input.organizationId,
+        id: { in: missingIds },
+        ...(input.buildingId ? { buildingId: input.buildingId } : {}),
+      },
+      select: {
+        id: true,
+        code: true,
+        buildingId: true,
+        building: { select: { name: true } },
+        ownerships: {
+          where: { endedAt: null, isPrimary: true },
+          take: 1,
+          select: {
+            person: {
+              select: {
+                firstName: true,
+                lastName: true,
+                legalName: true,
+                email: true,
+                phone: true,
+              },
+            },
+          },
+        },
+      },
+    });
+    for (const unit of extras) {
+      const extra = adjustmentByUnit.get(unit.id);
+      if (!extra || extra.lte(0)) continue;
+      const owner = unit.ownerships[0]?.person ?? null;
+      byUnit.set(unit.id, {
+        unitId: unit.id,
+        unitCode: unit.code,
+        buildingId: unit.buildingId,
+        buildingName: unit.building.name,
+        outstanding: extra.toFixed(2),
+        oldestDueDate: null,
+        primaryOwner: owner
+          ? (owner.legalName ??
+            ([owner.firstName, owner.lastName].filter(Boolean).join(" ") || null))
+          : null,
+        contactEmail: owner?.email ?? null,
+        contactPhone: owner?.phone ?? null,
+      });
+    }
+  }
+
   const min = input.minOutstanding ? new Decimal(input.minOutstanding) : new Decimal(0);
   return Array.from(byUnit.values())
-    .filter((r) => new Decimal(r.outstanding).gte(min))
+    .filter((r) => {
+      const outstanding = new Decimal(r.outstanding);
+      return outstanding.gt(0) && outstanding.gte(min);
+    })
     .sort((a, b) => new Decimal(b.outstanding).comparedTo(new Decimal(a.outstanding)));
+}
+
+export async function createDuesAdjustment(input: {
+  organizationId: string;
+  actorUserId: string;
+  unitId: string;
+  amount: string | number;
+  reason: string;
+  effectiveDate?: Date;
+}) {
+  const amount = new Decimal(input.amount);
+  if (amount.eq(0)) {
+    throw DomainErrors.badRequest("Iznos korekcije ne može biti nula.");
+  }
+  const reason = input.reason.trim();
+  if (reason.length < 3) {
+    throw DomainErrors.badRequest("Razlog korekcije je obavezan.");
+  }
+
+  const unit = await prisma.managedUnit.findFirst({
+    where: { id: input.unitId, organizationId: input.organizationId },
+    select: { id: true, buildingId: true, code: true },
+  });
+  if (!unit) throw DomainErrors.notFound("Posebni deo");
+
+  const row = await prisma.duesAdjustment.create({
+    data: {
+      organizationId: input.organizationId,
+      unitId: unit.id,
+      amount: amount.toFixed(2),
+      reason,
+      effectiveDate: input.effectiveDate ?? new Date(),
+      createdByUserId: input.actorUserId,
+    },
+  });
+
+  await recordAudit({
+    action: "manager.dues_adjustment_created",
+    entityType: "DuesAdjustment",
+    entityId: row.id,
+    organizationId: input.organizationId,
+    actorUserId: input.actorUserId,
+    newValues: {
+      unitId: unit.id,
+      unitCode: unit.code,
+      buildingId: unit.buildingId,
+      amount: amount.toFixed(2),
+      reason,
+    },
+  });
+
+  return row;
 }
 
 /**

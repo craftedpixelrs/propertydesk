@@ -83,7 +83,14 @@ export default async function BuildingUnitsTab({ params }: Props) {
                   : "—";
                 return (
                   <tr key={u.id} className="hover:bg-[var(--color-surface-inset)]">
-                    <td className="px-4 py-3 font-mono text-xs">{u.code}</td>
+                    <td className="px-4 py-3 font-mono text-xs">
+                      <Link
+                        href={`/zgrade/${id}/delovi/${u.id}`}
+                        className="text-[var(--color-brand-700)] hover:underline"
+                      >
+                        {u.code}
+                      </Link>
+                    </td>
                     <td className="px-4 py-3">{u.type}</td>
                     <td className="px-4 py-3">{u.entrance?.code ?? "—"}</td>
                     <td className="px-4 py-3 text-right tabular-nums">

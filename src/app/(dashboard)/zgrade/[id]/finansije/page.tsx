@@ -1,5 +1,4 @@
 import Link from "next/link";
-import Decimal from "decimal.js";
 import type { BuildingExpenseFund } from "@prisma/client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,8 +6,9 @@ import { PermissionGuard } from "@/components/app/permission-guard";
 import { loadUserContext, requireTenantPage } from "@/server/auth/context";
 import { prisma } from "@/server/db/prisma";
 import { assertBuildingBelongsToOrg } from "@/server/services/manager/buildings.service";
-import { expenseSummaryByFund, listSuppliers } from "@/server/services/manager/maintenance.service";
+import { listSuppliers } from "@/server/services/manager/maintenance.service";
 import { listDuesTariffs } from "@/server/services/manager/dues.service";
+import { loadBuildingFinancePicture } from "@/server/services/manager/unit-ledger.service";
 import { formatDate, formatMoney } from "@/lib/formatters";
 import { createT } from "@/lib/i18n";
 import {
@@ -39,7 +39,7 @@ export default async function BuildingFinanceTab({ params }: Props) {
   const t = createT(ctx.user.locale);
   await assertBuildingBelongsToOrg(ctx.activeOrganization.id, id);
 
-  const [tariffs, charges, expenses, expenseSummary, suppliers] = await Promise.all([
+  const [tariffs, charges, expenses, suppliers, picture] = await Promise.all([
     listDuesTariffs(ctx.activeOrganization.id, id),
     prisma.duesCharge.findMany({
       where: { organizationId: ctx.activeOrganization.id, buildingId: id },
@@ -51,7 +51,7 @@ export default async function BuildingFinanceTab({ params }: Props) {
         paidAmount: true,
         status: true,
         dueDate: true,
-        unit: { select: { code: true } },
+        unit: { select: { id: true, code: true } },
       },
       orderBy: [{ dueDate: "desc" }],
       take: 50,
@@ -62,17 +62,10 @@ export default async function BuildingFinanceTab({ params }: Props) {
       orderBy: { spentAt: "desc" },
       take: 50,
     }),
-    expenseSummaryByFund({ organizationId: ctx.activeOrganization.id, buildingId: id }),
     listSuppliers({ organizationId: ctx.activeOrganization.id, buildingId: id }),
+    loadBuildingFinancePicture({ organizationId: ctx.activeOrganization.id, buildingId: id }),
   ]);
 
-  let billed = new Decimal(0);
-  let collected = new Decimal(0);
-  for (const c of charges) {
-    billed = billed.plus(new Decimal(c.totalAmount.toString()));
-    collected = collected.plus(new Decimal(c.paidAmount.toString()));
-  }
-  const outstanding = billed.minus(collected);
   const buildingList = [{ id, name: "" }];
 
   return (
@@ -89,21 +82,132 @@ export default async function BuildingFinanceTab({ params }: Props) {
         </PermissionGuard>
       </div>
 
-      <div className="grid gap-3 md:grid-cols-3">
+      <div className="grid gap-3 md:grid-cols-3 xl:grid-cols-5">
         <StatCard
           label={t("manager.finance.totalBilled")}
-          value={formatMoney(billed.toFixed(2), "RSD")}
+          value={formatMoney(picture.billed, "RSD")}
+        />
+        <StatCard label={t("manager.ledger.cashIn")} value={formatMoney(picture.cashIn, "RSD")} />
+        <StatCard label={t("manager.ledger.cashOut")} value={formatMoney(picture.cashOut, "RSD")} />
+        <StatCard
+          label={t("manager.ledger.cashBalance")}
+          value={formatMoney(picture.cashBalance, "RSD")}
+          tone={picture.cashBalance.startsWith("-") ? "warn" : "ok"}
         />
         <StatCard
-          label={t("manager.finance.totalCollected")}
-          value={formatMoney(collected.toFixed(2), "RSD")}
-        />
-        <StatCard
-          label={t("manager.finance.totalOutstanding")}
-          value={formatMoney(outstanding.toFixed(2), "RSD")}
-          tone={outstanding.gt(0) ? "warn" : "ok"}
+          label={t("manager.ledger.debt")}
+          value={formatMoney(picture.debt, "RSD")}
+          tone={picture.debt === "0.00" ? "ok" : "warn"}
         />
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-sm">{t("manager.ledger.fundsTitle")}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-2 sm:grid-cols-3">
+            {picture.funds.map((fund) => (
+              <div
+                key={fund.fund}
+                className="rounded-md border border-[var(--color-border)] bg-[var(--color-surface-inset)] p-3"
+              >
+                <div className="text-xs text-[var(--color-foreground-muted)] uppercase">
+                  {t(`manager.ledger.funds.${fund.fund}`)}
+                </div>
+                <div className="mt-2 text-lg font-semibold tabular-nums">
+                  {formatMoney(fund.balance, "RSD")}
+                </div>
+                <div className="mt-1 text-xs text-[var(--color-foreground-muted)]">
+                  {t("manager.ledger.fundInflow")} {formatMoney(fund.inflow, "RSD")}
+                  {" · "}
+                  {t("manager.ledger.fundSpent")} {formatMoney(fund.spent, "RSD")}
+                </div>
+              </div>
+            ))}
+          </div>
+          <p className="mt-3 text-xs text-[var(--color-foreground-muted)]">
+            {t("manager.ledger.commonSpent")}: {formatMoney(picture.commonSpent, "RSD")}
+            {" · "}
+            {t("manager.ledger.commonWorks")}: {picture.commonWorks}
+            {picture.credit !== "0.00"
+              ? ` · ${t("manager.ledger.credit")}: ${formatMoney(picture.credit, "RSD")}`
+              : ""}
+          </p>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-sm">{t("manager.ledger.title")}</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <p className="text-sm text-[var(--color-foreground-muted)]">{t("manager.ledger.hint")}</p>
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-[var(--color-border)] text-sm">
+              <thead className="text-left text-xs tracking-wide text-[var(--color-foreground-muted)] uppercase">
+                <tr>
+                  <th className="py-2">{t("manager.units.columns.code")}</th>
+                  <th className="py-2">{t("manager.ledger.owner")}</th>
+                  <th className="py-2 text-right">{t("manager.finance.totalBilled")}</th>
+                  <th className="py-2 text-right">{t("manager.ledger.cashIn")}</th>
+                  <th className="py-2 text-right">{t("manager.ledger.adjustments")}</th>
+                  <th className="py-2 text-right">{t("manager.ledger.debt")}</th>
+                  <th className="py-2 text-right">{t("manager.ledger.works")}</th>
+                  <th className="py-2 text-right">{t("manager.ledger.spentOnUnit")}</th>
+                  <th className="py-2"></th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[var(--color-border)]">
+                {picture.units.map((unit) => (
+                  <tr key={unit.unitId}>
+                    <td className="py-2 font-mono text-xs">
+                      <Link
+                        href={`/zgrade/${id}/delovi/${unit.unitId}`}
+                        className="text-[var(--color-brand-700)] hover:underline"
+                      >
+                        {unit.code}
+                      </Link>
+                      {unit.archived ? (
+                        <span className="ml-2 text-[var(--color-foreground-muted)]">
+                          {t("manager.ledger.archived")}
+                        </span>
+                      ) : null}
+                    </td>
+                    <td className="py-2">{unit.owner ?? "—"}</td>
+                    <td className="py-2 text-right tabular-nums">
+                      {formatMoney(unit.billed, "RSD")}
+                    </td>
+                    <td className="py-2 text-right tabular-nums">
+                      {formatMoney(unit.paid, "RSD")}
+                    </td>
+                    <td className="py-2 text-right tabular-nums">
+                      {formatMoney(unit.adjustments, "RSD")}
+                    </td>
+                    <td className="py-2 text-right font-semibold tabular-nums">
+                      {formatMoney(unit.debt, "RSD")}
+                    </td>
+                    <td className="py-2 text-right tabular-nums">
+                      {unit.worksOpen}/{unit.worksTotal}
+                    </td>
+                    <td className="py-2 text-right tabular-nums">
+                      {formatMoney(unit.spentOnUnit, "RSD")}
+                    </td>
+                    <td className="py-2 text-right">
+                      <Link
+                        href={`/zgrade/${id}/delovi/${unit.unitId}`}
+                        className="text-xs text-[var(--color-brand-700)] hover:underline"
+                      >
+                        {t("manager.ledger.openCard")}
+                      </Link>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader className="flex flex-row items-center justify-between gap-3">
@@ -164,7 +268,10 @@ export default async function BuildingFinanceTab({ params }: Props) {
         <CardHeader className="flex flex-row items-center justify-between gap-3">
           <CardTitle className="text-sm">{t("manager.dues.title")}</CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-3">
+          <p className="text-xs text-[var(--color-foreground-muted)]">
+            {t("manager.ledger.recentCharges")}
+          </p>
           {charges.length === 0 ? (
             <p className="text-sm text-[var(--color-foreground-muted)]">
               {t("manager.dues.empty")}
@@ -189,7 +296,14 @@ export default async function BuildingFinanceTab({ params }: Props) {
                     const owe = (Number(c.totalAmount) - Number(c.paidAmount)).toFixed(2);
                     return (
                       <tr key={c.id}>
-                        <td className="py-2 font-mono text-xs">{c.unit.code}</td>
+                        <td className="py-2 font-mono text-xs">
+                          <Link
+                            href={`/zgrade/${id}/delovi/${c.unit.id}`}
+                            className="text-[var(--color-brand-700)] hover:underline"
+                          >
+                            {c.unit.code}
+                          </Link>
+                        </td>
                         <td className="py-2">
                           {String(c.periodYear)}-{String(c.periodMonth).padStart(2, "0")}
                         </td>
@@ -237,32 +351,11 @@ export default async function BuildingFinanceTab({ params }: Props) {
           </PermissionGuard>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid gap-2 sm:grid-cols-3">
-            {expenseSummary.length === 0 ? (
-              <p className="text-sm text-[var(--color-foreground-muted)]">
-                {t("manager.finance.expensesEmpty")}
-              </p>
-            ) : (
-              expenseSummary.map((s) => (
-                <div
-                  key={s.fund}
-                  className="rounded-md border border-[var(--color-border)] bg-[var(--color-surface-inset)] p-3"
-                >
-                  <div className="text-xs text-[var(--color-foreground-muted)] uppercase">
-                    {FUND_LABEL_SR[s.fund]}
-                  </div>
-                  <div className="text-lg font-semibold tabular-nums">
-                    {formatMoney(s.total, "RSD")}
-                  </div>
-                  <div className="text-xs text-[var(--color-foreground-muted)]">
-                    {s.count} stavki
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-
-          {expenses.length > 0 ? (
+          {expenses.length === 0 ? (
+            <p className="text-sm text-[var(--color-foreground-muted)]">
+              {t("manager.finance.expensesEmpty")}
+            </p>
+          ) : (
             <table className="min-w-full divide-y divide-[var(--color-border)] text-sm">
               <thead className="text-left text-xs tracking-wide text-[var(--color-foreground-muted)] uppercase">
                 <tr>
@@ -287,7 +380,7 @@ export default async function BuildingFinanceTab({ params }: Props) {
                 ))}
               </tbody>
             </table>
-          ) : null}
+          )}
         </CardContent>
       </Card>
     </div>

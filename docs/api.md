@@ -246,6 +246,9 @@ organization. Full module runbook: [`upravnici.md`](./upravnici.md).
   za zadati mesec (`dues.read`).
 - `POST /manager/dues/bank-statement` — `dues.bankstatement.import`
   (multipart CSV/XLSX ili JSON `{ rows: [...] }`; matching po model-97).
+- `POST /manager/units/:id/adjustments` — `dues.payment.record`;
+  korekcija duga po posebnom delu (`amount` ≠ 0, `reason`). Pozitivan
+  iznos ulazi u saldo dužnika, negativan ga smanjuje.
 - `POST /manager/dues/reminders` — `dues.reminder.send`; prima
   `{ cooldownDays?: number }` (default 7). Vraća `{ sent, failed,
   dedupedSkipped[] }`. Pokušaj se evidentira u `DuesReminderLog`.

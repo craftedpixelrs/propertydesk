@@ -23,10 +23,20 @@ const prismaMock = vi.hoisted(() => {
     findMany: vi.fn<AsyncFn>(),
     create: vi.fn<AsyncFn>(),
   };
+  const duesAdjustment = {
+    groupBy: vi.fn<AsyncFn>(),
+    create: vi.fn<AsyncFn>(),
+  };
+  const managedUnit = {
+    findMany: vi.fn<AsyncFn>(),
+    findFirst: vi.fn<AsyncFn>(),
+  };
   return {
     duesCharge,
     duesPayment,
     duesReminderLog,
+    duesAdjustment,
+    managedUnit,
     $transaction: vi.fn(async (cb: (tx: unknown) => Promise<unknown>) =>
       cb({ duesCharge, duesPayment, duesReminderLog }),
     ),
@@ -51,7 +61,13 @@ vi.mock("@/server/services/manager/buildings.service", () => ({
   assertBuildingBelongsToOrg: assertBuildingBelongsToOrgMock,
 }));
 
-import { importDuesBankStatement, sendDuesReminders, writeOffDuesCharge } from "./dues.service";
+import {
+  createDuesAdjustment,
+  importDuesBankStatement,
+  listDebtors,
+  sendDuesReminders,
+  writeOffDuesCharge,
+} from "./dues.service";
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -68,6 +84,8 @@ beforeEach(() => {
   prismaMock.duesCharge.findMany.mockResolvedValue([]);
   prismaMock.duesReminderLog.findMany.mockResolvedValue([]);
   prismaMock.duesReminderLog.create.mockResolvedValue({ id: "log-1" });
+  prismaMock.duesAdjustment.groupBy.mockResolvedValue([]);
+  prismaMock.managedUnit.findMany.mockResolvedValue([]);
 });
 
 describe("writeOffDuesCharge", () => {
@@ -471,5 +489,108 @@ describe("sendDuesReminders", () => {
     expect(result.sent).toBe(1);
     // With cooldown=0 we skip the pre-fetch entirely.
     expect(prismaMock.duesReminderLog.findMany).not.toHaveBeenCalled();
+  });
+});
+
+describe("listDebtors adjustments", () => {
+  it("adds a positive adjustment on top of open charges", async () => {
+    prismaMock.duesCharge.findMany.mockResolvedValueOnce([
+      {
+        unitId: "u-1",
+        buildingId: "b-1",
+        dueDate: new Date("2026-05-10"),
+        totalAmount: "100.00",
+        paidAmount: "0.00",
+        unit: {
+          id: "u-1",
+          code: "Stan 1",
+          ownerships: [
+            {
+              person: {
+                firstName: "Ana",
+                lastName: "Anić",
+                legalName: null,
+                email: "ana@example.test",
+                phone: null,
+              },
+            },
+          ],
+        },
+        building: { id: "b-1", name: "Zgrada" },
+      },
+    ]);
+    prismaMock.duesAdjustment.groupBy.mockResolvedValueOnce([
+      { unitId: "u-1", _sum: { amount: { toString: () => "25.50" } } },
+    ]);
+
+    const rows = await listDebtors({ organizationId: "org-1" });
+    expect(rows).toHaveLength(1);
+    expect(rows[0]?.outstanding).toBe("125.50");
+  });
+
+  it("drops a debtor whose credit wipes the open balance", async () => {
+    prismaMock.duesCharge.findMany.mockResolvedValueOnce([
+      {
+        unitId: "u-1",
+        buildingId: "b-1",
+        dueDate: new Date("2026-05-10"),
+        totalAmount: "100.00",
+        paidAmount: "40.00",
+        unit: {
+          id: "u-1",
+          code: "Stan 1",
+          ownerships: [],
+        },
+        building: { id: "b-1", name: "Zgrada" },
+      },
+    ]);
+    prismaMock.duesAdjustment.groupBy.mockResolvedValueOnce([
+      { unitId: "u-1", _sum: { amount: { toString: () => "-60.00" } } },
+    ]);
+
+    const rows = await listDebtors({ organizationId: "org-1" });
+    expect(rows).toHaveLength(0);
+  });
+});
+
+describe("createDuesAdjustment", () => {
+  it("rejects a zero amount and records a non-zero correction", async () => {
+    await expect(
+      createDuesAdjustment({
+        organizationId: "org-1",
+        actorUserId: "user-1",
+        unitId: "u-1",
+        amount: "0",
+        reason: "Prazno",
+      }),
+    ).rejects.toThrow(/nula/);
+
+    prismaMock.managedUnit.findFirst.mockResolvedValueOnce({
+      id: "u-1",
+      buildingId: "b-1",
+      code: "Stan 1",
+    });
+    prismaMock.duesAdjustment.create.mockResolvedValueOnce({ id: "adj-1" });
+
+    const row = await createDuesAdjustment({
+      organizationId: "org-1",
+      actorUserId: "user-1",
+      unitId: "u-1",
+      amount: "-15.5",
+      reason: "Avans iz prethodne godine",
+    });
+    expect(row.id).toBe("adj-1");
+    expect(prismaMock.duesAdjustment.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          unitId: "u-1",
+          amount: "-15.50",
+          reason: "Avans iz prethodne godine",
+        }),
+      }),
+    );
+    expect(auditMock.recordAudit).toHaveBeenCalledWith(
+      expect.objectContaining({ action: "manager.dues_adjustment_created", entityId: "adj-1" }),
+    );
   });
 });

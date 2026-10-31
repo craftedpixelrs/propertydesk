@@ -417,7 +417,7 @@ export const guidesSr = {
     ],
     [
       "Uplate i opomene",
-      "Uplate zavedete ručno ili iz izvoda; opomene imaju cooldown (default 7 dana) i audit u DuesReminderLog.",
+      "Uplate zavedete ručno ili iz izvoda. Kartica stana (posebni deo) sabira zaduženja, uplate, korekcije, radove i isplate. Opomene imaju cooldown (default 7 dana).",
     ],
   ]),
   debtors: page("Dužnici", [
@@ -857,7 +857,7 @@ export const guidesEn: Leaves<typeof guidesSr> = {
     ],
     [
       "Payments & reminders",
-      "Enter payments manually or from statement imports; reminders have a cooldown (default 7 days) and an audit trail in DuesReminderLog.",
+      "Enter payments manually or from a statement import. The unit card rolls up charges, payments, adjustments, works and payouts. Reminders have a cooldown (default 7 days).",
     ],
   ]),
   debtors: page("Debtors", [

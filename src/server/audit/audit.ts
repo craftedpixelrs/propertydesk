@@ -251,6 +251,7 @@ export type AuditAction =
   | "manager.dues_reminders_sent"
   | "manager.dues_writeoff"
   | "manager.dues_charge_written_off"
+  | "manager.dues_adjustment_created"
   | "manager.dues_bank_statement_imported"
   | "manager.ticket_created"
   | "manager.ticket_updated"

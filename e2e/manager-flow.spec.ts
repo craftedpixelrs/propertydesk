@@ -14,6 +14,8 @@ test.describe("manager flow — route guards", () => {
   const managerRoutes = [
     "/zgrade",
     "/zgrade/zaduzenja",
+    "/zgrade/x/delovi/y",
+    "/zgrade/x/finansije",
     "/zgrade/duznici",
     "/zgrade/kvarovi",
     "/zgrade/izvodjaci",

@@ -19,7 +19,12 @@ Better Auth tabele (`User`, `Session`, `Account`).
 3. **Vlasnici** (`Vlasnici` tab u zgradi) — upiši `BuildingPerson` (ime,
    email, telefon, adresa) i poveži sa jedinicom (`UnitOwnership` sa
    `share`). JMBG nije potreban i aplikacija ga ne traži.
-4. **Finansije zgrade** (`/zgrade/[id]/finansije`) — definiši mesečne
+4. **Finansije zgrade** (`/zgrade/[id]/finansije`) — slika po stanu
+   (zaduženo, uplate, korekcije, dug, radovi, isplate na stan) i stanje
+   fondova (uplate u fond minus isplate). Kartica stana je
+   `/zgrade/[id]/delovi/[unitId]`. Tu se vode i korekcije duga
+   (pozitivan iznos povećava dug, negativan je u korist stanara).
+   Ista stranica: mesečne
    tarife (održavanje, lift, čišćenje) iz **Tarife** sekcije. Scope: po
    zgradi / po ulazu / po tipu jedinice; basis: fiksno / po m² / po
    udelu. Ista stranica prikazuje zaduženja i troškove (`BuildingExpense`
