@@ -455,10 +455,7 @@ export const guidesSr = {
       "Na prijavi",
       "Birate ga u izmeni prijave ili uz promenu statusa. Dok ga ovde ne dodate, lista na prijavi je prazna.",
     ],
-    [
-      "Trošak",
-      "Kad zatvorite prijavu sa iznosom, isplata na izabranom fondu nosi tog izvođača.",
-    ],
+    ["Trošak", "Kad zatvorite prijavu sa iznosom, isplata na izabranom fondu nosi tog izvođača."],
   ]),
   notices: page("Obaveštenja", [
     ["Portal + email", "Birate kanale: portal, email ili oba."],
@@ -488,10 +485,7 @@ export const guidesSr = {
       "Portal",
       "Ako ostavite email, stiže link bez lozinke i važi 14 dana. Stanar nije nalog vaše firme.",
     ],
-    [
-      "Opoziv",
-      "Pošalji ponovo pravi novi link. Opozovi odmah gasi pristup.",
-    ],
+    ["Opoziv", "Pošalji ponovo pravi novi link. Opozovi odmah gasi pristup."],
   ]),
   handovers: page("Predaje zgrada", [
     ["Investitor", 'Dugme „Predaj upravniku" na stranici projekta pokreće zahtev.'],
@@ -926,10 +920,7 @@ export const guidesEn: Leaves<typeof guidesSr> = {
       "On a ticket",
       "Pick them when you edit the ticket or change its status. The list on a ticket stays empty until you add them here.",
     ],
-    [
-      "Cost",
-      "When you close a ticket with an amount, the fund payout carries that contractor.",
-    ],
+    ["Cost", "When you close a ticket with an amount, the fund payout carries that contractor."],
   ]),
   notices: page("Notices", [
     ["Portal + email", "Pick channels: portal, email, or both."],
@@ -959,10 +950,7 @@ export const guidesEn: Leaves<typeof guidesSr> = {
       "Portal",
       "If you leave an email, a link with no password arrives and lasts 14 days. A resident is not a login in your firm.",
     ],
-    [
-      "Revoke",
-      "Send again makes a new link. Revoke cuts access immediately.",
-    ],
+    ["Revoke", "Send again makes a new link. Revoke cuts access immediately."],
   ]),
   handovers: page("Handovers", [
     ["Investor", "The “Hand over to manager” button on a project starts the request."],
