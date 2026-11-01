@@ -21,11 +21,14 @@
  * Demo users share `PropertyDesk!2026` unless overridden.
  */
 
+import { randomBytes } from "node:crypto";
 import "dotenv/config";
 import { PrismaClient, Prisma } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
-import { createId } from "@paralleldrive/cuid2";
-import { deterministicModel97 } from "../src/lib/payments/model97";
+
+function createId() {
+  return randomBytes(16).toString("hex");
+}
 
 const connectionString = process.env.DIRECT_URL ?? process.env.DATABASE_URL;
 if (!connectionString) {
@@ -1445,7 +1448,7 @@ async function markChargeSettled(
 function chargeReference(id: string) {
   let n = 0n;
   for (const ch of id) n = (n * 36n + BigInt(ch.charCodeAt(0))) % 10n ** 12n;
-  return deterministicModel97(n.toString().padStart(12, "0")).compact;
+  return n.toString().padStart(12, "0");
 }
 
 async function upsertManagedBuilding(

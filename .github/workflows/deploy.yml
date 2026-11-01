@@ -165,7 +165,7 @@ jobs:
           # bi ponovo povukao "latest" ako lokalni image ima isti tag).
           IMAGE_REF: ghcr.io/${{ env.IMAGE_NAME }}@${{ needs.build-and-push.outputs.image-digest }}
         run: |
-          ssh -i ~/.ssh/id_deploy \
+          ssh -T -i ~/.ssh/id_deploy \
               -o UserKnownHostsFile=~/.ssh/known_hosts \
               -o StrictHostKeyChecking=yes \
               -o ServerAliveInterval=20 \
@@ -230,15 +230,17 @@ jobs:
           # migracije su aditivne (release-checklist pravilo), pa stari
           # app i dalje radi dok ovo traje.
           echo "==> Running migrations (idempotent, per database)"
+          # `</dev/null` je obavezan: `docker compose run` inače proguta
+          # ostatak ovog heredoca i korak se završi posle prve migracije.
           IMAGE="$IMAGE_REF" docker compose --env-file .env --env-file .env.deploy \
-            run --rm --no-deps app npx prisma migrate deploy
+            run --rm --no-deps -T app npx prisma migrate deploy </dev/null
           if [ -f .env.demo ]; then
             IMAGE="$IMAGE_REF" docker compose --env-file .env --env-file .env.deploy \
-              run --rm --no-deps app-demo npx prisma migrate deploy
+              run --rm --no-deps -T app-demo npx prisma migrate deploy </dev/null
           fi
           if [ -f .env.staging ]; then
             IMAGE="$IMAGE_REF" docker compose --env-file .env --env-file .env.deploy \
-              run --rm --no-deps app-staging npx prisma migrate deploy
+              run --rm --no-deps -T app-staging npx prisma migrate deploy </dev/null
           fi
 
           # Seedovi (idempotentni, pokreću se posle svake migracije):
@@ -260,10 +262,10 @@ jobs:
           if [ -f .env.demo ]; then
             echo "==> Seeding demo + staging DB (full seed, idempotent)"
             IMAGE="$IMAGE_REF" docker compose --env-file .env --env-file .env.deploy \
-              run --rm --no-deps \
+              run --rm --no-deps -T \
                 -e ALLOW_SEED_IN_PRODUCTION=true \
                 -e SEED_MODE=full \
-                app-demo node ./node_modules/tsx/dist/cli.mjs prisma/seed.ts
+                app-demo node ./node_modules/tsx/dist/cli.mjs prisma/seed.ts </dev/null
           else
             echo "==> Preskačem seed (nema .env.demo na ovom hostu)"
           fi
