@@ -295,11 +295,12 @@ sidebar-a i bez redirect-a na `/sign-in` — stanari uopšte nisu u Better Auth.
   `MANAGER`.
 - Lead provisioning (Property Desk) podržava `audience: "MANAGER"` → kreira
   organizaciju sa `MANAGER_OWNER` kao prvim članom.
-- Demo seed: organizacija „Upravnik Plus" sa dve zgrade, vlasnicima,
-  tarifama, jednim mesecom zaduženja, otvorenim kvarom (`BLD-00001`)
-  i zakazanom skupštinom sa dve tačke dnevnog reda. Živi u
-  funkciji `seedManagerDemoContent()` u `prisma/seed.ts` (poziva se
-  automatski kada se radi `pnpm db:seed`).
+- Demo seed: organizacija „Upravnik Plus" sa dve zgrade, stanovima,
+  garažom, lokalom i parking mestom, tarifama, otvorenim, delimično
+  plaćenim, plaćenim i otpisanom zaduženjem, izvođačima, kvarovima u
+  svim statusima, obaveštenjima, pozivnicama za portal i skupštinama
+  (zakazana, glasanje otvoreno, otkazana). Idempotentno, u
+  `seedManagerDemoContent()` u `prisma/seed.ts`. Produkcija se ne seede.
 
 ## Testovi
 

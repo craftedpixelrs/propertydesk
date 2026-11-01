@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/drawer";
 import { ApiClientError, apiClient } from "@/lib/api-client";
 import { formatDateTime } from "@/lib/formatters";
-import { Field, SelectField, TextareaField } from "./_shared/action-dialog";
+import { ActionDialog, Field, SelectField, TextareaField } from "./_shared/action-dialog";
 
 const PIPELINE: MaintenanceStatus[] = [
   "OPEN",
@@ -67,7 +67,9 @@ export interface TicketDrawerData {
   reporterEmail: string | null;
   reporterPhone: string | null;
   assigneeName: string | null;
+  supplierId: string | null;
   supplierName: string | null;
+  notices: Array<{ id: string; title: string }>;
   openedAt: string;
   closedAt: string | null;
   history: Array<{
@@ -176,6 +178,7 @@ export function TicketDrawer({
               </section>
               <History ticket={ticket} />
               <Work ticket={ticket} />
+              <Notices ticket={ticket} />
               <PermissionGuard permission="ticket.manage">
                 <TicketStatusForm
                   key={`${ticket.id}:${ticket.status}`}
@@ -267,7 +270,15 @@ function Facts({ ticket }: { ticket: TicketDrawerData }) {
           {t(`manager.ticket.categories.${ticket.category}`)}
         </span>
       </div>
-      <Fact label={t("manager.ticket.locationTitle")} value={place} />
+      <Fact
+        label={t("manager.ticket.locationTitle")}
+        value={place}
+        href={
+          ticket.unitId
+            ? `/zgrade/${ticket.buildingId}/delovi/${ticket.unitId}`
+            : `/zgrade/${ticket.buildingId}`
+        }
+      />
       <Fact label={t("manager.ticket.reporterField")} value={reporter} />
       {ticket.reporterEmail ? (
         <Fact label={t("manager.building.fields.contactEmail")} value={ticket.reporterEmail} />
@@ -279,7 +290,11 @@ function Facts({ ticket }: { ticket: TicketDrawerData }) {
         label={t("manager.ticket.assigneeField")}
         value={ticket.assigneeName ?? `— ${t("manager.ticket.noAssignee")} —`}
       />
-      <Fact label={t("manager.ticket.supplierField")} value={ticket.supplierName ?? "—"} />
+      <Fact
+        label={t("manager.ticket.supplierField")}
+        value={ticket.supplierName ?? "—"}
+        href={ticket.supplierId ? "/zgrade/izvodjaci" : undefined}
+      />
       <Fact
         label={t("manager.ticket.openedAt")}
         value={formatDateTime(ticket.openedAt, undefined, locale)}
@@ -355,11 +370,106 @@ function Work({ ticket }: { ticket: TicketDrawerData }) {
   );
 }
 
-function Fact({ label, value }: { label: string; value: string }) {
+function Notices({ ticket }: { ticket: TicketDrawerData }) {
+  const { t } = useI18n();
+  return (
+    <section className="space-y-2">
+      <div className="flex items-center justify-between gap-3">
+        <h3 className="text-sm font-medium">{t("manager.ticket.linkedNotices")}</h3>
+        <TicketNoticeButton ticket={ticket} />
+      </div>
+      {ticket.notices.length === 0 ? (
+        <p className="text-sm text-[var(--color-foreground-muted)]">
+          {t("manager.ticket.noLinkedNotices")}
+        </p>
+      ) : (
+        <ul className="space-y-1 text-sm">
+          {ticket.notices.map((notice) => (
+            <li key={notice.id}>
+              <Link
+                href={`/zgrade/obavestenja/${notice.id}`}
+                className="text-[var(--color-brand-700)] hover:underline"
+              >
+                {notice.title}
+              </Link>
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
+  );
+}
+
+function TicketNoticeButton({ ticket }: { ticket: TicketDrawerData }) {
+  const { t } = useI18n();
+  const [title, setTitle] = useState(`${ticket.code}: ${ticket.title}`);
+  const [body, setBody] = useState("");
+  const commonArea = !ticket.unitId;
+
+  return (
+    <PermissionGuard permission="notice.manage">
+      <ActionDialog
+        trigger={
+          <Button type="button" variant="outline" size="sm">
+            {t("manager.ticket.writeNotice")}
+          </Button>
+        }
+        title={t("manager.ticket.writeNotice")}
+        description={t("manager.ticket.writeNoticeHint")}
+        submitLabel={t("common.save")}
+        onSubmit={async () => {
+          const trimmedTitle = title.trim();
+          const trimmedBody = body.trim();
+          if (trimmedTitle.length < 2 || trimmedBody.length < 2) {
+            throw new Error(t("manager.ticket.writeNoticeRequired"));
+          }
+          await apiClient.post("/manager/notices", {
+            buildingId: ticket.buildingId,
+            title: trimmedTitle,
+            body: trimmedBody,
+            channel: commonArea ? "PORTAL_AND_EMAIL" : "PORTAL_ONLY",
+            audience: commonArea ? "ALL" : "SPECIFIC_UNITS",
+            audienceParams: ticket.unitId ? { unitIds: [ticket.unitId] } : {},
+            ticketId: ticket.id,
+            publishNow: true,
+          });
+          setBody("");
+        }}
+      >
+        {() => (
+          <>
+            <Field
+              id="ticket-notice-title"
+              label={t("manager.notices.titleField")}
+              value={title}
+              onChange={setTitle}
+              required
+            />
+            <TextareaField
+              id="ticket-notice-body"
+              label={t("manager.notices.bodyField")}
+              value={body}
+              onChange={setBody}
+              required
+            />
+          </>
+        )}
+      </ActionDialog>
+    </PermissionGuard>
+  );
+}
+
+function Fact({ label, value, href }: { label: string; value: string; href?: string }) {
   return (
     <div className="flex items-start justify-between gap-3 text-sm">
       <span className="shrink-0 text-[var(--color-foreground-muted)]">{label}</span>
-      <span className="text-right">{value}</span>
+      {href ? (
+        <Link href={href} className="text-right text-[var(--color-brand-700)] hover:underline">
+          {value}
+        </Link>
+      ) : (
+        <span className="text-right">{value}</span>
+      )}
     </div>
   );
 }

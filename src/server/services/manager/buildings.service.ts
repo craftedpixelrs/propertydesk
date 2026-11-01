@@ -202,6 +202,79 @@ export async function getManagedBuilding(organizationId: string, buildingId: str
   return row;
 }
 
+/** Counts that drive the four-step path on the building overview. */
+export async function getBuildingPulse(organizationId: string, buildingId: string) {
+  const whereBuilding = { organizationId, buildingId };
+  const [
+    units,
+    unitsWithoutOwner,
+    persons,
+    portalInvites,
+    tariffs,
+    openCharges,
+    openTickets,
+    liveAssemblies,
+    notices,
+  ] = await Promise.all([
+    prisma.managedUnit.count({
+      where: { ...whereBuilding, archivedAt: null },
+    }),
+    prisma.managedUnit.count({
+      where: { ...whereBuilding, archivedAt: null, ownerships: { none: {} } },
+    }),
+    prisma.buildingPerson.count({ where: whereBuilding }),
+    prisma.residentAccess.count({
+      where: {
+        organizationId,
+        status: { not: "REVOKED" },
+        unit: { buildingId },
+      },
+    }),
+    prisma.duesTariff.count({ where: { ...whereBuilding, active: true } }),
+    prisma.duesCharge.count({
+      where: { ...whereBuilding, status: { in: ["OPEN", "PARTIALLY_PAID"] } },
+    }),
+    prisma.maintenanceTicket.count({
+      where: {
+        ...whereBuilding,
+        status: { notIn: ["COMPLETED", "CANCELED"] },
+      },
+    }),
+    prisma.assembly.count({
+      where: { ...whereBuilding, status: { in: ["SCHEDULED", "OPEN_FOR_VOTING"] } },
+    }),
+    prisma.buildingNotice.count({ where: whereBuilding }),
+  ]);
+
+  return {
+    units,
+    unitsWithoutOwner,
+    persons,
+    portalInvites,
+    tariffs,
+    openCharges,
+    openTickets,
+    liveAssemblies,
+    notices,
+  };
+}
+
+/** One pulse per active building, for the manager home. */
+export async function listBuildingPulses(organizationId: string) {
+  const buildings = await prisma.managedBuilding.findMany({
+    where: { organizationId, archivedAt: null },
+    orderBy: { name: "asc" },
+    select: { id: true, name: true },
+  });
+  return Promise.all(
+    buildings.map(async (building) => ({
+      id: building.id,
+      name: building.name,
+      pulse: await getBuildingPulse(organizationId, building.id),
+    })),
+  );
+}
+
 export async function createManagedBuilding(input: CreateBuildingInput) {
   if (!input.name?.trim()) throw DomainErrors.validation("Naziv zgrade je obavezan.");
   if (!input.address?.trim()) throw DomainErrors.validation("Adresa je obavezna.");

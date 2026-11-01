@@ -53,15 +53,34 @@ function permHelp(t: TranslateFn, perm: string): string | undefined {
  * application authorization (Layer B) with the internal SaaS marketing/
  * sales team (Layer C).
  */
-type RoleLayer = "platform" | "investor" | "agency" | "property_desk";
-type PermLayerFilter = "A" | "B" | "C" | "all";
+type RoleLayer = "platform" | "investor" | "agency" | "manager" | "property_desk";
+type PermLayerFilter = "A" | "B" | "M" | "C" | "all";
 
 const PROPERTY_DESK_ROLES = new Set(["SETTER", "CLOSER", "OPERATIONS", "MANAGER"]);
+
+/** Building-manager resources. Editable per cell; not mixed into the investor list. */
+const MANAGER_RESOURCES = new Set(["building", "dues", "ticket", "assembly", "notice", "resident"]);
+
+/**
+ * Shared tenant resources a manager role actually uses. Shown together with
+ * the manager resources so the editor is the full surface, not only the
+ * building-specific keys.
+ */
+const MANAGER_CONTEXT_RESOURCES = new Set([
+  "organization",
+  "document",
+  "report",
+  "audit",
+  "billing",
+  "invitation",
+  "member",
+]);
 
 function classifyRole(role: string): RoleLayer {
   if (role === "SUPER_ADMIN") return "platform";
   if (PROPERTY_DESK_ROLES.has(role)) return "property_desk";
   if (role.startsWith("AGENCY_")) return "agency";
+  if (role.startsWith("MANAGER_")) return "manager";
   return "investor";
 }
 
@@ -71,6 +90,8 @@ function layerOfRole(role: string): PermLayerFilter {
       return "A";
     case "property_desk":
       return "C";
+    case "manager":
+      return "M";
     default:
       return "B";
   }
@@ -78,6 +99,7 @@ function layerOfRole(role: string): PermLayerFilter {
 
 function layerOfResource(resource: string): PermLayerFilter {
   if (resource.startsWith("pd_")) return "C";
+  if (MANAGER_RESOURCES.has(resource)) return "M";
   if (
     resource === "platform" ||
     resource === "billing" ||
@@ -93,6 +115,7 @@ const LAYER_BADGE_CLASS: Record<RoleLayer, string> = {
   platform: "bg-indigo-50 text-indigo-800 border-indigo-200",
   investor: "bg-emerald-50 text-emerald-800 border-emerald-200",
   agency: "bg-sky-50 text-sky-800 border-sky-200",
+  manager: "bg-amber-50 text-amber-950 border-amber-200",
   property_desk: "bg-violet-50 text-violet-800 border-violet-200",
 };
 
@@ -115,6 +138,12 @@ function layerMeta(t: TranslateFn, layer: RoleLayer) {
       description: "admin.roleMatrix.layers.agencyDesc",
       groupLabel: "admin.roleMatrix.layers.agencyGroup",
       badgeLabel: "admin.roleMatrix.layers.agencyBadge",
+    },
+    manager: {
+      title: "admin.roleMatrix.layers.managerTitle",
+      description: "admin.roleMatrix.layers.managerDesc",
+      groupLabel: "admin.roleMatrix.layers.managerGroup",
+      badgeLabel: "admin.roleMatrix.layers.managerBadge",
     },
     property_desk: {
       title: "admin.roleMatrix.layers.pdTitle",
@@ -251,6 +280,7 @@ export function RoleMatrixEditor({ matrix, groups }: Props) {
       platform: [],
       investor: [],
       agency: [],
+      manager: [],
       property_desk: [],
     };
     for (const r of matrix.roles) {
@@ -264,6 +294,11 @@ export function RoleMatrixEditor({ matrix, groups }: Props) {
 
   const visibleGroups = useMemo(() => {
     if (layerFilter === "all") return groups;
+    if (layerFilter === "M") {
+      return groups.filter(
+        (g) => layerOfResource(g.resource) === "M" || MANAGER_CONTEXT_RESOURCES.has(g.resource),
+      );
+    }
     return groups.filter((g) => layerOfResource(g.resource) === layerFilter);
   }, [groups, layerFilter]);
 
@@ -277,9 +312,15 @@ export function RoleMatrixEditor({ matrix, groups }: Props) {
   function selectLayer(next: PermLayerFilter) {
     setLayerFilter(next);
     if (next === "all") return;
+    if (next === "M") {
+      if (classifyRole(selectedRole) === "manager") return;
+      const first = groupedRoles.manager[0];
+      if (first) setSelectedRole(first);
+      return;
+    }
+    if (layerOfRole(selectedRole) === next) return;
     const roleLayer: RoleLayer =
       next === "A" ? "platform" : next === "C" ? "property_desk" : "investor";
-    if (layerOfRole(selectedRole) === next) return;
     const first =
       next === "B"
         ? (groupedRoles.investor[0] ?? groupedRoles.agency[0])
@@ -317,6 +358,15 @@ export function RoleMatrixEditor({ matrix, groups }: Props) {
           {groupedRoles.agency.length > 0 ? (
             <optgroup label={layerMeta(t, "agency").groupLabel}>
               {groupedRoles.agency.map((r) => (
+                <option key={r} value={r}>
+                  {roleLabel(t, r)}
+                </option>
+              ))}
+            </optgroup>
+          ) : null}
+          {groupedRoles.manager.length > 0 ? (
+            <optgroup label={layerMeta(t, "manager").groupLabel}>
+              {groupedRoles.manager.map((r) => (
                 <option key={r} value={r}>
                   {roleLabel(t, r)}
                 </option>
@@ -371,6 +421,11 @@ export function RoleMatrixEditor({ matrix, groups }: Props) {
           active={layerFilter === "B"}
           onClick={() => selectLayer("B")}
           label={t("admin.roleMatrix.layerB")}
+        />
+        <LayerTab
+          active={layerFilter === "M"}
+          onClick={() => selectLayer("M")}
+          label={t("admin.roleMatrix.layerM")}
         />
         <LayerTab
           active={layerFilter === "C"}

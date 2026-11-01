@@ -17,6 +17,8 @@ import {
   loadAgencyDashboard,
 } from "@/server/services/dashboard/dashboard.service";
 import { loadManagerDashboard } from "@/server/services/manager/dashboard.service";
+import { listBuildingPulses } from "@/server/services/manager/buildings.service";
+import { BuildingPathGrid } from "@/features/manager/building-path";
 import { loadOnboardingState } from "@/server/services/onboarding.service";
 import { loadWorkQueue } from "@/server/services/dashboard/work-queue.service";
 import { buildCashFlowProjection } from "@/server/services/reports/cash-flow.service";
@@ -24,7 +26,7 @@ import { OnboardingChecklist } from "@/features/onboarding/onboarding-checklist"
 import { CashFlowCard } from "@/features/reports/cash-flow-card";
 import { formatDate, formatMoney } from "@/lib/formatters";
 import type { SupportedCurrency } from "@/lib/constants/app";
-import { enumLabel, t, unitStatusLabel, type Locale } from "@/lib/i18n";
+import { createT, enumLabel, t, unitStatusLabel, type Locale } from "@/lib/i18n";
 
 export const dynamic = "force-dynamic";
 
@@ -74,8 +76,6 @@ export default async function DashboardPage() {
     );
   }
   if (ctx.activeOrganization.type === "MANAGER") {
-    // Faza 11 — placeholder dok Faza 9 ne isporuči pravi dashboard upravnika
-    // (broj zgrada i delova, naplata, dug, otvoreni kvarovi, naredne skupštine).
     return (
       <ManagerDashboard
         organizationId={ctx.activeOrganization.id}
@@ -102,7 +102,11 @@ async function ManagerDashboard({
   name: string;
   locale: Locale;
 }) {
-  const data = await loadManagerDashboard(organizationId);
+  const [data, paths] = await Promise.all([
+    loadManagerDashboard(organizationId),
+    listBuildingPulses(organizationId),
+  ]);
+  const tr = createT(locale);
   const monthLabel = `${String(data.currentMonth.month).padStart(2, "0")}/${data.currentMonth.year}`;
   const collectionRate =
     data.currentMonth.chargedTotal > 0
@@ -121,21 +125,25 @@ async function ManagerDashboard({
           label={t("nav.buildings", undefined, locale)}
           value={String(data.totals.buildings)}
           icon={<Building2 className="size-5" />}
+          href="/zgrade"
         />
         <StatCard
           label={t("manager.units.title", undefined, locale)}
           value={String(data.totals.units)}
           icon={<Users className="size-5" />}
+          href="/zgrade"
         />
         <StatCard
           label={t("nav.tickets", undefined, locale)}
           value={String(data.totals.openTickets)}
           icon={<Wrench className="size-5" />}
+          href="/zgrade/kvarovi"
         />
         <StatCard
           label={t("nav.assemblies", undefined, locale)}
           value={String(data.totals.openAssemblies)}
           icon={<Handshake className="size-5" />}
+          href="/zgrade/skupstine"
         />
       </div>
 
@@ -145,20 +153,46 @@ async function ManagerDashboard({
           value={formatMoney(data.currentMonth.chargedTotal, "RSD" as SupportedCurrency)}
           hint={`${data.currentMonth.chargeCount} ${t("manager.dues.chargeCountHint", undefined, locale)}`}
           icon={<Wallet className="size-5" />}
+          href="/zgrade/zaduzenja"
         />
         <StatCard
           label={t("manager.dues.collected", undefined, locale)}
           value={formatMoney(data.currentMonth.paidTotal, "RSD" as SupportedCurrency)}
           hint={`${collectionRate}%`}
           icon={<Wallet className="size-5" />}
+          href="/zgrade/zaduzenja"
         />
         <StatCard
           label={t("manager.debtors.outstandingTotal", undefined, locale)}
           value={formatMoney(data.debt.outstandingTotal, "RSD" as SupportedCurrency)}
           hint={`${data.debt.chargesOpen} ${t("manager.debtors.openChargesHint", undefined, locale)}`}
           icon={<Wallet className="size-5" />}
+          href="/zgrade/duznici"
         />
       </div>
+
+      {paths.length > 0 ? (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm">
+              {t("manager.dashboard.buildingPaths", undefined, locale)}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {paths.map((building) => (
+              <div key={building.id} className="space-y-3">
+                <Link
+                  href={`/zgrade/${building.id}`}
+                  className="text-sm font-medium text-[var(--color-brand-700)] hover:underline"
+                >
+                  {building.name}
+                </Link>
+                <BuildingPathGrid buildingId={building.id} pulse={building.pulse} t={tr} />
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      ) : null}
 
       <div className="grid gap-6 lg:grid-cols-2">
         <Card>
@@ -184,7 +218,7 @@ async function ManagerDashboard({
                 {data.upcomingAssemblies.map((a) => (
                   <li key={a.id} className="flex items-center justify-between py-2 text-sm">
                     <Link
-                      href={`/zgrade/skupstine`}
+                      href={`/zgrade/skupstine/${a.id}`}
                       className="font-medium text-[var(--color-brand-700)] hover:underline"
                     >
                       {a.title}
@@ -222,7 +256,12 @@ async function ManagerDashboard({
               <ul className="divide-y divide-[var(--color-border)]">
                 {data.recentTickets.map((tk) => (
                   <li key={tk.id} className="flex items-center justify-between py-2 text-sm">
-                    <span className="font-medium">{tk.title}</span>
+                    <Link
+                      href={`/zgrade/kvarovi?ticket=${tk.id}`}
+                      className="font-medium text-[var(--color-brand-700)] hover:underline"
+                    >
+                      {tk.title}
+                    </Link>
                     <span className="text-[var(--color-foreground-muted)]">{tk.buildingName}</span>
                     <span className="text-xs text-[var(--color-foreground-subtle)]">
                       {formatDate(tk.createdAt)}

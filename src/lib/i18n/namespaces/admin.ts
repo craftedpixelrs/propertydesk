@@ -121,6 +121,11 @@ export const adminSr = {
     AGENCY_ADMIN: "Administrator agencije",
     AGENCY_AGENT: "Agent",
     AGENCY_VIEWER: "Pregled (samo čitanje)",
+    MANAGER_OWNER: "Upravnik · Vlasnik",
+    MANAGER_ADMIN: "Upravnik · Administrator",
+    MANAGER_ACCOUNTANT: "Upravnik · Računovođa",
+    MANAGER_TECHNICIAN: "Upravnik · Tehničar",
+    MANAGER_VIEWER: "Upravnik · Pregled",
   },
 
   matrixRoles: {
@@ -135,8 +140,10 @@ export const adminSr = {
     AGENCY_AGENT: "Agencija · Agent",
     AGENCY_VIEWER: "Agencija · Čitač",
     MANAGER_OWNER: "Upravnik · Vlasnik",
+    MANAGER_ADMIN: "Upravnik · Administrator",
     MANAGER_ACCOUNTANT: "Upravnik · Računovođa",
     MANAGER_TECHNICIAN: "Upravnik · Tehničar",
+    MANAGER_VIEWER: "Upravnik · Pregled",
     SUPER_ADMIN: "Platforma · SUPER_ADMIN",
     SETTER: "Property Desk · Setter",
     CLOSER: "Property Desk · Closer",
@@ -200,6 +207,7 @@ export const adminSr = {
     allRoles: "Sve uloge",
     groupInvestor: "Investitor",
     groupAgency: "Agencija",
+    groupManager: "Upravnik zgrada",
     groupPd: "Property Desk (interni tim)",
     anyPdRole: "Bilo koja PD uloga",
     statusAria: "Status naloga",
@@ -262,7 +270,7 @@ export const adminSr = {
   rolesPage: {
     title: "Uređivač uloga i dozvola (platforma · aplikacija · Property Desk)",
     intro1:
-      "Ekran uređuje tri sloja autorizacije: Sloj A — Platforma (rola SUPER_ADMIN: pristup celoj platformi), Sloj B — Aplikacija (org role poput SALES_MANAGER, AGENCY_ADMIN: šta član radi unutar svoje organizacije) i Sloj C — Property Desk (interni SaaS tim: SETTER / CLOSER / OPERATIONS / MANAGER — dozvole nad pd_* resursima). Sva tri sloja se uređuju sa istog mesta: promeni rolu u padajućem meniju i onda ćeliju u tabeli.",
+      "Ekran uređuje platformu, investitora, agenciju, upravnike zgrada i Property Desk tim. Upravničke uloge su posebna grupa: vlasnik, administrator, računovođa, tehničar i pregled. Filter Upravnici pokazuje zgradu, zaduženje, kvar, skupštinu, obaveštenje i stanara, uz organizaciju, dokumente, izveštaje i naplatu. Svaka ta ćelija se dozvoljava, zabranjuje ili vraća na podrazumevano. Zaključane su samo platform.* dozvole SUPER_ADMIN-a.",
     intro2:
       'Podrazumevane dozvole dolaze iz koda (fajl roles.ts). Sve izmene se pamte u bazi kao „override" i mogu se u svakom trenutku vratiti na podrazumevano.',
     legendAllowed: "Dozvoljeno (podrazumevano)",
@@ -448,6 +456,7 @@ export const adminSr = {
     showPerms: "Prikaži dozvole:",
     layerA: "Sloj A · Platforma",
     layerB: "Sloj B · Aplikacija",
+    layerM: "Upravnici",
     layerC: "Sloj C · Property Desk",
     all: "Sve",
     groupCount: "{{groups}} grupa · {{perms}} dozvola",
@@ -482,6 +491,11 @@ export const adminSr = {
         "Uređujete aplikacionu ulogu koja se dodeljuje članu organizacije tipa agencija. Kontroliše šta korisnik radi u aplikaciji svoje organizacije. Dodela role članovima ide kroz „Podešavanja → Korisnici“, a ne odavde.",
       agencyGroup: "Aplikacione uloge — Agencija",
       agencyBadge: "Sloj B",
+      managerTitle: "Upravnici zgrada (unutar organizacije)",
+      managerDesc:
+        "Uređujete ulogu upravnika. Svaka dozvola se menja dugmadima Dozvoli, Zabrani i Podrazumevano — ništa od ovih ćelija nije zaključano. Znak pitanja pored šifre kaže šta ta dozvola otvara. Podrazumevano je početna vrednost; žuta tačka znači da je ručno promenjena. Ulogu članu dodeljujete u Podešavanja → Korisnici te upravničke organizacije, ne ovde.",
+      managerGroup: "Upravnici zgrada",
+      managerBadge: "Upravnik",
       pdTitle: "Property Desk interni tim (SaaS marketing · sales)",
       pdDesc:
         "Uređujete Property Desk internu ulogu — koristi se u našoj SaaS marketing/sales ekipi (Setter, Closer, Operativa, Menadžer). Ne meša se sa tenant Member.role — dodela se radi kroz „Property Desk → Tim“. Dozvole se odnose isključivo na `pd_*` resurse.",
@@ -504,6 +518,12 @@ export const adminSr = {
     document: "Dokumenti",
     report: "Izveštaji",
     audit: "Revizija",
+    building: "Zgrade",
+    dues: "Zaduženja",
+    ticket: "Kvarovi",
+    assembly: "Skupštine",
+    notice: "Obaveštenja",
+    resident: "Stanari",
     platform: "Platforma",
     billing: "Naplata",
     user: "Better Auth users",
@@ -533,6 +553,62 @@ export const adminSr = {
       update: "Izmena podataka postojećeg projekta.",
       delete: "Trajno brisanje projekta.",
       archive: "Arhiviranje projekta — sklanja se iz aktivnog prikaza bez brisanja podataka.",
+      handover_manager:
+        "Investitor pokreće predaju projekta ili zgrade upravniku. Upravnik je prihvata dozvolom building.handover.",
+    },
+    building: {
+      read: "Pregled zgrada, ulaza, stanova i lica. Ne menja podatke.",
+      manage:
+        "Kreiranje i izmena zgrade, ulaza, stana i lica (vlasnik, zakupac, korisnik). Arhiviranje zgrade.",
+      import: "Uvoz stanova i vlasnika iz Excel fajla.",
+      handover: "Prihvatanje zgrade koju investitor predaje ovoj upravničkoj firmi.",
+    },
+    dues: {
+      read: "Pregled zaduženja, uplata i kartice finansija stana.",
+      tariff: {
+        manage:
+          "Tarife po fondu: tekuće održavanje, investicioni fond, naknada upravniku, osiguranje i ostalo.",
+      },
+      generate: "Mesečno generisanje zaduženja za stanove.",
+      payment: {
+        record: "Ručni unos uplate na stan.",
+        reverse: "Storno već zavedene uplate.",
+      },
+      bankstatement: {
+        import: "Uvoz izvoda banke i uparivanje stavki sa zaduženjima.",
+      },
+      invoice: {
+        send: "Slanje uplatnice (PDF i email) za stan ili celu zgradu.",
+      },
+      reminder: {
+        send: "Opomena dužniku. Isti period se ne šalje dvaput.",
+      },
+      writeoff: "Otpis duga. Podrazumevano samo vlasnik upravnika.",
+    },
+    ticket: {
+      read: "Pregled prijava, statusa, istorije i dosijea.",
+      manage:
+        "Nova prijava, dodela izvođača, promena statusa, fotografije i evidencija rada. Izvođač je firma iz kataloga, nije nalog.",
+      close: "Zatvaranje prijave sa stvarnim troškom koji se knjiži na fond zgrade.",
+    },
+    assembly: {
+      read: "Pregled skupština, dnevnog reda, kvoruma i rezultata.",
+      manage: "Zakazivanje, dnevni red, otvaranje i zatvaranje glasanja, otkazivanje.",
+      vote: {
+        cast: "Glas u ime vlasnika, uživo ili po ovlašćenju. Jedan stan, jedan glas.",
+      },
+      minutes: {
+        generate: "Zapisnik u PDF. Deljenje sa stanarima je poseban korak na dokumentu.",
+      },
+    },
+    notice: {
+      read: "Pregled poslatih obaveštenja.",
+      manage:
+        "Novo obaveštenje na portal, email ili oba, za celu zgradu, jedan ulaz ili izabrane stanove.",
+    },
+    resident: {
+      read: "Pregled ko ima link za portal stanara.",
+      manage: "Slanje i opoziv linka za portal. Stanar nije nalog firme i ne zauzima mesto člana.",
     },
     inventory: {
       read: "Pregled jedinica i trenutnog stanja zaliha.",
@@ -1556,6 +1632,11 @@ export const adminEn: Leaves<typeof adminSr> = {
     AGENCY_ADMIN: "Agency administrator",
     AGENCY_AGENT: "Agent",
     AGENCY_VIEWER: "View only",
+    MANAGER_OWNER: "Manager · Owner",
+    MANAGER_ADMIN: "Manager · Administrator",
+    MANAGER_ACCOUNTANT: "Manager · Accountant",
+    MANAGER_TECHNICIAN: "Manager · Technician",
+    MANAGER_VIEWER: "Manager · Viewer",
   },
 
   matrixRoles: {
@@ -1570,8 +1651,10 @@ export const adminEn: Leaves<typeof adminSr> = {
     AGENCY_AGENT: "Agency · Agent",
     AGENCY_VIEWER: "Agency · Viewer",
     MANAGER_OWNER: "Manager · Owner",
+    MANAGER_ADMIN: "Manager · Administrator",
     MANAGER_ACCOUNTANT: "Manager · Accountant",
     MANAGER_TECHNICIAN: "Manager · Technician",
+    MANAGER_VIEWER: "Manager · Viewer",
     SUPER_ADMIN: "Platform · SUPER_ADMIN",
     SETTER: "Property Desk · Setter",
     CLOSER: "Property Desk · Closer",
@@ -1635,6 +1718,7 @@ export const adminEn: Leaves<typeof adminSr> = {
     allRoles: "All roles",
     groupInvestor: "Investor",
     groupAgency: "Agency",
+    groupManager: "Building manager",
     groupPd: "Property Desk (internal team)",
     anyPdRole: "Any PD role",
     statusAria: "Account status",
@@ -1697,7 +1781,7 @@ export const adminEn: Leaves<typeof adminSr> = {
   rolesPage: {
     title: "Role and permission editor (platform · app · Property Desk)",
     intro1:
-      "This screen edits three authorization layers: Layer A — Platform (SUPER_ADMIN: access to the whole platform), Layer B — Application (org roles such as SALES_MANAGER, AGENCY_ADMIN: what a member does inside their organization), and Layer C — Property Desk (internal SaaS team: SETTER / CLOSER / OPERATIONS / MANAGER — permissions on pd_* resources). All three layers are edited in one place: change the role in the dropdown, then the cell in the table.",
+      "This screen edits the platform, investors, agencies, building managers, and the Property Desk team. Manager roles are their own group: owner, administrator, accountant, technician, and viewer. The Managers filter lists the building, dues, tickets, assemblies, notices, and residents, plus organization, documents, reports, and billing. Every one of those cells can be allowed, denied, or reset to the default. Only SUPER_ADMIN platform.* permissions are locked.",
     intro2:
       "Default permissions come from code (the roles.ts file). Changes are stored in the database as an “override” and can be reset to the default at any time.",
     legendAllowed: "Allowed (default)",
@@ -1885,6 +1969,7 @@ export const adminEn: Leaves<typeof adminSr> = {
     showPerms: "Show permissions:",
     layerA: "Layer A · Platform",
     layerB: "Layer B · Application",
+    layerM: "Managers",
     layerC: "Layer C · Property Desk",
     all: "All",
     groupCount: "{{groups}} groups · {{perms}} permissions",
@@ -1919,6 +2004,11 @@ export const adminEn: Leaves<typeof adminSr> = {
         "You are editing an application role assigned to a member of an agency organization. It controls what the user does in their organization’s app. Roles are assigned through “Settings → Users”, not from here.",
       agencyGroup: "Application roles — Agency",
       agencyBadge: "Layer B",
+      managerTitle: "Building managers (inside the organization)",
+      managerDesc:
+        "You are editing a building-manager role. Each permission is changed with Allow, Deny, and Default — none of these cells is locked. The question mark next to the code says what that permission opens. Default is the starting value; an amber dot means it was changed by hand. Assign the role to a member in Settings → Users of that manager organization, not here.",
+      managerGroup: "Building managers",
+      managerBadge: "Manager",
       pdTitle: "Property Desk internal team (SaaS marketing · sales)",
       pdDesc:
         "You are editing a Property Desk internal role — used by our SaaS marketing/sales team (Setter, Closer, Operations, Manager). It is separate from tenant Member.role — assignment is done through “Property Desk → Team”. Permissions apply only to `pd_*` resources.",
@@ -1941,6 +2031,12 @@ export const adminEn: Leaves<typeof adminSr> = {
     document: "Documents",
     report: "Reports",
     audit: "Audit",
+    building: "Buildings",
+    dues: "Dues",
+    ticket: "Tickets",
+    assembly: "Assemblies",
+    notice: "Notices",
+    resident: "Residents",
     platform: "Platform",
     billing: "Billing",
     user: "Better Auth users",
@@ -1969,6 +2065,63 @@ export const adminEn: Leaves<typeof adminSr> = {
       update: "Edit an existing project.",
       delete: "Permanently delete a project.",
       archive: "Archive a project — hide it from the active view without deleting data.",
+      handover_manager:
+        "The investor starts a handover of a project or building to a manager. The manager accepts it with building.handover.",
+    },
+    building: {
+      read: "View buildings, entrances, units, and people. Does not change data.",
+      manage:
+        "Create and edit a building, entrance, unit, and person (owner, tenant, occupant). Archive a building.",
+      import: "Import units and owners from an Excel file.",
+      handover: "Accept a building an investor hands over to this manager firm.",
+    },
+    dues: {
+      read: "View charges, payments, and the unit finance card.",
+      tariff: {
+        manage:
+          "Fund tariffs: current maintenance, investment fund, manager fee, insurance, and other.",
+      },
+      generate: "Generate the monthly charges for units.",
+      payment: {
+        record: "Record a payment on a unit by hand.",
+        reverse: "Reverse a payment that was already recorded.",
+      },
+      bankstatement: {
+        import: "Import a bank statement and match lines to charges.",
+      },
+      invoice: {
+        send: "Send a payment slip (PDF and email) for a unit or the whole building.",
+      },
+      reminder: {
+        send: "Send a debt reminder. The same period is not sent twice.",
+      },
+      writeoff: "Write off a debt. Default is the manager owner only.",
+    },
+    ticket: {
+      read: "View reports, status, history, and the dossier.",
+      manage:
+        "New report, assign a contractor, change status, photos, and the work log. A contractor is a catalog firm, not a login.",
+      close: "Close a report with an actual cost posted to a building fund.",
+    },
+    assembly: {
+      read: "View assemblies, the agenda, quorum, and results.",
+      manage: "Schedule, edit the agenda, open and close voting, cancel.",
+      vote: {
+        cast: "Cast a vote for an owner, in person or by proxy. One unit, one vote.",
+      },
+      minutes: {
+        generate: "Minutes as a PDF. Sharing with residents is a separate step on the document.",
+      },
+    },
+    notice: {
+      read: "View sent notices.",
+      manage:
+        "New notice on the portal, by email, or both, for the whole building, one entrance, or selected units.",
+    },
+    resident: {
+      read: "View who has a resident-portal link.",
+      manage:
+        "Send and revoke the portal link. A resident is not a firm login and does not use a member seat.",
     },
     inventory: {
       read: "View units and current inventory.",

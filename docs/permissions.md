@@ -65,12 +65,17 @@ places each resource:
 | Layer | Filter | Resources |
 |-------|--------|-----------|
 | A — Platforma | `platform`, `billing`, `user`, `session` | Account access, SaaS billing, Better Auth admin |
-| B — Aplikacija | everything else | Tenant CRM, including the evidence actions below |
+| B — Aplikacija | investor and agency resources | Tenant CRM, including the evidence actions below |
+| Upravnici | `building`, `dues`, `ticket`, `assembly`, `notice`, `resident`, plus organization, documents, reports, audit, billing, invitations | Building-manager roles. Every cell is editable (Allow / Deny / Default). Only `SUPER_ADMIN` + `platform.*` stays locked. |
 | C — Property Desk | `pd_*` | Internal SaaS sales team only |
 
-New tenant features belong in layer B. Do not add `pd_*` keys for
-investor or agency work. Labels come from `admin.resource.*` and
-`admin.permHelp.*` (Serbian and English must stay in lockstep).
+Manager roles (`MANAGER_OWNER`, `MANAGER_ADMIN`, `MANAGER_ACCOUNTANT`,
+`MANAGER_TECHNICIAN`, `MANAGER_VIEWER`) are their own dropdown group, not
+investor roles. The question mark on each code explains what that
+permission opens. New manager features belong in that filter. Do not add
+`pd_*` keys for investor, agency, or manager work. Labels come from
+`admin.resource.*` and `admin.permHelp.*` (Serbian and English must stay
+in lockstep).
 
 Compile-time defaults live in `roles.ts`. A cell with no row in
 `role_permission_override` uses that default. Saving a cell writes one

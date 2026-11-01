@@ -13,16 +13,21 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useT } from "@/components/app/i18n-provider";
+import { useUserContext } from "@/components/app/user-context";
 import { cn } from "@/lib/utils";
 
 export function OrganizationSwitcher({ className }: { className?: string }) {
   const t = useT();
   const { data: organizations } = useListOrganizations();
   const { data: active } = useActiveOrganization();
+  const serverOrg = useUserContext()?.activeOrganization;
   const [busy, setBusy] = useState(false);
 
   const list = organizations ?? [];
-  const activeName = active?.name ?? t("organization.noOrgTitle");
+  // Better Auth's client hook arrives after paint. The server context
+  // already knows the active organization, so the header does not flash
+  // "no organization" on every navigation.
+  const activeName = active?.name ?? serverOrg?.name ?? t("organization.noOrgTitle");
 
   async function handleSelect(id: string) {
     if (busy || id === active?.id) return;

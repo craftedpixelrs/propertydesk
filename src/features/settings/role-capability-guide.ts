@@ -307,6 +307,18 @@ const MANAGER_CAPABILITIES: CapabilityRowDef[] = [
     yes: ["dues.reminder.send"],
   },
   {
+    id: "dues-reverse",
+    section: "Finansije",
+    label: "Storno uplate",
+    yes: ["dues.payment.reverse"],
+  },
+  {
+    id: "dues-writeoff",
+    section: "Finansije",
+    label: "Otpis duga",
+    yes: ["dues.writeoff"],
+  },
+  {
     id: "tickets",
     section: "Održavanje",
     label: "Kvarovi i radni nalozi",
@@ -322,9 +334,21 @@ const MANAGER_CAPABILITIES: CapabilityRowDef[] = [
   {
     id: "assemblies",
     section: "Zajednica",
-    label: "Skupštine i glasanje",
+    label: "Skupštine (dnevni red i glasanje)",
     yes: ["assembly.manage"],
     read: ["assembly.read"],
+  },
+  {
+    id: "assembly-vote",
+    section: "Zajednica",
+    label: "Glas u ime vlasnika",
+    yes: ["assembly.vote.cast"],
+  },
+  {
+    id: "assembly-minutes",
+    section: "Zajednica",
+    label: "Zapisnik skupštine (PDF)",
+    yes: ["assembly.minutes.generate"],
   },
   {
     id: "notices",
@@ -352,6 +376,12 @@ const MANAGER_CAPABILITIES: CapabilityRowDef[] = [
     section: "Ostalo",
     label: "Izveštaji",
     yes: ["report.read"],
+  },
+  {
+    id: "audit",
+    section: "Ostalo",
+    label: "Revizija",
+    yes: ["audit.read"],
   },
   {
     id: "billing",

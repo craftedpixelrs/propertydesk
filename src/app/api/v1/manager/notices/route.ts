@@ -33,6 +33,7 @@ const createSchema = z.object({
     })
     .optional(),
   publishNow: z.boolean().optional(),
+  ticketId: z.string().min(1).optional(),
 });
 
 export const GET = apiHandler({}, async ({ searchParams }) => {

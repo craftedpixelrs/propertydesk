@@ -20,13 +20,21 @@ const STATUS_TONE: Record<ResidentAccessStatus, string> = {
   REVOKED: "bg-neutral-200 text-neutral-700",
 };
 
-export default async function ResidentAccessPage() {
+export default async function ResidentAccessPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ building?: string }>;
+}) {
+  const { building } = await searchParams;
   const ctx = await loadUserContext();
   requireTenantPage(ctx, { permission: "resident.read", orgType: "MANAGER" });
   const t = createT(ctx.user.locale);
 
   const [rows, buildings, units] = await Promise.all([
-    listResidentAccesses({ organizationId: ctx.activeOrganization.id }),
+    listResidentAccesses({
+      organizationId: ctx.activeOrganization.id,
+      buildingId: building || undefined,
+    }),
     prisma.managedBuilding.findMany({
       where: { organizationId: ctx.activeOrganization.id, archivedAt: null },
       select: { id: true, name: true },
@@ -96,8 +104,22 @@ export default async function ResidentAccessPage() {
                   <tr key={r.id} className="hover:bg-[var(--color-surface-inset)]">
                     <td className="px-4 py-3 font-mono text-xs">{r.email}</td>
                     <td className="px-4 py-3">{personName}</td>
-                    <td className="px-4 py-3 font-mono text-xs">{r.unit.code}</td>
-                    <td className="px-4 py-3">{r.unit.building.name}</td>
+                    <td className="px-4 py-3 font-mono text-xs">
+                      <Link
+                        href={`/zgrade/${r.unit.building.id}/delovi/${r.unit.id}`}
+                        className="text-[var(--color-brand-700)] hover:underline"
+                      >
+                        {r.unit.code}
+                      </Link>
+                    </td>
+                    <td className="px-4 py-3">
+                      <Link
+                        href={`/zgrade/${r.unit.building.id}`}
+                        className="text-[var(--color-brand-700)] hover:underline"
+                      >
+                        {r.unit.building.name}
+                      </Link>
+                    </td>
                     <td className="px-4 py-3">
                       <span
                         className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_TONE[r.status]}`}

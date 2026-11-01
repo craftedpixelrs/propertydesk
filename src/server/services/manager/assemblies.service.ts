@@ -494,7 +494,7 @@ export async function castVote(input: CastVoteInput) {
     },
     select: { id: true, participationShare: true },
   });
-  if (!unit) throw DomainErrors.notFound("Posebni deo ne pripada ovoj zgradi.");
+  if (!unit) throw DomainErrors.badRequest("Posebni deo ne pripada ovoj zgradi.");
 
   let personId = input.personId ?? null;
   if (input.actorUserId === null) {

@@ -69,6 +69,17 @@ export interface CreateBuildingNoticeInput {
 
 export async function createBuildingNotice(input: CreateBuildingNoticeInput) {
   await assertBuildingBelongsToOrg(input.organizationId, input.buildingId);
+  if (input.ticketId) {
+    const ticket = await prisma.maintenanceTicket.findFirst({
+      where: {
+        id: input.ticketId,
+        organizationId: input.organizationId,
+        buildingId: input.buildingId,
+      },
+      select: { id: true },
+    });
+    if (!ticket) throw DomainErrors.notFound("Kvar");
+  }
   const audience = input.audience ?? "ALL";
   const audienceParams = input.audienceParams ?? {};
   await assertAudienceBelongsToBuilding({

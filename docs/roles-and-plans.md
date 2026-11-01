@@ -468,8 +468,13 @@ ne vidi.
     `FINANCE`, `INVESTOR_VIEWER`
   - `AGENCY_OWNER`, `AGENCY_ADMIN`, `AGENCY_AGENT`, `AGENCY_VIEWER`
   - `MANAGER_OWNER`, `MANAGER_ADMIN`, `MANAGER_ACCOUNTANT`,
-    `MANAGER_TECHNICIAN`, `MANAGER_VIEWER` (Faza 11 — upravnici zgrada;
-    vidi `docs/upravnici.md`)
+    `MANAGER_TECHNICIAN`, `MANAGER_VIEWER` — posebna grupa **Upravnici
+    zgrada** i filter **Upravnici**. Tu su zgrada, zaduženje, kvar,
+    skupština, obaveštenje i stanar, plus organizacija, dokumenti,
+    izveštaji, revizija i pregled naplate. Znak pitanja pored šifre
+    kaže šta dozvola otvara. Svaka ćelija se dozvoljava, zabranjuje ili
+    vraća na podrazumevano. Zaključane su samo `platform.*` dozvole
+    SUPER_ADMIN-a. Vidi `docs/upravnici.md`.
   - `SUPER_ADMIN` (platformska rola — `platform.*` dozvole su zaključane
     da super-admin ne bi mogao slučajno da izgubi pristup platformi).
 - Tabela sa 4 kolone:

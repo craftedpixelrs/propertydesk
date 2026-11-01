@@ -18,6 +18,11 @@ import { notify, notifyMany } from "@/server/services/notifications.service";
 import { sendEmail } from "@/server/auth/email";
 import { appOrigin } from "@/server/http/app-origin";
 import { publishLinkedNotice } from "@/server/services/manager/notices.service";
+import {
+  ticketNoticeOriginKey,
+  ticketNoticeTitle,
+  ticketStatusLabel,
+} from "@/server/services/manager/ticket-notice";
 
 /**
  * Faza 11 — maintenance tickets ("kvarovi") + suppliers + per-fund expenses.
@@ -116,6 +121,11 @@ export async function getTicketDrawer(organizationId: string, ticketId: string) 
       supplier: { select: { id: true, name: true } },
       history: { orderBy: { createdAt: "desc" }, take: 12 },
       workEntries: { orderBy: { createdAt: "desc" }, take: 5 },
+      notices: {
+        orderBy: { createdAt: "desc" },
+        take: 12,
+        select: { id: true, title: true },
+      },
     },
   });
   if (!ticket) return null;
@@ -175,7 +185,9 @@ export async function getTicketDrawer(organizationId: string, ticketId: string) 
     reporterEmail: reporter?.email ?? null,
     reporterPhone: reporter?.phone ?? null,
     assigneeName: ticket.assignedToUserId ? (actorName.get(ticket.assignedToUserId) ?? null) : null,
+    supplierId: ticket.supplier?.id ?? null,
     supplierName: ticket.supplier?.name ?? null,
+    notices: ticket.notices.map((notice) => ({ id: notice.id, title: notice.title })),
     openedAt: ticket.createdAt.toISOString(),
     closedAt: ticket.completedAt?.toISOString() ?? null,
     history: ticket.history.map((row) => ({
@@ -516,7 +528,7 @@ export async function changeMaintenanceStatus(input: {
       organizationId: input.organizationId,
       category: "TICKET",
       title: `Status prijave: ${updated.title}`,
-      message: `Kvar ${updated.code} je sada u statusu ${statusLabel(updated.status)}.`,
+      message: `Kvar ${updated.code} je sada u statusu ${ticketStatusLabel(updated.status)}.`,
       entityType: "MaintenanceTicket",
       entityId: updated.id,
       actionUrl,
@@ -536,7 +548,7 @@ export async function changeMaintenanceStatus(input: {
       const email = reporter?.email?.trim().toLowerCase();
       if (email && /.+@.+\..+/.test(email)) {
         const buildingName = existing.building?.name ?? "zgradi";
-        const label = statusLabel(updated.status);
+        const label = ticketStatusLabel(updated.status);
         const subject = `[${buildingName}] Prijava ${updated.code}: ${label}`;
         const greeting = reporter?.firstName ? `Poštovani ${reporter.firstName},` : "Poštovani,";
         const body =
@@ -556,9 +568,9 @@ export async function changeMaintenanceStatus(input: {
     }
   }
 
-  if (updated.status === "COMPLETED" || updated.status === "CANCELED") {
-    await publishTicketBoardNotice(updated, "closed", input.actorUserId);
-  }
+  const phase =
+    updated.status === "COMPLETED" || updated.status === "CANCELED" ? "closed" : updated.status;
+  await publishTicketBoardNotice(updated, phase, input.actorUserId, input.note);
 
   return updated;
 }
@@ -573,28 +585,27 @@ async function publishTicketBoardNotice(
     title: string;
     status: MaintenanceStatus;
   },
-  phase: "opened" | "closed",
+  phase: "opened" | "closed" | MaintenanceStatus,
   actorUserId: string | null,
+  note?: string | null,
 ) {
   const commonArea = !ticket.unitId;
-  const label =
-    phase === "opened"
-      ? "Prijavljen kvar"
-      : ticket.status === "CANCELED"
-        ? "Prijava je otkazana"
-        : "Kvar je završen";
+  const title = ticketNoticeTitle({ phase, status: ticket.status, title: ticket.title });
+  const noteLine = note?.trim() ? `\n\nNapomena: ${note.trim()}` : "";
   try {
     await publishLinkedNotice({
       organizationId: ticket.organizationId,
       actorUserId,
       buildingId: ticket.buildingId,
-      title: `${label}: ${ticket.title}`,
-      body: `${ticket.code}. ${label}.\n\n` + `Detalj: ${appOrigin()}/stanar/kvarovi/${ticket.id}`,
+      title,
+      body:
+        `${ticket.code}. ${title}.${noteLine}\n\n` +
+        `Detalj: ${appOrigin()}/stanar/kvarovi/${ticket.id}`,
       channel: commonArea ? "PORTAL_AND_EMAIL" : "PORTAL_ONLY",
       audience: commonArea ? "ALL" : "SPECIFIC_UNITS",
       audienceParams: ticket.unitId ? { unitIds: [ticket.unitId] } : {},
       ticketId: ticket.id,
-      originKey: `ticket:${ticket.id}:${phase}`,
+      originKey: ticketNoticeOriginKey(ticket.id, phase),
       publishNow: true,
     });
   } catch (err) {
@@ -671,25 +682,6 @@ export async function addMaintenanceWorkEntry(input: {
   }
 
   return entry;
-}
-
-function statusLabel(status: MaintenanceStatus): string {
-  switch (status) {
-    case "OPEN":
-      return "Otvoreno";
-    case "TRIAGED":
-      return "Prihvaćeno";
-    case "IN_PROGRESS":
-      return "U radu";
-    case "AWAITING_PARTS":
-      return "Čeka delove";
-    case "COMPLETED":
-      return "Završeno";
-    case "CANCELED":
-      return "Otkazano";
-    default:
-      return status;
-  }
 }
 
 async function nextTicketCode(organizationId: string): Promise<string> {

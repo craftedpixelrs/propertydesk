@@ -25,6 +25,7 @@ import "dotenv/config";
 import { PrismaClient, Prisma } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { createId } from "@paralleldrive/cuid2";
+import { deterministicModel97 } from "../src/lib/payments/model97";
 
 const connectionString = process.env.DIRECT_URL ?? process.env.DATABASE_URL;
 if (!connectionString) {
@@ -584,9 +585,10 @@ async function main() {
       },
     ],
   });
-  // Faza 11 — demo content for the manager org: two buildings, owners,
-  // one month of dues, an open ticket and a scheduled assembly. Idempotent
-  // via `upsert` and content filters so re-running seed is safe.
+  // Faza 11 — demo content for the manager org. Idempotent via upsert
+  // and content filters so re-running seed is safe. Showcase rows cover
+  // the statuses a manager walks on a demo (paid, partial, open ticket
+  // stages, portal invite, notice, assembly).
   await seedManagerDemoContent(managerOrg.id);
 
   // Link investor and agency (invited state)
@@ -737,14 +739,14 @@ async function seedManagerDemoContent(organizationId: string) {
   });
 
   // One open maintenance ticket for building 1
-  const existingTicket = await prisma.maintenanceTicket.findFirst({
+  let liftTicket = await prisma.maintenanceTicket.findFirst({
     where: { organizationId, buildingId: b1.id, title: "Pokvaren lift" },
   });
-  if (!existingTicket) {
+  if (!liftTicket) {
     const ticketCount = await prisma.maintenanceTicket.count({
       where: { organizationId },
     });
-    await prisma.maintenanceTicket.create({
+    liftTicket = await prisma.maintenanceTicket.create({
       data: {
         organizationId,
         buildingId: b1.id,
@@ -754,17 +756,18 @@ async function seedManagerDemoContent(organizationId: string) {
         description: "Lift se zaustavlja između spratova. Potreban servis.",
         status: "OPEN",
         priority: "HIGH",
+        category: "ELEVATOR",
       },
     });
   }
 
   // One scheduled assembly for building 1
-  const existingAssembly = await prisma.assembly.findFirst({
+  let annualAssembly = await prisma.assembly.findFirst({
     where: { organizationId, buildingId: b1.id, title: "Redovna godišnja skupština" },
   });
-  if (!existingAssembly) {
+  if (!annualAssembly) {
     const inTwoWeeks = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000);
-    await prisma.assembly.create({
+    annualAssembly = await prisma.assembly.create({
       data: {
         organizationId,
         buildingId: b1.id,
@@ -796,6 +799,653 @@ async function seedManagerDemoContent(organizationId: string) {
       },
     });
   }
+
+  await seedManagerShowcase({
+    organizationId,
+    b1,
+    b2,
+    unit1a,
+    unit1b,
+    unit2a,
+    owner1,
+    owner2,
+    owner3,
+    periodYear,
+    periodMonth,
+    liftTicket,
+    annualAssembly,
+  });
+}
+
+/**
+ * Extra demo rows so the manager walk looks lived-in: several unit types,
+ * payment states, ticket stages, a contractor, a portal invite, and notices.
+ * Every insert is skipped when its natural key already exists, so a second
+ * seed never doubles a payment or resets a status a person changed.
+ */
+async function seedManagerShowcase(input: {
+  organizationId: string;
+  b1: { id: string };
+  b2: { id: string };
+  unit1a: { id: string };
+  unit1b: { id: string };
+  unit2a: { id: string };
+  owner1: { id: string; email: string | null };
+  owner2: { id: string; email: string | null };
+  owner3: { id: string; email: string | null };
+  periodYear: number;
+  periodMonth: number;
+  liftTicket: { id: string; supplierId: string | null } | null;
+  annualAssembly: { id: string } | null;
+}) {
+  const { organizationId, b1, b2 } = input;
+  const entranceB = await ensureEntrance(b1.id, "B");
+
+  const garage = await upsertManagedUnit(organizationId, b1.id, entranceB.id, {
+    code: "GAR-01",
+    type: "GARAGE",
+    floor: -1,
+    totalArea: "14.00",
+    participationShare: "0.2",
+  });
+  const shop = await upsertManagedUnit(organizationId, b1.id, entranceB.id, {
+    code: "LOK-01",
+    type: "COMMERCIAL",
+    floor: 0,
+    totalArea: "36.00",
+    participationShare: "0.6",
+  });
+  const parking = await upsertManagedUnit(
+    organizationId,
+    b2.id,
+    (await ensureEntrance(b2.id, "A")).id,
+    {
+      code: "PG-01",
+      type: "PARKING_SPACE",
+      floor: -1,
+      totalArea: "12.50",
+      participationShare: "0.15",
+    },
+  );
+
+  const garageOwner = await upsertBuildingPerson(organizationId, b1.id, {
+    firstName: "Marko",
+    lastName: "Ilić",
+    email: "marko.ilic@stanari.test",
+    phone: "+381631110001",
+  });
+  const shopOwner = await upsertBuildingPerson(organizationId, b1.id, {
+    firstName: "Ivana",
+    lastName: "Stojanović",
+    email: "ivana.stojanovic@stanari.test",
+    phone: "+381641110002",
+  });
+  const parkingOwner = await upsertBuildingPerson(organizationId, b2.id, {
+    firstName: "Petar",
+    lastName: "Kostić",
+    email: "petar.kostic@stanari.test",
+    phone: "+381651110003",
+  });
+  await upsertOwnership(garage.id, garageOwner.id);
+  await upsertOwnership(shop.id, shopOwner.id);
+  await upsertOwnership(parking.id, parkingOwner.id);
+
+  await upsertTariff(organizationId, b1.id, {
+    name: "Investicioni fond",
+    kind: "INVESTMENT_FUND",
+    basis: "PER_SQUARE_METER",
+    amount: "15.0000",
+  });
+  await upsertTariff(organizationId, b1.id, {
+    name: "Osiguranje zgrade",
+    kind: "INSURANCE",
+    basis: "PER_UNIT",
+    amount: "180.00",
+  });
+
+  const prev =
+    input.periodMonth === 1
+      ? { year: input.periodYear - 1, month: 12 }
+      : { year: input.periodYear, month: input.periodMonth - 1 };
+
+  const paidGarage = await seedDuesForUnit(
+    organizationId,
+    b1.id,
+    garage.id,
+    prev.year,
+    prev.month,
+    {
+      CURRENT_MAINTENANCE: 420,
+      MANAGER_FEE: 500,
+    },
+  );
+  await markChargeSettled(paidGarage, "PAID", "seed:garaza-placeno");
+
+  const partialCurrent = await prisma.duesCharge.findFirst({
+    where: {
+      organizationId,
+      unitId: input.unit1a.id,
+      periodYear: input.periodYear,
+      periodMonth: input.periodMonth,
+    },
+  });
+  await markChargeSettled(partialCurrent, "PARTIALLY_PAID", "seed:stan-1a-delimicno", 1000);
+
+  await seedDuesForUnit(organizationId, b1.id, shop.id, input.periodYear, input.periodMonth, {
+    CURRENT_MAINTENANCE: 1080,
+    MANAGER_FEE: 500,
+    INSURANCE: 180,
+  });
+  const writtenOff = await seedDuesForUnit(
+    organizationId,
+    b2.id,
+    parking.id,
+    prev.year,
+    prev.month,
+    {
+      CURRENT_MAINTENANCE: 375,
+      MANAGER_FEE: 500,
+    },
+  );
+  await markChargeSettled(writtenOff, "WRITTEN_OFF", "seed:parking-otpis");
+
+  const liftCo = await upsertSupplier(organizationId, {
+    name: "Vertikal servis d.o.o.",
+    category: "ELEVATOR",
+    contactPerson: "Dragan Lazić",
+    phone: "+381112000111",
+    email: "servis@vertikal.test",
+  });
+  const plumber = await upsertSupplier(organizationId, {
+    name: "Cev i ventil",
+    category: "PLUMBING",
+    contactPerson: "Nenad Babić",
+    phone: "+381641002003",
+    email: "info@ceviventil.test",
+  });
+  await upsertSupplier(organizationId, {
+    name: "Struja plus",
+    category: "ELECTRICAL",
+    contactPerson: "Milica Ristić",
+    phone: "+381631004005",
+    email: "radovi@strujaplus.test",
+  });
+
+  const technician = await prisma.user.findUnique({
+    where: { email: "majstor@upravnikplus.test" },
+    select: { id: true },
+  });
+
+  if (input.liftTicket && !input.liftTicket.supplierId) {
+    await prisma.maintenanceTicket.update({
+      where: { id: input.liftTicket.id },
+      data: { supplierId: liftCo.id, category: "ELEVATOR" },
+    });
+  }
+
+  const leak = await ensureTicket(organizationId, {
+    buildingId: b1.id,
+    unitId: input.unit1a.id,
+    code: "BLD-00002",
+    title: "Curenje u kupatilu",
+    description: "Voda se pojavljuje ispod kade. Stanar je prijavio sa portala.",
+    category: "PLUMBING",
+    priority: "URGENT",
+    status: "TRIAGED",
+    supplierId: plumber.id,
+    reportedByPersonId: input.owner1.id,
+    estimatedCost: "18000.00",
+  });
+  const heating = await ensureTicket(organizationId, {
+    buildingId: b1.id,
+    unitId: null,
+    code: "BLD-00003",
+    title: "Hladan radijator u holu",
+    description: "Zajednički radijator na prizemlju ne greje.",
+    category: "HEATING",
+    priority: "NORMAL",
+    status: "IN_PROGRESS",
+    assignedToUserId: technician?.id ?? null,
+    estimatedCost: "9500.00",
+  });
+  await ensureTicket(organizationId, {
+    buildingId: b2.id,
+    unitId: input.unit2a.id,
+    code: "BLD-00004",
+    title: "Čeka se ventil",
+    description: "Deo je naručen, rad staje dok ne stigne.",
+    category: "PLUMBING",
+    priority: "LOW",
+    status: "AWAITING_PARTS",
+    supplierId: plumber.id,
+  });
+  const done = await ensureTicket(organizationId, {
+    buildingId: b2.id,
+    unitId: null,
+    code: "BLD-00005",
+    title: "Zamenjene sijalice u hodniku",
+    description: "LED sijalice na drugom i trećem spratu.",
+    category: "ELECTRICAL",
+    priority: "LOW",
+    status: "COMPLETED",
+    actualCost: "4200.00",
+    fund: "CURRENT_MAINTENANCE",
+    completedAt: new Date(),
+  });
+  await ensureTicket(organizationId, {
+    buildingId: b1.id,
+    unitId: shop.id,
+    code: "BLD-00006",
+    title: "Otkazana prijava fasade",
+    description: "Stanar je povukao prijavu. Nije bilo oštećenja.",
+    category: "FACADE",
+    priority: "LOW",
+    status: "CANCELED",
+  });
+
+  await ensureWorkEntry(
+    organizationId,
+    heating.id,
+    "Otvoren ventil i ispušten vazduh. Sutra provera pritiska.",
+  );
+  await ensureExpense(organizationId, {
+    buildingId: b2.id,
+    ticketId: done.id,
+    supplierId: null,
+    fund: "CURRENT_MAINTENANCE",
+    description: "Kvar BLD-00005: Zamenjene sijalice u hodniku",
+    amount: "4200.00",
+  });
+
+  await ensureNotice(organizationId, {
+    buildingId: b1.id,
+    originKey: "seed:b1:water",
+    title: "Isključenje vode u četvrtak",
+    body: "Voda će biti isključena u četvrtak od 09:00 do 13:00 zbog zamene ventila u podstanici.",
+    channel: "PORTAL_AND_EMAIL",
+    audience: "ALL",
+    published: true,
+  });
+  await ensureNotice(organizationId, {
+    buildingId: b1.id,
+    originKey: "seed:b1:stan-1a",
+    title: "Podsetnik za uplatu stana 1A",
+    body: "Na stanu 1A ostala je delimična uplata za tekući mesec. Uplatnica je na portalu.",
+    channel: "PORTAL_ONLY",
+    audience: "SPECIFIC_UNITS",
+    audienceParams: { unitIds: [input.unit1a.id] },
+    published: true,
+  });
+  await ensureNotice(organizationId, {
+    buildingId: b1.id,
+    originKey: "seed:b1:draft",
+    title: "Nacrt: skupljanje ključeva od podruma",
+    body: "Nacrt koji još nije objavljen. Upravnik ga vidi, stanari ne.",
+    channel: "PORTAL_ONLY",
+    audience: "ALL",
+    published: false,
+  });
+  if (input.liftTicket) {
+    await ensureNotice(organizationId, {
+      buildingId: b1.id,
+      originKey: `ticket:${input.liftTicket.id}:opened`,
+      title: "Prijavljen kvar: Pokvaren lift",
+      body: "Lift se zaustavlja između spratova. Servis je obavešten.",
+      channel: "PORTAL_AND_EMAIL",
+      audience: "ALL",
+      ticketId: input.liftTicket.id,
+      published: true,
+    });
+  }
+  if (input.annualAssembly) {
+    await ensureNotice(organizationId, {
+      buildingId: b1.id,
+      originKey: `assembly:${input.annualAssembly.id}:invite`,
+      title: "Skupština: Redovna godišnja skupština",
+      body: "Poziv na redovnu godišnju skupštinu. Dnevni red je na portalu.",
+      channel: "PORTAL_ONLY",
+      audience: "ALL",
+      assemblyId: input.annualAssembly.id,
+      published: true,
+    });
+  }
+  await ensureNotice(organizationId, {
+    buildingId: b1.id,
+    originKey: `ticket:${leak.id}:opened`,
+    title: "Prijavljen kvar: Curenje u kupatilu",
+    body: "Prijava je u trijaži. Izvođač je Cev i ventil.",
+    channel: "PORTAL_ONLY",
+    audience: "SPECIFIC_UNITS",
+    audienceParams: { unitIds: [input.unit1a.id] },
+    ticketId: leak.id,
+    published: true,
+  });
+
+  await ensureResidentAccess({
+    organizationId,
+    personId: input.owner1.id,
+    unitId: input.unit1a.id,
+    email: input.owner1.email ?? "milan.petrovic@stanari.test",
+    status: "ACTIVE",
+  });
+  await ensureResidentAccess({
+    organizationId,
+    personId: input.owner2.id,
+    unitId: input.unit1b.id,
+    email: input.owner2.email ?? "ana.jovanovic@stanari.test",
+    status: "PENDING_INVITE",
+  });
+  await ensureResidentAccess({
+    organizationId,
+    personId: garageOwner.id,
+    unitId: garage.id,
+    email: "marko.ilic@stanari.test",
+    status: "REVOKED",
+  });
+  await ensureResidentAccess({
+    organizationId,
+    personId: input.owner3.id,
+    unitId: input.unit2a.id,
+    email: input.owner3.email ?? "jovana.nikolic@stanari.test",
+    status: "ACTIVE",
+  });
+
+  const votingAssembly = await prisma.assembly.findFirst({
+    where: { organizationId, buildingId: b2.id, title: "Vanredna skupština o osiguranju" },
+  });
+  if (!votingAssembly) {
+    const opens = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000);
+    const closes = new Date(Date.now() + 5 * 24 * 60 * 60 * 1000);
+    await prisma.assembly.create({
+      data: {
+        organizationId,
+        buildingId: b2.id,
+        code: `VS-${input.periodYear}-KMH`,
+        title: "Vanredna skupština o osiguranju",
+        type: "EXTRAORDINARY",
+        status: "OPEN_FOR_VOTING",
+        scheduledAt: opens,
+        votingOpensAt: opens,
+        votingClosesAt: closes,
+        location: "Portal stanara",
+        quorumNote: "Glasanje je evidencija, ne overen zapisnik.",
+        items: {
+          create: [
+            {
+              sortOrder: 1,
+              title: "Obnova polise osiguranja zgrade",
+              description: "Isti osiguravač, viša premija za 8%.",
+              voteKind: "DECISION",
+              majority: "SIMPLE",
+            },
+          ],
+        },
+      },
+    });
+  }
+
+  const canceled = await prisma.assembly.findFirst({
+    where: { organizationId, title: "Odložena skupština o fasadi" },
+  });
+  if (!canceled) {
+    await prisma.assembly.create({
+      data: {
+        organizationId,
+        buildingId: b1.id,
+        code: `ODL-${input.periodYear}-FAS`,
+        title: "Odložena skupština o fasadi",
+        type: "EXTRAORDINARY",
+        status: "CANCELED",
+        scheduledAt: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000),
+        location: "Hol zgrade",
+        quorumNote: "Otkazano jer nije bilo kvoruma na prvoj zakazanoj.",
+      },
+    });
+  }
+}
+
+async function upsertSupplier(
+  organizationId: string,
+  input: {
+    name: string;
+    category: "ELEVATOR" | "PLUMBING" | "ELECTRICAL";
+    contactPerson: string;
+    phone: string;
+    email: string;
+  },
+) {
+  const existing = await prisma.supplier.findFirst({
+    where: { organizationId, name: input.name, archivedAt: null },
+  });
+  if (existing) return existing;
+  return prisma.supplier.create({
+    data: {
+      organizationId,
+      buildingId: null,
+      name: input.name,
+      category: input.category,
+      contactPerson: input.contactPerson,
+      phone: input.phone,
+      email: input.email,
+    },
+  });
+}
+
+async function ensureTicket(
+  organizationId: string,
+  input: {
+    buildingId: string;
+    unitId: string | null;
+    code: string;
+    title: string;
+    description: string;
+    category: "PLUMBING" | "HEATING" | "ELECTRICAL" | "FACADE";
+    priority: "LOW" | "NORMAL" | "URGENT";
+    status: "TRIAGED" | "IN_PROGRESS" | "AWAITING_PARTS" | "COMPLETED" | "CANCELED";
+    supplierId?: string | null;
+    reportedByPersonId?: string | null;
+    assignedToUserId?: string | null;
+    estimatedCost?: string;
+    actualCost?: string;
+    fund?: "CURRENT_MAINTENANCE";
+    completedAt?: Date;
+  },
+) {
+  const existing = await prisma.maintenanceTicket.findFirst({
+    where: { organizationId, title: input.title },
+  });
+  if (existing) return existing;
+  const codeOwner = await prisma.maintenanceTicket.findFirst({
+    where: { organizationId, code: input.code },
+    select: { id: true },
+  });
+  const code = codeOwner
+    ? `BLD-${String(
+        (await prisma.maintenanceTicket.count({ where: { organizationId } })) + 1,
+      ).padStart(5, "0")}`
+    : input.code;
+  return prisma.maintenanceTicket.create({
+    data: {
+      organizationId,
+      buildingId: input.buildingId,
+      unitId: input.unitId,
+      code,
+      title: input.title,
+      description: input.description,
+      category: input.category,
+      priority: input.priority,
+      status: input.status,
+      supplierId: input.supplierId ?? null,
+      reportedByPersonId: input.reportedByPersonId ?? null,
+      assignedToUserId: input.assignedToUserId ?? null,
+      estimatedCost: input.estimatedCost ? new Prisma.Decimal(input.estimatedCost) : null,
+      actualCost: input.actualCost ? new Prisma.Decimal(input.actualCost) : null,
+      fund: input.fund ?? null,
+      completedAt: input.completedAt ?? null,
+    },
+  });
+}
+
+async function ensureWorkEntry(organizationId: string, ticketId: string, body: string) {
+  const existing = await prisma.maintenanceWorkEntry.findFirst({
+    where: { ticketId, body },
+  });
+  if (existing) return existing;
+  return prisma.maintenanceWorkEntry.create({
+    data: { organizationId, ticketId, body, visibleToResident: true },
+  });
+}
+
+async function ensureExpense(
+  organizationId: string,
+  input: {
+    buildingId: string;
+    ticketId: string;
+    supplierId: string | null;
+    fund: "CURRENT_MAINTENANCE";
+    description: string;
+    amount: string;
+  },
+) {
+  const existing = await prisma.buildingExpense.findFirst({
+    where: { organizationId, ticketId: input.ticketId, description: input.description },
+  });
+  if (existing) return existing;
+  return prisma.buildingExpense.create({
+    data: {
+      organizationId,
+      buildingId: input.buildingId,
+      ticketId: input.ticketId,
+      supplierId: input.supplierId,
+      fund: input.fund,
+      description: input.description,
+      amount: new Prisma.Decimal(input.amount),
+      currency: "RSD",
+      spentAt: new Date(),
+    },
+  });
+}
+
+async function ensureNotice(
+  organizationId: string,
+  input: {
+    buildingId: string;
+    originKey: string;
+    title: string;
+    body: string;
+    channel: "PORTAL_ONLY" | "PORTAL_AND_EMAIL" | "EMAIL_ONLY";
+    audience: "ALL" | "SPECIFIC_UNITS";
+    audienceParams?: { unitIds: string[] };
+    ticketId?: string;
+    assemblyId?: string;
+    published: boolean;
+  },
+) {
+  const existing = await prisma.buildingNotice.findFirst({
+    where: { organizationId, originKey: input.originKey },
+  });
+  if (existing) return existing;
+  return prisma.buildingNotice.create({
+    data: {
+      organizationId,
+      buildingId: input.buildingId,
+      title: input.title,
+      body: input.body,
+      channel: input.channel,
+      audience: input.audience,
+      audienceParams: (input.audienceParams ?? {}) as Prisma.InputJsonValue,
+      ticketId: input.ticketId ?? null,
+      assemblyId: input.assemblyId ?? null,
+      originKey: input.originKey,
+      publishedAt: input.published ? new Date() : null,
+    },
+  });
+}
+
+async function ensureResidentAccess(input: {
+  organizationId: string;
+  personId: string;
+  unitId: string;
+  email: string;
+  status: "ACTIVE" | "PENDING_INVITE" | "REVOKED";
+}) {
+  const email = input.email.trim().toLowerCase();
+  const existing = await prisma.residentAccess.findUnique({
+    where: { unitId_email: { unitId: input.unitId, email } },
+  });
+  if (existing) return existing;
+  return prisma.residentAccess.create({
+    data: {
+      organizationId: input.organizationId,
+      personId: input.personId,
+      unitId: input.unitId,
+      email,
+      status: input.status,
+      acceptedAt: input.status === "ACTIVE" ? new Date() : null,
+      revokedAt: input.status === "REVOKED" ? new Date() : null,
+      revokedReason: input.status === "REVOKED" ? "Demo: pristup povučen." : null,
+      inviteToken: input.status === "PENDING_INVITE" ? createId() : null,
+      inviteExpiresAt:
+        input.status === "PENDING_INVITE" ? new Date(Date.now() + 14 * 24 * 60 * 60 * 1000) : null,
+    },
+  });
+}
+
+async function markChargeSettled(
+  charge: {
+    id: string;
+    organizationId: string;
+    totalAmount: Prisma.Decimal;
+    status: string;
+    reference: string | null;
+  } | null,
+  target: "PAID" | "PARTIALLY_PAID" | "WRITTEN_OFF",
+  note: string,
+  partialAmount?: number,
+) {
+  if (!charge) return;
+  const already = await prisma.duesPayment.findFirst({
+    where: { chargeId: charge.id, notes: note },
+  });
+  if (already || charge.status === "WRITTEN_OFF" || charge.status === "PAID") return;
+  if (target === "WRITTEN_OFF") {
+    if (charge.status !== "OPEN") return;
+    await prisma.duesCharge.update({
+      where: { id: charge.id },
+      data: { status: "WRITTEN_OFF", notes: note },
+    });
+    return;
+  }
+  const payments = await prisma.duesPayment.count({ where: { chargeId: charge.id } });
+  if (payments > 0) return;
+  const total = new Prisma.Decimal(charge.totalAmount.toString());
+  const amount = target === "PAID" ? total : new Prisma.Decimal(partialAmount ?? 0);
+  if (amount.lte(0)) return;
+  await prisma.duesPayment.create({
+    data: {
+      organizationId: charge.organizationId,
+      chargeId: charge.id,
+      amount,
+      currency: "RSD",
+      paidAt: new Date(),
+      method: "BANK_TRANSFER",
+      notes: note,
+    },
+  });
+  await prisma.duesCharge.update({
+    where: { id: charge.id },
+    data: {
+      paidAmount: amount,
+      status: target,
+      reference: charge.reference ?? chargeReference(charge.id),
+    },
+  });
+}
+
+function chargeReference(id: string) {
+  let n = 0n;
+  for (const ch of id) n = (n * 36n + BigInt(ch.charCodeAt(0))) % 10n ** 12n;
+  return deterministicModel97(n.toString().padStart(12, "0")).compact;
 }
 
 async function upsertManagedBuilding(

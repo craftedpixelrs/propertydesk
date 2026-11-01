@@ -3,7 +3,8 @@ import { notFound } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PermissionGuard } from "@/components/app/permission-guard";
 import { loadUserContext, requireTenantPage } from "@/server/auth/context";
-import { getManagedBuilding } from "@/server/services/manager/buildings.service";
+import { getBuildingPulse, getManagedBuilding } from "@/server/services/manager/buildings.service";
+import { BuildingPathGrid } from "@/features/manager/building-path";
 import { isDomainError } from "@/lib/errors";
 import { createT } from "@/lib/i18n";
 import { EditBuildingDialog, ArchiveBuildingButton } from "@/features/manager/edit-building-dialog";
@@ -26,9 +27,21 @@ export default async function BuildingOverviewTab({ params }: Props) {
     if (isDomainError(err) && err.code === "NOT_FOUND") return notFound();
     throw err;
   }
+  const pulse = await getBuildingPulse(ctx.activeOrganization.id, id);
 
   return (
     <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-sm">{t("manager.building.overview.pathTitle")}</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <p className="text-sm text-[var(--color-foreground-muted)]">
+            {t("manager.building.overview.pathHint")}
+          </p>
+          <BuildingPathGrid buildingId={id} pulse={pulse} t={t} />
+        </CardContent>
+      </Card>
       <div className="flex flex-wrap justify-end gap-2">
         <PermissionGuard permission="building.manage">
           <EditBuildingDialog

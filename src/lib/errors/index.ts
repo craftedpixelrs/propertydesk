@@ -50,7 +50,18 @@ export class DomainError extends Error {
 
 /** Convenience factories for the common domain errors. */
 export const DomainErrors = {
-  notFound: (what: string): DomainError => new DomainError("NOT_FOUND", `${what} nije pronađen.`),
+  notFound: (what: string): DomainError => {
+    const trimmed = what.trim();
+    // Callers pass either a noun ("Zgrada") or a finished sentence
+    // ("Prijava nije pronađena."). Appending again produced
+    // "Prijava nije pronađena. nije pronađen."
+    const message = /nije pronađ/i.test(trimmed)
+      ? trimmed.endsWith(".")
+        ? trimmed
+        : `${trimmed}.`
+      : `${trimmed} nije pronađen.`;
+    return new DomainError("NOT_FOUND", message);
+  },
   conflict: (message: string): DomainError => new DomainError("CONFLICT", message),
   optimisticLock: (): DomainError =>
     new DomainError(

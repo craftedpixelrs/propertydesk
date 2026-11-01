@@ -9,13 +9,21 @@ import { formatDate, formatMoney } from "@/lib/formatters";
 import { createT } from "@/lib/i18n";
 import { SendRemindersDialog } from "@/features/manager/dues-actions";
 
-export default async function DebtorsPage() {
+export default async function DebtorsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ building?: string }>;
+}) {
+  const { building } = await searchParams;
   const ctx = await loadUserContext();
   requireTenantPage(ctx, { permission: "dues.read", orgType: "MANAGER" });
   const t = createT(ctx.user.locale);
 
   const [debtors, buildings] = await Promise.all([
-    listDebtors({ organizationId: ctx.activeOrganization.id }),
+    listDebtors({
+      organizationId: ctx.activeOrganization.id,
+      buildingId: building || undefined,
+    }),
     prisma.managedBuilding.findMany({
       where: { organizationId: ctx.activeOrganization.id, archivedAt: null },
       select: { id: true, name: true },
@@ -33,7 +41,7 @@ export default async function DebtorsPage() {
           </p>
         </div>
         <PermissionGuard permission="dues.reminder.send">
-          <SendRemindersDialog buildings={buildings} />
+          <SendRemindersDialog buildings={buildings} initialBuildingId={building} />
         </PermissionGuard>
       </div>
 
@@ -67,7 +75,14 @@ export default async function DebtorsPage() {
                       {d.buildingName}
                     </Link>
                   </td>
-                  <td className="px-4 py-3 font-mono text-xs">{d.unitCode}</td>
+                  <td className="px-4 py-3 font-mono text-xs">
+                    <Link
+                      href={`/zgrade/${d.buildingId}/delovi/${d.unitId}`}
+                      className="text-[var(--color-brand-700)] hover:underline"
+                    >
+                      {d.unitCode}
+                    </Link>
+                  </td>
                   <td className="px-4 py-3">{d.primaryOwner ?? "—"}</td>
                   <td className="px-4 py-3 text-right font-semibold tabular-nums">
                     {formatMoney(d.outstanding, "RSD")}

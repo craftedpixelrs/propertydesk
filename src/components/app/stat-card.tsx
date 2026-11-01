@@ -1,4 +1,5 @@
 import * as React from "react";
+import Link from "next/link";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
@@ -7,14 +8,16 @@ export interface StatCardProps {
   value: React.ReactNode;
   hint?: React.ReactNode;
   icon?: React.ReactNode;
+  href?: string;
   className?: string;
 }
 
-export function StatCard({ label, value, hint, icon, className }: StatCardProps) {
-  return (
+export function StatCard({ label, value, hint, icon, href, className }: StatCardProps) {
+  const card = (
     <Card
       className={cn(
         "@container flex min-w-0 flex-col gap-2 px-4 py-3.5 sm:px-5 sm:py-4",
+        href && "h-full transition-colors hover:border-[var(--color-brand-400)]",
         className,
       )}
     >
@@ -38,5 +41,14 @@ export function StatCard({ label, value, hint, icon, className }: StatCardProps)
         <div className="text-xs leading-snug text-[var(--color-foreground-muted)]">{hint}</div>
       ) : null}
     </Card>
+  );
+  if (!href) return card;
+  return (
+    <Link
+      href={href}
+      className="block min-w-0 rounded-xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-brand-600)]"
+    >
+      {card}
+    </Link>
   );
 }

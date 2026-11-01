@@ -11,6 +11,7 @@ import { createT } from "@/lib/i18n";
 import {
   RecordPaymentDialog,
   ReversePaymentButton,
+  SendRemindersDialog,
   WriteOffDialog,
 } from "@/features/manager/dues-actions";
 
@@ -34,7 +35,6 @@ export default async function DuesDetailPage({ params }: Props) {
 
   const owe = (Number(charge.totalAmount) - Number(charge.paidAmount)).toFixed(2);
   const reference = duesChargeReference(charge);
-  const notReversed = charge.payments.filter((p) => !p.reversed);
 
   return (
     <div className="space-y-6">
@@ -44,8 +44,18 @@ export default async function DuesDetailPage({ params }: Props) {
             {t("manager.dues.title")}
           </div>
           <h1 className="text-2xl font-semibold">
-            {charge.building.name} · {charge.unit.code} · {String(charge.periodYear)}-
-            {String(charge.periodMonth).padStart(2, "0")}
+            <Link href={`/zgrade/${charge.building.id}`} className="hover:underline">
+              {charge.building.name}
+            </Link>
+            {" · "}
+            <Link
+              href={`/zgrade/${charge.building.id}/delovi/${charge.unit.id}`}
+              className="hover:underline"
+            >
+              {charge.unit.code}
+            </Link>
+            {" · "}
+            {String(charge.periodYear)}-{String(charge.periodMonth).padStart(2, "0")}
           </h1>
           <div className="text-sm text-[var(--color-foreground-muted)]">
             Rok: {formatDate(charge.dueDate)} · Status:{" "}
@@ -69,6 +79,14 @@ export default async function DuesDetailPage({ params }: Props) {
           {charge.status !== "WRITTEN_OFF" && Number(owe) > 0 ? (
             <PermissionGuard permission="dues.writeoff">
               <WriteOffDialog chargeId={charge.id} />
+            </PermissionGuard>
+          ) : null}
+          {charge.status !== "WRITTEN_OFF" && Number(owe) > 0 ? (
+            <PermissionGuard permission="dues.reminder.send">
+              <SendRemindersDialog
+                buildings={[{ id: charge.building.id, name: charge.building.name }]}
+                initialBuildingId={charge.building.id}
+              />
             </PermissionGuard>
           ) : null}
         </div>
@@ -149,12 +167,29 @@ export default async function DuesDetailPage({ params }: Props) {
         </CardContent>
       </Card>
 
-      <Link
-        href="/zgrade/zaduzenja"
-        className="inline-block text-sm text-[var(--color-brand-700)] hover:underline"
-      >
-        ← Nazad na listu zaduženja
-      </Link>
+      <div className="flex flex-wrap gap-4 text-sm">
+        <Link
+          href={`/zgrade/${charge.building.id}/delovi/${charge.unit.id}`}
+          className="text-[var(--color-brand-700)] hover:underline"
+        >
+          {t("manager.dues.openUnit")}
+        </Link>
+        <Link
+          href={`/zgrade/${charge.building.id}/finansije`}
+          className="text-[var(--color-brand-700)] hover:underline"
+        >
+          {t("manager.building.overview.openFinance")}
+        </Link>
+        <Link
+          href={`/zgrade/duznici?building=${charge.building.id}`}
+          className="text-[var(--color-brand-700)] hover:underline"
+        >
+          {t("manager.dues.openDebtors")}
+        </Link>
+        <Link href="/zgrade/zaduzenja" className="text-[var(--color-brand-700)] hover:underline">
+          ← {t("manager.dues.title")}
+        </Link>
+      </div>
     </div>
   );
 }

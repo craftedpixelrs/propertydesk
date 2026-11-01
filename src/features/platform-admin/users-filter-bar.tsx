@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import {
   AGENCY_ROLE_NAMES,
   INVESTOR_ROLE_NAMES,
+  MANAGER_ROLE_NAMES,
   PROPERTY_DESK_ROLE_NAMES,
 } from "@/server/permissions/roles";
 import { useT } from "@/components/app/i18n-provider";
@@ -34,6 +35,11 @@ const ORG_ROLE_KEY: Record<string, TranslationKey> = {
   AGENCY_ADMIN: "admin.orgRoles.AGENCY_ADMIN",
   AGENCY_AGENT: "admin.orgRoles.AGENCY_AGENT",
   AGENCY_VIEWER: "admin.orgRoles.AGENCY_VIEWER",
+  MANAGER_OWNER: "admin.orgRoles.MANAGER_OWNER",
+  MANAGER_ADMIN: "admin.orgRoles.MANAGER_ADMIN",
+  MANAGER_ACCOUNTANT: "admin.orgRoles.MANAGER_ACCOUNTANT",
+  MANAGER_TECHNICIAN: "admin.orgRoles.MANAGER_TECHNICIAN",
+  MANAGER_VIEWER: "admin.orgRoles.MANAGER_VIEWER",
 };
 
 export interface UsersFilterValues {
@@ -127,6 +133,7 @@ export function UsersFilterBar({
         <option value="">{t("admin.allTypes")}</option>
         <option value="INVESTOR">{t("organization.types.investor")}</option>
         <option value="AGENCY">{t("organization.types.agency")}</option>
+        <option value="MANAGER">{t("organization.types.manager")}</option>
       </select>
       <select
         value={values.role}
@@ -144,6 +151,13 @@ export function UsersFilterBar({
         </optgroup>
         <optgroup label={t("admin.usersFilter.groupAgency")}>
           {AGENCY_ROLE_NAMES.map((role) => (
+            <option key={role} value={role}>
+              {ORG_ROLE_KEY[role] ? t(ORG_ROLE_KEY[role]) : role}
+            </option>
+          ))}
+        </optgroup>
+        <optgroup label={t("admin.usersFilter.groupManager")}>
+          {MANAGER_ROLE_NAMES.map((role) => (
             <option key={role} value={role}>
               {ORG_ROLE_KEY[role] ? t(ORG_ROLE_KEY[role]) : role}
             </option>

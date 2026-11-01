@@ -221,11 +221,13 @@ export function ImportBankStatementDialog({
 
 export function SendRemindersDialog({
   buildings,
+  initialBuildingId,
 }: {
   buildings: Array<{ id: string; name: string }>;
+  initialBuildingId?: string;
 }) {
   const t = useT();
-  const [buildingId, setBuildingId] = useState("");
+  const [buildingId, setBuildingId] = useState(initialBuildingId ?? "");
   const [minOutstanding, setMinOutstanding] = useState("");
   const [cooldownDays, setCooldownDays] = useState("7");
   const [summary, setSummary] = useState<{

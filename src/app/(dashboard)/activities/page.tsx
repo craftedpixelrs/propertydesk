@@ -1,4 +1,5 @@
-import { PlaceholderPage } from "@/components/app/placeholder-page";
+import { redirect } from "next/navigation";
+
 export default function Page() {
-  return <PlaceholderPage titleKey="nav.activities" />;
+  redirect("/kupci");
 }

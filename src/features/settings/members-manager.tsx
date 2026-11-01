@@ -377,6 +377,10 @@ const CAPABILITY_SECTION_KEY: Record<string, TranslationKey> = {
   Saradnja: "ops.capability.section.collaboration",
   Ostalo: "ops.capability.section.other",
   Ponuda: "ops.capability.section.offer",
+  Zgrade: "ops.capability.section.buildings",
+  Finansije: "ops.capability.section.finance",
+  Održavanje: "ops.capability.section.maintenance",
+  Zajednica: "ops.capability.section.community",
 };
 
 function RolePermissionsTable({ guide }: { guide: RoleCapabilityGuide }) {

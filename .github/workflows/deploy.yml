@@ -268,15 +268,18 @@ jobs:
             echo "==> Preskačem seed (nema .env.demo na ovom hostu)"
           fi
 
-          echo "==> Rolling out (no-build, uses pulled image)"
+          echo "==> Rolling out demo and staging (production app stays on its current image)"
           # Heredoc je `<<REMOTE` (bez quote-a), pa GitHub Actions runner
           # expand-uje svaku nenaescape-ovanu \$VAR PRE slanja na VPS. Zato
           # su obavezni \\\$ ovde — bez toga \$UP_SERVICES nestaje i
           # `docker compose up` ide bez eksplicitnih servisa, pa compose
           # pokušava da podigne i app-demo/app-staging čak i kad njihov
           # env fajl ne postoji na ovom hostu — tiha regresija.
-          UP_SERVICES="app caddy"
-          if [ -f .env.demo ]; then UP_SERVICES="\$UP_SERVICES app-demo"; fi
+          # Produkcijski `app` se ovde ne recreate-uje. Šema ide kroz
+          # `prisma migrate deploy` iznad, bez seed-a. Novi kod na my.
+          # traži posebnu odluku.
+          UP_SERVICES=""
+          if [ -f .env.demo ]; then UP_SERVICES="app-demo"; fi
           if [ -f .env.staging ]; then UP_SERVICES="\$UP_SERVICES app-staging"; fi
           echo "==> UP_SERVICES=\$UP_SERVICES"
           # --force-recreate je NUŽAN: ako je prethodni (padnuti) run već
@@ -287,16 +290,17 @@ jobs:
           IMAGE="$IMAGE_REF" docker compose --env-file .env --env-file .env.deploy \
             up -d --no-build --force-recreate --remove-orphans \$UP_SERVICES
 
-          echo "==> Waiting for healthcheck"
+          echo "==> Waiting for demo and staging healthchecks"
           healthy=0
           for i in \$(seq 1 30); do
-            status=\$(docker inspect -f '{{.State.Health.Status}}' propertydesk-app 2>/dev/null || echo "starting")
-            if [ "\$status" = "healthy" ]; then
-              echo "==> App is healthy"
+            demo_status=\$(docker inspect -f '{{.State.Health.Status}}' propertydesk-app-demo 2>/dev/null || echo "starting")
+            staging_status=\$(docker inspect -f '{{.State.Health.Status}}' propertydesk-app-staging 2>/dev/null || echo "starting")
+            if [ "\$demo_status" = "healthy" ] && [ "\$staging_status" = "healthy" ]; then
+              echo "==> Demo and staging are healthy"
               healthy=1
               break
             fi
-            echo "[\${i}/30] status=\$status, waiting..."
+            echo "[\${i}/30] demo=\$demo_status staging=\$staging_status, waiting..."
             sleep 5
           done
 
@@ -305,19 +309,21 @@ jobs:
           # u crash loop i stari je ostao da služi saobraćaj. Sada
           # eksplicitno fail-ujemo sa poslednjih 100 linija logova.
           if [ "\$healthy" -ne 1 ]; then
-            echo "::error::propertydesk-app nikad nije postao healthy posle 150s"
+            echo "::error::demo ili staging nikad nisu postali healthy posle 150s"
             echo "==> docker ps -a"
             docker ps -a --filter name=propertydesk-app
-            echo "==> docker logs propertydesk-app --tail 100"
-            docker logs propertydesk-app --tail 100 || true
+            echo "==> docker logs propertydesk-app-demo --tail 100"
+            docker logs propertydesk-app-demo --tail 100 || true
+            echo "==> docker logs propertydesk-app-staging --tail 100"
+            docker logs propertydesk-app-staging --tail 100 || true
             exit 1
           fi
 
-          # Dodatna sanity provera: image koji container stvarno vrti mora
-          # biti onaj iz ovog deploya (po digest-u). Ako Docker vrati stari
-          # image zbog cached layer-a ili .env.deploy nije pročitao $IMAGE,
-          # bolje da to vidimo kao failed deploy nego kao tihu regresiju.
-          running_image=\$(docker inspect propertydesk-app --format '{{.Image}}' 2>/dev/null || echo "unknown-running")
+          # Sanity provera je na demo kontejneru. Produkcijski app namerno
+          # ostaje na prethodnom image-u; njegov digest se samo ispisuje.
+          running_image=\$(docker inspect propertydesk-app-demo --format '{{.Image}}' 2>/dev/null || echo "unknown-running")
+          prod_image=\$(docker inspect propertydesk-app --format '{{.Image}}' 2>/dev/null || echo "unknown-prod")
+          echo "==> Production app left running \$prod_image"
           # docker image inspect (ne container inspect) ume da resolve-uje
           # ime+digest u lokalni sha256:... hash. Container inspect ne ume.
           expected_image=\$(docker image inspect "$IMAGE_REF" --format '{{.Id}}' 2>/dev/null || echo "unknown-expected")
@@ -331,7 +337,7 @@ jobs:
             exit 1
           fi
           if [ "\$running_image" != "\$expected_image" ]; then
-            echo "::error::propertydesk-app vrti \$running_image, očekivali smo \$expected_image"
+            echo "::error::propertydesk-app-demo vrti \$running_image, očekivali smo \$expected_image"
             echo "==> docker ps -a"
             docker ps -a --filter name=propertydesk-app
             echo "==> docker image ls (last 10)"
@@ -349,7 +355,7 @@ jobs:
           # deploy ne pogađa isti host koji opslužuje saobraćaj.
           vps_host=\$(hostname -f 2>/dev/null || hostname 2>/dev/null || echo unknown)
           echo "::notice title=Deploy host::\$vps_host"
-          local_health=\$(docker exec propertydesk-app wget -qO- http://127.0.0.1:3000/api/health 2>&1 || echo "exec-failed")
+          local_health=\$(docker exec propertydesk-app-demo wget -qO- http://127.0.0.1:3000/api/health 2>&1 || echo "exec-failed")
           echo "::notice title=Health response on \$vps_host::\$local_health"
           deployed_sha="${{ github.sha }}"
           deployed_short=\$(echo "\$deployed_sha" | cut -c1-12)
