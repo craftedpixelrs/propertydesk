@@ -227,7 +227,7 @@ export const CITIES: CityInfo[] = [
       },
       {
         q: "Imamo mali projekat od 15 stanova - vredi li nam PropertyDesk?",
-        a: "Vredi. Starter plan je napravljen za jedan projekat ove veličine, i razlika postaje očigledna već kod prve dvostruke rezervacije ili prvog kupca koji se izgubi u mejlu. Trenutni popust: 50% na prva 3 meseca za prijave do 15.11.2026.",
+        a: "Vredi. Starter plan je napravljen za jedan projekat ove veličine, i razlika postaje očigledna već kod prve dvostruke rezervacije ili prvog kupca koji se izgubi u mejlu. Trenutna akcija: 50% popusta prvih 6 meseci.",
       },
     ],
     neighbors: ["novi-sad", "beograd"],

@@ -286,6 +286,75 @@ describe("sidebar navigation matrix", () => {
     });
   });
 
+  describe("MANAGER demo accounts", () => {
+    const owner = [
+      "dashboard",
+      "buildings",
+      "building-dues",
+      "building-debtors",
+      "building-tickets",
+      "building-suppliers",
+      "building-assemblies",
+      "building-notices",
+      "building-residents",
+      "building-handovers",
+      "documents",
+      "reports",
+      "settings",
+    ];
+
+    it("vlasnik sees the full manager sidebar and none of the investor or agency menus", () => {
+      const keys = keysFor({
+        organizationType: "MANAGER",
+        permissions: computeOrgPermissions("MANAGER_OWNER"),
+        isSuperAdmin: false,
+      });
+      expect(keys.sort()).toEqual([...owner].sort());
+      expect(keys).not.toContain("projects");
+      expect(keys).not.toContain("sales");
+      expect(keys).not.toContain("offer");
+      expect(keys).not.toContain("platform-admin");
+    });
+
+    it("računovođa sees money and reads tickets, without suppliers or handover", () => {
+      const keys = keysFor({
+        organizationType: "MANAGER",
+        permissions: computeOrgPermissions("MANAGER_ACCOUNTANT"),
+        isSuperAdmin: false,
+      });
+      expect(keys).toEqual(
+        expect.arrayContaining([
+          "building-dues",
+          "building-debtors",
+          "building-tickets",
+          "building-assemblies",
+          "reports",
+        ]),
+      );
+      expect(keys).not.toContain("building-suppliers");
+      expect(keys).not.toContain("building-handovers");
+      expect(keys).not.toContain("projects");
+    });
+
+    it("majstor sees tickets and suppliers, and no finance, assemblies or notices", () => {
+      const keys = keysFor({
+        organizationType: "MANAGER",
+        permissions: computeOrgPermissions("MANAGER_TECHNICIAN"),
+        isSuperAdmin: false,
+      });
+      expect(keys.sort()).toEqual(
+        [
+          "dashboard",
+          "buildings",
+          "building-tickets",
+          "building-suppliers",
+          "documents",
+          "settings",
+        ].sort(),
+      );
+    });
+  });
+
   describe("AGENCY roles", () => {
     it("AGENCY_OWNER sees the full agency sidebar", () => {
       const keys = keysFor({

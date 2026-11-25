@@ -123,7 +123,10 @@ export default async function ReportsIndexPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title={t("nav.reports")} description={t("ops.reports.subtitle")} />
+      <PageHeader
+        title={t("nav.reports")}
+        description={isManager ? t("manager.reports.indexSubtitle") : t("ops.reports.subtitle")}
+      />
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {items.map((r) => (
           <Link key={r.href} href={r.href}>

@@ -51,7 +51,7 @@ export const marketingSr = {
       "Softver za upravnike zgrada: zaduženja, uplatnice sa IPS QR, kvarovi, skupštine i portal za stanare.",
     commissionsBody: "Provizija agencije za nekretnine, zaključana na dan ugovora.",
     blogBody: "Cenovnik, kapara, ugovor, primopredaja i uplate.",
-    helpBody: "Šta je spremno danas, a šta stiže posle 15.11.",
+    helpBody: "Šta je u aplikaciji danas i kako da probate demo.",
     pricingBody: "Starter, Growth i Scale. Cene u evrima.",
     faqBody: "Kratki odgovori pre nego što zakažete demo.",
     aboutBody: "Ko stoji iza PropertyDesk-a.",
@@ -59,8 +59,9 @@ export const marketingSr = {
 
   header: {
     homeAria: "{{name}} — početna",
-    signInSoonTitle: "Prijava biće dostupna nakon lansiranja 15.11.2026.",
+    signInSoonTitle: "Prijava na my.propertydesk.app",
     bookDemo: "Zakažite demo",
+    openDemo: "Otvori demo",
   },
 
   footer: {
@@ -68,7 +69,7 @@ export const marketingSr = {
       "Softver za prodaju novogradnje. Projekti, kupci, rezervacije, uplate i provizije agencija na jednom mestu.",
     bookDemo: "Zakaži 25-minutni demo",
     signIn: "Prijava na nalog",
-    launchDate: "Zvanično lansiranje: 15.11.2026.",
+    launchDate: "Aplikacija je dostupna.",
     rights: "Sva prava zadržana.",
     madeFor: "Napravljeno za srpsko tržište · sr-Latn · EUR / RSD",
     poweredBy: "Powered by",
@@ -118,7 +119,7 @@ export const marketingSr = {
       "Iza proizvoda stoji Marko Banović i CraftedPixel, softverska firma iz Srbije. Radimo sa investitorima i agencijama koje i dalje vode zalihe u Excelu i rezervacije u Viber grupama. PropertyDesk je odgovor na te iste probleme.",
     whyTitle: "Zašto sada",
     whyBody:
-      "Zvanično lansiranje je 15.11.2026. Do tada radimo sa malim brojem pilot partnera: demo, pa trial na Vašim podacima, pa onboarding. Ne otvaramo samostalnu registraciju pre lansiranja.",
+      "Aplikacija je dostupna. Demo možete otvoriti odmah, a nalog za Vašu firmu aktiviramo posle razgovora.",
     contactTitle: "Kontakt",
     contactBody:
       "Za demo, rani pristup i pitanja o proizvodu pišite na poslovnu adresu. Odgovaramo u roku od 2 radna dana.",
@@ -129,8 +130,8 @@ export const marketingSr = {
     metaTitle: "Pomoć i šta radi danas",
     // Expanded from 88 chars to ~150; also surfaces target keywords.
     metaDescription:
-      "Šta PropertyDesk - softver za prodaju novogradnje - radi danas, šta stiže posle lansiranja 15.11.2026, i detaljan Help Center vodič za operatere.",
-    title: "Šta radi danas, a šta još nije živo",
+      "Šta PropertyDesk - softver za prodaju novogradnje - radi danas, i detaljan Help Center vodič za operatere.",
+    title: "Šta radi danas",
     lead: "Pre demoa ili prijave, evo iskreno šta možete da očekujete. Detaljan vodič za svaki modul je u Help Centeru.",
     worksTitle: "U upotrebi",
     works1: "Projekti, jedinice, cene, uvoz iz Excel-a i PDF cenovnik.",
@@ -165,8 +166,8 @@ export const marketingSr = {
   },
 
   hero: {
-    launchBadge: "Lansiranje {{date}}",
-    earlyAccessBadge: "Rani pristup: 30 dana besplatno + 50% na naredna 3 meseca",
+    launchBadge: "Sada dostupno",
+    earlyAccessBadge: "50% popusta prvih 6 meseci",
     // Keep the brand headline on the title line. The primary ranking
     // keywords ("softver za prodaju stanova", "softver za prodaju
     // novogradnje") live in the subtitle immediately below so the first
@@ -214,13 +215,13 @@ export const marketingSr = {
   },
 
   offer: {
-    title: "Šta dobijate prijavom za rani pristup",
-    trialTitle: "Prvih 30 dana besplatno",
+    title: "Akcija za nove klijente",
+    trialTitle: "50% popusta prvih 6 meseci",
     trialBody:
-      "Kompletan pristup svim funkcijama plana bez obaveze plaćanja - test na Vašim projektima i podacima.",
-    discountTitle: "50% popusta na naredna 3 meseca",
+      "Polovina mesečne cene izabranog paketa tokom prvih šest meseci. Posle toga važi cena iz cenovnika.",
+    discountTitle: "50% na izabrani paket",
     discountBody:
-      "Nakon isteka trial-a, sledeća tri meseca plaćate polovinu cene odabranog plana. Popust se aktivira automatski.",
+      "Starter, Growth ili Scale. Akcija je samo ovaj popust, bez dodatnog besplatnog perioda.",
     lockTitle: "Zaključana cena 12 meseci",
     lockBody:
       "Cena Vašeg paketa se ne menja godinu dana - nema iznenađenja i poskupljenja u prvoj godini korišćenja.",
@@ -307,7 +308,7 @@ export const marketingSr = {
       "PropertyDesk gradimo direktno sa ljudima koji svakodnevno prodaju novogradnju - investitorima koji vode više projekata paralelno i agencijama koje treba da vide azurno stanje inventara u svakom trenutku.",
     pilots: "Pilot partneri",
     pilotsHint:
-      "Tražimo 3–5 investitora i agencija za pilot pre 15.11.2026. Logo ide ovde kada krenemo da radimo zajedno — ne prikazujemo izmišljene reference.",
+      "Logo ide ovde kada krenemo da radimo zajedno — ne prikazujemo izmišljene reference.",
     yourLogo: "Pilot mesto",
     pilotsCta: "Prijavite se za pilot",
     investor: "Investitor",
@@ -414,9 +415,9 @@ export const marketingSr = {
     step2Title: "25-minutni personalizovan demo",
     step2Body:
       "Kratak video poziv u kome kroz Vaše primere prolazimo ključne tokove: projekte, statuse jedinica, rezervacije, prodaje i uplate.",
-    step3Title: "30 dana besplatnog trial-a",
+    step3Title: "50% popusta prvih 6 meseci",
     step3Body:
-      "Ako Vam se dopadne, aktiviramo probni nalog sa svim funkcijama. Bez kartice, bez obaveze - test na Vašim realnim podacima.",
+      "Ako Vam se dopadne, aktiviramo nalog. Prvih šest meseci plaćate polovinu cene izabranog paketa.",
     step4Title: "60-minutni onboarding za tim",
     step4Body:
       "Nakon aktivacije trial-a zakazujemo praktični onboarding sa Vašim prodajnim timom - kroz konkretne najbolje prakse i realne scenarije.",
@@ -444,15 +445,15 @@ export const marketingSr = {
   },
 
   bonuses: {
-    until: "Sve prijave do 15.11.2026.",
-    title: "Šta tačno dobijate prijavom pre lansiranja",
-    leadStrong: "Prvih 30 dana besplatno. Nakon toga 50% popusta na naredna tri meseca.",
+    until: "Za nove klijente",
+    title: "Šta dobijate na početku",
+    leadStrong: "50% popusta prvih 6 meseci.",
     leadRest:
       "Uz to, dobijate paket bonusa koji Vam skida ceo teret prvog postavljanja i uvođenja tima u sistem - bez dodatne naplate.",
-    trialTitle: "Prvih 30 dana besplatno",
-    trialBody: "Kompletan pristup planu bez obaveze plaćanja, na Vašim realnim podacima.",
-    discountTitle: "50% popusta na naredna 3 meseca",
-    discountBody: "Polovina cene odabranog paketa u tri meseca nakon isteka trial-a.",
+    trialTitle: "50% popusta prvih 6 meseci",
+    trialBody: "Polovina mesečne cene izabranog paketa tokom prvih šest meseci.",
+    discountTitle: "Samo ovaj popust",
+    discountBody: "Akcija nema dodatni besplatni period. Posle šest meseci važi redovna cena.",
     excelTitle: "Besplatan uvoz prve Excel tabele",
     excelBody: "Vaš postojeći cenovnik / lista jedinica ubaci se u sistem umesto Vas.",
     setupTitle: "Besplatno podešavanje jednog projekta",
@@ -464,8 +465,7 @@ export const marketingSr = {
       "Odgovor na Vaše prijave u okviru istog radnog dana - direktna komunikacija sa timom.",
     lockTitle: "Zaključana cena paketa 12 meseci",
     lockBody: "Cena se ne menja godinu dana - bez poskupljenja u toku prve godine korišćenja.",
-    footnote:
-      "Rana ponuda važi za sve koji zakažu demo ili se prijave putem forme do 15.11.2026. Nakon lansiranja standardni cenovnik.",
+    footnote: "Akcija je 50% popusta prvih 6 meseci. Posle toga važi cena iz cenovnika.",
   },
 
   pricing: {
@@ -473,12 +473,10 @@ export const marketingSr = {
     title: "Jednostavno, transparentno, bez skrivenih troškova",
     subtitle:
       "Sve cene su na mesečnom nivou. Kvartalno, polugodišnje i godišnje plaćanje takođe je dostupno u aplikaciji. Bez obavezujućih ugovora - otkazivanje jednim klikom.",
-    earlyBird:
-      "Rani pristup: 30 dana besplatno + 50% na naredna 3 meseca (za prijave do 15.11.2026.)",
+    earlyBird: "50% popusta prvih 6 meseci",
     popular: "Najpopularnije",
     monthly: "/ mesečno",
-    footnote:
-      "Prvih 30 dana besplatno. Nakon toga 50% popusta na naredna tri meseca. Zaključana cena paketa 12 meseci.",
+    footnote: "50% popusta prvih 6 meseci. Posle toga važi redovna mesečna cena paketa.",
     starterName: "Starter",
     starterDescription: "Za manje projekte i pojedinačne investitore.",
     starter1: "Do 3 projekta",
@@ -523,12 +521,12 @@ export const marketingSr = {
   faq: {
     eyebrow: "Česta pitanja",
     title: "Odgovori pre nego što pitate",
-    q1: "Kada se lansira PropertyDesk?",
-    a1: "Zvanično lansiranje je 15.11.2026. Do tada je otvorena rana prijava - svi koji se prijave putem forme na ovoj stranici dobijaju obaveštenje pre javnog puštanja.",
-    q2: "Kako funkcioniše rana ponuda za prijave do 15.11.2026.?",
-    a2: "Prvih 30 dana besplatno. Nakon toga 50% popusta na naredna tri meseca. Uz to: besplatan uvoz prve Excel tabele, besplatno podešavanje jednog projekta, onboarding za tim, prioritetna podrška i zaključana cena paketa 12 meseci - bez poskupljenja u toku prve godine.",
+    q1: "Da li je PropertyDesk već dostupan?",
+    a1: "Da. Aplikacija je lansirana. Demo možete otvoriti iz navigacije, a nalog za Vašu firmu aktiviramo posle razgovora.",
+    q2: "Kako funkcioniše akcija od 50%?",
+    a2: "Prvih 6 meseci plaćate polovinu cene izabranog paketa. Nema dodatnog besplatnog perioda. Posle šest meseci važi redovna cena iz cenovnika.",
     q3: "Kako izgleda demo i koliko traje?",
-    a3: "Personalizovan demo traje 20-30 minuta (video poziv, direktno zakazivanje iz kalendara na sajtu, bez čekanja). Ako nakon toga odlučite da probate PropertyDesk, dobijate 30 dana besplatnog trial-a. Onboarding za tim (60 min) zakazuje se nakon aktivacije trial naloga - kroz konkretne primere iz Vašeg poslovanja.",
+    a3: "Personalizovan demo traje 20-30 minuta (video poziv, direktno zakazivanje iz kalendara na sajtu, bez čekanja). Možete i sami otvoriti javni demo iz navigacije. Ako nakon toga odlučite da probate PropertyDesk, prvih 6 meseci je 50% cene paketa.",
     q4: "Da li je platforma na srpskom jeziku?",
     a4: "Da. Ceo interfejs, poruke, PDF izlazi i email obaveštenja su na srpskom (latinično pismo). Ugrađena je podrška za EUR i RSD, srpski format datuma i IPS QR kod na fakturama i kaparama. Automatsko slanje u SEF je u pripremi.",
     q5: "Za koga je PropertyDesk?",
@@ -551,12 +549,12 @@ export const marketingSr = {
   },
 
   lead: {
-    eyebrow: "Rani pristup",
-    title: "Prijavite se za rani pristup i besplatnu obuku",
+    eyebrow: "Novi klijenti",
+    title: "Zakažite razgovor i obuku",
     subtitleBefore:
       "Ostavite kontakt - javljamo se u roku od 2 radna dana radi dogovora za demo i obuku u trajanju od sat vremena. Prijavljeni korisnici automatski ostvaruju pravo na",
-    subtitleStrong: "50% popusta prva 3 meseca",
-    subtitleAfter: "nakon lansiranja 15.11.2026.",
+    subtitleStrong: "50% popusta prvih 6 meseci",
+    subtitleAfter: "na izabrani paket.",
     perk1: "Bez obaveze - sve dok Vi ne odlučite drugačije.",
     perk2: "Podaci ostaju u EU, brišu se na Vaš zahtev.",
     perk3: "Obuka je nezavisna od aplikacije - koristi Vam i ako izaberete drugu platformu.",
@@ -600,8 +598,7 @@ export const marketingSr = {
 
   cta: {
     title: "Videli ste šta radi. Vidimo se na demo pozivu?",
-    subtitle:
-      "Prvih 30 dana besplatno. Nakon toga 50% popusta na naredna tri meseca. Zaključana cena paketa 12 meseci - za sve prijave do 15.11.2026.",
+    subtitle: "50% popusta prvih 6 meseci na izabrani paket. Posle toga važi redovna cena.",
   },
 
   landing: {
@@ -617,7 +614,7 @@ export const marketingSr = {
     ogHeadline: "Operativni sistem za prodaju novogradnje",
     ogSub:
       "Projekti, kupci, rezervacije, uplate i provizije agencija - sve na srpskom, sa IPS QR za kaparu i fakture.",
-    ogBadge: "Lansiranje 15.11.2026 · −50% prva 3 meseca",
+    ogBadge: "50% popusta prvih 6 meseci",
   },
 
   pages: {
@@ -625,11 +622,11 @@ export const marketingSr = {
       metaTitle: "Zakažite 25-minutni demo",
       // Shortened from 210 chars (Ahrefs flagged) to ~155.
       metaDescription:
-        "Personalizovan demo PropertyDesk-a - 25 minuta na Vašim primerima, direktno iz kalendara. Bez obaveze, sa 30 dana besplatnog trial-a nakon demoa.",
+        "Personalizovan demo PropertyDesk-a - 25 minuta na Vašim primerima, direktno iz kalendara. Javni demo možete otvoriti i sami.",
       eyebrow: "Zakažite demo",
       title: "25 minuta uživo. Vaši primeri. Bez slajdova.",
       subtitle:
-        "Odaberite termin ispod. Dobijate potvrdu i podsetnik e-mailom, sa linkom za video poziv. Ako nakon demoa odlučite da probate PropertyDesk - aktiviramo 30 dana besplatnog trial-a.",
+        "Odaberite termin ispod. Dobijate potvrdu i podsetnik e-mailom, sa linkom za video poziv. Ako nakon demoa odlučite da probate PropertyDesk, prvih 6 meseci je 50% cene paketa.",
       scrollCalendar: "Skroluj do kalendara",
       footnote: "Ili nas pozovite direktno: +381 65 43 63 142",
       bookingTitle: "Izaberite termin koji Vam odgovara",
@@ -688,7 +685,7 @@ export const marketingSr = {
         "Ako radite sa više investitora, verovatno svakom danu izgubite sat na provere dostupnosti i cenovnika. PropertyDesk uklanja to vreme.",
       ctaTitle: "Sledeći put kada Vas kupac pita za slobodne stanove - odgovorite odmah.",
       ctaSubtitle:
-        "Priključite se pilot programu za agencije. Prvih 30 dana besplatno, sa aktivnim inventarom Vaših investitora - bez integracija na Vašoj strani.",
+        "Aplikacija je dostupna agencijama. Prvih 6 meseci je 50% cene paketa, sa aktivnim inventarom Vaših investitora - bez integracija na Vašoj strani.",
       p1: "Nemate uvid u aktuelan cenovnik investitora - klijentu prodajete stan koji je već rezervisan.",
       s1: "Real-time katalog jedinica sa aktuelnim statusom (slobodno, rezervisano, prodato) direktno iz investitorovog PropertyDesk-a.",
       p2: "Rezervacija zahteva mail investitoru pa čekanje potvrde satima ili danima.",
@@ -737,7 +734,7 @@ export const marketingSr = {
       s10: "Dashboard upravnika sa KPI-jevima + 4 izveštaja (finansije, dužnici, troškovi, godišnji). Export u CSV/XLSX i godišnji PDF 'Izveštaj o radu' spreman za predsednika skupštine.",
       ctaTitle: "Zamenite tabele, Viber i papirne uplatnice jednim sistemom.",
       ctaSubtitle:
-        "Prvih 30 dana besplatno. Nakon toga paket 'Upravnik Pro' za do 10 zgrada po fiksnoj mesečnoj ceni, bez skrivenih tarifa po stanaru. Zakažite 25-minutni demo i proverite da li vam odgovara.",
+        "Paket 'Upravnik Pro' za do 10 zgrada po fiksnoj mesečnoj ceni, bez skrivenih tarifa po stanaru. Prvih 6 meseci je 50% te cene. Zakažite 25-minutni demo i proverite da li vam odgovara.",
       // Three-step flow block below the problem-solution grid.
       flowTitle: "Kako izgleda uobičajen mesec u PropertyDesk-u",
       flowSubtitle:
@@ -807,7 +804,7 @@ export const marketingSr = {
         "Excel je odličan za pojedinca. Za tim od 5 ljudi koji istovremeno vode 300 jedinica - postaje uzrok grešaka. Ovo su najčešće tačke bola.",
       ctaTitle: "Pošaljite nam Vašu Excel tabelu - postavimo Vam sistem besplatno",
       ctaSubtitle:
-        "Prijave do 15.11.2026. dobijaju besplatan uvoz prve Excel tabele i besplatno podešavanje jednog projekta. Prvih 30 dana korišćenja bez plaćanja.",
+        "Novi klijenti dobijaju besplatan uvoz prve Excel tabele i besplatno podešavanje jednog projekta. Prvih 6 meseci je 50% cene paketa.",
       p1: "Excel se otvara u više verzija - kolega prepisuje ćeliju bez znanja da ste Vi već upisali novi status.",
       s1: "Jedna baza podataka, svako radi u istom trenutku, sa audit tragom ko je i kada promenio šta.",
       p2: "Formule pucaju - jedan pogrešan copy-paste briše polovinu izračuna cena.",
@@ -1026,7 +1023,7 @@ export const marketingEn: Leaves<typeof marketingSr> = {
       "Software for building managers: dues, IPS QR payment slips, tickets, assemblies, and the resident portal.",
     commissionsBody: "An agency commission, locked on contract day.",
     blogBody: "Price lists, deposits, contracts, handover, and payments.",
-    helpBody: "What is ready today, and what arrives after 15 November.",
+    helpBody: "What is in the app today, and how to open the demo.",
     pricingBody: "Starter, Growth, and Scale. Prices in euros.",
     faqBody: "Short answers before you book a demo.",
     aboutBody: "Who is behind PropertyDesk.",
@@ -1034,8 +1031,9 @@ export const marketingEn: Leaves<typeof marketingSr> = {
 
   header: {
     homeAria: "{{name}} — home",
-    signInSoonTitle: "Sign-in will be available after launch on 15.11.2026.",
+    signInSoonTitle: "Sign in at my.propertydesk.app",
     bookDemo: "Book a demo",
+    openDemo: "Open demo",
   },
 
   footer: {
@@ -1043,7 +1041,7 @@ export const marketingEn: Leaves<typeof marketingSr> = {
       "Software for new-build sales. Projects, buyers, reservations, payments and agency commissions in one place.",
     bookDemo: "Book a 25-minute demo",
     signIn: "Sign in",
-    launchDate: "Official launch: 15.11.2026.",
+    launchDate: "The app is available.",
     rights: "All rights reserved.",
     madeFor: "Built for the Serbian market · sr-Latn · EUR / RSD",
     poweredBy: "Powered by",
@@ -1092,7 +1090,7 @@ export const marketingEn: Leaves<typeof marketingSr> = {
       "Behind the product are Marko Banović and CraftedPixel, a software company in Serbia. We work with investors and agencies that still run inventory in Excel and reservations in Viber groups. PropertyDesk is the answer to those same problems.",
     whyTitle: "Why now",
     whyBody:
-      "Official launch is 15.11.2026. Until then we work with a small number of pilot partners: demo, then a trial on your data, then onboarding. We do not open self-serve sign-up before launch.",
+      "The app is available. You can open the demo now, and we activate an account for your company after a conversation.",
     contactTitle: "Contact",
     contactBody:
       "For demo, early access and product questions write to the business address. We reply within 2 business days.",
@@ -1103,8 +1101,8 @@ export const marketingEn: Leaves<typeof marketingSr> = {
     metaTitle: "Help and what works today",
     // Expanded from 86 chars to ~150; also surfaces target keywords.
     metaDescription:
-      "What PropertyDesk - software for new-build sales - does today, what comes after the 15 November 2026 launch, and a full operator Help Center guide.",
-    title: "What works today, and what is not live yet",
+      "What PropertyDesk - software for new-build sales - does today, and a full operator Help Center guide.",
+    title: "What works today",
     lead: "Before a demo or an application, here is an honest picture of what to expect. The detailed guide for every module is in the Help Center.",
     worksTitle: "In use",
     works1: "Projects, units, prices, Excel import and a PDF price list.",
@@ -1139,8 +1137,8 @@ export const marketingEn: Leaves<typeof marketingSr> = {
   },
 
   hero: {
-    launchBadge: "Launch {{date}}",
-    earlyAccessBadge: "Early access: 30 days free + 50% off the next 3 months",
+    launchBadge: "Available now",
+    earlyAccessBadge: "50% off for the first 6 months",
     title: "The operating system for new-build sales.",
     subtitle:
       "Software for selling apartments and new builds, for investors and estate agencies. From the project and the stock, through the reservation and the contract, to payments and commissions. Built for Serbia, with an IPS QR for the deposit.",
@@ -1184,13 +1182,13 @@ export const marketingEn: Leaves<typeof marketingSr> = {
   },
 
   offer: {
-    title: "What you get by applying for early access",
-    trialTitle: "First 30 days free",
+    title: "Offer for new customers",
+    trialTitle: "50% off for the first 6 months",
     trialBody:
-      "Full access to every plan feature with no payment obligation — test it on your projects and data.",
-    discountTitle: "50% off the next 3 months",
+      "Half the monthly price of the selected plan for the first six months. After that, the listed price applies.",
+    discountTitle: "50% on the selected plan",
     discountBody:
-      "After the trial, the next three months are half the price of the selected plan. The discount applies automatically.",
+      "Starter, Growth, or Scale. The offer is only this discount, with no extra free period.",
     lockTitle: "Price locked for 12 months",
     lockBody:
       "Your plan price does not change for a year — no surprises or increases in the first year.",
@@ -1277,7 +1275,7 @@ export const marketingEn: Leaves<typeof marketingSr> = {
       "We build PropertyDesk with people who sell new builds every day — investors running several projects at once and agencies that need live inventory at all times.",
     pilots: "Pilot partners",
     pilotsHint:
-      "We are looking for 3–5 investors and agencies as pilots before 15.11.2026. A logo goes here when we start working together — we do not show invented references.",
+      "A logo goes here when we start working together — we do not show invented references.",
     yourLogo: "Pilot slot",
     pilotsCta: "Apply for a pilot",
     investor: "Investor",
@@ -1385,9 +1383,9 @@ export const marketingEn: Leaves<typeof marketingSr> = {
     step2Title: "25-minute personalised demo",
     step2Body:
       "A short video call where we walk through the key flows on your examples: projects, unit statuses, reservations, sales and payments.",
-    step3Title: "30-day free trial",
+    step3Title: "50% off for the first 6 months",
     step3Body:
-      "If you like it, we activate a trial account with every feature. No card, no obligation — a test on your real data.",
+      "If you like it, we activate the account. For the first six months you pay half the price of the selected plan.",
     step4Title: "60-minute team onboarding",
     step4Body:
       "After the trial is activated we schedule a practical onboarding with your sales team — through concrete best practices and real scenarios.",
@@ -1415,15 +1413,15 @@ export const marketingEn: Leaves<typeof marketingSr> = {
   },
 
   bonuses: {
-    until: "All applications until 15.11.2026.",
-    title: "Exactly what you get by applying before launch",
-    leadStrong: "First 30 days free. Then 50% off the next three months.",
+    until: "For new customers",
+    title: "What you get at the start",
+    leadStrong: "50% off for the first 6 months.",
     leadRest:
       "On top of that you get a bonus pack that removes the whole first-setup and team-rollout burden — at no extra charge.",
-    trialTitle: "First 30 days free",
-    trialBody: "Full plan access with no payment obligation, on your real data.",
-    discountTitle: "50% off the next 3 months",
-    discountBody: "Half the selected plan price for three months after the trial ends.",
+    trialTitle: "50% off for the first 6 months",
+    trialBody: "Half the monthly price of the selected plan for the first six months.",
+    discountTitle: "Only this discount",
+    discountBody: "The offer has no extra free period. After six months the listed price applies.",
     excelTitle: "Free import of the first Excel file",
     excelBody: "Your existing price list / unit list is loaded into the system for you.",
     setupTitle: "Free setup of one project",
@@ -1435,8 +1433,7 @@ export const marketingEn: Leaves<typeof marketingSr> = {
       "A reply to your tickets the same business day — direct communication with the team.",
     lockTitle: "Plan price locked for 12 months",
     lockBody: "The price does not change for a year — no increase during the first year.",
-    footnote:
-      "The early offer applies to everyone who books a demo or applies via the form by 15.11.2026. After launch, standard pricing applies.",
+    footnote: "The offer is 50% off for the first 6 months. After that, the listed price applies.",
   },
 
   pricing: {
@@ -1444,12 +1441,10 @@ export const marketingEn: Leaves<typeof marketingSr> = {
     title: "Simple, transparent, no hidden costs",
     subtitle:
       "All prices are monthly. Quarterly, semi-annual and annual billing is also available in the app. No binding contracts — cancel in one click.",
-    earlyBird:
-      "Early access: 30 days free + 50% off the next 3 months (for applications until 15.11.2026.)",
+    earlyBird: "50% off for the first 6 months",
     popular: "Most popular",
     monthly: "/ month",
-    footnote:
-      "First 30 days free. Then 50% off the next three months. Plan price locked for 12 months.",
+    footnote: "50% off for the first 6 months. After that, the regular monthly plan price applies.",
     starterName: "Starter",
     starterDescription: "For smaller projects and individual investors.",
     starter1: "Up to 3 projects",
@@ -1495,12 +1490,12 @@ export const marketingEn: Leaves<typeof marketingSr> = {
   faq: {
     eyebrow: "FAQ",
     title: "Answers before you ask",
-    q1: "When does PropertyDesk launch?",
-    a1: "The official launch is 15.11.2026. Until then early applications are open — everyone who applies via the form on this page is notified before the public release.",
-    q2: "How does the early offer work for applications until 15.11.2026?",
-    a2: "The first 30 days are free. Then 50% off the next three months. Plus: free import of the first Excel file, free setup of one project, team onboarding, priority support and a locked plan price for 12 months — no increase during the first year.",
+    q1: "Is PropertyDesk available now?",
+    a1: "Yes. The app has launched. You can open the demo from the navigation, and we activate an account for your company after a conversation.",
+    q2: "How does the 50% offer work?",
+    a2: "For the first 6 months you pay half the price of the selected plan. There is no extra free period. After six months the listed price applies.",
     q3: "What does the demo look like and how long is it?",
-    a3: "A personalised demo lasts 20–30 minutes (video call, booked directly from the site calendar, no waiting). If you then decide to try PropertyDesk, you get a 30-day free trial. Team onboarding (60 min) is scheduled after the trial account is activated — using concrete examples from your business.",
+    a3: "A personalised demo lasts 20–30 minutes (video call, booked directly from the site calendar, no waiting). You can also open the public demo from the navigation. If you then decide to try PropertyDesk, the first 6 months are 50% of the plan price.",
     q4: "Is the platform in Serbian?",
     a4: "Yes. The full interface, messages, PDF output and email notifications are in Serbian (Latin script). EUR and RSD, Serbian date format and IPS QR on invoices and deposits are built in. Automatic SEF submission is in preparation.",
     q5: "Who is PropertyDesk for?",
@@ -1523,12 +1518,12 @@ export const marketingEn: Leaves<typeof marketingSr> = {
   },
 
   lead: {
-    eyebrow: "Early access",
-    title: "Apply for early access and free training",
+    eyebrow: "New customers",
+    title: "Book a conversation and training",
     subtitleBefore:
       "Leave your contact — we reply within 2 business days to arrange a demo and a one-hour training. Applicants automatically get",
-    subtitleStrong: "50% off the first 3 months",
-    subtitleAfter: "after launch on 15.11.2026.",
+    subtitleStrong: "50% off for the first 6 months",
+    subtitleAfter: "on the selected plan.",
     perk1: "No obligation — until you decide otherwise.",
     perk2: "Data stays in the EU and is deleted on your request.",
     perk3:
@@ -1574,7 +1569,7 @@ export const marketingEn: Leaves<typeof marketingSr> = {
   cta: {
     title: "You've seen what it does. Shall we meet on a demo call?",
     subtitle:
-      "First 30 days free. Then 50% off the next three months. Plan price locked for 12 months — for all applications until 15.11.2026.",
+      "50% off for the first 6 months on the selected plan. After that, the regular price applies.",
   },
 
   landing: {
@@ -1589,7 +1584,7 @@ export const marketingEn: Leaves<typeof marketingSr> = {
     ogHeadline: "The operating system for new-build sales",
     ogSub:
       "Projects, buyers, reservations, payments and agency commissions — built for Serbia, with IPS QR for deposits and invoices.",
-    ogBadge: "Launch 15.11.2026 · −50% first 3 months",
+    ogBadge: "50% off for the first 6 months",
   },
 
   pages: {
@@ -1597,11 +1592,11 @@ export const marketingEn: Leaves<typeof marketingSr> = {
       metaTitle: "Book a 25-minute demo",
       // Shortened to ~155.
       metaDescription:
-        "A personalised PropertyDesk demo — 25 minutes on your examples, straight from the calendar. No obligation, with a 30-day free trial after the demo.",
+        "A personalised PropertyDesk demo — 25 minutes on your examples, straight from the calendar. You can also open the public demo yourself.",
       eyebrow: "Book a demo",
       title: "25 minutes live. Your examples. No slides.",
       subtitle:
-        "Pick a slot below. You get a confirmation and an email reminder, with a video-call link. If after the demo you decide to try PropertyDesk — we activate a 30-day free trial.",
+        "Pick a slot below. You get a confirmation and an email reminder, with a video-call link. If after the demo you decide to try PropertyDesk, the first 6 months are 50% of the plan price.",
       scrollCalendar: "Scroll to the calendar",
       footnote: "Or call us directly: +381 65 43 63 142",
       bookingTitle: "Pick a time that works for you",
@@ -1655,7 +1650,7 @@ export const marketingEn: Leaves<typeof marketingSr> = {
         "If you work with several investors, you probably lose an hour every day checking availability and price lists. PropertyDesk removes that time.",
       ctaTitle: "Next time a buyer asks about free apartments — answer immediately.",
       ctaSubtitle:
-        "Join the agency pilot. First 30 days free, with your investors' live inventory — no integrations on your side.",
+        "The app is available to agencies. The first 6 months are 50% of the plan price, with your investors' live inventory — no integrations on your side.",
       p1: "You cannot see the investor's current price list — you sell the client an apartment that is already reserved.",
       s1: "A real-time unit catalogue with the current status (available, reserved, sold) straight from the investor's PropertyDesk.",
       p2: "A reservation means emailing the investor and waiting hours or days for confirmation.",
@@ -1703,7 +1698,7 @@ export const marketingEn: Leaves<typeof marketingSr> = {
       s10: "A manager dashboard with KPIs + 4 reports (finance, debtors, expenses, annual). CSV/XLSX export and a 'Annual activity' PDF ready for the chairman of the assembly.",
       ctaTitle: "Replace spreadsheets, Viber and paper slips with one system.",
       ctaSubtitle:
-        "First 30 days free. After that the 'Manager Pro' plan covers up to 10 buildings at a flat monthly fee, with no hidden per-resident charges. Book a 25-minute demo to see whether it fits.",
+        "The 'Manager Pro' plan covers up to 10 buildings at a flat monthly fee, with no hidden per-resident charges. The first 6 months are 50% of that price. Book a 25-minute demo to see whether it fits.",
       flowTitle: "What a typical month looks like in PropertyDesk",
       flowSubtitle:
         "From day 1 to day 31 — the system automates what you've been doing by hand. This is the real flow, not marketing.",
@@ -1770,7 +1765,7 @@ export const marketingEn: Leaves<typeof marketingSr> = {
         "Excel is great for one person. For a team of 5 running 300 units at once — it becomes a source of errors. These are the most common pain points.",
       ctaTitle: "Send us your Excel file — we will set the system up for free",
       ctaSubtitle:
-        "Applications until 15.11.2026 get a free import of the first Excel file and free setup of one project. The first 30 days of use are unpaid.",
+        "New customers get a free import of the first Excel file and free setup of one project. The first 6 months are 50% of the plan price.",
       p1: "Excel opens in several versions — a colleague overwrites a cell without knowing you already entered a new status.",
       s1: "One database, everyone works at the same time, with an audit trail of who changed what and when.",
       p2: "Formulas break — one bad copy-paste wipes half the price calculations.",

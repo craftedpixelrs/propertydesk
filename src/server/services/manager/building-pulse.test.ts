@@ -30,6 +30,26 @@ describe("buildingPath", () => {
     expect(path.money).toBe("ok");
   });
 
+  it("reads the seeded Bulevar building as ready people, open money and an open community", () => {
+    const path = buildingPath({
+      units: 4,
+      unitsWithoutOwner: 0,
+      persons: 4,
+      portalInvites: 2,
+      tariffs: 2,
+      openCharges: 5,
+      openTickets: 3,
+      liveAssemblies: 1,
+      notices: 6,
+    });
+    expect(path).toEqual({
+      units: "ok",
+      residents: "ok",
+      money: "open",
+      community: "open",
+    });
+  });
+
   it("keeps money and community open while charges, tickets or an assembly are live", () => {
     const path = buildingPath({
       ...empty,

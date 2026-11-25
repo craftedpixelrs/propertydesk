@@ -31,6 +31,9 @@ export const MY_APP_URL = publicEnv.NEXT_PUBLIC_MY_APP_URL;
  */
 export const APP_DOMAIN = publicEnv.NEXT_PUBLIC_APP_DOMAIN;
 
+/** Live walkthrough of the product. Marketing "Otvori demo" points here. */
+export const DEMO_APP_URL = `https://demo.${APP_DOMAIN}`;
+
 /**
  * Absolute URL of the marketing site (apex). Always points at the public
  * landing at `https://propertydesk.app`, independent of `APP_URL` (which
@@ -61,7 +64,7 @@ export const GOOGLE_APPOINTMENT_URL = publicEnv.NEXT_PUBLIC_GOOGLE_APPOINTMENT_U
 export const PRODUCT_VIDEO_URL = publicEnv.NEXT_PUBLIC_PRODUCT_VIDEO_URL ?? "";
 
 /**
- * SaaS launch date. Used by the countdown, hero copy, and JSON-LD.
+ * Historical SaaS launch date. Still used by JSON-LD availabilityStarts.
  * If you change it, also update the FAQ and offer banner copy.
  */
 export const LAUNCH_DATE_ISO = "2026-11-15";

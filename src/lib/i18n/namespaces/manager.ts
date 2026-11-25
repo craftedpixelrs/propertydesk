@@ -317,6 +317,7 @@ export const managerSr = {
     buildingPaths: "Tok po zgradi",
   },
   reports: {
+    indexSubtitle: "Zaduženja, naplata, troškovi i održavanje po zgradi. Izvoz u CSV ili XLSX.",
     financialTitle: "Finansijski pregled",
     financialDesc: "Zaduženo, naplaćeno i preostalo po zgradi za izabrani period.",
     debtorsTitle: "Dužnici po zgradi",
@@ -1128,6 +1129,8 @@ export const managerEn: Leaves<typeof managerSr> = {
     buildingPaths: "Path per building",
   },
   reports: {
+    indexSubtitle:
+      "Charges, collections, expenses and maintenance per building. Export to CSV or XLSX.",
     financialTitle: "Financial overview",
     financialDesc: "Billed, collected and outstanding per building for the selected period.",
     debtorsTitle: "Debtors by building",

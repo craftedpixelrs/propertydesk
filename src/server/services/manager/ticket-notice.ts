@@ -9,14 +9,15 @@ export function ticketNoticeOriginKey(ticketId: string, phase: TicketNoticePhase
   return `ticket:${ticketId}:status:${phase}`;
 }
 
+/** Same words the ticket board shows in Serbian (`manager.tickets.status`). */
 export function ticketStatusLabel(status: MaintenanceStatus): string {
   switch (status) {
     case "OPEN":
-      return "Otvoreno";
+      return "Prijavljeno";
     case "TRIAGED":
-      return "Prihvaćeno";
+      return "Trijaža";
     case "IN_PROGRESS":
-      return "U radu";
+      return "U toku";
     case "AWAITING_PARTS":
       return "Čeka delove";
     case "COMPLETED":

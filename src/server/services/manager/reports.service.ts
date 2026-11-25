@@ -42,6 +42,8 @@ export async function buildManagerFinancialReport(input: {
   const where: Prisma.DuesChargeWhereInput = {
     organizationId: input.organizationId,
     periodYear: input.year,
+    // Otpis nije naplaćen, ali više nije ni dug. Tabla dug računa isto.
+    status: { not: "WRITTEN_OFF" },
     ...(input.month ? { periodMonth: input.month } : {}),
     ...(input.buildingId ? { buildingId: input.buildingId } : {}),
   };

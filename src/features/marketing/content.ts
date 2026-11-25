@@ -16,19 +16,19 @@ export interface FaqItem {
 
 export const FAQ_ITEMS: FaqItem[] = [
   {
-    question: "Kada se lansira PropertyDesk?",
+    question: "Da li je PropertyDesk već dostupan?",
     answer:
-      "Zvanično lansiranje je 15.11.2026. Do tada je otvorena rana prijava - svi koji se prijave putem forme na ovoj stranici dobijaju obaveštenje pre javnog puštanja.",
+      "Da. Aplikacija je lansirana. Demo možete otvoriti iz navigacije, a nalog za Vašu firmu aktiviramo posle razgovora.",
   },
   {
-    question: "Kako funkcioniše rana ponuda za prijave do 15.11.2026.?",
+    question: "Kako funkcioniše akcija od 50%?",
     answer:
-      "Prvih 30 dana besplatno. Nakon toga 50% popusta na naredna tri meseca. Uz to: besplatan uvoz prve Excel tabele, besplatno podešavanje jednog projekta, onboarding za tim, prioritetna podrška i zaključana cena paketa 12 meseci - bez poskupljenja u toku prve godine.",
+      "Prvih 6 meseci plaćate polovinu cene izabranog paketa. Nema dodatnog besplatnog perioda. Posle šest meseci važi redovna cena iz cenovnika.",
   },
   {
     question: "Kako izgleda demo i koliko traje?",
     answer:
-      "Personalizovan demo traje 20-30 minuta (video poziv, direktno zakazivanje iz kalendara na sajtu, bez čekanja). Ako nakon toga odlučite da probate PropertyDesk, dobijate 30 dana besplatnog trial-a. Onboarding za tim (60 min) zakazuje se nakon aktivacije trial naloga - kroz konkretne primere iz Vašeg poslovanja.",
+      "Personalizovan demo traje 20-30 minuta (video poziv, direktno zakazivanje iz kalendara na sajtu, bez čekanja). Možete i sami otvoriti javni demo iz navigacije. Ako nakon toga odlučite da probate PropertyDesk, prvih 6 meseci je 50% cene paketa.",
   },
   {
     question: "Da li je platforma na srpskom jeziku?",

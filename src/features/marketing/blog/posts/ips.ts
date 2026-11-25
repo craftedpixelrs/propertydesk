@@ -153,7 +153,7 @@ export const ipsPost: BlogPost = {
         },
         {
           type: "p",
-          text: "Pre nego što link izađe u oglas, treba da stoje račun primaoca, iznos kapare, rok rezervacije i pravilo da je jedna jedinica slobodna za jedan hold. Širi okvir, od zalihe do ugovora, je na [prodaji novogradnje](/prodaja-novogradnje). Cene paketa i rani pristup do 15.11.2026. su na [cenovniku](/#cenovnik).",
+          text: "Pre nego što link izađe u oglas, treba da stoje račun primaoca, iznos kapare, rok rezervacije i pravilo da je jedna jedinica slobodna za jedan hold. Širi okvir, od zalihe do ugovora, je na [prodaji novogradnje](/prodaja-novogradnje). Cene paketa i akcija od 50% prvih 6 meseci su na [cenovniku](/#cenovnik).",
         },
         {
           type: "p",
@@ -307,7 +307,7 @@ export const ipsPost: BlogPost = {
         },
         {
           type: "p",
-          text: "Before a link goes into an advert, the payee account, the deposit amount, the reservation deadline and the rule that one unit is free for one hold all have to be in place. The wider frame, from inventory to contract, is on [new-build sales](/prodaja-novogradnje). Package prices and early access until 15 November 2026 are on the [pricing section](/#cenovnik).",
+          text: "Before a link goes into an advert, the payee account, the deposit amount, the reservation deadline and the rule that one unit is free for one hold all have to be in place. The wider frame, from inventory to contract, is on [new-build sales](/prodaja-novogradnje). Package prices and the 50% offer for the first 6 months are on the [pricing section](/#cenovnik).",
         },
         {
           type: "p",

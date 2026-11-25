@@ -1,4 +1,4 @@
-import { COMPANY, LAUNCH_DATE_LABEL } from "@/lib/constants/app";
+import { COMPANY } from "@/lib/constants/app";
 import type { Locale } from "@/lib/i18n";
 
 export interface LegalSection {
@@ -160,13 +160,13 @@ const termsSr: LegalDoc = {
       heading: "Usluga",
       paragraphs: [
         "PropertyDesk je softver za investitore i agencije koje prodaju novogradnju: projekti, jedinice, kupci, rezervacije, ugovori, planovi otplate, uplate, provizije i izveštaji.",
-        `Zvanično lansiranje je ${LAUNCH_DATE_LABEL}. Do tada je otvorena rana prijava i personalizovan demo. Samostalna registracija na sajtu još nije otvorena — nalog aktiviramo nakon demoa.`,
+        "Aplikacija je dostupna. Javni demo se otvara iz navigacije. Nalog za firmu aktiviramo nakon razgovora.",
       ],
     },
     {
       heading: "Rani pristup, trial i cene",
       paragraphs: [
-        `Prijave do ${LAUNCH_DATE_LABEL} ostvaruju 30 dana besplatnog korišćenja, zatim 50% popusta na naredna tri meseca, i zaključanu cenu izabranog paketa 12 meseci. Besplatan uvoz prve Excel tabele i podešavanje jednog projekta dogovaramo tokom onboardinga.`,
+        "Novi klijenti dobijaju 50% popusta prvih 6 meseci na izabrani paket. Posle toga važi redovna mesečna cena. Besplatan uvoz prve Excel tabele i podešavanje jednog projekta dogovaramo tokom onboardinga.",
         "Cene paketa (Starter, Growth, Scale) prikazane na sajtu su mesečne pretplate u eurima, bez PDV-a ako nije drugačije navedeno. Tačan iznos i valuta na fakturi potvrđuju se pri aktivaciji.",
         "Pretplatu možete otkazati u bilo kom trenutku iz aplikacije, bez ugovorne obaveze. Vlasnik preuzima JSON izvoz iz Podešavanja → Organizacija. Izvoz ostaje dostupan i kad je nalog ograničen zbog isteka, najmanje 30 dana.",
       ],
@@ -188,7 +188,7 @@ const termsSr: LegalDoc = {
     {
       heading: "Odgovornost",
       paragraphs: [
-        "Uslugu pružamo sa profesionalnom pažnjom, ali pre lansiranja i tokom ranog pristupa ne garantujemo neprekidan rad niti poseban SLA. Ne odgovaramo za poslovne odluke donesene na osnovu podataka u sistemu, niti za štetu koju prouzrokuje netačan unos sa Vaše strane.",
+        "Uslugu pružamo sa profesionalnom pažnjom. Ne garantujemo neprekidan rad niti poseban SLA. Ne odgovaramo za poslovne odluke donesene na osnovu podataka u sistemu, niti za štetu koju prouzrokuje netačan unos sa Vaše strane.",
         "Maksimalna odgovornost za naknadu štete vezanu za pretplatu ograničena je na iznos koji ste nam platili u prethodna tri meseca, osim u slučaju namere ili grube nepažnje.",
       ],
     },
@@ -212,13 +212,13 @@ const termsEn: LegalDoc = {
       heading: "The service",
       paragraphs: [
         "PropertyDesk is software for investors and agencies selling new builds: projects, units, buyers, reservations, contracts, payment plans, payments, commissions and reports.",
-        `The official launch is ${LAUNCH_DATE_LABEL}. Until then, early application and a personalised demo are open. Self-serve sign-up is not open yet — we activate an account after the demo.`,
+        "The app is available. The public demo opens from the navigation. We activate a company account after a conversation.",
       ],
     },
     {
       heading: "Early access, trial and pricing",
       paragraphs: [
-        `Applications until ${LAUNCH_DATE_LABEL} get 30 days free, then 50% off the next three months, and a locked plan price for 12 months. A free first Excel import and setup of one project are arranged during onboarding.`,
+        "New customers get 50% off for the first 6 months on the selected plan. After that, the regular monthly price applies. A free first Excel import and setup of one project are arranged during onboarding.",
         "Plan prices (Starter, Growth, Scale) on the site are monthly subscriptions in euros, excluding VAT unless stated otherwise. The exact amount and currency on the invoice are confirmed at activation.",
         "You may cancel at any time from the app, with no contractual lock-in. The owner downloads a JSON export from Settings → Organization. The export stays available when the account is restricted after expiry, for at least 30 days.",
       ],
@@ -240,7 +240,7 @@ const termsEn: LegalDoc = {
     {
       heading: "Liability",
       paragraphs: [
-        "We provide the service with professional care, but before launch and during early access we do not guarantee uninterrupted uptime or a separate SLA. We are not liable for business decisions made on data in the system, nor for damage caused by incorrect input on your side.",
+        "We provide the service with professional care. We do not guarantee uninterrupted uptime or a separate SLA. We are not liable for business decisions made on data in the system, nor for damage caused by incorrect input on your side.",
         "Maximum liability for damages related to a subscription is limited to the amount you paid us in the previous three months, except in cases of intent or gross negligence.",
       ],
     },

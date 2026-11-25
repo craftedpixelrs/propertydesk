@@ -23,7 +23,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
-import { APP_NAME, LANDING_IMAGES } from "@/lib/constants/app";
+import { APP_NAME, DEMO_APP_URL, LANDING_IMAGES, MY_APP_URL } from "@/lib/constants/app";
 import { LanguageSwitcher } from "@/components/app/language-switcher";
 import { marketingCta } from "@/features/marketing/marketing-cta";
 import { useT } from "@/components/app/i18n-provider";
@@ -336,18 +336,18 @@ export function MarketingHeader() {
           <div className="flex items-center rounded-full border border-white/10 bg-white/[0.05] py-0.5 pr-1 pl-1">
             <LanguageSwitcher compact tone="marketing" />
           </div>
-          <button
-            type="button"
-            disabled
-            aria-disabled="true"
-            title={t("marketing.header.signInSoonTitle")}
-            className="hidden items-center gap-2 rounded-full px-2 py-2 text-sm text-[#f7f3ea]/55 xl:inline-flex"
+          <a
+            href={DEMO_APP_URL}
+            className="inline-flex items-center rounded-full px-3 py-2 text-sm font-medium text-[#f3e2bc] hover:text-[#f7f3ea]"
           >
-            <span>{t("auth.signIn")}</span>
-            <span className="text-[10px] font-semibold tracking-[0.14em] text-[#d6b26a] uppercase">
-              {t("common.comingSoon")}
-            </span>
-          </button>
+            {t("marketing.header.openDemo")}
+          </a>
+          <a
+            href={`${MY_APP_URL}/sign-in`}
+            className="inline-flex items-center rounded-full px-2 py-2 text-sm text-[#f7f3ea]/80 hover:text-[#f7f3ea]"
+          >
+            {t("auth.signIn")}
+          </a>
           <Link href="/demo" className={marketingCta("cream", "sm")}>
             {t("marketing.header.bookDemo")}
           </Link>
@@ -538,19 +538,22 @@ export function MarketingHeader() {
                 >
                   {t("marketing.header.bookDemo")}
                 </Link>
-                <button
-                  type="button"
-                  disabled
-                  aria-disabled="true"
+                <a
+                  href={DEMO_APP_URL}
+                  onClick={closeMenu}
                   tabIndex={open ? 0 : -1}
-                  title={t("marketing.header.signInSoonTitle")}
-                  className="inline-flex h-11 w-full items-center justify-center gap-2 text-sm text-[#f7f3ea]/60"
+                  className="inline-flex h-11 w-full items-center justify-center text-sm font-medium text-[#f3e2bc]"
                 >
-                  <span>{t("auth.signIn")}</span>
-                  <span className="text-[10px] font-semibold tracking-[0.14em] text-[#d6b26a] uppercase">
-                    {t("common.comingSoon")}
-                  </span>
-                </button>
+                  {t("marketing.header.openDemo")}
+                </a>
+                <a
+                  href={`${MY_APP_URL}/sign-in`}
+                  onClick={closeMenu}
+                  tabIndex={open ? 0 : -1}
+                  className="inline-flex h-11 w-full items-center justify-center text-sm text-[#f7f3ea]/80"
+                >
+                  {t("auth.signIn")}
+                </a>
               </div>
             </div>
           </div>

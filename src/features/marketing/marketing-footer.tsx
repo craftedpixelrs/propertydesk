@@ -2,7 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 
 import { CITIES } from "@/features/marketing/cities/cities";
-import { APP_NAME, COMPANY, LANDING_IMAGES } from "@/lib/constants/app";
+import { APP_NAME, COMPANY, DEMO_APP_URL, LANDING_IMAGES, MY_APP_URL } from "@/lib/constants/app";
 import { EmailLink } from "@/features/marketing/email-link";
 import { LANDING_ROUTES } from "@/features/marketing/landing/landing-shell";
 import { CookieSettingsButton } from "@/features/marketing/cookie-banner";
@@ -136,6 +136,11 @@ export async function MarketingFooter() {
               </a>
             </li>
             <li>
+              <a href={DEMO_APP_URL} className="text-white/65 hover:text-white">
+                {t("marketing.header.openDemo")}
+              </a>
+            </li>
+            <li>
               <Link href="/demo" className="text-white/65 hover:text-white">
                 {t("marketing.footer.bookDemo")}
               </Link>
@@ -148,13 +153,16 @@ export async function MarketingFooter() {
             {t("marketing.nav.app")}
           </div>
           <ul className="mt-3 space-y-2 text-sm">
-            <li className="flex items-center gap-2 text-white/65">
-              <span>{t("marketing.footer.signIn")}</span>
-              <span className="rounded-full bg-white/10 px-1.5 py-0.5 text-[10px] font-semibold tracking-wide text-[#f3e2bc] uppercase">
-                {t("common.comingSoon")}
-              </span>
+            <li>
+              <a href={`${MY_APP_URL}/sign-in`} className="text-white/65 hover:text-white">
+                {t("marketing.footer.signIn")}
+              </a>
             </li>
-            <li className="text-xs text-white/45">{t("marketing.footer.launchDate")}</li>
+            <li>
+              <a href={DEMO_APP_URL} className="text-white/65 hover:text-white">
+                {t("marketing.header.openDemo")}
+              </a>
+            </li>
           </ul>
         </div>
       </div>

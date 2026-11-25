@@ -129,7 +129,7 @@ export const CITY_EN: Record<string, CityEnCopy> = {
       },
       {
         q: "We have a small project of 15 apartments. Is PropertyDesk worth it?",
-        a: "Yes. The Starter plan is built for one project of this size, and the difference shows at the first double reservation or the first buyer lost in email. Current offer: 50% off the first 3 months for sign-ups until 15 November 2026.",
+        a: "Yes. The Starter plan is built for one project of this size, and the difference shows at the first double reservation or the first buyer lost in email. Current offer: 50% off for the first 6 months.",
       },
     ],
   },
