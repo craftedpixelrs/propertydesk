@@ -22,6 +22,7 @@ const patchSchema = z.object({
   orientation: z.string().max(60).nullable().optional(),
   basePrice: z.number().nonnegative().optional(),
   finalPrice: z.number().nonnegative().nullable().optional(),
+  pricePerSquareMeter: z.number().nonnegative().nullable().optional(),
   currency: z.string().length(3).optional(),
   vatRate: z.number().min(0).max(100).nullable().optional(),
   vatIncluded: z.boolean().optional(),

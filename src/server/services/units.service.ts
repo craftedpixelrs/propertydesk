@@ -5,6 +5,7 @@ import Decimal from "decimal.js";
 import { prisma } from "@/server/db/prisma";
 import { DomainErrors } from "@/lib/errors";
 import { recordAudit } from "@/server/audit/audit";
+import { totalFromPricePerSquareMeter } from "@/server/services/unit-price";
 import { assertQuota } from "@/server/services/quotas.service";
 
 /**
@@ -65,6 +66,8 @@ export interface CreateUnitInput {
   orientation?: string | null;
   basePrice: number;
   finalPrice?: number | null;
+  /** When set, the total (`basePrice`) becomes area × this amount. */
+  pricePerSquareMeter?: number | null;
   currency?: string;
   vatRate?: number | null;
   vatIncluded?: boolean;
@@ -188,10 +191,36 @@ export async function listUnits(input: ListUnitsInput) {
         building: { select: { id: true, name: true, code: true } },
         entrance: { select: { id: true, name: true, code: true } },
         floor: { select: { id: true, label: true } },
+        sales: {
+          where: { status: { not: "CANCELED" } },
+          orderBy: { createdAt: "desc" },
+          take: 1,
+          select: {
+            buyer: {
+              select: { id: true, firstName: true, lastName: true, legalName: true },
+            },
+          },
+        },
+        reservations: {
+          where: { status: { in: ["REQUESTED", "APPROVED"] } },
+          orderBy: { createdAt: "desc" },
+          take: 1,
+          select: {
+            buyer: {
+              select: { id: true, firstName: true, lastName: true, legalName: true },
+            },
+          },
+        },
       },
     }),
   ]);
-  return { items: rows, total };
+  return {
+    items: rows.map((row) => {
+      const buyer = row.sales[0]?.buyer ?? row.reservations[0]?.buyer ?? null;
+      return { ...row, buyer };
+    }),
+    total,
+  };
 }
 
 export async function getUnitById(organizationId: string, unitId: string) {
@@ -247,10 +276,14 @@ export async function createUnit(input: CreateUnitInput) {
     throw DomainErrors.conflict(`Jedinica sa šifrom "${input.code}" već postoji u ovom projektu.`);
   }
 
-  const basePrice = new Decimal(input.basePrice);
-  const finalPrice = toDecimalOrNull(input.finalPrice);
   const totalArea = new Decimal(input.totalArea);
-  const ppsm = pricePerSquareMeter(finalPrice ?? basePrice, totalArea);
+  const enteredPerM2 = toDecimalOrNull(input.pricePerSquareMeter);
+  const basePrice =
+    enteredPerM2 != null
+      ? totalFromPricePerSquareMeter(enteredPerM2, totalArea)
+      : new Decimal(input.basePrice);
+  const finalPrice = toDecimalOrNull(input.finalPrice);
+  const ppsm = enteredPerM2 ?? pricePerSquareMeter(finalPrice ?? basePrice, totalArea);
 
   const created = await prisma.unit.create({
     data: {
@@ -312,8 +345,55 @@ export async function updateUnit(input: UpdateUnitInput) {
     throw DomainErrors.optimisticLock();
   }
 
+  const enteredPerM2 =
+    input.patch.pricePerSquareMeter !== undefined
+      ? toDecimalOrNull(input.patch.pricePerSquareMeter)
+      : undefined;
+  const perM2Changed =
+    enteredPerM2 !== undefined &&
+    (enteredPerM2 == null
+      ? existing.pricePerSquareMeter != null
+      : existing.pricePerSquareMeter == null ||
+        !enteredPerM2.eq(existing.pricePerSquareMeter as Decimal));
+
+  const newTotalArea =
+    input.patch.totalArea != null
+      ? new Decimal(input.patch.totalArea)
+      : (existing.totalArea as Decimal);
+  const areaChanged =
+    input.patch.totalArea != null && !newTotalArea.eq(existing.totalArea as Decimal);
+  const newFinal =
+    input.patch.finalPrice !== undefined
+      ? toDecimalOrNull(input.patch.finalPrice)
+      : (existing.finalPrice as Decimal | null);
+
+  let newBase =
+    input.patch.basePrice != null
+      ? new Decimal(input.patch.basePrice)
+      : (existing.basePrice as Decimal);
+  let ppsm: Decimal | null;
+
+  if (perM2Changed && enteredPerM2) {
+    newBase = totalFromPricePerSquareMeter(enteredPerM2, newTotalArea);
+    ppsm = enteredPerM2.toDecimalPlaces(2);
+  } else if (
+    !perM2Changed &&
+    areaChanged &&
+    existing.pricePerSquareMeter &&
+    (input.patch.basePrice == null ||
+      new Decimal(input.patch.basePrice).eq(
+        totalFromPricePerSquareMeter(existing.pricePerSquareMeter as Decimal, newTotalArea),
+      ))
+  ) {
+    ppsm = existing.pricePerSquareMeter as Decimal;
+    newBase = totalFromPricePerSquareMeter(ppsm, newTotalArea);
+  } else {
+    ppsm = pricePerSquareMeter(newFinal ?? newBase, newTotalArea);
+  }
+
   const priceChanged =
-    (input.patch.basePrice != null && !new Decimal(input.patch.basePrice).eq(existing.basePrice)) ||
+    perM2Changed ||
+    !newBase.eq(existing.basePrice as Decimal) ||
     (input.patch.finalPrice != null &&
       (existing.finalPrice == null ||
         !new Decimal(input.patch.finalPrice).eq(existing.finalPrice)));
@@ -321,21 +401,6 @@ export async function updateUnit(input: UpdateUnitInput) {
   if (priceChanged && !input.priceChangeReason?.trim()) {
     throw DomainErrors.badRequest("Razlog promene cene je obavezan.");
   }
-
-  const newBase =
-    input.patch.basePrice != null
-      ? new Decimal(input.patch.basePrice)
-      : (existing.basePrice as Decimal);
-  const newFinal =
-    input.patch.finalPrice !== undefined
-      ? toDecimalOrNull(input.patch.finalPrice)
-      : (existing.finalPrice as Decimal | null);
-  const newTotalArea =
-    input.patch.totalArea != null
-      ? new Decimal(input.patch.totalArea)
-      : (existing.totalArea as Decimal);
-
-  const ppsm = pricePerSquareMeter(newFinal ?? newBase, newTotalArea);
 
   const result = await prisma.$transaction(async (tx) => {
     const updated = await tx.unit.update({
@@ -368,7 +433,7 @@ export async function updateUnit(input: UpdateUnitInput) {
               : null
             : undefined,
         orientation: input.patch.orientation !== undefined ? input.patch.orientation : undefined,
-        basePrice: input.patch.basePrice != null ? new Decimal(input.patch.basePrice) : undefined,
+        basePrice: newBase.eq(existing.basePrice as Decimal) ? undefined : newBase,
         finalPrice:
           input.patch.finalPrice !== undefined
             ? toDecimalOrNull(input.patch.finalPrice)

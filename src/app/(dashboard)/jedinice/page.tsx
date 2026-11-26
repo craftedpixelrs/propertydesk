@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Decimal from "decimal.js";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -33,6 +34,50 @@ function first(raw: string | string[] | undefined) {
 function csvArray(raw: string | undefined): string[] | undefined {
   if (!raw) return undefined;
   return raw.split(",").filter(Boolean);
+}
+
+function shownPricePerM2(unit: {
+  pricePerSquareMeter: { toString(): string } | null;
+  finalPrice: { toString(): string } | null;
+  basePrice: { toString(): string };
+  totalArea: { toString(): string };
+}) {
+  if (unit.pricePerSquareMeter) return new Decimal(unit.pricePerSquareMeter.toString());
+  const area = new Decimal(unit.totalArea.toString());
+  if (area.isZero()) return new Decimal(0);
+  return new Decimal((unit.finalPrice ?? unit.basePrice).toString()).div(area).toDecimalPlaces(2);
+}
+
+function shownTotalPrice(unit: {
+  pricePerSquareMeter: { toString(): string } | null;
+  finalPrice: { toString(): string } | null;
+  basePrice: { toString(): string };
+  totalArea: { toString(): string };
+}) {
+  const area = new Decimal(unit.totalArea.toString());
+  if (unit.pricePerSquareMeter && !area.isZero()) {
+    return new Decimal(unit.pricePerSquareMeter.toString()).mul(area).toDecimalPlaces(2);
+  }
+  return new Decimal((unit.finalPrice ?? unit.basePrice).toString());
+}
+
+function BuyerLink({
+  buyer,
+}: {
+  buyer: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    legalName: string | null;
+  } | null;
+}) {
+  if (!buyer) return <span className="text-[var(--color-foreground-muted)]">—</span>;
+  const name = buyer.legalName?.trim() || `${buyer.firstName} ${buyer.lastName}`.trim();
+  return (
+    <Link href={`/kupci/${buyer.id}`} className="text-[var(--color-brand-700)] hover:underline">
+      {name}
+    </Link>
+  );
 }
 
 export default async function UnitsPage({ searchParams }: PageProps) {
@@ -130,7 +175,9 @@ export default async function UnitsPage({ searchParams }: PageProps) {
                   <th className="px-4 py-3">{t("units.columns.project")}</th>
                   <th className="px-4 py-3">{t("units.columns.type")}</th>
                   <th className="px-4 py-3">{t("units.columns.area")}</th>
+                  <th className="px-4 py-3">{t("units.columns.pricePerSquareMeter")}</th>
                   <th className="px-4 py-3">{t("units.detail.pricing")}</th>
+                  <th className="px-4 py-3">{t("units.columns.buyer")}</th>
                   <th className="px-4 py-3">{t("common.statusLabel")}</th>
                 </tr>
               </thead>
@@ -153,7 +200,13 @@ export default async function UnitsPage({ searchParams }: PageProps) {
                     <td className="px-4 py-3">{unitTypeLabel(u.type, t)}</td>
                     <td className="px-4 py-3 tabular-nums">{u.totalArea.toString()} m²</td>
                     <td className="px-4 py-3 tabular-nums">
-                      {formatMoney(u.finalPrice ?? u.basePrice, u.currency as "EUR" | "RSD")}
+                      {formatMoney(shownPricePerM2(u), u.currency as "EUR" | "RSD")}
+                    </td>
+                    <td className="px-4 py-3 tabular-nums">
+                      {formatMoney(shownTotalPrice(u), u.currency as "EUR" | "RSD")}
+                    </td>
+                    <td className="px-4 py-3">
+                      <BuyerLink buyer={u.buyer} />
                     </td>
                     <td className="px-4 py-3">
                       <span
@@ -188,10 +241,14 @@ export default async function UnitsPage({ searchParams }: PageProps) {
                   <div className="text-xs text-[var(--color-foreground-muted)]">
                     {u.project.name} · {unitTypeLabel(u.type, t)}
                   </div>
+                  <BuyerLink buyer={u.buyer} />
                   <div className="flex items-center justify-between text-sm">
                     <span>{u.totalArea.toString()} m²</span>
+                    <span className="text-[var(--color-foreground-muted)]">
+                      {formatMoney(shownPricePerM2(u), u.currency as "EUR" | "RSD")}/m²
+                    </span>
                     <span className="font-medium">
-                      {formatMoney(u.finalPrice ?? u.basePrice, u.currency as "EUR" | "RSD")}
+                      {formatMoney(shownTotalPrice(u), u.currency as "EUR" | "RSD")}
                     </span>
                   </div>
                 </CardContent>

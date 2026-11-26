@@ -75,7 +75,10 @@ export function NewUnitForm({
   const selectedEntrance = selectedBuilding?.entrances.find((e) => e.id === values.entranceId);
 
   const initialBasePrice = initialValues?.basePrice ?? "";
+  const initialPerM2 = initialValues?.pricePerSquareMeter ?? "";
   const basePriceChanged = isEdit && (values.basePrice ?? "") !== initialBasePrice;
+  const perM2Changed = isEdit && (values.pricePerSquareMeter ?? "") !== initialPerM2;
+  const priceChanged = basePriceChanged || perM2Changed;
 
   function setValue(name: string, value: string) {
     setValues((prev) => {
@@ -86,6 +89,15 @@ export function NewUnitForm({
       }
       if (name === "entranceId") {
         next.floorId = "";
+      }
+      if (name === "pricePerSquareMeter" || name === "totalArea") {
+        const areaRaw = name === "totalArea" ? value : (next.totalArea ?? "");
+        const perM2Raw = name === "pricePerSquareMeter" ? value : (next.pricePerSquareMeter ?? "");
+        const area = Number(areaRaw.replace(",", "."));
+        const perM2 = Number(perM2Raw.replace(",", "."));
+        if (perM2Raw.trim() !== "" && Number.isFinite(area) && area > 0 && Number.isFinite(perM2)) {
+          next.basePrice = (area * perM2).toFixed(2);
+        }
       }
       return next;
     });
@@ -104,6 +116,7 @@ export function NewUnitForm({
         "gardenArea",
         "basePrice",
         "finalPrice",
+        "pricePerSquareMeter",
         "vatRate",
         "bedrooms",
         "bathrooms",
@@ -129,7 +142,7 @@ export function NewUnitForm({
         if (typeof expectedVersion === "number") {
           payload.expectedVersion = expectedVersion;
         }
-        if (basePriceChanged && priceChangeReason.trim().length > 0) {
+        if (priceChanged && priceChangeReason.trim().length > 0) {
           payload.priceChangeReason = priceChangeReason.trim();
         }
         await apiClient.patch(`/units/${unitId}`, payload);
@@ -285,6 +298,19 @@ export function NewUnitForm({
         onChange={(v) => setValue("gardenArea", v)}
       />
 
+      <div className="space-y-1">
+        <Field
+          name="pricePerSquareMeter"
+          label={t("units.fields.pricePerSquareMeter")}
+          type="number"
+          value={values.pricePerSquareMeter ?? ""}
+          onChange={(v) => setValue("pricePerSquareMeter", v)}
+          errors={fieldErrors.pricePerSquareMeter}
+        />
+        <p className="text-xs text-[var(--color-foreground-muted)]">
+          {t("units.fields.pricePerSquareMeterHint")}
+        </p>
+      </div>
       <Field
         name="basePrice"
         label={t("units.fields.basePrice")}
@@ -354,7 +380,7 @@ export function NewUnitForm({
         />
       </div>
 
-      {basePriceChanged ? (
+      {priceChanged ? (
         <div className="space-y-1 sm:col-span-2">
           <label className="text-sm font-medium">
             {t("inventory.units.priceChangeReason")} <span className="text-red-500">*</span>
@@ -391,7 +417,7 @@ export function NewUnitForm({
         <Button
           type="submit"
           loading={loading}
-          disabled={basePriceChanged && priceChangeReason.trim().length === 0}
+          disabled={priceChanged && priceChangeReason.trim().length === 0}
         >
           {isEdit ? t("common.saveChanges") : t("inventory.units.create")}
         </Button>

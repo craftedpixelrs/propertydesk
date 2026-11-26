@@ -151,6 +151,7 @@ export default async function UnitDetail({ params }: Props) {
                 gardenArea: unit.gardenArea?.toString() ?? "",
                 basePrice: unit.basePrice?.toString() ?? "",
                 finalPrice: unit.finalPrice?.toString() ?? "",
+                pricePerSquareMeter: unit.pricePerSquareMeter?.toString() ?? "",
                 currency: unit.currency ?? "EUR",
                 vatRate: unit.vatRate?.toString() ?? "",
                 bedrooms: unit.bedrooms?.toString() ?? "",

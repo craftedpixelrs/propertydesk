@@ -43,6 +43,7 @@ const createSchema = z.object({
   orientation: z.string().max(60).optional(),
   basePrice: z.number().nonnegative(),
   finalPrice: z.number().nonnegative().optional(),
+  pricePerSquareMeter: z.number().nonnegative().optional(),
   currency: z.string().length(3).optional(),
   vatRate: z.number().min(0).max(100).optional(),
   vatIncluded: z.boolean().optional(),
