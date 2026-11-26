@@ -230,7 +230,7 @@ export interface ValidatedRow {
     internalArea?: number;
     terraceArea?: number;
     gardenArea?: number;
-    basePrice: number;
+    basePrice: number | null;
     finalPrice?: number;
     currency: string;
     vatRate?: number;
@@ -306,12 +306,15 @@ export function validateRows(headerMap: HeaderMap, rows: Record<string, string>[
     if (totalArea == null || totalArea <= 0)
       errors.push("Ukupna površina mora biti pozitivan broj.");
 
-    const basePrice = num(pick(raw, headerMap, "basePrice"));
-    if (basePrice == null || basePrice < 0) errors.push("Osnovna cena mora biti nenegativan broj.");
+    const basePriceRaw = pick(raw, headerMap, "basePrice");
+    const basePrice = num(basePriceRaw);
+    if (basePriceRaw && (basePrice == null || basePrice < 0)) {
+      errors.push("Osnovna cena mora biti nenegativan broj.");
+    }
 
     const currency = (pick(raw, headerMap, "currency") ?? "EUR").toUpperCase();
 
-    if (errors.length > 0 || code == null || totalArea == null || basePrice == null) {
+    if (errors.length > 0 || code == null || totalArea == null) {
       return { index, raw, ok: false, errors };
     }
 
@@ -331,7 +334,7 @@ export function validateRows(headerMap: HeaderMap, rows: Record<string, string>[
         internalArea: num(pick(raw, headerMap, "internalArea")),
         terraceArea: num(pick(raw, headerMap, "terraceArea")),
         gardenArea: num(pick(raw, headerMap, "gardenArea")),
-        basePrice,
+        basePrice: basePrice ?? null,
         finalPrice: num(pick(raw, headerMap, "finalPrice")),
         currency,
         vatRate: num(pick(raw, headerMap, "vatRate")),
@@ -440,13 +443,11 @@ export async function commitRows(input: {
         });
         continue;
       }
-      const basePrice = new Decimal(data.basePrice);
+      const basePrice = data.basePrice != null ? new Decimal(data.basePrice) : null;
       const finalPrice = data.finalPrice != null ? new Decimal(data.finalPrice) : null;
       const totalArea = new Decimal(data.totalArea);
-      const ppsm =
-        finalPrice && !totalArea.isZero()
-          ? finalPrice.div(totalArea).toDecimalPlaces(2)
-          : basePrice.div(totalArea).toDecimalPlaces(2);
+      const priced = finalPrice ?? basePrice;
+      const ppsm = priced && !totalArea.isZero() ? priced.div(totalArea).toDecimalPlaces(2) : null;
       await tx.unit.create({
         data: {
           organizationId: input.organizationId,
@@ -525,7 +526,7 @@ export async function exportUnitsCsv(organizationId: string, projectId?: string)
     floorLabel: u.floor?.label ?? "",
     totalArea: u.totalArea.toString(),
     internalArea: u.internalArea?.toString() ?? "",
-    basePrice: u.basePrice.toString(),
+    basePrice: u.basePrice?.toString() ?? "",
     finalPrice: u.finalPrice?.toString() ?? "",
     currency: u.currency,
     bedrooms: u.bedrooms?.toString() ?? "",
@@ -566,7 +567,7 @@ export async function exportUnitsXlsx(organizationId: string, projectId?: string
       floorLabel: u.floor?.label ?? "",
       totalArea: Number(u.totalArea),
       internalArea: u.internalArea ? Number(u.internalArea) : "",
-      basePrice: Number(u.basePrice),
+      basePrice: u.basePrice != null ? Number(u.basePrice) : "",
       finalPrice: u.finalPrice ? Number(u.finalPrice) : "",
       currency: u.currency,
       bedrooms: u.bedrooms ?? "",
@@ -931,16 +932,10 @@ export async function importExportedUnits(input: {
     }
 
     if (!existing) {
-      if (
-        !typeRaw ||
-        !totalArea ||
-        totalArea.value == null ||
-        !basePrice ||
-        basePrice.value == null
-      ) {
+      if (!typeRaw || !totalArea || totalArea.value == null) {
         errors.push({
           row: row.row,
-          message: "Nova jedinica traži tip, površinu i osnovnu cenu.",
+          message: "Nova jedinica traži tip i površinu.",
         });
         continue;
       }
@@ -961,7 +956,7 @@ export async function importExportedUnits(input: {
           floorId: structure?.floorId ?? null,
           totalArea: totalArea.value,
           internalArea: internalArea?.ok ? internalArea.value : null,
-          basePrice: basePrice.value,
+          basePrice: basePrice?.ok ? basePrice.value : null,
           finalPrice: finalPrice?.ok ? finalPrice.value : null,
           currency: currency || "EUR",
           bedrooms: bedrooms?.ok ? bedrooms.value : null,

@@ -63,7 +63,8 @@ export default async function NovaProdajaPage({ searchParams }: PageProps) {
       );
     }
     const currency = (reservation.unit.currency ?? "EUR") as SupportedCurrency;
-    const listPrice = (reservation.unit.finalPrice ?? reservation.unit.basePrice).toString();
+    const listedPrice = reservation.unit.finalPrice ?? reservation.unit.basePrice;
+    const listPrice = listedPrice ? listedPrice.toString() : "";
     return (
       <div className="space-y-6">
         <div>

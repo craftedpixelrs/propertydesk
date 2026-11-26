@@ -99,7 +99,9 @@ export default async function JedinicePage({ params, searchParams }: PageProps) 
                       </td>
                       <td className="px-4 py-3 text-right tabular-nums">{u.totalArea} m²</td>
                       <td className="px-4 py-3 text-right tabular-nums">
-                        {u.price ? `${u.price.final ?? u.price.base} ${u.price.currency}` : "—"}
+                        {(u.price?.final ?? u.price?.base)
+                          ? `${u.price?.final ?? u.price?.base} ${u.price?.currency}`
+                          : "—"}
                       </td>
                       <td className="px-4 py-3">
                         <span className="text-xs">{unitStatusLabel(u.status, t)}</span>

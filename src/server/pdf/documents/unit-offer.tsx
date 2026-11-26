@@ -17,7 +17,7 @@ export interface UnitOfferPdfData {
     floor?: string | null;
     projectName: string;
     buildingName?: string | null;
-    price: string;
+    price: string | null;
     currency: SupportedCurrency;
     description?: string | null;
   };
@@ -91,7 +91,7 @@ export function UnitOfferPdf(data: UnitOfferPdfData) {
         <View style={pdfStyles.totalRow}>
           <Text style={pdfStyles.totalLabel}>Ukupna cena</Text>
           <Text style={pdfStyles.totalValue}>
-            {formatMoney(data.unit.price, data.unit.currency)}
+            {data.unit.price ? formatMoney(data.unit.price, data.unit.currency) : "—"}
           </Text>
         </View>
       </View>

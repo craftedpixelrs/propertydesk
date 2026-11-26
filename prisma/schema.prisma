@@ -1270,7 +1270,7 @@ model Unit {
   terraceArea         Decimal?   @db.Decimal(10, 2)
   gardenArea          Decimal?   @db.Decimal(10, 2)
   orientation         String?
-  basePrice           Decimal    @db.Decimal(14, 2)
+  basePrice           Decimal?   @db.Decimal(14, 2)
   finalPrice          Decimal?   @db.Decimal(14, 2)
   pricePerSquareMeter Decimal?   @db.Decimal(14, 2)
   currency            String     @default("EUR")
@@ -1320,8 +1320,8 @@ model UnitPriceHistory {
   id                 String   @id @default(cuid())
   organizationId     String
   unitId             String
-  previousBasePrice  Decimal  @db.Decimal(14, 2)
-  newBasePrice       Decimal  @db.Decimal(14, 2)
+  previousBasePrice  Decimal? @db.Decimal(14, 2)
+  newBasePrice       Decimal? @db.Decimal(14, 2)
   previousFinalPrice Decimal? @db.Decimal(14, 2)
   newFinalPrice      Decimal? @db.Decimal(14, 2)
   currency           String

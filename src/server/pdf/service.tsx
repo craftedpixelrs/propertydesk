@@ -89,7 +89,10 @@ export async function renderUnitOfferPdf(input: {
       floor: unit.floor?.label ?? (unit.floor?.number != null ? String(unit.floor.number) : null),
       projectName: unit.project.name,
       buildingName: unit.building?.name ?? null,
-      price: toDecimal(unit.finalPrice ?? unit.basePrice).toString(),
+      price:
+        (unit.finalPrice ?? unit.basePrice)
+          ? toDecimal((unit.finalPrice ?? unit.basePrice)!).toString()
+          : null,
       currency: unit.currency as SupportedCurrency,
       description: unit.publicDescription ?? null,
     },
@@ -161,7 +164,8 @@ export async function renderPriceListPdf(input: {
       rooms: u.roomCount ? toDecimal(u.roomCount).toString() : null,
       floor: u.floor?.label ?? (u.floor?.number != null ? String(u.floor.number) : null),
       status: u.status,
-      price: toDecimal(u.finalPrice ?? u.basePrice).toString(),
+      price:
+        (u.finalPrice ?? u.basePrice) ? toDecimal((u.finalPrice ?? u.basePrice)!).toString() : null,
       currency: u.currency as SupportedCurrency,
     })),
   };

@@ -17,7 +17,7 @@ export interface PriceListPdfData {
     rooms?: string | null;
     floor?: string | null;
     status: string;
-    price: string;
+    price: string | null;
     currency: SupportedCurrency;
   }>;
 }
@@ -83,7 +83,7 @@ export function PriceListPdf(data: PriceListPdfData) {
               {STATUS_LABELS[u.status] ?? u.status}
             </Text>
             <Text style={[pdfStyles.tdRight, { flex: 1.4 } as never]}>
-              {formatMoney(u.price, u.currency)}
+              {u.price ? formatMoney(u.price, u.currency) : "—"}
             </Text>
           </View>
         ))

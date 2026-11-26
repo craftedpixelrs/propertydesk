@@ -259,7 +259,7 @@ export function PublicProjectUnitsCatalog({
                     {u.orientation ? <span>{u.orientation}</span> : null}
                   </div>
                   <div className="pt-2 text-lg font-semibold text-[var(--color-brand-700)]">
-                    {formatMoney(u.price ?? "0", u.currency as SupportedCurrency)}
+                    {u.price ? formatMoney(u.price, u.currency as SupportedCurrency) : "—"}
                   </div>
                 </div>
               </Link>

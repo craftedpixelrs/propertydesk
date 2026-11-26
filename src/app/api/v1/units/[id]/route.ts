@@ -20,7 +20,7 @@ const patchSchema = z.object({
   terraceArea: z.number().min(0).nullable().optional(),
   gardenArea: z.number().min(0).nullable().optional(),
   orientation: z.string().max(60).nullable().optional(),
-  basePrice: z.number().nonnegative().optional(),
+  basePrice: z.number().nonnegative().nullable().optional(),
   finalPrice: z.number().nonnegative().nullable().optional(),
   pricePerSquareMeter: z.number().nonnegative().nullable().optional(),
   currency: z.string().length(3).optional(),

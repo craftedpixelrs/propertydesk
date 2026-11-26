@@ -344,7 +344,8 @@ export async function resolvePublicUnitOffer(token: string): Promise<PublicUnitO
   if (!unit) return null;
   if (!PUBLICLY_VISIBLE_STATUSES.has(unit.status)) return null;
 
-  const price = link.showPrice ? (unit.finalPrice ?? unit.basePrice).toString() : null;
+  const listedPrice = unit.finalPrice ?? unit.basePrice;
+  const price = link.showPrice && listedPrice != null ? listedPrice.toString() : null;
 
   return {
     token,
@@ -652,7 +653,7 @@ export async function resolvePublicProjectSite(
       bedrooms: u.bedrooms,
       bathrooms: u.bathrooms,
       orientation: u.orientation,
-      price: (u.finalPrice ?? u.basePrice).toString(),
+      price: (u.finalPrice ?? u.basePrice)?.toString() ?? null,
       currency: u.currency,
       status: u.status,
       coverDocumentId: coverByUnit.get(u.id) ?? null,

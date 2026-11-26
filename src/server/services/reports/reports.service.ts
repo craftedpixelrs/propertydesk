@@ -121,7 +121,7 @@ async function buildCurrentInventoryReport(
       code: u.code,
       status: u.status,
       area: toDecimal(u.totalArea).toString(),
-      price: toDecimal(u.finalPrice ?? u.basePrice).toString(),
+      price: toDecimal(u.finalPrice ?? u.basePrice ?? 0).toString(),
       currency: u.currency,
     })),
   );
@@ -182,7 +182,7 @@ async function buildInventoryReportAsOf(
   const detail = units.map((unit) => {
     const status = statusAt(unit.id, unit.status);
     const area = toDecimal(unit.totalArea);
-    const price = toDecimal(unit.finalPrice ?? unit.basePrice);
+    const price = toDecimal(unit.finalPrice ?? unit.basePrice ?? 0);
     const key = `${unit.projectId}|${status}|${unit.currency}`;
     const existing = buckets.get(key);
     if (existing) {

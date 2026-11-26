@@ -64,7 +64,7 @@ export interface CreateUnitInput {
   terraceArea?: number | null;
   gardenArea?: number | null;
   orientation?: string | null;
-  basePrice: number;
+  basePrice: number | null;
   finalPrice?: number | null;
   /** When set, the total (`basePrice`) becomes area × this amount. */
   pricePerSquareMeter?: number | null;
@@ -282,7 +282,9 @@ export async function createUnit(input: CreateUnitInput) {
   const basePrice =
     enteredPerM2 != null
       ? totalFromPricePerSquareMeter(enteredPerM2, totalArea)
-      : new Decimal(input.basePrice);
+      : input.basePrice == null
+        ? null
+        : new Decimal(input.basePrice);
   const finalPrice = toDecimalOrNull(input.finalPrice);
   const ppsm = enteredPerM2 ?? pricePerSquareMeter(finalPrice ?? basePrice, totalArea);
 
@@ -330,7 +332,7 @@ export async function createUnit(input: CreateUnitInput) {
       code: created.code,
       projectId: created.projectId,
       type: created.type,
-      basePrice: created.basePrice.toString(),
+      basePrice: created.basePrice?.toString() ?? null,
     },
   });
 
@@ -369,10 +371,12 @@ export async function updateUnit(input: UpdateUnitInput) {
       ? toDecimalOrNull(input.patch.finalPrice)
       : (existing.finalPrice as Decimal | null);
 
-  let newBase =
+  let newBase: Decimal | null =
     input.patch.basePrice != null
       ? new Decimal(input.patch.basePrice)
-      : (existing.basePrice as Decimal);
+      : existing.basePrice != null
+        ? new Decimal(existing.basePrice.toString())
+        : null;
   let ppsm: Decimal | null;
 
   if (perM2Changed && enteredPerM2) {
@@ -382,6 +386,7 @@ export async function updateUnit(input: UpdateUnitInput) {
     !perM2Changed &&
     areaChanged &&
     existing.pricePerSquareMeter &&
+    newBase != null &&
     (input.patch.basePrice == null ||
       new Decimal(input.patch.basePrice).eq(
         totalFromPricePerSquareMeter(existing.pricePerSquareMeter as Decimal, newTotalArea),
@@ -393,9 +398,13 @@ export async function updateUnit(input: UpdateUnitInput) {
     ppsm = pricePerSquareMeter(newFinal ?? newBase, newTotalArea);
   }
 
+  const baseChanged =
+    (newBase == null) !== (existing.basePrice == null) ||
+    (newBase != null && existing.basePrice != null && !newBase.eq(existing.basePrice as Decimal));
+
   const priceChanged =
     perM2Changed ||
-    !newBase.eq(existing.basePrice as Decimal) ||
+    baseChanged ||
     (input.patch.finalPrice != null &&
       (existing.finalPrice == null ||
         !new Decimal(input.patch.finalPrice).eq(existing.finalPrice)));
@@ -435,7 +444,7 @@ export async function updateUnit(input: UpdateUnitInput) {
               : null
             : undefined,
         orientation: input.patch.orientation !== undefined ? input.patch.orientation : undefined,
-        basePrice: newBase.eq(existing.basePrice as Decimal) ? undefined : newBase,
+        basePrice: baseChanged ? newBase : undefined,
         finalPrice:
           input.patch.finalPrice !== undefined
             ? toDecimalOrNull(input.patch.finalPrice)
@@ -465,7 +474,7 @@ export async function updateUnit(input: UpdateUnitInput) {
         data: {
           organizationId: input.organizationId,
           unitId: input.unitId,
-          previousBasePrice: existing.basePrice as Decimal,
+          previousBasePrice: existing.basePrice ?? null,
           newBasePrice: newBase,
           previousFinalPrice: existing.finalPrice ?? null,
           newFinalPrice: newFinal ?? null,
@@ -487,13 +496,13 @@ export async function updateUnit(input: UpdateUnitInput) {
     actorUserId: input.actorUserId,
     previousValues: priceChanged
       ? {
-          basePrice: existing.basePrice.toString(),
+          basePrice: existing.basePrice?.toString() ?? null,
           finalPrice: existing.finalPrice?.toString() ?? null,
         }
       : undefined,
     newValues: priceChanged
       ? {
-          basePrice: newBase.toString(),
+          basePrice: newBase?.toString() ?? null,
           finalPrice: newFinal?.toString() ?? null,
         }
       : { patchKeys: Object.keys(input.patch) },

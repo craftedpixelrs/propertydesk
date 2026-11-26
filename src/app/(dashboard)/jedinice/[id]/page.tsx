@@ -122,7 +122,9 @@ export default async function UnitDetail({ params }: Props) {
               {t("units.detail.pricing")}
             </div>
             <div className="text-2xl font-semibold tabular-nums">
-              {formatMoney(unit.finalPrice ?? unit.basePrice, unit.currency as "EUR" | "RSD")}
+              {(unit.finalPrice ?? unit.basePrice)
+                ? formatMoney((unit.finalPrice ?? unit.basePrice)!, unit.currency as "EUR" | "RSD")
+                : "—"}
             </div>
             {unit.pricePerSquareMeter ? (
               <div className="text-xs text-[var(--color-foreground-muted)]">
@@ -279,8 +281,13 @@ export default async function UnitDetail({ params }: Props) {
                 <li key={h.id} className="flex flex-wrap items-center justify-between gap-2 py-2">
                   <div>
                     <div className="font-medium">
-                      {formatMoney(h.previousBasePrice, h.currency as "EUR" | "RSD")} →{" "}
-                      {formatMoney(h.newBasePrice, h.currency as "EUR" | "RSD")}
+                      {h.previousBasePrice
+                        ? formatMoney(h.previousBasePrice, h.currency as "EUR" | "RSD")
+                        : "—"}{" "}
+                      →{" "}
+                      {h.newBasePrice
+                        ? formatMoney(h.newBasePrice, h.currency as "EUR" | "RSD")
+                        : "—"}
                     </div>
                     {h.reason ? (
                       <div className="text-xs text-[var(--color-foreground-muted)]">{h.reason}</div>

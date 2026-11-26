@@ -47,6 +47,22 @@ describe("validateRows", () => {
     expect(row.data?.basePrice).toBe(125000);
   });
 
+  it("accepts a row with an empty price", () => {
+    const row = validateRows(map, [
+      { code: "A5", type: "APARTMENT", totalArea: "51.9", basePrice: "" },
+    ])[0]!;
+    expect(row.ok).toBe(true);
+    expect(row.data?.basePrice).toBeNull();
+  });
+
+  it("rejects a negative price", () => {
+    const row = validateRows(map, [
+      { code: "A6", type: "APARTMENT", totalArea: "51.9", basePrice: "-1" },
+    ])[0]!;
+    expect(row.ok).toBe(false);
+    expect(row.errors[0]).toMatch(/Osnovna cena/);
+  });
+
   it("rejects missing required fields", () => {
     const row = validateRows(map, [
       { code: "", type: "APARTMENT", totalArea: "50", basePrice: "1" },

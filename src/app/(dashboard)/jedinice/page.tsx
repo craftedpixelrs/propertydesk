@@ -40,26 +40,29 @@ function csvArray(raw: string | undefined): string[] | undefined {
 function shownPricePerM2(unit: {
   pricePerSquareMeter: { toString(): string } | null;
   finalPrice: { toString(): string } | null;
-  basePrice: { toString(): string };
+  basePrice: { toString(): string } | null;
   totalArea: { toString(): string };
 }) {
   if (unit.pricePerSquareMeter) return new Decimal(unit.pricePerSquareMeter.toString());
+  const listed = unit.finalPrice ?? unit.basePrice;
+  if (!listed) return null;
   const area = new Decimal(unit.totalArea.toString());
   if (area.isZero()) return new Decimal(0);
-  return new Decimal((unit.finalPrice ?? unit.basePrice).toString()).div(area).toDecimalPlaces(2);
+  return new Decimal(listed.toString()).div(area).toDecimalPlaces(2);
 }
 
 function shownTotalPrice(unit: {
   pricePerSquareMeter: { toString(): string } | null;
   finalPrice: { toString(): string } | null;
-  basePrice: { toString(): string };
+  basePrice: { toString(): string } | null;
   totalArea: { toString(): string };
 }) {
   const area = new Decimal(unit.totalArea.toString());
   if (unit.pricePerSquareMeter && !area.isZero()) {
     return new Decimal(unit.pricePerSquareMeter.toString()).mul(area).toDecimalPlaces(2);
   }
-  return new Decimal((unit.finalPrice ?? unit.basePrice).toString());
+  const listed = unit.finalPrice ?? unit.basePrice;
+  return listed ? new Decimal(listed.toString()) : null;
 }
 
 function BuyerLink({
@@ -204,10 +207,14 @@ export default async function UnitsPage({ searchParams }: PageProps) {
                     <td className="px-4 py-3">{unitTypeLabel(u.type, t)}</td>
                     <td className="px-4 py-3 tabular-nums">{u.totalArea.toString()} m²</td>
                     <td className="px-4 py-3 tabular-nums">
-                      {formatMoney(shownPricePerM2(u), u.currency as "EUR" | "RSD")}
+                      {shownPricePerM2(u)
+                        ? formatMoney(shownPricePerM2(u)!, u.currency as "EUR" | "RSD")
+                        : "—"}
                     </td>
                     <td className="px-4 py-3 tabular-nums">
-                      {formatMoney(shownTotalPrice(u), u.currency as "EUR" | "RSD")}
+                      {shownTotalPrice(u)
+                        ? formatMoney(shownTotalPrice(u)!, u.currency as "EUR" | "RSD")
+                        : "—"}
                     </td>
                     <td className="px-4 py-3">
                       <BuyerLink buyer={u.buyer} />
@@ -249,10 +256,14 @@ export default async function UnitsPage({ searchParams }: PageProps) {
                   <div className="flex items-center justify-between text-sm">
                     <span>{u.totalArea.toString()} m²</span>
                     <span className="text-[var(--color-foreground-muted)]">
-                      {formatMoney(shownPricePerM2(u), u.currency as "EUR" | "RSD")}/m²
+                      {shownPricePerM2(u)
+                        ? `${formatMoney(shownPricePerM2(u)!, u.currency as "EUR" | "RSD")}/m²`
+                        : "—"}
                     </span>
                     <span className="font-medium">
-                      {formatMoney(shownTotalPrice(u), u.currency as "EUR" | "RSD")}
+                      {shownTotalPrice(u)
+                        ? formatMoney(shownTotalPrice(u)!, u.currency as "EUR" | "RSD")
+                        : "—"}
                     </span>
                   </div>
                 </CardContent>

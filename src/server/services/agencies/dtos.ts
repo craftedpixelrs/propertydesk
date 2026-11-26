@@ -55,7 +55,7 @@ export interface AgencyUnitDto {
   entrance: string | null;
   floor: string | null;
   price: {
-    base: string;
+    base: string | null;
     final: string | null;
     perSquareMeter: string | null;
     currency: string;
@@ -120,7 +120,7 @@ export function toAgencyUnitDto(
     floor: unit.floor?.label ?? (unit.floor?.number != null ? String(unit.floor.number) : null),
     price: flags.canViewPrices
       ? {
-          base: unit.basePrice.toString(),
+          base: unit.basePrice ? unit.basePrice.toString() : null,
           final: unit.finalPrice ? unit.finalPrice.toString() : null,
           perSquareMeter: unit.pricePerSquareMeter ? unit.pricePerSquareMeter.toString() : null,
           currency: unit.currency,
