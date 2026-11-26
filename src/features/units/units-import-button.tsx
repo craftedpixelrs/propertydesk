@@ -14,6 +14,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { apiClient, ApiClientError } from "@/lib/api-client";
+import { FilePicker } from "@/features/units/file-picker";
 
 interface ImportResult {
   updated: number;
@@ -88,19 +89,18 @@ export function UnitsImportButton() {
             <DialogTitle>{t("inventory.units.importTitle")}</DialogTitle>
             <DialogDescription>{t("inventory.units.importHelp")}</DialogDescription>
           </DialogHeader>
-          <label className="block text-sm">
-            <input
-              type="file"
-              accept=".csv,.xlsx,.xls,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-              disabled={busy}
-              onChange={(event) => {
-                setFile(event.target.files?.[0] ?? null);
-                setError(null);
-                setResult(null);
-              }}
-              className="block w-full text-sm file:mr-3 file:rounded-md file:border file:border-[var(--color-border)] file:bg-[var(--color-surface-inset)] file:px-3 file:py-1.5 file:text-sm"
-            />
-          </label>
+          <FilePicker
+            accept=".csv,.xlsx,.xls,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            disabled={busy}
+            fileName={file?.name ?? null}
+            buttonLabel={t("inventory.import.chooseFile")}
+            emptyLabel={t("inventory.import.noFileChosen")}
+            onChange={(next) => {
+              setFile(next);
+              setError(null);
+              setResult(null);
+            }}
+          />
           {error ? <p className="text-sm text-[var(--color-danger)]">{error}</p> : null}
           {result ? (
             <div className="space-y-2 text-sm">

@@ -9,6 +9,7 @@ import { useI18n, useT } from "@/components/app/i18n-provider";
 import { apiClient, ApiClientError } from "@/lib/api-client";
 import type { TranslateFn } from "@/lib/i18n";
 import { guessImportField } from "@/lib/inventory/unit-import-columns";
+import { FilePicker } from "@/features/units/file-picker";
 
 type Step = "upload" | "map" | "preview" | "done";
 
@@ -189,12 +190,13 @@ export function ImportWizard({ projectId }: { projectId: string }) {
               </div>
             </div>
           ) : null}
-          <input
-            type="file"
+          <FilePicker
             accept=".csv,.xlsx,.xls,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-            onChange={(e) => setFile(e.target.files?.[0] ?? null)}
             disabled={step !== "upload" || loading}
-            className="block w-full text-sm"
+            fileName={file?.name ?? null}
+            buttonLabel={t("inventory.import.chooseFile")}
+            emptyLabel={t("inventory.import.noFileChosen")}
+            onChange={setFile}
           />
           {step === "upload" ? (
             <Button onClick={handleUpload} loading={loading} disabled={!file}>
