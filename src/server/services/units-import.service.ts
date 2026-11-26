@@ -2,7 +2,7 @@ import "server-only";
 import Papa from "papaparse";
 import ExcelJS from "exceljs";
 import Decimal from "decimal.js";
-import type { UnitStatus, UnitType } from "@prisma/client";
+import type { Prisma, UnitStatus, UnitType } from "@prisma/client";
 
 import { prisma } from "@/server/db/prisma";
 import { DomainErrors } from "@/lib/errors";
@@ -391,93 +391,98 @@ export async function commitRows(input: {
   const buildingByCode = new Map(buildings.map((b) => [b.code, b]));
 
   const errors: { row: number; message: string }[] = [];
-  let created = 0;
+  const existing = await prisma.unit.findMany({
+    where: {
+      projectId: input.projectId,
+      code: { in: rowsToInsert.map((row) => row.data!.code) },
+    },
+    select: { code: true },
+  });
+  const existingCodes = new Set(existing.map((unit) => unit.code));
 
-  await prisma.$transaction(async (tx) => {
-    for (const row of rowsToInsert) {
-      const data = row.data!;
-      let buildingId: string | null = null;
-      let entranceId: string | null = null;
-      let floorId: string | null = null;
-      if (data.buildingCode) {
-        const b = buildingByCode.get(data.buildingCode);
-        if (!b) {
-          errors.push({
-            row: row.index + 1,
-            message: `Nepoznat objekat: ${data.buildingCode}`,
-          });
-          continue;
-        }
-        buildingId = b.id;
-        if (data.entranceCode) {
-          const e = b.entrances.find((x) => x.code === data.entranceCode);
-          if (!e) {
-            errors.push({
-              row: row.index + 1,
-              message: `Nepoznat ulaz: ${data.entranceCode}`,
-            });
-            continue;
-          }
-          entranceId = e.id;
-          if (data.floorLabel) {
-            const f = e.floors.find((x) => x.label === data.floorLabel);
-            if (!f) {
-              errors.push({
-                row: row.index + 1,
-                message: `Nepoznat sprat: ${data.floorLabel}`,
-              });
-              continue;
-            }
-            floorId = f.id;
-          }
-        }
-      }
-      const dup = await tx.unit.findFirst({
-        where: { projectId: input.projectId, code: data.code },
-        select: { id: true },
-      });
-      if (dup) {
+  const pending: Prisma.UnitCreateManyInput[] = [];
+  for (const row of rowsToInsert) {
+    const data = row.data!;
+    let buildingId: string | null = null;
+    let entranceId: string | null = null;
+    let floorId: string | null = null;
+    if (data.buildingCode) {
+      const building = buildingByCode.get(data.buildingCode);
+      if (!building) {
         errors.push({
           row: row.index + 1,
-          message: `Jedinica sa šifrom "${data.code}" već postoji.`,
+          message: `Nepoznat objekat: ${data.buildingCode}`,
         });
         continue;
       }
-      const basePrice = data.basePrice != null ? new Decimal(data.basePrice) : null;
-      const finalPrice = data.finalPrice != null ? new Decimal(data.finalPrice) : null;
-      const totalArea = new Decimal(data.totalArea);
-      const priced = finalPrice ?? basePrice;
-      const ppsm = priced && !totalArea.isZero() ? priced.div(totalArea).toDecimalPlaces(2) : null;
-      await tx.unit.create({
-        data: {
-          organizationId: input.organizationId,
-          projectId: input.projectId,
-          buildingId,
-          entranceId,
-          floorId,
-          code: data.code,
-          externalReference: data.externalReference ?? null,
-          type: data.type,
-          status: data.status,
-          totalArea,
-          internalArea: data.internalArea != null ? new Decimal(data.internalArea) : null,
-          terraceArea: data.terraceArea != null ? new Decimal(data.terraceArea) : null,
-          gardenArea: data.gardenArea != null ? new Decimal(data.gardenArea) : null,
-          basePrice,
-          finalPrice,
-          pricePerSquareMeter: ppsm,
-          currency: data.currency,
-          vatRate: data.vatRate != null ? new Decimal(data.vatRate) : null,
-          bedrooms: data.bedrooms ?? null,
-          bathrooms: data.bathrooms ?? null,
-          orientation: data.orientation ?? null,
-          publicDescription: data.publicDescription ?? null,
-          internalNotes: data.internalNotes ?? null,
-        },
-      });
-      created += 1;
+      buildingId = building.id;
+      if (data.entranceCode) {
+        const entrance = building.entrances.find((item) => item.code === data.entranceCode);
+        if (!entrance) {
+          errors.push({
+            row: row.index + 1,
+            message: `Nepoznat ulaz: ${data.entranceCode}`,
+          });
+          continue;
+        }
+        entranceId = entrance.id;
+        if (data.floorLabel) {
+          const floor = entrance.floors.find((item) => item.label === data.floorLabel);
+          if (!floor) {
+            errors.push({
+              row: row.index + 1,
+              message: `Nepoznat sprat: ${data.floorLabel}`,
+            });
+            continue;
+          }
+          floorId = floor.id;
+        }
+      }
     }
-  });
+    if (existingCodes.has(data.code)) {
+      errors.push({
+        row: row.index + 1,
+        message: `Jedinica sa šifrom "${data.code}" već postoji.`,
+      });
+      continue;
+    }
+    const basePrice = data.basePrice != null ? new Decimal(data.basePrice) : null;
+    const finalPrice = data.finalPrice != null ? new Decimal(data.finalPrice) : null;
+    const totalArea = new Decimal(data.totalArea);
+    const priced = finalPrice ?? basePrice;
+    pending.push({
+      organizationId: input.organizationId,
+      projectId: input.projectId,
+      buildingId,
+      entranceId,
+      floorId,
+      code: data.code,
+      externalReference: data.externalReference ?? null,
+      type: data.type,
+      status: data.status,
+      totalArea,
+      internalArea: data.internalArea != null ? new Decimal(data.internalArea) : null,
+      terraceArea: data.terraceArea != null ? new Decimal(data.terraceArea) : null,
+      gardenArea: data.gardenArea != null ? new Decimal(data.gardenArea) : null,
+      basePrice,
+      finalPrice,
+      pricePerSquareMeter:
+        priced && !totalArea.isZero() ? priced.div(totalArea).toDecimalPlaces(2) : null,
+      currency: data.currency,
+      vatRate: data.vatRate != null ? new Decimal(data.vatRate) : null,
+      bedrooms: data.bedrooms != null ? Math.trunc(data.bedrooms) : null,
+      bathrooms: data.bathrooms != null ? Math.trunc(data.bathrooms) : null,
+      orientation: data.orientation ?? null,
+      publicDescription: data.publicDescription ?? null,
+      internalNotes: data.internalNotes ?? null,
+    });
+  }
+
+  let created = 0;
+  if (pending.length > 0) {
+    const inserted = await prisma.unit.createMany({ data: pending });
+    created = inserted.count;
+  }
 
   await recordAudit({
     action: "unit.import_batch",
