@@ -232,8 +232,10 @@ jobs:
           echo "==> Running migrations (idempotent, per database)"
           # `</dev/null` je obavezan: `docker compose run` inače proguta
           # ostatak ovog heredoca i korak se završi posle prve migracije.
-          IMAGE="$IMAGE_REF" docker compose --env-file .env --env-file .env.deploy \
-            run --rm --no-deps -T app npx prisma migrate deploy </dev/null
+          # Produkcijska baza se namerno ne dira. Uvoz jedinica nema novu
+          # migraciju. Vrati `prisma migrate deploy` za servis `app` čim
+          # sledeći release ima izmenu šeme.
+          echo "==> Preskačem migrate na produkciji (baza se ne dira)"
           if [ -f .env.demo ]; then
             IMAGE="$IMAGE_REF" docker compose --env-file .env --env-file .env.deploy \
               run --rm --no-deps -T app-demo npx prisma migrate deploy </dev/null
@@ -277,8 +279,8 @@ jobs:
           # `docker compose up` ide bez eksplicitnih servisa, pa compose
           # pokušava da podigne i app-demo/app-staging čak i kad njihov
           # env fajl ne postoji na ovom hostu — tiha regresija.
-          # Produkcijski `app` dobija novi image. Seed se ne pokreće nad
-          # produkcijskom bazom — samo `prisma migrate deploy` iznad.
+          # Produkcijski `app` dobija novi image. Produkcijska baza se
+          # ne migrira i ne seeduje.
           UP_SERVICES="app caddy"
           if [ -f .env.demo ]; then UP_SERVICES="\$UP_SERVICES app-demo"; fi
           if [ -f .env.staging ]; then UP_SERVICES="\$UP_SERVICES app-staging"; fi

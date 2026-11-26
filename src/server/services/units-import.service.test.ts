@@ -1,9 +1,14 @@
 import { describe, expect, it } from "vitest";
 
+import ExcelJS from "exceljs";
+
 import {
+  UNIT_EXPORT_COLUMNS,
   UNIT_IMPORT_TEMPLATE_COLUMNS,
   UNIT_IMPORT_TEMPLATE_SAMPLE,
   buildImportTemplateCsv,
+  parseFile,
+  readExportedUnitRows,
   validateRows,
   type HeaderMap,
 } from "./units-import.service";
@@ -104,5 +109,108 @@ describe("import template", () => {
     );
     const rows = validateRows(identityMap, UNIT_IMPORT_TEMPLATE_SAMPLE);
     expect(rows.every((r) => r.ok)).toBe(true);
+  });
+});
+
+describe("readExportedUnitRows", () => {
+  const headers = UNIT_EXPORT_COLUMNS.map((column) => column.header);
+
+  it("reads the export headers and keeps an empty price as empty", () => {
+    const result = readExportedUnitRows({
+      headers,
+      rows: [
+        {
+          "Šifra projekta": "GP",
+          Projekat: "Gradnja Plus",
+          Šifra: "A-01",
+          "Ext. referenca": "",
+          Tip: "APARTMENT",
+          Status: "AVAILABLE",
+          Objekat: "A",
+          Ulaz: "1",
+          Sprat: "1",
+          Površina: "68,40",
+          Bruto: "",
+          "Osnovna cena": "145000",
+          "Konačna cena": "",
+          Valuta: "EUR",
+          Sobe: "2",
+          Kupatila: "1",
+        },
+      ],
+    });
+    expect(result.missingColumns).toEqual([]);
+    expect(result.rows).toHaveLength(1);
+    expect(result.rows[0]).toMatchObject({
+      row: 2,
+      values: {
+        projectCode: "GP",
+        code: "A-01",
+        totalArea: "68,40",
+        finalPrice: "",
+        externalReference: "",
+      },
+    });
+  });
+
+  it("also accepts the CSV export keys", () => {
+    const result = readExportedUnitRows({
+      headers: ["projectCode", "code", "basePrice"],
+      rows: [{ projectCode: "GP", code: "A-01", basePrice: "1" }],
+    });
+    expect(result.missingColumns).toEqual([]);
+    expect(result.rows[0]?.values.code).toBe("A-01");
+  });
+
+  it("reports a missing unit code column", () => {
+    const result = readExportedUnitRows({
+      headers: ["Šifra projekta", "Projekat"],
+      rows: [{ "Šifra projekta": "GP", Projekat: "Gradnja" }],
+    });
+    expect(result.missingColumns).toEqual(["code"]);
+  });
+
+  it("keeps repeated codes so the importer can reject the second row", () => {
+    const result = readExportedUnitRows({
+      headers: ["Šifra projekta", "Šifra"],
+      rows: [
+        { "Šifra projekta": "GP", Šifra: "A-01" },
+        { "Šifra projekta": "GP", Šifra: "A-01" },
+        { "Šifra projekta": "GP", Šifra: "A-02" },
+      ],
+    });
+    const keys = result.rows.map((row) => `${row.values.projectCode}:${row.values.code}`);
+    expect(keys).toEqual(["GP:A-01", "GP:A-01", "GP:A-02"]);
+  });
+
+  it("reads an xlsx written with the export columns", async () => {
+    const wb = new ExcelJS.Workbook();
+    const ws = wb.addWorksheet("Jedinice");
+    ws.columns = UNIT_EXPORT_COLUMNS.map((column) => ({
+      header: column.header,
+      key: column.key,
+    }));
+    ws.addRow({
+      projectCode: "GP",
+      projectName: "Gradnja Plus",
+      code: "A-01",
+      type: "APARTMENT",
+      status: "AVAILABLE",
+      totalArea: 68.4,
+      basePrice: 145000,
+      currency: "EUR",
+      bedrooms: 2,
+    });
+    const buffer = Buffer.from(await wb.xlsx.writeBuffer());
+    const parsed = await parseFile("jedinice.xlsx", buffer);
+    const result = readExportedUnitRows(parsed);
+    expect(result.missingColumns).toEqual([]);
+    expect(result.rows[0]?.values).toMatchObject({
+      projectCode: "GP",
+      code: "A-01",
+      totalArea: "68.4",
+      basePrice: "145000",
+      bedrooms: "2",
+    });
   });
 });

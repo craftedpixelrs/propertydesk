@@ -77,6 +77,7 @@ export interface CreateUnitInput {
   hasGarden?: boolean;
   publicDescription?: string | null;
   internalNotes?: string | null;
+  externalReference?: string | null;
   isVisibleToAgencies?: boolean;
 }
 
@@ -314,6 +315,7 @@ export async function createUnit(input: CreateUnitInput) {
       hasGarden: input.hasGarden ?? false,
       publicDescription: input.publicDescription ?? null,
       internalNotes: input.internalNotes ?? null,
+      externalReference: input.externalReference ?? null,
       isVisibleToAgencies: input.isVisibleToAgencies ?? false,
     },
   });
@@ -451,6 +453,8 @@ export async function updateUnit(input: UpdateUnitInput) {
           input.patch.publicDescription !== undefined ? input.patch.publicDescription : undefined,
         internalNotes:
           input.patch.internalNotes !== undefined ? input.patch.internalNotes : undefined,
+        externalReference:
+          input.patch.externalReference !== undefined ? input.patch.externalReference : undefined,
         isVisibleToAgencies: input.patch.isVisibleToAgencies ?? undefined,
         version: { increment: 1 },
       },

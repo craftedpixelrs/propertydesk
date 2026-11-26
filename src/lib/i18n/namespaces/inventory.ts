@@ -43,6 +43,14 @@ export const inventorySr = {
   units: {
     subtitle: "Pregled i upravljanje inventarom.",
     exportXlsx: "Izvoz (XLSX)",
+    importXlsx: "Uvoz",
+    importTitle: "Uvoz jedinica",
+    importHelp:
+      "Otpremite fajl izvezen sa ove strane. Kolone su iste. Postojeći redovi se ažuriraju, a novi redovi se dodaju.",
+    importSubmit: "Uvezi",
+    importWorking: "Uvoz…",
+    importDone: "Ažurirano {{updated}}, dodato {{created}}, bez izmene {{unchanged}}.",
+    importFailed: "Uvoz nije uspeo. Pokušajte ponovo.",
     searchPlaceholder: "Šifra, projekat…",
     searchAria: "Pretraga jedinica po šifri ili projektu",
     projectAria: "Filter po projektu",
@@ -349,6 +357,14 @@ export const inventoryEn: Leaves<typeof inventorySr> = {
   units: {
     subtitle: "View and manage inventory.",
     exportXlsx: "Export (XLSX)",
+    importXlsx: "Import",
+    importTitle: "Import units",
+    importHelp:
+      "Upload a file exported from this page. The columns are the same. Existing rows are updated, and new rows are added.",
+    importSubmit: "Import",
+    importWorking: "Importing…",
+    importDone: "Updated {{updated}}, added {{created}}, unchanged {{unchanged}}.",
+    importFailed: "Import failed. Try again.",
     searchPlaceholder: "Code, project…",
     searchAria: "Search units by code or project",
     projectAria: "Filter by project",

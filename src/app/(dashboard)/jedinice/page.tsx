@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { PermissionGuard } from "@/components/app/permission-guard";
 import { UnitsFilterBar } from "@/features/units/units-filter-bar";
+import { UnitsImportButton } from "@/features/units/units-import-button";
 import { loadUserContext, requireTenantPage } from "@/server/auth/context";
 import { listUnits } from "@/server/services/units.service";
 import { listProjects } from "@/server/services/projects.service";
@@ -130,6 +131,9 @@ export default async function UnitsPage({ searchParams }: PageProps) {
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
+          <PermissionGuard permission="inventory.import">
+            <UnitsImportButton />
+          </PermissionGuard>
           <PermissionGuard permission="inventory.export">
             <Button asChild variant="outline">
               <a
