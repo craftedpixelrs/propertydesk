@@ -7,6 +7,7 @@ import { PermissionGuard } from "@/components/app/permission-guard";
 import { UnitsFilterBar } from "@/features/units/units-filter-bar";
 import { UnitsImportButton } from "@/features/units/units-import-button";
 import { loadUserContext, requireTenantPage } from "@/server/auth/context";
+import { prisma } from "@/server/db/prisma";
 import { listUnits } from "@/server/services/units.service";
 import { listProjects } from "@/server/services/projects.service";
 import { formatMoney } from "@/lib/formatters";
@@ -92,18 +93,20 @@ export default async function UnitsPage({ searchParams }: PageProps) {
   const sp = await searchParams;
   const search = first(sp.q);
   const projectId = first(sp.projectId);
+  const buildingId = first(sp.buildingId);
   const status = csvArray(first(sp.status)) as UnitStatus[] | undefined;
   const type = csvArray(first(sp.type)) as UnitType[] | undefined;
   const page = Number(first(sp.page) ?? "1") || 1;
   const pageSize = 20;
 
-  const [{ items, total }, projectsList] = await Promise.all([
+  const [{ items, total }, projectsList, buildings] = await Promise.all([
     listUnits({
       organizationId: ctx.activeOrganization.id,
       page,
       pageSize,
       search,
       projectId,
+      buildingId,
       status,
       type,
       activeOnly: true,
@@ -114,12 +117,24 @@ export default async function UnitsPage({ searchParams }: PageProps) {
       pageSize: 100,
       activeOnly: true,
     }),
+    prisma.building.findMany({
+      where: {
+        project: {
+          organizationId: ctx.activeOrganization.id,
+          archivedAt: null,
+          ...(projectId ? { id: projectId } : {}),
+        },
+      },
+      select: { id: true, name: true, code: true, project: { select: { name: true } } },
+      orderBy: [{ sortOrder: "asc" }, { name: "asc" }],
+    }),
   ]);
 
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
   const listQuery = {
     ...(search ? { q: search } : {}),
     ...(projectId ? { projectId } : {}),
+    ...(buildingId ? { buildingId } : {}),
     ...(first(sp.status) ? { status: first(sp.status)! } : {}),
     ...(first(sp.type) ? { type: first(sp.type)! } : {}),
   };
@@ -158,10 +173,17 @@ export default async function UnitsPage({ searchParams }: PageProps) {
             values={{
               q: search ?? "",
               projectId: projectId ?? "",
+              buildingId: buildingId ?? "",
               status: first(sp.status) ?? "",
               type: first(sp.type) ?? "",
             }}
             projects={projectsList.items.map((p) => ({ id: p.id, name: p.name }))}
+            buildings={buildings.map((building) => ({
+              id: building.id,
+              name: projectId
+                ? building.name || building.code
+                : `${building.name || building.code} · ${building.project.name}`,
+            }))}
           />
         </CardContent>
       </Card>
@@ -180,6 +202,7 @@ export default async function UnitsPage({ searchParams }: PageProps) {
                 <tr>
                   <th className="px-4 py-3">{t("inventory.columns.code")}</th>
                   <th className="px-4 py-3">{t("units.columns.project")}</th>
+                  <th className="px-4 py-3">{t("units.columns.building")}</th>
                   <th className="px-4 py-3">{t("units.columns.type")}</th>
                   <th className="px-4 py-3">{t("units.columns.area")}</th>
                   <th className="px-4 py-3">{t("units.columns.pricePerSquareMeter")}</th>
@@ -204,6 +227,7 @@ export default async function UnitsPage({ searchParams }: PageProps) {
                         {u.project.name}
                       </Link>
                     </td>
+                    <td className="px-4 py-3">{u.building?.name || u.building?.code || "—"}</td>
                     <td className="px-4 py-3">{unitTypeLabel(u.type, t)}</td>
                     <td className="px-4 py-3 tabular-nums">{u.totalArea.toString()} m²</td>
                     <td className="px-4 py-3 tabular-nums">
@@ -250,7 +274,9 @@ export default async function UnitsPage({ searchParams }: PageProps) {
                     </span>
                   </div>
                   <div className="text-xs text-[var(--color-foreground-muted)]">
-                    {u.project.name} · {unitTypeLabel(u.type, t)}
+                    {u.project.name}
+                    {u.building ? ` · ${u.building.name || u.building.code}` : ""} ·{" "}
+                    {unitTypeLabel(u.type, t)}
                   </div>
                   <BuyerLink buyer={u.buyer} />
                   <div className="flex items-center justify-between text-sm">

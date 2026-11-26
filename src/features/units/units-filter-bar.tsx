@@ -36,6 +36,7 @@ const fieldClass =
 export interface UnitsFilterValues {
   q: string;
   projectId: string;
+  buildingId: string;
   status: string;
   type: string;
 }
@@ -43,9 +44,11 @@ export interface UnitsFilterValues {
 export function UnitsFilterBar({
   values,
   projects,
+  buildings,
 }: {
   values: UnitsFilterValues;
   projects: Array<{ id: string; name: string }>;
+  buildings: Array<{ id: string; name: string }>;
 }) {
   const router = useRouter();
   const t = useT();
@@ -61,6 +64,7 @@ export function UnitsFilterBar({
     const params = new URLSearchParams();
     if (next.q.trim()) params.set("q", next.q.trim());
     if (next.projectId.trim()) params.set("projectId", next.projectId.trim());
+    if (next.buildingId.trim()) params.set("buildingId", next.buildingId.trim());
     if (next.status.trim()) params.set("status", next.status.trim());
     if (next.type.trim()) params.set("type", next.type.trim());
     const qs = params.toString();
@@ -76,7 +80,9 @@ export function UnitsFilterBar({
     // eslint-disable-next-line react-hooks/exhaustive-deps -- debounce only on qLocal
   }, [qLocal]);
 
-  const hasFilters = Boolean(values.q || values.projectId || values.status || values.type);
+  const hasFilters = Boolean(
+    values.q || values.projectId || values.buildingId || values.status || values.type,
+  );
 
   return (
     <div className="grid grid-cols-1 gap-3 sm:grid-cols-4" aria-busy={pending}>
@@ -90,7 +96,7 @@ export function UnitsFilterBar({
       />
       <select
         value={values.projectId}
-        onChange={(e) => apply({ projectId: e.target.value })}
+        onChange={(e) => apply({ projectId: e.target.value, buildingId: "" })}
         className={fieldClass}
         aria-label={t("inventory.units.projectAria")}
       >
@@ -98,6 +104,19 @@ export function UnitsFilterBar({
         {projects.map((p) => (
           <option key={p.id} value={p.id}>
             {p.name}
+          </option>
+        ))}
+      </select>
+      <select
+        value={values.buildingId}
+        onChange={(e) => apply({ buildingId: e.target.value })}
+        className={fieldClass}
+        aria-label={t("inventory.units.buildingAria")}
+      >
+        <option value="">{t("inventory.units.allBuildings")}</option>
+        {buildings.map((building) => (
+          <option key={building.id} value={building.id}>
+            {building.name}
           </option>
         ))}
       </select>
@@ -135,7 +154,7 @@ export function UnitsFilterBar({
             className="font-medium text-[var(--color-brand-700)] hover:underline"
             onClick={() => {
               setQLocal("");
-              apply({ q: "", projectId: "", status: "", type: "" });
+              apply({ q: "", projectId: "", buildingId: "", status: "", type: "" });
             }}
           >
             {t("inventory.units.resetFilters")}
