@@ -69,7 +69,7 @@ export function ProductVideo() {
     <section id="video" aria-labelledby="video-title" className="scroll-mt-20 bg-white">
       <div className="container-app py-14 sm:py-20">
         <div className="mx-auto max-w-3xl text-center">
-          <div className="inline-flex items-center gap-2 rounded-full border border-[#d6b26a]/40 bg-[#f7f3ea] px-3 py-1 text-xs font-semibold tracking-[0.16em] text-[#9a7430] uppercase">
+          <div className="border-line text-tide-700 inline-flex items-center gap-2 rounded-lg border bg-white px-3 py-1 font-mono text-[11px] font-medium tracking-[0.16em] uppercase">
             <Sparkles aria-hidden className="size-3.5" />
             {t("marketing.video.eyebrow")}
           </div>
@@ -150,7 +150,7 @@ function YouTubeFacade({
         aria-hidden
         className="absolute inset-0 grid place-items-center bg-black/20 transition group-hover:bg-black/30"
       >
-        <span className="grid h-20 w-20 place-items-center rounded-full bg-[#f7f3ea] text-[#0b1020] shadow-lg transition group-hover:scale-105">
+        <span className="bg-tide-300 text-ink grid h-20 w-20 place-items-center rounded-full shadow-lg transition group-hover:scale-105">
           <PlayCircle className="size-10" strokeWidth={1.5} />
         </span>
       </span>
@@ -161,7 +161,7 @@ function YouTubeFacade({
 function VideoPlaceholder() {
   const t = useT();
   return (
-    <div className="absolute inset-0 flex flex-col items-center justify-center gap-5 bg-[#0b1020] px-6 text-center text-[#f7f3ea]">
+    <div className="bg-ink absolute inset-0 flex flex-col items-center justify-center gap-5 px-6 text-center text-white">
       <span
         aria-hidden
         className="grid h-16 w-16 place-items-center rounded-full bg-white/15 backdrop-blur"
@@ -174,7 +174,7 @@ function VideoPlaceholder() {
       </div>
       <a
         href="#zakazivanje"
-        className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-[#f7f3ea] px-5 text-sm font-semibold text-[#0b1020] transition hover:bg-white focus-visible:ring-2 focus-visible:ring-[#d6b26a] focus-visible:ring-offset-2 focus-visible:ring-offset-[#0b1020] focus-visible:outline-none"
+        className="bg-tide-300 text-ink focus-visible:ring-tide-300 focus-visible:ring-offset-ink inline-flex h-11 items-center justify-center gap-2 rounded-xl px-5 text-sm font-semibold transition hover:bg-white focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
       >
         {t("marketing.video.bookLive")}
       </a>

@@ -8,6 +8,7 @@ import { FeatureGrid } from "@/features/marketing/feature-grid";
 import { PageHero } from "@/features/marketing/landing/page-hero";
 import { ProblemSolutionGrid } from "@/features/marketing/landing/problem-solution-grid";
 import { RelatedLinks } from "@/features/marketing/landing/related-links";
+import { Index, SectionHeading } from "@/features/marketing/ui";
 import { CITIES, getCityBySlug, localizeCity } from "@/features/marketing/cities/cities";
 import { cityChrome } from "@/features/marketing/cities/cities-ui";
 import { APP_NAME, MARKETING_URL } from "@/lib/constants/app";
@@ -188,30 +189,22 @@ export default async function CityPage({ params }: PageProps) {
         items={copy.problems}
       />
 
-      <section aria-labelledby="districts-title" className="bg-white">
-        <div className="container-app py-16 sm:py-20">
-          <div className="max-w-3xl">
-            <p className="text-xs font-semibold tracking-[0.16em] text-[#9a7430] uppercase">
-              {local.name}
-            </p>
-            <h2
-              id="districts-title"
-              className="font-display mt-3 text-4xl font-semibold tracking-tight text-[#0b1020] sm:text-5xl"
-            >
-              {local.districtsTitle}
-            </h2>
-            <p className="mt-4 text-base leading-relaxed text-[var(--color-foreground-muted)]">
-              {copy.districtsBody(local.nameGenitiv)}
-            </p>
-          </div>
+      <section aria-labelledby="districts-title" className="border-line border-t">
+        <div className="container-app py-20 sm:py-28">
+          <SectionHeading
+            id="districts-title"
+            eyebrow={local.name}
+            title={local.districtsTitle}
+            subtitle={copy.districtsBody(local.nameGenitiv)}
+          />
 
-          <ul className="mt-8 flex flex-wrap gap-2">
+          <ul className="mt-10 flex flex-wrap gap-2">
             {city.districts.map((d) => (
               <li
                 key={d}
-                className="inline-flex items-center gap-2 rounded-full border border-[#0b1020]/10 bg-[var(--color-surface)] px-3 py-1.5 text-sm text-[#0b1020]"
+                className="border-line text-ink inline-flex items-center gap-2 rounded-xl border bg-white px-3.5 py-2 text-sm font-medium"
               >
-                <MapPin aria-hidden className="size-3.5 text-[#9a7430]" />
+                <MapPin aria-hidden className="text-tide-700 size-3.5" />
                 {d}
               </li>
             ))}
@@ -219,26 +212,26 @@ export default async function CityPage({ params }: PageProps) {
         </div>
       </section>
 
-      <section aria-labelledby="faq-title" className="bg-[#f7f3ea]">
-        <div className="container-app py-16 sm:py-20">
-          <div className="max-w-3xl">
-            <h2
-              id="faq-title"
-              className="font-display text-4xl font-semibold tracking-tight text-[#0b1020] sm:text-5xl"
-            >
-              {copy.faqTitle(local.name)}
-            </h2>
-          </div>
-          <dl className="mt-8 space-y-4">
-            {local.faqs.map((f) => (
-              <div
-                key={f.q}
-                className="rounded-2xl border border-[var(--color-border)] bg-white p-5 shadow-sm sm:p-6"
-              >
-                <dt className="font-display text-lg font-semibold text-[#0b1020]">{f.q}</dt>
-                <dd className="mt-2 text-sm leading-relaxed text-[var(--color-foreground)]">
-                  {f.a}
-                </dd>
+      <section aria-labelledby="faq-title" className="border-line border-t bg-white">
+        <div className="container-app grid gap-10 py-20 sm:py-28 lg:grid-cols-[minmax(0,4fr)_minmax(0,8fr)] lg:gap-16">
+          <SectionHeading
+            id="faq-title"
+            eyebrow={t("marketing.faq.eyebrow")}
+            title={copy.faqTitle(local.name)}
+            className="lg:sticky lg:top-28 lg:self-start"
+          />
+          <dl className="border-line border-t">
+            {local.faqs.map((f, i) => (
+              <div key={f.q} className="border-line flex gap-4 border-b py-6 sm:gap-5">
+                <Index n={i + 1} className="text-faint mt-1 w-6 flex-none" />
+                <div>
+                  <dt className="text-ink text-[1.05rem] leading-snug font-semibold tracking-[-0.015em]">
+                    {f.q}
+                  </dt>
+                  <dd className="text-mute mt-2.5 max-w-2xl text-[0.95rem] leading-relaxed">
+                    {f.a}
+                  </dd>
+                </div>
               </div>
             ))}
           </dl>

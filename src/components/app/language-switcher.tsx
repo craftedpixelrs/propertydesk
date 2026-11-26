@@ -34,7 +34,7 @@ export function LanguageSwitcher({
         className={cn(
           "inline-flex items-center p-0.5",
           tone === "marketing"
-            ? "rounded-full bg-transparent"
+            ? "border-line rounded-[10px] border bg-white"
             : "rounded-md border border-[var(--color-border)] bg-[var(--color-surface)]",
         )}
       >
@@ -50,14 +50,14 @@ export function LanguageSwitcher({
                 if (!active) void setLocale(code);
               }}
               className={cn(
-                "inline-flex h-8 min-w-9 items-center justify-center px-2 text-xs font-semibold tracking-wide",
-                tone === "marketing" ? "rounded-full" : "rounded",
+                "inline-flex min-w-9 items-center justify-center px-2 text-xs font-semibold tracking-wide",
+                tone === "marketing" ? "h-7 rounded-[7px] font-mono text-[11px]" : "h-8 rounded",
                 active
                   ? tone === "marketing"
-                    ? "bg-[#f7f3ea] text-[#0b1020]"
+                    ? "bg-ink text-white"
                     : "bg-[var(--color-surface-inset)] text-[var(--color-foreground)]"
                   : tone === "marketing"
-                    ? "text-[#f7f3ea]/55 hover:text-[#f7f3ea]"
+                    ? "text-mute hover:text-ink"
                     : "text-[var(--color-foreground-muted)] hover:text-[var(--color-foreground)]",
               )}
             >

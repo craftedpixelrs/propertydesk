@@ -39,6 +39,7 @@ export default async function Page() {
         icon={Wallet}
         title={t("marketing.pages.reservations.title")}
         subtitle={t("marketing.pages.reservations.subtitle")}
+        screen="reservations"
       />
       <ProblemSolutionGrid
         title={t("marketing.pages.reservations.gridTitle")}

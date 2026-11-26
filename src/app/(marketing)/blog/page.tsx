@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { ArrowUpRight } from "lucide-react";
 
-import { BlogFigure } from "@/features/marketing/blog/blog-figure";
+import { BlogCover } from "@/features/marketing/blog/blog-figure";
 import { blogLocale, blogPostsNewestFirst } from "@/features/marketing/blog/posts";
 import { CtaPanel } from "@/features/marketing/landing/cta-panel";
+import { PageIntro } from "@/features/marketing/ui";
 import { APP_NAME, MARKETING_URL } from "@/lib/constants/app";
 import { createT, htmlLang } from "@/lib/i18n";
 import { resolveRequestLocale } from "@/lib/i18n/resolve-locale";
@@ -74,57 +76,72 @@ export default async function BlogIndexPage() {
 
   return (
     <>
-      <section className="bg-[#0b1020] text-[#f7f3ea]">
-        <div className="container-app py-16 sm:py-20">
-          <p className="text-xs font-semibold tracking-[0.18em] text-[#d6b26a] uppercase">
-            {t("marketing.blog.eyebrow")}
-          </p>
-          <h1 className="font-display mt-4 max-w-3xl text-4xl font-semibold tracking-tight sm:text-6xl">
-            {t("marketing.blog.title")}
-          </h1>
-          <p className="mt-5 max-w-2xl text-base leading-relaxed text-white/70 sm:text-lg">
-            {t("marketing.blog.subtitle")}
-          </p>
-        </div>
-      </section>
+      <PageIntro
+        trail={[
+          { label: t("marketing.landing.home"), href: "/" },
+          { label: t("marketing.blog.eyebrow") },
+        ]}
+        title={t("marketing.blog.title")}
+        lead={t("marketing.blog.subtitle")}
+      />
 
       <section className="bg-white">
-        <div className="container-app grid gap-6 py-14 sm:py-16">
+        <div className="container-app grid gap-4 py-14 sm:py-20 lg:grid-cols-2">
           {posts.map((post, index) => {
             const copy = post.copy[lang];
+            const lead = index === 0;
             return (
               <article
                 key={post.slug}
-                className="grid items-center gap-6 rounded-3xl border border-[#0b1020]/10 bg-[#f7f3ea] p-4 sm:p-6 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]"
+                className={
+                  lead
+                    ? "group border-line hover:border-ink/30 relative grid overflow-hidden rounded-3xl border bg-white transition duration-300 hover:shadow-[0_30px_60px_-40px_rgba(10,27,61,0.5)] lg:col-span-2 lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]"
+                    : "group border-line hover:border-ink/30 relative flex flex-col overflow-hidden rounded-3xl border bg-white transition duration-300 hover:shadow-[0_30px_60px_-40px_rgba(10,27,61,0.5)]"
+                }
               >
-                <BlogFigure
+                <BlogCover
                   file={post.coverFile}
                   alt={copy.coverAlt}
-                  width={1200}
-                  height={630}
-                  priority={index === 0}
-                  sizes="(min-width: 1024px) 420px, 100vw"
+                  index={index}
+                  priority={lead}
+                  sizes={
+                    lead ? "(min-width: 1024px) 680px, 100vw" : "(min-width: 1024px) 580px, 100vw"
+                  }
+                  className={lead ? "lg:aspect-auto lg:h-full lg:min-h-[22rem]" : undefined}
                 />
-                <div className="px-2 py-2 sm:px-4">
-                  <p className="text-xs font-semibold tracking-[0.14em] text-[#9a7430] uppercase">
+                <div
+                  className={
+                    lead
+                      ? "flex flex-col justify-center p-6 sm:p-10"
+                      : "flex flex-1 flex-col p-6 sm:p-8"
+                  }
+                >
+                  <p className="text-faint font-mono text-[11px] font-medium tracking-[0.14em] uppercase">
                     {copy.dateLabel}
-                    <span className="px-2 text-[#0b1020]/30">/</span>
+                    <span className="text-line px-2">/</span>
                     {t("marketing.blog.minutes", { count: post.minutes })}
                   </p>
-                  <h2 className="font-display mt-3 text-3xl font-semibold text-[#0b1020]">
-                    <Link href={`/blog/${post.slug}`} className="hover:text-[#9a7430]">
+                  <h2
+                    className={
+                      lead
+                        ? "text-ink mt-4 text-2xl leading-[1.15] font-bold tracking-[-0.03em] sm:text-[2rem]"
+                        : "text-ink mt-4 text-xl leading-snug font-bold tracking-[-0.025em] sm:text-2xl"
+                    }
+                  >
+                    <Link
+                      href={`/blog/${post.slug}`}
+                      className="group-hover:text-tide-700 transition-colors after:absolute after:inset-0 after:content-['']"
+                    >
                       {copy.title}
                     </Link>
                   </h2>
-                  <p className="mt-3 text-sm leading-relaxed text-[var(--color-foreground-muted)] sm:text-base">
+                  <p className="text-mute mt-3 flex-1 text-sm leading-relaxed sm:text-base">
                     {copy.excerpt}
                   </p>
-                  <Link
-                    href={`/blog/${post.slug}`}
-                    className="mt-5 inline-flex text-sm font-semibold text-[#0b1020] underline decoration-[#d6b26a] underline-offset-4"
-                  >
+                  <span className="text-ink mt-6 inline-flex items-center gap-1.5 text-sm font-semibold">
                     {t("marketing.blog.read")}
-                  </Link>
+                    <ArrowUpRight aria-hidden className="text-tide-700 size-4" />
+                  </span>
                 </div>
               </article>
             );

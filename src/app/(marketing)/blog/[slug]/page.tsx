@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { ArrowUpRight } from "lucide-react";
 
 import { BlogFigure } from "@/features/marketing/blog/blog-figure";
 import { blogImagePath, publicFileReady } from "@/features/marketing/blog/image";
@@ -13,6 +14,7 @@ import {
 import { ReadingProgress } from "@/features/marketing/blog/reading-progress";
 import { RichText } from "@/features/marketing/blog/rich-text";
 import { CtaPanel } from "@/features/marketing/landing/cta-panel";
+import { RuleHeading } from "@/features/marketing/ui";
 import { APP_NAME, COMPANY, MARKETING_URL } from "@/lib/constants/app";
 import { createT, htmlLang } from "@/lib/i18n";
 import { resolveRequestLocale } from "@/lib/i18n/resolve-locale";
@@ -123,26 +125,40 @@ export default async function BlogArticlePage({ params }: PageProps) {
     <>
       <ReadingProgress minutes={post.minutes} targetId="blog-article" />
       <article id="blog-article" className="bg-white">
-        <header className="bg-[#0b1020] text-[#f7f3ea]">
-          <div className="container-app max-w-3xl pt-20 pb-14 sm:pt-24 sm:pb-20">
-            <p className="text-xs font-semibold tracking-[0.16em] text-[#d6b26a] uppercase">
-              <Link href="/blog" className="hover:text-white">
+        <header className="border-line bg-paper relative overflow-hidden border-b">
+          <div
+            aria-hidden
+            className="pd-grid pd-fade-radial pointer-events-none absolute inset-0"
+          />
+          <div className="container-app pd-rise relative max-w-3xl pt-24 pb-12 sm:pt-28 sm:pb-16">
+            <p className="text-faint flex flex-wrap items-center gap-2.5 font-mono text-[11px] font-medium tracking-[0.16em] uppercase">
+              <Link href="/blog" className="hover:text-ink transition-colors">
                 {t("marketing.blog.indexLabel")}
               </Link>
-              <span className="px-2 text-white/30">/</span>
-              {copy.dateLabel}
+              <span aria-hidden className="text-line">
+                /
+              </span>
+              <span className="text-tide-700">{copy.dateLabel}</span>
             </p>
-            <h1 className="font-display mt-4 text-4xl font-semibold tracking-tight sm:text-5xl">
+            <h1 className="text-ink mt-6 text-[2.1rem] leading-[1.08] font-bold tracking-[-0.035em] text-balance sm:text-5xl">
               {copy.title}
             </h1>
-            <p className="mt-5 text-base leading-relaxed text-white/70 sm:text-lg">
+            <p className="text-mute mt-5 text-base leading-relaxed text-pretty sm:text-lg">
               {copy.description}
             </p>
-            <p className="mt-6 text-sm text-white/55">
-              {t("marketing.blog.byline")}
-              <span className="px-2 text-white/30">·</span>
-              {t("marketing.blog.minutes", { count: post.minutes })}
-            </p>
+            <div className="border-line mt-8 flex items-center gap-3 border-t pt-5">
+              <span
+                aria-hidden
+                className="bg-ink text-tide-300 grid size-9 flex-none place-items-center rounded-xl font-mono text-[11px] font-medium"
+              >
+                MB
+              </span>
+              <p className="text-mute text-sm">
+                {t("marketing.blog.byline")}
+                <span className="text-line px-2">·</span>
+                {t("marketing.blog.minutes", { count: post.minutes })}
+              </p>
+            </div>
           </div>
         </header>
 
@@ -156,14 +172,14 @@ export default async function BlogArticlePage({ params }: PageProps) {
             sizes="(min-width: 768px) 768px, 100vw"
           />
 
-          <div className="mt-10 space-y-5 text-base leading-relaxed text-[#243044]">
+          <div className="text-ink/80 mt-10 space-y-5 text-[1.05rem] leading-[1.75]">
             {copy.blocks.map((block, index) => {
               if (block.type === "h2") {
                 return (
                   <h2
                     key={block.id}
                     id={block.id}
-                    className="font-display scroll-mt-32 pt-6 text-3xl font-semibold text-[#0b1020]"
+                    className="text-ink scroll-mt-32 pt-8 text-[1.7rem] leading-tight font-bold tracking-[-0.03em] sm:text-[2rem]"
                   >
                     {block.text}
                   </h2>
@@ -184,9 +200,12 @@ export default async function BlogArticlePage({ params }: PageProps) {
               }
               if (block.type === "ul") {
                 return (
-                  <ul key={`ul-${index}`} className="list-disc space-y-2 pl-5">
+                  <ul key={`ul-${index}`} className="space-y-2.5">
                     {block.items.map((item) => (
-                      <li key={item}>{item}</li>
+                      <li key={item} className="flex gap-3">
+                        <span aria-hidden className="bg-tide mt-[0.7em] size-1.5 flex-none" />
+                        <span>{item}</span>
+                      </li>
                     ))}
                   </ul>
                 );
@@ -201,19 +220,18 @@ export default async function BlogArticlePage({ params }: PageProps) {
         </div>
       </article>
 
-      <section aria-labelledby="more-posts" className="border-t border-[#0b1020]/10 bg-[#f7f3ea]">
-        <div className="container-app max-w-3xl py-12">
-          <h2 id="more-posts" className="font-display text-3xl font-semibold text-[#0b1020]">
-            {t("marketing.blog.related")}
-          </h2>
-          <ul className="mt-5 space-y-3">
+      <section aria-labelledby="more-posts" className="border-line border-t">
+        <div className="container-app max-w-3xl py-14">
+          <RuleHeading id="more-posts">{t("marketing.blog.related")}</RuleHeading>
+          <ul className="border-line mt-6 border-t">
             {more.map((item) => (
-              <li key={item.slug}>
+              <li key={item.slug} className="border-line border-b">
                 <Link
                   href={`/blog/${item.slug}`}
-                  className="font-display text-xl font-semibold text-[#0b1020] underline decoration-[#d6b26a] underline-offset-4 hover:text-[#9a7430]"
+                  className="group text-ink hover:text-tide-700 flex items-center justify-between gap-6 py-5 text-lg leading-snug font-bold tracking-[-0.02em] transition-colors sm:text-xl"
                 >
                   {item.copy[lang].title}
+                  <ArrowUpRight aria-hidden className="text-tide-700 size-5 flex-none" />
                 </Link>
               </li>
             ))}

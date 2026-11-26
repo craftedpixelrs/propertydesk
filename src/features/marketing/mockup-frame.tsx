@@ -1,166 +1,139 @@
-"use client";
-
 import Image from "next/image";
 
-import { useT } from "@/components/app/i18n-provider";
 import { cn } from "@/lib/utils";
 
-/**
- * Device / device-less frame used on the landing page.
- *
- * When `src` is provided we render the image directly in its natural
- * aspect ratio wrapped in a rounded, softly-shadowed container. Any
- * browser or device chrome (traffic-light dots, notch, etc.) is
- * intentionally omitted so we don't fight the mockup art that the image
- * itself already ships with.
- *
- * When `src` is omitted we fall back to a neutral "coming soon"
- * placeholder in a canonical aspect ratio (16:10 desktop, 9:19 mobile).
- * That way the section still has a visual anchor while assets are being
- * finalised - and swapping in the image later doesn't shift the layout
- * more than the intrinsic image size difference.
- *
- * Drop your assets under [public/images/landing/](../../../public/images/landing)
- * and reference them through `LANDING_IMAGES` in
- * [src/lib/constants/app.ts](../../lib/constants/app.ts).
- */
-export interface MockupFrameProps {
-  variant: "desktop" | "mobile";
-  /** Absolute path under `/public`. When omitted, placeholder renders. */
-  src?: string;
-  /** Alt text for screen readers + SEO. */
-  alt?: string;
-  /**
-   * Natural intrinsic dimensions of the source image. Required for
-   * `next/image` to reserve the right amount of space and prevent
-   * layout shift. When omitted, sensible defaults per variant are used.
-   */
-  width?: number;
-  height?: number;
-  /** Label shown on the placeholder when `src` is not set. */
-  label?: string;
-  /** Whether Next.js should treat this as an above-the-fold image. */
-  priority?: boolean;
-  className?: string;
+export interface AppScreen {
+  src: string;
+  width: number;
+  height: number;
 }
 
-const DEFAULT_DESKTOP_SIZE = { width: 1448, height: 1086 };
-const DEFAULT_MOBILE_SIZE = { width: 1122, height: 1402 };
+/**
+ * Every desktop capture shares the same sidebar and top bar, so one
+ * offset hides both and the table or cards read larger. Narrow windows
+ * zoom further in (190%), so a row of the table is still readable.
+ */
+const CONTENT_SHIFT = "translate(-19%, -7%)";
+const ZOOM = {
+  page: "w-[125%]",
+  detail: "w-[190%]",
+  /** Detail on phones, the whole page once the window is wide. */
+  auto: "w-[190%] lg:w-[125%]",
+} as const;
 
-export function MockupFrame({
-  variant,
-  src,
+/**
+ * A real product screen inside a drawn browser window. The chrome is
+ * markup, so the screen stays sharp and no device art fights the brand.
+ * `crop` keeps the window at a fixed shape and shows only the page
+ * content.
+ */
+export function BrowserFrame({
+  screen,
   alt,
-  width,
-  height,
-  label,
+  sizes,
   priority,
+  crop,
+  detail = false,
+  url = "my.propertydesk.app",
   className,
-}: MockupFrameProps) {
-  const t = useT();
-  const resolvedLabel = label ?? t("marketing.mockup.comingSoon");
-  if (variant === "mobile") {
-    if (src) {
-      const dims = {
-        width: width ?? DEFAULT_MOBILE_SIZE.width,
-        height: height ?? DEFAULT_MOBILE_SIZE.height,
-      };
-      return (
-        <div
-          className={cn(
-            "relative mx-auto w-[280px] sm:w-[340px] lg:w-[380px]",
-            "overflow-hidden rounded-[2rem]",
-            className,
-          )}
-        >
-          <Image
-            src={src}
-            alt={alt ?? t("marketing.mockup.mobileAlt")}
-            width={dims.width}
-            height={dims.height}
-            priority={priority}
-            sizes="(min-width: 1024px) 380px, (min-width: 640px) 340px, 280px"
-            className="h-auto w-full"
-          />
-        </div>
-      );
-    }
-    return (
-      <div
-        role="img"
-        aria-label={t("marketing.mockup.mobileAria", { label: resolvedLabel })}
-        className={cn(
-          "relative mx-auto w-[220px] sm:w-[260px]",
-          "aspect-[9/19] overflow-hidden rounded-[2.25rem] border-[10px] border-[var(--color-foreground)] bg-[var(--color-surface)] shadow-2xl",
-          className,
-        )}
-      >
-        <div className="absolute top-1 left-1/2 z-10 h-1.5 w-16 -translate-x-1/2 rounded-full bg-[var(--color-foreground)]/80" />
-        <div className="flex h-full w-full items-center justify-center rounded-[1.5rem] bg-gradient-to-br from-[#f7f3ea] via-white to-[#efe8d8] p-4 text-center">
-          <div className="space-y-2">
-            <div className="mx-auto h-8 w-8 rounded-md bg-[#0b1020]/10" />
-            <div className="text-xs font-medium text-[var(--color-foreground-muted)]">
-              {resolvedLabel}
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (src) {
-    const dims = {
-      width: width ?? DEFAULT_DESKTOP_SIZE.width,
-      height: height ?? DEFAULT_DESKTOP_SIZE.height,
-    };
-    return (
-      <div
-        className={cn(
-          "relative w-full max-w-3xl lg:max-w-none",
-          "overflow-hidden rounded-xl",
-          className,
-        )}
-      >
-        <Image
-          src={src}
-          alt={alt ?? t("marketing.mockup.desktopAlt")}
-          width={dims.width}
-          height={dims.height}
-          priority={priority}
-          sizes="(min-width: 1024px) 50vw, (min-width: 640px) 75vw, 95vw"
-          className="h-auto w-full"
-        />
-      </div>
-    );
-  }
-
+}: {
+  screen: AppScreen;
+  alt: string;
+  sizes: string;
+  priority?: boolean;
+  /**
+   * Tailwind aspect class for a content-only window, for example
+   * `aspect-[16/10]`. Nothing taller than that, or the capture runs out.
+   */
+  crop?: string;
+  /** With `crop`: show the top-left of the page content, larger. `"phone"` does so only on narrow screens. */
+  detail?: boolean | "phone";
+  url?: string;
+  className?: string;
+}) {
   return (
     <div
-      role="img"
-      aria-label={t("marketing.mockup.desktopAria", { label: resolvedLabel })}
       className={cn(
-        "relative w-full max-w-2xl overflow-hidden rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] shadow-xl",
+        "border-line overflow-hidden rounded-2xl border bg-white shadow-[0_1px_0_rgba(255,255,255,0.9)_inset,0_40px_80px_-40px_rgba(10,27,61,0.45),0_12px_28px_-18px_rgba(10,27,61,0.3)]",
         className,
       )}
     >
-      <div className="flex items-center gap-1.5 border-b border-[var(--color-border)] bg-[var(--color-surface-inset)] px-4 py-2.5">
-        <span className="h-2.5 w-2.5 rounded-full bg-red-400" />
-        <span className="h-2.5 w-2.5 rounded-full bg-yellow-400" />
-        <span className="h-2.5 w-2.5 rounded-full bg-green-400" />
-        <span className="ml-3 truncate text-[11px] font-medium text-[var(--color-foreground-subtle)]">
-          my.propertydesk.app
-        </span>
-      </div>
-      <div className="flex aspect-[16/10] items-center justify-center bg-gradient-to-br from-[#f7f3ea] via-white to-[#efe8d8]">
-        <div className="space-y-3 text-center">
-          <div className="mx-auto h-12 w-12 rounded-lg bg-[#0b1020]/10" />
-          <div className="text-sm font-medium text-[var(--color-foreground-muted)]">
-            {resolvedLabel}
-          </div>
-          <div className="mx-auto max-w-xs text-xs text-[var(--color-foreground-subtle)]">
-            {t("marketing.mockup.desktopHint")}
-          </div>
+      <div className="border-line bg-paper flex h-9 items-center gap-3 border-b px-3.5">
+        <div aria-hidden className="flex gap-1.5">
+          <span className="bg-ink/15 size-2.5 rounded-full" />
+          <span className="bg-ink/15 size-2.5 rounded-full" />
+          <span className="bg-tide/60 size-2.5 rounded-full" />
         </div>
+        <div
+          aria-hidden
+          className="border-line text-faint mx-auto flex h-5 w-full max-w-[16rem] items-center justify-center rounded-md border bg-white px-2 font-mono text-[10px] tracking-wide"
+        >
+          <span className="truncate">{url}</span>
+        </div>
+        <div aria-hidden className="w-[2.6rem]" />
+      </div>
+      {crop ? (
+        <div className={cn("relative w-full overflow-hidden bg-[#f3f6fa]", crop)}>
+          <Image
+            src={screen.src}
+            alt={alt}
+            width={screen.width}
+            height={screen.height}
+            sizes={sizes}
+            priority={priority}
+            className={cn(
+              "absolute top-0 left-0 h-auto max-w-none",
+              detail === "phone" ? ZOOM.auto : detail ? ZOOM.detail : ZOOM.page,
+            )}
+            style={{ transform: CONTENT_SHIFT }}
+          />
+        </div>
+      ) : (
+        <Image
+          src={screen.src}
+          alt={alt}
+          width={screen.width}
+          height={screen.height}
+          sizes={sizes}
+          priority={priority}
+          className="h-auto w-full"
+        />
+      )}
+    </div>
+  );
+}
+
+/** The phone view of the app, in a drawn bezel. */
+export function PhoneFrame({
+  screen,
+  alt,
+  sizes,
+  className,
+}: {
+  screen: AppScreen;
+  alt: string;
+  sizes: string;
+  className?: string;
+}) {
+  return (
+    <div
+      className={cn(
+        "bg-ink-950 rounded-[2.2rem] p-[7px] shadow-[0_40px_70px_-30px_rgba(10,27,61,0.6),0_0_0_1px_rgba(255,255,255,0.08)_inset]",
+        className,
+      )}
+    >
+      <div className="overflow-hidden rounded-[1.75rem] bg-white">
+        <div aria-hidden className="grid h-5 place-items-center bg-white">
+          <span className="bg-ink-950 h-[5px] w-14 rounded-full" />
+        </div>
+        <Image
+          src={screen.src}
+          alt={alt}
+          width={screen.width}
+          height={screen.height}
+          sizes={sizes}
+          className="h-auto w-full"
+        />
       </div>
     </div>
   );

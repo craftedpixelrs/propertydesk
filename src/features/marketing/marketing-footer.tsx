@@ -1,11 +1,13 @@
 import Image from "next/image";
 import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 
 import { CITIES } from "@/features/marketing/cities/cities";
 import { APP_NAME, COMPANY, DEMO_APP_URL, LANDING_IMAGES, MY_APP_URL } from "@/lib/constants/app";
 import { EmailLink } from "@/features/marketing/email-link";
 import { LANDING_ROUTES } from "@/features/marketing/landing/landing-shell";
 import { CookieSettingsButton } from "@/features/marketing/cookie-banner";
+import { marketingCta } from "@/features/marketing/marketing-cta";
 import { createT } from "@/lib/i18n";
 import { resolveRequestLocale } from "@/lib/i18n/resolve-locale";
 
@@ -24,171 +26,190 @@ const SOLUTION_LINKS = LANDING_ROUTES.filter(
 const FOOTER_CITIES = CITIES.slice(0, 6);
 const CITY_HUB_SLUG = "softver-za-prodaju-novogradnje";
 
+const LINK = "text-white/60 transition-colors hover:text-white";
+const HEAD = "font-mono text-[11px] font-medium tracking-[0.16em] text-tide-300 uppercase";
+
 export async function MarketingFooter() {
   const t = createT(await resolveRequestLocale());
   const year = new Date().getFullYear();
   return (
-    <footer className="border-t border-white/10 bg-[#0b1020] text-[#f7f3ea]">
-      <div className="container-app grid gap-8 py-10 sm:grid-cols-2 md:grid-cols-3 md:py-12 lg:grid-cols-6">
-        <div className="space-y-3">
-          <div className="flex items-center gap-2 font-semibold tracking-tight">
-            <Image
-              src={LANDING_IMAGES.logo.src}
-              alt=""
-              width={LANDING_IMAGES.logo.width}
-              height={LANDING_IMAGES.logo.height}
-              className="h-8 w-8 object-contain"
-            />
-            <span className="font-display text-lg font-semibold tracking-tight">{APP_NAME}</span>
+    <footer className="bg-ink-950 relative overflow-hidden text-white">
+      <div
+        aria-hidden
+        className="pd-grid pd-grid-dark pd-fade-b pointer-events-none absolute inset-0"
+      />
+
+      <div className="container-app relative">
+        <div className="flex flex-col gap-8 border-b border-white/10 py-12 lg:flex-row lg:items-end lg:justify-between lg:py-14">
+          <div className="max-w-xl">
+            <div className="flex items-center gap-3">
+              <span className="grid size-10 place-items-center rounded-[10px] bg-white p-1">
+                <Image
+                  src={LANDING_IMAGES.logo.src}
+                  alt=""
+                  width={LANDING_IMAGES.logo.width}
+                  height={LANDING_IMAGES.logo.height}
+                  className="size-full object-contain"
+                />
+              </span>
+              <span className="text-xl font-bold tracking-[-0.03em]">{APP_NAME}</span>
+            </div>
+            <p className="mt-5 text-base leading-relaxed text-white/65">
+              {t("marketing.footer.blurb")}
+            </p>
           </div>
-          <p className="max-w-xs text-sm leading-relaxed text-white/65">
-            {t("marketing.footer.blurb")}
-          </p>
+          <div className="flex flex-col gap-2.5 sm:flex-row">
+            <Link href="/demo" className={marketingCta("accent", "md")}>
+              {t("marketing.footer.bookDemo")}
+              <ArrowRight aria-hidden className="size-4" />
+            </Link>
+            <a href={DEMO_APP_URL} className={marketingCta("outlineDark", "md")}>
+              {t("marketing.header.openDemo")}
+            </a>
+          </div>
         </div>
 
-        <div>
-          <div className="text-xs font-semibold tracking-wider text-white/45 uppercase">
-            {t("marketing.nav.product")}
-          </div>
-          <ul className="mt-3 space-y-2 text-sm">
-            <li>
-              <a href="/#mogucnosti" className="text-white/65 hover:text-white">
-                {t("marketing.nav.features")}
-              </a>
-            </li>
-            <li>
-              <a href="/#cenovnik" className="text-white/65 hover:text-white">
-                {t("marketing.nav.pricing")}
-              </a>
-            </li>
-            <li>
-              <a href="/#faq" className="text-white/65 hover:text-white">
-                {t("marketing.nav.faqLong")}
-              </a>
-            </li>
-            <li>
-              <Link href="/blog" className="text-white/65 hover:text-white">
-                {t("marketing.nav.blog")}
-              </Link>
-            </li>
-            <li>
-              <Link href="/pomoc" className="text-white/65 hover:text-white">
-                {t("marketing.footer.help")}
-              </Link>
-            </li>
-          </ul>
-        </div>
-
-        <div>
-          <div className="text-xs font-semibold tracking-wider text-white/45 uppercase">
-            {t("marketing.nav.solutions")}
-          </div>
-          <ul className="mt-3 space-y-2 text-sm">
-            {SOLUTION_LINKS.map((r) => (
-              <li key={r.slug}>
-                <Link href={`/${r.slug}`} className="text-white/65 hover:text-white">
-                  {t(r.labelKey)}
+        <div className="grid grid-cols-2 gap-x-6 gap-y-10 py-12 md:grid-cols-3 lg:grid-cols-5">
+          <div>
+            <div className={HEAD}>{t("marketing.nav.product")}</div>
+            <ul className="mt-4 space-y-2.5 text-sm">
+              <li>
+                <a href="/#mogucnosti" className={LINK}>
+                  {t("marketing.nav.features")}
+                </a>
+              </li>
+              <li>
+                <a href="/#cenovnik" className={LINK}>
+                  {t("marketing.nav.pricing")}
+                </a>
+              </li>
+              <li>
+                <a href="/#faq" className={LINK}>
+                  {t("marketing.nav.faqLong")}
+                </a>
+              </li>
+              <li>
+                <Link href="/blog" className={LINK}>
+                  {t("marketing.nav.blog")}
                 </Link>
               </li>
-            ))}
-          </ul>
-        </div>
-
-        <div>
-          <div className="text-xs font-semibold tracking-wider text-white/45 uppercase">
-            {t("marketing.nav.cities")}
-          </div>
-          <ul className="mt-3 space-y-2 text-sm">
-            {FOOTER_CITIES.map((c) => (
-              <li key={c.slug}>
-                <Link
-                  href={`/${CITY_HUB_SLUG}/${c.slug}`}
-                  className="text-white/65 hover:text-white"
-                >
-                  {c.name}
+              <li>
+                <Link href="/pomoc" className={LINK}>
+                  {t("marketing.footer.help")}
                 </Link>
               </li>
-            ))}
-            <li>
-              <Link href={`/${CITY_HUB_SLUG}`} className="text-white/65 hover:text-white">
-                {t("marketing.anchors.software")}
-              </Link>
-            </li>
-          </ul>
-        </div>
-
-        <div>
-          <div className="text-xs font-semibold tracking-wider text-white/45 uppercase">
-            {t("marketing.nav.contact")}
+            </ul>
           </div>
-          <ul className="mt-3 space-y-2 text-sm">
-            <li>
-              <Link href="/o-nama" className="text-white/65 hover:text-white">
-                {t("marketing.footer.about")}
-              </Link>
-            </li>
-            <li>
-              <EmailLink email={COMPANY.email} className="text-white/65 hover:text-white" />
-            </li>
-            <li>
-              <a href={`tel:${COMPANY.phoneTel}`} className="text-white/65 hover:text-white">
-                {COMPANY.phoneDisplay}
-              </a>
-            </li>
-            <li>
-              <a href={DEMO_APP_URL} className="text-white/65 hover:text-white">
-                {t("marketing.header.openDemo")}
-              </a>
-            </li>
-            <li>
-              <Link href="/demo" className="text-white/65 hover:text-white">
-                {t("marketing.footer.bookDemo")}
-              </Link>
-            </li>
-          </ul>
-        </div>
 
-        <div>
-          <div className="text-xs font-semibold tracking-wider text-white/45 uppercase">
-            {t("marketing.nav.app")}
+          <div>
+            <div className={HEAD}>{t("marketing.nav.solutions")}</div>
+            <ul className="mt-4 space-y-2.5 text-sm">
+              {SOLUTION_LINKS.map((r) => (
+                <li key={r.slug}>
+                  <Link href={`/${r.slug}`} className={LINK}>
+                    {t(r.labelKey)}
+                  </Link>
+                </li>
+              ))}
+            </ul>
           </div>
-          <ul className="mt-3 space-y-2 text-sm">
-            <li>
-              <a href={`${MY_APP_URL}/sign-in`} className="text-white/65 hover:text-white">
-                {t("marketing.footer.signIn")}
-              </a>
-            </li>
-            <li>
-              <a href={DEMO_APP_URL} className="text-white/65 hover:text-white">
-                {t("marketing.header.openDemo")}
-              </a>
-            </li>
-          </ul>
-        </div>
-      </div>
 
-      <div className="border-t border-white/10">
-        <div className="container-app flex flex-col items-start justify-between gap-3 py-4 text-xs text-white/45 sm:flex-row sm:items-center">
+          <div>
+            <div className={HEAD}>{t("marketing.nav.cities")}</div>
+            <ul className="mt-4 space-y-2.5 text-sm">
+              {FOOTER_CITIES.map((c) => (
+                <li key={c.slug}>
+                  <Link href={`/${CITY_HUB_SLUG}/${c.slug}`} className={LINK}>
+                    {c.name}
+                  </Link>
+                </li>
+              ))}
+              <li>
+                <Link href={`/${CITY_HUB_SLUG}`} className={LINK}>
+                  {t("marketing.anchors.software")}
+                </Link>
+              </li>
+            </ul>
+          </div>
+
+          <div>
+            <div className={HEAD}>{t("marketing.nav.contact")}</div>
+            <ul className="mt-4 space-y-2.5 text-sm">
+              <li>
+                <Link href="/o-nama" className={LINK}>
+                  {t("marketing.footer.about")}
+                </Link>
+              </li>
+              <li>
+                <EmailLink email={COMPANY.email} className={LINK} />
+              </li>
+              <li>
+                <a href={`tel:${COMPANY.phoneTel}`} className={LINK}>
+                  {COMPANY.phoneDisplay}
+                </a>
+              </li>
+              <li>
+                <a href={DEMO_APP_URL} className={LINK}>
+                  {t("marketing.header.openDemo")}
+                </a>
+              </li>
+              <li>
+                <Link href="/demo" className={LINK}>
+                  {t("marketing.footer.bookDemo")}
+                </Link>
+              </li>
+            </ul>
+          </div>
+
+          <div>
+            <div className={HEAD}>{t("marketing.nav.app")}</div>
+            <ul className="mt-4 space-y-2.5 text-sm">
+              <li>
+                <a href={`${MY_APP_URL}/sign-in`} className={LINK}>
+                  {t("marketing.footer.signIn")}
+                </a>
+              </li>
+              <li>
+                <a href={DEMO_APP_URL} className={LINK}>
+                  {t("marketing.header.openDemo")}
+                </a>
+              </li>
+            </ul>
+            <div className={`${HEAD} mt-8`}>{t("marketing.footer.legal")}</div>
+            <ul className="mt-4 space-y-2.5 text-sm">
+              <li>
+                <Link href="/privatnost" className={LINK}>
+                  {t("marketing.footer.privacy")}
+                </Link>
+              </li>
+              <li>
+                <Link href="/uslovi" className={LINK}>
+                  {t("marketing.footer.terms")}
+                </Link>
+              </li>
+              <li>
+                <Link href="/impresum" className={LINK}>
+                  {t("marketing.footer.imprint")}
+                </Link>
+              </li>
+              <li>
+                <CookieSettingsButton />
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <div className="flex flex-col items-start justify-between gap-3 border-t border-white/10 py-6 text-xs text-white/45 md:flex-row md:items-center">
           <div>
             © {year} {APP_NAME}. {t("marketing.footer.rights")}
           </div>
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-            <Link href="/privatnost" className="text-white/65 hover:text-white">
-              {t("marketing.footer.privacy")}
-            </Link>
-            <Link href="/uslovi" className="text-white/65 hover:text-white">
-              {t("marketing.footer.terms")}
-            </Link>
-            <Link href="/impresum" className="text-white/65 hover:text-white">
-              {t("marketing.footer.imprint")}
-            </Link>
-            <CookieSettingsButton />
-            <span>{t("marketing.footer.madeFor")}</span>
+          <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
+            <span className="font-mono tracking-wide">{t("marketing.footer.madeFor")}</span>
             <a
               href={COMPANY.operatorUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 text-white/65 transition-colors hover:text-white"
+              className="inline-flex items-center gap-1.5 text-white/60 transition-colors hover:text-white"
               aria-label={t("marketing.footer.poweredByAria")}
             >
               <span>{t("marketing.footer.poweredBy")}</span>
@@ -202,6 +223,13 @@ export async function MarketingFooter() {
             </a>
           </div>
         </div>
+      </div>
+
+      <div
+        aria-hidden
+        className="pointer-events-none relative -mb-[0.16em] text-center text-[clamp(3rem,14.5vw,13.5rem)] leading-[0.8] font-bold tracking-[-0.06em] whitespace-nowrap text-white/[0.035] select-none"
+      >
+        {APP_NAME}
       </div>
     </footer>
   );

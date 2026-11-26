@@ -40,6 +40,7 @@ export default async function Page() {
         icon={Building2}
         title={t("marketing.pages.investors.title")}
         subtitle={t("marketing.pages.investors.subtitle")}
+        screen="dashboard"
       />
       <ProblemSolutionGrid
         title={t("marketing.pages.investors.gridTitle")}

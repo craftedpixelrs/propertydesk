@@ -3,6 +3,7 @@
 import { CalendarCheck, Presentation, PlayCircle, GraduationCap } from "lucide-react";
 
 import { useT } from "@/components/app/i18n-provider";
+import { SectionHeading } from "@/features/marketing/ui";
 import type { TranslationKey } from "@/lib/i18n";
 
 const STEPS: Array<{
@@ -37,54 +38,56 @@ const STEPS: Array<{
   },
 ];
 
+/** From the first call to a trained team, as four stops on one line. */
 export function DemoTraining() {
   const t = useT();
 
   return (
     <section aria-labelledby="demo-title" className="bg-white">
-      <div className="container-app py-16 sm:py-24">
-        <div className="max-w-3xl">
-          <div className="text-xs font-semibold tracking-[0.18em] text-[#9a7430] uppercase">
-            {t("marketing.demo.eyebrow")}
-          </div>
-          <h2
-            id="demo-title"
-            className="font-display mt-3 text-4xl font-semibold tracking-tight text-[#0b1020] sm:text-5xl"
-          >
-            {t("marketing.demo.title")}
-          </h2>
-          <p className="mt-4 text-base leading-relaxed text-[var(--color-foreground-muted)]">
-            {t("marketing.demo.subtitle")}
-          </p>
-        </div>
+      <div className="container-app py-20 sm:py-28">
+        <SectionHeading
+          id="demo-title"
+          eyebrow={t("marketing.demo.eyebrow")}
+          title={t("marketing.demo.title")}
+          subtitle={t("marketing.demo.subtitle")}
+        />
 
-        <ol className="mt-12 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+        <ol className="relative mt-14 grid gap-10 sm:grid-cols-2 lg:grid-cols-4 lg:gap-8">
+          <span
+            aria-hidden
+            className="from-tide via-line to-line absolute top-5 right-0 left-0 hidden h-px bg-gradient-to-r lg:block"
+          />
           {STEPS.map((s, index) => {
             const Icon = s.icon;
             return (
               <li
                 key={s.number}
                 data-reveal=""
-                style={{ "--pd-delay": `${index * 80}ms` } as React.CSSProperties}
-                className="border-t-2 border-[#d6b26a] pt-5"
+                style={{ "--pd-delay": `${index * 90}ms` } as React.CSSProperties}
+                className="relative"
               >
-                <div className="flex items-center justify-between">
-                  <span aria-hidden className="font-display text-4xl leading-none text-[#0b1020]">
-                    {s.number}
+                <div className="flex items-center gap-3">
+                  <span
+                    aria-hidden
+                    className={
+                      index === 0
+                        ? "bg-ink text-tide-300 relative grid size-10 place-items-center rounded-[10px] ring-8 ring-white"
+                        : "border-line text-tide-700 relative grid size-10 place-items-center rounded-[10px] border bg-white ring-8 ring-white"
+                    }
+                  >
+                    <Icon className="size-[1.1rem]" strokeWidth={1.75} />
                   </span>
                   <span
                     aria-hidden
-                    className="grid size-10 place-items-center rounded-full bg-[#0b1020] text-[#f3e2bc]"
+                    className="text-faint bg-white pr-3 font-mono text-[11px] font-medium tracking-[0.14em]"
                   >
-                    <Icon className="size-4" />
+                    {s.number}
                   </span>
                 </div>
-                <h3 className="font-display mt-5 text-xl font-semibold text-[#0b1020]">
+                <h3 className="text-ink mt-6 text-lg leading-snug font-bold tracking-[-0.025em]">
                   {t(s.titleKey)}
                 </h3>
-                <p className="mt-2 text-sm leading-relaxed text-[var(--color-foreground-muted)]">
-                  {t(s.bodyKey)}
-                </p>
+                <p className="text-mute mt-2.5 text-sm leading-relaxed">{t(s.bodyKey)}</p>
               </li>
             );
           })}

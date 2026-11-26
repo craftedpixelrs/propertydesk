@@ -5,6 +5,7 @@ import { AlertCircle, CheckCircle2 } from "lucide-react";
 
 import { Input } from "@/components/ui/input";
 import { marketingCta } from "@/features/marketing/marketing-cta";
+import { Eyebrow } from "@/features/marketing/ui";
 import { useT } from "@/components/app/i18n-provider";
 import { COMPANY } from "@/lib/constants/app";
 import { cn } from "@/lib/utils";
@@ -167,57 +168,50 @@ export function LeadForm() {
   };
 
   return (
-    <section
-      id="prijava"
-      aria-labelledby="lead-title"
-      className="scroll-mt-20 border-t border-[var(--color-border)]"
-    >
-      <div className="container-app py-16 sm:py-20">
-        <div className="mx-auto grid max-w-5xl gap-10 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:items-start">
-          <div>
-            <div className="text-xs font-semibold tracking-[0.18em] text-[#9a7430] uppercase">
-              {t("marketing.lead.eyebrow")}
-            </div>
-            <h2
-              id="lead-title"
-              className="font-display mt-3 text-4xl font-semibold tracking-tight text-[#0b1020] sm:text-5xl"
-            >
-              {t("marketing.lead.title")}
-            </h2>
-            <p className="mt-4 text-base leading-relaxed text-[var(--color-foreground-muted)]">
-              {t("marketing.lead.subtitleBefore")}{" "}
-              <strong className="font-semibold text-[var(--color-foreground)]">
-                {t("marketing.lead.subtitleStrong")}
-              </strong>{" "}
-              {t("marketing.lead.subtitleAfter")}
-            </p>
+    <section id="prijava" aria-labelledby="lead-title" className="scroll-mt-20 bg-white">
+      <div className="container-app py-20 sm:py-28">
+        <div className="border-line grid overflow-hidden rounded-3xl border shadow-[0_40px_90px_-60px_rgba(10,27,61,0.55)] lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
+          <div className="bg-ink relative overflow-hidden p-6 text-white sm:p-10">
+            <div
+              aria-hidden
+              className="pd-grid pd-grid-dark pd-fade-b pointer-events-none absolute inset-0"
+            />
+            <div
+              aria-hidden
+              className="pointer-events-none absolute -bottom-32 -left-24 size-80 rounded-full bg-[radial-gradient(closest-side,rgba(95,210,216,0.22),transparent)]"
+            />
+            <div className="relative">
+              <Eyebrow tone="dark">{t("marketing.lead.eyebrow")}</Eyebrow>
+              <h2
+                id="lead-title"
+                className="mt-4 text-[2rem] leading-[1.08] font-bold tracking-[-0.035em] text-balance text-white sm:text-[2.5rem]"
+              >
+                {t("marketing.lead.title")}
+              </h2>
+              <p className="mt-5 text-base leading-relaxed text-white/65">
+                {t("marketing.lead.subtitleBefore")}{" "}
+                <strong className="text-tide-300 font-semibold">
+                  {t("marketing.lead.subtitleStrong")}
+                </strong>{" "}
+                {t("marketing.lead.subtitleAfter")}
+              </p>
 
-            <ul className="mt-6 space-y-2.5 text-sm text-[var(--color-foreground-muted)]">
-              <li className="flex items-start gap-2">
-                <CheckCircle2
-                  aria-hidden
-                  className="mt-0.5 size-4 flex-none text-[var(--color-success)]"
-                />
-                <span>{t("marketing.lead.perk1")}</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <CheckCircle2
-                  aria-hidden
-                  className="mt-0.5 size-4 flex-none text-[var(--color-success)]"
-                />
-                <span>{t("marketing.lead.perk2")}</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <CheckCircle2
-                  aria-hidden
-                  className="mt-0.5 size-4 flex-none text-[var(--color-success)]"
-                />
-                <span>{t("marketing.lead.perk3")}</span>
-              </li>
-            </ul>
+              <ul className="mt-8 border-t border-white/10 text-sm text-white/80">
+                {[
+                  t("marketing.lead.perk1"),
+                  t("marketing.lead.perk2"),
+                  t("marketing.lead.perk3"),
+                ].map((perk) => (
+                  <li key={perk} className="flex items-start gap-3 border-b border-white/10 py-3.5">
+                    <CheckCircle2 aria-hidden className="text-tide-300 mt-0.5 size-4 flex-none" />
+                    <span>{perk}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
           </div>
 
-          <div className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-6 shadow-sm sm:p-8">
+          <div className="bg-white p-6 sm:p-10">
             {state.kind === "success" ? (
               <div
                 role="status"
@@ -230,7 +224,9 @@ export function LeadForm() {
                 >
                   <CheckCircle2 className="size-7" />
                 </span>
-                <h3 className="text-xl font-bold">{t("marketing.lead.successTitle")}</h3>
+                <h3 className="text-ink text-xl font-bold tracking-[-0.025em]">
+                  {t("marketing.lead.successTitle")}
+                </h3>
                 <p className="max-w-md text-sm text-[var(--color-foreground-muted)]">
                   {t("marketing.lead.successBody")}
                 </p>
@@ -332,17 +328,17 @@ export function LeadForm() {
                   <legend className="mb-2 text-sm font-medium text-[var(--color-foreground)]">
                     {t("marketing.lead.who")} <span className="text-[var(--color-danger)]">*</span>
                   </legend>
-                  <div className="grid gap-2 sm:grid-cols-2">
+                  <div className="grid gap-2 sm:grid-cols-3">
                     {audienceOptions.map((opt) => {
                       const selected = audience === opt.value;
                       return (
                         <label
                           key={opt.value}
                           className={cn(
-                            "flex cursor-pointer items-center gap-2 rounded-2xl border px-3 py-3 text-sm transition",
+                            "flex cursor-pointer items-center gap-2.5 rounded-xl border px-3.5 py-3 text-sm font-medium transition",
                             selected
-                              ? "border-[#0b1020] bg-[#0b1020] text-[#f7f3ea]"
-                              : "border-[var(--color-border)] bg-white hover:border-[#0b1020]/30",
+                              ? "border-ink bg-ink text-white"
+                              : "border-line text-ink hover:border-ink/40 bg-white",
                           )}
                         >
                           <input
@@ -351,7 +347,7 @@ export function LeadForm() {
                             value={opt.value}
                             checked={selected}
                             onChange={() => setAudience(opt.value)}
-                            className="accent-[#d6b26a]"
+                            className="accent-tide"
                             required
                           />
                           <span>{opt.label}</span>
@@ -374,7 +370,7 @@ export function LeadForm() {
                   <select
                     name="projectCount"
                     defaultValue=""
-                    className="block min-h-11 w-full rounded-md border border-[var(--color-border-strong)] bg-[var(--color-surface)] px-3 py-2 text-base text-[var(--color-foreground)] shadow-sm outline-none focus:border-[#9a7430] focus:ring-2 focus:ring-[#f3e2bc] sm:min-h-10 sm:text-sm"
+                    className="focus:border-tide focus:ring-tide-100 block min-h-11 w-full rounded-md border border-[var(--color-border-strong)] bg-[var(--color-surface)] px-3 py-2 text-base text-[var(--color-foreground)] shadow-sm outline-none focus:ring-2 sm:min-h-10 sm:text-sm"
                   >
                     <option value="">{t("marketing.lead.select")}</option>
                     {projectCountOptions.map((opt) => (
@@ -394,7 +390,7 @@ export function LeadForm() {
                     name="note"
                     rows={3}
                     maxLength={2000}
-                    className="block w-full rounded-md border border-[var(--color-border-strong)] bg-[var(--color-surface)] px-3 py-2 text-base text-[var(--color-foreground)] shadow-sm outline-none placeholder:text-[var(--color-foreground-subtle)] focus:border-[#9a7430] focus:ring-2 focus:ring-[#f3e2bc] sm:text-sm"
+                    className="focus:border-tide focus:ring-tide-100 block w-full rounded-md border border-[var(--color-border-strong)] bg-[var(--color-surface)] px-3 py-2 text-base text-[var(--color-foreground)] shadow-sm outline-none placeholder:text-[var(--color-foreground-subtle)] focus:ring-2 sm:text-sm"
                     placeholder={t("marketing.lead.notePh")}
                   />
                 </Field>
@@ -416,13 +412,13 @@ export function LeadForm() {
                     type="checkbox"
                     name="consent"
                     required
-                    className="mt-0.5 h-4 w-4 accent-[#9a7430]"
+                    className="accent-tide-700 mt-0.5 h-4 w-4"
                   />
                   <span>
                     {t("marketing.lead.consent")}{" "}
                     <a
                       href="/privatnost"
-                      className="font-medium text-[#0b1020] underline decoration-[#d6b26a] decoration-2 underline-offset-4 hover:text-[#9a7430]"
+                      className="text-ink decoration-tide hover:text-tide-700 font-medium underline decoration-2 underline-offset-4"
                     >
                       {t("marketing.lead.consentPrivacy")}
                     </a>
@@ -438,7 +434,7 @@ export function LeadForm() {
                     */}
                     <span
                       dangerouslySetInnerHTML={{
-                        __html: `<!--email_off--><a href="mailto:${COMPANY.email}" class="font-medium text-[#0b1020] underline decoration-[#d6b26a] decoration-2 underline-offset-4 hover:text-[#9a7430]">${COMPANY.email}</a><!--/email_off-->`,
+                        __html: `<!--email_off--><a href="mailto:${COMPANY.email}" class="text-ink decoration-tide hover:text-tide-700 font-medium underline decoration-2 underline-offset-4">${COMPANY.email}</a><!--/email_off-->`,
                       }}
                     />
                     .

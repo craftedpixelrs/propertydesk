@@ -1,51 +1,34 @@
-import { Phone, Building2, ShieldCheck } from "lucide-react";
+import Link from "next/link";
+import { ArrowRight, Phone, ShieldCheck } from "lucide-react";
 
 import { COMPANY } from "@/lib/constants/app";
 import { EmailLink, MAIL_ICON_HTML } from "@/features/marketing/email-link";
+import { SectionHeading } from "@/features/marketing/ui";
 import { createT, type TranslateFn } from "@/lib/i18n";
 import { resolveRequestLocale } from "@/lib/i18n/resolve-locale";
+
+const CONTACT_LINK =
+  "inline-flex items-center gap-1.5 text-sm font-semibold text-ink underline decoration-tide decoration-2 underline-offset-4 transition-colors hover:text-tide-700";
 
 export async function SocialProof() {
   const t = createT(await resolveRequestLocale());
 
   return (
-    <section aria-labelledby="proof-title" className="bg-white">
-      <div className="container-app py-16 sm:py-24">
-        <div className="max-w-3xl">
-          <div className="text-xs font-semibold tracking-[0.18em] text-[#9a7430] uppercase">
-            {t("marketing.proof.eyebrow")}
-          </div>
-          <h2
-            id="proof-title"
-            className="font-display mt-3 text-4xl font-semibold tracking-tight text-[#0b1020] sm:text-5xl"
-          >
-            {t("marketing.proof.title")}
-          </h2>
-          <p className="mt-4 text-base leading-relaxed text-[var(--color-foreground-muted)]">
-            {t("marketing.proof.subtitle")}
-          </p>
-        </div>
+    <section aria-labelledby="proof-title" className="border-line border-y bg-white">
+      <div className="container-app py-20 sm:py-28">
+        <SectionHeading
+          id="proof-title"
+          eyebrow={t("marketing.proof.eyebrow")}
+          title={t("marketing.proof.title")}
+          subtitle={t("marketing.proof.subtitle")}
+        />
 
-        <div className="mt-10">
-          <div className="mb-3 text-xs font-semibold tracking-wider text-[var(--color-foreground-subtle)] uppercase">
-            {t("marketing.proof.pilots")}
-          </div>
-          <div className="rounded-2xl border border-dashed border-[var(--color-border)] bg-[var(--color-surface-muted)] px-5 py-6 sm:px-8">
-            <p className="text-sm leading-relaxed text-[var(--color-foreground-muted)]">
-              {t("marketing.proof.pilotsHint")}
-            </p>
-            <a
-              href="/demo"
-              className="mt-4 inline-flex text-sm font-semibold text-[#0b1020] underline decoration-[#d6b26a] decoration-2 underline-offset-4 hover:text-[#9a7430]"
-            >
-              {t("marketing.proof.pilotsCta")}
-            </a>
-          </div>
-        </div>
-
-        <div className="mt-14 grid gap-6 lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]">
+        <div className="mt-12 grid gap-4 lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]">
           <FounderCard t={t} />
-          <CompanyCard t={t} />
+          <div className="grid gap-4">
+            <CompanyCard t={t} />
+            <PilotCard t={t} />
+          </div>
         </div>
       </div>
     </section>
@@ -54,80 +37,104 @@ export async function SocialProof() {
 
 function FounderCard({ t }: { t: TranslateFn }) {
   return (
-    <article className="rounded-3xl border border-[var(--color-border)] bg-[#f7f3ea] p-6 sm:p-8">
-      <div className="flex flex-col gap-6 sm:flex-row sm:items-start">
-        <div
+    <article
+      data-reveal=""
+      className="border-line bg-paper flex flex-col justify-between gap-8 rounded-3xl border p-6 sm:p-9"
+    >
+      <div>
+        <span
           aria-hidden
-          className="font-display grid h-28 w-28 flex-none place-items-center overflow-hidden rounded-2xl bg-[#0b1020] text-4xl text-[#f3e2bc]"
+          className="text-tide font-mono text-5xl leading-none font-medium select-none"
         >
-          MB
-        </div>
-        <div className="min-w-0">
-          <div className="text-xs font-semibold tracking-[0.16em] text-[#9a7430] uppercase">
-            {t("marketing.proof.founder")}
+          “
+        </span>
+        <p className="text-ink mt-2 text-lg leading-relaxed font-medium tracking-[-0.01em] text-pretty sm:text-xl sm:leading-relaxed">
+          {t("marketing.proof.founderBio")}
+        </p>
+      </div>
+      <div className="border-line flex flex-col gap-5 border-t pt-6 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center gap-3.5">
+          <span
+            aria-hidden
+            className="bg-ink text-tide-300 grid size-12 flex-none place-items-center rounded-xl font-mono text-sm font-medium tracking-wider"
+          >
+            MB
+          </span>
+          <div>
+            <h3 className="text-ink text-base font-bold tracking-[-0.02em]">Marko Banović</h3>
+            <div className="text-faint font-mono text-[11px] tracking-[0.14em] uppercase">
+              {t("marketing.proof.founder")}
+            </div>
           </div>
-          <h3 className="font-display mt-1 text-2xl font-semibold text-[#0b1020]">Marko Banović</h3>
-          <p className="mt-3 text-sm leading-relaxed text-[var(--color-foreground-muted)]">
-            {t("marketing.proof.founderBio")}
-          </p>
-          <ul className="mt-4 flex flex-wrap gap-x-5 gap-y-2 text-sm">
-            <li>
-              <EmailLink
-                email={COMPANY.email}
-                className="inline-flex items-center font-medium text-[#0b1020] underline decoration-[#d6b26a] decoration-2 underline-offset-4 hover:text-[#9a7430]"
-                iconHtml={MAIL_ICON_HTML}
-              />
-            </li>
-            <li>
-              <a
-                href="tel:+381654363142"
-                className="inline-flex items-center gap-1.5 font-medium text-[#0b1020] underline decoration-[#d6b26a] decoration-2 underline-offset-4 hover:text-[#9a7430]"
-              >
-                <Phone aria-hidden className="size-4" />
-                +381 65 43 63 142
-              </a>
-            </li>
-          </ul>
         </div>
+        <ul className="flex flex-wrap gap-x-5 gap-y-2">
+          <li>
+            <EmailLink email={COMPANY.email} className={CONTACT_LINK} iconHtml={MAIL_ICON_HTML} />
+          </li>
+          <li>
+            <a href="tel:+381654363142" className={CONTACT_LINK}>
+              <Phone aria-hidden className="size-4" />
+              +381 65 43 63 142
+            </a>
+          </li>
+        </ul>
       </div>
     </article>
   );
 }
 
 function CompanyCard({ t }: { t: TranslateFn }) {
+  const facts = [
+    t("marketing.proof.dataEu"),
+    t("marketing.proof.encryption"),
+    t("marketing.proof.audit"),
+  ];
   return (
-    <article className="rounded-3xl bg-[#0b1020] p-6 text-[#f7f3ea] sm:p-8">
-      <div className="flex items-start gap-3">
-        <span
-          aria-hidden
-          className="grid size-10 flex-none place-items-center rounded-xl bg-[#d6b26a]/20 text-[#f3e2bc]"
-        >
-          <Building2 className="size-5" />
-        </span>
-        <div>
-          <div className="text-xs font-semibold tracking-[0.16em] text-[#d6b26a] uppercase">
-            {t("marketing.proof.behind")}
-          </div>
-          <h3 className="font-display mt-1 text-2xl font-semibold">CraftedPixel</h3>
+    <article
+      data-reveal=""
+      style={{ "--pd-delay": "90ms" } as React.CSSProperties}
+      className="bg-ink relative overflow-hidden rounded-3xl p-6 text-white sm:p-8"
+    >
+      <div aria-hidden className="pd-grid pd-grid-dark pointer-events-none absolute inset-0" />
+      <div className="relative">
+        <div className="text-tide-300 font-mono text-[11px] font-medium tracking-[0.16em] uppercase">
+          {t("marketing.proof.behind")}
         </div>
+        <h3 className="mt-2 text-2xl font-bold tracking-[-0.03em]">CraftedPixel</h3>
+        <p className="mt-3 text-sm leading-relaxed text-white/65">
+          {t("marketing.proof.companyBio")}
+        </p>
+        <ul className="mt-6 space-y-2.5 border-t border-white/10 pt-5 text-sm text-white/80">
+          {facts.map((fact) => (
+            <li key={fact} className="flex items-center gap-2.5">
+              <ShieldCheck aria-hidden className="text-tide-300 size-4 flex-none" />
+              {fact}
+            </li>
+          ))}
+        </ul>
       </div>
-      <p className="mt-4 text-sm leading-relaxed text-white/65">
-        {t("marketing.proof.companyBio")}
-      </p>
-      <div className="mt-5 flex flex-wrap items-center gap-3 text-xs text-white/70">
-        <span className="inline-flex items-center gap-1.5">
-          <ShieldCheck aria-hidden className="size-4 text-[#d6b26a]" />
-          {t("marketing.proof.dataEu")}
-        </span>
-        <span className="inline-flex items-center gap-1.5">
-          <ShieldCheck aria-hidden className="size-4 text-[#d6b26a]" />
-          {t("marketing.proof.encryption")}
-        </span>
-        <span className="inline-flex items-center gap-1.5">
-          <ShieldCheck aria-hidden className="size-4 text-[#d6b26a]" />
-          {t("marketing.proof.audit")}
-        </span>
+    </article>
+  );
+}
+
+function PilotCard({ t }: { t: TranslateFn }) {
+  return (
+    <article
+      data-reveal=""
+      style={{ "--pd-delay": "180ms" } as React.CSSProperties}
+      className="pd-hatch border-ink/20 rounded-3xl border border-dashed p-6 sm:p-8"
+    >
+      <div className="text-faint font-mono text-[11px] font-medium tracking-[0.16em] uppercase">
+        {t("marketing.proof.pilots")}
       </div>
+      <p className="text-mute mt-3 text-sm leading-relaxed">{t("marketing.proof.pilotsHint")}</p>
+      <Link
+        href="/demo"
+        className="text-ink hover:text-tide-700 mt-4 inline-flex items-center gap-1.5 text-sm font-semibold transition-colors"
+      >
+        {t("marketing.proof.pilotsCta")}
+        <ArrowRight aria-hidden className="size-4" />
+      </Link>
     </article>
   );
 }

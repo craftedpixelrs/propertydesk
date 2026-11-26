@@ -39,6 +39,7 @@ export default async function Page() {
         icon={Handshake}
         title={t("marketing.pages.agencies.title")}
         subtitle={t("marketing.pages.agencies.subtitle")}
+        screen="agency"
       />
       <ProblemSolutionGrid
         title={t("marketing.pages.agencies.gridTitle")}

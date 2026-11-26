@@ -38,10 +38,10 @@ export function ReadingProgress({ minutes, targetId }: { minutes: number; target
   const percent = Math.round(progress * 100);
 
   return (
-    <div className="fixed inset-x-0 top-[4.25rem] z-30 border-b border-white/10 bg-[#0b1020]/95 backdrop-blur-md">
-      <div className="container-app flex h-9 items-center gap-3">
+    <div className="border-line fixed inset-x-0 top-[4.25rem] z-30 border-b bg-white/[0.94] backdrop-blur-xl">
+      <div className="container-app flex h-9 items-center gap-4">
         <div
-          className="h-1 min-w-0 flex-1 overflow-hidden rounded-full bg-white/10"
+          className="bg-ink/10 h-[3px] min-w-0 flex-1 overflow-hidden rounded-full"
           role="progressbar"
           aria-label={t("marketing.blog.progressAria")}
           aria-valuemin={0}
@@ -49,11 +49,11 @@ export function ReadingProgress({ minutes, targetId }: { minutes: number; target
           aria-valuenow={percent}
         >
           <div
-            className="h-full rounded-full bg-[#d6b26a] motion-safe:transition-[width] motion-safe:duration-150 motion-safe:ease-out"
+            className="bg-tide h-full rounded-full motion-safe:transition-[width] motion-safe:duration-150 motion-safe:ease-out"
             style={{ width: `${percent}%` }}
           />
         </div>
-        <p className="shrink-0 text-xs font-medium tracking-wide text-[#f3e2bc] tabular-nums">
+        <p className="text-mute shrink-0 font-mono text-[11px] font-medium tracking-[0.1em] uppercase tabular-nums">
           {done
             ? t("marketing.blog.progressDone")
             : t("marketing.blog.progressLeft", { count: left })}

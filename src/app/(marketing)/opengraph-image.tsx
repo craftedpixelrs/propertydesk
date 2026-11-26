@@ -16,99 +16,129 @@ export default async function OgImage() {
   const jar = await cookies();
   const locale = parseLocale(jar.get(LOCALE_COOKIE)?.value) ?? DEFAULT_LOCALE;
 
+  // Stock matrix drawn on the right: free, reserved, sold. Same motif
+  // as the site, so a shared link looks like the page it opens.
+  const matrix = [
+    [1, 1, 3, 3, 2, 1],
+    [3, 1, 1, 3, 3, 2],
+    [3, 3, 2, 1, 3, 3],
+    [1, 3, 3, 3, 1, 3],
+    [3, 2, 3, 1, 3, 3],
+  ];
+  const cell = ["transparent", "#5fd2d8", "#fbbf24", "rgba(255,255,255,0.22)"];
+
   return new ImageResponse(
     <div
       style={{
         width: "100%",
         height: "100%",
         display: "flex",
-        flexDirection: "column",
-        justifyContent: "space-between",
-        padding: 72,
-        background: "linear-gradient(135deg, #eff6ff 0%, #ffffff 55%, #dbeafe 100%)",
+        position: "relative",
+        background: "#0a1b3d",
+        color: "#ffffff",
         fontFamily: "system-ui, -apple-system, Segoe UI, Roboto, sans-serif",
       }}
     >
-      <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
-        <div
-          style={{
-            width: 84,
-            height: 84,
-            borderRadius: 16,
-            background: "#1e40af",
-            color: "#ffffff",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            fontSize: 60,
-            fontWeight: 800,
-          }}
-        >
-          P
-        </div>
-        <div
-          style={{
-            fontSize: 40,
-            fontWeight: 700,
-            color: "#0f172a",
-            letterSpacing: -1,
-          }}
-        >
-          PropertyDesk
-        </div>
-      </div>
+      <div
+        style={{
+          position: "absolute",
+          top: -260,
+          right: -200,
+          width: 820,
+          height: 820,
+          borderRadius: 9999,
+          background: "radial-gradient(closest-side, rgba(95,210,216,0.34), rgba(95,210,216,0))",
+        }}
+      />
 
-      <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
-        <div
-          style={{
-            fontSize: 68,
-            fontWeight: 800,
-            color: "#0f172a",
-            lineHeight: 1.05,
-            letterSpacing: -1.5,
-            maxWidth: 1000,
-          }}
-        >
-          {t("marketing.landing.ogHeadline", undefined, locale)}
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "space-between",
+          padding: 72,
+          width: 800,
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: 18 }}>
+          <div
+            style={{
+              width: 64,
+              height: 64,
+              borderRadius: 16,
+              background: "#5fd2d8",
+              color: "#0a1b3d",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontSize: 42,
+              fontWeight: 800,
+            }}
+          >
+            P
+          </div>
+          <div style={{ fontSize: 36, fontWeight: 700, letterSpacing: -1 }}>PropertyDesk</div>
         </div>
-        <div
-          style={{
-            fontSize: 28,
-            color: "#334155",
-            lineHeight: 1.35,
-            maxWidth: 900,
-          }}
-        >
-          {t("marketing.landing.ogSub", undefined, locale)}
+
+        <div style={{ display: "flex", flexDirection: "column", gap: 22 }}>
+          <div
+            style={{
+              fontSize: 62,
+              fontWeight: 800,
+              lineHeight: 1.04,
+              letterSpacing: -2,
+            }}
+          >
+            {t("marketing.landing.ogHeadline", undefined, locale)}
+          </div>
+          <div style={{ fontSize: 26, color: "rgba(255,255,255,0.72)", lineHeight: 1.35 }}>
+            {t("marketing.landing.ogSub", undefined, locale)}
+          </div>
+        </div>
+
+        <div style={{ display: "flex", alignItems: "center", gap: 20, fontSize: 21 }}>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              border: "1px solid rgba(95,210,216,0.5)",
+              color: "#5fd2d8",
+              padding: "9px 16px",
+              borderRadius: 10,
+              fontWeight: 600,
+            }}
+          >
+            {t("marketing.landing.ogBadge", undefined, locale)}
+          </div>
+          <div style={{ color: "rgba(255,255,255,0.6)", fontWeight: 500 }}>propertydesk.app</div>
         </div>
       </div>
 
       <div
         style={{
           display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          fontSize: 22,
-          color: "#475569",
+          flexDirection: "column",
+          justifyContent: "center",
+          gap: 12,
+          paddingRight: 72,
+          flex: 1,
         }}
       >
-        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              background: "#dcfce7",
-              color: "#166534",
-              padding: "10px 18px",
-              borderRadius: 999,
-              fontWeight: 600,
-              fontSize: 22,
-            }}
-          >
-            {t("marketing.landing.ogBadge", undefined, locale)}
+        {matrix.map((row, r) => (
+          <div key={r} style={{ display: "flex", gap: 12, justifyContent: "flex-end" }}>
+            {row.map((v, c) => (
+              <div
+                key={c}
+                style={{
+                  width: 44,
+                  height: 44,
+                  borderRadius: 8,
+                  background: cell[v],
+                }}
+              />
+            ))}
           </div>
-        </div>
-        <div style={{ fontWeight: 500 }}>propertydesk.app</div>
+        ))}
       </div>
     </div>,
     { ...size },

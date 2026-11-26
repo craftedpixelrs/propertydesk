@@ -39,6 +39,7 @@ export default async function Page() {
         icon={BadgeCheck}
         title={t("marketing.pages.commissions.title")}
         subtitle={t("marketing.pages.commissions.subtitle")}
+        screen="agency"
       />
       <ProblemSolutionGrid
         title={t("marketing.pages.commissions.gridTitle")}

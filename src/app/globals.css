@@ -52,6 +52,20 @@
   --color-violet-bg: #ede9fe;
   --color-violet-fg: #6d28d9;
 
+  /* Marketing site only: navy and teal from the logo, on cool paper. */
+  --color-ink: #0a1b3d;
+  --color-ink-950: #06122b;
+  --color-ink-800: #132a55;
+  --color-tide: #0b9aa2;
+  --color-tide-700: #08727a;
+  --color-tide-300: #5fd2d8;
+  --color-tide-100: #d3f1f2;
+  --color-tide-50: #ecf8f8;
+  --color-paper: #f4f6fa;
+  --color-line: #dde4ee;
+  --color-mute: #4a5873;
+  --color-faint: #66758f;
+
   /* Elevation */
   --color-shadow: rgba(15, 23, 42, 0.08);
   --color-overlay: rgba(15, 23, 42, 0.5);
@@ -428,68 +442,81 @@ html[data-theme="dark"] .bg-slate-200.text-slate-800 {
 }
 
 /*
- * Marketing art direction is fixed (ink, cream, gold). The app dark theme
- * must not invert those surfaces when the same theme cookie is set.
+ * Marketing art direction is fixed: navy ink and teal from the logo on
+ * cool paper, with drafting lines. The app dark theme must not invert
+ * those surfaces when the same theme cookie is set.
  */
-.marketing-site {
-  color-scheme: light;
-  --color-surface: #ffffff;
-  --color-surface-muted: #f7f3ea;
-  --color-surface-inset: #efe8d8;
-  --color-foreground: #0b1020;
-  --color-foreground-muted: #3d4558;
-  --color-foreground-subtle: #5c6578;
-  --color-border: #e6e0d4;
-  --color-border-strong: #d4ccbc;
-  --color-brand-50: #f7f3ea;
-  --color-brand-100: #f3e2bc;
-  --color-brand-200: #e8d7b0;
-  --color-brand-300: #d6b26a;
-  --color-brand-500: #b8923e;
-  --color-brand-600: #9a7430;
-  --color-brand-700: #9a7430;
-  --color-brand-800: #6e5424;
-  --color-brand-900: #0b1020;
-  --color-success: #16a34a;
-  background-color: #f7f3ea;
-  color: #0b1020;
-}
-
+.marketing-site,
 html[data-theme="dark"] .marketing-site {
   color-scheme: light;
+  --font-display: var(--font-sans);
   --color-surface: #ffffff;
-  --color-surface-muted: #f7f3ea;
-  --color-surface-inset: #efe8d8;
-  --color-foreground: #0b1020;
-  --color-foreground-muted: #3d4558;
-  --color-foreground-subtle: #5c6578;
-  --color-border: #e6e0d4;
-  --color-border-strong: #d4ccbc;
-  --color-brand-50: #f7f3ea;
-  --color-brand-100: #f3e2bc;
-  --color-brand-200: #e8d7b0;
-  --color-brand-300: #d6b26a;
-  --color-brand-500: #b8923e;
-  --color-brand-600: #9a7430;
-  --color-brand-700: #9a7430;
-  --color-brand-800: #6e5424;
-  --color-brand-900: #0b1020;
-  --color-success: #16a34a;
-  background-color: #f7f3ea;
-  color: #0b1020;
+  --color-surface-muted: #f4f6fa;
+  --color-surface-inset: #e9eef5;
+  --color-foreground: #0a1b3d;
+  --color-foreground-muted: #4a5873;
+  --color-foreground-subtle: #66758f;
+  --color-border: #dde4ee;
+  --color-border-strong: #c5cfdd;
+  --color-brand-50: #ecf8f8;
+  --color-brand-100: #d3f1f2;
+  --color-brand-200: #a8e3e6;
+  --color-brand-300: #5fd2d8;
+  --color-brand-400: #22b5bd;
+  --color-brand-500: #0b9aa2;
+  --color-brand-600: #08727a;
+  --color-brand-700: #08727a;
+  --color-brand-800: #065a61;
+  --color-brand-900: #0a1b3d;
+  --color-success: #15803d;
+  --color-success-bg: #dcfce7;
+  --color-danger: #dc2626;
+  --color-danger-bg: #fee2e2;
+  background-color: #f4f6fa;
+  color: #0a1b3d;
 }
 
 html[data-theme="dark"] .marketing-site .bg-white {
   background-color: #ffffff;
 }
 
-html[data-theme="dark"] .marketing-site .bg-red-50 {
-  background-color: #fef2f2;
+@media (min-width: 640px) {
+  .marketing-site .container-app {
+    padding-inline: 1.5rem;
+  }
 }
 
-html[data-theme="dark"] .marketing-site .text-red-600,
-html[data-theme="dark"] .marketing-site .text-red-700 {
-  color: #dc2626;
+/* Drafting grid behind heroes and dark bands. */
+.pd-grid {
+  --pd-grid-line: rgba(10, 27, 61, 0.055);
+  background-image:
+    linear-gradient(to right, var(--pd-grid-line) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--pd-grid-line) 1px, transparent 1px);
+  background-size: 56px 56px;
+  background-position: center top;
+}
+
+.pd-grid-dark {
+  --pd-grid-line: rgba(255, 255, 255, 0.06);
+}
+
+.pd-fade-b {
+  mask-image: linear-gradient(to bottom, black 30%, transparent 96%);
+}
+
+.pd-fade-radial {
+  mask-image: radial-gradient(ellipse 80% 70% at 50% 0%, black 35%, transparent 100%);
+}
+
+/* Diagonal hatch for "not yet" surfaces. */
+.pd-hatch {
+  background-image: repeating-linear-gradient(
+    -45deg,
+    rgba(10, 27, 61, 0.045) 0,
+    rgba(10, 27, 61, 0.045) 1px,
+    transparent 1px,
+    transparent 9px
+  );
 }
 
 @keyframes pd-rise {
@@ -512,23 +539,14 @@ html[data-theme="dark"] .marketing-site .text-red-700 {
   }
 }
 
-@keyframes pd-float {
-  0%,
-  100% {
-    transform: translateY(0);
+@keyframes pd-cell {
+  from {
+    opacity: 0;
+    transform: scale(0.6);
   }
-  50% {
-    transform: translateY(-8px);
-  }
-}
-
-@keyframes pd-glow {
-  0%,
-  100% {
-    opacity: 0.55;
-  }
-  50% {
+  to {
     opacity: 1;
+    transform: none;
   }
 }
 
@@ -536,12 +554,9 @@ html[data-theme="dark"] .marketing-site .text-red-700 {
   animation: pd-rise 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
-.pd-glow {
-  animation: pd-glow 18s ease-in-out infinite;
-}
-
-.pd-float {
-  animation: pd-float 9s ease-in-out 1.1s infinite;
+.pd-cell {
+  animation: pd-cell 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: var(--pd-delay, 0ms);
 }
 
 @keyframes pd-mega-item {
@@ -586,10 +601,13 @@ html[data-theme="dark"] .marketing-site .text-red-700 {
   transform: translateX(3px);
 }
 
+.marketing-site a:hover svg.lucide-arrow-up-right {
+  transform: translate(2px, -2px);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .pd-rise,
-  .pd-glow,
-  .pd-float,
+  .pd-cell,
   .pd-mega-item,
   .pd-mega-panel,
   .pd-motion [data-reveal].is-in {

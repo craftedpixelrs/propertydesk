@@ -4,6 +4,7 @@ import type { LucideIcon } from "lucide-react";
 import { Blocks, Bot, FileSignature, Network, SearchCheck, Zap } from "lucide-react";
 
 import { useT } from "@/components/app/i18n-provider";
+import { SectionHeading } from "@/features/marketing/ui";
 import type { TranslationKey } from "@/lib/i18n";
 
 interface RoadmapItem {
@@ -33,28 +34,28 @@ const ROADMAP: RoadmapItem[] = [
   },
 ];
 
+/**
+ * Ideas, not promises. Dashed outlines and hatching keep them visibly
+ * apart from what the product does today.
+ */
 export function Roadmap() {
   const t = useT();
 
   return (
-    <section id="uskoro" aria-labelledby="roadmap-title" className="scroll-mt-20 bg-[#f7f3ea]">
-      <div className="container-app py-16 sm:py-24">
-        <div className="max-w-3xl">
-          <div className="text-xs font-semibold tracking-[0.18em] text-[#9a7430] uppercase">
-            {t("marketing.roadmap.eyebrow")}
-          </div>
-          <h2
-            id="roadmap-title"
-            className="font-display mt-3 text-4xl font-semibold tracking-tight text-[#0b1020] sm:text-5xl"
-          >
-            {t("marketing.roadmap.title")}
-          </h2>
-          <p className="mt-3 max-w-2xl text-sm leading-relaxed text-[var(--color-foreground-muted)]">
-            {t("marketing.roadmap.subtitle")}
-          </p>
-        </div>
+    <section
+      id="uskoro"
+      aria-labelledby="roadmap-title"
+      className="border-line scroll-mt-20 border-t"
+    >
+      <div className="container-app py-20 sm:py-28">
+        <SectionHeading
+          id="roadmap-title"
+          eyebrow={t("marketing.roadmap.eyebrow")}
+          title={t("marketing.roadmap.title")}
+          subtitle={t("marketing.roadmap.subtitle")}
+        />
 
-        <div className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {ROADMAP.map((item, index) => {
             const Icon = item.icon;
             return (
@@ -62,26 +63,19 @@ export function Roadmap() {
                 key={item.titleKey}
                 data-reveal=""
                 style={{ "--pd-delay": `${(index % 3) * 80}ms` } as React.CSSProperties}
-                className="flex flex-col gap-3 rounded-2xl border border-[#0b1020]/10 bg-white p-6"
+                className="pd-hatch border-ink/20 flex flex-col gap-5 rounded-2xl border border-dashed p-6"
               >
                 <div className="flex items-center justify-between gap-2">
-                  <span
-                    aria-hidden
-                    className="grid size-10 flex-none place-items-center rounded-xl bg-[#0b1020] text-[#f3e2bc]"
-                  >
-                    <Icon className="size-4" />
-                  </span>
-                  <span className="rounded-full border border-[#d6b26a]/50 bg-[#f7f3ea] px-2 py-0.5 text-[10px] font-semibold tracking-[0.12em] text-[#9a7430] uppercase">
+                  <Icon aria-hidden className="text-mute size-5" strokeWidth={1.75} />
+                  <span className="border-ink/15 text-faint rounded-md border bg-white px-2 py-1 font-mono text-[10px] font-medium tracking-[0.12em] uppercase">
                     {t("marketing.roadmap.notADeadline")}
                   </span>
                 </div>
                 <div>
-                  <h3 className="font-display text-lg font-semibold text-[#0b1020]">
+                  <h3 className="text-ink text-[1.05rem] leading-snug font-bold tracking-[-0.02em]">
                     {t(item.titleKey)}
                   </h3>
-                  <p className="mt-1 text-sm leading-relaxed text-[var(--color-foreground-muted)]">
-                    {t(item.bodyKey)}
-                  </p>
+                  <p className="text-mute mt-2 text-sm leading-relaxed">{t(item.bodyKey)}</p>
                 </div>
               </article>
             );

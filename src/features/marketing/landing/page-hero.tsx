@@ -1,7 +1,11 @@
+import Link from "next/link";
 import type { LucideIcon } from "lucide-react";
-import { ArrowRight, PlayCircle } from "lucide-react";
+import { ArrowRight, ArrowUpRight, PlayCircle } from "lucide-react";
 
 import { marketingCta } from "@/features/marketing/marketing-cta";
+import { BrowserFrame } from "@/features/marketing/mockup-frame";
+import { UnitMatrix } from "@/features/marketing/ui";
+import { APP_NAME, DEMO_APP_URL, LANDING_IMAGES } from "@/lib/constants/app";
 import { createT } from "@/lib/i18n";
 import { resolveRequestLocale } from "@/lib/i18n/resolve-locale";
 
@@ -9,21 +13,22 @@ interface PageHeroProps {
   eyebrow: string;
   title: string;
   subtitle: string;
-  /** Icon rendered inside the eyebrow badge. */
+  /** Icon rendered next to the eyebrow. */
   icon?: LucideIcon;
   /** Primary CTA - defaults to demo booking on the /demo page. */
   primaryCta?: { label: string; href: string };
-  /** Optional secondary CTA. Omitted when there is no promo video. */
+  /** Secondary CTA. Defaults to opening the public demo. */
   secondaryCta?: { label: string; href: string };
   /** Optional footnote rendered below the CTAs. */
   footnote?: string;
+  /** A product screen for the right side. Without it, a stock matrix is drawn. */
+  screen?: Exclude<keyof typeof LANDING_IMAGES.screens, "mobile">;
 }
 
 /**
- * Reusable hero for the topic landing pages (`/za-investitore`,
- * `/za-agencije`, ...). Focused, single-CTA layout: no marketing
- * mockups, just one clear H1, one supporting paragraph, and the
- * booking CTA.
+ * Hero for the topic landing pages (`/za-investitore`, `/za-agencije`,
+ * ...). Left: where you are, one H1, one paragraph, the booking CTA.
+ * Right: the product screen that page is about, or the stock matrix.
  */
 export async function PageHero({
   eyebrow,
@@ -33,64 +38,105 @@ export async function PageHero({
   primaryCta,
   secondaryCta,
   footnote,
+  screen,
 }: PageHeroProps) {
   const t = createT(await resolveRequestLocale());
   const resolvedPrimary = primaryCta ?? {
     label: t("marketing.common.bookDemo"),
     href: "/demo#zakazivanje",
   };
-  const resolvedSecondary = secondaryCta;
   const resolvedFootnote = footnote ?? t("marketing.common.noObligation");
 
   return (
     <section
-      className="relative overflow-hidden bg-[#0b1020] text-white"
+      className="border-line relative overflow-hidden border-b"
       aria-labelledby="page-hero-title"
     >
+      <div aria-hidden className="pd-grid pd-fade-radial pointer-events-none absolute inset-0" />
       <div
         aria-hidden
-        className="pd-glow pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(214,178,106,0.22),transparent_52%),radial-gradient(ellipse_at_bottom,rgba(214,178,106,0.1),transparent_46%)]"
+        className="pointer-events-none absolute -top-56 right-[-10%] h-[36rem] w-[52rem] rounded-full bg-[radial-gradient(closest-side,rgba(11,154,162,0.16),transparent)]"
       />
 
-      <div className="container-app relative py-16 sm:py-20 lg:py-24">
-        <div className="pd-rise mx-auto max-w-3xl text-center">
-          <p className="inline-flex items-center gap-2 rounded-full border border-[#d6b26a]/40 bg-[#d6b26a]/10 px-3 py-1 text-xs font-semibold tracking-wide text-[#f3e2bc]">
-            {Icon ? <Icon aria-hidden className="size-3.5" /> : null}
-            {eyebrow}
+      <div className="container-app relative grid items-center gap-12 py-14 sm:py-20 lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)] lg:gap-14 lg:py-24">
+        <div className="pd-rise">
+          <p className="text-faint flex flex-wrap items-center gap-2.5 font-mono text-[11px] font-medium tracking-[0.16em] uppercase">
+            <Link href="/" className="hover:text-ink transition-colors">
+              {t("marketing.landing.home")}
+            </Link>
+            <span aria-hidden className="text-line">
+              /
+            </span>
+            <span className="text-tide-700 inline-flex items-center gap-1.5">
+              {Icon ? <Icon aria-hidden className="size-3.5" strokeWidth={2} /> : null}
+              {eyebrow}
+            </span>
           </p>
           <h1
             id="page-hero-title"
-            className="font-display mt-5 text-4xl leading-[1.05] font-semibold tracking-[-0.03em] text-balance text-[#f7f3ea] sm:text-6xl"
+            className="text-ink mt-6 text-[2.3rem] leading-[1.04] font-bold tracking-[-0.04em] text-balance sm:text-5xl lg:text-[3.4rem]"
           >
             {title}
           </h1>
-          <p className="mx-auto mt-5 max-w-2xl text-base leading-relaxed text-pretty text-white/70 sm:text-lg">
+          <p className="text-mute mt-6 max-w-xl text-base leading-relaxed text-pretty sm:text-lg">
             {subtitle}
           </p>
 
-          <div className="mt-7 flex flex-col items-stretch justify-center gap-3 sm:mt-8 sm:flex-row sm:items-center">
+          <div className="mt-9 flex flex-col items-stretch gap-3 sm:flex-row sm:items-center">
             <a
               href={resolvedPrimary.href}
-              className={marketingCta("cream", "lg", "w-full sm:w-auto")}
+              className={marketingCta("ink", "lg", "w-full sm:w-auto")}
             >
               {resolvedPrimary.label}
               <ArrowRight aria-hidden className="size-4" />
             </a>
-            {resolvedSecondary ? (
+            {secondaryCta ? (
               <a
-                href={resolvedSecondary.href}
-                className={marketingCta("outlineDark", "lg", "w-full sm:w-auto")}
+                href={secondaryCta.href}
+                className={marketingCta("outline", "lg", "w-full sm:w-auto")}
               >
                 <PlayCircle aria-hidden className="size-4" />
-                {resolvedSecondary.label}
+                {secondaryCta.label}
               </a>
-            ) : null}
+            ) : (
+              <a href={DEMO_APP_URL} className={marketingCta("outline", "lg", "w-full sm:w-auto")}>
+                {t("marketing.header.openDemo")}
+                <ArrowUpRight aria-hidden className="text-tide-700 size-4" />
+              </a>
+            )}
           </div>
 
-          {resolvedFootnote ? (
-            <p className="mt-4 text-xs text-white/45">{resolvedFootnote}</p>
-          ) : null}
+          {resolvedFootnote ? <p className="text-faint mt-4 text-sm">{resolvedFootnote}</p> : null}
         </div>
+
+        {screen ? (
+          <div className="pd-rise relative lg:-mr-40" style={{ animationDelay: "140ms" }}>
+            <BrowserFrame
+              screen={LANDING_IMAGES.screens[screen]}
+              alt={`${APP_NAME} — ${eyebrow}`}
+              sizes="(min-width: 1024px) 800px, 170vw"
+              crop="aspect-[16/10]"
+              detail="phone"
+              priority
+            />
+          </div>
+        ) : (
+          <div className="pd-rise relative hidden lg:block" style={{ animationDelay: "140ms" }}>
+            <div className="border-line rounded-3xl border bg-white/80 p-8 shadow-[0_40px_80px_-50px_rgba(10,27,61,0.5)] backdrop-blur">
+              <div className="flex items-center justify-between">
+                <span className="text-faint font-mono text-[11px] font-medium tracking-[0.16em] uppercase">
+                  {APP_NAME}
+                </span>
+                <span aria-hidden className="flex items-center gap-1.5">
+                  <span className="bg-tide size-2 rounded-full" />
+                  <span className="size-2 rounded-full bg-amber-400" />
+                  <span className="bg-ink size-2 rounded-full" />
+                </span>
+              </div>
+              <UnitMatrix className="mt-7" />
+            </div>
+          </div>
+        )}
       </div>
     </section>
   );

@@ -1,3 +1,5 @@
+import { PageIntro } from "@/features/marketing/ui";
+
 import type { LegalDoc } from "./copy";
 
 /**
@@ -26,31 +28,40 @@ const DISPLAY_CONTENTS: React.CSSProperties = { display: "contents" };
 
 export function LegalArticle({ doc }: { doc: LegalDoc }) {
   return (
-    <article className="container-app max-w-3xl py-14 sm:py-16">
+    <article>
       <span style={DISPLAY_CONTENTS} dangerouslySetInnerHTML={EMAIL_OFF_OPEN} />
-      <p className="text-xs font-semibold tracking-wider text-[var(--color-foreground-subtle)] uppercase">
-        {doc.updated}
-      </p>
-      <h1 className="mt-2 text-3xl font-semibold tracking-tight sm:text-4xl">{doc.title}</h1>
-      <p className="mt-4 text-base leading-relaxed text-[var(--color-foreground-muted)]">
-        {doc.intro}
-      </p>
-      <div className="mt-10 space-y-8">
-        {doc.sections.map((section) => (
-          <section key={section.heading}>
-            <h2
-              id={/kolač|cookie/i.test(section.heading) ? "kolacici" : undefined}
-              className="scroll-mt-20 text-lg font-semibold tracking-tight"
-            >
-              {section.heading}
-            </h2>
-            <div className="mt-2 space-y-3 text-sm leading-relaxed text-[var(--color-foreground-muted)]">
-              {section.paragraphs.map((p) => (
-                <p key={p.slice(0, 48)}>{p}</p>
-              ))}
-            </div>
-          </section>
-        ))}
+      <PageIntro trail={[{ label: doc.updated }]} title={doc.title} lead={doc.intro} narrow />
+      <div className="bg-white">
+        <div className="container-app max-w-3xl py-12 sm:py-16">
+          <div className="border-line border-t">
+            {doc.sections.map((section, i) => (
+              <section
+                key={section.heading}
+                className="border-line grid gap-x-6 gap-y-2 border-b py-8 sm:grid-cols-[2.5rem_minmax(0,1fr)]"
+              >
+                <span
+                  aria-hidden
+                  className="text-tide-700 pt-1 font-mono text-[11px] font-medium tracking-[0.14em] tabular-nums"
+                >
+                  {String(i + 1).padStart(2, "0")}
+                </span>
+                <div>
+                  <h2
+                    id={/kolač|cookie/i.test(section.heading) ? "kolacici" : undefined}
+                    className="text-ink scroll-mt-24 text-xl leading-snug font-bold tracking-[-0.02em]"
+                  >
+                    {section.heading}
+                  </h2>
+                  <div className="text-mute mt-3 space-y-3 text-[0.95rem] leading-relaxed">
+                    {section.paragraphs.map((p) => (
+                      <p key={p.slice(0, 48)}>{p}</p>
+                    ))}
+                  </div>
+                </div>
+              </section>
+            ))}
+          </div>
+        </div>
       </div>
       <span style={DISPLAY_CONTENTS} dangerouslySetInnerHTML={EMAIL_OFF_CLOSE} />
     </article>

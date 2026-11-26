@@ -1,8 +1,9 @@
 "use client";
 
-import { Check, Sparkles } from "lucide-react";
+import { ArrowRight, Check, Sparkles } from "lucide-react";
 
 import { marketingCta } from "@/features/marketing/marketing-cta";
+import { SectionHeading } from "@/features/marketing/ui";
 import { useT } from "@/components/app/i18n-provider";
 import { cn } from "@/lib/utils";
 import type { TranslationKey } from "@/lib/i18n";
@@ -54,108 +55,108 @@ export function PricingTeaser() {
   const t = useT();
 
   return (
-    <section
-      id="cenovnik"
-      aria-labelledby="pricing-title"
-      className="scroll-mt-20 border-t border-[#0b1020]/10 bg-white"
-    >
-      <div className="container-app py-16 sm:py-20">
-        <div className="max-w-3xl">
-          <div className="text-xs font-semibold tracking-[0.18em] text-[#9a7430] uppercase">
-            {t("marketing.pricing.eyebrow")}
-          </div>
-          <h2
+    <section id="cenovnik" aria-labelledby="pricing-title" className="relative scroll-mt-20">
+      <div aria-hidden className="pd-grid pd-fade-radial pointer-events-none absolute inset-0" />
+      <div className="container-app relative py-20 sm:py-28">
+        <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+          <SectionHeading
             id="pricing-title"
-            className="font-display mt-3 text-4xl font-semibold tracking-tight text-[#0b1020] sm:text-5xl"
-          >
-            {t("marketing.pricing.title")}
-          </h2>
-          <p className="mt-4 text-base leading-relaxed text-[var(--color-foreground-muted)]">
-            {t("marketing.pricing.subtitle")}
-          </p>
-
-          <div className="mt-5 inline-flex items-center gap-2 rounded-full border border-[#d6b26a]/50 bg-[#f7f3ea] px-3 py-1.5 text-sm font-medium text-[#0b1020]">
-            <Sparkles aria-hidden className="size-4" />
+            eyebrow={t("marketing.pricing.eyebrow")}
+            title={t("marketing.pricing.title")}
+            subtitle={t("marketing.pricing.subtitle")}
+          />
+          <div className="border-tide/40 bg-tide-50 text-ink inline-flex flex-none items-center gap-2 self-start rounded-xl border px-3.5 py-2 text-sm font-semibold lg:self-end">
+            <Sparkles aria-hidden className="text-tide-700 size-4" />
             {t("marketing.pricing.earlyBird")}
           </div>
         </div>
 
-        <div className="mt-10 grid gap-5 md:grid-cols-3">
+        <div className="mt-12 grid gap-4 md:grid-cols-3">
           {PLANS.map((plan, index) => (
             <article
               key={plan.nameKey}
-              data-reveal={plan.featured ? "fade" : ""}
+              data-reveal=""
               style={{ "--pd-delay": `${index * 90}ms` } as React.CSSProperties}
               className={cn(
-                "relative flex flex-col rounded-3xl border p-6",
+                "relative flex flex-col overflow-hidden rounded-3xl border p-6 sm:p-8",
                 plan.featured
-                  ? "border-[#0b1020] bg-[#0b1020] text-[#f7f3ea] shadow-[0_24px_60px_-32px_rgba(11,16,32,0.8)] md:-translate-y-3"
-                  : "border-[var(--color-border)] bg-[var(--color-surface)]",
+                  ? "border-ink bg-ink text-white shadow-[0_28px_50px_-34px_rgba(10,27,61,0.7)]"
+                  : "border-line text-ink bg-white",
               )}
             >
-              <div className="flex items-center justify-between">
-                <h3 className="font-display text-2xl font-semibold">{t(plan.nameKey)}</h3>
+              {plan.featured ? (
+                <>
+                  <div
+                    aria-hidden
+                    className="pd-grid pd-grid-dark pointer-events-none absolute inset-0"
+                  />
+                  <div aria-hidden className="bg-tide-300 absolute inset-x-0 top-0 h-1" />
+                </>
+              ) : null}
+              <div className="relative flex items-center justify-between gap-3">
+                <h3 className="text-xl font-bold tracking-[-0.025em]">{t(plan.nameKey)}</h3>
                 {plan.featured ? (
-                  <span className="rounded-full bg-[#d6b26a] px-2 py-0.5 text-[10px] font-semibold tracking-wide text-[#0b1020] uppercase">
+                  <span className="bg-tide-300 text-ink-950 rounded-md px-2 py-1 font-mono text-[10px] font-medium tracking-[0.1em] uppercase">
                     {t("marketing.pricing.popular")}
                   </span>
                 ) : null}
               </div>
               <p
                 className={cn(
-                  "mt-1 text-sm",
-                  plan.featured ? "text-white/65" : "text-[var(--color-foreground-muted)]",
+                  "relative mt-1.5 text-sm leading-relaxed",
+                  plan.featured ? "text-white/65" : "text-mute",
                 )}
               >
                 {t(plan.descKey)}
               </p>
-              <div className="mt-5 flex items-baseline gap-1.5">
-                <span className="font-display text-5xl font-semibold tracking-tight tabular-nums">
+              <div className="relative mt-8 flex items-baseline gap-2">
+                <span className="text-[3.25rem] leading-none font-bold tracking-[-0.05em] tabular-nums">
                   {plan.price}
                 </span>
-                <span
-                  className={cn(
-                    "text-sm",
-                    plan.featured ? "text-white/55" : "text-[var(--color-foreground-muted)]",
-                  )}
-                >
+                <span className={cn("text-sm", plan.featured ? "text-white/55" : "text-faint")}>
                   {t("marketing.pricing.monthly")}
                 </span>
               </div>
-              <ul className="mt-5 space-y-2.5 text-sm">
+              <ul
+                className={cn(
+                  "relative mt-8 border-t text-sm",
+                  plan.featured ? "border-white/10" : "border-line",
+                )}
+              >
                 {plan.highlights.map((h) => (
-                  <li key={h} className="flex items-start gap-2.5">
+                  <li
+                    key={h}
+                    className={cn(
+                      "flex items-center gap-3 border-b py-3",
+                      plan.featured ? "border-white/10" : "border-line",
+                    )}
+                  >
                     <Check
                       aria-hidden
+                      strokeWidth={2.5}
                       className={cn(
-                        "mt-0.5 size-4 flex-none",
-                        plan.featured ? "text-[#d6b26a]" : "text-[var(--color-success)]",
+                        "size-4 flex-none",
+                        plan.featured ? "text-tide-300" : "text-tide",
                       )}
                     />
                     <span>{t(h)}</span>
                   </li>
                 ))}
               </ul>
-              <div
-                className={cn(
-                  "mt-6 border-t pt-6",
-                  plan.featured ? "border-white/10" : "border-[var(--color-border)]",
-                )}
-              >
+              <div className="relative mt-auto pt-8">
                 <a
                   href="#zakazivanje"
-                  className={marketingCta(plan.featured ? "cream" : "outline", "md", "w-full")}
+                  className={marketingCta(plan.featured ? "accent" : "outline", "md", "w-full")}
                 >
                   {t("marketing.common.bookDemo")}
+                  <ArrowRight aria-hidden className="size-4" />
                 </a>
               </div>
             </article>
           ))}
         </div>
 
-        <p className="mt-6 text-center text-xs text-[var(--color-foreground-subtle)]">
-          {t("marketing.pricing.footnote")}
-        </p>
+        <p className="text-faint mt-6 text-center text-xs">{t("marketing.pricing.footnote")}</p>
       </div>
     </section>
   );

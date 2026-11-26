@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 
 import { useT } from "@/components/app/i18n-provider";
+import { Index, SectionHeading } from "@/features/marketing/ui";
 import type { TranslationKey } from "@/lib/i18n";
 
 const ITEMS: Array<{
@@ -45,52 +46,48 @@ const ITEMS: Array<{
   },
 ];
 
+/** Local rules, on the navy band: eight ruled cells, no cards. */
 export function SerbiaSection() {
   const t = useT();
 
   return (
-    <section
-      aria-labelledby="serbia-title"
-      className="relative overflow-hidden bg-[#0b1020] text-[#f7f3ea]"
-    >
+    <section aria-labelledby="serbia-title" className="bg-ink-950 relative overflow-hidden">
       <div
         aria-hidden
-        className="pointer-events-none absolute top-0 -left-24 size-80 rounded-full bg-[#d6b26a]/15 blur-3xl"
+        className="pd-grid pd-grid-dark pd-fade-b pointer-events-none absolute inset-0"
       />
-      <div className="container-app relative py-16 sm:py-24">
-        <div className="max-w-3xl">
-          <div className="text-xs font-semibold tracking-[0.18em] text-[#d6b26a] uppercase">
-            {t("marketing.serbia.eyebrow")}
-          </div>
-          <h2
-            id="serbia-title"
-            className="font-display mt-3 text-4xl font-semibold tracking-tight sm:text-5xl"
-          >
-            {t("marketing.serbia.title")}
-          </h2>
-          <p className="mt-4 max-w-2xl text-base leading-relaxed text-white/65">
-            {t("marketing.serbia.subtitle")}
-          </p>
-        </div>
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -top-32 right-0 h-96 w-[44rem] rounded-full bg-[radial-gradient(closest-side,rgba(95,210,216,0.14),transparent)]"
+      />
+      <div className="container-app relative py-20 sm:py-28">
+        <SectionHeading
+          id="serbia-title"
+          tone="dark"
+          eyebrow={t("marketing.serbia.eyebrow")}
+          title={t("marketing.serbia.title")}
+          subtitle={t("marketing.serbia.subtitle")}
+        />
 
-        <div className="mt-12 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <div
+          data-reveal=""
+          className="mt-12 grid gap-px overflow-hidden rounded-3xl border border-white/10 bg-white/10 sm:grid-cols-2 lg:grid-cols-4"
+        >
           {ITEMS.map((it, index) => {
             const Icon = it.icon;
             return (
               <div
                 key={it.titleKey}
-                data-reveal=""
-                style={{ "--pd-delay": `${(index % 4) * 70}ms` } as React.CSSProperties}
-                className="rounded-2xl border border-white/10 bg-white/[0.04] p-5"
+                className="bg-ink-950 hover:bg-ink p-6 transition-colors duration-300"
               >
-                <span
-                  aria-hidden
-                  className="inline-grid size-10 place-items-center rounded-xl bg-[#d6b26a]/15 text-[#f3e2bc]"
-                >
-                  <Icon className="size-5" />
-                </span>
-                <h3 className="font-display mt-4 text-lg font-semibold">{t(it.titleKey)}</h3>
-                <p className="mt-1.5 text-sm leading-relaxed text-white/60">{t(it.bodyKey)}</p>
+                <div className="flex items-center justify-between">
+                  <Icon aria-hidden className="text-tide-300 size-5" strokeWidth={1.75} />
+                  <Index n={index + 1} tone="dark" className="text-white/30" />
+                </div>
+                <h3 className="mt-6 text-[1.05rem] leading-snug font-bold tracking-[-0.02em] text-white">
+                  {t(it.titleKey)}
+                </h3>
+                <p className="mt-2 text-sm leading-relaxed text-white/55">{t(it.bodyKey)}</p>
               </div>
             );
           })}

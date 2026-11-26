@@ -1,12 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Building2, MapPin } from "lucide-react";
+import { ArrowUpRight, Building2, MapPin } from "lucide-react";
 
 import { CtaPanel } from "@/features/marketing/landing/cta-panel";
 import { FeatureGrid } from "@/features/marketing/feature-grid";
 import { PageHero } from "@/features/marketing/landing/page-hero";
 import { ProblemSolutionGrid } from "@/features/marketing/landing/problem-solution-grid";
 import { RelatedLinks } from "@/features/marketing/landing/related-links";
+import { Index, SectionHeading } from "@/features/marketing/ui";
 import { CITIES, localizeCity } from "@/features/marketing/cities/cities";
 import { hubCopy } from "@/features/marketing/cities/cities-ui";
 import { APP_NAME, MARKETING_URL } from "@/lib/constants/app";
@@ -110,44 +111,56 @@ export default async function HubPage() {
         items={copy.problems}
       />
 
-      <section aria-labelledby="cities-title" className="bg-white">
-        <div className="container-app py-16 sm:py-20">
-          <div className="max-w-3xl">
-            <p className="text-xs font-semibold tracking-[0.16em] text-[#9a7430] uppercase">
-              {copy.localEyebrow}
-            </p>
-            <h2
-              id="cities-title"
-              className="font-display mt-3 text-4xl font-semibold tracking-tight text-[#0b1020] sm:text-5xl"
-            >
-              {copy.citiesTitle}
-            </h2>
-            <p className="mt-4 text-base leading-relaxed text-[var(--color-foreground-muted)]">
-              {copy.citiesBody}
-            </p>
-          </div>
+      <section aria-labelledby="cities-title" className="border-line border-t">
+        <div className="container-app py-20 sm:py-28">
+          <SectionHeading
+            id="cities-title"
+            eyebrow={copy.localEyebrow}
+            title={copy.citiesTitle}
+            subtitle={copy.citiesBody}
+          />
 
-          <ul className="mt-10 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {cities.map((city) => (
-              <li key={city.slug}>
+          <ul className="border-line bg-line mt-12 grid gap-px overflow-hidden rounded-3xl border sm:grid-cols-2 lg:grid-cols-3">
+            {cities.map((city, i) => (
+              <li
+                key={city.slug}
+                className={
+                  // The last card closes the row, so the hairline grid has no empty cell.
+                  i === cities.length - 1
+                    ? [
+                        "bg-white",
+                        cities.length % 2 === 1 ? "sm:col-span-2" : "sm:col-span-1",
+                        cities.length % 3 === 1
+                          ? "lg:col-span-3"
+                          : cities.length % 3 === 2
+                            ? "lg:col-span-2"
+                            : "lg:col-span-1",
+                      ].join(" ")
+                    : "bg-white"
+                }
+              >
                 <Link
                   href={`/${HUB_SLUG}/${city.slug}`}
-                  className="flex items-start gap-3 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5 shadow-sm transition-colors hover:border-[#d6b26a] hover:bg-[#f3e2bc]/40"
+                  className="group hover:bg-ink flex h-full flex-col p-6 transition-colors duration-300"
                 >
-                  <span
-                    aria-hidden
-                    className="grid size-9 flex-none place-items-center rounded-lg bg-[#0b1020] text-[#f3e2bc]"
-                  >
-                    <MapPin className="size-4" />
-                  </span>
-                  <div>
-                    <div className="font-display text-lg font-semibold text-[#0b1020]">
-                      {city.name}
-                    </div>
-                    <p className="mt-1 text-sm leading-relaxed text-[var(--color-foreground-muted)]">
-                      {copy.card(city.nameLokativ)}
-                    </p>
+                  <div className="flex items-center justify-between">
+                    <MapPin
+                      aria-hidden
+                      className="text-tide-700 group-hover:text-tide-300 size-5 transition-colors"
+                      strokeWidth={1.75}
+                    />
+                    <Index n={i + 1} className="text-faint group-hover:text-white/40" />
                   </div>
+                  <div className="text-ink mt-6 flex items-center gap-2 text-xl font-bold tracking-[-0.025em] transition-colors group-hover:text-white">
+                    {city.name}
+                    <ArrowUpRight
+                      aria-hidden
+                      className="text-tide-300 size-4 opacity-0 transition-opacity group-hover:opacity-100"
+                    />
+                  </div>
+                  <p className="text-mute mt-2 text-sm leading-relaxed transition-colors group-hover:text-white/65">
+                    {copy.card(city.nameLokativ)}
+                  </p>
                 </Link>
               </li>
             ))}

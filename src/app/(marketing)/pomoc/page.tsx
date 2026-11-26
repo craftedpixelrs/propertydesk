@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Check } from "lucide-react";
 
 import { marketingCta } from "@/features/marketing/marketing-cta";
 import { buildLandingMetadata, LandingJsonLd } from "@/features/marketing/landing/landing-shell";
+import { PageIntro } from "@/features/marketing/ui";
 import { createT } from "@/lib/i18n";
 import { resolveRequestLocale } from "@/lib/i18n/resolve-locale";
 
@@ -28,52 +30,89 @@ export default async function HelpPage() {
 
   return (
     <>
-      <article className="container-app max-w-3xl py-14 sm:py-16">
-        <p className="text-xs font-semibold tracking-[0.18em] text-[#9a7430] uppercase">
-          {t("marketing.help.eyebrow")}
-        </p>
-        <h1 className="font-display mt-3 text-4xl font-semibold tracking-tight text-[#0b1020] sm:text-5xl">
-          {t("marketing.help.title")}
-        </h1>
-        <p className="mt-4 text-base leading-relaxed text-[var(--color-foreground-muted)]">
-          {t("marketing.help.lead")}
-        </p>
+      <article>
+        <PageIntro
+          trail={[
+            { label: t("marketing.landing.home"), href: "/" },
+            { label: t("marketing.help.eyebrow") },
+          ]}
+          title={t("marketing.help.title")}
+          lead={t("marketing.help.lead")}
+        />
 
-        <section className="mt-10">
-          <h2 className="text-lg font-semibold tracking-tight">{t("marketing.help.worksTitle")}</h2>
-          <ul className="mt-3 list-disc space-y-2 pl-5 text-sm leading-relaxed text-[var(--color-foreground-muted)]">
-            {works.map((item) => (
-              <li key={item}>{item}</li>
-            ))}
-          </ul>
-        </section>
+        <div className="bg-white">
+          <div className="container-app py-14 sm:py-20">
+            <div className="grid gap-4 lg:grid-cols-2">
+              <section className="border-line rounded-3xl border bg-white p-7 sm:p-9">
+                <h2 className="text-ink text-2xl leading-snug font-bold tracking-[-0.03em]">
+                  {t("marketing.help.worksTitle")}
+                </h2>
+                <ul className="border-line mt-6 border-t">
+                  {works.map((item) => (
+                    <li
+                      key={item}
+                      className="border-line text-ink flex items-start gap-3 border-b py-3.5 text-[0.95rem] leading-relaxed"
+                    >
+                      <span
+                        aria-hidden
+                        className="bg-tide mt-0.5 grid size-5 flex-none place-items-center rounded-full text-white"
+                      >
+                        <Check className="size-3" strokeWidth={3.5} />
+                      </span>
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </section>
 
-        <section className="mt-8">
-          <h2 className="text-lg font-semibold tracking-tight">{t("marketing.help.laterTitle")}</h2>
-          <p className="mt-2 text-sm leading-relaxed text-[var(--color-foreground-muted)]">
-            {t("marketing.help.laterIntro")}
-          </p>
-          <ul className="mt-3 list-disc space-y-2 pl-5 text-sm leading-relaxed text-[var(--color-foreground-muted)]">
-            {later.map((item) => (
-              <li key={item}>{item}</li>
-            ))}
-          </ul>
-        </section>
+              <section className="border-line pd-hatch rounded-3xl border border-dashed p-7 sm:p-9">
+                <h2 className="text-ink text-2xl leading-snug font-bold tracking-[-0.03em]">
+                  {t("marketing.help.laterTitle")}
+                </h2>
+                <p className="text-mute mt-3 text-sm leading-relaxed">
+                  {t("marketing.help.laterIntro")}
+                </p>
+                <ul className="border-line mt-6 border-t">
+                  {later.map((item) => (
+                    <li
+                      key={item}
+                      className="border-line text-mute flex items-start gap-3 border-b py-3.5 text-[0.95rem] leading-relaxed"
+                    >
+                      <span
+                        aria-hidden
+                        className="border-faint mt-1 size-4 flex-none rounded-full border border-dashed"
+                      />
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            </div>
 
-        <section className="mt-8 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface-muted)] p-6">
-          <h2 className="text-lg font-semibold tracking-tight">{t("marketing.help.guideTitle")}</h2>
-          <p className="mt-2 text-sm leading-relaxed text-[var(--color-foreground-muted)]">
-            {t("marketing.help.guideBody")}
-          </p>
-          <div className="mt-5 flex flex-wrap gap-2">
-            <a href="/help-center.html" className={marketingCta("ink", "sm")}>
-              {t("marketing.help.guideCta")}
-            </a>
-            <Link href="/demo" className={marketingCta("outline", "sm")}>
-              {t("marketing.header.bookDemo")}
-            </Link>
+            <section className="bg-ink relative mt-4 overflow-hidden rounded-3xl p-7 text-white sm:p-10 lg:flex lg:items-center lg:justify-between lg:gap-12">
+              <div
+                aria-hidden
+                className="pd-grid pd-grid-dark pointer-events-none absolute inset-0"
+              />
+              <div className="relative max-w-2xl">
+                <h2 className="text-2xl leading-snug font-bold tracking-[-0.03em] text-white">
+                  {t("marketing.help.guideTitle")}
+                </h2>
+                <p className="mt-3 text-sm leading-relaxed text-white/70 sm:text-base">
+                  {t("marketing.help.guideBody")}
+                </p>
+              </div>
+              <div className="relative mt-7 flex flex-none flex-wrap gap-2.5 lg:mt-0">
+                <a href="/help-center.html" className={marketingCta("accent", "md")}>
+                  {t("marketing.help.guideCta")}
+                </a>
+                <Link href="/demo" className={marketingCta("outlineDark", "md")}>
+                  {t("marketing.header.bookDemo")}
+                </Link>
+              </div>
+            </section>
           </div>
-        </section>
+        </div>
       </article>
       <LandingJsonLd
         slug="pomoc"

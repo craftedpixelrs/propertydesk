@@ -5,6 +5,7 @@ import { PageHero } from "@/features/marketing/landing/page-hero";
 import { ProblemSolutionGrid } from "@/features/marketing/landing/problem-solution-grid";
 import { RelatedLinks } from "@/features/marketing/landing/related-links";
 import { CtaPanel } from "@/features/marketing/landing/cta-panel";
+import { Index, SectionHeading } from "@/features/marketing/ui";
 import { buildLandingMetadata, LandingJsonLd } from "@/features/marketing/landing/landing-shell";
 import { createT, type TranslateFn } from "@/lib/i18n";
 import { resolveRequestLocale } from "@/lib/i18n/resolve-locale";
@@ -63,6 +64,7 @@ export default async function Page() {
         icon={Building2}
         title={t("marketing.pages.managers.title")}
         subtitle={t("marketing.pages.managers.subtitle")}
+        screen="manager"
       />
 
       <ProblemSolutionGrid
@@ -71,48 +73,40 @@ export default async function Page() {
         items={pairs(t)}
       />
 
-      <section
-        aria-labelledby="managers-flow-title"
-        className="border-y border-[#0b1020]/10 bg-[#f7f3ea]"
-      >
-        <div className="container-app py-16 sm:py-20">
-          <div className="max-w-3xl">
-            <h2
-              id="managers-flow-title"
-              className="font-display text-4xl font-semibold tracking-tight text-[#0b1020] sm:text-5xl"
-            >
-              {t("marketing.pages.managers.flowTitle")}
-            </h2>
-            <p className="mt-4 text-base leading-relaxed text-[var(--color-foreground-muted)]">
-              {t("marketing.pages.managers.flowSubtitle")}
-            </p>
-          </div>
-          <ol className="mt-10 grid gap-5 sm:grid-cols-3">
+      <section aria-labelledby="managers-flow-title" className="border-line border-t">
+        <div className="container-app py-20 sm:py-28">
+          <SectionHeading
+            id="managers-flow-title"
+            title={t("marketing.pages.managers.flowTitle")}
+            subtitle={t("marketing.pages.managers.flowSubtitle")}
+          />
+          <ol className="relative mt-14 grid gap-4 md:grid-cols-3">
             {flow.map((step, i) => {
               const Icon = step.icon;
               return (
                 <li
                   key={step.title}
                   data-reveal=""
-                  style={{ "--pd-delay": `${i * 80}ms` } as React.CSSProperties}
-                  className="relative flex flex-col gap-3 rounded-2xl border border-[#0b1020]/10 bg-white p-6 shadow-sm"
+                  style={{ "--pd-delay": `${i * 90}ms` } as React.CSSProperties}
+                  className="border-line relative flex flex-col rounded-3xl border bg-white p-6 sm:p-8"
                 >
-                  <span
-                    aria-hidden
-                    className="absolute top-6 right-6 text-[11px] font-semibold tracking-[0.16em] text-[#9a7430] uppercase"
-                  >
-                    {`0${i + 1}`}
-                  </span>
-                  <span
-                    aria-hidden
-                    className="grid size-11 place-items-center rounded-xl bg-[#0b1020] text-[#f3e2bc]"
-                  >
-                    <Icon className="size-5" strokeWidth={1.75} />
-                  </span>
-                  <h3 className="font-display text-xl font-semibold tracking-tight text-[#0b1020]">
+                  <div className="flex items-center justify-between">
+                    <span
+                      aria-hidden
+                      className={
+                        i === 0
+                          ? "bg-ink text-tide-300 grid size-11 place-items-center rounded-xl"
+                          : "border-line text-tide-700 grid size-11 place-items-center rounded-xl border bg-white"
+                      }
+                    >
+                      <Icon className="size-5" strokeWidth={1.75} />
+                    </span>
+                    <Index n={i + 1} />
+                  </div>
+                  <h3 className="text-ink mt-7 text-xl leading-snug font-bold tracking-[-0.025em]">
                     {step.title}
                   </h3>
-                  <p className="text-sm leading-relaxed text-[#0b1020]/75">{step.body}</p>
+                  <p className="text-mute mt-2.5 text-sm leading-relaxed">{step.body}</p>
                 </li>
               );
             })}

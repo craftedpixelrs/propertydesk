@@ -39,6 +39,7 @@ export default async function Page() {
         icon={FileSpreadsheet}
         title={t("marketing.pages.excel.title")}
         subtitle={t("marketing.pages.excel.subtitle")}
+        screen="units"
       />
       <ProblemSolutionGrid
         title={t("marketing.pages.excel.gridTitle")}

@@ -4,6 +4,7 @@ import { CalendarCheck2, PhoneCall, Video, Mail, ExternalLink, ArrowRight } from
 
 import { GOOGLE_APPOINTMENT_URL } from "@/lib/constants/app";
 import { marketingCta } from "@/features/marketing/marketing-cta";
+import { SectionHeading } from "@/features/marketing/ui";
 import { useT } from "@/components/app/i18n-provider";
 
 /**
@@ -83,24 +84,15 @@ export function BookingEmbed({
 
   return (
     <section id={anchorId} aria-labelledby={`${anchorId}-title`} className="scroll-mt-20">
-      <div className="container-app py-14 sm:py-20">
-        <div className="max-w-2xl">
-          <div className="inline-flex items-center gap-2 rounded-full border border-[#d6b26a]/40 bg-[#f7f3ea] px-3 py-1 text-xs font-semibold tracking-[0.16em] text-[#9a7430] uppercase">
-            <CalendarCheck2 aria-hidden className="size-3.5" />
-            {t("marketing.booking.eyebrow")}
-          </div>
-          <h2
-            id={`${anchorId}-title`}
-            className="font-display mt-3 text-4xl font-semibold tracking-tight text-[#0b1020] sm:text-5xl"
-          >
-            {resolvedTitle}
-          </h2>
-          <p className="mt-4 text-base leading-relaxed text-[var(--color-foreground-muted)]">
-            {resolvedSubtitle}
-          </p>
-        </div>
+      <div className="container-app py-20 sm:py-28">
+        <SectionHeading
+          id={`${anchorId}-title`}
+          eyebrow={t("marketing.booking.eyebrow")}
+          title={resolvedTitle}
+          subtitle={resolvedSubtitle}
+        />
 
-        <div className="mt-8 overflow-hidden rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] shadow-sm">
+        <div className="border-line mt-10 overflow-hidden rounded-3xl border bg-white shadow-[0_40px_80px_-50px_rgba(10,27,61,0.45)]">
           {isEmbeddable ? (
             <iframe
               src={url}
@@ -118,16 +110,13 @@ export function BookingEmbed({
         </div>
 
         {!hideFeatures ? (
-          <ul className="mt-6 grid gap-3 text-sm text-[var(--color-foreground-muted)] sm:grid-cols-2 lg:grid-cols-4">
+          <ul className="border-line bg-line text-mute mt-4 grid gap-px overflow-hidden rounded-2xl border text-sm sm:grid-cols-2 lg:grid-cols-4">
             <FeatureLi icon={CalendarCheck2}>{t("marketing.booking.liveSlots")}</FeatureLi>
             <FeatureLi icon={Mail}>{t("marketing.booking.emailConfirm")}</FeatureLi>
             <FeatureLi icon={Video}>{t("marketing.booking.videoLink")}</FeatureLi>
             <FeatureLi icon={PhoneCall}>
               {t("marketing.booking.orCall")}{" "}
-              <a
-                className="font-medium text-[var(--color-foreground)] hover:underline"
-                href="tel:+381654363142"
-              >
+              <a className="text-ink font-semibold hover:underline" href="tel:+381654363142">
                 +381 65 43 63 142
               </a>
             </FeatureLi>
@@ -152,25 +141,22 @@ function BookingShareLinkCard({ url, size }: { url: string; size: "hero" | "comp
     <div
       className={`relative flex flex-col items-center justify-center gap-5 overflow-hidden px-6 py-16 text-center sm:px-10 ${HEIGHT_CLASS[size]}`}
     >
+      <div aria-hidden className="pd-grid pd-fade-radial pointer-events-none absolute inset-0" />
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-0 -z-0 bg-gradient-to-br from-[#f7f3ea] via-white to-[#f3e2bc]/40"
-      />
-      <div
-        aria-hidden
-        className="pointer-events-none absolute -top-24 left-1/2 -z-0 h-56 w-[32rem] -translate-x-1/2 rounded-full bg-[#d6b26a]/30 blur-3xl"
+        className="pointer-events-none absolute -top-32 left-1/2 h-72 w-[40rem] -translate-x-1/2 rounded-full bg-[radial-gradient(closest-side,rgba(11,154,162,0.18),transparent)]"
       />
       <span
         aria-hidden
-        className="relative z-10 grid size-16 place-items-center rounded-full bg-[#0b1020] text-[#f3e2bc]"
+        className="bg-ink text-tide-300 relative z-10 grid size-16 place-items-center rounded-2xl"
       >
         <CalendarCheck2 className="size-7" />
       </span>
       <div className="relative z-10 max-w-lg">
-        <h3 className="text-2xl font-bold tracking-tight text-[var(--color-foreground)] sm:text-3xl">
+        <h3 className="text-ink text-2xl font-bold tracking-[-0.03em] sm:text-3xl">
           {t("marketing.booking.shareTitle")}
         </h3>
-        <p className="mt-3 text-sm leading-relaxed text-[var(--color-foreground-muted)] sm:text-base">
+        <p className="text-mute mt-3 text-sm leading-relaxed sm:text-base">
           {t("marketing.booking.shareBody")}
         </p>
       </div>
@@ -190,7 +176,7 @@ function BookingShareLinkCard({ url, size }: { url: string; size: "hero" | "comp
           {t("marketing.common.callUs")}
         </a>
       </div>
-      <p className="relative z-10 mt-1 flex items-center gap-1.5 text-xs text-[var(--color-foreground-subtle)]">
+      <p className="text-faint relative z-10 mt-1 flex items-center gap-1.5 font-mono text-[11px] tracking-wide">
         <ExternalLink aria-hidden className="size-3" />
         {t("marketing.booking.newTab")}
       </p>
@@ -206,15 +192,15 @@ function BookingFallback({ size }: { size: "hero" | "compact" }) {
     >
       <span
         aria-hidden
-        className="grid h-14 w-14 place-items-center rounded-full bg-[#0b1020] text-[#f3e2bc]"
+        className="bg-ink text-tide-300 grid size-14 place-items-center rounded-2xl"
       >
         <CalendarCheck2 className="size-6" />
       </span>
       <div className="max-w-md">
-        <h3 className="text-lg font-semibold text-[var(--color-foreground)]">
+        <h3 className="text-ink text-xl font-bold tracking-[-0.025em]">
           {t("marketing.booking.fallbackTitle")}
         </h3>
-        <p className="mt-2 text-sm text-[var(--color-foreground-muted)]">
+        <p className="text-mute mt-2 text-sm leading-relaxed">
           {t("marketing.booking.fallbackBody")}
         </p>
       </div>
@@ -239,8 +225,8 @@ function FeatureLi({
   children: React.ReactNode;
 }) {
   return (
-    <li className="flex items-start gap-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-3">
-      <Icon aria-hidden className="mt-0.5 size-4 text-[#9a7430]" />
+    <li className="flex items-start gap-2.5 bg-white p-4">
+      <Icon aria-hidden className="text-tide-700 mt-0.5 size-4 flex-none" strokeWidth={1.75} />
       <span>{children}</span>
     </li>
   );

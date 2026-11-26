@@ -44,7 +44,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default function MarketingLayout({ children }: { children: ReactNode }) {
   return (
-    <div className="marketing-site flex min-h-dvh flex-col bg-[#f7f3ea] text-[#0b1020]">
+    <div className="marketing-site bg-paper text-ink flex min-h-dvh flex-col">
       <ScrollToTopOnRouteChange />
       <MarketingHeader />
       <main id="main-content" role="main" className="flex-1">

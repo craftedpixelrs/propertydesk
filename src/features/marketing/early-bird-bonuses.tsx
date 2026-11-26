@@ -12,7 +12,9 @@ import {
 } from "lucide-react";
 
 import { useT } from "@/components/app/i18n-provider";
+import { Eyebrow, Index } from "@/features/marketing/ui";
 import type { TranslationKey } from "@/lib/i18n";
+import { cn } from "@/lib/utils";
 
 interface Bonus {
   icon: LucideIcon;
@@ -23,13 +25,13 @@ interface Bonus {
 
 const BONUSES: Bonus[] = [
   {
-    icon: CalendarClock,
+    icon: Percent,
     titleKey: "marketing.bonuses.trialTitle",
     bodyKey: "marketing.bonuses.trialBody",
     highlight: true,
   },
   {
-    icon: Percent,
+    icon: CalendarClock,
     titleKey: "marketing.bonuses.discountTitle",
     bodyKey: "marketing.bonuses.discountBody",
     highlight: true,
@@ -57,91 +59,69 @@ const BONUSES: Bonus[] = [
   { icon: Lock, titleKey: "marketing.bonuses.lockTitle", bodyKey: "marketing.bonuses.lockBody" },
 ];
 
+/** What a new client gets at the start: a ruled list beside the headline. */
 export function EarlyBirdBonuses() {
   const t = useT();
 
   return (
-    <section
-      id="rana-ponuda"
-      aria-labelledby="bonuses-title"
-      className="scroll-mt-20 border-t border-[var(--color-border)]"
-    >
-      <div className="container-app py-16 sm:py-20">
-        <div className="max-w-3xl">
-          <div className="flex flex-wrap items-center gap-3 text-xs font-semibold tracking-[0.16em] text-[#9a7430] uppercase">
-            <span className="inline-flex items-center rounded-full bg-[#0b1020] px-2.5 py-1 text-[10px] tracking-[0.16em] text-[#f3e2bc]">
-              {t("marketing.common.earlyAccess")}
+    <section id="rana-ponuda" aria-labelledby="bonuses-title" className="scroll-mt-20 bg-white">
+      <div className="container-app grid gap-12 py-20 sm:py-28 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:gap-16">
+        <div className="lg:sticky lg:top-28 lg:self-start">
+          <Eyebrow>
+            <span className="flex flex-wrap items-center gap-2.5">
+              <span className="bg-ink text-tide-300 rounded-md px-2 py-1 text-[10px]">
+                {t("marketing.common.earlyAccess")}
+              </span>
+              {t("marketing.bonuses.until")}
             </span>
-            <span>{t("marketing.bonuses.until")}</span>
-          </div>
+          </Eyebrow>
           <h2
             id="bonuses-title"
-            className="font-display mt-3 text-4xl font-semibold tracking-tight text-[#0b1020] sm:text-5xl"
+            className="text-ink mt-4 text-[2rem] leading-[1.08] font-bold tracking-[-0.035em] text-balance sm:text-[2.6rem] lg:text-[3rem]"
           >
             {t("marketing.bonuses.title")}
           </h2>
-          <p className="mt-4 text-base leading-relaxed text-[var(--color-foreground-muted)]">
-            <strong className="font-semibold text-[var(--color-foreground)]">
-              {t("marketing.bonuses.leadStrong")}
-            </strong>{" "}
+          <p className="text-mute mt-5 text-base leading-relaxed sm:text-[1.05rem]">
+            <strong className="text-ink font-semibold">{t("marketing.bonuses.leadStrong")}</strong>{" "}
             {t("marketing.bonuses.leadRest")}
+          </p>
+          <p className="border-line text-faint mt-8 border-t pt-5 text-xs leading-relaxed">
+            {t("marketing.bonuses.footnote")}
           </p>
         </div>
 
-        <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <ul className="border-line border-t">
           {BONUSES.map((b, index) => {
             const Icon = b.icon;
             return (
-              <article
+              <li
                 key={b.titleKey}
                 data-reveal=""
-                style={{ "--pd-delay": `${(index % 3) * 80}ms` } as React.CSSProperties}
-                className={
-                  b.highlight
-                    ? "rounded-2xl bg-[#0b1020] p-6 text-[#f7f3ea]"
-                    : "rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-6"
-                }
+                style={{ "--pd-delay": `${index * 60}ms` } as React.CSSProperties}
+                className="border-line group flex items-start gap-4 border-b py-5 sm:gap-5 sm:py-6"
               >
-                <div className="flex items-start gap-3">
-                  <span
-                    aria-hidden
-                    className={
-                      b.highlight
-                        ? "grid size-10 flex-none place-items-center rounded-xl bg-[#d6b26a]/20 text-[#f3e2bc]"
-                        : "grid size-10 flex-none place-items-center rounded-xl bg-[#f7f3ea] text-[#0b1020]"
-                    }
-                  >
-                    <Icon className="size-5" />
-                  </span>
-                  <div className="min-w-0">
-                    <h3
-                      className={
-                        b.highlight
-                          ? "font-display text-lg font-semibold"
-                          : "font-display text-lg font-semibold text-[#0b1020]"
-                      }
-                    >
-                      {t(b.titleKey)}
-                    </h3>
-                    <p
-                      className={
-                        b.highlight
-                          ? "mt-1.5 text-sm leading-relaxed text-white/65"
-                          : "mt-1.5 text-sm leading-relaxed text-[var(--color-foreground-muted)]"
-                      }
-                    >
-                      {t(b.bodyKey)}
-                    </p>
-                  </div>
+                <span
+                  aria-hidden
+                  className={cn(
+                    "grid size-11 flex-none place-items-center rounded-xl",
+                    b.highlight
+                      ? "bg-ink text-tide-300"
+                      : "border-line text-tide-700 border bg-white",
+                  )}
+                >
+                  <Icon className="size-5" strokeWidth={1.75} />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <h3 className="text-ink text-[1.05rem] leading-snug font-bold tracking-[-0.02em] sm:text-lg">
+                    {t(b.titleKey)}
+                  </h3>
+                  <p className="text-mute mt-1.5 text-sm leading-relaxed">{t(b.bodyKey)}</p>
                 </div>
-              </article>
+                <Index n={index + 1} className="text-faint mt-1 hidden sm:block" />
+              </li>
             );
           })}
-        </div>
-
-        <p className="mt-6 text-xs text-[var(--color-foreground-subtle)]">
-          {t("marketing.bonuses.footnote")}
-        </p>
+        </ul>
       </div>
     </section>
   );

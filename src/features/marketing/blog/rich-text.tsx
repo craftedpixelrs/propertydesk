@@ -25,7 +25,7 @@ function isSafeHref(href: string): boolean {
 }
 
 const linkClass =
-  "font-medium text-[#0b1020] underline decoration-[#d6b26a] decoration-2 underline-offset-4 hover:text-[#9a7430]";
+  "text-ink decoration-tide hover:text-tide-700 font-semibold underline decoration-2 underline-offset-4 transition-colors";
 
 /** Internal paths and a short allow-list of official https pages. */
 export function RichText({ text }: { text: string }) {

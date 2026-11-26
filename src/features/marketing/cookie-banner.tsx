@@ -31,24 +31,24 @@ export function CookieBanner() {
         role="dialog"
         aria-labelledby="cookie-banner-title"
         aria-describedby="cookie-banner-body"
-        className="pd-rise pointer-events-auto w-full max-w-md rounded-3xl border border-white/10 bg-[#0b1020] p-5 text-[#f7f3ea] shadow-[0_24px_70px_-28px_rgba(0,0,0,0.7)]"
+        className="pd-rise border-line text-ink pointer-events-auto w-full max-w-md rounded-2xl border bg-white p-5 shadow-[0_32px_70px_-30px_rgba(10,27,61,0.55)]"
       >
         <div className="flex items-start gap-3">
           <span
             aria-hidden
-            className="grid size-10 flex-none place-items-center rounded-2xl bg-[#d6b26a]/15 text-[#f3e2bc]"
+            className="bg-tide-50 text-tide-700 grid size-10 flex-none place-items-center rounded-[10px]"
           >
             <Cookie className="size-5" />
           </span>
           <div className="min-w-0">
-            <h2 id="cookie-banner-title" className="font-display text-lg font-semibold">
+            <h2 id="cookie-banner-title" className="text-base font-bold tracking-[-0.02em]">
               {t("marketing.cookies.title")}
             </h2>
-            <p id="cookie-banner-body" className="mt-1.5 text-sm leading-relaxed text-white/65">
+            <p id="cookie-banner-body" className="text-mute mt-1.5 text-sm leading-relaxed">
               {t("marketing.cookies.body")}{" "}
               <Link
                 href="/privatnost#kolacici"
-                className="text-[#f3e2bc] underline decoration-[#d6b26a]/50 underline-offset-2 hover:text-white"
+                className="text-tide-700 hover:text-ink font-medium underline underline-offset-2"
               >
                 {t("marketing.cookies.privacyLink")}
               </Link>
@@ -59,7 +59,7 @@ export function CookieBanner() {
         <div className="mt-4 grid grid-cols-2 gap-2">
           <button
             type="button"
-            className={marketingCta("outlineDark", "sm", "w-full")}
+            className={marketingCta("outline", "sm", "w-full")}
             onClick={() => {
               writeCookieConsent("rejected");
               setVisible(false);
@@ -69,7 +69,7 @@ export function CookieBanner() {
           </button>
           <button
             type="button"
-            className={marketingCta("cream", "sm", "w-full")}
+            className={marketingCta("ink", "sm", "w-full")}
             onClick={() => {
               writeCookieConsent("accepted");
               setVisible(false);
@@ -88,7 +88,7 @@ export function CookieSettingsButton() {
   return (
     <button
       type="button"
-      className="text-white/65 hover:text-white"
+      className="text-white/60 transition-colors hover:text-white"
       onClick={() => {
         window.dispatchEvent(new Event(COOKIE_SETTINGS_EVENT));
       }}

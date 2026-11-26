@@ -107,30 +107,25 @@ export const COOKIE_SETTINGS_EVENT = "pd-cookie-settings";
 export type CookieConsent = "accepted" | "rejected";
 
 /**
- * Landing-page visual assets.
- *
- * Drop the files under [public/images/landing/](../../../public/images/landing)
- * with the exact names below. When a file is present at that path, the
- * matching `MockupFrame` on the landing renders it via `next/image`;
- * when it's missing, the frame gracefully falls back to a "Prikaz
- * uskoro" placeholder in the same aspect ratio so no layout shifts.
- *
- * Set the value to `null` if you want to force the placeholder even
- * when a file exists (e.g. temporarily hide a mockup while iterating).
+ * Landing-page visual assets, all under
+ * [public/images/landing/](../../../public/images/landing).
  */
 export const LANDING_IMAGES = {
-  /** Desktop dashboard mockup in the hero. Natural aspect ratio preserved. */
-  heroDesktop: {
-    src: "/images/landing/desktop.webp",
-    width: 1448,
-    height: 1086,
-  } as { src: string; width: number; height: number } | null,
-  /** Mobile app mockup in the "personas" section. Natural aspect ratio preserved. */
-  personasMobile: {
-    src: "/images/landing/mobile.webp",
-    width: 1122,
-    height: 1402,
-  } as { src: string; width: number; height: number } | null,
+  /**
+   * Real screens captured from the demo organisations at 1440×810,
+   * exported at 2400 px wide. The marketing site draws its own browser
+   * window around them.
+   */
+  screens: {
+    reservations: { src: "/images/landing/app-reservations.webp", width: 2400, height: 1350 },
+    units: { src: "/images/landing/app-units.webp", width: 2400, height: 1350 },
+    sale: { src: "/images/landing/app-sale.webp", width: 2400, height: 1350 },
+    payments: { src: "/images/landing/app-payments.webp", width: 2400, height: 1350 },
+    dashboard: { src: "/images/landing/app-dashboard.webp", width: 2400, height: 1350 },
+    agency: { src: "/images/landing/app-agency.webp", width: 2400, height: 1350 },
+    manager: { src: "/images/landing/app-manager.webp", width: 2400, height: 1350 },
+    mobile: { src: "/images/landing/app-mobile.webp", width: 790, height: 1620 },
+  },
   /** Square brand mark used in the marketing header, footer, and social preview. */
   logo: {
     src: "/images/landing/logo.png",

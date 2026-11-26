@@ -1,11 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { Plus } from "lucide-react";
+import Link from "next/link";
+import { ArrowRight, Plus } from "lucide-react";
 
 import { useT } from "@/components/app/i18n-provider";
 import { cn } from "@/lib/utils";
 import { faqItems } from "@/features/marketing/faq-items";
+import { marketingCta } from "@/features/marketing/marketing-cta";
+import { SectionHeading } from "@/features/marketing/ui";
 
 /**
  * FAQ accordion with smooth open/close animation.
@@ -39,31 +42,28 @@ export function Faq() {
   };
 
   return (
-    <section
-      id="faq"
-      aria-labelledby="faq-title"
-      className="scroll-mt-20 border-t border-[#0b1020]/10 bg-white"
-    >
-      <div className="container-app py-16 sm:py-20">
-        <div className="max-w-3xl">
-          <div className="text-xs font-semibold tracking-[0.18em] text-[#9a7430] uppercase">
-            {t("marketing.faq.eyebrow")}
-          </div>
-          <h2
+    <section id="faq" aria-labelledby="faq-title" className="border-line scroll-mt-20 border-t">
+      <div className="container-app grid gap-10 py-20 sm:py-28 lg:grid-cols-[minmax(0,4fr)_minmax(0,8fr)] lg:gap-16">
+        <div className="lg:sticky lg:top-28 lg:self-start">
+          <SectionHeading
             id="faq-title"
-            className="font-display mt-3 text-4xl font-semibold tracking-tight text-[#0b1020] sm:text-5xl"
-          >
-            {t("marketing.faq.title")}
-          </h2>
+            eyebrow={t("marketing.faq.eyebrow")}
+            title={t("marketing.faq.title")}
+          />
+          <p className="text-mute mt-5 text-sm leading-relaxed">{t("marketing.nav.faqBody")}</p>
+          <Link href="/demo" className={marketingCta("ink", "md", "mt-6")}>
+            {t("marketing.common.bookDemoShort")}
+            <ArrowRight aria-hidden className="size-4" />
+          </Link>
         </div>
 
-        <div className="mt-10 divide-y divide-[#0b1020]/10 overflow-hidden rounded-3xl border border-[#0b1020]/10 bg-[#f7f3ea]">
+        <div className="border-line border-t">
           {items.map((f, idx) => {
             const isOpen = openIndexes.has(idx);
             const panelId = `faq-panel-${idx}`;
             const triggerId = `faq-trigger-${idx}`;
             return (
-              <div key={f.question} className="px-5 sm:px-6">
+              <div key={f.question} className="border-line border-b">
                 <h3 className="m-0">
                   <button
                     type="button"
@@ -71,16 +71,27 @@ export function Faq() {
                     aria-expanded={isOpen}
                     aria-controls={panelId}
                     onClick={() => toggle(idx)}
-                    className="flex w-full cursor-pointer items-center justify-between gap-4 py-4 text-left text-base font-medium text-[#0b1020] transition-colors hover:text-[#9a7430]"
+                    className="group text-ink flex w-full cursor-pointer items-start gap-4 py-5 text-left text-[1.05rem] leading-snug font-semibold tracking-[-0.015em] sm:gap-5"
                   >
-                    <span>{f.question}</span>
                     <span
                       aria-hidden
                       className={cn(
-                        "grid h-8 w-8 flex-none place-items-center rounded-md border transition duration-300 ease-out",
+                        "mt-0.5 w-6 flex-none font-mono text-[11px] font-medium tracking-[0.14em] tabular-nums transition-colors",
+                        isOpen ? "text-tide-700" : "text-faint",
+                      )}
+                    >
+                      {String(idx + 1).padStart(2, "0")}
+                    </span>
+                    <span className="group-hover:text-tide-700 flex-1 transition-colors">
+                      {f.question}
+                    </span>
+                    <span
+                      aria-hidden
+                      className={cn(
+                        "grid size-7 flex-none place-items-center rounded-lg border transition duration-300 ease-out",
                         isOpen
-                          ? "rotate-45 border-[#d6b26a] bg-[#0b1020] text-[#f3e2bc]"
-                          : "border-[#0b1020]/15 text-[#0b1020]/55",
+                          ? "border-ink bg-ink text-tide-300 rotate-45"
+                          : "border-line text-mute group-hover:border-ink/40 bg-white",
                       )}
                     >
                       <Plus className="size-4" />
@@ -97,7 +108,7 @@ export function Faq() {
                   )}
                 >
                   <div className="min-h-0">
-                    <div className="pb-4 text-sm leading-relaxed text-[var(--color-foreground-muted)]">
+                    <div className="text-mute max-w-2xl pr-11 pb-6 pl-10 text-[0.95rem] leading-relaxed sm:pl-11">
                       {f.answer}
                     </div>
                   </div>

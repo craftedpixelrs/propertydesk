@@ -1,92 +1,128 @@
 "use client";
 
-import { ArrowRight } from "lucide-react";
+import Link from "next/link";
+import { ArrowRight, FileClock, Lock, MapPin, ShieldCheck } from "lucide-react";
 
-import { DEMO_APP_URL, LANDING_IMAGES } from "@/lib/constants/app";
+import { APP_NAME, DEMO_APP_URL, LANDING_IMAGES } from "@/lib/constants/app";
 import { marketingCta } from "@/features/marketing/marketing-cta";
-import { MockupFrame } from "@/features/marketing/mockup-frame";
+import { BrowserFrame, PhoneFrame } from "@/features/marketing/mockup-frame";
 import { useT } from "@/components/app/i18n-provider";
 
 /**
- * Opening band. Ink background and a serif headline so the landing
- * reads as a property brand, not a generic light SaaS template.
+ * Opening band. Headline on drafting paper, then the product itself:
+ * a real reservations board in a drawn window, with the phone view
+ * leaning on its corner.
  */
 export function Hero() {
   const t = useT();
+  const facts = [
+    { icon: ShieldCheck, label: t("marketing.proof.dataEu") },
+    { icon: Lock, label: t("marketing.proof.encryption") },
+    { icon: FileClock, label: t("marketing.proof.audit") },
+    { icon: MapPin, label: t("marketing.footer.madeFor") },
+  ];
 
   return (
-    <section
-      className="relative overflow-hidden bg-[#0b1020] text-white"
-      aria-labelledby="hero-title"
-    >
+    <section className="relative overflow-hidden" aria-labelledby="hero-title">
+      <div aria-hidden className="pd-grid pd-fade-radial pointer-events-none absolute inset-0" />
       <div
         aria-hidden
-        className="pd-glow pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,rgba(214,178,106,0.28),transparent_48%),radial-gradient(ellipse_at_85%_110%,rgba(214,178,106,0.16),transparent_42%)]"
-      />
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 [background-image:linear-gradient(rgba(255,255,255,0.08)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.08)_1px,transparent_1px)] [mask-image:radial-gradient(ellipse_at_center,black,transparent_75%)] [background-size:72px_72px] opacity-[0.18]"
+        className="pointer-events-none absolute -top-48 left-1/2 h-[38rem] w-[72rem] -translate-x-1/2 rounded-full bg-[radial-gradient(closest-side,rgba(11,154,162,0.17),transparent)]"
       />
 
-      <div className="container-app relative grid items-center gap-12 py-16 sm:py-20 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] lg:gap-10 lg:py-24">
-        <div className="max-w-2xl">
-          <p className="pd-rise inline-flex items-center gap-2 rounded-full border border-[#d6b26a]/40 bg-[#d6b26a]/10 px-3 py-1 text-xs font-semibold tracking-wide text-[#f3e2bc]">
-            <span className="size-1.5 rounded-full bg-[#d6b26a]" />
-            {t("marketing.hero.launchBadge")}
+      <div className="container-app relative pt-12 sm:pt-16 lg:pt-20">
+        <div className="mx-auto max-w-4xl text-center">
+          <p className="pd-rise border-line text-mute inline-flex max-w-full items-center gap-2.5 rounded-full border bg-white py-1 pr-3.5 pl-1 text-[0.8rem] font-medium shadow-[0_6px_16px_-12px_rgba(10,27,61,0.5)]">
+            <span className="bg-ink text-tide-300 rounded-full px-2.5 py-1 font-mono text-[10px] font-medium tracking-[0.12em] uppercase">
+              {t("marketing.hero.launchBadge")}
+            </span>
+            <span className="truncate">{t("marketing.hero.earlyAccessBadge")}</span>
           </p>
 
           <h1
             id="hero-title"
-            className="pd-rise font-display mt-6 text-4xl leading-[1.05] font-semibold tracking-[-0.03em] text-balance text-[#f7f3ea] sm:text-6xl lg:text-[4.25rem]"
-            style={{ animationDelay: "80ms" }}
+            className="pd-rise text-ink mt-7 text-[2.55rem] leading-[1.02] font-bold tracking-[-0.045em] text-balance sm:text-6xl lg:text-[4.6rem]"
+            style={{ animationDelay: "70ms" }}
           >
             {t("marketing.hero.title")}
           </h1>
 
           <p
-            className="pd-rise mt-5 max-w-xl text-base leading-relaxed text-pretty text-white/70 sm:text-lg"
-            style={{ animationDelay: "150ms" }}
+            className="pd-rise text-mute mx-auto mt-6 max-w-2xl text-base leading-relaxed text-pretty sm:text-lg"
+            style={{ animationDelay: "140ms" }}
           >
             {t("marketing.hero.subtitle")}
           </p>
 
           <div
-            className="pd-rise mt-8 flex flex-col items-stretch gap-3 sm:flex-row sm:items-center"
-            style={{ animationDelay: "220ms" }}
+            className="pd-rise mt-9 flex flex-col items-stretch justify-center gap-3 sm:flex-row sm:items-center"
+            style={{ animationDelay: "210ms" }}
           >
-            <a href={DEMO_APP_URL} className={marketingCta("cream", "lg", "w-full sm:w-auto")}>
+            <a href={DEMO_APP_URL} className={marketingCta("ink", "lg", "w-full sm:w-auto")}>
               {t("marketing.header.openDemo")}
               <ArrowRight aria-hidden className="size-4" />
             </a>
-            <a href="#cenovnik" className={marketingCta("quietDark", "lg", "w-full sm:w-auto")}>
-              {t("marketing.nav.pricing")}
-            </a>
+            <Link href="/demo" className={marketingCta("outline", "lg", "w-full sm:w-auto")}>
+              {t("marketing.hero.bookDemo")}
+            </Link>
           </div>
 
-          <p className="pd-rise mt-4 text-sm text-[#f3e2bc]/90" style={{ animationDelay: "300ms" }}>
-            {t("marketing.hero.earlyAccessBadge")}
-          </p>
-          <p className="pd-rise mt-1 text-xs text-white/45" style={{ animationDelay: "340ms" }}>
+          <p className="pd-rise text-faint mt-4 text-sm" style={{ animationDelay: "270ms" }}>
             {t("marketing.hero.noObligation")}
           </p>
         </div>
 
-        <div className="pd-rise relative min-w-0" style={{ animationDelay: "200ms" }}>
+        <div
+          className="pd-rise relative mx-auto mt-12 max-w-[1080px] sm:mt-16 lg:pr-10 lg:pb-12"
+          style={{ animationDelay: "260ms" }}
+        >
           <div
             aria-hidden
-            className="absolute -inset-6 -z-10 rounded-[2rem] bg-[#d6b26a]/10 blur-2xl"
+            className="bg-tide/20 absolute inset-x-10 -bottom-6 h-40 rounded-full blur-3xl lg:bottom-6"
           />
-          <div className="pd-float rounded-[1.4rem] border border-white/10 bg-white/[0.04] p-2 shadow-[0_30px_80px_-30px_rgba(0,0,0,0.7)] sm:p-3">
-            <MockupFrame
-              variant="desktop"
-              src={LANDING_IMAGES.heroDesktop?.src}
-              width={LANDING_IMAGES.heroDesktop?.width}
-              height={LANDING_IMAGES.heroDesktop?.height}
-              alt={t("marketing.hero.mockupAlt")}
-              priority
-            />
-          </div>
+          <BrowserFrame
+            screen={LANDING_IMAGES.screens.reservations}
+            alt={`${APP_NAME} — ${t("marketing.features.items.reservations.title")}`}
+            sizes="(min-width: 1152px) 1040px, 94vw"
+            priority
+            className="relative hidden sm:block"
+          />
+          {/* On a phone the whole window would be unreadable: show the board itself. */}
+          <BrowserFrame
+            screen={LANDING_IMAGES.screens.reservations}
+            alt={`${APP_NAME} — ${t("marketing.features.items.reservations.title")}`}
+            sizes="190vw"
+            crop="aspect-[10/9]"
+            detail
+            className="relative sm:hidden"
+          />
+          <PhoneFrame
+            screen={LANDING_IMAGES.screens.mobile}
+            alt={t("marketing.personas.mobileAlt")}
+            sizes="210px"
+            className="absolute right-0 bottom-0 hidden w-[210px] lg:block"
+          />
         </div>
+
+        <ul className="border-line mt-12 grid grid-cols-2 border-t sm:mt-16 lg:grid-cols-4">
+          {facts.map((fact, index) => {
+            const Icon = fact.icon;
+            return (
+              <li
+                key={fact.label}
+                className={
+                  "text-mute border-line flex items-center gap-2.5 py-5 text-[0.82rem] leading-snug font-medium sm:py-6 " +
+                  (index % 2 === 1 ? "border-l pl-4 sm:pl-6 " : "pr-4 ") +
+                  (index >= 2 ? "border-t lg:border-t-0 " : "") +
+                  (index === 2 ? "lg:border-l lg:pl-6" : "")
+                }
+              >
+                <Icon aria-hidden className="text-tide-700 size-4 flex-none" strokeWidth={1.75} />
+                <span>{fact.label}</span>
+              </li>
+            );
+          })}
+        </ul>
       </div>
     </section>
   );
