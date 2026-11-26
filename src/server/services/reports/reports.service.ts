@@ -517,6 +517,7 @@ export interface PaymentsReport {
 export async function buildPaymentsReport(filters: ReportFilters): Promise<PaymentsReport> {
   const where: Prisma.PaymentWhereInput = {
     organizationId: filters.organizationId,
+    ...(filters.projectId ? { sale: { projectId: filters.projectId } } : {}),
     ...(filters.from || filters.to
       ? {
           paymentDate: {

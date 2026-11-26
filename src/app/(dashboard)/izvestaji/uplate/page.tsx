@@ -11,6 +11,7 @@ import {
   exportHrefs,
 } from "@/features/reports/report-filters";
 import { requirePermission } from "@/server/permissions/require";
+import { prisma } from "@/server/db/prisma";
 import { buildPaymentsReport } from "@/server/services/reports/reports.service";
 import { buildCashFlowProjection } from "@/server/services/reports/cash-flow.service";
 import { CashFlowCard } from "@/features/reports/cash-flow-card";
@@ -38,7 +39,7 @@ export default async function PaymentsReportPage({ searchParams }: PageProps) {
     ...parsed,
   });
 
-  const [report, cashflow] = await Promise.all([
+  const [report, cashflow, projects] = await Promise.all([
     buildPaymentsReport(filters),
     buildCashFlowProjection({
       organizationId: ctx.organization.organizationId,
@@ -46,6 +47,11 @@ export default async function PaymentsReportPage({ searchParams }: PageProps) {
       months: 12,
       from: filters.from,
       to: filters.to,
+    }),
+    prisma.project.findMany({
+      where: { organizationId: ctx.organization.organizationId, archivedAt: null },
+      select: { id: true, name: true },
+      orderBy: { name: "asc" },
     }),
   ]);
   const currency = report.totals.currency as SupportedCurrency;
@@ -63,8 +69,8 @@ export default async function PaymentsReportPage({ searchParams }: PageProps) {
 
       <ReportFilters
         action="/izvestaji/uplate"
-        projects={[]}
-        showProjectFilter={false}
+        projects={projects}
+        selectedProjectId={parsed.projectId}
         from={parsed.from}
         to={parsed.to}
         exportCsvHref={hrefs.csv}
